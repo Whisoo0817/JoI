@@ -4,6 +4,7 @@ import os
 import json
 import re
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from openai import OpenAI
 
 # Modify OpenAI's API key and API base to use llama-server's API server.
@@ -25,8 +26,9 @@ def run_llm_inference(model, client, inference_type, messages, debug=False):
     chat_completion = client.chat.completions.create(
         messages=messages,
         model=model,
-        temperature=0,
+        temperature=0.1,
         stream=False,
+        extra_body={"chat_template_kwargs": {"enable_thinking": False}}
     )
     end_inference = time.perf_counter()
     elapsed = end_inference - start_inference
