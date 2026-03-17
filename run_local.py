@@ -9,7 +9,7 @@ from openai import OpenAI
 
 # Modify OpenAI's API key and API base to use llama-server's API server.
 openai_api_key = "EMPTY"
-openai_api_base = "http://localhost:8001/v1"
+openai_api_base = os.environ.get("LLM_BASE_URL", "http://localhost:8000/v1")
 
 SERVICE_LIST_PATH = "files/service_list_ver2.0.1.json"
 DEVICE_LIST = ['AirConditioner', 'AirPurifier', 'AirQualitySensor', 'ArmRobot', 'AudioRecorder', 'Button', 'Camera', 'CarbonDioxideSensor', 'Charger', 'Clock', 'CloudServiceProvider', 'ColorControl', 'ContactSensor', 'Dehumidifier', 'Dishwasher', 'Door', 'DoorLock', 'EmailProvider', 'FaceRecognizer', 'Humidifier', 'HumiditySensor', 'LaundryDryer', 'LeakSensor', 'LevelControl', 'Light', 'LightSensor', 'MenuProvider', 'MotionSensor', 'MultiButton', 'Oven', 'Plug', 'PresenceSensor', 'PressureSensor', 'Pump', 'RainSensor', 'RiceCooker', 'RobotVacuumCleaner', 'RotaryControl', 'Safe', 'Siren', 'SmokeDetector', 'SoundSensor', 'Speaker', 'Switch', 'Television', 'TemperatureSensor', 'Valve', 'WeatherProvider', 'WindowCovering']
@@ -329,9 +329,12 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
             
         return cmd_type, conclusion
 
-    # 5. Execute Sequential Tasks (Mapping & Routing)
-    services, is_connected = run_mapping()
-    cmd_type, router_conclusion = run_router()
+    # 5. Execute Parallel Tasks (Mapping & Routing)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        f_mapping = executor.submit(run_mapping)
+        f_router = executor.submit(run_router)
+        services, is_connected = f_mapping.result()
+        cmd_type, router_conclusion = f_router.result()
     
     # 6. Joi Generation Branching
     type_to_prompt_key = {

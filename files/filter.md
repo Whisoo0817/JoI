@@ -68,3 +68,7 @@ true
 [Command]
 At 1 PM, open all blinds.
 true
+
+[Command]
+When the button is pushed 3 times, open the valve.
+true
