@@ -255,9 +255,9 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
             precision_messages = [{"role": "system", "content": prompts.get("connect_mapping_precision", "")}, {"role": "user", "content": precision_input}]
             precision_output = run_llm_inference(model, client, "connect_mapping_precision", precision_messages, debug=debug)
 
-            # Parse Step2 from precision_output
-            step2_match = re.search(r'<Step2>\s*(.*?)\s*</Step2>', precision_output, re.DOTALL)
-            step2_selectors = step2_match.group(1).strip() if step2_match else precision_output.strip()
+            # Parse selectors after </Reasoning>
+            reasoning_split = re.split(r'</Reasoning>', precision_output, maxsplit=1)
+            step2_selectors = reasoning_split[1].strip() if len(reasoning_split) > 1 else precision_output.strip()
             # ❇️ Quantifier (single/all/any)
             quant_input = f"[Command]\n{sentence}\n[Devices]\n{step2_selectors}"
             quant_messages = [{"role": "system", "content": prompts.get("connect_quantifier", "")}, {"role": "user", "content": quant_input}]
