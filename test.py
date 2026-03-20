@@ -4,14 +4,14 @@ from run_local import generate_joi_code
 
 # [MODE: target] 테스트할 타겟 지정 (python3 test.py target)
 test_targets = {
-    # 4: [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
-    7: [12,25]
-    # 5: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
-    # 5: [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
-    # 8:[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
-    # 8:[16,17,18,19,20,21,22,23,24,25]
-    # 8: [26,27,28,29,30,31,32,33,34,35,36,37,38]
-    # 8: [39,40,41,42,43,44,45,46,47,48,49,50]
+    # 4: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
+    # 7: [23]
+    # 6: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15],
+    # 6: [16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+    # 7: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+    # 7: [16,17,18,19,20,21,22,23,24,25]
+    7: [26,27,28,29,30,31,32,33,34,35,36,37,38]
+    # 7: [39,40,41,42,43,44,45,46,47,48,49,50]
 }
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
@@ -73,8 +73,8 @@ def run_targeted_test(df, debug=False):
             print(f"({idx}) 🛑 {kor}\n 🛑 {eng}")
             try:
                 # Use ENG from CSV as base for targeted testing consistency or KOR to test translation
-                result = generate_joi_code(eng, row['connected_devices'], {}, debug=debug)
-                print(result)
+                result = generate_joi_code(kor, row['connected_devices'], {}, debug=debug)
+                # print(result)
             except Exception as e:
                 print(f"Error at Idx {idx}: {e}")
 

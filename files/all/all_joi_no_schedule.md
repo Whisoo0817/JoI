@@ -16,7 +16,7 @@ They simply perform an action, check a state right now, or include a simple time
 Output ONLY a valid XML block `<Reasoning>` followed by the raw script code. No JSON wrapper. No markdown blocks.
 
 ### Reasoning Purpose
-In `<Reasoning>`, briefly describe the code plan in 1–2 sentences.
+In `<Reasoning>`, briefly describe the code plan in 1–2 sentences. ⛔ Do NOT deliberate, reconsider, or ask "Wait".
 Focus on: what constructs to use (`if`, `delay`, sequential calls), and any edge-case logic.
 Do NOT mention services or tags.
 
@@ -47,6 +47,7 @@ Do NOT mention services or tags.
     - ❌ `if (leakDetected and valveOpen)` → Runtime error.
     - ✅ `if ((#LeakSensor).Leak == true and (#Valve).ValveState == true)`
 - **NO standalone state calls**: Do NOT write value-reading calls (e.g., `(#Sensor).Value`) on a line alone. They MUST be assigned to a variable (`val = ...`) or used inside a function.
+- **NO unnecessary service calls**: Do NOT read a value into a variable if it is never used. Only call services that are needed for the command.
 - **Workaround for abs()**: To compute an absolute difference, use an `if` statement:
     ```
     diff = a - b
@@ -85,6 +86,13 @@ Raise the blind.
 Use #Blind tag.
 </Reasoning>
 (#Blind).UpOrOpen()
+
+[Command]
+Set the speaker volume to 30.
+<Reasoning>
+Single action. No need to read current volume.
+</Reasoning>
+(#Speaker).SetVolume(30)
 
 [Command]
 Set the living room light brightness to 30 and stop the robot vacuum cleaner.

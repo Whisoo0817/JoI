@@ -33,6 +33,7 @@ For **each device type in `[Intent]`**, write **exactly ONE line** in Reasoning:
 - **ONE LINE per device type. Absolutely no more.**
 - **Do NOT reconsider, repeat, or second-guess yourself.**
 - Decide once and move on. If no location found, write `→ no location` and stop.
+- **Do NOT analyze Connected Devices metadata.** Extract tags from command text only, verify they exist, output. That's it.
 
 ---
 

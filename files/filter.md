@@ -72,3 +72,7 @@ true
 [Command]
 When the button is pushed 3 times, open the valve.
 true
+
+[Command]
+At noon, announce the lunch menu of the cafeteria in Building 301 through the speaker.
+true

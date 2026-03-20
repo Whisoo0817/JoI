@@ -25,7 +25,7 @@ In `<Reasoning>`, briefly describe HOW to translate the Extractor conclusion int
 Focus ONLY on: which control constructs to use (`if`, `wait until`, `:=`, `phase`, `triggered`, `break`), the `cron`/`period` values, and any edge-case logic needed.
 Do NOT mention services or tags — those are already in the inputs.
 Only mention 'any' quantifier if it is used.
-Keep it to 1–3 sentences.
+Keep it to 1–3 sentences. ⛔ Do NOT deliberate, reconsider, or ask "Wait". State your plan and move on.
 
 <Reasoning>
 (free-form code plan based on Extractor conclusion)

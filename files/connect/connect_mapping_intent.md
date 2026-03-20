@@ -115,3 +115,15 @@ During the weekend, check all pumps in the factory every 30 minutes; if any pump
 [Command]
 If the illuminance is below 50 and the light is off, turn on the light.
 ["LightSensor.Brightness", "Light.Switch", "Light.On"]
+
+[Command]
+If siren is off, set it to emergency mode.
+["Siren.Switch", "Siren.SetSirenMode"]
+
+[Command]
+If motion is detected and the siren is off, sound the emergency siren and take a picture.
+["MotionSensor.Motion", "Siren.Switch", "Siren.SetSirenMode", "Camera.CaptureImage"]
+
+[Command]
+If a leak is detected and the main valve is open, close all valves and sound the police siren.
+["LeakSensor.Leakage", "Valve.ValveState", "Valve.Close", "Siren.SetSirenMode"]

@@ -159,7 +159,6 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "MoveToBrightness" type="action">Set brightness</Service>
   <Service "MoveToHueAndSaturation" type="action">Set hue and saturation</Service>
   <Service "MoveToRGB" type="action">Set light color (e.g., yellow, red, or r|g|b)</Service>
-  <Service "MoveToColorTemperature" type="action">Set color temperature</Service>
 </Device>
 
 <Device "LightSensor">
@@ -253,9 +252,9 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "Stop" type="action">Stop playback</Service>
   <Service "FastForward" type="action">Fast forward</Service>
   <Service "Rewind" type="action">Rewind</Service>
-  <Service "SetVolume" type="action">Set volume (when specific value is provided)</Service>
-  <Service "VolumeUp" type="action">Increase volume by one</Service>
-  <Service "VolumeDown" type="action">Decrease volume by one</Service>
+  <Service "SetVolume" type="action">Set volume to specific number. Increase by 2,3,...</Service>
+  <Service "VolumeUp" type="action">Increase volume by one (only one)</Service>
+  <Service "VolumeDown" type="action">Decrease volume by one (only one)</Service>
   <Service "Speak" type="action">Output text as speech</Service>
 </Device>
 

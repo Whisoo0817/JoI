@@ -260,7 +260,7 @@ This is a summary of available properties (value) and functions (func) for each 
 </Device>
 
 <Device "Switch">
-  <Service "Switch" type="value">Switch state (off/on)</Service>
+  <Service "Switch" type="value">State (on/off)</Service>
   <Service "On" type="action">Turn on</Service>
   <Service "Off" type="action">Turn off</Service>
   <Service "Toggle" type="action">Toggle switch</Service>

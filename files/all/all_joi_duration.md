@@ -21,7 +21,7 @@ Output ONLY a valid XML block `<Reasoning>` followed by a valid JSON object. No 
 In `<Reasoning>`, briefly describe HOW to translate the Extractor conclusion into Joi code.
 Focus ONLY on: `cron` start time, `period` interval, `break` termination condition (which `(#Clock)` property and value), and any edge-case logic.
 Do NOT mention services or tags.
-Keep it to 1–3 sentences.
+Keep it to 1–3 sentences. ⛔ Do NOT deliberate, reconsider, or ask "Wait". State your plan and move on.
 
 <Reasoning>
 (free-form code plan)
@@ -119,7 +119,7 @@ Derive the EXACT termination by combining `cron` start + the duration's semantic
 # Examples
 
 [Command]
-At midnight, close the door and check the light every hour until 6 AM; if the brightness is greater than 30, lower it to 10.
+At midnight, close the door. Then, check the light every hour until 6 AM; if the brightness is greater than 30, lower it to 10.
 [Analysis] 'At midnight... until 6 AM' is a duration. 'every hour' is an interval.
 [Conclusion] From midnight until 6 AM, close door then check light every 1 hour.
 <Reasoning>
@@ -148,7 +148,7 @@ Every 5 minutes from 1 PM to 3 PM, repeat opening and closing the valve.
 [Analysis] 'Every 5 minutes' is a recurring interval. 'from 1 PM to 3 PM' is a duration.
 [Conclusion] From 1 PM to 3 PM, act every 5 minutes.
 <Reasoning>
-Sub-day duration, break at 3 PM: (#Clock).Hour == 15. Periodic toggle between two actions, period=300000. Each tick must produce a different action, so use a := variable to track the current mode across ticks.
+Sub-day duration, break at 3 PM: (#Clock).Hour == 15. period=300000. Each tick produces a different action(opening and closing), so use a := variable to track the current mode across ticks.
 </Reasoning>
 {
   "cron": "0 13 * * *",
@@ -167,11 +167,11 @@ if (open == false) {
 }
 
 [Command]
-Take a picture with the camera every hour from now until midnight.
+Every hour from now until midnight, sound the police siren for 3 seconds.
 [Analysis] 'from now until midnight' is a duration. 'every hour' is a recurring interval.
 [Conclusion] From now until midnight, act every 1 hour.
 <Reasoning>
-No cron (starts now), period=3600000. Break at midnight: (#Clock).Hour == 0.
+No cron (starts now), period=3600000. Break at midnight: (#Clock).Hour == 0. On every tick, it must repeat the sequence of sounding the siren for 3 seconds and then turning it off. 
 </Reasoning>
 {
   "cron": "",
@@ -179,7 +179,9 @@ No cron (starts now), period=3600000. Break at midnight: (#Clock).Hour == 0.
   "script": "if ((#Clock).Hour == 0) {
     break
 }
-(#Camera).CaptureImage()"
+(#Siren).SetSirenMode("police")
+delay(3 SEC)
+(#Siren).Off()
 }
 
 [Command]
