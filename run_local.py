@@ -196,7 +196,7 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
         is_connected = False
         if isinstance(connected_devices, dict) and connected_devices:
             is_connected = True
-            print(connected_devices)
+            # print(connected_devices)
             # Parse & Make filtered summary file
             local_service_summary = parse_service_summary(connected_devices, summary_connect_path)     
 

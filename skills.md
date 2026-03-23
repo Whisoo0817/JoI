@@ -1,115 +1,194 @@
-# AI Workflow and Joi Code Generation Pipeline
+# JoI Code Generation Pipeline
 
-This document details the architecture, methodology, and pipeline design for generating optimal Joi automation code using a small local LLM (Qwen3.5-9B-Q4_K_M).
+## 1. Project Overview
 
-## 1. What is Joi Code? (Differences from Python)
-Joi is a Domain-Specific Language (DSL) tailored for IoT automation. While it looks similar to Python or C-style languages, it has strict temporal and state-management rules that distinguish it from general-purpose languages.
-
-### Key Characteristics & Restrictions
-*   **Initialization vs. Assignment**: Joi strictly differentiates between state initialization (`:=`) which happens only on the very first execution tick, and ticking assignment (`=`) which happens on every polling cycle.
-*   **No Native Loops**: Standard iteration tools like `for` or `while` loops are strictly prohibited. Iteration must be achieved by leveraging the external `period` JSON property to reinvoke the script.
-*   **Temporal Delays**: Instead of `time.sleep()`, Joi uses specialized `delay(N UNIT)` constructs (e.g., `delay(10 MIN)`), which pause execution at that specific line without blocking the entire IoT ecosystem.
-*   **Wait Blocks**: Unlike standard `if` statements, `wait until (Condition)` pauses the script entirely until the event occurs, which is heavily used for event-driven triggers.
-*   **Quantifiers**: Multi-device operations rely on explicit [all(#Tag).Action()](run_local.py#50-68) and specialized "any" operators like `==|` or `>=|` to evaluate if at least one device in a group meets a condition.
-*   **No Native Math Libraries**: Built-in functions like `math.abs()` are not allowed. Absolute value logic must be written out explicitly (e.g., `diff = a - b; if (diff < 0) { diff = b - a }`).
+자연어 IoT 명령을 **JoI DSL 코드**로 변환하는 LLM 파이프라인.
+- **Model**: Qwen3.5-9B (소형 로컬 LLM). llama.cpp(GGUF) 또는 vLLM(AWQ) 으로 서빙.
+- **Core Problem**: 소형 모델이 디바이스 선택 + 시간 분석 + 코드 생성을 한번에 하면 환각이 심함. context 4000~5000 토큰 초과 시 성능 급락.
+- **Solution**: 파이프라인을 여러 단계로 분리하여 각 LLM 호출의 인지 부하를 줄임.
 
 ---
 
-## 2. Dataset Overview & Category Characteristics
-The pipeline is evaluated using [local_dataset.csv](local_dataset.csv), which consists of **280 experimental records** across 8 complexity categories.
+## 2. JoI DSL (Differences from Python)
 
-### Dataset Input Types
-*   **"all" Cases**: Commands where no `connected_devices` input is provided. The model must navigate the entire service list to find the correct `Device.Service` mapping.
-*   **"connected" Cases**: Commands where a specific list of `connected_devices` is provided. The model's selection is strictly limited to these available units.
-*   *Note*: Categories 1 and 2 are specialized (all vs connected), while Categories 3–8 maintain a 50/50 split between these input types.
+| 개념 | JoI | Python |
+|------|-----|--------|
+| 초기화 | `:=` (최초 1회만) | `=` |
+| 대입 | `=` (매 tick마다) | `=` |
+| 루프 | **금지**. 외부 `period` JSON으로 반복 | `for`/`while` |
+| 지연 | `delay(N UNIT)` | `time.sleep()` |
+| 이벤트 대기 | `wait until (condition)` | 없음 |
+| 다중디바이스 | `all(#Tag).Action()`, `==\|`, `>=\|` | 없음 |
+| 수학 | 내장 math 금지. 직접 구현 | `math.abs()` 등 |
 
-### Category Mapping
-1.  **Category 1 (Immediate - All)**: 
-    *   *Characteristic*: Simple state manipulation using the full service list.
-    *   *Example*: "Turn on the light", "Switch to dry mode".
-2.  **Category 2 (Immediate - Connected)**: 
-    *   *Characteristic*: Simple state manipulation restricted to tagging and specific connected devices.
-    *   *Example*: "Turn on the light in the kitchen".
-3.  **Category 3 (Snapshot Conditions)**: 
-    *   *Characteristic*: **If/Else** logic. Check sensor state exactly once. 
-4.  **Category 4 (Event-Driven Polling)**: 
-    *   *Characteristic*: **Wait until** logic. Waiting for a future state transition.
-5.  **Category 5 (Sequences and Delays)**: 
-    *   *Characteristic*: Actions separated by explicit **delay(N UNIT)** gaps.
-6.  **Category 6 (Complex Logic)**: 
-    *   *Characteristic*: Snapshot checks with **multiple conditions** (2 or more `and`/`or` logic).
-7.  **Category 7 (Schedules & Continuous Polling)**: 
-    *   *Characteristic*: Recurring actions or specific clock times. High use of **cron**, **period**, and **duration** (internal break logic).
-8.  **Category 8 (Global State Management)**: 
-    *   *Characteristic*: Scenarios requiring **persistent state (:=)** and global variables.
+**출력 형식**: JSON `{"cron": "...", "period": N, "script": "..."}`
+- NO_SCHEDULE: cron="", period=0, script만 있음
+- SCHEDULED: cron 설정, period로 반복 주기
+- DURATION: cron 시작 + period 반복 + script 안에 break 조건
 
 ---
 
-## 3. What to Distinguish and Emphasize via Prompts
-The prompts are engineered to extract nuanced semantic meaning from the natural language commands before generating code.
+## 3. Current Pipeline (run_local.py)
 
-*   **When vs. Whenever vs. If** (`condition_extractor`):
-    *   **If**: Immediate one-time snapshot check. (Generates `if` block, scheduled as `NO_SCHEDULE`).
-    *   **When**: Polling for a future event exactly once. (Generates `wait until`, scheduled as `SCHEDULED`).
-    *   **Whenever**: Infinite polling for a recurring event. (Generates latched `if` block with `triggered := false`, `period=100`, scheduled as `SCHEDULED`).
-*   **All vs. Any vs. Single** (`quantifier`):
-    *   **Single**: Controls or queries a single device unit.
-    *   **All**: Applies to all units in an array (e.g., [all(#Light).Off()](run_local.py#50-68)).
-    *   **Any**: Evaluates if *at least one* device satisfies a condition (e.g., "if any sensor is triggered"). Triggers the use of the special Joi operator `==|`.
-*   **Delay vs. Schedule vs. Duration** (`router_classifier`):
-    *   *Delays* ("30 mins later") belong in `NO_SCHEDULE` script blocks.
-    *   *Schedules* ("Every day at 7 AM") get a `cron` assignment.
-    *   *Durations* ("From 2 PM to 5 PM") get a `cron` start, a `period` interval, and MUST have a `break` condition inside the Joi script.
+```
+Stage 1: Translation (한국어 → 영어)
+Stage 2: Mapping (run_mapping)  ←  순차 실행
+Stage 3: Routing (run_router)   ←  순차 실행
+Stage 4: JoI Code Generation
+Stage 5: Post-processing (WindowCovering refine, Reasoning strip)
+```
 
----
+### Stage 2: Mapping (서비스 선택 + 태깅)
+- **connected_devices 있을 때**:
+  1. `connect_mapping_intent` → Device.Service 쌍 선택
+  2. `connect_mapping_precision` → `(#Tag #Device)` 셀렉터 생성 (Reasoning 기반)
+  3. `connect_quantifier` → single/all/any 판별
+- **connected_devices 없을 때**:
+  - `all_mapping_intent` → 전체 서비스 목록에서 선택
 
-## 4. Current Situation (The Model)
-*   **Environment**: Running locally on an IoT hub or local server.
-*   **Model**: Small local LLMs like Qwen3.5-9B-Q4_K_M.
-*   **Problem**: Small models suffer significantly from "Lost-in-the-Middle" syndrome when given large contexts (like a massive IoT schema). They also hallucinate syntax rules and logical structures when asked to plan time, select devices, and generate specialized DSL code all in one single prompt step.
-*   **Goal**: Generate optimal, accurate Joi code without hallucinations for a real-world IoT environment.
+### Stage 3: Routing (시간/조건 분석)
+1. `filter` → 조건/스케줄 존재 여부 (true/false)
+2. `extractor` → 시간 로직 분석 (arrow notation 형식)
+3. `router` → NO_SCHEDULE / SCHEDULED / DURATION 분류
 
----
+### Stage 4: Code Generation
+- cmd_type + is_connected 조합으로 6개 프롬프트 중 선택
+  - `{connect|all}_joi_{no_schedule|scheduled|duration}`
 
-## 5. Pipeline & Skills to Improve Accuracy (The Solution)
-To mitigate the limitations of small models, the workflow is highly segmented into dedicated, single-purpose steps to reduce cognitive load and control context size.
-
-### Stage 1: Context Funneling (Mapping)
-*   **Intent Mapping**: Identifies only the crucial `DeviceCategory.ServiceName` pairs needed.
-*   **Deterministic Python Filtering**: The backend (e.g., [run_local.py]) fetches *only* the mapped schemas. The final generation prompt is incredibly lean because the 14B model never sees irrelevant devices.
-*   **Dynamic Switch Injection**: When `connected_devices` is provided, generic `Switch` services (On/Off/Toggle) are not blindly added; they are injected *only* if a specific device's `tags` expressly contain `Switch`. However, if `connected_devices` is completely absent, the full service summary is used, meaning `Switch` is included by default. This dynamic filtering saves tokens while preserving necessary generic controls.
-
-### Stage 2: Intent Decomposition & Routing
-The temporal logic is solved before a single line of Joi code is written.
-*   **Condition Filter**: Binary check (Is there a condition/schedule?).
-*   **Condition Extractor**: Describes the temporal logic explicitly in English.
-*   **Router Classifier**: Categorizes the approach rigidly into `NO_SCHEDULE`, `SCHEDULED`, or `DURATION`.
-*   **Quantifier**: explicitly decides Target size (`SINGLE`, `ALL`, `ANY`)
-
-### Stage 3: Specialized Code Generation
-*   Instead of a massive master prompt, the system injects specialized prompts (`prompt_joi_duration`, `prompt_joi_scheduled`, `prompt_joi_no_schedule`) based on the router's classification. This prevents the LLM from mixing up `wait until` functionality with simple `duration` logic.
-
-### Stage 4: Forced Chain of Thought (CoT)
-*   The LLM must output a `<Reasoning>` XML block explaining its logic *before* generating the Joi script. This "thinking out loud" sets up a perfect prior-context window for the small model to follow its own plan on the next output line. The reasoning block is then deterministically stripped via Python regex.
-
-### Stage 5: Hybrid Fallbacks and Self-Correction
-*   **WindowCovering Refinement**: Complex rule sets (like `#Window` vs `#Blind` vs `#Shade`) are handled by generating a generic tag, and running a secondary prompt and `exec()` block to mutate the script natively in Python.
-*   **Error Retry Loops**: If the LLM hallucinates an invalid device category, the Python executor catches the error and feeds it back to the LLM to self-correct up to 2 times.
+### Stage 5: Post-processing
+- WindowCovering → #Window/#Blind/#Shade 변환 (LLM + exec)
+- `<Reasoning>` 태그 strip
+- NO_SCHEDULE인 경우 JSON으로 래핑
 
 ---
 
-## 6. History and Trial & Error
-Developing with the **Qwen3.5-9B-Q4_K_M** model (a relatively small model) revealed several technical hurdles that shaped the current multi-stage pipeline.
+## 4. Dataset (local_dataset.csv)
 
-### Common Model Failures
-1.  **Format Deviations**: Frequent errors in JSON or XML structure output.
-2.  **Schema Hallucinations**: Utilizing devices or services that do not exist in the provided IoT context.
-3.  **Argument Mismatch**: Passing invalid values or types to service methods.
-4.  **Syntax Errors**: Hallucinating Joi DSL rules (e.g., using native Python loops or forbidden libraries).
-5.  **Temporal Discrepancies**: Incorrect `cron` or `period` values that conflict with the natural language command.
-6.  **Logical Drift**: Generating code that performs a different sequence of actions than requested.
+280개 레코드, 8개 카테고리:
+1. Immediate-All: 단순 조작 (전체 서비스)
+2. Immediate-Connected: 단순 조작 (연결된 디바이스)
+3. Snapshot Conditions: if/else 스냅샷 체크
+4. Event-Driven Polling: wait until 이벤트 대기
+5. Sequences and Delays: delay() 포함 순차 액션
+6. Complex Logic: 복수 and/or 조건
+7. Schedules & Continuous Polling: cron/period/duration
+8. Global State Management: := 영구 상태 변수
 
-### Rationale for Segmentation
-*   **Token Complexity Limit**: Performance degrades sharply when the input context exceeds **4,000–5,000 tokens**. Above this threshold, hallucinations and information retrieval errors spike.
-*   **Cognitive Load Management**: Small models struggle to perform complex planning (time, devices, and logic) in a single step. 
-*   **Modular Workflow**: By breaking the process into specialized, single-purpose steps (Context Funneling -> Intent Mapping -> Routing -> Generation), we ensure that each inference is lean and highly focused, significantly improving the overall reliability of the generated Joi code.
+카테고리 1,2는 각각 all/connected 전용. 3~8은 50/50 split.
+
+---
+
+## 5. Prompt Engineering 핵심 구분
+
+- **If vs When vs Whenever**: if→스냅샷, when→wait until, whenever→triggered:=false 래치 패턴
+- **All vs Any vs Single**: all→`all(#Tag).Action()`, any→`==|`/`>=|` 연산자, single→단일 디바이스
+- **Delay vs Schedule vs Duration**: delay→script 내 delay(), schedule→cron, duration→cron+period+break
+- **이상(>=) vs 초과(>)**: 번역 단계에서 정확히 구분해야 함
+
+---
+
+## 6. Key Technical Details
+
+### Addon Devices (LevelControl, ColorControl, RotaryControl)
+- 독립 디바이스가 아님. 호스트 디바이스에 붙어서 사용: `(#Light).MoveToLevel(70)`
+- Light에 LevelControl이 있으면 Light의 중복 서비스(CurrentBrightness 등) 필터링
+
+### WindowCovering Refinement
+- WindowCovering은 실제로 Window, Blind, Shade 등으로 나뉨
+- LLM이 Python replace 코드를 생성 → exec()로 실행하여 태그 교체
+
+### Service Details Enrichment
+- ENUM 파라미터가 누락된 경우 같은 디바이스의 다른 서비스에서 ENUM pool 보충
+- SetVolume → Volume 같은 읽기 서비스 자동 주입 (inject_value_service)
+
+---
+
+## 7. Branches
+
+- **main**: llama.cpp 서빙 (port 8001). `./start_llama.sh`
+- **vllm**: vLLM 서빙 (port 8000). `./start_vllm.sh`
+- 프롬프트는 양쪽 동기화됨 (precision, quantifier, extractor의 토큰 절약 버전 적용 완료)
+
+---
+
+## 8. 진행 중인 작업 & 방향
+
+### Self-Check 제거 완료
+기존 self_check_translate → verify → correction (3 LLM 호출) 방식을 제거함.
+- 문제: NL↔NL 비교가 본질적으로 불안정 (동의어, 의역 차이로 false negative 발생)
+- 관련 프롬프트 파일도 삭제 대상: `joi_self_check_translate`, `joi_self_check_verify`, `joi_self_check_correction`
+
+### 새로운 Verify 방향: Code Skeleton + Schedule 추출
+
+**핵심 아이디어**: LLM이 코드를 읽는 대신, Python이 코드에서 구조를 추출 → LLM은 추출된 요약만 보고 command와 비교.
+
+**Step 1 (Python, LLM 0회)**: 생성된 코드에서 두 가지 추출
+1. **Code Skeleton** — 실행 흐름을 선형으로 펼침:
+   ```
+   wait until (Temperature >= 30) → delay(3 SEC) → AirConditioner.On()
+   ```
+   - delay 위치, operator(>=/>), 액션 순서가 자연스럽게 드러남
+
+2. **Schedule Summary** — cron/period/break를 읽기 쉽게 변환:
+   ```
+   cron="0 12 * * 0,6" → weekends at 12 PM
+   period=1800000 → every 30 minutes
+   break: Hour == 0 → until midnight
+   ```
+
+**Step 2 (LLM 1회)**: command + skeleton + schedule을 주고 "Match?" 판단
+
+**검증 가능한 오류 유형**:
+- delay 위치가 잘못됨 (action 뒤에 와야 하는데 앞에 옴)
+- period 값 틀림 (30초 = 30000ms인데 다른 값)
+- cron 표현 오류
+- duration break 조건 누락/오류
+- 로직 순서 틀림
+- 이상/초과 operator 혼동
+
+### 이전에 시도 후 폐기한 접근
+
+**Example DB 기반 파이프라인** (폐기):
+- 48개 디바이스, ~350개 예시를 per-device DB로 구축
+- Device Select → Service Select → Tagging+Quantifier → Code Gen 구조
+- Device descriptions, Scheduler 가상 디바이스 등 설계
+- 결론: 현재 파이프라인 대비 이점이 불명확하여 폐기. example DB 파일들도 삭제함.
+
+**SSA (Structured Semantic Anchoring)** (검토 후 단순화):
+- command와 code 각각에서 JSON 슬롯(devices, trigger, delay, timing 등) 추출 → slot-by-slot 비교
+- 문제: delay가 여러개일 수 있고, "before/after" 같은 추상적 표현이 실제 코드 흐름을 못 담음
+- → Code Skeleton 방식으로 단순화 (위 "새로운 Verify 방향" 참고)
+
+---
+
+## 9. Files Structure
+
+```
+run_local.py          # 메인 파이프라인
+test.py               # 테스트 하네스 (target/custom/all 모드)
+local_dataset.csv     # 280개 평가 데이터셋
+skills.md             # 이 문서
+start_llama.sh        # llama.cpp 서버 시작
+start_vllm.sh         # vLLM 서버 시작
+files/
+  translation.md      # 한→영 번역
+  filter.md            # 조건 유무 판별
+  extractor.md         # 시간 로직 분석
+  router.md            # NO_SCHEDULE/SCHEDULED/DURATION 분류
+  all_service_summary.md
+  connect_service_summary.md
+  service_list_ver2.0.1.json
+  window_covering_refine.md
+  all/
+    all_mapping_intent.md
+    all_joi_no_schedule.md
+    all_joi_scheduled.md
+    all_joi_duration.md
+  connect/
+    connect_mapping_intent.md
+    connect_mapping_precision.md
+    connect_quantifier.md
+    connect_joi_no_schedule.md
+    connect_joi_scheduled.md
+    connect_joi_duration.md
+```

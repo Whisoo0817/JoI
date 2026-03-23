@@ -9,7 +9,7 @@ test_targets = {
 }
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-CUSTOM_COMMAND = "오후 6시마다 거실 조명을 켜줘"
+CUSTOM_COMMAND = "주말 오후 3시마다 주방 불을 켜줘"
 CUSTOM_DEVICES = """
 {'LivingRoom_Light': 
     {'category': 'Light', 'tags': ['LivingRoom', 'Light']}, 
