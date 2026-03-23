@@ -395,47 +395,5 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
         joi_code_raw = script
 
     print(f"\nJoI ➡️ {time.perf_counter() - start:.4f} secs")
-    start = time.perf_counter()
-
-    # ❇️ Self-Check Turn 1: Translate (isolated — no original command)
-    translate_system = prompts.get("joi_self_check_translate", "")
-    translate_input = f"[Services]\n{services}\n\n[Generated JoI Code]\n{joi_code_raw}"
-    translate_messages = [
-        {"role": "system", "content": translate_system},
-        {"role": "user", "content": translate_input}
-    ]
-    english_description = run_llm_inference(model, client, "self_check_translate", translate_messages, debug=debug)
-
-    # ❇️ Self-Check Turn 2: Verify (original command revealed)
-    verify_content = prompts.get("joi_self_check_verify", "").replace("{command}", sentence).replace("{translation}", english_description)
-    translate_messages.append({"role": "assistant", "content": english_description})
-    translate_messages.append({"role": "user", "content": verify_content})
-    verification = run_llm_inference(model, client, "self_check_verify", translate_messages, debug=debug)
-    print(f"\nVerify ➡️ {time.perf_counter() - start:.4f} secs")
-
-    # ❇️ Self-Correction (1 attempt if verification failed)
-    verification_clean = verification.strip().lower()
-    if verification_clean.startswith("false"):
-        start = time.perf_counter()
-        # Extract reason (lines after "false")
-        reason_lines = verification.strip().split("\n", 1)
-        reason = reason_lines[1].strip() if len(reason_lines) > 1 else "translation does not match original command"
-
-        joi_messages.append({"role": "assistant", "content": joi_code_raw})
-        correction_content = prompts.get("joi_self_check_correction", "").replace("{reason}", reason)
-        joi_messages.append({"role": "user", "content": correction_content})
-        corrected_raw = run_llm_inference(model, client, "self_correction", joi_messages, debug=debug)
-
-        # Parse corrected output (strip reasoning if present)
-        corrected_script = re.sub(r'<Reasoning>.*?</Reasoning>', '', corrected_raw, flags=re.DOTALL).strip()
-        if cmd_type == "NO_SCHEDULE":
-            try:
-                joi_json = {"cron": "", "period": 0, "script": corrected_script}
-                joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
-            except:
-                pass  # Keep original if parsing fails
-        else:
-            joi_code_raw = corrected_script
-        print(f"\nCorrection ➡️ {time.perf_counter() - start:.4f} secs")
-
+    
     return joi_code_raw
