@@ -9,7 +9,7 @@ from openai import OpenAI
 
 # Modify OpenAI's API key and API base to use llama-server's API server.
 openai_api_key = "EMPTY"
-openai_api_base = "http://localhost:8001/v1"
+openai_api_base = "http://localhost:8002/v1"
 
 SERVICE_LIST_PATH = "files/service_list_ver2.0.1.json"
 DEVICE_LIST = ['AirConditioner', 'AirPurifier', 'AirQualitySensor', 'ArmRobot', 'AudioRecorder', 'Button', 'Camera', 'CarbonDioxideSensor', 'Charger', 'Clock', 'CloudServiceProvider', 'ColorControl', 'ContactSensor', 'Dehumidifier', 'Dishwasher', 'Door', 'DoorLock', 'EmailProvider', 'FaceRecognizer', 'Humidifier', 'HumiditySensor', 'LaundryDryer', 'LeakSensor', 'LevelControl', 'Light', 'LightSensor', 'MenuProvider', 'MotionSensor', 'MultiButton', 'Oven', 'Plug', 'PresenceSensor', 'PressureSensor', 'Pump', 'RainSensor', 'RiceCooker', 'RobotVacuumCleaner', 'RotaryControl', 'Safe', 'Siren', 'SmokeDetector', 'SoundSensor', 'Speaker', 'Switch', 'Television', 'TemperatureSensor', 'Valve', 'WeatherProvider', 'WindowCovering']
@@ -262,55 +262,55 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
             quant_input = f"[Command]\n{sentence}\n[Devices]\n{step2_selectors}"
             quant_messages = [{"role": "system", "content": prompts.get("connect_quantifier", "")}, {"role": "user", "content": quant_input}]
             quant_output = run_llm_inference(model, client, "connect_quantifier", quant_messages, debug=debug)
-            
+
             local_services = f"[Service Tagging]\n{step2_selectors}\n\n[Quantifier]\n{quant_output.strip()}\n\n[Service Details]\n{json.dumps(local_service_details, indent=2, ensure_ascii=False)}"
-        
+
         # Connected devices X
-        else:          
+        else:
             # ❇️ Single Stage: Mapping Intent (using Full Summary)
-            intent_input = f"[Service List]\n{service_summary}\n\n[Command]\n{sentence}"            
+            intent_input = f"[Service List]\n{service_summary}\n\n[Command]\n{sentence}"
             messages = [
                 {"role": "system", "content": prompts.get("all_mapping_intent", "")},
                 {"role": "user", "content": intent_input}
             ]
-            intent_output = run_llm_inference(model, client, "all_mapping_intent", messages, debug=debug)        
+            intent_output = run_llm_inference(model, client, "all_mapping_intent", messages, debug=debug)
             # Remove code block
             clean_json = re.sub(r'```(?:json)?\s*', '', intent_output).strip().strip('`')
             # String to List
             selected_services = json.loads(clean_json)
             # Inject additional value service (hard-coded)
-            inject_value_service(selected_services)        
-            # Extract service details            
-            local_service_details = extract_service_details(selected_services, SERVICE_DATA)                
+            inject_value_service(selected_services)
+            # Extract service details
+            local_service_details = extract_service_details(selected_services, SERVICE_DATA)
             local_services = json.dumps(local_service_details, indent=2, ensure_ascii=False)
-                
+
         return local_services, is_connected
 
     def run_router():
         # ❇️ Phase 1: Condition Filter
         filter_messages = [{"role": "system", "content": prompts.get("filter", "")}, {"role": "user", "content": sentence}]
         filter_output = run_llm_inference(model, client, "filter", filter_messages, debug=debug)
-        
-        extractor_output = ""        
+    
+        extractor_output = ""
         cmd_type = "UNKNOWN" # Initialize cmd_type here
         conclusion = "" # Initialize conclusion here
-        
+    
         # ❇️ Phase 2: Condition Extractor
         if "true" in filter_output.lower():
             extractor_messages = [{"role": "system", "content": prompts.get("extractor", "")}, {"role": "user", "content": sentence}]
             extractor_output = run_llm_inference(model, client, "extractor", extractor_messages, debug=debug)
-            
+    
             # Keep the full Extractor Analysis (both [분석] and [결론]) for context
             if extractor_output:
                 conclusion = extractor_output.strip()
-                    
+    
             # ❇️ Phase 3: Classifier (NO_SCHEDULE / SCHEDULED / DURATION)
             cmd_type = "UNKNOWN"
             if conclusion:
                 classifier_input = f"[Command]\n{sentence}\n\n[Extractor Analysis]\n{conclusion}"
                 classifier_messages = [{"role": "system", "content": prompts.get("router", "")}, {"role": "user", "content": classifier_input}]
                 classifier_output = run_llm_inference(model, client, "router", classifier_messages, debug=debug)
-                
+    
                 try:
                     # Find JSON block in the classifier output
                     match = re.search(r'\{.*\}', classifier_output, re.DOTALL)
@@ -319,40 +319,40 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
                         cmd_type = cat_data.get("type", "UNKNOWN")
                     else:
                         if "NO_SCHEDULE" in classifier_output: cmd_type = "NO_SCHEDULE"
-                        elif "SCHEDULED" in classifier_output: cmd_type = "SCHEDULED"                        
+                        elif "SCHEDULED" in classifier_output: cmd_type = "SCHEDULED"
                         elif "DURATION" in classifier_output: cmd_type = "DURATION"
                 except:
                     pass
         else:
             cmd_type = "NO_SCHEDULE"
             conclusion = "Sequential action composition."
-            
+    
         return cmd_type, conclusion
 
-    # 5. Execute Sequential Tasks (Mapping & Routing)
+    #5. Execute Sequential Tasks (Mapping & Routing)    
     services, is_connected = run_mapping()
     cmd_type, router_conclusion = run_router()
-    
+
     # 6. Joi Generation Branching
     type_to_prompt_key = {
-        "NO_SCHEDULE": "joi_no_schedule", 
+        "NO_SCHEDULE": "joi_no_schedule",
         "SCHEDULED": "joi_scheduled",
         "DURATION": "joi_duration"
     }
-    
+
     # Fallback to SCHEDULED if unknown type
     base_prompt_key = type_to_prompt_key.get(cmd_type, "joi_scheduled")
     cmd_prefix = "connect_" if is_connected else "all_"
     prompt_key = f"{cmd_prefix}{base_prompt_key}"
-    
+
     # Prepare System Prompt
     system_prompt = prompts.get(prompt_key, "")
-    
+
     # ❇️ JoI Code Generation
     joi_input = f"[Command]\n{sentence}\n\n[Extractor Analysis]\n{router_conclusion}\n\n[Services]\n{services}"
     if cmd_type == "NO_SCHEDULE":
         joi_input = f"[Command]\n{sentence}\n\n[Services]\n{services}"
-        
+
     joi_messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": joi_input}]
     joi_code_raw = run_llm_inference(model, client, prompt_key, joi_messages, debug=debug)
 
@@ -376,7 +376,7 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
     # Post-processing: strip reasoning and standardize output format
     reasoning_match = re.search(r'(<Reasoning>.*?</Reasoning>)', joi_code_raw, re.DOTALL)
     script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
-    
+
     if cmd_type == "NO_SCHEDULE":
         # NO_SCHEDULE: LLM returns raw code, wrap it in JSON
         joi_json = {
