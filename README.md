@@ -1,4 +1,5 @@
-*Latest Updates* 🔥
+*Latest Updates*
+- [2026/03/20] (Local) Support vLLM + Qwen3.5-9B-AWQ-4bit
 - [2026/03/16] (Local) Support Qwen3.5-9B-Q4_K_M
 
 ---
@@ -15,8 +16,15 @@
 </details>
 
 ```bash
-### Install llama.cpp ###
+### Install ###
 pip install -r requirements.txt
-~/llama.cpp/build/bin/llama-server --model ~/models/Qwen3.5-9B-Q4_K_M.gguf --ctx-size 16384 --port 8001 --host 0.0.0.0 --flash-attn on --parallel 2
+
+### Start Server ###
+# llama.cpp (main branch)
+./start_llama.sh
+# vLLM (vllm branch)
+./start_vllm.sh
+
+### Run ###
 python test.py [all/target/custom] [debug]
 ```
