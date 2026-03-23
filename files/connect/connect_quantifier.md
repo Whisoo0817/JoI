@@ -28,7 +28,7 @@ Everything else = SINGLE. Especially these are NOT count words:
 
 # Output
 
-For each device, write a short natural-language reason based on the original command (MAXIMUM 2 sentences), then the verdict.
+For each device, write a **short** natural-language reason based on the original command (MAXIMUM 1 sentences), then the verdict.
 
 ```
 device — reason from command → single/all/any
@@ -48,7 +48,7 @@ Siren — no quantity words → SINGLE
 Every hour, turn off all lights with even tags.
 [Devices]
 (#Light)
-Light — "all lights" indicates all units → all
+Light — "all lights" → all
 
 [Command]
 Turn off all lights if no one is on the 1st floor.
@@ -56,14 +56,14 @@ Turn off all lights if no one is on the 1st floor.
 (#Floor1 #PresenceSensor)
 (#Floor1 #Light)
 Presence sensor — no quantity words → SINGLE
-Light — "all lights" indicates all units → all
+Light — "all lights" → all
 
 [Command]
 If even one presence sensor in the house is triggered, sound the emergency siren.
 [Devices]
 (#House #PresenceSensor)
 (#Siren)
-Presence sensor — "even one" indicates any of multiple units → any
+Presence sensor — "even one" → any
 Siren — no quantity words → SINGLE
 
 [Command]
@@ -72,7 +72,7 @@ If it rains, close the window.
 (#RainSensor)
 (#Window)
 Rain sensor — no quantity words → SINGLE
-Window — "close" is a verb, not a quantity word → SINGLE
+Window — no quantity words → SINGLE
 
 [Command]
 Whenever it rains, close all windows and doors.
@@ -81,8 +81,8 @@ Whenever it rains, close all windows and doors.
 (#Window)
 (#Door)
 Rain sensor — no quantity words → SINGLE
-Window — "all windows and doors" indicates all units → all
-Door — "all windows and doors" indicates all units → all
+Window — "all windows and doors" → all
+Door — "all windows and doors" → all
 
 [Command]
 If smoke is detected in the living room, sound all sirens and speak through the speaker.
@@ -91,7 +91,7 @@ If smoke is detected in the living room, sound all sirens and speak through the 
 (#Siren)
 (#Speaker)
 Smoke detector — no quantity words → SINGLE
-Siren — "all sirens" indicates all units → all
+Siren — "all sirens" → all
 Speaker — no quantity words → SINGLE
 
 [Command]
@@ -108,24 +108,25 @@ At 7 PM, if there is no one on the 1st floor, turn off all lights, and at 8 PM, 
 (#Floor2 #PresenceSensor)
 (#Floor2 #Light)
 Presence sensor — no quantity words → SINGLE
-Light — "all lights" indicates all units → all
+Light — "all lights" → all
 
 [Command]
 Check all door locks in Sector 1 and if at least one is open, lock all of them.
 [Devices]
 (#Sector1 #DoorLock)
-Door lock — "all door locks" and "at least one" indicate all units → all
+Door lock — "all door locks" and "at least one" → any
+Door lock — "lock all of them" → all
 
 [Command]
 Check the humidity sensors in Group 2 and if any are 50% or higher, set all dehumidifiers to refresh mode.
 [Devices]
 (#Group2 #HumiditySensor)
 (#Dehumidifier)
-Humidity sensor — "any (are 50% or higher)" indicates any of multiple units → any
-Dehumidifier — "all dehumidifiers" indicates all units → all
+Humidity sensor — "any are 50% or higher" → any
+Dehumidifier — "all dehumidifiers" → all
 
 [Command]
 Close everything in Sector2.
 [Devices]
 (#Sector2)
-Device — "everything in Sector2" indicates all units → all
+Device — "everything in Sector2" → all

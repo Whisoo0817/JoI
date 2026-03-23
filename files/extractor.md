@@ -50,144 +50,150 @@ A single command can combine multiple patterns, e.g., Continuous Monitoring to s
 - Conclusion Format: `Poll [Sensor1]. When satisfied, perform periodic state checks from [Start] to [End] every [Interval].`
 
 ## Output Format
-Output a concise natural language explanation in **ENGLISH** in two steps: [Analysis] and [Conclusion]. DO NOT output ANY Korean.
+Output in **ENGLISH** only. Use arrow notation (`->`) for brevity.
 
-- [Analysis]: Describe clearly and briefly. Extract cues like "If", "When", "Whenever", and state whether it waits for a state transition (polling) or checks the current state (snapshot). Extract time components and delays.
-- [Conclusion]: Summarize the execution timing following the `Conclusion Format` strictly without unnecessary words.
+- [Analysis]: Use `'cue' = meaning -> Category` format. Chain multiple cues with periods. Do NOT write full sentences.
+  - Example: `'When' = future state transition -> Polling. 'after 5 min' = delay.`
+- [Conclusion]: Follow `Conclusion Format` strictly. No extra words.
 
 ## Examples
 
 [Command]
 If [Condition A] is true, do [Action B]. If not, do [Action C].
-[Analysis] 'If' denotes a snapshot to check the current state.
+[Analysis] 'If' = current state check -> Snapshot.
 [Conclusion] Immediately check [Device A] state and act based on result.
 
 [Command]
 Start [Device A] in [Mode 1] and change to [Mode 2] after 30 minutes.
-[Analysis] 'after 30 minutes' is a delay.
+[Analysis] 'after 30 minutes' = delay.
 [Conclusion] Immediately act and delay.
 
 [Command]
 If [Sensor A] is [Value] or higher, do [Action B].
-[Analysis] 'If' denotes a snapshot.
+[Analysis] 'If' = snapshot check -> Snapshot.
 [Conclusion] Immediately check [Sensor A] and act based on result.
 
 [Command]
 If [State A] is active right now, do [Action B].
-[Analysis] 'If' with 'right now' is an immediate snapshot.
+[Analysis] 'If' + 'right now' = immediate snapshot -> Snapshot.
 [Conclusion] Immediately check [Sensor A] and act based on result.
 
 [Command]
 When [Event A] occurs, do [Action B] after 5 minutes.
-[Analysis] 'When' indicates waiting for the [Event A] transition. 'after 5 minutes' is a delay.
+[Analysis] 'When' = future state transition -> Polling. 'after 5 minutes' = delay.
 [Conclusion] Poll [Sensor A]. Act once when satisfied.
 
 [Command]
 Whenever [Event A] occurs, do [Action B].
-[Analysis] 'Whenever' indicates infinite event-based triggering.
+[Analysis] 'Whenever' = infinite event trigger -> Infinite Polling.
 [Conclusion] Infinite polling on [Sensor A]. Act on every state change.
 
 [Command]
 Once [Sensor A] drops below [Value X], do [Action B].
-[Analysis] 'Once' indicates waiting for the condition to be met (transition).
+[Analysis] 'Once' = waiting for condition transition -> Polling.
 [Conclusion] Poll [Sensor A]. Act once when satisfied.
 
 [Command]
 Do [Action A] every noon.
-[Analysis] 'every noon' is a recurring snapshot schedule.
+[Analysis] 'every noon' = recurring schedule -> Pure Action.
 [Conclusion] Act at 12 PM.
 
 [Command]
 Every 11 PM, do [Action A].
-[Analysis] 'Every 11 PM' is a recurring snapshot schedule.
+[Analysis] 'Every 11 PM' = recurring schedule -> Pure Action.
 [Conclusion] Act at 11 PM.
 
 [Command]
 When Christmas begins, do [Action A].
-[Analysis] 'When Christmas begins' represents a specific starting point in time.
+[Analysis] 'When Christmas begins' = specific time point -> Pure Action.
 [Conclusion] Act at 12/25 0 AM.
 
 [Command]
 Every hour, do [Action A].
-[Analysis] 'Every hour' is a recurring interval.
+[Analysis] 'Every hour' = recurring interval -> Pure Action.
 [Conclusion] Act every 1 hour.
 
 [Command]
 Every hour on Christmas, do [Action A].
-[Analysis] 'Every hour on Christmas' is a recurring snapshot schedule within a specific duration.
+[Analysis] 'on Christmas' = duration. 'Every hour' = interval within duration -> Duration.
 [Conclusion] From 12/25 0 AM to 12/26 0 AM, act every 1 hour.
 
 [Command]
 If any [Sensor A] is in [State X], do [Action B].
-[Analysis] 'If' and 'in [State X]' refer to current snapshot state.
+[Analysis] 'If' + 'in [State X]' = current state -> Snapshot.
 [Conclusion] Immediately check [Sensor A] and act based on result.
 
 [Command]
 When [Sensor A] goes above [Value X], do [Action B].
-[Analysis] 'When' indicates waiting for the state transition to exceed [Value X].
+[Analysis] 'When' = waiting for state transition -> Polling.
 [Conclusion] Poll [Sensor A]. Act once when satisfied and stop polling.
 
 [Command]
 Repeatedly do [Action A] every 10 minutes in the afternoon.
-[Analysis] 'in the afternoon' is a duration. 'every 10 minutes' is the repetition interval.
+[Analysis] 'in the afternoon' = duration. 'every 10 minutes' = interval -> Duration.
 [Conclusion] During the afternoon, act every 10 minutes.
 
 [Command]
 On weekdays at 7 AM, do [Action A].
-[Analysis] 'On weekdays at 7 AM' refers to a specific recurring snapshot time, not a duration.
+[Analysis] 'On weekdays at 7 AM' = recurring time point, NOT duration -> Scheduled.
 [Conclusion] At 7 AM on weekdays, act.
 
 [Command]
 On weekdays at 3 PM, if [State X], do [Action A].
-[Analysis] 'On weekdays at 3 PM' refers to a specific recurring snapshot time, not a duration. 'if' is a snapshot check.
+[Analysis] 'On weekdays at 3 PM' = recurring time point, NOT duration. 'if' = snapshot check -> Scheduled Snapshot.
 [Conclusion] At 3 PM on weekdays, check [Sensor A] and act based on result.
 
 [Command]
 On weekdays, check [Sensor A] every 3 minutes.
-[Analysis] 'On weekdays' is a duration. 'every 3 minutes' is the repetition interval within that duration.
+[Analysis] 'On weekdays' = duration. 'every 3 minutes' = interval within duration -> Duration.
 [Conclusion] From Monday 0 AM to Saturday 0 AM, check [Sensor A] every 3 minutes and act based on result.
 
 [Command]
 Do [Action A] every 10 minutes from now until 3 PM.
-[Analysis] 'from now until 3 PM' is a specific duration. 'every 10 minutes' is the interval.
+[Analysis] 'from now until 3 PM' = duration. 'every 10 minutes' = interval -> Duration.
 [Conclusion] From now until 3 PM, act every 10 minutes.
 
 [Command]
 When [Event A] occurs, do [Action B], and 5 minutes later, check [Sensor C] and if [State X], do [Action D].
-[Analysis] 'When' indicates polling. '5 minutes later' is a delay. 'if' is a snapshot check.
+[Analysis] 'When' = polling. '5 minutes later' = delay. 'if' = snapshot -> Hybrid.
 [Conclusion] Poll [Sensor A]. When satisfied, act and delay. Thereafter, check [Sensor C] and act based on result.
 
 [Command]
 When [Event A] occurs, check [Sensor B] every 5 minutes from then on, and if [State X], do [Action C].
-[Analysis] 'When' indicates polling for a trigger. 'every 5 minutes' is the subsequent recurrence interval.
+[Analysis] 'When' = polling trigger. 'every 5 minutes' = subsequent interval -> Hybrid.
 [Conclusion] Poll [Sensor A]. When satisfied, check [Sensor B] every 5 minutes and act based on result.
 
 [Command]
 When [Sensor A] drops below [Value X], do [Action B] every hour.
-[Analysis] 'When' indicates polling for a trigger. 'every hour' is the subsequent recurrence interval.
+[Analysis] 'When' = polling trigger. 'every hour' = subsequent interval -> Hybrid.
 [Conclusion] Poll [Sensor A]. When satisfied, act every 1 hour.
 
 [Command]
 Check [Sensor A] at 3 PM on weekends, and if [State X], do [Action B].
-[Analysis] 'at 3 PM on weekends' is a specific recurring snapshot schedule. 'if' is a snapshot check.
+[Analysis] 'at 3 PM on weekends' = recurring schedule. 'if' = snapshot check -> Scheduled Snapshot.
 [Conclusion] At 3 PM on weekends, check [Sensor A] and act based on result.
 
 [Command]
 Every time [Sensor A] drops below [Value X], do [Action B].
-[Analysis] 'Every time' indicates infinite polling on the [Sensor A] value.
+[Analysis] 'Every time' = infinite event trigger -> Infinite Polling.
 [Conclusion] Infinite polling on [Sensor A]. Act on every state change.
 
 [Command]
 If [Event A] is detected on February 2nd, do [Action B].
-[Analysis] 'on February 2nd' is a specific duration. 'If [Event A] is detected' implies monitoring for an event within that window.
+[Analysis] 'on February 2nd' = duration. 'If detected' = monitoring within window -> Duration + Polling.
+[Conclusion] From 2/2 0 AM to 2/3 0 AM, poll [Sensor A]. Act when satisfied.
+
+[Command]
+At midnight, if [Event A] is detected, do [Action B].
+[Analysis] 'At midnight' = specific time point -> Snapshot. 'If detected' = snapshot check.
 [Conclusion] From 2/2 0 AM to 2/3 0 AM, poll [Sensor A]. Act when satisfied.
 
 [Command]
 Every 30 minutes on weekend afternoons, do [Action A].
-[Analysis] 'on weekend afternoons' is a duration that applies to both Saturday and Sunday from 12 PM to midnight. 'Every 30 minutes' is the repetition interval.
+[Analysis] 'on weekend afternoons' = duration (Sat+Sun 12PM-midnight). 'Every 30 minutes' = interval -> Duration.
 [Conclusion] On Saturday and Sunday, from 12 PM to midnight each day, act every 30 minutes.
 
 [Command]
 Check [Sensor A] now and again in 10 minutes. If it has changed by [Value X], do [Action B].
-[Analysis] 'now' is an immediate snapshot. 'and again in 10 minutes' is a single delay for a second snapshot check, not a recurring schedule. 'If' is a condition check based on the two snapshots.
+[Analysis] 'now' = immediate snapshot. 'again in 10 minutes' = single delay, not recurring. 'If' = condition check -> Snapshot.
 [Conclusion] Immediately check [Sensor A]. Delay 10 minutes, then check [Sensor A] again and act based on result.
