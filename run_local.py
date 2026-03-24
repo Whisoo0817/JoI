@@ -167,11 +167,14 @@ def _parse_dict_input(val, default):
     return default
 
 # ❇️ Main Function
-def generate_joi_code(sentence, connected_devices, other_params, debug=False):
+all_items = []
+choice_no = 0
+
+def generate_joi_code(sentence, connected_devices, other_params, model=None, current_time=None, modification=None, debug=False):
     # 1. Parse Inputs - dict type
     connected_devices = _parse_dict_input(connected_devices, None)
     other_params = _parse_dict_input(other_params, {})
-    
+
     # 2. Setup Client
     start = time.perf_counter()
     # OpenAI Library
@@ -180,7 +183,17 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
     model = models.data[0].id
 
     prompts = _load_all_prompts('./files')
-    
+
+    # ❇️ Stage 0: Command Merge (original + modification)
+    merged_command = sentence
+    if modification:
+        merge_input = f"Original: {sentence}\nModification: {modification}"
+        merged_command = run_llm_inference(model, client, "command_merge", [
+            {"role": "system", "content": prompts.get("command_merge", "")},
+            {"role": "user", "content": merge_input}
+        ], debug=debug)
+        sentence = merged_command
+
     # ❇️ Stage 1: Translation (KOR -> ENG)
     # Check if the first word contains Korean
     first_word = sentence.strip().split()[0] if sentence.strip() else ""
@@ -285,8 +298,9 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
             # Extract service details            
             local_service_details = extract_service_details(selected_services, SERVICE_DATA)                
             local_services = json.dumps(local_service_details, indent=2, ensure_ascii=False)
-                
-        return local_services, is_connected
+            intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
+
+        return local_services, is_connected, intent_categories, local_service_details
 
     def run_router():
         # ❇️ Phase 1: Condition Filter
@@ -335,7 +349,7 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
     with ThreadPoolExecutor(max_workers=2) as executor:
         f_mapping = executor.submit(run_mapping)
         f_router = executor.submit(run_router)
-        services, is_connected = f_mapping.result()
+        services, is_connected, mapped_devices, service_details = f_mapping.result()
         cmd_type, router_conclusion = f_router.result()
     
     # 6. Joi Generation Branching
@@ -394,6 +408,38 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
         # SCHEDULED/DURATION: LLM already returns JSON, just use stripped version
         joi_code_raw = script
 
-    print(f"\nJoI ➡️ {time.perf_counter() - start:.4f} secs")
-    
-    return joi_code_raw
+    elapsed = time.perf_counter() - start
+    # print(f"\nJoI ➡️ {elapsed:.4f} secs")
+
+    # ❇️ Korean Reconversion
+    translated_sentence = ""
+    try:
+        kor_system = prompts.get("kor_reconversion", "")
+        kor_input = f"[Code]\n{joi_code_raw}\n\n[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+        kor_messages = [
+            {"role": "system", "content": kor_system},
+            {"role": "user", "content": kor_input}
+        ]
+        kor_completion = client.chat.completions.create(
+            messages=kor_messages,
+            model=model,
+            temperature=0.1,
+            max_tokens=256,
+            stream=False,
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}}
+        )
+        translated_sentence = kor_completion.choices[0].message.content.strip()
+        # print(f"KOR ➡️ {translated_sentence}")
+    except Exception as e:
+        print(f"Korean reconversion failed: {e}")
+
+    return {
+        "code": joi_code_raw,
+        "merged_command": merged_command,
+        "log": {
+            "response_time": f"{elapsed:.4f} seconds",
+            "inference_time": f"{elapsed:.4f} seconds",
+            "translated_sentence": translated_sentence,
+            "mapped_devices": mapped_devices,
+        }
+    }
