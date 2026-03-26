@@ -15,9 +15,9 @@ This is a summary of available properties (value) and functions (func) for each 
 </Device>
 
 <Device "AirQualitySensor">
-  <Service "DustLevel" type="value">Indoor dust concentration</Service>
-  <Service "FineDustLevel" type="value">Indoor fine dust (PM10) concentration</Service>
-  <Service "VeryFineDustLevel" type="value">Indoor very fine dust (PM2.5) concentration</Service>
+  <Service "DustLevel" type="value">Indoor dust (PM10) concentration</Service>
+  <Service "FineDustLevel" type="value">Indoor fine dust (PM2.5) concentration</Service>
+  <Service "VeryFineDustLevel" type="value">Indoor very fine dust (PM1.0) concentration</Service>
   <Service "CarbonDioxide" type="value">Indoor carbon dioxide (CO2) concentration</Service>
   <Service "Temperature" type="value">Temperature measured by the air quality sensor</Service>
   <Service "Humidity" type="value">Humidity measured by the air quality sensor</Service>
@@ -101,6 +101,10 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "SetDehumidifierMode" type="action">Set dehumidifier mode (cool, drying, refreshing, auto, etc.)</Service>
 </Device>
 
+<Device "DimmerSwitch">
+  <Service "Button1~4" type="value">State of each button (4 buttons)</Service>
+</Device>
+
 <Device "Dishwasher">
   <Service "DishwasherMode" type="value">Current mode</Service>
   <Service "SetDishwasherMode" type="action">Set dishwasher mode (eco, intense, auto, quick, rinse, dry)</Service>
@@ -176,10 +180,6 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "Motion" type="value">Motion detection status (true/false)</Service>
 </Device>
 
-<Device "MultiButton">
-  <Service "Button1~4" type="value">State of each button</Service>
-</Device>
-
 <Device "Oven">
   <Service "OvenMode" type="value">Current mode (heating, grill, baking, microwave, warming, etc.)</Service>
   <Service "SetOvenMode" type="action">Set oven mode (mode only)</Service>
@@ -195,6 +195,16 @@ This is a summary of available properties (value) and functions (func) for each 
 
 <Device "PresenceSensor">
   <Service "Presence" type="value">Human presence status (true/false)</Service>
+</Device>
+
+<Device "PresenceVitalSensor">
+  <Service "Presence" type="value">Human presence detection (true/false)</Service>
+  <Service "HeartRate" type="value">Heart rate measurement</Service>
+  <Service "RespiratoryRate" type="value">Respiratory rate measurement</Service>
+  <Service "MovementIndex" type="value">Movement index level</Service>
+  <Service "DwellTime" type="value">Time spent in detected area</Service>
+  <Service "Distance" type="value">Distance to detected subject</Service>
+  <Service "Awakeness" type="value">Awake/sleep status</Service>
 </Device>
 
 <Device "PressureSensor">
@@ -223,7 +233,7 @@ This is a summary of available properties (value) and functions (func) for each 
 
 <Device "RobotVacuumCleaner">
   <Service "RobotVacuumCleanerMode" type="value">Cleaner mode</Service>
-  <Service "SetRobotVacuumCleanerMode" type="action">Set robot vacuum mode (auto, spot, repeat, manual, stop, map)</Service>
+  <Service "SetRobotVacuumCleanerModeMode" type="action">Set robot vacuum mode (auto, spot, repeat, manual, stop, map)</Service>
 </Device>
 
 <Device "Safe">
@@ -266,6 +276,12 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "Toggle" type="action">Toggle switch</Service>
 </Device>
 
+<Device "TapDialSwitch">
+  <Service "Button1~4" type="value">State of each button (4 buttons)</Service>
+  <Service "Rotation" type="value">Rotary dial state (clockwise, counter_clockwise)</Service>
+  <Service "RotationSteps" type="value">Number of rotation steps</Service>
+</Device>
+
 <Device "Television">
   <Service "Channel" type="value">Current channel number</Service>
   <Service "ChannelUp/Down" type="action">Change channel up/down</Service>
@@ -287,7 +303,7 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "HumidityWeather" type="value">Outdoor humidity</Service>
   <Service "PressureWeather" type="value">Outdoor pressure</Service>
   <Service "Pm10Weather" type="value">Outdoor fine dust concentration</Service>
-  <Service "Pm2.5Weather" type="value">Outdoor very fine dust concentration</Service>
+  <Service "Pm25Weather" type="value">Outdoor very fine dust (PM2.5) concentration</Service>
   <Service "Weather" type="value">Outdoor weather status (rain, snow, clear, cloudy, etc.)</Service>
   <Service "GetWeatherInfo" type="action">Get detailed weather information (only when latitude and longitude are given)</Service>
 </Device>
@@ -313,7 +329,3 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "MoveToLevel" type="action">Set specific level</Service>
 </Device>
 
-<Device "RotaryControl">
-  <Service "Rotation" type="value">Rotary control state (clockwise, counter_clockwise)</Service>
-  <Service "RotationSteps" type="value">Number of rotation steps</Service>
-</Device>

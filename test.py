@@ -15,12 +15,13 @@ test_targets = {
 }
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-CUSTOM_COMMAND = "모든 조명을 꺼줘"
-CUSTOM_DEVICES = """
-{'tc1_081181c1-3210-4ad2-8af1-f262fdc0fc76': {'category': 'Light', 'tags': ['PhilipsHue', 'Light']},
- 'tc2_eb6ffacda902bfa126pl9b': {'category': 'Light', 'tags': ['Tuya', 'Light']},
- 'tc1_24_58_7c_d1_3a_e4': {'category': 'PresenceVitalSensor', 'tags': ['MQTT', 'topic_xkwifi_device_data', 'PresenceVitalSensor']}}
-"""
+CUSTOM_COMMAND = "모든 불을 꺼줘"
+CUSTOM_DEVICES = {}
+# CUSTOM_DEVICES = """
+# {'tc1_081181c1-3210-4ad2-8af1-f262fdc0fc76': {'category': 'Light', 'tags': ['PhilipsHue', 'Light']},
+#  'tc2_eb6ffacda902bfa126pl9b': {'category': 'Light', 'tags': ['Tuya', 'Light']},
+#  'tc1_24_58_7c_d1_3a_e4': {'category': 'PresenceVitalSensor', 'tags': ['MQTT', 'topic_xkwifi_device_data', 'PresenceVitalSensor']}}
+# """
 CUSTOM_OPTIONS = {}
 
 csv_file_path = 'local_dataset.csv'
@@ -83,7 +84,13 @@ def run_custom_test(debug=False):
     print(f"Devices: {CUSTOM_DEVICES}")
     try:
         result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, debug=debug)
-        print(f"\n[Final Result]\n{result}")
+        print("\n[Final Result]")
+        print(f"merged_command : {result.get('merged_command', '')}")
+        print(f"code           :\n{result.get('code', '')}")
+        log = result.get('log', {})
+        print(f"translated     : {log.get('translated_sentence', '')}")
+        print(f"mapped_devices : {log.get('mapped_devices', [])}")
+        print(f"response_time  : {log.get('response_time', '')}")
     except Exception as e:
         print(f"Error: {e}")
         return
@@ -95,7 +102,13 @@ def run_custom_test(debug=False):
             break
         try:
             result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, modification=modification, debug=debug)
-            print(f"\n[Final Result]\n{result}")
+            print("\n[Final Result]")
+            print(f"merged_command : {result.get('merged_command', '')}")
+            print(f"code           :\n{result.get('code', '')}")
+            log = result.get('log', {})
+            print(f"translated     : {log.get('translated_sentence', '')}")
+            print(f"mapped_devices : {log.get('mapped_devices', [])}")
+            print(f"response_time  : {log.get('response_time', '')}")
         except Exception as e:
             print(f"Error: {e}")
 

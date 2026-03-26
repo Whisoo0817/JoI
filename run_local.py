@@ -160,6 +160,39 @@ def parse_service_summary(connected_devices_info, summary_file_path):
             
     return parsed_summary.strip()
 
+def _build_service_category_map(service_data):
+    """Build {service_name: category} map. Secondary categories override primary."""
+    SECONDARY = {'Switch', 'LevelControl', 'ColorControl', 'RotaryControl'}
+    mapping = {}
+    for cat, services in service_data.items():
+        if cat not in SECONDARY:
+            for svc in services:
+                if svc not in mapping:
+                    mapping[svc] = cat
+    for cat in SECONDARY:
+        if cat in service_data:
+            for svc in service_data[cat]:
+                mapping[svc] = cat
+    return mapping
+
+_SERVICE_CATEGORY_MAP = _build_service_category_map(SERVICE_DATA)
+
+def _apply_service_prefix(script):
+    """(#Light).On() -> (#Light).switch_on()"""
+    def replace(m):
+        selector = m.group(1)   # e.g., "(#Light)" or "all(#Light)"
+        service  = m.group(2)   # e.g., "On"
+        args     = m.group(3)   # e.g., "" or "50"
+        category = _SERVICE_CATEGORY_MAP.get(service, '')
+        if category:
+            cat_fmt = category[0].lower() + category[1:]
+            svc_fmt = service[0].lower() + service[1:]
+            new_svc = f"{cat_fmt}_{svc_fmt}"
+        else:
+            new_svc = service[0].lower() + service[1:]
+        return f"{selector}.{new_svc}({args})"
+    return re.sub(r'((?:all|any)?\(#\w+\))\.([A-Z]\w+)\(([^)]*)\)', replace, script)
+
 def _parse_dict_input(val, default):
     if isinstance(val, dict): return val
     if isinstance(val, str):
@@ -430,6 +463,7 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     # Post-processing: strip reasoning and standardize output format
     reasoning_match = re.search(r'(<Reasoning>.*?</Reasoning>)', joi_code_raw, re.DOTALL)
     script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
+    script = _apply_service_prefix(script)
     
     if cmd_type == "NO_SCHEDULE":
         # NO_SCHEDULE: LLM returns raw code, wrap it in JSON

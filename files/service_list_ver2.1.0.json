@@ -64,17 +64,7 @@
     "DustLevel": {
       "type": "value",
       "descriptor": "Air quality detector device for comprehensive air quality monitoring",
-      "return_descriptor": "Dust level",
-      "return_type": "DOUBLE",
-      "return_bounds": [
-        0,
-        1000
-      ]
-    },
-    "VeryFineDustLevel": {
-      "type": "value",
-      "descriptor": "Air quality detector device for comprehensive air quality monitoring",
-      "return_descriptor": "Very fine dust (PM2.5) level",
+      "return_descriptor": "Dust (PM10) level",
       "return_type": "DOUBLE",
       "return_bounds": [
         0,
@@ -84,7 +74,17 @@
     "FineDustLevel": {
       "type": "value",
       "descriptor": "Air quality detector device for comprehensive air quality monitoring",
-      "return_descriptor": "Fine dust (PM10) level",
+      "return_descriptor": "Fine dust (PM2.5) level",
+      "return_type": "DOUBLE",
+      "return_bounds": [
+        0,
+        1000
+      ]
+    },
+    "VeryFineDustLevel": {
+      "type": "value",
+      "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+      "return_descriptor": "Very fine dust (PM1.0) level",
       "return_type": "DOUBLE",
       "return_bounds": [
         0,
@@ -500,6 +500,9 @@
     "IsAvailable": {
       "type": "function",
       "descriptor": "Provides cloud service functionalities",
+      "argument_descriptor": "Check if the cloud service is available",
+      "argument_type": "STRING",
+      "argument_bounds": "The name of the cloud service to check",
       "return_type": "BOOL"
     },
     "UploadFile": {
@@ -626,6 +629,43 @@
       "return_type": "VOID"
     }
   },
+  "DimmerSwitch": {
+    "Button1": {
+      "type": "value",
+      "descriptor": "A dimmer switch device with multiple buttons (typically 4 buttons)",
+      "return_descriptor": "Button 1 state",
+      "return_type": "ENUM",
+      "enums_descriptor": [
+        "pushed - The value if the Button is pushed",
+        "held - The value if the Button is held",
+        "double - The value if the Button is pushed twice",
+        "pushed_2x - The value if the Button is pushed twice",
+        "pushed_3x - The value if the Button is pushed three times",
+        "down - The value if the Button is clicked down",
+        "down_hold - The value if the Button is clicked down and held",
+        "up - The value if the Button is clicked up",
+        "up_hold - The value if the Button is clicked up and held"
+      ]
+    },
+    "Button2": {
+      "type": "value",
+      "descriptor": "A dimmer switch device with multiple buttons (typically 4 buttons)",
+      "return_descriptor": "Button 2 state",
+      "return_type": "ENUM"
+    },
+    "Button3": {
+      "type": "value",
+      "descriptor": "A dimmer switch device with multiple buttons (typically 4 buttons)",
+      "return_descriptor": "Button 3 state",
+      "return_type": "ENUM"
+    },
+    "Button4": {
+      "type": "value",
+      "descriptor": "A dimmer switch device with multiple buttons (typically 4 buttons)",
+      "return_descriptor": "Button 4 state",
+      "return_type": "ENUM"
+    }
+  },
   "Dishwasher": {
     "DishwasherMode": {
       "type": "value",
@@ -684,8 +724,11 @@
       "return_descriptor": "The current state of the door lock",
       "return_type": "ENUM",
       "enums_descriptor": [
-        "locked - The door lock is locked",
-        "unlocked - The door lock is unlocked"
+        "closed - The door is closed",
+        "closing - The door is closing",
+        "open - The door is open",
+        "opening - The door is opening",
+        "unknown - The current state of the door is unknown"
       ]
     },
     "Lock": {
@@ -1052,7 +1095,8 @@
       "descriptor": "Provides menu information services",
       "argument_descriptor": "Get the menu - Return the menu list",
       "argument_type": "STRING",
-      "argument_bounds": "String concatenated with spaces - format: [Today|Tomorrow] [Student|Dorm|301] [Breakfast|Lunch|Dinner]- example: 'Today Student Lunch'",
+      "argument_bounds": "String(Korean) concatenated with spaces - format: [오늘|내일] [학생식당|수의대식당|전망대(3식당)|예술계식당(아름드리)|기숙사식당|아워홈|동원관식당(113동)|웰스토리(220동)|투굿(공대간이식당)|자하연식당|301동식당] [아침|점심|저녁]",
+      "example": "GetMenu(\"오늘 301동식당 점심\")",
       "return_type": "STRING"
     }
   },
@@ -1062,43 +1106,6 @@
       "descriptor": "Motion sensor device",
       "return_descriptor": "The current state of the motion sensor",
       "return_type": "BOOL"
-    }
-  },
-  "MultiButton": {
-    "Button1": {
-      "type": "value",
-      "descriptor": "A device with multiple buttons (typically 4 buttons)",
-      "return_descriptor": "Button 1 state",
-      "return_type": "ENUM",
-      "enums_descriptor": [
-        "pushed - The value if the Button is pushed",
-        "held - The value if the Button is held",
-        "double - The value if the Button is pushed twice",
-        "pushed_2x - The value if the Button is pushed twice",
-        "pushed_3x - The value if the Button is pushed three times",
-        "down - The value if the Button is clicked down",
-        "down_hold - The value if the Button is clicked down and held",
-        "up - The value if the Button is clicked up",
-        "up_hold - The value if the Button is clicked up and held"
-      ]
-    },
-    "Button2": {
-      "type": "value",
-      "descriptor": "A device with multiple buttons (typically 4 buttons)",
-      "return_descriptor": "Button 2 state",
-      "return_type": "ENUM"
-    },
-    "Button3": {
-      "type": "value",
-      "descriptor": "A device with multiple buttons (typically 4 buttons)",
-      "return_descriptor": "Button 3 state",
-      "return_type": "ENUM"
-    },
-    "Button4": {
-      "type": "value",
-      "descriptor": "A device with multiple buttons (typically 4 buttons)",
-      "return_descriptor": "Button 4 state",
-      "return_type": "ENUM"
     }
   },
   "Oven": {
@@ -1159,9 +1166,9 @@
     "AddMoreTime": {
       "type": "function",
       "descriptor": "Allows for the control of the oven mode",
-      "argument_descriptor": "Add more time to the current cooking process of the oven",
+      "argument_descriptor": "Add more time to the current cooking process of the oven (unit: seconds)",
       "argument_type": "DOUBLE",
-      "argument_bounds": "Set the additional cooking time of the oven (unit: seconds)",
+      "argument_bounds": "Set the additional cooking time of the oven",
       "return_type": "VOID"
     }
   },
@@ -1191,6 +1198,74 @@
       "descriptor": "The ability to see the current status of a presence sensor device",
       "return_descriptor": "The current state of the presence sensor",
       "return_type": "BOOL"
+    }
+  },
+  "PresenceVitalSensor": {
+    "Presence": {
+      "type": "value",
+      "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+      "return_descriptor": "Presence detection status",
+      "return_type": "BOOL"
+    },
+    "HeartRate": {
+      "type": "value",
+      "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+      "return_descriptor": "Heart rate in beats per minute",
+      "return_type": "DOUBLE",
+      "return_bounds": [
+        0,
+        250
+      ]
+    },
+    "RespiratoryRate": {
+      "type": "value",
+      "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+      "return_descriptor": "Respiratory rate in breaths per minute",
+      "return_type": "DOUBLE",
+      "return_bounds": [
+        0,
+        60
+      ]
+    },
+    "MovementIndex": {
+      "type": "value",
+      "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+      "return_descriptor": "Intensity of detected relative movement",
+      "return_type": "DOUBLE",
+      "return_bounds": [
+        0,
+        100
+      ]
+    },
+    "DwellTime": {
+      "type": "value",
+      "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+      "return_descriptor": "Time duration the subject has been present in seconds",
+      "return_type": "DOUBLE",
+      "return_bounds": [
+        0,
+        100000
+      ]
+    },
+    "Distance": {
+      "type": "value",
+      "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+      "return_descriptor": "Distance at which the subject is detected in meters",
+      "return_type": "DOUBLE",
+      "return_bounds": [
+        0,
+        10
+      ]
+    },
+    "Awakeness": {
+      "type": "value",
+      "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+      "return_descriptor": "Sleep/wake status indicator",
+      "return_type": "DOUBLE",
+      "return_bounds": [
+        -10,
+        10
+      ]
     }
   },
   "PressureSensor": {
@@ -1286,35 +1361,13 @@
         "map - The robot cleaner cleaning mode is in \"map\" mode"
       ]
     },
-    "SetRobotVacuumCleanerMode": {
+    "SetRobotVacuumCleanerModeMode": {
       "type": "function",
       "descriptor": "Allows for the control of the robot cleaner cleaning mode",
       "argument_descriptor": "Set the robot cleaner cleaning mode",
       "argument_type": "ENUM",
       "argument_bounds": "Set the robot cleaner cleaning mode, to \"auto\", \"part\", \"repeat\", \"manual\" or \"stop\" modes",
       "return_type": "VOID"
-    }
-  },
-  "RotaryControl": {
-    "Rotation": {
-      "type": "value",
-      "descriptor": "A device with rotary/dial control",
-      "return_descriptor": "Rotary control state (direction)",
-      "return_type": "ENUM",
-      "enums_descriptor": [
-        "clockwise - Rotated in clockwise direction",
-        "counter_clockwise - Rotated in counter-clockwise direction"
-      ]
-    },
-    "RotationSteps": {
-      "type": "value",
-      "descriptor": "A device with rotary/dial control",
-      "return_descriptor": "Number of rotation steps",
-      "return_type": "INTEGER",
-      "return_bounds": [
-        -100,
-        100
-      ]
     }
   },
   "Safe": {
@@ -1324,8 +1377,11 @@
       "return_descriptor": "Current Safe state",
       "return_type": "ENUM",
       "enums_descriptor": [
-        "locked - The Safe is locked",
-        "unlocked - The Safe is unlocked"
+        "closed",
+        "closing",
+        "open",
+        "opening",
+        "unknown"
       ]
     },
     "Lock": {
@@ -1446,13 +1502,13 @@
     },
     "VolumeUp": {
       "type": "function",
-      "descriptor": "Speaker device for audio playback and media control",
+      "descriptor": "Increase the volume by one",
       "argument_descriptor": "Return the new volume level",
       "return_type": "INTEGER"
     },
     "VolumeDown": {
       "type": "function",
-      "descriptor": "Speaker device for audio playback and media control",
+      "descriptor": "Decrease the volume by one",
       "argument_descriptor": "Return the new volume level",
       "return_type": "INTEGER"
     },
@@ -1489,6 +1545,63 @@
       "descriptor": "Allows for the control of a Switch device",
       "argument_descriptor": "Toggle a Switch. Returns the new state of the Switch.",
       "return_type": "BOOL"
+    }
+  },
+  "TapDialSwitch": {
+    "Button1": {
+      "type": "value",
+      "descriptor": "A tap dial switch device with multiple buttons and a rotary dial",
+      "return_descriptor": "Button 1 state",
+      "return_type": "ENUM",
+      "enums_descriptor": [
+        "pushed - The value if the Button is pushed",
+        "held - The value if the Button is held",
+        "double - The value if the Button is pushed twice",
+        "pushed_2x - The value if the Button is pushed twice",
+        "pushed_3x - The value if the Button is pushed three times",
+        "down - The value if the Button is clicked down",
+        "down_hold - The value if the Button is clicked down and held",
+        "up - The value if the Button is clicked up",
+        "up_hold - The value if the Button is clicked up and held"
+      ]
+    },
+    "Button2": {
+      "type": "value",
+      "descriptor": "A tap dial switch device with multiple buttons and a rotary dial",
+      "return_descriptor": "Button 2 state",
+      "return_type": "ENUM"
+    },
+    "Button3": {
+      "type": "value",
+      "descriptor": "A tap dial switch device with multiple buttons and a rotary dial",
+      "return_descriptor": "Button 3 state",
+      "return_type": "ENUM"
+    },
+    "Button4": {
+      "type": "value",
+      "descriptor": "A tap dial switch device with multiple buttons and a rotary dial",
+      "return_descriptor": "Button 4 state",
+      "return_type": "ENUM"
+    },
+    "Rotation": {
+      "type": "value",
+      "descriptor": "A tap dial switch device with multiple buttons and a rotary dial",
+      "return_descriptor": "Rotary control state (direction)",
+      "return_type": "ENUM",
+      "enums_descriptor": [
+        "clockwise - Rotated in clockwise direction",
+        "counter_clockwise - Rotated in counter-clockwise direction"
+      ]
+    },
+    "RotationSteps": {
+      "type": "value",
+      "descriptor": "A tap dial switch device with multiple buttons and a rotary dial",
+      "return_descriptor": "Number of rotation steps",
+      "return_type": "INTEGER",
+      "return_bounds": [
+        -100,
+        100
+      ]
     }
   },
   "Television": {
@@ -1586,10 +1699,10 @@
         2000
       ]
     },
-    "Pm2.5Weather": {
+    "Pm25Weather": {
       "type": "value",
-      "descriptor": "Provides weather information",
-      "return_descriptor": "Current pm2.5(very fine dust) level",
+      "descriptor": "Provides fine dust level information",
+      "return_descriptor": "Current pm2.5 level",
       "return_type": "DOUBLE",
       "return_bounds": [
         0,
@@ -1598,8 +1711,8 @@
     },
     "Pm10Weather": {
       "type": "value",
-      "descriptor": "Provides weather information",
-      "return_descriptor": "Current pm10(fine dust) level",
+      "descriptor": "Provides dust level information",
+      "return_descriptor": "Current pm10 level",
       "return_type": "DOUBLE",
       "return_bounds": [
         0,
@@ -1632,7 +1745,7 @@
     "GetWeatherInfo": {
       "type": "function",
       "descriptor": "Provides weather information",
-      "argument_descriptor": "Get the current weather information - Return whole weather information, format: \"temperature, humidity, pressure, pm2.5, pm10, weather, weather_string, icon_id, location\"",
+      "argument_descriptor": "Get the current weather information - Return whole weather information, format: \"temperature, humidity, pressure, pm25, pm10, weather, weather_string, icon_id, location\"",
       "argument_type": "DOUBLE | DOUBLE",
       "argument_format": " | ",
       "argument_bounds": "The latitude of the location | The longitude of the location",
@@ -1659,22 +1772,22 @@
     },
     "UpOrOpen": {
       "type": "function",
-      "descriptor": "Up or open the window",
+      "descriptor": "Up or open the window",      
       "return_type": "VOID"
     },
     "DownOrClose": {
       "type": "function",
-      "descriptor": "Down or close the window",
+      "descriptor": "Down or close the window",      
       "return_type": "VOID"
     },
     "Stop": {
       "type": "function",
-      "descriptor": "Stop the window covering",
+      "descriptor": "Stop the window covering",      
       "return_type": "VOID"
     },
     "SetLevel": {
       "type": "function",
-      "descriptor": "Controls a window covering to open or close it. Return the level set",
+      "descriptor": "Controls a window covering to open or close it. Return the level set.",
       "argument_descriptor": "Set the level of the window covering (0-100, where 0 is closed and 100 is open).",
       "argument_type": "INTEGER",
       "argument_bounds": "Level to set the window covering to (0-100)",

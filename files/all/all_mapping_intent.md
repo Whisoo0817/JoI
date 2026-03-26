@@ -82,16 +82,16 @@ Every time the door opens, increase the speaker volume by 10.
 ["Door.DoorState", "Speaker.SetVolume"]
 
 [Command]
-If the outdoor fine dust level is 15 or higher at midnight on weekdays, sound the emergency siren.
+If the outdoor dust level is 15 or higher at midnight on weekdays, sound the emergency siren.
 ["WeatherProvider.Pm10Weather", "Siren.SetSirenMode"]
 
 [Command]
 Check the robot vacuum cleaner every 30 minutes on weekend afternoons; if it's stopped, start it in auto mode.
-["RobotVacuumCleaner.RobotVacuumCleanerMode", "RobotVacuumCleaner.SetRobotVacuumCleanerMode"]
+["RobotVacuumCleaner.RobotVacuumCleanerMode", "RobotVacuumCleaner.SetRobotVacuumCleanerModeMode"]
 
 [Command]
 Run the robot cleaner in auto mode every 30 minutes.
-["RobotVacuumCleaner.SetRobotVacuumCleanerMode"]
+["RobotVacuumCleaner.SetRobotVacuumCleanerModeMode"]
 
 [Command]
 Unlock the safe at midnight, and check the lights every hour until 6 AM; if the brightness is greater than 30, lower it to 10.
@@ -120,3 +120,7 @@ During the weekend, check all pumps in the factory every 30 minutes; if any pump
 [Command]
 If the illuminance is below 50 and the light is off, turn on the light.
 ["LightSensor.Brightness", "Light.Switch", "Light.On"]
+
+[Command]
+Announce the current time through the speaker.
+["Clock.Hour", "Clock.Minute", "Speaker.Speak"]
