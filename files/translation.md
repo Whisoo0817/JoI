@@ -56,6 +56,9 @@ Set the hue of the light to 200 and the saturation to 50.
 "조명 밝기를 100까지 높여줘"
 Increase the light brightness to 100.
 
+"TV로 7번 채널을 틀어줘"
+Set the TV channel to 7.
+
 # if
 "에어컨의 목표 온도가 30도면 A를 켜줘"
 30도면 -> 상태 + "이면" -> if

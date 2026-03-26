@@ -434,16 +434,7 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
             {"role": "system", "content": kor_system},
             {"role": "user", "content": kor_input}
         ]
-        kor_completion = client.chat.completions.create(
-            messages=kor_messages,
-            model=model,
-            temperature=0.1,
-            max_tokens=256,
-            stream=False,
-            extra_body={"chat_template_kwargs": {"enable_thinking": False}}
-        )
-        translated_sentence = kor_completion.choices[0].message.content.strip()
-        # print(f"KOR ➡️ {translated_sentence}")
+        translated_sentence = run_llm_inference(model, client, "kor_reconversion", kor_messages, debug=debug)
     except Exception as e:
         print(f"Korean reconversion failed: {e}")
 
