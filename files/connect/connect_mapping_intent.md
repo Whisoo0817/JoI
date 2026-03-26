@@ -81,6 +81,10 @@ If the outdoor dust level is 15 or higher at midnight on weekdays, sound the eme
 ["WeatherProvider.Pm10Weather", "Siren.SetSirenMode"]
 
 [Command]
+Announce the outdoor fine dust concentration.
+["WeatherProvider.PM25Weather"]
+
+[Command]
 Check the robot vacuum cleaner every 30 minutes on weekend afternoons; if it's stopped, start it in auto mode.
 ["RobotVacuumCleaner.RobotVacuumCleanerMode", "RobotVacuumCleaner.SetRobotVacuumCleanerModeMode"]
 

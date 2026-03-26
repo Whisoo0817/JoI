@@ -302,7 +302,7 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "TemperatureWeather" type="value">Outdoor temperature</Service>
   <Service "HumidityWeather" type="value">Outdoor humidity</Service>
   <Service "PressureWeather" type="value">Outdoor pressure</Service>
-  <Service "Pm10Weather" type="value">Outdoor fine dust concentration</Service>
+  <Service "Pm10Weather" type="value">Outdoor dust concentration</Service>
   <Service "Pm25Weather" type="value">Outdoor very fine dust (PM2.5) concentration</Service>
   <Service "Weather" type="value">Outdoor weather status (rain, snow, clear, cloudy, etc.)</Service>
   <Service "GetWeatherInfo" type="action">Get detailed weather information (only when latitude and longitude are given)</Service>

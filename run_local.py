@@ -12,8 +12,7 @@ openai_api_key = "EMPTY"
 openai_api_base = os.environ.get("LLM_BASE_URL", "http://localhost:8002/v1")
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.1.json")
-DEVICE_LIST = ['AirConditioner', 'AirPurifier', 'AirQualitySensor', 'ArmRobot', 'AudioRecorder', 'Button', 'Camera', 'CarbonDioxideSensor', 'Charger', 'Clock', 'CloudServiceProvider', 'ColorControl', 'ContactSensor', 'Dehumidifier', 'Dishwasher', 'Door', 'DoorLock', 'EmailProvider', 'FaceRecognizer', 'Humidifier', 'HumiditySensor', 'LaundryDryer', 'LeakSensor', 'LevelControl', 'Light', 'LightSensor', 'MenuProvider', 'MotionSensor', 'MultiButton', 'Oven', 'Plug', 'PresenceSensor', 'PressureSensor', 'Pump', 'RainSensor', 'RiceCooker', 'RobotVacuumCleaner', 'RotaryControl', 'Safe', 'Siren', 'SmokeDetector', 'SoundSensor', 'Speaker', 'Switch', 'Television', 'TemperatureSensor', 'Valve', 'WeatherProvider', 'WindowCovering']
+SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.1.0.json")
 try:
     with open(SERVICE_LIST_PATH, 'r', encoding='utf-8') as f:
         SERVICE_DATA = json.load(f)
@@ -32,8 +31,7 @@ def run_llm_inference(model, client, inference_type, messages, debug=False):
         stream=False,
         extra_body={"chat_template_kwargs": {"enable_thinking": False}}
     )
-    end_inference = time.perf_counter()
-    elapsed = end_inference - start_inference
+    elapsed = time.perf_counter() - start_inference
     
     content = chat_completion.choices[0].message.content
     if debug:
@@ -177,6 +175,10 @@ def _build_service_category_map(service_data):
 
 _SERVICE_CATEGORY_MAP = _build_service_category_map(SERVICE_DATA)
 
+_CONNECT_SUMMARY_PATH = os.path.join(_BASE_DIR, 'files/connect/connect_service_summary.md')
+with open(_CONNECT_SUMMARY_PATH, 'r', encoding='utf-8') as _f:
+    _FULL_CONNECT_SUMMARY = _f.read()
+
 def _apply_service_prefix(script):
     """(#Light).On() -> (#Light).switch_on()"""
     def replace(m):
@@ -206,15 +208,12 @@ def warmup(debug=False):
     model = client.models.list().data[0].id
     prompts = _load_all_prompts(os.path.join(_BASE_DIR, "files"))
 
-    with open(os.path.join(_BASE_DIR, 'files/all_service_summary.md'), 'r', encoding='utf-8') as f:
-        all_summary = f.read()
-
     print(f"[warmup] Caching {len(prompts)} prompts...")
     start = time.perf_counter()
     for name, prompt in prompts.items():
         try:
-            if name == "all_mapping_intent":
-                user_content = f"[Service List]\n{all_summary}\n\n[Command]\nhi"
+            if name == "connect_mapping_intent":
+                user_content = f"[Service List]\n{_FULL_CONNECT_SUMMARY}\n\n[Command]\nhi"
             else:
                 user_content = "hi"
             client.chat.completions.create(
@@ -233,10 +232,6 @@ def warmup(debug=False):
         except Exception as e:
             print(f"[warmup] failed: {name} ({e})")
     print(f"[warmup] Done in {time.perf_counter() - start:.2f}s")
-
-# ❇️ Main Function
-all_items = []
-choice_no = 0
 
 def generate_joi_code(sentence, connected_devices, other_params, model=None, current_time=None, modification=None, debug=False):
     # 1. Parse Inputs - dict type
@@ -268,27 +263,10 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     if re.search("[가-힣]", first_word):
         sentence = run_llm_inference(model, client, "translation", [{"role": "system", "content": prompts.get("translation", "")}, {"role": "user", "content": sentence}], debug=debug)
 
-    summary_path = os.path.join(_BASE_DIR, 'files/all_service_summary.md')
-    summary_connect_path = os.path.join(_BASE_DIR, 'files/connect_service_summary.md')
-    
-    with open(summary_path, 'r', encoding='utf-8') as f:
-        service_summary = f.read()
-    
-    def run_mapping():            
-        # Connected devices O  
-        is_connected = False
+    def run_mapping():
+        # connected_devices 있으면 필터링된 summary, 없으면 전체 summary 사용
         if isinstance(connected_devices, dict) and connected_devices:
-            is_connected = True
-            # print(connected_devices)
-            # Parse & Make filtered summary file
-            local_service_summary = parse_service_summary(connected_devices, summary_connect_path)     
-
-            intent_input = f"[Service List]\n{local_service_summary}\n\n[Command]\n{sentence}"                                    
-            messages = [
-                {"role": "system", "content": prompts.get("connect_mapping_intent", "")},
-                {"role": "user", "content": intent_input}
-            ]
-            # Available Devices
+            local_service_summary = parse_service_summary(connected_devices, _CONNECT_SUMMARY_PATH)
             valid_categories = set()
             for v in connected_devices.values():
                 cats = v.get("category", [])
@@ -296,100 +274,85 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
                     valid_categories.update(cats)
                 elif isinstance(cats, str):
                     valid_categories.add(cats)
-
-            # ❇️ Mapping Intent
-            for attempt in range(2): # Fail -> Retry
-                intent_output = run_llm_inference(model, client, "connect_mapping_intent", messages, debug=debug)        
-                clean = re.sub(r'```(?:json)?\s*', '', intent_output).strip()
-                selected_services = json.loads(clean)                 
-                inject_value_service(selected_services)
-                local_service_details = extract_service_details(selected_services, SERVICE_DATA)
-                
-                format_errors = []
-                not_found_errors = []
-                for s in selected_services:
-                    if '.' not in s:
-                        format_errors.append(s)
-                        continue
-                    device_name, service_name = s.split('.', 1)
-                    service_name = service_name.replace("()", "")                                        
-                    if device_name not in valid_categories or service_name not in local_service_details.get(device_name, {}):
-                        not_found_errors.append(s)
-                
-                if not (format_errors or not_found_errors) or attempt == 1:
-                    break
-                    
-                # Create diagnostic checklist for retry
-                retry_checklist = []
-                if format_errors:
-                    retry_checklist.append(f"1. [Format Error]: {format_errors} must follow 'Device.Service' format. Do not return service alone.")
-                if not_found_errors:
-                    retry_checklist.append(f"2. [Service Not Found]: {not_found_errors} are not in the [Service List]. Use ONLY exact names from the list.")
-                
-                feedback = "I found some issues. Please follow this checklist to correct them:\n" + "\n".join(retry_checklist)
-                messages.append({"role": "assistant", "content": intent_output})
-                messages.append({"role": "user", "content": feedback})            
-
-            # ❇️ Mapping Precision
-            intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
             cd_simple = {k: {"tags": v.get("tags", [])} for k, v in connected_devices.items()}
-            precision_input = f"""[Command]\n{sentence}\n[Intent]\n{json.dumps(intent_categories, indent=2, ensure_ascii=False)}\n[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"""
-            # print(precision_input)
-            precision_messages = [{"role": "system", "content": prompts.get("connect_mapping_precision", "")}, {"role": "user", "content": precision_input}]
-            precision_output = run_llm_inference(model, client, "connect_mapping_precision", precision_messages, debug=debug)
+        else:
+            local_service_summary = _FULL_CONNECT_SUMMARY
+            valid_categories = set(SERVICE_DATA.keys())
+            cd_simple = {}
 
-            # Parse selectors after </Reasoning>
-            reasoning_split = re.split(r'</Reasoning>', precision_output, maxsplit=1)
-            step2_selectors = reasoning_split[1].strip() if len(reasoning_split) > 1 else precision_output.strip()
-            # ❇️ Quantifier (single/all/any)
-            quant_input = f"[Command]\n{sentence}\n[Devices]\n{step2_selectors}"
-            quant_messages = [{"role": "system", "content": prompts.get("connect_quantifier", "")}, {"role": "user", "content": quant_input}]
-            quant_output = run_llm_inference(model, client, "connect_quantifier", quant_messages, debug=debug)
-            
-            local_services = f"[Service Tagging]\n{step2_selectors}\n\n[Quantifier]\n{quant_output.strip()}\n\n[Service Details]\n{json.dumps(local_service_details, indent=2, ensure_ascii=False)}"
-        
-        # Connected devices X
-        else:          
-            # ❇️ Single Stage: Mapping Intent (using Full Summary)
-            intent_input = f"[Service List]\n{service_summary}\n\n[Command]\n{sentence}"            
-            messages = [
-                {"role": "system", "content": prompts.get("all_mapping_intent", "")},
-                {"role": "user", "content": intent_input}
-            ]
-            intent_output = run_llm_inference(model, client, "all_mapping_intent", messages, debug=debug)        
-            # Remove code block
-            clean_json = re.sub(r'```(?:json)?\s*', '', intent_output).strip().strip('`')
-            # String to List
-            selected_services = json.loads(clean_json)
-            # Inject additional value service (hard-coded)
-            inject_value_service(selected_services)        
-            # Extract service details            
-            local_service_details = extract_service_details(selected_services, SERVICE_DATA)                
-            local_services = json.dumps(local_service_details, indent=2, ensure_ascii=False)
-            intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
+        # ❇️ Mapping Intent
+        intent_input = f"[Service List]\n{local_service_summary}\n\n[Command]\n{sentence}"
+        messages = [
+            {"role": "system", "content": prompts.get("connect_mapping_intent", "")},
+            {"role": "user", "content": intent_input}
+        ]
+        for attempt in range(2):  # Fail -> Retry
+            intent_output = run_llm_inference(model, client, "connect_mapping_intent", messages, debug=debug)
+            clean = re.sub(r'```(?:json)?\s*', '', intent_output).strip()
+            selected_services = json.loads(clean)
+            inject_value_service(selected_services)
+            local_service_details = extract_service_details(selected_services, SERVICE_DATA)
 
-        return local_services, is_connected, intent_categories, local_service_details
+            format_errors = []
+            not_found_errors = []
+            for s in selected_services:
+                if '.' not in s:
+                    format_errors.append(s)
+                    continue
+                device_name, service_name = s.split('.', 1)
+                service_name = service_name.replace("()", "")
+                if device_name not in valid_categories or service_name not in local_service_details.get(device_name, {}):
+                    not_found_errors.append(s)
+
+            if not (format_errors or not_found_errors) or attempt == 1:
+                break
+
+            retry_checklist = []
+            if format_errors:
+                retry_checklist.append(f"1. [Format Error]: {format_errors} must follow 'Device.Service' format. Do not return service alone.")
+            if not_found_errors:
+                retry_checklist.append(f"2. [Service Not Found]: {not_found_errors} are not in the [Service List]. Use ONLY exact names from the list.")
+
+            feedback = "I found some issues. Please follow this checklist to correct them:\n" + "\n".join(retry_checklist)
+            messages.append({"role": "assistant", "content": intent_output})
+            messages.append({"role": "user", "content": feedback})
+
+        # ❇️ Mapping Precision
+        intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
+        precision_input = f"[Command]\n{sentence}\n[Intent]\n{json.dumps(intent_categories, indent=2, ensure_ascii=False)}\n[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"
+        precision_messages = [{"role": "system", "content": prompts.get("connect_mapping_precision", "")}, {"role": "user", "content": precision_input}]
+        precision_output = run_llm_inference(model, client, "connect_mapping_precision", precision_messages, debug=debug)
+
+        # Parse selectors after </Reasoning>
+        reasoning_split = re.split(r'</Reasoning>', precision_output, maxsplit=1)
+        step2_selectors = reasoning_split[1].strip() if len(reasoning_split) > 1 else precision_output.strip()
+
+        # ❇️ Quantifier (single/all/any)
+        quant_input = f"[Command]\n{sentence}\n[Devices]\n{step2_selectors}"
+        quant_messages = [{"role": "system", "content": prompts.get("connect_quantifier", "")}, {"role": "user", "content": quant_input}]
+        quant_output = run_llm_inference(model, client, "connect_quantifier", quant_messages, debug=debug)
+
+        local_services = f"[Service Tagging]\n{step2_selectors}\n\n[Quantifier]\n{quant_output.strip()}\n\n[Service Details]\n{json.dumps(local_service_details, indent=2, ensure_ascii=False)}"
+
+        return local_services, intent_categories, local_service_details
 
     def run_router():
         # ❇️ Phase 1: Condition Filter
         filter_messages = [{"role": "system", "content": prompts.get("filter", "")}, {"role": "user", "content": sentence}]
         filter_output = run_llm_inference(model, client, "filter", filter_messages, debug=debug)
         
-        extractor_output = ""        
-        cmd_type = "UNKNOWN" # Initialize cmd_type here
-        conclusion = "" # Initialize conclusion here
-        
+        cmd_type = "UNKNOWN"
+        conclusion = ""
+
         # ❇️ Phase 2: Condition Extractor
         if "true" in filter_output.lower():
             extractor_messages = [{"role": "system", "content": prompts.get("extractor", "")}, {"role": "user", "content": sentence}]
             extractor_output = run_llm_inference(model, client, "extractor", extractor_messages, debug=debug)
-            
-            # Keep the full Extractor Analysis (both [분석] and [결론]) for context
+
             if extractor_output:
                 conclusion = extractor_output.strip()
-                    
+
             # ❇️ Phase 3: Classifier (NO_SCHEDULE / SCHEDULED / DURATION)
-            cmd_type = "UNKNOWN"
             if conclusion:
                 classifier_input = f"[Command]\n{sentence}\n\n[Extractor Analysis]\n{conclusion}"
                 classifier_messages = [{"role": "system", "content": prompts.get("router", "")}, {"role": "user", "content": classifier_input}]
@@ -417,20 +380,19 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     with ThreadPoolExecutor(max_workers=2) as executor:
         f_mapping = executor.submit(run_mapping)
         f_router = executor.submit(run_router)
-        services, is_connected, mapped_devices, service_details = f_mapping.result()
+        services, mapped_devices, service_details = f_mapping.result()
         cmd_type, router_conclusion = f_router.result()
-    
+
     # 6. Joi Generation Branching
     type_to_prompt_key = {
-        "NO_SCHEDULE": "joi_no_schedule", 
+        "NO_SCHEDULE": "joi_no_schedule",
         "SCHEDULED": "joi_scheduled",
         "DURATION": "joi_duration"
     }
-    
+
     # Fallback to SCHEDULED if unknown type
     base_prompt_key = type_to_prompt_key.get(cmd_type, "joi_scheduled")
-    cmd_prefix = "connect_" if is_connected else "all_"
-    prompt_key = f"{cmd_prefix}{base_prompt_key}"
+    prompt_key = f"connect_{base_prompt_key}"
     
     # Prepare System Prompt
     system_prompt = prompts.get(prompt_key, "")

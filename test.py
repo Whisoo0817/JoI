@@ -4,11 +4,11 @@ from run_local import generate_joi_code
 
 # [MODE: target] 테스트할 타겟 지정 (python3 test.py target)
 test_targets = {
-    1: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
+    # 1: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
     # 2: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
     # 3: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
     # 4: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
-    # 5: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
+    5: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
     # 6: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
     # 7: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50],
     # 8: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50],     
@@ -58,6 +58,15 @@ def run_full_batch(df, debug=False):
     sys.stdout = original_stdout
     print(f"\n✨ Full Batch Processing Completed.")
 
+def print_result(result):
+    print("\n[Final Result]")
+    print(f"merged_command : {result.get('merged_command', '')}")
+    print(f"code           :\n{result.get('code', '')}")
+    log = result.get('log', {})
+    print(f"translated     : {log.get('translated_sentence', '')}")
+    print(f"mapped_devices : {log.get('mapped_devices', [])}")
+    print(f"response_time  : {log.get('response_time', '')}")
+
 def run_targeted_test(df, debug=False):
     print("\n🎯 Running Targeted Tests...")
     for category, indices in test_targets.items():
@@ -74,7 +83,7 @@ def run_targeted_test(df, debug=False):
             try:
                 # Use ENG from CSV as base for targeted testing consistency or KOR to test translation
                 result = generate_joi_code(kor, row['connected_devices'], {}, debug=debug)
-                # print(result)
+                print_result(result)
             except Exception as e:
                 print(f"Error at Idx {idx}: {e}")
 
@@ -102,13 +111,7 @@ def run_custom_test(debug=False):
             break
         try:
             result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, modification=modification, debug=debug)
-            print("\n[Final Result]")
-            print(f"merged_command : {result.get('merged_command', '')}")
-            print(f"code           :\n{result.get('code', '')}")
-            log = result.get('log', {})
-            print(f"translated     : {log.get('translated_sentence', '')}")
-            print(f"mapped_devices : {log.get('mapped_devices', [])}")
-            print(f"response_time  : {log.get('response_time', '')}")
+            print_result(result)
         except Exception as e:
             print(f"Error: {e}")
 
