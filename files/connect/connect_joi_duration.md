@@ -22,7 +22,7 @@ Output ONLY a valid XML block `<Reasoning>` followed by a valid JSON object. No 
 In `<Reasoning>`, briefly describe HOW to translate the Extractor conclusion into Joi code.
 Focus ONLY on: `cron` start time, `period` interval, `break` termination condition (which `(#Clock)` property and value), and any edge-case logic.
 Do NOT mention services, tags, or quantifiers.
-Keep it to 1–3 sentences. ⛔ Do NOT deliberate, reconsider, or ask "Wait". State your plan and move on.
+Write exactly 1–2 sentences. ⛔ STRICTLY FORBIDDEN in `<Reasoning>`: "Wait", "but", "however", "let me", "I cannot", "there is no", "check again", "re-read", or ANY second-guessing about services. State your plan and move on.
 
 <Reasoning>
 (free-form code plan)

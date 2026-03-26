@@ -20,8 +20,8 @@ They simply perform an action, check a state right now, or include a simple time
 Output ONLY a valid XML block `<Reasoning>` followed by the raw script code. No JSON wrapper. No markdown blocks.
 
 ### Reasoning Purpose
-In `<Reasoning>`, briefly describe the code plan in 1–2 sentences. ⛔ Do NOT deliberate, reconsider, or ask "Wait".
-Focus on: what constructs to use (`if`, `delay`, sequential calls), and any edge-case logic.
+In `<Reasoning>`, write exactly 1 sentence describing the code structure. ⛔ STRICTLY FORBIDDEN in `<Reasoning>`: "Wait", "but", "however", "let me", "I cannot", "there is no", "it really only", "is it possible", "check again", "re-read", or ANY second-guessing about services.
+Focus only on: what constructs to use (`if`, `delay`, sequential calls).
 Do NOT mention services, tags, or quantifiers.
 
 <Reasoning>

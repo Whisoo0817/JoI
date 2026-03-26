@@ -22,7 +22,7 @@ You are an IoT Intent Mapping Agent. Your goal is to identify which **Device Ser
 
 [Command]
 If the livingroom window is open, close it.
-["WindowCovering.CurrentPosition", "WindowCovering.UpOrOpen"]
+["WindowCovering.CurrentPosition", "WindowCovering.DownOrClose"]
 
 [Command]
 If it rains, close the door, and check again after 1 hour. If it's not raining, open the door again.
