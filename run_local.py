@@ -12,7 +12,7 @@ openai_api_key = "EMPTY"
 openai_api_base = os.environ.get("LLM_BASE_URL", "http://localhost:8002/v1")
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.1.0.json")
+SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.1.json")
 try:
     with open(SERVICE_LIST_PATH, 'r', encoding='utf-8') as f:
         SERVICE_DATA = json.load(f)
@@ -404,23 +404,6 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
         
     joi_messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": joi_input}]
     joi_code_raw = run_llm_inference(model, client, prompt_key, joi_messages, debug=debug)
-
-    # ❇️ WindowCovering Refinement: #WindowCovering -> #Window/#Blind/#Shade
-    if "#WindowCovering" in joi_code_raw:
-        refine_input = f"Command: \"{sentence}\"\nCode:\n{joi_code_raw}"
-        refine_messages = [
-            {"role": "system", "content": prompts.get("window_covering_refine", "")},
-            {"role": "user", "content": refine_input}
-        ]
-        refine_output = run_llm_inference(model, client, "window_covering_refine", refine_messages, debug=debug)
-        # Extract pure Python code (strip markdown fences if present)
-        refine_code = re.sub(r'```(?:python)?\s*', '', refine_output).strip().rstrip('`')
-        try:
-            local_vars = {"joi_code_raw": joi_code_raw}
-            exec(refine_code, {}, local_vars)
-            joi_code_raw = local_vars["joi_code_raw"]
-        except:
-            pass
 
     # Post-processing: strip reasoning and standardize output format
     reasoning_match = re.search(r'(<Reasoning>.*?</Reasoning>)', joi_code_raw, re.DOTALL)

@@ -15,7 +15,7 @@ test_targets = {
 }
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-CUSTOM_COMMAND = "모든 불을 꺼줘"
+CUSTOM_COMMAND = "모든 창문을 열어줘"
 CUSTOM_DEVICES = {}
 # CUSTOM_DEVICES = """
 # {'tc1_081181c1-3210-4ad2-8af1-f262fdc0fc76': {'category': 'Light', 'tags': ['PhilipsHue', 'Light']},

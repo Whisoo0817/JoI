@@ -64,17 +64,7 @@
     "DustLevel": {
       "type": "value",
       "descriptor": "Air quality detector device for comprehensive air quality monitoring",
-      "return_descriptor": "Dust (PM10) level",
-      "return_type": "DOUBLE",
-      "return_bounds": [
-        0,
-        1000
-      ]
-    },
-    "FineDustLevel": {
-      "type": "value",
-      "descriptor": "Air quality detector device for comprehensive air quality monitoring",
-      "return_descriptor": "Fine dust (PM2.5) level",
+      "return_descriptor": "Dust level",
       "return_type": "DOUBLE",
       "return_bounds": [
         0,
@@ -84,7 +74,17 @@
     "VeryFineDustLevel": {
       "type": "value",
       "descriptor": "Air quality detector device for comprehensive air quality monitoring",
-      "return_descriptor": "Very fine dust (PM1.0) level",
+      "return_descriptor": "Very fine dust (PM2.5) level",
+      "return_type": "DOUBLE",
+      "return_bounds": [
+        0,
+        1000
+      ]
+    },
+    "FineDustLevel": {
+      "type": "value",
+      "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+      "return_descriptor": "Fine dust (PM10) level",
       "return_type": "DOUBLE",
       "return_bounds": [
         0,
@@ -208,7 +208,7 @@
       "argument_descriptor": "Record audio with a specified duration",
       "argument_type": "STRING | DOUBLE",
       "argument_format": " | ",
-      "argument_bounds": "The file to record to | The duration to record for",
+      "argument_bounds": "The file to record to | The duration to record for (unit: seconds)",
       "return_type": "BINARY"
     }
   },
@@ -340,6 +340,7 @@
       "type": "value",
       "descriptor": "The current status of battery charging",
       "return_descriptor": "The voltage of the battery in millivolts",
+      "example": "12V -> 12000",
       "return_type": "DOUBLE"
     },
     "Power": {
@@ -499,9 +500,6 @@
     "IsAvailable": {
       "type": "function",
       "descriptor": "Provides cloud service functionalities",
-      "argument_descriptor": "Check if the cloud service is available",
-      "argument_type": "BOOL",
-      "argument_bounds": "The name of the cloud service to check",
       "return_type": "BOOL"
     },
     "UploadFile": {
@@ -584,6 +582,7 @@
       "argument_descriptor": "Set the color of the device",
       "argument_type": "STRING",
       "argument_bounds": "RGB color value in format 'r|g|b' (0-255 for each)",
+      "example": "yellow - SetColor(\"255|255|0\"), purple - SetColor(\"255|0|255\")",
       "return_type": "VOID"
     }
   },
@@ -685,11 +684,8 @@
       "return_descriptor": "The current state of the door lock",
       "return_type": "ENUM",
       "enums_descriptor": [
-        "closed - The door is closed",
-        "closing - The door is closing",
-        "open - The door is open",
-        "opening - The door is opening",
-        "unknown - The current state of the door is unknown"
+        "locked - The door lock is locked",
+        "unlocked - The door lock is unlocked"
       ]
     },
     "Lock": {
@@ -736,13 +732,13 @@
       "type": "function",
       "descriptor": "Controls face recognition features",
       "argument_descriptor": "Start face recognition",
-      "return_type": "BOOL"
+      "return_type": "VOID"
     },
     "End": {
       "type": "function",
       "descriptor": "Controls face recognition features",
       "argument_descriptor": "End face recognition",
-      "return_type": "BOOL"
+      "return_type": "VOID"
     },
     "AddFace": {
       "type": "function",
@@ -750,7 +746,7 @@
       "argument_descriptor": "Add a new face to the recognition database",
       "argument_type": "STRING",
       "argument_bounds": "ID for the new face",
-      "return_type": "BOOL"
+      "return_type": "VOID"
     },
     "DeleteFace": {
       "type": "function",
@@ -758,7 +754,7 @@
       "argument_descriptor": "Delete a face from the recognition database",
       "argument_type": "STRING",
       "argument_bounds": "ID of the face to delete",
-      "return_type": "BOOL"
+      "return_type": "VOID"
     }
   },
   "Humidifier": {
@@ -878,7 +874,8 @@
       "argument_descriptor": "Move the level to the given value. If the device supports being turned on and off then it will be turned on if level is greater than 0 and turned off if level is equal to 0.",
       "argument_type": "DOUBLE | DOUBLE",
       "argument_format": " | ",
-      "argument_bounds": "The level value, usually 0-100 in percent | The rate at which to change the level",
+      "argument_bounds": "The level value, usually 0-100 in percent | The rate at which to change the level (default: 0)",
+      "example": "MoveToLevel(100, 0)",
       "return_type": "VOID"
     }
   },
@@ -968,7 +965,7 @@
       "argument_descriptor": "Move the Brightness to the given value. If the device supports being turned on and off then it will be turned on if brightness is greater than 0 and turned off if brightness is equal to 0.",
       "argument_type": "DOUBLE | DOUBLE",
       "argument_format": " | ",
-      "argument_bounds": "The brightness value, usually 0-100 in percent | The rate at which to change the brightness",
+      "argument_bounds": "The brightness value, usually 0-100 in percent | The rate at which to change the brightness (default: 0)",
       "return_type": "VOID"
     },
     "MoveToHue": {
@@ -991,27 +988,27 @@
       "type": "function",
       "descriptor": "A numerical representation of the brightness intensity",
       "argument_descriptor": "Gradually change to the set Hue and Saturation",
-      "argument_type": "DOUBLE | DOUBLE",
-      "argument_format": " | ",
-      "argument_bounds": "hue value | saturation value",
+      "argument_type": "DOUBLE , DOUBLE",
+      "argument_format": " , ",
+      "argument_bounds": "hue value , saturation value",
       "return_type": "VOID"
     },
     "MoveToRGB": {
       "type": "function",
       "descriptor": "A numerical representation of the brightness intensity",
       "argument_descriptor": "Gradually change to the set RGB",
-      "argument_type": "INTEGER | INTEGER | INTEGER",
-      "argument_format": " | | ",
-      "argument_bounds": "red value | green value | blue value",
+      "argument_type": "INTEGER , INTEGER , INTEGER",
+      "argument_format": " , , ",
+      "argument_bounds": "red value , green value , blue value",
       "return_type": "VOID"
     },
     "MoveToXY": {
       "type": "function",
       "descriptor": "A numerical representation of the brightness intensity",
       "argument_descriptor": "Gradually change to the set XY",
-      "argument_type": "DOUBLE | DOUBLE",
-      "argument_format": " | ",
-      "argument_bounds": "color X value | color Y value",
+      "argument_type": "DOUBLE , DOUBLE",
+      "argument_format": " , ",
+      "argument_bounds": "color X value , color Y value",
       "return_type": "VOID"
     },
     "MoveToColorTemperature": {
@@ -1055,7 +1052,7 @@
       "descriptor": "Provides menu information services",
       "argument_descriptor": "Get the menu - Return the menu list",
       "argument_type": "STRING",
-      "argument_bounds": "The command to get the menu - format: [오늘|내일] [학생식당|수의대식당|전망대(3식당)|예술계식당(아름드리)|기숙사식당|아워홈|동원관식당(113동)|웰스토리(220동)|투굿(공대간이식당)|자하연식당|301동식당] [아침|점심|저녁]",
+      "argument_bounds": "String concatenated with spaces - format: [Today|Tomorrow] [Student|Dorm|301] [Breakfast|Lunch|Dinner]- example: 'Today Student Lunch'",
       "return_type": "STRING"
     }
   },
@@ -1156,7 +1153,7 @@
       "argument_descriptor": "Set the cooking parameters of the oven",
       "argument_type": "ENUM | DOUBLE",
       "argument_format": " | ",
-      "argument_bounds": "Set the mode of the oven | Set the cooking time of the oven",
+      "argument_bounds": "Set the mode of the oven | Set the cooking time of the oven (unit: seconds)",
       "return_type": "VOID"
     },
     "AddMoreTime": {
@@ -1164,7 +1161,7 @@
       "descriptor": "Allows for the control of the oven mode",
       "argument_descriptor": "Add more time to the current cooking process of the oven",
       "argument_type": "DOUBLE",
-      "argument_bounds": "Set the additional cooking time of the oven",
+      "argument_bounds": "Set the additional cooking time of the oven (unit: seconds)",
       "return_type": "VOID"
     }
   },
@@ -1253,7 +1250,7 @@
       "descriptor": "Allows for the control of the Rice Cooker",
       "argument_descriptor": "Add more time to the Rice Cooker",
       "argument_type": "DOUBLE",
-      "argument_bounds": "The additional time to add to the Rice Cooker",
+      "argument_bounds": "The additional time to add to the Rice Cooker (unit: seconds)",
       "return_type": "VOID"
     },
     "SetRiceCookerMode": {
@@ -1270,7 +1267,7 @@
       "argument_descriptor": "Set the cooking parameters for the Rice Cooker",
       "argument_type": "ENUM | DOUBLE",
       "argument_format": " | ",
-      "argument_bounds": "The desired Rice Cooker mode | The cooking time",
+      "argument_bounds": "The desired Rice Cooker mode | The cooking time (unit: seconds)",
       "return_type": "VOID"
     }
   },
@@ -1289,7 +1286,7 @@
         "map - The robot cleaner cleaning mode is in \"map\" mode"
       ]
     },
-    "SetRobotVacuumCleanerModeMode": {
+    "SetRobotVacuumCleanerMode": {
       "type": "function",
       "descriptor": "Allows for the control of the robot cleaner cleaning mode",
       "argument_descriptor": "Set the robot cleaner cleaning mode",
@@ -1327,11 +1324,8 @@
       "return_descriptor": "Current Safe state",
       "return_type": "ENUM",
       "enums_descriptor": [
-        "closed",
-        "closing",
-        "open",
-        "opening",
-        "unknown"
+        "locked - The Safe is locked",
+        "unlocked - The Safe is unlocked"
       ]
     },
     "Lock": {
@@ -1453,13 +1447,13 @@
     "VolumeUp": {
       "type": "function",
       "descriptor": "Speaker device for audio playback and media control",
-      "argument_descriptor": "Set the speaker volume level. Return the new volume level",
+      "argument_descriptor": "Return the new volume level",
       "return_type": "INTEGER"
     },
     "VolumeDown": {
       "type": "function",
       "descriptor": "Speaker device for audio playback and media control",
-      "argument_descriptor": "Set the speaker volume level. Return the new volume level",
+      "argument_descriptor": "Return the new volume level",
       "return_type": "INTEGER"
     },
     "Speak": {
@@ -1550,13 +1544,13 @@
     },
     "Open": {
       "type": "function",
-      "descriptor": "Controls a valve to open or close it",
+      "descriptor": "Controls a valve to open it",
       "argument_descriptor": "Open the valve",
       "return_type": "VOID"
     },
     "Close": {
       "type": "function",
-      "descriptor": "Controls a valve to open or close it",
+      "descriptor": "Controls a valve to close it",
       "argument_descriptor": "Close the valve",
       "return_type": "VOID"
     }
@@ -1592,10 +1586,10 @@
         2000
       ]
     },
-    "Pm25Weather": {
+    "Pm2.5Weather": {
       "type": "value",
       "descriptor": "Provides weather information",
-      "return_descriptor": "Current pm25 level",
+      "return_descriptor": "Current pm2.5(very fine dust) level",
       "return_type": "DOUBLE",
       "return_bounds": [
         0,
@@ -1605,7 +1599,7 @@
     "Pm10Weather": {
       "type": "value",
       "descriptor": "Provides weather information",
-      "return_descriptor": "Current pm10 level",
+      "return_descriptor": "Current pm10(fine dust) level",
       "return_type": "DOUBLE",
       "return_bounds": [
         0,
@@ -1638,7 +1632,7 @@
     "GetWeatherInfo": {
       "type": "function",
       "descriptor": "Provides weather information",
-      "argument_descriptor": "Get the current weather information - Return whole weather information, format: \"temperature, humidity, pressure, pm25, pm10, weather, weather_string, icon_id, location\"",
+      "argument_descriptor": "Get the current weather information - Return whole weather information, format: \"temperature, humidity, pressure, pm2.5, pm10, weather, weather_string, icon_id, location\"",
       "argument_type": "DOUBLE | DOUBLE",
       "argument_format": " | ",
       "argument_bounds": "The latitude of the location | The longitude of the location",
@@ -1660,31 +1654,28 @@
     "CurrentPosition": {
       "type": "value",
       "descriptor": "Controls a window covering to open or close it",
-      "return_descriptor": "Current position of the window covering (0-100)",
+      "return_descriptor": "Current position of the window covering (0-100, where 0 is closed)",
       "return_type": "INTEGER"
     },
     "UpOrOpen": {
       "type": "function",
-      "descriptor": "Controls a window covering to open or close it",
-      "argument_descriptor": "Up or open the window",
+      "descriptor": "Up or open the window",
       "return_type": "VOID"
     },
     "DownOrClose": {
       "type": "function",
-      "descriptor": "Controls a window covering to open or close it",
-      "argument_descriptor": "Down or close the window",
+      "descriptor": "Down or close the window",
       "return_type": "VOID"
     },
     "Stop": {
       "type": "function",
-      "descriptor": "Controls a window covering to open or close it",
-      "argument_descriptor": "Stop the window covering",
+      "descriptor": "Stop the window covering",
       "return_type": "VOID"
     },
     "SetLevel": {
       "type": "function",
-      "descriptor": "Controls a window covering to open or close it",
-      "argument_descriptor": "Set the level of the window covering (0-100). Return the level set.",
+      "descriptor": "Controls a window covering to open or close it. Return the level set",
+      "argument_descriptor": "Set the level of the window covering (0-100, where 0 is closed and 100 is open).",
       "argument_type": "INTEGER",
       "argument_bounds": "Level to set the window covering to (0-100)",
       "return_type": "INTEGER"
