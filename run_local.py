@@ -193,7 +193,7 @@ def _apply_service_prefix(script):
         else:
             new_svc = service[0].lower() + service[1:]
         return f"{selector}.{new_svc}({args})"
-    return re.sub(r'((?:all|any)?\(#\w+\))\.([A-Z]\w+)\(([^)]*)\)', replace, script)
+    return re.sub(r'((?:all|any)?\((?:#\w+\s*)+\))\.([A-Z]\w+)\(([^)]*)\)', replace, script)
 
 def _parse_dict_input(val, default):
     if isinstance(val, dict): return val
@@ -251,10 +251,15 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     merged_command = sentence
     if modification:
         merge_input = f"Original: {sentence}\nModification: {modification}"
-        merged_command = run_llm_inference(model, client, "command_merge", [
+        merge_raw = run_llm_inference(model, client, "command_merge", [
             {"role": "system", "content": prompts.get("command_merge", "")},
             {"role": "user", "content": merge_input}
         ], debug=debug)
+        # Parse: extract final command after </Reasoning> tag
+        if "</Reasoning>" in merge_raw:
+            merged_command = merge_raw.split("</Reasoning>")[-1].strip()
+        else:
+            merged_command = merge_raw.strip()
         sentence = merged_command
 
     # ❇️ Stage 1: Translation (KOR -> ENG)
