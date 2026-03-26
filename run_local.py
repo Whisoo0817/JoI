@@ -9,9 +9,10 @@ from openai import OpenAI
 
 # Modify OpenAI's API key and API base to use llama-server's API server.
 openai_api_key = "EMPTY"
-openai_api_base = os.environ.get("LLM_BASE_URL", "http://localhost:8000/v1")
+openai_api_base = os.environ.get("LLM_BASE_URL", "http://localhost:8002/v1")
 
-SERVICE_LIST_PATH = "files/service_list_ver2.0.1.json"
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.1.json")
 DEVICE_LIST = ['AirConditioner', 'AirPurifier', 'AirQualitySensor', 'ArmRobot', 'AudioRecorder', 'Button', 'Camera', 'CarbonDioxideSensor', 'Charger', 'Clock', 'CloudServiceProvider', 'ColorControl', 'ContactSensor', 'Dehumidifier', 'Dishwasher', 'Door', 'DoorLock', 'EmailProvider', 'FaceRecognizer', 'Humidifier', 'HumiditySensor', 'LaundryDryer', 'LeakSensor', 'LevelControl', 'Light', 'LightSensor', 'MenuProvider', 'MotionSensor', 'MultiButton', 'Oven', 'Plug', 'PresenceSensor', 'PressureSensor', 'Pump', 'RainSensor', 'RiceCooker', 'RobotVacuumCleaner', 'RotaryControl', 'Safe', 'Siren', 'SmokeDetector', 'SoundSensor', 'Speaker', 'Switch', 'Television', 'TemperatureSensor', 'Valve', 'WeatherProvider', 'WindowCovering']
 try:
     with open(SERVICE_LIST_PATH, 'r', encoding='utf-8') as f:
@@ -166,6 +167,40 @@ def _parse_dict_input(val, default):
         except Exception: pass
     return default
 
+def warmup(debug=False):
+    """서버 시작 후 모든 system prompt를 미리 캐싱"""
+    client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
+    model = client.models.list().data[0].id
+    prompts = _load_all_prompts(os.path.join(_BASE_DIR, "files"))
+
+    with open(os.path.join(_BASE_DIR, 'files/all_service_summary.md'), 'r', encoding='utf-8') as f:
+        all_summary = f.read()
+
+    print(f"[warmup] Caching {len(prompts)} prompts...")
+    start = time.perf_counter()
+    for name, prompt in prompts.items():
+        try:
+            if name == "all_mapping_intent":
+                user_content = f"[Service List]\n{all_summary}\n\n[Command]\nhi"
+            else:
+                user_content = "hi"
+            client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": user_content}
+                ],
+                max_tokens=1,
+                temperature=0.0,
+                stream=False,
+                extra_body={"chat_template_kwargs": {"enable_thinking": False}}
+            )
+            if debug:
+                print(f"[warmup] cached: {name}")
+        except Exception as e:
+            print(f"[warmup] failed: {name} ({e})")
+    print(f"[warmup] Done in {time.perf_counter() - start:.2f}s")
+
 # ❇️ Main Function
 all_items = []
 choice_no = 0
@@ -182,7 +217,7 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     models = client.models.list()
     model = models.data[0].id
 
-    prompts = _load_all_prompts('./files')
+    prompts = _load_all_prompts(os.path.join(_BASE_DIR, 'files'))
 
     # ❇️ Stage 0: Command Merge (original + modification)
     merged_command = sentence
@@ -200,8 +235,8 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     if re.search("[가-힣]", first_word):
         sentence = run_llm_inference(model, client, "translation", [{"role": "system", "content": prompts.get("translation", "")}, {"role": "user", "content": sentence}], debug=debug)
 
-    summary_path = './files/all_service_summary.md'
-    summary_connect_path = './files/connect_service_summary.md'
+    summary_path = os.path.join(_BASE_DIR, 'files/all_service_summary.md')
+    summary_connect_path = os.path.join(_BASE_DIR, 'files/connect_service_summary.md')
     
     with open(summary_path, 'r', encoding='utf-8') as f:
         service_summary = f.read()

@@ -4,8 +4,8 @@ from run_local import generate_joi_code
 
 # [MODE: target] 테스트할 타겟 지정 (python3 test.py target)
 test_targets = {
-    # 1: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
-    2: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
+    1: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],
+    # 2: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
     # 3: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
     # 4: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
     # 5: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30],    
@@ -15,12 +15,11 @@ test_targets = {
 }
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-CUSTOM_COMMAND = "오후 6시마다 거실 조명을 켜줘"
+CUSTOM_COMMAND = "모든 조명을 꺼줘"
 CUSTOM_DEVICES = """
-{'LivingRoom_Light': 
-    {'category': 'Light', 'tags': ['LivingRoom', 'Light']}, 
-'Kitchen_Light': 
-    {'category': 'Light', 'tags': ['Kitchen', 'Light']}}
+{'tc1_081181c1-3210-4ad2-8af1-f262fdc0fc76': {'category': 'Light', 'tags': ['PhilipsHue', 'Light']},
+ 'tc2_eb6ffacda902bfa126pl9b': {'category': 'Light', 'tags': ['Tuya', 'Light']},
+ 'tc1_24_58_7c_d1_3a_e4': {'category': 'PresenceVitalSensor', 'tags': ['MQTT', 'topic_xkwifi_device_data', 'PresenceVitalSensor']}}
 """
 CUSTOM_OPTIONS = {}
 
@@ -87,6 +86,18 @@ def run_custom_test(debug=False):
         print(f"\n[Final Result]\n{result}")
     except Exception as e:
         print(f"Error: {e}")
+        return
+
+    while True:
+        modification = input("\n수정사항 입력 (엔터 시 종료) >>> ").strip()
+        if not modification:
+            print("종료합니다.")
+            break
+        try:
+            result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, modification=modification, debug=debug)
+            print(f"\n[Final Result]\n{result}")
+        except Exception as e:
+            print(f"Error: {e}")
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "target"
