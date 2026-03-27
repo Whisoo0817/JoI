@@ -329,9 +329,12 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
     
         return cmd_type, conclusion
 
-    #5. Execute Sequential Tasks (Mapping & Routing)    
-    services, is_connected = run_mapping()
-    cmd_type, router_conclusion = run_router()
+    #5. Execute Parallel Tasks (Mapping & Routing)
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        mapping_future = executor.submit(run_mapping)
+        router_future = executor.submit(run_router)
+        services, is_connected = mapping_future.result()
+        cmd_type, router_conclusion = router_future.result()
 
     # 6. Joi Generation Branching
     type_to_prompt_key = {
