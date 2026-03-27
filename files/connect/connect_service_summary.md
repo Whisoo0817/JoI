@@ -102,7 +102,10 @@ This is a summary of available properties (value) and functions (func) for each 
 </Device>
 
 <Device "DimmerSwitch">
-  <Service "Button1~4" type="value">State of each button (4 buttons)</Service>
+  <Service "Button1" type="value">State of button1 (pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold). DEFAULT: use Button1 if no button number is specified.</Service>
+  <Service "Button2" type="value">State of button2</Service>
+  <Service "Button3" type="value">State of button3</Service>
+  <Service "Button4" type="value">State of button4</Service>
 </Device>
 
 <Device "Dishwasher">
@@ -277,7 +280,10 @@ This is a summary of available properties (value) and functions (func) for each 
 </Device>
 
 <Device "TapDialSwitch">
-  <Service "Button1~4" type="value">State of each button (4 buttons)</Service>
+  <Service "Button1" type="value">State of button1 (pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold). DEFAULT: use Button1 if no button number is specified.</Service>
+  <Service "Button2" type="value">State of button2.</Service>
+  <Service "Button3" type="value">State of button3.</Service>
+  <Service "Button4" type="value">State of button4.</Service>
   <Service "Rotation" type="value">Rotary dial state (clockwise, counter_clockwise)</Service>
   <Service "RotationSteps" type="value">Number of rotation steps</Service>
 </Device>
