@@ -16,7 +16,7 @@ test_targets = {
 }
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-CUSTOM_COMMAND = "12시간마다 불 껐다 켰다 해줘"
+CUSTOM_COMMAND = "오후5시에 불 켜 줘"
 CUSTOM_DEVICES = {}
 # CUSTOM_DEVICES = """
 # {'tc1_081181c1-3210-4ad2-8af1-f262fdc0fc76': {'category': 'Light', 'tags': ['PhilipsHue', 'Light']},

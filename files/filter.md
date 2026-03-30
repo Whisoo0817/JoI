@@ -76,3 +76,7 @@ true
 [Command]
 At noon, announce the lunch menu of the cafeteria in Building 301 through the speaker.
 true
+
+[Command]
+At 5 PM, turn on the light.
+true
