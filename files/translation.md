@@ -173,6 +173,15 @@ Whenever the movement is detected, turn on the lights.
 "1초마다 확인하여 온도가 30도 미만이면서 25도 이상일 때마다 에어컨을 켜 줘"
 Every second, every time the temperature is < 30 and >= 25 degrees, turn on the airconditioner.
 
+# Thereafter (이후로/뒤로)
+"연기가 감지되면, 그 이후로 1분마다 긴급 사이렌을 5초간 울려줘."
+그 이후로 -> thereafter
+When smoke is detected, thereafter every minute, sound the emergency siren for 5 seconds.
+
+"로비에서 움직임이 감지되면, 그 뒤로 30초마다 로비 사진을 찍어줘."
+그 뒤로 -> thereafter
+When motion is detected in the lobby, thereafter every 30 seconds, capture an image of the lobby.
+
 # Time phrases
 "1월 1일에 조명이 꺼지면 3초 대기 후 펌프를 꺼줘"
 On January 1st, when the light turns off, wait 3 seconds, then turn off the pump.

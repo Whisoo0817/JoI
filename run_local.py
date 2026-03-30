@@ -218,9 +218,9 @@ def _parse_dict_input(val, default):
         except Exception: pass
     return default
 
-def warmup(debug=False):
+def warmup(debug=False, base_url=None):
     """서버 시작 후 모든 system prompt를 미리 캐싱"""
-    client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
+    client = OpenAI(api_key=openai_api_key, base_url=base_url or openai_api_base)
     model = client.models.list().data[0].id
     prompts = _load_all_prompts(os.path.join(_BASE_DIR, "files"))
 
@@ -249,7 +249,7 @@ def warmup(debug=False):
             print(f"[warmup] failed: {name} ({e})")
     print(f"[warmup] Done in {time.perf_counter() - start:.2f}s")
 
-def generate_joi_code(sentence, connected_devices, other_params, model=None, current_time=None, modification=None, debug=False):
+def generate_joi_code(sentence, connected_devices, other_params, model=None, current_time=None, modification=None, debug=False, base_url=None):
     # 1. Parse Inputs - dict type
     connected_devices = _parse_dict_input(connected_devices, None)
     other_params = _parse_dict_input(other_params, {})
@@ -257,7 +257,7 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     # 2. Setup Client
     start = time.perf_counter()
     # OpenAI Library
-    client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
+    client = OpenAI(api_key=openai_api_key, base_url=base_url or openai_api_base)
     models = client.models.list()
     model = models.data[0].id
 
