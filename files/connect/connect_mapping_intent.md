@@ -135,3 +135,7 @@ If a leak is detected and the main valve is open, close all valves and sound the
 [Command]
 Announce the current time through the speaker.
 ["Clock.Hour", "Clock.Minute", "Speaker.Speak"]
+
+[Command]
+When DimmerSwitch is pushed, announce the heart rate through the speaker.
+["DimmerSwitch.Button1", "PresenceVitalSensor.HeartRate", "Speaker.Speak"]

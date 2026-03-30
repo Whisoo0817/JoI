@@ -50,6 +50,7 @@ Do NOT mention services, tags, or quantifiers.
 - **NO External Libraries**: `Math.abs`, `abs`, `time`, `datetime`, `json`, `random` are **STRICTLY FORBIDDEN**.
 - **NO Loops**: Do NOT use `for`, `while`. This prompt type runs once — just write sequential code.
 - **NO `wait until`**: This prompt type is for immediate actions only. Do NOT use `wait until`.
+- **NO `.ToString()`**: JOI auto-casts types on string concatenation. Use `"text" + value` directly, NOT `"text" + value.ToString()`.
 - **NO bare variables in `if`**: Conditions MUST use an explicit comparison operator (`==`, `!=`, `>`, `<`, `>=`, `<=`). Never use a variable name alone.
     - ❌ `if (leakDetected and valveOpen)` → Runtime error.
     - ✅ `if ((#LeakSensor).Leak == true and (#Valve).ValveState == true)`

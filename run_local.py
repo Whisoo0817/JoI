@@ -23,22 +23,38 @@ except FileNotFoundError:
 def run_llm_inference(model, client, inference_type, messages, debug=False):
     # Inference
     start_inference = time.perf_counter()
-    chat_completion = client.chat.completions.create(
+    stream = client.chat.completions.create(
         messages=messages,
         model=model,
         temperature=0.1,
         max_tokens=512,
-        stream=False,
+        stream=True,
+        stream_options={"include_usage": True},
         extra_body={"chat_template_kwargs": {"enable_thinking": False}}
     )
+    chunks = []
+    usage = None
+    ttft = None
+    for chunk in stream:
+        if chunk.usage:
+            usage = chunk.usage
+        if chunk.choices and chunk.choices[0].delta.content:
+            if ttft is None:
+                ttft = time.perf_counter() - start_inference
+            chunks.append(chunk.choices[0].delta.content)
     elapsed = time.perf_counter() - start_inference
-    
-    content = chat_completion.choices[0].message.content
+    content = "".join(chunks)
+
     if debug:
-        print(f"➡️ {inference_type} | Tokens: {chat_completion.usage.prompt_tokens} | Time: {elapsed:.4f}s")
+        prompt_tokens = usage.prompt_tokens if usage else 0
+        completion_tokens = usage.completion_tokens if usage else 0
+        decode_time = elapsed - ttft if ttft else elapsed
+        prefill_tps = prompt_tokens / ttft if ttft and prompt_tokens else 0
+        decode_tps = completion_tokens / decode_time if decode_time > 0 and completion_tokens else 0
+        print(f"➡️ {inference_type} | Prefill: {prompt_tokens}tok/{ttft:.4f}s ({prefill_tps:.1f} t/s) | Decode: {completion_tokens}tok/{decode_time:.4f}s ({decode_tps:.1f} t/s) | Total: {elapsed:.4f}s")
         print("===================================================")
         print(content)
-    
+
     return content.strip()
 
 def _load_all_prompts(base_dir):

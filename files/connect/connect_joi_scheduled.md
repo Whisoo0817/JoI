@@ -68,6 +68,7 @@ Write exactly 1–2 sentences. ⛔ STRICTLY FORBIDDEN in `<Reasoning>`: "Wait", 
 - **NO Script-Level Loops**: Do NOT use `for`, `while`, or any native iteration. Repetition is achieved by setting a top-level `period`.
 - **NO External Libraries**: Do NOT use `math`, `abs`, `time`, `datetime`, `json`, `random`, or any other built-in/3rd party libraries.
 - **NO Variable `period` or `cron`**: Never try to set or change `period` or `cron` from within the script logic.
+- **NO `.ToString()`**: JOI auto-casts types on string concatenation. Use `"text" + value` directly, NOT `"text" + value.ToString()`.
 - **NO bare variables in `if`**: Conditions MUST use an explicit comparison operator (`==`, `!=`, `>`, `<`, `>=`, `<=`).
     - ❌ `if ((#Sensor).Presence) { ... }` → Runtime error.
     - ✅ `if ((#Sensor).Presence == true) { ... }`
