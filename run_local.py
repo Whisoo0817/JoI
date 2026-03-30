@@ -51,7 +51,7 @@ def run_llm_inference(model, client, inference_type, messages, debug=False):
         decode_time = elapsed - ttft if ttft else elapsed
         prefill_tps = prompt_tokens / ttft if ttft and prompt_tokens else 0
         decode_tps = completion_tokens / decode_time if decode_time > 0 and completion_tokens else 0
-        print(f"➡️ {inference_type} | Prefill: {prompt_tokens}tok/{ttft:.4f}s ({prefill_tps:.1f} t/s) | Decode: {completion_tokens}tok/{decode_time:.4f}s ({decode_tps:.1f} t/s) | Total: {elapsed:.4f}s")
+        print(f"➡️ {inference_type}({prompt_tokens}) | Decode: {decode_tps:.1f} t/s | Total: {elapsed:.4f}s")
         print("===================================================")
         print(content)
 
@@ -427,7 +427,8 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     joi_code_raw = run_llm_inference(model, client, prompt_key, joi_messages, debug=debug)
 
     # Post-processing: strip reasoning and standardize output format
-    reasoning_match = re.search(r'(<Reasoning>.*?</Reasoning>)', joi_code_raw, re.DOTALL)
+    reasoning_match = re.search(r'<Reasoning>(.*?)</Reasoning>', joi_code_raw, re.DOTALL)
+    code_plan = reasoning_match.group(1).strip() if reasoning_match else ""
     script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
     script = _apply_service_prefix(script)
     
@@ -449,15 +450,16 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     # ❇️ Korean Reconversion
     translated_sentence = ""
     try:
-        kor_system = prompts.get("kor_reconversion", "")
-        kor_input = f"[Code]\n{joi_code_raw}\n\n[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+        kor_system = prompts.get("re_translate", "")
+        kor_plan = f"\n\n[Code Plan]\n{code_plan}" if code_plan else ""
+        kor_input = f"[Code]\n{joi_code_raw}{kor_plan}\n\n[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
         kor_messages = [
             {"role": "system", "content": kor_system},
             {"role": "user", "content": kor_input}
         ]
-        translated_sentence = run_llm_inference(model, client, "kor_reconversion", kor_messages, debug=debug)
+        translated_sentence = run_llm_inference(model, client, "re_translate", kor_messages, debug=debug)
     except Exception as e:
-        print(f"Korean reconversion failed: {e}")
+        print(f"Re-translation failed: {e}")
 
     return {
         "code": joi_code_raw,

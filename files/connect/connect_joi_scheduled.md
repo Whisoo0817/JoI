@@ -21,14 +21,18 @@ This prompt is specialized for **SCHEDULED** commands. These commands include:
 Output ONLY a valid XML block `<Reasoning>` followed by a valid JSON object.
 
 ### Reasoning Purpose
-In `<Reasoning>`, briefly describe HOW to translate the Extractor conclusion into Joi code.
-Focus ONLY on: which control constructs to use (`if`, `wait until`, `:=`, `phase`, `triggered`, `break`), the `cron`/`period` values, and any edge-case logic needed.
-Do NOT mention services or tags — those are already in the inputs.
-Only mention 'any' quantifier if it is used.
-Write exactly 1–2 sentences. ⛔ STRICTLY FORBIDDEN in `<Reasoning>`: "Wait", "but", "however", "let me", "I cannot", "there is no", "check again", "re-read", or ANY second-guessing about services. State your plan and move on.
+In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Describe the structure, not the content.
+- ⛔ Do NOT repeat the command, extractor conclusion, cron/period values, service names, or tags.
+- ⛔ Do NOT write more than one sentence.
+- Examples:
+  - "Action at cron."
+  - "Check condition at period. If satisfied, action."
+  - "Wait for trigger, then repeat action at period."
+  - "Toggle between two modes at period."
+  - "On event, action once."
 
 <Reasoning>
-(free-form code plan based on Extractor conclusion)
+(one sentence: control flow only)
 </Reasoning>
 {
   "cron": "...",

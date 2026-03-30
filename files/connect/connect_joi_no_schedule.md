@@ -20,12 +20,17 @@ They simply perform an action, check a state right now, or include a simple time
 Output ONLY a valid XML block `<Reasoning>` followed by the raw script code. No JSON wrapper. No markdown blocks.
 
 ### Reasoning Purpose
-In `<Reasoning>`, write exactly 1 sentence describing the code structure. ⛔ STRICTLY FORBIDDEN in `<Reasoning>`: "Wait", "but", "however", "let me", "I cannot", "there is no", "it really only", "is it possible", "check again", "re-read", or ANY second-guessing about services.
-Focus only on: what constructs to use (`if`, `delay`, sequential calls).
-Do NOT mention services, tags, or quantifiers.
+In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Describe the structure, not the content.
+- ⛔ Do NOT repeat the command, service names, tags, or quantifiers.
+- ⛔ Do NOT write more than one sentence.
+- Examples:
+  - "Sequential actions."
+  - "Action then delay then action."
+  - "If condition, action."
+  - "If condition, action, else action."
 
 <Reasoning>
-(free-form code plan)
+(one sentence: control flow only)
 </Reasoning>
 (raw script code)
 

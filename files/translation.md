@@ -121,7 +121,7 @@ If the TV is on and the speaker is on and the light is off, turn on the speaker 
 # 상태이면
 “재실 센서가 감지 상태이면 불을 켜줘”
 감지 상태이면 -> "상태이면" -> if
-If the occupancy sensor is activated, turn on the light
+If the presence sensor is activated, turn on the light
 
 "창문이 열린 상태이면"
 열린 상태이면 -> "상태이면" -> if
@@ -155,6 +155,10 @@ When the leak is detected, sound emergency siren after 1 minute.
 "테라스의 어느 조도 센서라도 100 럭스 이상이 되면"
 이상이 되면 -> "되면" -> when
 When any illuminance sensor on the terrace reaches 100 lux or higher
+
+"복도의 조명이 하나라도 켜지면"
+"켜지면" -> when
+When any light in the hallway is turned on
 
 # Whenever/Every time
 “온도가 20도를 초과할 때마다 알람을 울려줘”

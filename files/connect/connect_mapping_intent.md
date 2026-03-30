@@ -45,8 +45,16 @@ Turn on the TV and change the TV channel to 7 and switch to 11 after 1 hour.
 ["Television.On", "Television.SetChannel"]
 
 [Command]
-Set the light brightness to 30, then increase it to 80 after 10 minutes.
-["Light.MoveToBrightness"]
+Set the light to yellow, then change it to blue gradually.
+["Light.SetColor", "Light.MoveToRGB"]
+
+[Command]
+Change all lights in Sector 10 to white.
+["Light.SetColor"]
+
+[Command]
+Record for 1 minutes with the recorder and save it as test.wav.
+["AudioRecorder.RecordWithDuration"]
 
 [Command]
 Ask the Cloud AI what an LLM is, and output the answer through the speaker.

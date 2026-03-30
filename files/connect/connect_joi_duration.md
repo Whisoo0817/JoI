@@ -19,13 +19,15 @@ This prompt is specialized for **DURATION** commands. These commands are periodi
 Output ONLY a valid XML block `<Reasoning>` followed by a valid JSON object. No markdown wrappers.
 
 ### Reasoning Purpose
-In `<Reasoning>`, briefly describe HOW to translate the Extractor conclusion into Joi code.
-Focus ONLY on: `cron` start time, `period` interval, `break` termination condition (which `(#Clock)` property and value), and any edge-case logic.
-Do NOT mention services, tags, or quantifiers.
-Write exactly 1–2 sentences. ⛔ STRICTLY FORBIDDEN in `<Reasoning>`: "Wait", "but", "however", "let me", "I cannot", "there is no", "check again", "re-read", or ANY second-guessing about services. State your plan and move on.
+In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Describe the structure, not the content.
+- ⛔ Do NOT repeat the command, extractor conclusion, cron/period values, service names, or tags.
+- ⛔ Do NOT write more than one sentence.
+- Examples:
+  - "Repeat action at period within duration."
+  - "Repeat action with delay at period, break at end time."
 
 <Reasoning>
-(free-form code plan)
+(one sentence: control flow only)
 </Reasoning>
 {
   "cron": "...",

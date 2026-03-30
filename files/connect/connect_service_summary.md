@@ -164,7 +164,7 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "CurrentRGB" type="value">Current light color (e.g., yellow, red, or r|g|b)</Service>
   <Service "ColorMode" type="value">Current color mode (hsv, rgb, xy, ct)</Service>
   <Service "MoveToBrightness" type="action">Set brightness</Service>
-  <Service "MoveToHueAndSaturation" type="action">Set hue and saturation</Service>
+  <Service "MoveToHueAndSaturation" type="action">Set hue and saturation (numeric hue/saturation values only, NOT for color names)</Service>
   <Service "MoveToRGB" type="action">Set light color (e.g., yellow, red, or r|g|b)</Service>
   <Service "MoveToColorTemperature" type="action">Set color temperature</Service>
 </Device>

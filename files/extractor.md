@@ -54,7 +54,10 @@ Output in **ENGLISH** only. Use arrow notation (`->`) for brevity.
 
 - [Analysis]: Use `'cue' = meaning -> Category` format. Chain multiple cues with periods. Do NOT write full sentences.
   - Example: `'When' = future state transition -> Polling. 'after 5 min' = delay.`
-- [Conclusion]: Follow `Conclusion Format` strictly. No extra words.
+- [Conclusion]: Follow `Conclusion Format` strictly.
+  - ⛔ Do NOT include specific device names, sensor values, email addresses, subjects, or action details.
+  - ⛔ Use only generic placeholders: [Sensor], [Device], [Action], [Value], [Start], [End], [Interval].
+  - ⛔ Do NOT restate the command in the conclusion.
 
 ## Examples
 
