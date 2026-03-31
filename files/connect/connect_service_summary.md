@@ -273,6 +273,7 @@ This is a summary of available properties (value) and functions (func) for each 
 </Device>
 
 <Device "Switch">
+  <!-- Switch has NO buttons. For button press events, use DimmerSwitch or TapDialSwitch instead. -->
   <Service "Switch" type="value">State (on/off)</Service>
   <Service "On" type="action">Turn on</Service>
   <Service "Off" type="action">Turn off</Service>

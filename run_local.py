@@ -196,20 +196,26 @@ with open(_CONNECT_SUMMARY_PATH, 'r', encoding='utf-8') as _f:
     _FULL_CONNECT_SUMMARY = _f.read()
 
 def _apply_service_prefix(script):
-    """(#Light).On() -> (#Light).switch_on()"""
-    def replace(m):
-        selector = m.group(1)   # e.g., "(#Light)" or "all(#Light)"
-        service  = m.group(2)   # e.g., "On"
-        args     = m.group(3)   # e.g., "" or "50"
+    """(#Light).On() -> (#Light).switch_on()  /  (#Light).Switch -> (#Light).switch_switch"""
+    def _fmt(service):
         category = _SERVICE_CATEGORY_MAP.get(service, '')
         if category:
             cat_fmt = category[0].lower() + category[1:]
             svc_fmt = service[0].lower() + service[1:]
-            new_svc = f"{cat_fmt}_{svc_fmt}"
-        else:
-            new_svc = service[0].lower() + service[1:]
-        return f"{selector}.{new_svc}({args})"
-    return re.sub(r'((?:all|any)?\((?:#\w+\s*)+\))\.([A-Z]\w+)\(([^)]*)\)', replace, script)
+            return f"{cat_fmt}_{svc_fmt}"
+        return service[0].lower() + service[1:]
+
+    # 1. Function calls: (#Light).On(args)
+    def replace_func(m):
+        return f"{m.group(1)}.{_fmt(m.group(2))}({m.group(3)})"
+    script = re.sub(r'((?:all|any)?\((?:#\w+\s*)+\))\.([A-Z]\w+)\(([^)]*)\)', replace_func, script)
+
+    # 2. Value references: (#Light).Switch (not followed by '(')
+    def replace_value(m):
+        return f"{m.group(1)}.{_fmt(m.group(2))}"
+    script = re.sub(r'((?:all|any)?\((?:#\w+\s*)+\))\.([A-Z]\w+)(?!\w|\()', replace_value, script)
+
+    return script
 
 def _parse_dict_input(val, default):
     if isinstance(val, dict): return val
@@ -224,6 +230,7 @@ def warmup(debug=False, base_url=None):
     model = client.models.list().data[0].id
     prompts = _load_all_prompts(os.path.join(_BASE_DIR, "files"))
 
+    prompts.pop("connect_service_summary", None)
     print(f"[warmup] Caching {len(prompts)} prompts...")
     start = time.perf_counter()
     for name, prompt in prompts.items():
@@ -461,13 +468,26 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     except Exception as e:
         print(f"Re-translation failed: {e}")
 
+    # ❇️ Korean Re-translation (ENG -> KOR)
+    translated_sentence_kor = ""
+    if translated_sentence:
+        try:
+            kor2_system = prompts.get("re_translate_kor", "")
+            kor2_messages = [
+                {"role": "system", "content": kor2_system},
+                {"role": "user", "content": translated_sentence}
+            ]
+            translated_sentence_kor = run_llm_inference(model, client, "re_translate_kor", kor2_messages, debug=debug)
+        except Exception as e:
+            print(f"Korean re-translation failed: {e}")
+
     return {
         "code": joi_code_raw,
         "merged_command": merged_command,
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "inference_time": f"{elapsed:.4f} seconds",
-            "translated_sentence": translated_sentence,
+            "translated_sentence": translated_sentence_kor or translated_sentence,
             "mapped_devices": mapped_devices,
         }
     }

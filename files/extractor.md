@@ -142,6 +142,11 @@ On weekdays at 7 AM, do [Action A].
 [Conclusion] At 7 AM on weekdays, act.
 
 [Command]
+From Monday to Friday at 9 AM, do [Action A].
+[Analysis] 'From Monday to Friday at 9 AM' = "every weekday at 9 AM" = recurring time point, NOT duration -> Scheduled.
+[Conclusion] At 9 AM on weekdays, act.
+
+[Command]
 On weekdays at 3 PM, if [State X], do [Action A].
 [Analysis] 'On weekdays at 3 PM' = recurring time point, NOT duration. 'if' = snapshot check -> Scheduled Snapshot.
 [Conclusion] At 3 PM on weekdays, check [Sensor A] and act based on result.

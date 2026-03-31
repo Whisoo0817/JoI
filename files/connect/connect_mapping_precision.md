@@ -255,3 +255,16 @@ AirConditioner: "the air conditioner" → no context link → (#AirConditioner)
 </Reasoning>
 (#TemperatureSensor)
 (#AirConditioner)
+
+[Command]
+When the third button of switch is pressed, toggle the light
+[Intent]
+["DimmerSwitch", "Light"]
+[Connected Devices]
+{"Switch": {"tags": ["DimmerSwitch"]}, "Light_1": {"tags": ["Light", "Switch"]}}
+<Reasoning>
+DimmerSwitch: "third button of switch" → no location
+Light: "the light" → no location
+</Reasoning>
+(#DimmerSwitch)
+(#Light)

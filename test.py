@@ -16,7 +16,17 @@ test_targets = {
 }
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-CUSTOM_COMMAND = "오후5시에 불 켜 줘"
+CUSTOM_COMMAND = "월요일부터 금요일까지 오전 9시에 모든 공간 불을 미리 켜줘."
+CUSTOM_COMMAND = "평일 오후 6시마다 문이 닫혀 있으면 모든 공간 불을 꺼줘."
+CUSTOM_COMMAND = "문이 닫히면 조명을 빨간색으로 바꾸고 회의 중이라고 안내해줘"
+CUSTOM_COMMAND = "스위치 첫번째 버튼을 누르면 회의실 불 토글해줘."
+CUSTOM_COMMAND = "스위치 두번째 버튼을 누르면 사무실 불 토글해줘."
+CUSTOM_COMMAND = "스위치 세번째 버튼을 누르면 모든 불 토글해줘."
+CUSTOM_COMMAND = "스위치 첫번째 버튼을 길게 누르면 회의를 시작합니다라고 안내해줘"
+CUSTOM_COMMAND = "문이 열리면 로봇이 인사하고 조명을 초록색으로 바꿔줘"
+CUSTOM_COMMAND = "매일 낮 12시에 점심시간이라고 알려주는 알림을 설정해줘"
+CUSTOM_COMMAND = "조광 스위치 네번째 버튼을 누르면 사무실 불이 켜져 있는 경우 회의실 불도 켜줘"
+CUSTOM_COMMAND = "문이 닫히면 조명을 빨간색으로 바꾸고 회의 중이라고 안내해줘"
 CUSTOM_DEVICES = {}
 # CUSTOM_DEVICES = """
 # {'tc1_081181c1-3210-4ad2-8af1-f262fdc0fc76': {'category': 'Light', 'tags': ['PhilipsHue', 'Light']},
