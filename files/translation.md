@@ -59,6 +59,13 @@ Increase the light brightness to 100.
 "TV로 7번 채널을 틀어줘"
 Set the TV channel to 7.
 
+"회의를 시작한다고 안내해줘"
+Announce "Start the meeting.
+
+"회의시간이라고 알려주는 알림을 설정해줘"
+Set an alarm to remind me that it's time for the meeting.
+
+
 # if
 "에어컨의 목표 온도가 30도면 A를 켜줘"
 30도면 -> 상태 + "이면" -> if

@@ -49,6 +49,11 @@ A single command can combine multiple patterns, e.g., Continuous Monitoring to s
 - Example: "When the door opens, check the living room temperature every minute thereafter, and if it's 30 degrees or higher, turn on the AC." (Continuous_When -> Scheduled_If)
 - Conclusion Format: `Poll [Sensor1]. When satisfied, perform periodic state checks from [Start] to [End] every [Interval].`
 
+### 6. Simple Actions (NOT state changes)
+Actions like "toggle", "turn on", "turn off", "open", "close" are direct device commands, NOT state changes or Hybrid patterns. Do NOT classify them as state changes.
+- e.g., "When button is pressed, toggle the light" → Polling + simple action, NOT Hybrid.
+- e.g., "When button is pressed, turn on the AC" → Polling + simple action, NOT Hybrid.
+
 ## Output Format
 Output in **ENGLISH** only. Use arrow notation (`->`) for brevity.
 

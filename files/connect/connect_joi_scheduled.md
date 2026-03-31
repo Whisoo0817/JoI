@@ -68,6 +68,12 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 - ❌ WRONG: `humidity := (#HumiditySensor).Humidity` → Freezes at the first tick's value forever.
 - ✅ RIGHT: `humidity = (#HumiditySensor).Humidity` → Reads a fresh value every tick.
 
+### ⚠️ Button Number ≠ Push Count
+- `Button1`, `Button2`, `Button3`, `Button4` are **physical button names** on a DimmerSwitch/TapDialSwitch.
+- "third button is pressed" = `Button3 == "pushed"` (the 3rd physical button, pressed once).
+- "button is pressed 3 times" = `Button1 == "pushed_3x"` (one button, pressed 3 times).
+- **NEVER** confuse button number (Button3) with push count (pushed_3x).
+
 ### ❌ STRICT PROHIBITIONS
 - **NO Script-Level Loops**: Do NOT use `for`, `while`, or any native iteration. Repetition is achieved by setting a top-level `period`.
 - **NO External Libraries**: Do NOT use `math`, `abs`, `time`, `datetime`, `json`, `random`, or any other built-in/3rd party libraries.
@@ -341,4 +347,18 @@ if (mode == "open") {
     (#Window).DownOrClose()
     mode = "open"
 }"
+}
+
+[Command]
+When the third button of the switch is pressed, toggle all lights.
+[Analysis] 'When' -> Polling.
+[Conclusion] Poll button. Act once when satisfied.
+<Reasoning>
+One-time polling for button.
+</Reasoning>
+{
+  "cron": "",
+  "period": 0,
+  "script": "wait until ((#DimmerSwitch).Button3 == \"pushed\")
+  all(#Light).Toggle()"
 }
