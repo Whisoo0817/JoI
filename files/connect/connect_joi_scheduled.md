@@ -69,7 +69,7 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 - ✅ RIGHT: `humidity = (#HumiditySensor).Humidity` → Reads a fresh value every tick.
 
 ### ⚠️ Button Number ≠ Push Count
-- `Button1`, `Button2`, `Button3`, `Button4` are **physical button names** on a DimmerSwitch/TapDialSwitch.
+- `Button1`, `Button2`, `Button3`, `Button4` are **physical button names** on a MultiButton/RotaryControl.
 - "third button is pressed" = `Button3 == "pushed"` (the 3rd physical button, pressed once).
 - "button is pressed 3 times" = `Button1 == "pushed_3x"` (one button, pressed 3 times).
 - **NEVER** confuse button number (Button3) with push count (pushed_3x).
@@ -359,6 +359,6 @@ One-time polling for button.
 {
   "cron": "",
   "period": 0,
-  "script": "wait until ((#DimmerSwitch).Button3 == \"pushed\")
+  "script": "wait until ((#MultiButton).Button3 == \"pushed\")
   all(#Light).Toggle()"
 }

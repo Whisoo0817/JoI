@@ -160,8 +160,8 @@ Output: Turn on the kitchen light, then after 10 seconds turn on the kitchen deh
 Input: `wait until ((#LightSensor).Brightness < 100)\n(#Light).On()`
 Output: When brightness drops below 100, turn on the light.
 
-Input: `wait until ((#DimmerSwitch).Button1 == "pushed")\n(#Speaker).Speak("Heart rate: " + (#PresenceVitalSensor).HeartRate)`
-Output: When the dimmer switch is pushed, announce the heart rate through the speaker.
+Input: `wait until ((#MultiButton).Button1 == "pushed")\n(#Speaker).Speak("Heart rate: " + (#PresenceVitalSensor).HeartRate)`
+Output: When the first button of the multi-button switch is pushed, announce the heart rate through the speaker.
 
 Input: `[Code] {"cron": "", "period": 60000, "script": "active := 0\nif (active == 0) {\n    wait until ((#SmokeDetector).smokeDetector_smoke == true)\n    active = 1\n}\n(#Siren).siren_setSirenMode(\"emergency\")\ndelay(5 SEC)\n(#Siren).switch_off()"}`
 Output: When smoke is detected, thereafter every minute, sound the emergency siren for 5 seconds then turn it off.

@@ -93,7 +93,7 @@ This is a summary of available properties (value) and functions (func) for each 
 </Device>
 
 <Device "ContactSensor">
-  <Service "Contact" type="value">Contact state (true: closed, false: open)</Service>
+  <Service "Contact" type="value">Contact state (true: closed, false: open). Typically attached to doors or windows — use this to detect if a door/window is open or closed.</Service>
 </Device>
 
 <Device "Dehumidifier">
@@ -101,7 +101,7 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "SetDehumidifierMode" type="action">Set dehumidifier mode (cool, drying, refreshing, auto, etc.)</Service>
 </Device>
 
-<Device "DimmerSwitch">
+<Device "MultiButton">
   <Service "Button1" type="value">State of button1 (pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold). DEFAULT: use Button1 if no button number is specified.</Service>
   <Service "Button2" type="value">State of button2</Service>
   <Service "Button3" type="value">State of button3</Service>
@@ -273,14 +273,14 @@ This is a summary of available properties (value) and functions (func) for each 
 </Device>
 
 <Device "Switch">
-  <!-- Switch has NO buttons. For button press events, use DimmerSwitch or TapDialSwitch instead. -->
+  <!-- Switch has NO buttons. For button press events, use MultiButton or RotaryControl instead. -->
   <Service "Switch" type="value">State (on/off)</Service>
   <Service "On" type="action">Turn on</Service>
   <Service "Off" type="action">Turn off</Service>
   <Service "Toggle" type="action">Toggle switch</Service>
 </Device>
 
-<Device "TapDialSwitch">
+<Device "RotaryControl">
   <Service "Button1" type="value">State of button1 (pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold). DEFAULT: use Button1 if no button number is specified.</Service>
   <Service "Button2" type="value">State of button2.</Service>
   <Service "Button3" type="value">State of button3.</Service>

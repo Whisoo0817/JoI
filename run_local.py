@@ -12,7 +12,7 @@ openai_api_key = "EMPTY"
 openai_api_base = os.environ.get("LLM_BASE_URL", "http://localhost:8002/v1")
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.1.json")
+SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.2.json")
 try:
     with open(SERVICE_LIST_PATH, 'r', encoding='utf-8') as f:
         SERVICE_DATA = json.load(f)
@@ -85,7 +85,7 @@ def extract_service_details(selected_services, full_service_data):
         extracted[dev_name] = {}
         
         for s_name in selected_svcs:
-            s_info = next((json.loads(json.dumps(data[s_name])) for cat, data in [("Primary", full_dev_info)] + [(c, full_service_data[c]) for c in ["LevelControl", "ColorControl", "Switch", "RotaryControl"] if c in full_service_data] if s_name in data), None)
+            s_info = next((json.loads(json.dumps(data[s_name])) for cat, data in [("Primary", full_dev_info)] + [(c, full_service_data[c]) for c in ["LevelControl", "ColorControl", "Switch"] if c in full_service_data] if s_name in data), None)
             if not s_info: continue
 
             # Case: Function with ENUM argument missing bounds
@@ -117,7 +117,7 @@ def inject_value_service(selected_services):
 # 2. Merge the specifications of the Secondary categories (ex. Switch, LevelControl, etc.) included in the corresponding Primary device.
 # 3. In the case of Light, if used together with LevelControl or ColorControl, filter out redundant services (ex. CurrentBrightness) to reduce token waste.
 def parse_service_summary(connected_devices_info, summary_file_path):
-    SECONDARY_CATEGORIES = ['LevelControl', 'ColorControl', 'Switch', 'RotaryControl']
+    SECONDARY_CATEGORIES = ['LevelControl', 'ColorControl', 'Switch']
     
     try:
         with open(summary_file_path, 'r', encoding='utf-8') as f:
@@ -176,7 +176,7 @@ def parse_service_summary(connected_devices_info, summary_file_path):
 
 def _build_service_category_map(service_data):
     """Build {service_name: category} map. Secondary categories override primary."""
-    SECONDARY = {'Switch', 'LevelControl', 'ColorControl', 'RotaryControl'}
+    SECONDARY = {'Switch', 'LevelControl', 'ColorControl'}
     mapping = {}
     for cat, services in service_data.items():
         if cat not in SECONDARY:

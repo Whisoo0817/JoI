@@ -19,23 +19,23 @@ test_targets = {
 CUSTOM_COMMAND = "월요일부터 금요일까지 오전 9시에 모든 공간 불을 미리 켜줘."
 CUSTOM_COMMAND = "평일 오후 6시마다 문이 닫혀 있으면 모든 공간 불을 꺼줘."
 CUSTOM_COMMAND = "문이 닫히면 조명을 빨간색으로 바꾸고 회의 중이라고 안내해줘"
-CUSTOM_COMMAND = "스위치 두번째 버튼을 누르면 사무실 불 토글해줘."
 CUSTOM_COMMAND = "스위치 세번째 버튼을 누르면 모든 불 토글해줘."
 CUSTOM_COMMAND = "스위치 첫번째 버튼을 길게 누르면 회의를 시작합니다라고 안내해줘"
 CUSTOM_COMMAND = "문이 열리면 로봇이 인사하고 조명을 초록색으로 바꿔줘"
 CUSTOM_COMMAND = "매일 낮 12시에 점심시간이라고 알려주는 알림을 설정해줘"
-CUSTOM_COMMAND = "조광 스위치 네번째 버튼을 누르면 사무실 불이 켜져 있는 경우 회의실 불도 켜줘"
+CUSTOM_COMMAND = "스위치 네번째 버튼을 누르면 사무실 불이 켜져 있는 경우 회의실 불도 켜줘"
 CUSTOM_COMMAND = "문이 닫히면 조명을 빨간색으로 바꾸고 회의 중이라고 안내해줘"
-CUSTOM_COMMAND = "스위치 첫번째 버튼을 누르면 회의실 불 토글해줘."
 CUSTOM_COMMAND = "8시마다 불을 켜줘"
+CUSTOM_COMMAND = "스위치 첫번째 버튼을 누르면 회의실 불 토글해줘."
+CUSTOM_COMMAND = "스위치 두번째 버튼을 누르면 사무실 불 토글해줘."
 CUSTOM_DEVICES = """
-{'tc0_Speaker_88A29E1B0557': {'category': 'Speaker', 'tags': ['Switch']},
- 'tc0_ArmRobot_88A29E1B0557': {'category': 'ArmRobot', 'tags': []},
- 'tc0_Matter__8': {'category': 'ContactSensor', 'tags': ['Matter']},
- 'tc0_Matter__21': {'category': 'TemperatureHumiditySensor', 'tags': ['Matter', 'TemperatureHumiditySensor']},
- 'tc0_605c48ef-eb66-45eb-acbc-4e4ef25e28d5': {'category': 'Light', 'tags': ['PhilipsHue']},
- 'tc0_c66b7261-bdc0-4559-99ac-c2fc35b13451': {'category': 'DimmerSwitch', 'tags': ['PhilipsHue']},
- 'tc0_df9b47b3-a479-40db-a228-30810e163b32': {'category': 'Light', 'tags': ['PhilipsHue']}}
+{'tc0_Speaker_88A29E1B0557': {'category': ['Switch', 'Speaker'], 'tags': ['Switch', 'Speaker']},
+ 'tc0_ArmRobot_88A29E1B0557': {'category': ['ArmRobot'], 'tags': ['ArmRobot']},
+ 'tc0_Matter__8': {'category': ['ContactSensor'], 'tags': ['Matter', 'Entrance', 'ContactSensor']},
+ 'tc0_Matter__21': {'category': ['TemperatureSensor', 'HumiditySensor'], 'tags': ['Matter', 'TemperatureHumiditySensor', 'TemperatureSensor', 'HumiditySensor']},
+ 'tc0_605c48ef-eb66-45eb-acbc-4e4ef25e28d5': {'category': ['Switch', 'Light'], 'tags': ['PhilipsHue', 'Office', 'Light', 'Switch']},
+ 'tc0_c66b7261-bdc0-4559-99ac-c2fc35b13451': {'category': ['MultiButton'], 'tags': ['PhilipsHue', 'DimmerSwitch', 'MultiButton']},
+ 'tc0_df9b47b3-a479-40db-a228-30810e163b32': {'category': ['Switch', 'Light'], 'tags': ['PhilipsHue', 'MeetingRoom', 'Light', 'Switch']}}
 """
 CUSTOM_OPTIONS = {}
 

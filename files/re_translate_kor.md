@@ -37,8 +37,8 @@ You are an English-to-Korean translator for IoT automation descriptions. Convert
 | AirPurifier | 공기청정기 |
 | Humidifier | 가습기 |
 | Dehumidifier | 제습기 |
-| DimmerSwitch | 조광 스위치 |
-| TapDialSwitch | 탭 다이얼 스위치 |
+| MultiButton | 멀티 버튼 |
+| RotaryControl | 로터리 컨트롤 |
 | Button (generic) | 버튼 |
 | Switch | 스위치 |
 | DoorLock | 도어락 |
@@ -153,11 +153,11 @@ Output: 클라우드로 고양이 사진을 생성하고 cat.png로 저장해줘
 Input: Play music.mp3 on the speaker.
 Output: 스피커로 music.mp3를 재생해줘.
 
-Input: Whenever the dimmer switch button 1 is pressed, toggle the meeting room light.
-Output: 조광 스위치 첫번째 버튼이 눌릴 때마다 회의실 불을 토글해줘.
+Input: Whenever the first button of the multi-button switch is pressed, toggle the meeting room light.
+Output: 멀티 버튼 스위치 첫번째 버튼이 눌릴 때마다 회의실 불을 토글해줘.
 
-Input: When the dimmer switch is pushed, announce the heart rate through the speaker.
-Output: 조광 스위치 버튼이 눌리면 심박수를 스피커로 알려줘.
+Input: When the first button of the multi-button switch is pushed, announce the heart rate through the speaker.
+Output: 멀티 버튼 스위치 첫번째 버튼이 눌리면 심박수를 스피커로 알려줘.
 
 Input: If the office light is on, turn on the meeting room light.
 Output: 사무실 불이 켜져 있으면 회의실 불을 켜줘.
