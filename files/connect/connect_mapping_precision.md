@@ -256,15 +256,19 @@ AirConditioner: "the air conditioner" → no context link → (#AirConditioner)
 (#TemperatureSensor)
 (#AirConditioner)
 
+# ⛔ Wrong Example (do NOT do this)
+
 [Command]
-When the third button of switch is pressed, toggle the light
+When the third button of the switch is pushed, toggle all lights.
 [Intent]
 ["DimmerSwitch", "Light"]
 [Connected Devices]
-{"Switch": {"tags": ["DimmerSwitch"]}, "Light_1": {"tags": ["Light", "Switch"]}}
-<Reasoning>
-DimmerSwitch: "third button of switch" → no location
-Light: "the light" → no location
-</Reasoning>
+{"tc0_Speaker": {"tags": ["Switch", "Speaker"]}, "tc0_DimmerSwitch": {"tags": ["PhilipsHue", "DimmerSwitch"]}, "tc0_Light_1": {"tags": ["PhilipsHue", "Light"]}, "tc0_Light_2": {"tags": ["PhilipsHue", "Light"]}}
+
+❌ WRONG output:
+(#Switch #DimmerSwitch)   ← `Switch` is a tag of `tc0_Speaker`, NOT of `tc0_DimmerSwitch`. Using another device's tag is forbidden.
+(#Light)
+
+✅ CORRECT output:
 (#DimmerSwitch)
 (#Light)

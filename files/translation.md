@@ -11,6 +11,18 @@ Absolute start times go first as a prepositional phrase (NOT "if…"):
 - Every day at 8 AM, …", "From 8 AM to 10 AM"
 Do not move any other clauses around except this fronted time phrase.
 
+**CRITICAL — "마다" disambiguation (check the noun before "마다"):**
+The word before "마다" determines the meaning:
+- If it refers to a **clock time** (시각): 오전/오후/N시/정오/자정/요일/날짜 → scheduled trigger → "Every day at …" / "Every Monday …"
+- If it refers to a **duration** (시간/분/초): N시간/N분/N초 → repeating interval → "Every N hours/minutes/seconds"
+
+Examples:
+- "8시마다" → clock time → "Every day at 8 AM, …"
+- "오후 3시마다" → clock time (오후 = PM) → "Every day at 3 PM, …"
+- "오전 6시마다" → clock time → "Every day at 6 AM, …"
+- "8시간마다" → duration → "Every 8 hours, …"
+- "30분마다" → duration → "Every 30 minutes, …"
+
 # Decision Checklist (think silently; do not print)
 1. Conditional: [IF] vs [WHEN]
 <Principle>
