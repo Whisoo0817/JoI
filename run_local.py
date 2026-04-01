@@ -304,11 +304,16 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
                     valid_categories.add(cats)
             cd_simple = {}
             for k, v in connected_devices.items():
-                tags = list(v.get("tags", []))
-                cat = v.get("category", "")
-                if cat and cat not in tags:
-                    tags.append(cat)
-                cd_simple[k] = {"tags": tags}
+                raw_tags = v.get("tags", [])
+                tags = [t for t in raw_tags if isinstance(t, str)]
+                raw_cat = v.get("category", [])
+                if isinstance(raw_cat, str):
+                    cats = [raw_cat]
+                elif isinstance(raw_cat, list):
+                    cats = [c for c in raw_cat if isinstance(c, str)]
+                else:
+                    cats = []
+                cd_simple[k] = {"category": cats, "tags": [t for t in tags if t not in cats]}
         else:
             local_service_summary = _FULL_CONNECT_SUMMARY
             valid_categories = set(SERVICE_DATA.keys())
