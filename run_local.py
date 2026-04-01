@@ -217,6 +217,19 @@ def _apply_service_prefix(script):
 
     return script
 
+def _normalize_script_newlines(script):
+    """각 JoI 문장/블록 사이에 \n이 확실히 들어가도록 정규화.
+    script 필드 값(이미 언이스케이프된 문자열)에만 적용."""
+    # 1. ) { 블록 시작 전 개행 보장
+    script = re.sub(r'\)\s*\{', ') {\n', script)
+    # 2. } 닫힘 뒤 개행 보장
+    script = re.sub(r'\}(?!\s*\n)', '}\n', script)
+    # 3. ) 뒤에 바로 붙은 다음 문장 분리: ).xxx() (#Device) → 줄바꿈
+    script = re.sub(r'(\))\s+((?:all|any)?\(#)', r'\1\n\2', script)
+    # 4. 연속된 빈 줄 제거
+    script = re.sub(r'\n{3,}', '\n\n', script)
+    return script.strip()
+
 def _parse_dict_input(val, default):
     if isinstance(val, dict): return val
     if isinstance(val, str):
@@ -449,18 +462,24 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
     code_plan = reasoning_match.group(1).strip() if reasoning_match else ""
     script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
     script = _apply_service_prefix(script)
-    
+
     if cmd_type == "NO_SCHEDULE":
         # NO_SCHEDULE: LLM returns raw code, wrap it in JSON
         joi_json = {
             "cron": "",
             "period": 0,
-            "script": script
+            "script": _normalize_script_newlines(script)
         }
         joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
     else:
-        # SCHEDULED/DURATION: LLM already returns JSON, just use stripped version
-        joi_code_raw = script
+        # SCHEDULED/DURATION: LLM returns JSON — normalize only the script field inside
+        try:
+            joi_json = json.loads(script)
+            if "script" in joi_json:
+                joi_json["script"] = _normalize_script_newlines(joi_json["script"])
+            joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
+        except (json.JSONDecodeError, TypeError):
+            joi_code_raw = script
 
     elapsed = time.perf_counter() - start
     # print(f"\nJoI ➡️ {elapsed:.4f} secs")
