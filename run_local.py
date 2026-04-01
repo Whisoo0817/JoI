@@ -497,3 +497,305 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
             "mapped_devices": mapped_devices,
         }
     }
+
+
+# ═══════════════════════════════════════════════════════════
+# Agent Chat — Qwen tool-calling 기반 IoT 어시스턴트
+# ═══════════════════════════════════════════════════════════
+
+AGENT_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "request_to_joi_llm",
+            "description": (
+                "Send a natural-language IoT command to the JOI code generator. "
+                "Use this when the user asks to create a scenario or automate IoT devices."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sentence": {
+                        "type": "string",
+                        "description": "Natural language command, e.g. 'turn on living room lights at 9am'"
+                    }
+                },
+                "required": ["sentence"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "feedback_to_joi_llm",
+            "description": (
+                "Process user feedback on previously generated JOI code. "
+                "'y' = approve, 'n' = reject, or free text = modification request."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "feedback": {
+                        "type": "string",
+                        "description": "'y' to approve, 'n' to reject, or modification text"
+                    }
+                },
+                "required": ["feedback"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_scenario",
+            "description": "Register the approved JOI scenario to the Hub Controller and start it.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_connected_devices",
+            "description": "Get the list of currently connected IoT devices with their status and services.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+]
+
+AGENT_SYSTEM_PROMPT = """You are JoI, an IoT assistant that helps users control smart home devices and create automation scenarios.
+
+## Your capabilities (via tool calls)
+- **request_to_joi_llm**: Generate JOI scenario code from a natural language command.
+- **feedback_to_joi_llm**: Process user feedback ('y'=approve, 'n'=reject, or modification text) on generated code.
+- **add_scenario**: Register an approved scenario to the Hub Controller.
+- **get_connected_devices**: Retrieve the list of connected IoT devices.
+
+## Workflow for IoT commands
+1. When the user gives an IoT command → call `request_to_joi_llm`.
+2. Present the `translated_sentence` from the result and ask: "이 시나리오가 맞나요? (y/n/수정사항)"
+3. Based on user feedback → call `feedback_to_joi_llm`.
+4. If approved → call `add_scenario` to register it.
+5. If rejected → inform the user.
+
+## Rules
+- Always respond in the same language as the user.
+- For general questions (not IoT commands), answer directly WITHOUT calling any tool.
+- Never guess device states — use `get_connected_devices` if needed.
+- Do not retry automatically on error — inform the user.
+- Handle one task at a time.
+"""
+
+MAX_AGENT_ROUNDS = 5
+
+
+def _execute_agent_tool(tool_name, tool_args, agent_state):
+    """Execute a tool call and return the result dict."""
+    connected_devices = agent_state.get("connected_devices", {})
+    base_url = agent_state.get("base_url")
+
+    def _summarize_result(result):
+        """Tool result를 agent context에 넣을 최소 정보만 추출."""
+        return {
+            "status": result.get("status", ""),
+            "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
+            "response_time": result.get("log", {}).get("response_time", ""),
+        }
+
+    if tool_name == "request_to_joi_llm":
+        result = generate_joi_code(
+            sentence=tool_args["sentence"],
+            connected_devices=connected_devices,
+            other_params={},
+            base_url=base_url,
+        )
+        agent_state["last_result"] = result
+        summary = _summarize_result(result)
+        summary["status"] = "confirmation_needed"
+        return summary
+
+    elif tool_name == "feedback_to_joi_llm":
+        feedback = tool_args["feedback"].strip().lower()
+        last = agent_state.get("last_result", {})
+
+        if feedback in ("y", "yes"):
+            last["status"] = "approved"
+            agent_state["last_result"] = last
+            return {"status": "approved", "message": "User approved. Ready to register via add_scenario."}
+
+        elif feedback in ("n", "no"):
+            last["status"] = "rejected"
+            agent_state["last_result"] = last
+            return {"status": "rejected", "message": "User rejected. Task terminated."}
+
+        else:
+            original_sentence = last.get("merged_command", "")
+            result = generate_joi_code(
+                sentence=original_sentence,
+                connected_devices=connected_devices,
+                other_params={},
+                modification=feedback,
+                base_url=base_url,
+            )
+            agent_state["last_result"] = result
+            summary = _summarize_result(result)
+            summary["status"] = "confirmation_needed"
+            return summary
+
+    elif tool_name == "add_scenario":
+        last = agent_state.get("last_result", {})
+        code_raw = last.get("code", "")
+        if isinstance(code_raw, str):
+            try:
+                code = json.loads(code_raw)
+            except json.JSONDecodeError:
+                return {"error": f"Failed to parse code: {code_raw[:100]}"}
+        else:
+            code = code_raw
+        if isinstance(code, list):
+            code = code[0]
+
+        import uuid
+        scenario_name = code.get("name", "Scenario")
+        if "Scenario" in scenario_name:
+            scenario_name += f"_{uuid.uuid4().hex[:3]}"
+
+        scenario = {
+            "name": scenario_name,
+            "cron": code.get("cron", ""),
+            "period_in_msec": code.get("period", -1),
+            "script": code.get("script") or code.get("code", ""),
+            "command": last.get("log", {}).get("translated_sentence", ""),
+        }
+
+        hub_url = os.getenv("HUB_CONTROLLER_URL", "")
+        if not hub_url:
+            return {
+                "status": "registered_locally",
+                "scenario": scenario,
+                "message": "No HUB_CONTROLLER_URL configured. Scenario prepared but not sent.",
+            }
+
+        # Synchronous HTTP to Hub Controller
+        import urllib.request
+        hub_token = os.getenv("HUB_AUTH_TOKEN", "")
+        headers = {"Content-Type": "application/json"}
+        if hub_token:
+            headers["Authorization"] = f"Bearer {hub_token}"
+        req = urllib.request.Request(
+            f"{hub_url}/user/scenarios/",
+            data=json.dumps(scenario).encode(),
+            headers=headers,
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                resp_data = json.loads(resp.read().decode())
+                return {
+                    "status": "scenario_created",
+                    "scenario": resp_data,
+                    "message": f"Scenario '{resp_data.get('name', scenario_name)}' registered and started.",
+                }
+        except Exception as e:
+            return {"error": f"Hub Controller request failed: {e}"}
+
+    elif tool_name == "get_connected_devices":
+        if connected_devices:
+            return {"connected_devices": connected_devices}
+        return {"connected_devices": {}, "message": "No devices currently connected."}
+
+    return {"error": f"Unknown tool: {tool_name}"}
+
+
+def agent_chat(user_message, connected_devices=None, base_url=None, debug=False):
+    """
+    Qwen tool-calling agent (single-turn).
+
+    Args:
+        user_message: 사용자 메시지
+        connected_devices: 연결된 IoT 디바이스 정보 dict
+        base_url: vLLM 서버 URL (None이면 기본값)
+        debug: 디버그 출력
+
+    Returns:
+        {"response": str, "messages": list}
+    """
+    client = OpenAI(api_key=openai_api_key, base_url=base_url or openai_api_base)
+    model = client.models.list().data[0].id
+
+    messages = [
+        {"role": "system", "content": AGENT_SYSTEM_PROMPT},
+        {"role": "user", "content": user_message},
+    ]
+
+    agent_state = {
+        "connected_devices": _parse_dict_input(connected_devices, {}),
+        "base_url": base_url,
+        "last_result": None,
+    }
+
+    final_response = ""
+
+    for _round in range(MAX_AGENT_ROUNDS):
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=AGENT_TOOLS,
+            tool_choice="auto",
+            temperature=0.3,
+            max_tokens=1024,
+            stream=False,
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        )
+
+        msg = response.choices[0].message
+
+        assistant_entry = {"role": "assistant", "content": msg.content or ""}
+        if msg.tool_calls:
+            assistant_entry["tool_calls"] = [
+                {
+                    "id": tc.id,
+                    "type": "function",
+                    "function": {
+                        "name": tc.function.name,
+                        "arguments": tc.function.arguments,
+                    },
+                }
+                for tc in msg.tool_calls
+            ]
+        messages.append(assistant_entry)
+
+        if not msg.tool_calls:
+            final_response = msg.content or ""
+            break
+
+        for tc in msg.tool_calls:
+            try:
+                tool_args = json.loads(tc.function.arguments)
+            except json.JSONDecodeError:
+                tool_args = {}
+
+            if debug:
+                print(f"[Tool call] {tc.function.name}({tool_args})")
+
+            tool_result = _execute_agent_tool(tc.function.name, tool_args, agent_state)
+
+            if debug:
+                print(f"[Tool result] {json.dumps(tool_result, ensure_ascii=False)[:200]}")
+
+            messages.append({
+                "role": "tool",
+                "content": json.dumps(tool_result, ensure_ascii=False),
+                "tool_call_id": tc.id,
+            })
+    else:
+        final_response = messages[-1].get("content", "") if messages else ""
+
+    return {"response": final_response, "messages": messages, "last_result": agent_state.get("last_result")}
