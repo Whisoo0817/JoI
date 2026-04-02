@@ -517,7 +517,7 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "inference_time": f"{elapsed:.4f} seconds",
-            "translated_sentence": translated_sentence_kor or translated_sentence,
+            "translated_sentence": re.sub(r'["""\'\'\'.,!?。、！？]', '', translated_sentence_kor or translated_sentence).strip(),
             "mapped_devices": mapped_devices,
         }
     }
