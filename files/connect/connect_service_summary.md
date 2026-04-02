@@ -165,7 +165,7 @@ This is a summary of available properties (value) and functions (func) for each 
   <Service "ColorMode" type="value">Current color mode (hsv, rgb, xy, ct)</Service>
   <Service "MoveToBrightness" type="action">Set brightness</Service>
   <Service "MoveToHueAndSaturation" type="action">Set hue and saturation (numeric hue/saturation values only, NOT for color names)</Service>
-  <Service "MoveToColor" type="action">Set light color using CIE xy values (e.g., red: 0.675, 0.322, 0 / green: 0.409, 0.518, 0 / blue: 0.167, 0.040, 0 / white: 0.313, 0.329, 0 / yellow: 0.430, 0.445, 0)</Service>
+  <Service "MoveToColor" type="action">Set light color using CIE xy values (e.g., red: 0.675, 0.322, 0.0 / green: 0.409, 0.518, 0.0 / blue: 0.167, 0.040, 0.0 / white: 0.313, 0.329, 0.0 / yellow: 0.430, 0.445, 0.0)</Service>
   <Service "MoveToColorTemperature" type="action">Set color temperature</Service>
 </Device>
 

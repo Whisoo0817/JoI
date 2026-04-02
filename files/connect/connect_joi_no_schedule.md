@@ -52,10 +52,10 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 
 ### ❌ STRICT PROHIBITIONS
 - **NO `var`, `let`, `const`**: Use bare assignment (`temp = ...`), not `var temp = ...`.
-- **NO intermediate variables for literal values**: Pass literal values directly into function calls. e.g., `(#Light).MoveToColor(0.675, 0.322, 0)` NOT `x = 0.675\ny = 0.322\n(#Light).MoveToColor(x, y, 0)`.
+- **NO intermediate variables for literal values**: Pass literal values directly into function calls. e.g., `(#Light).MoveToColor(0.675, 0.322, 0.0)` NOT `x = 0.675\ny = 0.322\n(#Light).MoveToColor(x, y, 0.0)`.
 - **MoveToColor uses CIE xy, NOT RGB**: NEVER use RGB values like `(1, 0, 0)` or `(255, 0, 0)`. Always use CIE xy coordinates:
-  - red → `(0.675, 0.322, 0)`, green → `(0.409, 0.518, 0)`, blue → `(0.167, 0.040, 0)`
-  - white → `(0.313, 0.329, 0)`, yellow → `(0.430, 0.445, 0)`, purple → `(0.321, 0.154, 0)`
+  - red → `(0.675, 0.322, 0.0)`, green → `(0.409, 0.518, 0.0)`, blue → `(0.167, 0.040, 0.0)`
+  - white → `(0.313, 0.329, 0.0)`, yellow → `(0.430, 0.445, 0.0)`, purple → `(0.321, 0.154, 0.0)`
 - **NO External Libraries**: `Math.abs`, `abs`, `time`, `datetime`, `json`, `random` are **STRICTLY FORBIDDEN**.
 - **NO Loops**: Do NOT use `for`, `while`. This prompt type runs once — just write sequential code.
 - **NO `wait until`**: This prompt type is for immediate actions only. Do NOT use `wait until`.
