@@ -9,7 +9,7 @@ from openai import OpenAI
 
 # Modify OpenAI's API key and API base to use llama-server's API server.
 openai_api_key = "EMPTY"
-openai_api_base = os.environ.get("LLM_BASE_URL", "http://localhost:8002/v1")
+openai_api_base = os.environ.get("LLM_BASE_URL", "http://192.168.101.33:8005/v1")
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.2.json")

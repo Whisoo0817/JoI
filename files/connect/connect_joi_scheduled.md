@@ -220,7 +220,7 @@ Quantifier says "any", so use the `==|` operator.
   "cron": "",
   "period": 0,
   "script": "wait until (all(#PresenceSensor).Presence ==| true)
-all(#Hallway #Light).SetColor(\"255|0|255\")"
+all(#Hallway #Light).MoveColor(0.321, 0.154)"
 }
 
 [Command]

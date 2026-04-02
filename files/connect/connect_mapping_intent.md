@@ -49,7 +49,7 @@ Turn on the TV and change the TV channel to 7 and switch to 11 after 1 hour.
 
 [Command]
 Set the light to yellow, then change it to blue gradually.
-["Light.SetColor", "Light.MoveToRGB"]
+["Light.SetColor", "Light.MoveColor"]
 
 [Command]
 Every day at noon, change all lights in Sector 10 to white.
