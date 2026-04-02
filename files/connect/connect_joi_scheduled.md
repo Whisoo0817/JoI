@@ -367,6 +367,20 @@ One-time polling for button.
 }
 
 [Command]
+When the third button of the switch is long-pushed, toggle all lights.
+[Analysis] 'When' -> Polling.
+[Conclusion] Poll button. Act once when satisfied.
+<Reasoning>
+One-time polling for button.
+</Reasoning>
+{
+  "cron": "",
+  "period": 0,
+  "script": "wait until ((#MultiButton).Button1 == \"down_hold\")
+  all(#Light).Toggle()"
+}
+
+[Command]
 Every time Button 1 is pressed, toggle the light between blue and red.
 [Analysis] 'Every time' indicates infinite polling with edge detection on button press.
 [Conclusion] Infinite polling on Button1. Toggle light color between blue and red on each press.

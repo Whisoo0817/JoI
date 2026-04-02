@@ -269,3 +269,6 @@ Toggle the light.
 
 "조명 켰다꺼줘"
 Toggle the light.
+
+"버튼 1을 길게 누르면 조명을 꺼줘"
+When Button 1 is long-pressed, turn off the light.
