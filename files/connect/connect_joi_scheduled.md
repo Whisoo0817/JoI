@@ -82,6 +82,9 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 - **NO bare variables in `if`**: Conditions MUST use an explicit comparison operator (`==`, `!=`, `>`, `<`, `>=`, `<=`).
     - ❌ `if ((#Sensor).Presence) { ... }` → Runtime error.
     - ✅ `if ((#Sensor).Presence == true) { ... }`
+- **MoveToColor uses CIE xy, NOT RGB**: NEVER use RGB values like `(1, 0, 0)` or `(255, 0, 0)`. Always use CIE xy coordinates:
+  - red → `(0.675, 0.322, 0)`, green → `(0.409, 0.518, 0)`, blue → `(0.167, 0.040, 0)`
+  - white → `(0.313, 0.329, 0)`, yellow → `(0.430, 0.445, 0)`, purple → `(0.321, 0.154, 0)`
 
 ---
 
