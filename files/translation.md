@@ -48,6 +48,10 @@ Examples:
 - "~된/ ~된 상태 + 있으면" -> ends with "있으면" -> if. e.g., "감지되고 있으면" -> if
 - "~상태 + 되면" -> ends with "되면" -> when. e.g., "감지상태가 되면" -> when
 
+# Toggle / Alternate Rule
+- "껐다켜줘", "켰다꺼줘", "껐다가 켜줘", "켰다가 꺼줘" → "toggle". Never translate as "turn off and on" or "turn on and off".
+- "번갈아 ~~해줘", "번갈아가며" → "alternate between X and Y". e.g. "빨간색과 파란색으로 번갈아 설정해줘" → "set … to alternate between red and blue".
+
 # Comparator Rule (strict)
 - "~이상": ">="
 - "이하": "<="
@@ -256,3 +260,12 @@ If the window with even tags at the top is open, close the curtain.
 
 "조광 스위치 3번째 버튼을 누르면"
 When the third button of the dimmer switch is pushed
+
+"버튼 1을 누를 때마다 조명을 파란색과 빨간색으로 번갈아 전환해줘"
+Every time Button 1 is pressed, set all lights to alternate between blue and red.
+
+"조명 껐다켜줘"
+Toggle the light.
+
+"조명 켰다꺼줘"
+Toggle the light.

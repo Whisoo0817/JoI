@@ -365,3 +365,31 @@ One-time polling for button.
   "script": "wait until ((#MultiButton).Button3 == \"pushed\")
   all(#Light).Toggle()"
 }
+
+[Command]
+Every time Button 1 is pressed, toggle the light between blue and red.
+[Analysis] 'Every time' indicates infinite polling with edge detection on button press.
+[Conclusion] Infinite polling on Button1. Toggle light color between blue and red on each press.
+<Reasoning>
+'Every time' type infinite polling, period=100. Use triggered := false latch for edge detection. Use color := variable to track current color state across ticks — do NOT read color from the device.
+</Reasoning>
+{
+  "cron": "",
+  "period": 100,
+  "script": "triggered := false
+color := \"blue\"
+if ((#MultiButton).Button1 == \"pushed\") {
+    if (triggered == false) {
+        if (color == \"blue\") {
+            all(#Light).MoveToColor(0.675, 0.322, 0.0)
+            color = \"red\"
+        } else {
+            all(#Light).MoveToColor(0.167, 0.040, 0.0)
+            color = \"blue\"
+        }
+        triggered = true
+    }
+} else {
+    triggered = false
+}"
+}
