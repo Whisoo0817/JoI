@@ -52,7 +52,7 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 
 ### ❌ STRICT PROHIBITIONS
 - **NO `var`, `let`, `const`**: Use bare assignment (`temp = ...`), not `var temp = ...`.
-- **NO intermediate variables for literal values**: Pass literal values directly into function calls. e.g., `(#Light).MoveColor(0.675, 0.322)` NOT `x = 0.675\ny = 0.322\n(#Light).MoveColor(x, y)`.
+- **NO intermediate variables for literal values**: Pass literal values directly into function calls. e.g., `(#Light).MoveToColor(0.675, 0.322, 0)` NOT `x = 0.675\ny = 0.322\n(#Light).MoveToColor(x, y)`.
 - **NO External Libraries**: `Math.abs`, `abs`, `time`, `datetime`, `json`, `random` are **STRICTLY FORBIDDEN**.
 - **NO Loops**: Do NOT use `for`, `while`. This prompt type runs once — just write sequential code.
 - **NO `wait until`**: This prompt type is for immediate actions only. Do NOT use `wait until`.
