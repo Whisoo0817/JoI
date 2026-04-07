@@ -134,12 +134,40 @@ The `agent_chat` function is stateless. It expects the caller to pass and mainta
 *   **`agent_state`**: Carries operational context like `last_result` and `connected_devices`.
 
 ### ⚛️ 4.2 Tool-Calling Workflow (Qwen Strategy)
-1. **Eval**: Assistant thinking `<think>` ... `</think>`.
+1. **Eval**: Assistant thinking `<think>` ... `</think>` (내부 추론, 사용자에게 노출 안 됨).
 2. **Tool Call**: Invokes `request_to_joi_llm` to trigger the stage-based pipeline.
 3. **Confirm**: Displays the result and asks "Is this correct? (y/n/mod)".
 4. **Action**: Depending on `y` or `n`, calls `feedback_to_joi_llm` or `add_scenario`.
 
-### ⚛️ 4.3 Orchestration Example (`test.py`)
+### ⚛️ 4.3 Available Tools
+
+| Tool | 설명 |
+|------|------|
+| `request_to_joi_llm` | 자연어 명령 → Joi 코드 생성 파이프라인 호출 |
+| `feedback_to_joi_llm` | 사용자 피드백 처리 (`y` / `n` / 수정사항 텍스트) |
+| `add_scenario` | 승인된 시나리오를 Hub Controller에 등록 + 로컬 DB 저장 |
+| `get_scenarios` | 로컬 DB에 저장된 시나리오 목록 조회 (id, command, translated, created_at) |
+| `delete_scenario` | 시나리오 ID로 로컬 DB에서 삭제 |
+| `get_connected_devices` | 현재 연결된 IoT 디바이스 목록 조회 |
+| `get_weather` | 지역명으로 현재 날씨 조회 (wttr.in, 네트워크 필요) |
+
+### ⚛️ 4.4 Scenario DB
+승인된 시나리오는 `joi/data/joi.db` (SQLite)에 자동 저장됩니다.
+
+```
+scenarios 테이블
+  id          - 고유 ID (삭제 시 사용)
+  session_id  - 세션 식별자 (미설정 시 "default")
+  command     - 원본 명령어
+  translated  - 한국어 설명
+  code        - 생성된 Joi JSON 코드
+  created_at  - 저장 시각 (UTC)
+```
+
+*   `HUB_CONTROLLER_URL` 환경변수가 없으면 DB에만 저장하고 허브 전송은 스킵.
+*   `session_id`는 `agent_state`에 주입하지 않으면 `"default"`로 고정.
+
+### ⚛️ 4.5 Orchestration Example (`test.py`)
 ```python
 history = []
 state = None

@@ -74,6 +74,7 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 
 # Golden Rule: Strict Mapping
 75. **Strict Selector Adherence**: You MUST use the device selectors provided in the `[Service Tagging]` section **EXACTLY AS-IS**.
+   - ⛔ Do NOT add `all` or `any` if the selector in `[Service Tagging]` does not have it. `(#Light)` ≠ `all(#Light)`.
     - ⛔ Do NOT add, remove, or modify quantifiers (e.g., do NOT add `all` or `any` if it's not in the input).
     - ⛔ Do NOT modify the tags or category names within the `#` parentheses.
     - If `[Service Tagging]` provides `(#Light)`, use `(#Light)`. If it provides `all(#Light)`, use `all(#Light)`.

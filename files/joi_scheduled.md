@@ -60,7 +60,7 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
     - `all(#Tag).Service <op>| Value` (ANY unit satisfies - note the `|`).
     - **Allowed Operators for ANY (`|`)**: `==|`, `!=|`, `>|`, `<|`, `>=|`, `<=|`
     - 62.     - **Usage Rule**: You MUST use the device selectors provided in the `[Service Tagging]` section **EXACTLY AS-IS**.
-        - ⛔ Do NOT add, remove, or modify quantifiers (e.g., do NOT add `all` or `any` if it's not in the input).
+        - ⛔ Do NOT add, remove, or modify quantifiers. `(#Light)` ≠ `all(#Light)` — these are DIFFERENT selectors.
         - ⛔ Do NOT modify the tags or category names within the `#` parentheses.
         - If `[Service Tagging]` provides `(#Light)`, use `(#Light)`. If it provides `all(#Light)`, use `all(#Light)`.
         - If a selector uses `any(#Tag)`, you **MUST** use the `<op>|` version (e.g., `==|`, `!=|`, `>|`). Do NOT omit the `|`. NEVER combine them like `==| >=`.
@@ -124,7 +124,12 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 - `cron` = "", `period` = interval ms.
 - Script: Requires separating a one-time polling event from a recurring action loop within the same script. To achieve this separation, use a `phase := 0` state variable. DO NOT use this for a simple delayed one-time action.
 
-**F. Binary Toggle** — "Toggle/Repeat [action A] and [action B] every [interval]"
+**F. Simple Toggle** — "Toggle [device] every [interval]"
+- `cron` = "", `period` = interval ms.
+- Script: Call `Toggle()` directly. **NO state variable needed** — Toggle is self-contained.
+- ⛔ Do NOT use a `state :=` variable when a single `Toggle()` call is sufficient.
+
+**G. Binary Toggle** — "Toggle between [action A] and [action B] every [interval]" (two distinct states with different arguments)
 - `cron` = "", `period` = interval ms.
 - Script: `:=` variable to alternate between two actions each tick.
 
