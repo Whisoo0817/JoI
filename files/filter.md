@@ -68,3 +68,15 @@ true
 [Command]
 At 1 PM, open all blinds.
 true
+
+[Command]
+When the button is pushed 3 times, open the valve.
+true
+
+[Command]
+At noon, announce the lunch menu of the cafeteria in Building 301 through the speaker.
+true
+
+[Command]
+At 5 PM, turn on the light.
+true

@@ -1,0 +1,1835 @@
+{
+    "AirConditioner": {
+        "AirConditionerMode": {
+            "type": "value",
+            "descriptor": "Controls air conditioner mode and temperature settings",
+            "return_descriptor": "Current air conditioner mode",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "auto - Automatically adjusts temperature and fan speed based on room conditions",
+                "cool - Cooling mode that lowers the room temperature",
+                "heat - Heating mode that raises the room temperature"
+            ]
+        },
+        "TargetTemperature": {
+            "type": "value",
+            "descriptor": "Controls air conditioner mode and temperature settings",
+            "return_descriptor": "Current set air conditioner temperature",
+            "return_type": "DOUBLE"
+        },
+        "SetAirConditionerMode": {
+            "type": "function",
+            "descriptor": "Controls air conditioner mode and temperature settings",
+            "argument_descriptor": "Set air conditioner mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Air conditioner mode to set",
+            "return_type": "VOID"
+        },
+        "SetTargetTemperature": {
+            "type": "function",
+            "descriptor": "Controls air conditioner mode and temperature settings",
+            "argument_descriptor": "Set air conditioner temperature",
+            "argument_type": "DOUBLE",
+            "argument_bounds": "Temperature to set",
+            "return_type": "VOID"
+        }
+    },
+    "AirPurifier": {
+        "AirPurifierMode": {
+            "type": "value",
+            "descriptor": "Controls air purifier mode",
+            "return_descriptor": "Current air purifier mode",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "auto - The fan is on auto",
+                "sleep - The fan is in sleep mode to reduce noise",
+                "low - The fan is on low",
+                "medium - The fan is on medium",
+                "high - The fan is on high",
+                "quiet - The fan is on quiet mode to reduce noise",
+                "windFree - The fan is on wind free mode to reduce the feeling of cold air",
+                "off - The fan is off"
+            ]
+        },
+        "SetAirPurifierMode": {
+            "type": "function",
+            "descriptor": "Controls air purifier mode",
+            "argument_descriptor": "Set air purifier mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Air purifier mode to set",
+            "return_type": "VOID"
+        }
+    },
+    "AirQualitySensor": {
+        "CarbonDioxide": {
+            "type": "value",
+            "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+            "return_descriptor": "CO2 concentration in ppm",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                50000
+            ]
+        },
+        "DustLevel": {
+            "type": "value",
+            "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+            "return_descriptor": "Dust (PM10) level",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                1000
+            ]
+        },
+        "FineDustLevel": {
+            "type": "value",
+            "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+            "return_descriptor": "Fine dust (PM2.5) level",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                1000
+            ]
+        },
+        "Humidity": {
+            "type": "value",
+            "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+            "return_descriptor": "Humidity in %",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                100
+            ]
+        },
+        "Temperature": {
+            "type": "value",
+            "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+            "return_descriptor": "Temperature in °C",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                -40,
+                60
+            ]
+        },
+        "TvocLevel": {
+            "type": "value",
+            "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+            "return_descriptor": "TVOC level in ppb",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                60000
+            ]
+        },
+        "VeryFineDustLevel": {
+            "type": "value",
+            "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+            "return_descriptor": "Very fine dust (PM1.0) level",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                1000
+            ]
+        }
+    },
+    "ArmRobot": {
+        "ArmRobotType": {
+            "type": "value",
+            "descriptor": "Allows for the control of the arm robot.",
+            "return_descriptor": "Current status of the arm robot type",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "mycobot280_pi - mycobot280_pi"
+            ]
+        },
+        "CurrentPosition": {
+            "type": "value",
+            "descriptor": "Allows for the control of the arm robot.",
+            "return_descriptor": "Current status of the arm robot position",
+            "return_type": "STRING"
+        },
+        "Hello": {
+            "type": "function",
+            "descriptor": "Allows for the control of the arm robot.",
+            "argument_descriptor": "Send hello command to arm robot",
+            "return_type": "VOID"
+        },
+        "SendCommand": {
+            "type": "function",
+            "descriptor": "Allows for the control of the arm robot.",
+            "argument_descriptor": "Send command to arm robot",
+            "argument_type": "ENUM",
+            "argument_bounds": "Command to send to the arm robot. List of string, separated by '|'",
+            "return_type": "VOID"
+        },
+        "SetPosition": {
+            "type": "function",
+            "descriptor": "Allows for the control of the arm robot.",
+            "argument_descriptor": "Send position to arm robot",
+            "argument_type": "ENUM",
+            "argument_bounds": "Position to set for the arm robot.",
+            "return_type": "VOID"
+        }
+    },
+    "AudioRecorder": {
+        "AudioFile": {
+            "type": "value",
+            "descriptor": "Record audio",
+            "return_descriptor": "The current audio file of the audio recorder",
+            "return_type": "BINARY"
+        },
+        "RecordStatus": {
+            "type": "value",
+            "descriptor": "Record audio",
+            "return_descriptor": "The current status of the audio recorder",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "idle - The recorder is not currently recording",
+                "recording - The recorder is actively capturing audio"
+            ]
+        },
+        "RecordStart": {
+            "type": "function",
+            "descriptor": "Record audio",
+            "argument_descriptor": "Start recording audio",
+            "return_type": "VOID"
+        },
+        "RecordStop": {
+            "type": "function",
+            "descriptor": "Record audio",
+            "argument_descriptor": "Stop recording audio",
+            "argument_type": "BINARY",
+            "argument_bounds": "The file to save the recording to",
+            "return_type": "VOID"
+        },
+        "RecordWithDuration": {
+            "type": "function",
+            "descriptor": "Record audio",
+            "argument_descriptor": "Record audio with a specified duration",
+            "argument_type": "STRING | DOUBLE",
+            "argument_format": " | ",
+            "argument_bounds": "The file to record to | The duration to record for",
+            "return_type": "BINARY"
+        }
+    },
+    "Button": {
+        "Button": {
+            "type": "value",
+            "descriptor": "A device with one or more buttons",
+            "return_descriptor": "Button state",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "pushed - The value if the Button is pushed",
+                "held - The value if the Button is held",
+                "double - The value if the Button is pushed twice",
+                "pushed_2x - The value if the Button is pushed twice",
+                "pushed_3x - The value if the Button is pushed three times",
+                "pushed_4x - The value if the Button is pushed four times",
+                "pushed_5x - The value if the Button is pushed five times",
+                "pushed_6x - The value if the Button is pushed six times",
+                "down - The value if the Button is clicked down",
+                "down_2x - The value if the Button is clicked down twice",
+                "down_3x - The value if the Button is clicked down three times",
+                "down_4x - The value if the Button is clicked down four times",
+                "down_5x - The value if the Button is clicked down five times",
+                "down_6x - The value if the Button is clicked down six times",
+                "down_hold - The value if the Button is clicked down and held",
+                "up - The value if the Button is clicked up",
+                "up_2x - The value if the Button is clicked up twice",
+                "up_3x - The value if the Button is clicked up three times",
+                "up_4x - The value if the Button is clicked up four times",
+                "up_5x - The value if the Button is clicked up five times",
+                "up_6x - The value if the Button is clicked up six times",
+                "up_hold - The value if the Button is clicked up and held",
+                "swipe_up - The value if the Button is swiped up from botton to top",
+                "swipe_down - The value if the Button is swiped down from top to bottom",
+                "swipe_left - The value if the Button is swiped from right to left",
+                "swipe_right - The value if the Button is swiped from left to right"
+            ]
+        }
+    },
+    "Camera": {
+        "CameraState": {
+            "type": "value",
+            "descriptor": "Controls camera device for image/video capture and streaming",
+            "return_descriptor": "Current camera state",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "off - The camera is powered off",
+                "on - The camera is powered on and operational",
+                "restarting - The camera is in the process of restarting",
+                "unavailable - The camera is not accessible or has encountered an error"
+            ]
+        },
+        "Image": {
+            "type": "value",
+            "descriptor": "Controls camera device for image/video capture and streaming",
+            "return_descriptor": "The latest image captured by the camera",
+            "return_type": "BINARY"
+        },
+        "Stream": {
+            "type": "value",
+            "descriptor": "Controls camera device for image/video capture and streaming",
+            "return_descriptor": "The current video stream from the camera",
+            "return_type": "STRING"
+        },
+        "Video": {
+            "type": "value",
+            "descriptor": "Controls camera device for image/video capture and streaming",
+            "return_descriptor": "The latest video captured by the camera",
+            "return_type": "BINARY"
+        },
+        "CaptureImage": {
+            "type": "function",
+            "descriptor": "Controls camera device for image/video capture and streaming",
+            "argument_descriptor": "Take a picture with the camera - Return the image as binary data",
+            "return_type": "BINARY"
+        },
+        "CaptureVideo": {
+            "type": "function",
+            "descriptor": "Controls camera device for image/video capture and streaming",
+            "argument_descriptor": "Take a video with the camera - Return the video as binary data",
+            "return_type": "BINARY"
+        },
+        "StartStream": {
+            "type": "function",
+            "descriptor": "Controls camera device for image/video capture and streaming",
+            "argument_descriptor": "Start the camera stream - Return the stream URL",
+            "return_type": "STRING"
+        },
+        "StopStream": {
+            "type": "function",
+            "descriptor": "Controls camera device for image/video capture and streaming",
+            "argument_descriptor": "Stop the camera stream",
+            "return_type": "VOID"
+        }
+    },
+    "CarbonDioxideSensor": {
+        "CarbonDioxide": {
+            "type": "value",
+            "descriptor": "Measure carbon dioxide levels",
+            "return_descriptor": "The level of carbon dioxide detected",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                1000000
+            ]
+        }
+    },
+    "Charger": {
+        "ChargingState": {
+            "type": "value",
+            "descriptor": "The current status of battery charging",
+            "return_descriptor": "The current charging state of the device",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "charging - The battery is actively being charged",
+                "discharging - The battery is supplying power and losing charge",
+                "stopped - Charging has been stopped but the battery is not full",
+                "fullyCharged - The battery has reached full capacity",
+                "error - A charging error has occurred"
+            ]
+        },
+        "Current": {
+            "type": "value",
+            "descriptor": "The current status of battery charging",
+            "return_descriptor": "The current flowing into or out of the battery in amperes",
+            "return_type": "DOUBLE"
+        },
+        "Power": {
+            "type": "value",
+            "descriptor": "The current status of battery charging",
+            "return_descriptor": "The power consumption of the device in watts",
+            "return_type": "DOUBLE"
+        },
+        "Voltage": {
+            "type": "value",
+            "descriptor": "The current status of battery charging",
+            "return_descriptor": "The voltage of the battery in millivolts",
+            "return_type": "DOUBLE"
+        }
+    },
+    "Clock": {
+        "Date": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current date as string - format: YYYYMMdd",
+            "return_type": "STRING"
+        },
+        "Datetime": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current date and time as string - format: YYYYMMddhhmm",
+            "return_type": "STRING",
+            "return_bounds": [
+                0,
+                9223372036854775807
+            ]
+        },
+        "Day": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current day",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                1,
+                31
+            ]
+        },
+        "Hour": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current hour",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                24
+            ]
+        },
+        "IsHoliday": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Whether today is a holiday",
+            "return_type": "BOOL"
+        },
+        "Minute": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current minute",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                60
+            ]
+        },
+        "Month": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current month",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                1,
+                12
+            ]
+        },
+        "Second": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current second",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                60
+            ]
+        },
+        "Time": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current time as string - format: hhmm",
+            "return_type": "STRING"
+        },
+        "Timestamp": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current timestamp (return current unix time - unit: seconds with floating point)",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                9223372036854775807
+            ]
+        },
+        "Weekday": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current weekday",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "monday - Monday",
+                "tuesday - Tuesday",
+                "wednesday - Wednesday",
+                "thursday - Thursday",
+                "friday - Friday",
+                "saturday - Saturday",
+                "sunday - Sunday"
+            ]
+        },
+        "Year": {
+            "type": "value",
+            "descriptor": "Provide current date and time",
+            "return_descriptor": "Current year",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                100000
+            ]
+        },
+        "Delay": {
+            "type": "function",
+            "descriptor": "Provide current date and time",
+            "argument_descriptor": "delay for a given amount of time",
+            "argument_type": "INTEGER | INTEGER | INTEGER",
+            "argument_format": " | | ",
+            "argument_bounds": "hour | minute | second",
+            "return_type": "VOID"
+        }
+    },
+    "CloudServiceProvider": {
+        "ChatSession": {
+            "type": "value",
+            "descriptor": "Provides cloud service functionalities",
+            "return_descriptor": "Represents a chat session with an AI model via the cloud service",
+            "return_type": "STRING"
+        },
+        "GeneratedImage": {
+            "type": "value",
+            "descriptor": "Provides cloud service functionalities",
+            "return_descriptor": "Represents an image generated by the cloud service",
+            "return_type": "BINARY"
+        },
+        "ImageExplanation": {
+            "type": "value",
+            "descriptor": "Provides cloud service functionalities",
+            "return_descriptor": "Represents the description of an image explained by the cloud service",
+            "return_type": "STRING"
+        },
+        "LLMModels": {
+            "type": "value",
+            "descriptor": "Provides cloud service functionalities",
+            "return_descriptor": "Represents the available large language models provided by the cloud service",
+            "return_type": "LIST"
+        },
+        "UploadedFile": {
+            "type": "value",
+            "descriptor": "Provides cloud service functionalities",
+            "return_descriptor": "Represents a file that has been uploaded to the cloud service",
+            "return_type": "BINARY"
+        },
+        "ChatWithAI": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Chat with an AI model using the cloud service",
+            "argument_type": "STRING",
+            "argument_bounds": "The text prompt to chat with the AI model",
+            "return_type": "STRING"
+        },
+        "ExplainImage": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Explain an image and return a description using the cloud service",
+            "argument_type": "BINARY",
+            "argument_bounds": "Image file to be explained",
+            "return_type": "STRING"
+        },
+        "GenerateImage": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Generate an image based on a text prompt using the cloud service",
+            "argument_type": "STRING",
+            "argument_bounds": "The text prompt to generate the image from",
+            "return_type": "BINARY"
+        },
+        "IsAvailable": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Check if the cloud service is available",
+            "argument_type": "BOOL",
+            "argument_bounds": "The name of the cloud service to check",
+            "return_type": "BOOL"
+        },
+        "SaveToFile": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Save data to a file in local",
+            "argument_type": "BINARY | STRING",
+            "argument_format": " | ",
+            "argument_bounds": "The base64 data to save to the file | Path of the file to save data to",
+            "return_type": "STRING"
+        },
+        "SpeechToText": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Convert speech to text using the cloud service",
+            "argument_type": "STRING",
+            "argument_bounds": "Audio file containing the speech to convert",
+            "return_type": "STRING"
+        },
+        "TextToSpeech": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Convert text to speech using the cloud service",
+            "argument_type": "STRING",
+            "argument_bounds": "Text to be converted to speech",
+            "return_type": "BINARY"
+        },
+        "UploadFile": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Upload file to the cloud service",
+            "argument_type": "STRING",
+            "argument_bounds": "File to upload to the cloud service",
+            "return_type": "BINARY"
+        },
+        "UploadToCloudStorage": {
+            "type": "function",
+            "descriptor": "Provides cloud service functionalities",
+            "argument_descriptor": "Upload a file to cloud storage",
+            "argument_type": "STRING",
+            "argument_bounds": "Path of the file or Base64 data to upload to cloud storage",
+            "return_type": "STRING"
+        }
+    },
+    "ColorControl": {
+        "Color": {
+            "type": "value",
+            "descriptor": "Allows for control of a color changing device",
+            "return_descriptor": "Current color in RGB format (r|g|b)",
+            "return_type": "STRING",
+            "return_format": "r|g|b"
+        },
+        "SetColor": {
+            "type": "function",
+            "descriptor": "Allows for control of a color changing device",
+            "argument_descriptor": "Set the color of the device",
+            "argument_type": "STRING",
+            "argument_bounds": "RGB color value in format 'r|g|b' (0-255 for each)",
+            "return_type": "VOID"
+        }
+    },
+    "ContactSensor": {
+        "Contact": {
+            "type": "value",
+            "descriptor": "Allows reading the value of a contact sensor device",
+            "return_descriptor": "The current state of the contact sensor. True if the sensor is closed, False if it is open.",
+            "return_type": "BOOL"
+        }
+    },
+    "Dehumidifier": {
+        "DehumidifierMode": {
+            "type": "value",
+            "descriptor": "Allows for the control of the dehumidifier mode.",
+            "return_descriptor": "Current mode of the dehumidifier",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "cooling - Cooling cycle during operation",
+                "delayWash - Scheduled wash or dry cycle with a delayed start",
+                "drying - Active drying cycle",
+                "finished - The current operation has completed",
+                "refreshing - Refresh cycle to remove odors from fabrics",
+                "weightSensing - Detecting load weight to optimize operation",
+                "wrinklePrevent - Periodic tumbling to prevent wrinkles after drying",
+                "dehumidifying - Actively removing moisture from the air",
+                "AIDrying - AI-powered optimized drying based on sensor data",
+                "sanitizing - High-temperature sanitization cycle to eliminate bacteria",
+                "internalCare - Internal component cleaning and maintenance cycle",
+                "freezeProtection - Prevents internal freezing in cold ambient conditions",
+                "continuousDehumidifying - Continuous dehumidification without automatic stop",
+                "thawingFrozenInside - Thawing frozen internal components for recovery"
+            ]
+        },
+        "SetDehumidifierMode": {
+            "type": "function",
+            "descriptor": "Allows for the control of the dehumidifier mode.",
+            "argument_descriptor": "Set the dehumidifier mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Set the dehumidifier mode",
+            "return_type": "VOID"
+        }
+    },
+    "Dishwasher": {
+        "DishwasherMode": {
+            "type": "value",
+            "descriptor": "Allows for the control of the dishwasher mode.",
+            "return_descriptor": "Current mode of the dishwasher",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "eco - Energy-saving wash cycle with lower water temperature",
+                "intense - Intensive wash cycle for heavily soiled dishes",
+                "auto - Automatically selects optimal wash settings based on load",
+                "quick - Fast wash cycle for lightly soiled dishes",
+                "rinse - Rinse-only cycle without detergent",
+                "dry - Drying cycle after washing"
+            ]
+        },
+        "SetDishwasherMode": {
+            "type": "function",
+            "descriptor": "Allows for the control of the dishwasher mode.",
+            "argument_descriptor": "Set the dishwasher mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Set the dishwasher mode to \"eco\", \"intense\", \"auto\", \"quick\", \"rinse\", or \"dry\" mode",
+            "return_type": "VOID"
+        }
+    },
+    "Door": {
+        "DoorState": {
+            "type": "value",
+            "descriptor": "Allow for the control of a door",
+            "return_descriptor": "The current state of the door",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "closed - The door is fully closed",
+                "closing - The door is in the process of closing",
+                "open - The door is fully open",
+                "opening - The door is in the process of opening",
+                "unknown - The door state cannot be determined"
+            ]
+        },
+        "Close": {
+            "type": "function",
+            "descriptor": "Allow for the control of a door",
+            "argument_descriptor": "Close the door",
+            "return_type": "VOID"
+        },
+        "Open": {
+            "type": "function",
+            "descriptor": "Allow for the control of a door",
+            "argument_descriptor": "Open the door",
+            "return_type": "VOID"
+        }
+    },
+    "DoorLock": {
+        "DoorLockState": {
+            "type": "value",
+            "descriptor": "Allow for the control of a door lock",
+            "return_descriptor": "The current state of the door lock",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "closed - The door lock is in the locked (secured) state",
+                "closing - The door lock is in the process of locking",
+                "open - The door lock is in the unlocked state",
+                "opening - The door lock is in the process of unlocking",
+                "unknown - The door lock state cannot be determined"
+            ]
+        },
+        "Lock": {
+            "type": "function",
+            "descriptor": "Allow for the control of a door lock",
+            "argument_descriptor": "Lock the door",
+            "return_type": "VOID"
+        },
+        "Unlock": {
+            "type": "function",
+            "descriptor": "Allow for the control of a door lock",
+            "argument_descriptor": "Unlock the door",
+            "return_type": "VOID"
+        }
+    },
+    "EmailProvider": {
+        "SendMail": {
+            "type": "function",
+            "descriptor": "Provides email service",
+            "argument_descriptor": "Send an email to the specified recipient",
+            "argument_type": "STRING | STRING | STRING",
+            "argument_format": " | | ",
+            "argument_bounds": "The email address of the recipient | The title of the email | The body content of the email",
+            "return_type": "VOID"
+        },
+        "SendMailWithFile": {
+            "type": "function",
+            "descriptor": "Provides email service",
+            "argument_descriptor": "Send an email with an attachment to the specified recipient",
+            "argument_type": "STRING | STRING | STRING | STRING",
+            "argument_format": " | | | ",
+            "argument_bounds": "The email address of the recipient | The title of the email | The body content of the email | The file path of the attachment or base64 encoded string",
+            "return_type": "VOID"
+        }
+    },
+    "FaceRecognizer": {
+        "RecognizedResult": {
+            "type": "value",
+            "descriptor": "Controls face recognition features",
+            "return_descriptor": "ID of the currently recognized face",
+            "return_type": "STRING"
+        },
+        "AddFace": {
+            "type": "function",
+            "descriptor": "Controls face recognition features",
+            "argument_descriptor": "Add a new face to the recognition database",
+            "argument_type": "STRING",
+            "argument_bounds": "ID for the new face",
+            "return_type": "BOOL"
+        },
+        "DeleteFace": {
+            "type": "function",
+            "descriptor": "Controls face recognition features",
+            "argument_descriptor": "Delete a face from the recognition database",
+            "argument_type": "STRING",
+            "argument_bounds": "ID of the face to delete",
+            "return_type": "BOOL"
+        },
+        "End": {
+            "type": "function",
+            "descriptor": "Controls face recognition features",
+            "argument_descriptor": "End face recognition",
+            "return_type": "BOOL"
+        },
+        "Start": {
+            "type": "function",
+            "descriptor": "Controls face recognition features",
+            "argument_descriptor": "Start face recognition",
+            "return_type": "BOOL"
+        }
+    },
+    "Humidifier": {
+        "HumidifierMode": {
+            "type": "value",
+            "descriptor": "Maintains and sets the state of an humidifier",
+            "return_descriptor": "Current mode of the humidifier",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "auto - Automatically adjusts humidity output based on room conditions",
+                "low - Low humidity output level",
+                "medium - Medium humidity output level",
+                "high - High humidity output level"
+            ]
+        },
+        "SetHumidifierMode": {
+            "type": "function",
+            "descriptor": "Maintains and sets the state of an humidifier",
+            "argument_descriptor": "Set the humidifier mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Set the humidifier mode to \"auto\", \"low\", \"medium\", or \"high\" mode",
+            "return_type": "VOID"
+        }
+    },
+    "HumiditySensor": {
+        "Humidity": {
+            "type": "value",
+            "descriptor": "Allow reading the relative humidity from devices that support it",
+            "return_descriptor": "A numerical representation of the relative humidity measurement taken by the device",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                100
+            ]
+        }
+    },
+    "LaundryDryer": {
+        "LaundryDryerMode": {
+            "type": "value",
+            "descriptor": "Allows for the control of the laundry dryer mode.",
+            "return_descriptor": "Current mode of the laundry dryer",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "auto - Automatically selects optimal drying settings",
+                "quick - Fast drying cycle for lightly damp items",
+                "quiet - Reduced noise operation mode",
+                "lownoise - Low noise operation mode",
+                "lowenergy - Energy-saving drying cycle",
+                "vacation - Minimal energy mode for extended absence",
+                "min - Minimum drying intensity",
+                "max - Maximum drying intensity",
+                "night - Quiet operation optimized for nighttime use",
+                "day - Standard daytime operation mode",
+                "normal - Standard drying cycle for everyday items",
+                "delicate - Gentle drying cycle for delicate fabrics",
+                "heavy - Intensive drying cycle for heavy or bulky items",
+                "whites - Drying cycle optimized for white fabrics"
+            ]
+        },
+        "SpinSpeed": {
+            "type": "value",
+            "descriptor": "Allows for the control of the laundry dryer mode.",
+            "return_descriptor": "Current spin speed of the laundry dryer",
+            "return_type": "INTEGER"
+        },
+        "SetLaundryDryerMode": {
+            "type": "function",
+            "descriptor": "Allows for the control of the laundry dryer mode.",
+            "argument_descriptor": "Set the laundry dryer mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Set the laundry dryer mode",
+            "return_type": "VOID"
+        },
+        "SetSpinSpeed": {
+            "type": "function",
+            "descriptor": "Allows for the control of the laundry dryer mode.",
+            "argument_descriptor": "Set the spin speed of the laundry dryer",
+            "argument_type": "INTEGER",
+            "argument_bounds": "Set the spin speed of the laundry dryer",
+            "return_type": "VOID"
+        }
+    },
+    "LeakSensor": {
+        "Leakage": {
+            "type": "value",
+            "descriptor": "A Device that senses water leakage",
+            "return_descriptor": "Whether or not water leakage was detected by the Device",
+            "return_type": "BOOL"
+        }
+    },
+    "LevelControl": {
+        "CurrentLevel": {
+            "type": "value",
+            "descriptor": "Allows for the control of the level of a device like a light or a dimmer switch.",
+            "return_descriptor": "A number that represents the current level, usually ``0-100`` in percent",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                100
+            ]
+        },
+        "MaxLevel": {
+            "type": "value",
+            "descriptor": "Allows for the control of the level of a device like a light or a dimmer switch.",
+            "return_descriptor": "Maximum level the device supports",
+            "return_type": "DOUBLE"
+        },
+        "MinLevel": {
+            "type": "value",
+            "descriptor": "Allows for the control of the level of a device like a light or a dimmer switch.",
+            "return_descriptor": "Minimum level the device supports",
+            "return_type": "DOUBLE"
+        },
+        "MoveToLevel": {
+            "type": "function",
+            "descriptor": "Allows for the control of the level of a device like a light or a dimmer switch.",
+            "argument_descriptor": "Move the level to the given value. If the device supports being turned on and off then it will be turned on if ``level`` is greater than 0 and turned off if ``level`` is equal to 0.",
+            "argument_type": "DOUBLE | DOUBLE",
+            "argument_format": " | ",
+            "argument_bounds": "The level value, usually ``0-100`` in percent | The rate at which to change the level",
+            "return_type": "VOID"
+        }
+    },
+    "Light": {
+        "ColorMode": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Current active color mode",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "hsv - Hue/Saturation color mode",
+                "xy - CIE 1931 XY chromaticity color mode",
+                "ct - Color Temperature (Mireds) mode"
+            ]
+        },
+        "ColorTempPhysicalMaxMireds": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Maximum supported color temperature in mireds",
+            "return_type": "INTEGER"
+        },
+        "ColorTempPhysicalMinMireds": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Minimum supported color temperature in mireds",
+            "return_type": "INTEGER"
+        },
+        "ColorTemperatureMireds": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Current color temperature in mireds",
+            "return_type": "INTEGER"
+        },
+        "CurrentBrightness": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Current brightness level (0~100%)",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                100
+            ]
+        },
+        "CurrentHue": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Current hue value (0-254)",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                254
+            ]
+        },
+        "CurrentSaturation": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Current saturation value (0-254)",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                254
+            ]
+        },
+        "CurrentX": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Current CIE 1931 X chromaticity coordinate (0.0-1.0)",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                1
+            ]
+        },
+        "CurrentY": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Current CIE 1931 Y chromaticity coordinate (0.0-1.0)",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                1
+            ]
+        },
+        "EnhancedCurrentHue": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "return_descriptor": "Enhanced current hue value with 16-bit precision (0-65535)",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                65535
+            ]
+        },
+        "EnhancedMoveToHue": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Move to the specified enhanced hue value (16-bit precision) in a given direction over a transition time",
+            "argument_type": "INTEGER | ENUM | DOUBLE",
+            "argument_format": " | | ",
+            "argument_bounds": "Target enhanced hue value with 16-bit precision (0-65535) | Direction to rotate around the hue circle | Transition time in seconds",
+            "return_type": "VOID"
+        },
+        "EnhancedMoveToHueAndSaturation": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Move to the specified enhanced hue and saturation values simultaneously over a transition time",
+            "argument_type": "INTEGER | INTEGER | DOUBLE",
+            "argument_format": " | | ",
+            "argument_bounds": "Target enhanced hue value with 16-bit precision (0-65535) | Target saturation value (0-254) | Transition time in seconds",
+            "return_type": "VOID"
+        },
+        "MoveColor": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Continuously move the XY color coordinates at the specified rate",
+            "argument_type": "DOUBLE | DOUBLE",
+            "argument_format": " | ",
+            "argument_bounds": "Rate of change for X coordinate per second | Rate of change for Y coordinate per second",
+            "return_type": "VOID"
+        },
+        "MoveColorTemperature": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Continuously move the color temperature in the specified direction at the given rate",
+            "argument_type": "ENUM | INTEGER | INTEGER | INTEGER",
+            "argument_format": " | | | ",
+            "argument_bounds": "Movement mode (stop, up, or down) | Rate of color temperature change per second in mireds | Minimum color temperature limit in mireds | Maximum color temperature limit in mireds",
+            "return_type": "VOID"
+        },
+        "MoveHue": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Continuously move the hue in the specified direction at the given rate",
+            "argument_type": "ENUM | INTEGER",
+            "argument_format": " | ",
+            "argument_bounds": "Movement mode (stop, up, or down) | Rate of hue change per second",
+            "return_type": "VOID"
+        },
+        "MoveToBrightness": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Move the Brightness to the given value. If the device supports being turned on and off then it will be turned on if ``brightness`` is greater than 0 and turned off if ``brightness`` is equal to 0.",
+            "argument_type": "DOUBLE | DOUBLE",
+            "argument_format": " | ",
+            "argument_bounds": "The brightness value, usually ``0-100`` in percent | The rate at which to change the brightness",
+            "return_type": "VOID"
+        },
+        "MoveToColor": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Move to the specified CIE 1931 XY color coordinates over a given transition time",
+            "argument_type": "DOUBLE | DOUBLE | DOUBLE",
+            "argument_format": " | | ",
+            "argument_bounds": "Target CIE 1931 X chromaticity coordinate (0.0-1.0) | Target CIE 1931 Y chromaticity coordinate (0.0-1.0) | Transition time in seconds",
+            "return_type": "VOID"
+        },
+        "MoveToColorTemperature": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Move to the specified color temperature over a transition time",
+            "argument_type": "INTEGER | DOUBLE",
+            "argument_format": " | ",
+            "argument_bounds": "Target color temperature in mireds | Transition time in seconds",
+            "return_type": "VOID"
+        },
+        "MoveToHue": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Move to the specified hue value in a given direction over a transition time",
+            "argument_type": "INTEGER | ENUM | DOUBLE",
+            "argument_format": " | | ",
+            "argument_bounds": "Target hue value (0-254) | Direction to rotate around the hue circle | Transition time in seconds",
+            "return_type": "VOID"
+        },
+        "MoveToHueAndSaturation": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Move to the specified hue and saturation values simultaneously over a transition time",
+            "argument_type": "INTEGER | INTEGER | DOUBLE",
+            "argument_format": " | | ",
+            "argument_bounds": "Target hue value (0-254) | Target saturation value (0-254) | Transition time in seconds",
+            "return_type": "VOID"
+        },
+        "MoveToSaturation": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Move to the specified saturation value over a transition time",
+            "argument_type": "INTEGER | DOUBLE",
+            "argument_format": " | ",
+            "argument_bounds": "Target saturation value (0-254) | Transition time in seconds",
+            "return_type": "VOID"
+        },
+        "StepColor": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Step the XY color coordinates by the specified amount over a given transition time",
+            "argument_type": "DOUBLE | DOUBLE | DOUBLE",
+            "argument_format": " | | ",
+            "argument_bounds": "Step size for X coordinate | Step size for Y coordinate | Transition time in seconds",
+            "return_type": "VOID"
+        },
+        "StepColorTemperature": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Step the color temperature by the specified amount in a given direction over a transition time",
+            "argument_type": "ENUM | INTEGER | DOUBLE | INTEGER | INTEGER",
+            "argument_format": " | | | | ",
+            "argument_bounds": "Step direction (up or down) | Step size for color temperature change in mireds | Transition time in seconds | Minimum color temperature limit in mireds | Maximum color temperature limit in mireds",
+            "return_type": "VOID"
+        },
+        "StepHue": {
+            "type": "function",
+            "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+            "argument_descriptor": "Step the hue by the specified amount in a given direction over a transition time",
+            "argument_type": "ENUM | INTEGER | DOUBLE",
+            "argument_format": " | | ",
+            "argument_bounds": "Step direction (up or down) | Step size for hue change | Transition time in seconds",
+            "return_type": "VOID"
+        }
+    },
+    "LightSensor": {
+        "Brightness": {
+            "type": "value",
+            "descriptor": "A numerical representation of the brightness intensity",
+            "return_descriptor": "brightness intensity (Unit: lux)",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                9223372036854775807
+            ]
+        }
+    },
+    "MenuProvider": {
+        "Menu": {
+            "type": "value",
+            "descriptor": "Provides menu information services",
+            "return_descriptor": "Current menu information",
+            "return_type": "STRING"
+        },
+        "TodayMenu": {
+            "type": "value",
+            "descriptor": "Provides menu information services",
+            "return_descriptor": "Today's menu",
+            "return_type": "STRING"
+        },
+        "TodayPlace": {
+            "type": "value",
+            "descriptor": "Provides menu information services",
+            "return_descriptor": "Today's place",
+            "return_type": "STRING"
+        },
+        "GetMenu": {
+            "type": "function",
+            "descriptor": "Provides menu information services",
+            "argument_descriptor": "Get the menu - Return the menu list",
+            "argument_type": "STRING",
+            "argument_bounds": "The command to get the menu - format: [오늘|내일] [학생식당|수의대식당|전망대(3식당)|예술계식당(아름드리)|기숙사식당|아워홈|동원관식당(113동)|웰스토리(220동)|투굿(공대간이식당)|자하연식당|301동식당] [아침|점심|저녁]",
+            "return_type": "STRING"
+        }
+    },
+    "MultiButton": {
+        "Button1": {
+            "type": "value",
+            "descriptor": "A device with multiple buttons (typically 4 buttons)",
+            "return_descriptor": "Button 1 state",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "pushed - The value if the Button is pushed",
+                "double - The value if the Button is pushed twice",
+                "pushed_2x - The value if the Button is pushed twice",
+                "pushed_3x - The value if the Button is pushed three times",
+                "down - The value if the Button is clicked down",
+                "down_hold - The value if the Button is clicked down and held",
+                "up - The value if the Button is clicked up",
+                "up_hold - The value if the Button is clicked up and held"
+            ]
+        },
+        "Button2": {
+            "type": "value",
+            "descriptor": "A device with multiple buttons (typically 4 buttons)",
+            "return_descriptor": "Button 2 state",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "pushed - The value if the Button is pushed",
+                "double - The value if the Button is pushed twice",
+                "pushed_2x - The value if the Button is pushed twice",
+                "pushed_3x - The value if the Button is pushed three times",
+                "down - The value if the Button is clicked down",
+                "down_hold - The value if the Button is clicked down and held",
+                "up - The value if the Button is clicked up",
+                "up_hold - The value if the Button is clicked up and held"
+            ]
+        },
+        "Button3": {
+            "type": "value",
+            "descriptor": "A device with multiple buttons (typically 4 buttons)",
+            "return_descriptor": "Button 3 state",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "pushed - The value if the Button is pushed",
+                "double - The value if the Button is pushed twice",
+                "pushed_2x - The value if the Button is pushed twice",
+                "pushed_3x - The value if the Button is pushed three times",
+                "down - The value if the Button is clicked down",
+                "down_hold - The value if the Button is clicked down and held",
+                "up - The value if the Button is clicked up",
+                "up_hold - The value if the Button is clicked up and held"
+            ]
+        },
+        "Button4": {
+            "type": "value",
+            "descriptor": "A device with multiple buttons (typically 4 buttons)",
+            "return_descriptor": "Button 4 state",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "pushed - The value if the Button is pushed",
+                "double - The value if the Button is pushed twice",
+                "pushed_2x - The value if the Button is pushed twice",
+                "pushed_3x - The value if the Button is pushed three times",
+                "down - The value if the Button is clicked down",
+                "down_hold - The value if the Button is clicked down and held",
+                "up - The value if the Button is clicked up",
+                "up_hold - The value if the Button is clicked up and held"
+            ]
+        }
+    },
+    "Oven": {
+        "OvenMode": {
+            "type": "value",
+            "descriptor": "Allows for the control of the oven mode",
+            "return_descriptor": "Current mode of the oven",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "heating - General heating with top and bottom elements",
+                "grill - Top heating element for grilling",
+                "warming - Low temperature to keep food warm",
+                "defrosting - Low temperature cycle to thaw frozen food",
+                "Conventional - Traditional top and bottom heating elements",
+                "Bake - Bottom element focused baking mode",
+                "BottomHeat - Bottom heating element only",
+                "ConvectionBake - Fan-assisted baking with even heat distribution",
+                "ConvectionRoast - Fan-assisted roasting for uniform browning",
+                "Broil - High heat from top element for broiling",
+                "ConvectionBroil - Fan-assisted broiling for even cooking",
+                "SteamCook - Steam injection cooking for moist results",
+                "SteamBake - Steam-assisted baking for crispy crust and moist interior",
+                "SteamRoast - Steam-assisted roasting for juicy results",
+                "SteamBottomHeatplusConvection - Bottom heat with fan and steam combined",
+                "Microwave - Microwave-only cooking mode",
+                "MWplusGrill - Microwave combined with grill heating",
+                "MWplusConvection - Microwave combined with convection fan",
+                "MWplusHotBlast - Microwave combined with hot air blast",
+                "MWplusHotBlast2 - Microwave combined with enhanced hot air blast",
+                "SlimMiddle - Slim heating element at medium power",
+                "SlimStrong - Slim heating element at high power",
+                "SlowCook - Low temperature slow cooking over extended time",
+                "Proof - Low temperature mode for yeast dough proofing",
+                "Dehydrate - Low temperature with fan for food dehydration",
+                "Others - Other cooking modes not listed",
+                "StrongSteam - Intensive steam cooking at high steam output",
+                "Descale - Self-cleaning descaling cycle to remove mineral buildup",
+                "Rinse - Water rinse cleaning cycle"
+            ]
+        },
+        "AddMoreTime": {
+            "type": "function",
+            "descriptor": "Allows for the control of the oven mode",
+            "argument_descriptor": "Add more time to the current cooking process of the oven",
+            "argument_type": "DOUBLE",
+            "argument_bounds": "Set the additional cooking time of the oven",
+            "return_type": "VOID"
+        },
+        "SetCookingParameters": {
+            "type": "function",
+            "descriptor": "Allows for the control of the oven mode",
+            "argument_descriptor": "Set the cooking parameters of the oven",
+            "argument_type": "ENUM | DOUBLE",
+            "argument_format": " | ",
+            "argument_bounds": "Set the mode of the oven | Set the cooking time of the oven",
+            "return_type": "VOID"
+        },
+        "SetOvenMode": {
+            "type": "function",
+            "descriptor": "Allows for the control of the oven mode",
+            "argument_descriptor": "Set the oven mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Set the oven mode",
+            "return_type": "VOID"
+        }
+    },
+    "Plug": {
+        "Current": {
+            "type": "value",
+            "descriptor": "Allows for monitoring power consumption of a plug device",
+            "return_descriptor": "The current flowing into or out of the battery in amperes",
+            "return_type": "DOUBLE"
+        },
+        "Power": {
+            "type": "value",
+            "descriptor": "Allows for monitoring power consumption of a plug device",
+            "return_descriptor": "The power consumption of the device in watts",
+            "return_type": "DOUBLE"
+        },
+        "Voltage": {
+            "type": "value",
+            "descriptor": "Allows for monitoring power consumption of a plug device",
+            "return_descriptor": "The voltage of the battery in millivolts",
+            "return_type": "DOUBLE"
+        }
+    },
+    "PresenceSensor": {
+        "Presence": {
+            "type": "value",
+            "descriptor": "The ability to see the current status of a presence sensor device",
+            "return_descriptor": "The current state of the presence sensor",
+            "return_type": "BOOL"
+        }
+    },
+    "PresenceVitalSensor": {
+        "Awakeness": {
+            "type": "value",
+            "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+            "return_descriptor": "Sleep/wake status indicator",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                -10,
+                10
+            ]
+        },
+        "Distance": {
+            "type": "value",
+            "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+            "return_descriptor": "Distance at which the subject is detected in meters",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                10
+            ]
+        },
+        "DwellTime": {
+            "type": "value",
+            "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+            "return_descriptor": "Time duration the subject has been present in seconds",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                100000
+            ]
+        },
+        "HeartRate": {
+            "type": "value",
+            "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+            "return_descriptor": "Heart rate in beats per minute",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                250
+            ]
+        },
+        "MovementIndex": {
+            "type": "value",
+            "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+            "return_descriptor": "Intensity of detected relative movement",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                100
+            ]
+        },
+        "Presence": {
+            "type": "value",
+            "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+            "return_descriptor": "Presence detection status",
+            "return_type": "BOOL"
+        },
+        "RespiratoryRate": {
+            "type": "value",
+            "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+            "return_descriptor": "Respiratory rate in breaths per minute",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                60
+            ]
+        }
+    },
+    "PressureSensor": {
+        "Presence": {
+            "type": "value",
+            "descriptor": "The ability to see the current status of a pressure sensor device",
+            "return_descriptor": "The current state of the pressure sensor",
+            "return_type": "DOUBLE"
+        }
+    },
+    "RainSensor": {
+        "Rain": {
+            "type": "value",
+            "descriptor": "A Device that senses rain",
+            "return_descriptor": "The current state of the rain sensor",
+            "return_type": "BOOL"
+        }
+    },
+    "RobotVacuumCleaner": {
+        "RobotVacuumCleanerCleaningMode": {
+            "type": "value",
+            "descriptor": "Allows for the control of the robot cleaner cleaning mode.",
+            "return_descriptor": "Current status of the robot cleaner cleaning mode",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "auto - The robot cleaner cleaning mode is in \"auto\" mode",
+                "part - The robot cleaner cleaning mode is in \"part\" mode",
+                "repeat - The robot cleaner cleaning mode is in \"repeat\" mode",
+                "manual - The robot cleaner cleaning mode is in \"manual\" mode",
+                "stop - The robot cleaner cleaning mode is in \"stop\" mode",
+                "map - The robot cleaner cleaning mode is in \"map\" mode"
+            ]
+        },
+        "RobotVacuumCleanerRunMode": {
+            "type": "value",
+            "descriptor": "Allows for the control of the robot cleaner cleaning mode.",
+            "return_descriptor": "Current status of the robot cleaner run mode",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "homing - The robot cleaner movement is in \"homing\" mode",
+                "idle - The robot cleaner movement is in \"idle\" mode",
+                "charging - The robot cleaner movement is in \"charging\" mode",
+                "alarm - The robot cleaner movement is in \"alarm\" mode",
+                "powerOff - The robot cleaner movement is in \"power off\" mode",
+                "reserve - The robot cleaner movement is in \"reserve\" mode",
+                "point - The robot cleaner movement is in \"point\" mode",
+                "after - The robot cleaner movement is in \"after\" mode",
+                "cleaning - The robot cleaner movement is in \"cleaning\" mode",
+                "pause - The robot cleaner movement is in \"pause\" mode",
+                "washingMop - The robot cleaner movement is in \"washing mop\" mode"
+            ]
+        },
+        "SetRobotVacuumCleanerCleaningMode": {
+            "type": "function",
+            "descriptor": "Allows for the control of the robot cleaner cleaning mode.",
+            "argument_descriptor": "Set the robot cleaner cleaning mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Set the robot cleaner cleaning mode.",
+            "return_type": "VOID"
+        },
+        "SetRobotVacuumCleanerRunMode": {
+            "type": "function",
+            "descriptor": "Allows for the control of the robot cleaner cleaning mode.",
+            "argument_descriptor": "Set the robot cleaner run mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Set the robot cleaner run mode.",
+            "return_type": "VOID"
+        }
+    },
+    "RotaryControl": {
+        "Rotation": {
+            "type": "value",
+            "descriptor": "A device with rotary/dial control",
+            "return_descriptor": "Rotary control state (direction)",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "clockwise - Rotated in clockwise direction",
+                "counter_clockwise - Rotated in counter-clockwise direction"
+            ]
+        },
+        "RotationSteps": {
+            "type": "value",
+            "descriptor": "A device with rotary/dial control",
+            "return_descriptor": "Number of rotation steps",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                -100,
+                100
+            ]
+        }
+    },
+    "Safe": {
+        "SafeState": {
+            "type": "value",
+            "descriptor": "Allows for the control of the Safe.",
+            "return_descriptor": "Current Safe state",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "closed - The safe is fully closed and locked",
+                "closing - The safe is in the process of closing",
+                "open - The safe is fully open and unlocked",
+                "opening - The safe is in the process of opening",
+                "unknown - The safe state cannot be determined"
+            ]
+        },
+        "Lock": {
+            "type": "function",
+            "descriptor": "Allows for the control of the Safe.",
+            "argument_descriptor": "Lock the Safe",
+            "return_type": "VOID"
+        },
+        "Unlock": {
+            "type": "function",
+            "descriptor": "Allows for the control of the Safe.",
+            "argument_descriptor": "Unlock the Safe",
+            "return_type": "VOID"
+        }
+    },
+    "Siren": {
+        "SirenMode": {
+            "type": "value",
+            "descriptor": "Allows for the control of the Siren.",
+            "return_descriptor": "Current Siren mode",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "emergency - General emergency alert siren pattern",
+                "fire - Fire alarm siren pattern",
+                "police - Police siren pattern",
+                "ambulance - Ambulance siren pattern"
+            ]
+        },
+        "SetSirenMode": {
+            "type": "function",
+            "descriptor": "Allows for the control of the Siren.",
+            "argument_descriptor": "Set the Siren mode",
+            "argument_type": "ENUM",
+            "argument_bounds": "Set the Siren mode",
+            "return_type": "VOID"
+        }
+    },
+    "SmokeDetector": {
+        "Smoke": {
+            "type": "value",
+            "descriptor": "A Device that detects smoke",
+            "return_descriptor": "The state of the smoke detection device",
+            "return_type": "BOOL"
+        }
+    },
+    "SoundSensor": {
+        "Sound": {
+            "type": "value",
+            "descriptor": "Sound sensor device for measuring sound levels",
+            "return_descriptor": "Sound level measurement as a numerical value",
+            "return_type": "DOUBLE"
+        }
+    },
+    "Speaker": {
+        "PlaybackState": {
+            "type": "value",
+            "descriptor": "Speaker device for audio playback and media control",
+            "return_descriptor": "Current playback status",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "paused - Media playback is temporarily paused",
+                "playing - Media is currently being played",
+                "stopped - Media playback has been fully stopped",
+                "fastforwarding - Media is being fast-forwarded",
+                "rewinding - Media is being rewound",
+                "buffering - Media is loading or buffering before playback"
+            ]
+        },
+        "Volume": {
+            "type": "value",
+            "descriptor": "Speaker device for audio playback and media control",
+            "return_descriptor": "Current volume level",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                100
+            ]
+        },
+        "FastForward": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Fast forward media playback",
+            "return_type": "VOID"
+        },
+        "Pause": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Pause media playback",
+            "return_type": "VOID"
+        },
+        "Play": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Start media playback",
+            "argument_type": "STRING",
+            "argument_bounds": "Media source to play (e.g., URL or file path)",
+            "return_type": "VOID"
+        },
+        "Rewind": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Rewind media playback",
+            "return_type": "VOID"
+        },
+        "SetVolume": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Set the speaker volume level. Returns the new volume level.",
+            "argument_type": "INTEGER",
+            "argument_bounds": "Volume level to set (0-100)",
+            "return_type": "INTEGER"
+        },
+        "Speak": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Speak a text string",
+            "argument_type": "STRING",
+            "argument_bounds": "Text to speak",
+            "return_type": "VOID"
+        },
+        "Stop": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Stop media playback",
+            "return_type": "VOID"
+        },
+        "VolumeDown": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Set the speaker volume level. Return the new volume level",
+            "return_type": "INTEGER"
+        },
+        "VolumeUp": {
+            "type": "function",
+            "descriptor": "Speaker device for audio playback and media control",
+            "argument_descriptor": "Set the speaker volume level. Return the new volume level",
+            "return_type": "INTEGER"
+        }
+    },
+    "Switch": {
+        "Switch": {
+            "type": "value",
+            "descriptor": "Allows for the control of a Switch device",
+            "return_descriptor": "The state of the Switch device",
+            "return_type": "BOOL"
+        },
+        "Off": {
+            "type": "function",
+            "descriptor": "Allows for the control of a Switch device",
+            "argument_descriptor": "Turn a Switch off",
+            "return_type": "VOID"
+        },
+        "On": {
+            "type": "function",
+            "descriptor": "Allows for the control of a Switch device",
+            "argument_descriptor": "Turn a Switch on",
+            "return_type": "VOID"
+        },
+        "Toggle": {
+            "type": "function",
+            "descriptor": "Allows for the control of a Switch device",
+            "argument_descriptor": "Toggle a Switch. Returns the new state of the Switch.",
+            "return_type": "BOOL"
+        }
+    },
+    "Television": {
+        "Channel": {
+            "type": "value",
+            "descriptor": "A television device",
+            "return_descriptor": "The current channel",
+            "return_type": "INTEGER",
+            "return_bounds": [
+                0,
+                10000
+            ]
+        },
+        "ChannelDown": {
+            "type": "function",
+            "descriptor": "A television device",
+            "argument_descriptor": "Change the channel down",
+            "return_type": "INTEGER"
+        },
+        "ChannelUp": {
+            "type": "function",
+            "descriptor": "A television device",
+            "argument_descriptor": "Change the channel up",
+            "return_type": "INTEGER"
+        },
+        "SetChannel": {
+            "type": "function",
+            "descriptor": "A television device",
+            "argument_descriptor": "Set the current channel",
+            "argument_type": "INTEGER",
+            "argument_bounds": "Set the current channel",
+            "return_type": "VOID"
+        }
+    },
+    "TemperatureSensor": {
+        "Temperature": {
+            "type": "value",
+            "descriptor": "Get the temperature from a Device that reports current temperature",
+            "return_descriptor": "A number that usually represents the current temperature",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                -40,
+                60
+            ]
+        }
+    },
+    "Valve": {
+        "ValveState": {
+            "type": "value",
+            "descriptor": "Controls a valve to open or close it",
+            "return_descriptor": "Current state of the valve",
+            "return_type": "BOOL"
+        },
+        "Close": {
+            "type": "function",
+            "descriptor": "Controls a valve to open or close it",
+            "argument_descriptor": "Close the valve",
+            "return_type": "VOID"
+        },
+        "Open": {
+            "type": "function",
+            "descriptor": "Controls a valve to open or close it",
+            "argument_descriptor": "Open the valve",
+            "return_type": "VOID"
+        }
+    },
+    "WeatherProvider": {
+        "HumidityWeather": {
+            "type": "value",
+            "descriptor": "Provides weather information",
+            "return_descriptor": "Current humidity level",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                100
+            ]
+        },
+        "Pm10Weather": {
+            "type": "value",
+            "descriptor": "Provides weather information",
+            "return_descriptor": "Current pm10 level",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                10000
+            ]
+        },
+        "Pm25Weather": {
+            "type": "value",
+            "descriptor": "Provides weather information",
+            "return_descriptor": "Current pm25 level",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                10000
+            ]
+        },
+        "PressureWeather": {
+            "type": "value",
+            "descriptor": "Provides weather information",
+            "return_descriptor": "Current pressure level",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                0,
+                2000
+            ]
+        },
+        "TemperatureWeather": {
+            "type": "value",
+            "descriptor": "Provides weather information",
+            "return_descriptor": "Current temperature level",
+            "return_type": "DOUBLE",
+            "return_bounds": [
+                -470,
+                10000
+            ]
+        },
+        "Weather": {
+            "type": "value",
+            "descriptor": "Provides weather information",
+            "return_descriptor": "Current weather condition",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "thunderstorm - Thunderstorm with lightning and heavy rain",
+                "drizzle - Light, fine rain with small droplets",
+                "rain - Moderate to heavy rainfall",
+                "snow - Snowfall or snow showers",
+                "mist - Thin fog with visibility above 1 km",
+                "smoke - Reduced visibility due to smoke particles",
+                "haze - Atmospheric haze from dust or pollution reducing visibility",
+                "dust - Airborne dust particles reducing visibility",
+                "fog - Dense fog with visibility below 1 km",
+                "sand - Sandstorm or blowing sand conditions",
+                "ash - Volcanic ash particles in the atmosphere",
+                "squall - Sudden strong wind gust",
+                "tornado - Violent rotating column of air (tornado warning)",
+                "clear - Clear sky with no significant cloud cover",
+                "clouds - Overcast or partly cloudy sky conditions"
+            ]
+        },
+        "GetWeatherInfo": {
+            "type": "function",
+            "descriptor": "Provides weather information",
+            "argument_descriptor": "Get the current weather information - Return whole weather information, format: \"temperature, humidity, pressure, pm25, pm10, weather, weather_string, icon_id, location\"",
+            "argument_type": "DOUBLE | DOUBLE",
+            "argument_format": " | ",
+            "argument_bounds": "The latitude of the location | The longitude of the location",
+            "return_type": "STRING"
+        }
+    },
+    "WindowCovering": {
+        "CurrentPosition": {
+            "type": "value",
+            "descriptor": "Controls a window covering to open or close it",
+            "return_descriptor": "Current position of the window covering (0-100)",
+            "return_type": "INTEGER"
+        },
+        "WindowCoveringType": {
+            "type": "value",
+            "descriptor": "Controls a window covering to open or close it",
+            "return_descriptor": "Type of window covering",
+            "return_type": "ENUM",
+            "enums_descriptor": [
+                "window - Standard window covering (e.g., curtain or drape)",
+                "blind - Slatted blind (horizontal or vertical)",
+                "shade - Roller shade or pull-down shade"
+            ]
+        },
+        "DownOrClose": {
+            "type": "function",
+            "descriptor": "Controls a window covering to open or close it",
+            "argument_descriptor": "Down or close the window",
+            "return_type": "VOID"
+        },
+        "SetLevel": {
+            "type": "function",
+            "descriptor": "Controls a window covering to open or close it",
+            "argument_descriptor": "Set the level of the window covering (0-100). Return the level set.",
+            "argument_type": "INTEGER",
+            "argument_bounds": "Level to set the window covering to (0-100)",
+            "return_type": "INTEGER"
+        },
+        "Stop": {
+            "type": "function",
+            "descriptor": "Controls a window covering to open or close it",
+            "argument_descriptor": "Stop the window covering",
+            "return_type": "VOID"
+        },
+        "UpOrOpen": {
+            "type": "function",
+            "descriptor": "Controls a window covering to open or close it",
+            "argument_descriptor": "Up or open the window",
+            "return_type": "VOID"
+        }
+    }
+}

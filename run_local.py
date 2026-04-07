@@ -5,157 +5,202 @@ import json
 import re
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
-from openai import OpenAI
 
-# Modify OpenAI's API key and API base to use llama-server's API server.
-openai_api_key = "EMPTY"
-openai_api_base = "http://localhost:8002/v1"
+from config import get_client, get_model_id
+from loader import SERVICE_DATA, PROMPTS
 
-SERVICE_LIST_PATH = "files/service_list_ver2.0.1.json"
-DEVICE_LIST = ['AirConditioner', 'AirPurifier', 'AirQualitySensor', 'ArmRobot', 'AudioRecorder', 'Button', 'Camera', 'CarbonDioxideSensor', 'Charger', 'Clock', 'CloudServiceProvider', 'ColorControl', 'ContactSensor', 'Dehumidifier', 'Dishwasher', 'Door', 'DoorLock', 'EmailProvider', 'FaceRecognizer', 'Humidifier', 'HumiditySensor', 'LaundryDryer', 'LeakSensor', 'LevelControl', 'Light', 'LightSensor', 'MenuProvider', 'MotionSensor', 'MultiButton', 'Oven', 'Plug', 'PresenceSensor', 'PressureSensor', 'Pump', 'RainSensor', 'RiceCooker', 'RobotVacuumCleaner', 'RotaryControl', 'Safe', 'Siren', 'SmokeDetector', 'SoundSensor', 'Speaker', 'Switch', 'Television', 'TemperatureSensor', 'Valve', 'WeatherProvider', 'WindowCovering']
-try:
-    with open(SERVICE_LIST_PATH, 'r', encoding='utf-8') as f:
-        SERVICE_DATA = json.load(f)
-except FileNotFoundError:
-    print(f"Warning: {SERVICE_LIST_PATH} not found.")
-    SERVICE_DATA = {}
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 def run_llm_inference(model, client, inference_type, messages, debug=False):
     # Inference
     start_inference = time.perf_counter()
-    chat_completion = client.chat.completions.create(
+    stream = client.chat.completions.create(
         messages=messages,
         model=model,
         temperature=0.1,
-        stream=False,
+        max_tokens=512,
+        stream=True,
+        stream_options={"include_usage": True},
         extra_body={"chat_template_kwargs": {"enable_thinking": False}}
     )
-    end_inference = time.perf_counter()
-    elapsed = end_inference - start_inference
-    
-    content = chat_completion.choices[0].message.content
+    chunks = []
+    usage = None
+    for chunk in stream:
+        if chunk.usage:
+            usage = chunk.usage
+        if chunk.choices and chunk.choices[0].delta.content:
+            chunks.append(chunk.choices[0].delta.content)
+    elapsed = time.perf_counter() - start_inference
+    content = "".join(chunks)
+
     if debug:
-        print(f"[{inference_type}] Tokens: {chat_completion.usage.prompt_tokens} | Time: {elapsed:.4f}s")
+        prompt_tokens = usage.prompt_tokens if usage else 0
+        completion_tokens = usage.completion_tokens if usage else 0
+        decode_tps = completion_tokens / elapsed if elapsed > 0 and completion_tokens else 0
+        print(f"➡️ {inference_type}({prompt_tokens}) | Decode: {decode_tps:.1f} t/s | Total: {elapsed:.4f}s")
         print("===================================================")
         print(content)
-    
+
     return content.strip()
 
-def _load_all_prompts(base_dir):
-    prompts = {}
-    for root, dirs, files in os.walk(base_dir):
-        for f in files:
-            if f.endswith(".md"):
-                prompts[f[:-3]] = open(os.path.join(root, f), "r", encoding='utf-8').read()
-    return prompts
 
-# Intent Result (Device.Service) -> Service List (full_service_data) -> Extract Details (Type, Parameter, etc.)
-# 1. Find service description in full service list
-# 2. If ENUM parameter is missing -> Fill with other ENUM pools of the device
+# selected_services = ["Light.Off", "ContactSensor.Contact"]
+# SERVICE_DATA에서 Parsing
 def extract_service_details(selected_services, full_service_data):
+    # Switch, LevelControl, ColorControl은 독립 카테고리지만
+    # Light 같은 primary 디바이스에 포함되어 있어 여기서 fallback으로 탐색
+    SECONDARY_CATS = ["LevelControl", "ColorControl", "Switch"]
+
     extracted = {}
     dev_to_services = defaultdict(list)
     for s_pair in selected_services:
         if '.' in s_pair:
             dev, svc = s_pair.split('.', 1)
             dev_to_services[dev].append(svc.replace("()", ""))
-            
+
     for dev_name, selected_svcs in dev_to_services.items():
-        if dev_name not in full_service_data: continue
-        full_dev_info = full_service_data[dev_name]
-        
-        pool_enums = [s.get("enums_descriptor") for s in full_dev_info.values() if isinstance(s.get("enums_descriptor"), list) and s.get("enums_descriptor")]
+        if dev_name not in full_service_data:
+            continue
+        dev_info = full_service_data[dev_name]
+
+        # enums_descriptor가 있는 것들을 미리 수집 (ENUM fallback용)
+        pool_enums = [
+            s["enums_descriptor"] for s in dev_info.values()
+            if isinstance(s.get("enums_descriptor"), list) and s["enums_descriptor"]
+        ]
         extracted[dev_name] = {}
-        
-        for s_name in selected_svcs:
-            s_info = next((json.loads(json.dumps(data[s_name])) for cat, data in [("Primary", full_dev_info)] + [(c, full_service_data[c]) for c in ["LevelControl", "ColorControl", "Switch", "RotaryControl"] if c in full_service_data] if s_name in data), None)
-            if not s_info: continue
 
-            # Case: Function with ENUM argument missing bounds
-            if s_info.get("type") == "function" and "ENUM" in s_info.get("argument_type", "") and not isinstance(s_info.get("argument_bounds"), list):
-                base_name = s_name.replace("Set", "")
-                if base_name in full_dev_info and isinstance(full_dev_info[base_name].get("enums_descriptor"), list):
-                    s_info["enum_list"] = full_dev_info[base_name]["enums_descriptor"]
+        for svc_name in selected_svcs:
+            # primary 디바이스에서 먼저 찾고, 없으면 secondary 카테고리 순으로 탐색
+            svc_info = None
+            lookup_sources = [dev_info] + [
+                full_service_data[c] for c in SECONDARY_CATS if c in full_service_data
+            ]
+            for source in lookup_sources:
+                if svc_name in source:
+                    svc_info = json.loads(json.dumps(source[svc_name]))
+                    break
+            if not svc_info:
+                continue
+
+            # 인자가 ENUM인데 ENUM list가 없는 경우:
+            # "Set"을 제거한 이름의 value 서비스(예: SetAirConditionerMode → AirConditionerMode)에서 가져옴.
+            # 거기서도 못 찾으면 순회 -> enum_descriptor search
+            if (svc_info.get("type") == "function"
+                    and "ENUM" in svc_info.get("argument_type", "")
+                    and not isinstance(svc_info.get("argument_bounds"), list)):
+                base = svc_name.replace("Set", "")
+                if base in dev_info and isinstance(dev_info[base].get("enums_descriptor"), list):
+                    svc_info["enum_list"] = dev_info[base]["enums_descriptor"]
                 elif pool_enums:
-                    s_info["enum_list"] = pool_enums[0]
-                
-            # Case: Value with ENUM return missing enums list
-            if s_info.get("return_type") == "ENUM" and not isinstance(s_info.get("enums_descriptor"), list) and pool_enums:
-                s_info["enums_descriptor"] = pool_enums[0]
+                    svc_info["enum_list"] = pool_enums[0]
 
-            extracted[dev_name][s_name] = s_info
-            
+            # value 서비스의 반환값이 ENUM인데 ENUM list가 없는 경우:
+            # 순회 -> enum_descriptor search
+            if (svc_info.get("return_type") == "ENUM"
+                    and not isinstance(svc_info.get("enums_descriptor"), list)
+                    and pool_enums):
+                svc_info["enums_descriptor"] = pool_enums[0]
+
+            extracted[dev_name][svc_name] = svc_info
+
     return extracted
 
-# Auto-inject state reading services (e.g., CurrentBrightness) for incremental commands (e.g., MoveToBrightness).
+
+# "볼륨 10 높여줘" -> Need Volume value 
+_VALUE_SERVICE_MAP = {
+    "SetSpinSpeed": "SpinSpeed", "SetVolume": "Volume", "SetChannel": "Channel",
+    "MoveToBrightness": "CurrentBrightness", "MoveToLevel": "CurrentLevel",
+}
+
 def inject_value_service(selected_services):
-    reading_service_map = {"SetSpinSpeed": "SpinSpeed", "SetVolume": "Volume", "SetChannel": "Channel", "MoveToBrightness": "CurrentBrightness", "MoveToLevel": "CurrentLevel"}
-    additions = [f"{s.split('.')[0]}.{reading_service_map[s.split('.')[1]]}" for s in selected_services if '.' in s and s.split('.')[1] in reading_service_map]
-    for a in additions:
-        if a not in selected_services:
-            selected_services.append(a)
+    for s in list(selected_services):
+        if '.' not in s:
+            continue
+        dev, svc = s.split('.', 1)
+        if svc in _VALUE_SERVICE_MAP:
+            companion = f"{dev}.{_VALUE_SERVICE_MAP[svc]}"
+            if companion not in selected_services:
+                selected_services.append(companion)
     return selected_services
 
-# 1. Parse the specification of the Original category (ex. Light, AirConditioner, etc.).
-# 2. Merge the specifications of the Secondary categories (ex. Switch, LevelControl, etc.) included in the corresponding Primary device.
-# 3. In the case of Light, if used together with LevelControl or ColorControl, filter out redundant services (ex. CurrentBrightness) to reduce token waste.
-def parse_service_summary(connected_devices_info, summary_file_path):
-    SECONDARY_CATEGORIES = ['LevelControl', 'ColorControl', 'Switch', 'RotaryControl']
-    
-    try:
-        with open(summary_file_path, 'r', encoding='utf-8') as f:
-            content = f.read()
-    except Exception as e:
-        print(f"Error reading {summary_file_path}: {e}")
-        return ""
 
-    # Parse devices
-    pattern = r'<Device\s+(?:name=)?\"([^\"]+)\">\s*(.*?)\s*</Device>'
-    matches = re.finditer(pattern, content, re.DOTALL)
-    cat_to_content = {m.group(1).strip(): m.group(2).strip() for m in matches}
-    
-    # Identify if there is a secondary category in the primary category
-    hierarchy = defaultdict(set)
-    all_categories = set()
-    for info in connected_devices_info.values():
-        cats = info.get('category', [])
-        if isinstance(cats, str): cats = [cats]                
-        tags = info.get('tags', [])
-        cats.extend(t for t in tags if t in SECONDARY_CATEGORIES and t not in cats)
-        all_categories.update(cats)
-        
-        prims = [c for c in cats if c not in SECONDARY_CATEGORIES]
-        secs = [c for c in cats if c in SECONDARY_CATEGORIES]
-        for p in prims: hierarchy[p].update(secs)
-    
-    # Generate result
-    parsed_summary = ""
-    
-    # 1. Process Primary categories (including Secondary)
-    for cat in sorted(all_categories - set(SECONDARY_CATEGORIES)):
-        if cat in cat_to_content:
-            section_content = cat_to_content[cat]
-            h_set = hierarchy.get(cat, set())
-            
-            # Filtering obsolete metrics from Light
-            if cat == "Light":
-                lines = section_content.split('\n')
-                if "LevelControl" in h_set: lines = [l for l in lines if 'CurrentBrightness' not in l and 'MoveToBrightness' not in l]
-                if "ColorControl" in h_set: lines = [l for l in lines if 'CurrentRGB' not in l and 'MoveToRGB' not in l]
-                section_content = '\n'.join(lines).strip()
+# SERVICE_DATA 순회 -> { 서비스명: 카테고리 } 역방향 맵을 생성.
+# Secondary Category 우선
+def _build_service_category_map(service_data):
+    SECONDARY = {'Switch', 'LevelControl', 'ColorControl'}
+    mapping = {}
+    for cat, services in service_data.items():
+        if cat not in SECONDARY:
+            for svc in services:
+                if svc not in mapping:
+                    mapping[svc] = cat
+    for cat in SECONDARY:
+        if cat in service_data:
+            for svc in service_data[cat]:
+                mapping[svc] = cat
+    return mapping
 
-            # Merge Secondary categories
-            for sec in sorted(h_set):
-                if sec in cat_to_content: section_content += f"\n  {cat_to_content[sec]}"
-            parsed_summary += f'<Device "{cat}">\n  {section_content}\n</Device>\n\n'
+_SERVICE_CATEGORY_MAP = _build_service_category_map(SERVICE_DATA)
 
-    # 2. Process standalone Secondary categories
-    used_secs = {s for secs in hierarchy.values() for s in secs}
-    for sec in sorted(all_categories.intersection(SECONDARY_CATEGORIES) - used_secs):
-        if sec in cat_to_content:
-            parsed_summary += f'<Device "{sec}">\n  {cat_to_content[sec]}\n</Device>\n\n'
-            
-    return parsed_summary.strip()
+# Add Prefix: (#Light).On() → (#Light).switch_on()
+def _apply_service_prefix(script):
+    def _fmt(service, selector=None):
+        # 1순위: selector의 태그(예: #TemperatureSensor)가 SERVICE_DATA에 있으면 그 카테고리 사용
+        if selector:
+            tags = re.findall(r'#(\w+)', selector)
+            for tag in tags:
+                if tag in SERVICE_DATA and service in SERVICE_DATA[tag]:
+                    cat_fmt = tag[0].lower() + tag[1:]
+                    svc_fmt = service[0].lower() + service[1:]
+                    return f"{cat_fmt}_{svc_fmt}"
+        # 2순위: 전역 service-category 맵에서 탐색
+        category = _SERVICE_CATEGORY_MAP.get(service, '')
+        if category:
+            cat_fmt = category[0].lower() + category[1:]
+            svc_fmt = service[0].lower() + service[1:]
+            return f"{cat_fmt}_{svc_fmt}"
+        return service[0].lower() + service[1:]
+
+    # 함수 호출: (#Light).On(args) 형태
+    def replace_func(m):
+        return f"{m.group(1)}.{_fmt(m.group(2), m.group(1))}({m.group(3)})"
+    script = re.sub(r'((?:all|any)?\((?:#\w+\s*)+\))\.([A-Z]\w+)\(([^)]*)\)', replace_func, script)
+
+    # 값 참조: (#Light).Switch 형태
+    def replace_value(m):
+        return f"{m.group(1)}.{_fmt(m.group(2), m.group(1))}"
+    script = re.sub(r'((?:all|any)?\((?:#\w+\s*)+\))\.([A-Z]\w+)(?!\w|\()', replace_value, script)
+
+    return script
+
+# 각 JoI 문장/블록 사이에 \n이 확실히 들어가도록 정규화. script 필드 값(이미 언이스케이프된 문자열)에만 적용
+def _normalize_script_newlines(script):    
+    # 1. { 뒤에 개행 보장 (중복 방지)
+    script = re.sub(r'\{\s*', '{\n', script)
+    # 2. } 앞에 개행 보장 및 뒤에 개행 보장
+    script = re.sub(r'\s*\}', '\n}', script)
+    script = re.sub(r'\}\s*', '}\n', script)
+    # 3. 문장 사이 개행 보장: ) (#Device) -> ) \n (#Device)
+    script = re.sub(r'(\))\s+((?:all|any)?\(#)', r'\1\n\2', script)
+    # 4. 연속된 개행을 하나로 합침 (공백 포함)
+    script = re.sub(r'\n\s*\n+', '\n', script)
+    return script.strip()
+
+# LLM이 any(#Tag).Prop == val 형태로 생성한 경우 Joi 문법에 맞게 후처리.
+def _post_process_joi_any_quantifiers(script):
+    pattern = r'any\(#(\w+)\)\.(\w+)\s*([=!<>:]=|[<>])\s*([^)\n{}|]+)'
+
+    def replacer(match):
+        tag = match.group(1)
+        prop = match.group(2)
+        op = match.group(3)
+        val = match.group(4).strip()
+        if op.endswith('|'): return match.group(0)  # 이미 처리된 경우 스킵
+        return f'all(#{tag}).{prop} {op}| {val}'
+
+    return re.sub(pattern, replacer, script)
+
 
 def _parse_dict_input(val, default):
     if isinstance(val, dict): return val
@@ -164,153 +209,203 @@ def _parse_dict_input(val, default):
         except Exception: pass
     return default
 
-# ❇️ Main Function
-def generate_joi_code(sentence, connected_devices, other_params, debug=False):
+# 서버 시작 후 모든 system prompt를 미리 캐싱
+def warmup(debug=False, base_url=None):
+    client = get_client(base_url)
+    model = get_model_id(client)
+    PROMPTS = dict(PROMPTS)
+    PROMPTS.pop("service_summary", None)
+    print(f"[warmup] Caching {len(PROMPTS)} PROMPTS...")
+    start = time.perf_counter()
+    for name, prompt in PROMPTS.items():
+        try:
+            user_content = "hi"
+            client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": user_content}
+                ],
+                max_tokens=1,
+                temperature=0.0,
+                stream=False,
+                extra_body={"chat_template_kwargs": {"enable_thinking": False}}
+            )
+            if debug:
+                print(f"[warmup] cached: {name}")
+        except Exception as e:
+            print(f"[warmup] failed: {name} ({e})")
+    print(f"[warmup] Done in {time.perf_counter() - start:.2f}s")
+
+def generate_joi_code(sentence, connected_devices, other_params, model=None, current_time=None, modification=None, debug=False, base_url=None):
     # 1. Parse Inputs - dict type
     connected_devices = _parse_dict_input(connected_devices, None)
     other_params = _parse_dict_input(other_params, {})
-    
+
     # 2. Setup Client
     start = time.perf_counter()
-    # OpenAI Library
-    client = OpenAI(api_key=openai_api_key, base_url=openai_api_base)
-    models = client.models.list()
-    model = models.data[0].id
+    client = get_client(base_url)
+    model = get_model_id(client)
 
-    prompts = _load_all_prompts('./files')
-    
+    # Helper: single-line LLM call (captures model, client, PROMPTS, debug)
+    def infer(key, user_input, *, system=None):
+        sys_content = system or PROMPTS.get(key, "")
+        return run_llm_inference(model, client, key, [
+            {"role": "system", "content": sys_content},
+            {"role": "user", "content": user_input}
+        ], debug=debug)
+
+    # ❇️ Stage 0: Command Merge (original + modification)
+    merged_command = sentence
+    if modification:
+        merge_raw = infer("command_merge", f"Original: {sentence}\nModification: {modification}")
+        if "</Reasoning>" in merge_raw:
+            merged_command = merge_raw.split("</Reasoning>")[-1].strip()
+        else:
+            merged_command = merge_raw.strip()
+        sentence = merged_command
+
     # ❇️ Stage 1: Translation (KOR -> ENG)
-    # Check if the first word contains Korean
     first_word = sentence.strip().split()[0] if sentence.strip() else ""
     if re.search("[가-힣]", first_word):
-        sentence = run_llm_inference(model, client, "translation", [{"role": "system", "content": prompts.get("translation", "")}, {"role": "user", "content": sentence}], debug=debug)
+        sentence = infer("translation", sentence)
 
-    summary_path = './files/all_service_summary.md'
-    summary_connect_path = './files/connect_service_summary.md'
-    
-    with open(summary_path, 'r', encoding='utf-8') as f:
-        service_summary = f.read()
-    
-    def run_mapping():            
-        # Connected devices O  
-        is_connected = False
-        if isinstance(connected_devices, dict) and connected_devices:
-            is_connected = True
-            # print(connected_devices)
-            # Parse & Make filtered summary file
-            local_service_summary = parse_service_summary(connected_devices, summary_connect_path)     
+    def run_mapping():
+        if not isinstance(connected_devices, dict) or not connected_devices:
+            raise ValueError("No connected devices provided. IoT mapping requires a device list.")
+        valid_categories = set()
+        for v in connected_devices.values():
+            cats = v.get("category", [])
+            if isinstance(cats, list):
+                valid_categories.update(cats)
+            elif isinstance(cats, str):
+                valid_categories.add(cats)
+        cd_simple = {}
+        for k, v in connected_devices.items():
+            raw_tags = v.get("tags", [])
+            tags = [t for t in raw_tags if isinstance(t, str)]
+            raw_cat = v.get("category", [])
+            if isinstance(raw_cat, str):
+                cats = [raw_cat]
+            elif isinstance(raw_cat, list):
+                cats = [c for c in raw_cat if isinstance(c, str)]
+            else:
+                cats = []
+            cd_simple[k] = {"category": cats, "tags": [t for t in tags if t not in cats]}
 
-            intent_input = f"[Service List]\n{local_service_summary}\n\n[Command]\n{sentence}"                                    
-            messages = [
-                {"role": "system", "content": prompts.get("connect_mapping_intent", "")},
-                {"role": "user", "content": intent_input}
-            ]
-            # Available Devices
-            valid_categories = set()
-            for v in connected_devices.values():
-                cats = v.get("category", [])
-                if isinstance(cats, list):
-                    valid_categories.update(cats)
-                elif isinstance(cats, str):
-                    valid_categories.add(cats)
+        # ❇️ Stage 2-1: Mapping Category
+        exclude_categories = {"Switch", "RotaryControl", "ColorControl", "LevelControl"}
+        exposed_categories = [c for c in valid_categories if c not in exclude_categories]
+        
+        # Build category-to-tags summary for Stage 1 to support tag-based mapping
+        cat_tags_summary = {}
+        for info in cd_simple.values():
+            for cat in info["category"]:
+                if cat in exclude_categories: continue
+                if cat not in cat_tags_summary:
+                    cat_tags_summary[cat] = set()
+                cat_tags_summary[cat].update(info["tags"])
+        cat_tags_summary = {k: sorted(list(v)) for k, v in cat_tags_summary.items()}
 
-            # ❇️ Mapping Intent
-            for attempt in range(2): # Fail -> Retry
-                intent_output = run_llm_inference(model, client, "connect_mapping_intent", messages, debug=debug)        
-                clean = re.sub(r'```(?:json)?\s*', '', intent_output).strip()
-                selected_services = json.loads(clean)                 
-                inject_value_service(selected_services)
-                local_service_details = extract_service_details(selected_services, SERVICE_DATA)
+        category_input = f"[Available Devices (Category: Tags)]\n{json.dumps(cat_tags_summary, indent=2, ensure_ascii=False)}\n\n[Command]\n{sentence}"
+        cat_output = infer("mapping_category", category_input)
+        clean_cat = re.sub(r'```(?:json)?\s*', '', cat_output).strip()
+        try:
+            extracted_categories = json.loads(clean_cat)
+            if isinstance(extracted_categories, list):
+                extracted_categories = {k: "Identify relevant services" for k in extracted_categories}
+            elif not isinstance(extracted_categories, dict):
+                extracted_categories = {}
+        except Exception:
+            extracted_categories = {}
+
+        # Filter by valid_categories to prevent hallucinations
+        extracted_categories = {k: v for k, v in extracted_categories.items() if k in valid_categories}
+
+        # ❇️ Stage 2-2: Mapping Intent (Per Device)
+        raw_selected_services = []
+        for dev, assigned_task in extracted_categories.items():
+            device_rules = PROMPTS.get(f"device_rules_{dev.lower()}", "")
+            
+            # Identify sub-categories attached to this main device (e.g., Switch, ColorControl)
+            sub_cats = set()
+            for info in cd_simple.values():
+                cats = info.get("category", [])
+                if dev in cats:
+                    for c in cats:
+                        if c in exclude_categories: sub_cats.add(c)
                 
-                format_errors = []
-                not_found_errors = []
-                for s in selected_services:
-                    if '.' not in s:
-                        format_errors.append(s)
-                        continue
-                    device_name, service_name = s.split('.', 1)
-                    service_name = service_name.replace("()", "")                                        
-                    if device_name not in valid_categories or service_name not in local_service_details.get(device_name, {}):
-                        not_found_errors.append(s)
-                
-                if not (format_errors or not_found_errors) or attempt == 1:
-                    break
-                    
-                # Create diagnostic checklist for retry
-                retry_checklist = []
-                if format_errors:
-                    retry_checklist.append(f"1. [Format Error]: {format_errors} must follow 'Device.Service' format. Do not return service alone.")
-                if not_found_errors:
-                    retry_checklist.append(f"2. [Service Not Found]: {not_found_errors} are not in the [Service List]. Use ONLY exact names from the list.")
-                
-                feedback = "I found some issues. Please follow this checklist to correct them:\n" + "\n".join(retry_checklist)
-                messages.append({"role": "assistant", "content": intent_output})
-                messages.append({"role": "user", "content": feedback})            
+            for sub_cat in sub_cats:
+                sub_rule = PROMPTS.get(f"device_rules_{sub_cat.lower()}", "")
+                if sub_rule:
+                    # Safely map all SubCat (e.g., Switch) references to MainCat (e.g., Speaker)
+                    sub_rule = re.sub(rf'\b{sub_cat}\b', dev, sub_rule, flags=re.IGNORECASE)
+                    device_rules += f"\n\n--- Sub-Component: {sub_cat} ---\n{sub_rule}"
+            
+            sys_prompt = f"{PROMPTS.get('mapping_service_common', '')}\n\n{device_rules}"
+            
+            dev_input = f"[Command]\n{sentence}\n\n[Assigned Task for {dev}]\n{assigned_task}"
+            dev_output = infer(f"intent_{dev.lower()}", dev_input, system=sys_prompt)
+            clean_dev = re.sub(r'```(?:json)?\s*', '', dev_output).strip()
+            try:
+                srv_list = json.loads(clean_dev)
+                if isinstance(srv_list, list):
+                    raw_selected_services.extend(srv_list)
+            except Exception:
+                pass
+        
+        # Eliminate duplicates
+        selected_services = []
+        for s in raw_selected_services:
+            if s not in selected_services:
+                selected_services.append(s)
 
-            # ❇️ Mapping Precision
-            intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
-            cd_simple = {k: {"tags": v.get("tags", [])} for k, v in connected_devices.items()}
-            precision_input = f"""[Command]\n{sentence}\n[Intent]\n{json.dumps(intent_categories, indent=2, ensure_ascii=False)}\n[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"""
-            # print(precision_input)
-            precision_messages = [{"role": "system", "content": prompts.get("connect_mapping_precision", "")}, {"role": "user", "content": precision_input}]
-            precision_output = run_llm_inference(model, client, "connect_mapping_precision", precision_messages, debug=debug)
+        inject_value_service(selected_services)
+        local_service_details = extract_service_details(selected_services, SERVICE_DATA)
+        
+        # Validate Formats
+        format_errors = []
+        not_found_errors = []
+        for s in selected_services:
+            if '.' not in s:
+                format_errors.append(s)
+                continue
+            device_name, service_name = s.split('.', 1)
+            service_name = service_name.replace("()", "")
+            if device_name not in valid_categories or service_name not in local_service_details.get(device_name, {}):
+                not_found_errors.append(s)
 
-            # Parse Step2 from precision_output
-            step2_match = re.search(r'<Step2>\s*(.*?)\s*</Step2>', precision_output, re.DOTALL)
-            step2_selectors = step2_match.group(1).strip() if step2_match else precision_output.strip()
-            # ❇️ Quantifier (single/all/any)
-            quant_input = f"[Command]\n{sentence}\n[Devices]\n{step2_selectors}"
-            quant_messages = [{"role": "system", "content": prompts.get("connect_quantifier", "")}, {"role": "user", "content": quant_input}]
-            quant_output = run_llm_inference(model, client, "connect_quantifier", quant_messages, debug=debug)
+        # ❇️ Mapping Precision + Quantifier (merged)
+        intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
+        if not intent_categories:
+            raise ValueError(f"No services found for the command: '{sentence}'. Category/Intent mapping failed.")
 
-            local_services = f"[Service Tagging]\n{step2_selectors}\n\n[Quantifier]\n{quant_output.strip()}\n\n[Service Details]\n{json.dumps(local_service_details, indent=2, ensure_ascii=False)}"
+        precision_input = f"[Command]\n{sentence}\n[Intent]\n{json.dumps(intent_categories, indent=2, ensure_ascii=False)}\n[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"
+        precision_output = infer("mapping_precision", precision_input)
 
-        # Connected devices X
-        else:
-            # ❇️ Single Stage: Mapping Intent (using Full Summary)
-            intent_input = f"[Service List]\n{service_summary}\n\n[Command]\n{sentence}"
-            messages = [
-                {"role": "system", "content": prompts.get("all_mapping_intent", "")},
-                {"role": "user", "content": intent_input}
-            ]
-            intent_output = run_llm_inference(model, client, "all_mapping_intent", messages, debug=debug)
-            # Remove code block
-            clean_json = re.sub(r'```(?:json)?\s*', '', intent_output).strip().strip('`')
-            # String to List
-            selected_services = json.loads(clean_json)
-            # Inject additional value service (hard-coded)
-            inject_value_service(selected_services)
-            # Extract service details
-            local_service_details = extract_service_details(selected_services, SERVICE_DATA)
-            local_services = json.dumps(local_service_details, indent=2, ensure_ascii=False)
+        # Pass the full precision output (including <Reasoning>) to JoI generation for better context
+        step2_selectors = precision_output.strip()
 
-        return local_services, is_connected
+        local_services = f"[Service Tagging]\n{step2_selectors}\n\n[Service Details]\n{json.dumps(local_service_details, indent=2, ensure_ascii=False)}"
+
+        return local_services, intent_categories, local_service_details
 
     def run_router():
         # ❇️ Phase 1: Condition Filter
-        filter_messages = [{"role": "system", "content": prompts.get("filter", "")}, {"role": "user", "content": sentence}]
-        filter_output = run_llm_inference(model, client, "filter", filter_messages, debug=debug)
-    
-        extractor_output = ""
-        cmd_type = "UNKNOWN" # Initialize cmd_type here
-        conclusion = "" # Initialize conclusion here
-    
+        filter_output = infer("filter", sentence)
+        cmd_type = "UNKNOWN"
+        conclusion = ""
+
         # ❇️ Phase 2: Condition Extractor
         if "true" in filter_output.lower():
-            extractor_messages = [{"role": "system", "content": prompts.get("extractor", "")}, {"role": "user", "content": sentence}]
-            extractor_output = run_llm_inference(model, client, "extractor", extractor_messages, debug=debug)
-    
-            # Keep the full Extractor Analysis (both [분석] and [결론]) for context
+            extractor_output = infer("extractor", sentence)
             if extractor_output:
                 conclusion = extractor_output.strip()
-    
+
             # ❇️ Phase 3: Classifier (NO_SCHEDULE / SCHEDULED / DURATION)
-            cmd_type = "UNKNOWN"
             if conclusion:
-                classifier_input = f"[Command]\n{sentence}\n\n[Extractor Analysis]\n{conclusion}"
-                classifier_messages = [{"role": "system", "content": prompts.get("router", "")}, {"role": "user", "content": classifier_input}]
-                classifier_output = run_llm_inference(model, client, "router", classifier_messages, debug=debug)
-    
+                classifier_output = infer("router", f"[Command]\n{sentence}\n\n[Extractor Analysis]\n{conclusion}")
+                
                 try:
                     # Find JSON block in the classifier output
                     match = re.search(r'\{.*\}', classifier_output, re.DOTALL)
@@ -319,22 +414,22 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
                         cmd_type = cat_data.get("type", "UNKNOWN")
                     else:
                         if "NO_SCHEDULE" in classifier_output: cmd_type = "NO_SCHEDULE"
-                        elif "SCHEDULED" in classifier_output: cmd_type = "SCHEDULED"
+                        elif "SCHEDULED" in classifier_output: cmd_type = "SCHEDULED"                        
                         elif "DURATION" in classifier_output: cmd_type = "DURATION"
                 except:
                     pass
         else:
             cmd_type = "NO_SCHEDULE"
             conclusion = "Sequential action composition."
-    
+            
         return cmd_type, conclusion
 
-    #5. Execute Parallel Tasks (Mapping & Routing)
+    # 5. Execute Parallel Tasks (Mapping & Routing)
     with ThreadPoolExecutor(max_workers=2) as executor:
-        mapping_future = executor.submit(run_mapping)
-        router_future = executor.submit(run_router)
-        services, is_connected = mapping_future.result()
-        cmd_type, router_conclusion = router_future.result()
+        f_mapping = executor.submit(run_mapping)
+        f_router = executor.submit(run_router)
+        services, mapped_devices, service_details = f_mapping.result()
+        cmd_type, router_conclusion = f_router.result()
 
     # 6. Joi Generation Branching
     type_to_prompt_key = {
@@ -345,52 +440,87 @@ def generate_joi_code(sentence, connected_devices, other_params, debug=False):
 
     # Fallback to SCHEDULED if unknown type
     base_prompt_key = type_to_prompt_key.get(cmd_type, "joi_scheduled")
-    cmd_prefix = "connect_" if is_connected else "all_"
-    prompt_key = f"{cmd_prefix}{base_prompt_key}"
-
+    prompt_key = base_prompt_key
+    
     # Prepare System Prompt
-    system_prompt = prompts.get(prompt_key, "")
-
+    system_prompt = PROMPTS.get(prompt_key, "")
+    
     # ❇️ JoI Code Generation
-    joi_input = f"[Command]\n{sentence}\n\n[Extractor Analysis]\n{router_conclusion}\n\n[Services]\n{services}"
     if cmd_type == "NO_SCHEDULE":
         joi_input = f"[Command]\n{sentence}\n\n[Services]\n{services}"
-
-    joi_messages = [{"role": "system", "content": system_prompt}, {"role": "user", "content": joi_input}]
-    joi_code_raw = run_llm_inference(model, client, prompt_key, joi_messages, debug=debug)
-
-    # ❇️ WindowCovering Refinement: #WindowCovering -> #Window/#Blind/#Shade
-    if "#WindowCovering" in joi_code_raw:
-        refine_input = f"Command: \"{sentence}\"\nCode:\n{joi_code_raw}"
-        refine_messages = [
-            {"role": "system", "content": prompts.get("window_covering_refine", "")},
-            {"role": "user", "content": refine_input}
-        ]
-        refine_output = run_llm_inference(model, client, "window_covering_refine", refine_messages, debug=debug)
-        # Extract pure Python code (strip markdown fences if present)
-        refine_code = re.sub(r'```(?:python)?\s*', '', refine_output).strip().rstrip('`')
-        try:
-            local_vars = {"joi_code_raw": joi_code_raw}
-            exec(refine_code, {}, local_vars)
-            joi_code_raw = local_vars["joi_code_raw"]
-        except:
-            pass
+    else:
+        joi_input = f"[Command]\n{sentence}\n\n[Extractor Analysis]\n{router_conclusion}\n\n[Services]\n{services}"
+    joi_code_raw = infer(prompt_key, joi_input, system=system_prompt)
 
     # Post-processing: strip reasoning and standardize output format
-    reasoning_match = re.search(r'(<Reasoning>.*?</Reasoning>)', joi_code_raw, re.DOTALL)
+    reasoning_match = re.search(r'<Reasoning>(.*?)</Reasoning>', joi_code_raw, re.DOTALL)
+    code_plan = reasoning_match.group(1).strip() if reasoning_match else ""
     script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
+    script = _apply_service_prefix(script)
 
     if cmd_type == "NO_SCHEDULE":
         # NO_SCHEDULE: LLM returns raw code, wrap it in JSON
         joi_json = {
+            "name": "Scenario",
             "cron": "",
             "period": 0,
-            "script": script
+            "script": _normalize_script_newlines(script)
         }
         joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
     else:
-        # SCHEDULED/DURATION: LLM already returns JSON, just use stripped version
-        joi_code_raw = script
+        # SCHEDULED/DURATION: LLM returns JSON
+        # Pre-process literal newlines in "script" string before parsing
+        match = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
+        if match:
+            fixed_inner = match.group(1).replace('\n', '\\n')
+            script = script[:match.start(1)] + fixed_inner + script[match.end(1):]
 
-    print(f"\nJoI ➡️ {time.perf_counter() - start:.4f} secs")
-    return joi_code_raw
+        try:
+            joi_json = json.loads(script)
+            if "script" in joi_json:
+                joi_json["script"] = _normalize_script_newlines(joi_json["script"])
+            joi_json.setdefault("name", "Scenario")
+            joi_json = {"name": joi_json.pop("name"), **joi_json}
+            joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
+        except (json.JSONDecodeError, TypeError):
+            joi_code_raw = script
+
+    elapsed = time.perf_counter() - start
+    # print(f"\nJoI ➡️ {elapsed:.4f} secs")
+
+    # ❇️ Korean Reconversion (any 형태 그대로 re_translate에 전달)
+    translated_sentence = ""
+    try:
+        kor_plan = f"\n\n[Code Plan]\n{code_plan}" if code_plan else ""
+        kor_input = f"[Code]\n{joi_code_raw}{kor_plan}\n\n[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+        translated_sentence = infer("re_translate", kor_input)
+    except Exception as e:
+        print(f"Re-translation failed: {e}")
+
+    # ❇️ Korean Re-translation (ENG -> KOR)
+    translated_sentence_kor = ""
+    if translated_sentence:
+        try:
+            translated_sentence_kor = infer("re_translate_kor", translated_sentence)
+        except Exception as e:
+            print(f"Korean re-translation failed: {e}")
+
+    # any → all + operator + | 후처리 (re_translate 이후 적용)
+    try:
+        joi_json_final = json.loads(joi_code_raw)
+        if "script" in joi_json_final:
+            joi_json_final["script"] = _post_process_joi_any_quantifiers(joi_json_final["script"])
+        joi_code_raw = json.dumps(joi_json_final, indent=2, ensure_ascii=False)
+    except (json.JSONDecodeError, TypeError):
+        joi_code_raw = _post_process_joi_any_quantifiers(joi_code_raw)
+
+    return {
+        "code": joi_code_raw,
+        "merged_command": merged_command,
+        "log": {
+            "response_time": f"{elapsed:.4f} seconds",
+            "inference_time": f"{elapsed:.4f} seconds",
+            "translated_sentence": re.sub(r'["""\'\'\'.,!?。、！？]', '', translated_sentence_kor or translated_sentence).strip(),
+            "mapped_devices": mapped_devices,
+        }
+    }
