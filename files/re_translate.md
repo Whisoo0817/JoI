@@ -51,6 +51,7 @@ When `cron` + `period` + `break` appear together (DURATION pattern):
 ## Device Selector
 - `(#Tag1 #Tag2)` → "the Tag2 in Tag1" (e.g., `(#LivingRoom #Light)` → "the living room light")
 - `all(#Tag)` → "all Tags"
+- `any(#Tag)` → "any Tag"
 - `all(#Location #Device)` → "all Devices in Location"
 - `#Even` → "even-tagged" / `#Odd` → "odd-tagged"
 - `#SectorN` → "sector N"

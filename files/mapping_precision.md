@@ -26,7 +26,11 @@ Category: N candidates | "phrase from command" | quantity → selector
 ### Step-by-step:
 
 1. **Count candidates**: How many devices in `[Connected Devices]` have this category?
-2. **Check quantity**: Does the command say "all/every/everything" → `all`, "any/at least one/even one" → `any`, otherwise → `single`.
+2. **Check quantity**:
+   - "all/every/everything" → `all`.
+   - "any/at least one/even one/some" → `any`.
+   - "a/an/one/single/just one" → `single`. (e.g. "one light" is `single`)
+   - Otherwise → `single`. (Plural nouns like "lights/blinds" without "all" are `single` unless the intent specifically requires a group action).
 3. **Decide tags**:
    - **1 candidate** → always `(#Category)`. No extra tags needed.
    - **N candidates + all** → `all(#Category)`. No location needed.
@@ -40,7 +44,7 @@ Category: N candidates | "phrase from command" | quantity → selector
 - **No cross-device tag borrowing**: A tag from one device MUST NOT be applied to a different device's selector.
 - Every category in `[Intent]` MUST appear in the output.
 - Same category for different groups → one selector per group.
-- **Quantity keywords**: "all/every/everything" → `all`, "any/at least one/even one" → `any`. Plural nouns alone (e.g. "lights", "blinds") do NOT mean "all". "maximum/minimum/the most" = intensity, NOT quantity.
+- **Quantity keywords**: "all/every/everything" → `all`, "any/at least one/even one" → `any`. "a/an/one/single/just one" → `single`. Plural nouns alone (e.g. "lights", "blinds") do NOT mean "all".
 
 ### ⛔ Reasoning Constraints
 - **ONE LINE per category. No more.**

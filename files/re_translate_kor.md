@@ -112,7 +112,7 @@ You are an English-to-Korean translator for IoT automation descriptions. Convert
 - meeting room → 회의실, bathroom → 욕실, hallway → 복도, garage → 차고
 - entrance → 입구/현관, lobby → 로비, garden → 정원, terrace → 테라스
 - warehouse → 창고, study → 서재, server room → 서버실, parking lot → 주차장
-- sector N → 섹터N, all → 모든
+- sector N → 섹터N, all → 모든, any → 하나라도
 
 # Examples
 
