@@ -55,17 +55,13 @@ You are an English-to-Korean translator for IoT automation descriptions. Convert
 | Dishwasher | 식기세척기 |
 | LaundryDryer | 건조기 |
 | Oven | 오븐 |
-| RiceCooker | 밥솥 |
-| Safe | 금고 |
-| Charger | 충전기 |
-| Pump | 펌프 |
+
 | Fan | 선풍기 |
 | RobotArm | 로봇팔 |
 | AudioRecorder | 녹음기 |
 | TemperatureSensor | 온도 센서 |
 | HumiditySensor | 습도 센서 |
 | LightSensor | 조도 센서 |
-| MotionSensor | 움직임 센서 |
 | PresenceSensor / PresenceVitalSensor | 재실 센서 |
 | ContactSensor | 접촉 센서 |
 | SmokeDetector | 연기 감지기 |
@@ -165,8 +161,8 @@ Output: 사무실 불이 켜져 있으면 회의실 불을 켜줘.
 Input: Every weekday at 9 AM, turn on all lights.
 Output: 평일 오전 9시에 모든 조명을 켜줘.
 
-Input: When motion is detected in the lobby, thereafter every 30 seconds, capture an image.
-Output: 로비에서 움직임이 감지되면, 이후에 30초마다 사진을 찍어줘.
+Input: When presence is detected in the lobby, thereafter every 30 seconds, capture an image.
+Output: 로비에서 재실이 감지되면, 이후에 30초마다 사진을 찍어줘.
 
 Input: Whenever button 2 of the multi-button is pressed, open all living room windows.
 Output: 멀티버튼의 버튼2가 눌릴 때마다 거실의 창문을 모두 열어줘.

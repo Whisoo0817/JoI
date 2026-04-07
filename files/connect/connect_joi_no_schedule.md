@@ -10,8 +10,7 @@ They simply perform an action, check a state right now, or include a simple time
 - `[Command]`: The natural language request.
 - `[Extractor Analysis]`: English text outlining the temporal logic.
 - `[Services]`: Contains the following sub-sections:
-    - `[Service Tagging]`: Device selectors (e.g., `(#Tag #Category)`).
-    - `[Quantifier]`: Single vs multi analysis for each device.
+    - `[Service Tagging]`: Device selectors with quantifiers (e.g., `(#Tag)`, `all(#Tag)`, `any(#Tag)`).
     - `[Service Details]`: Available methods, arguments, and return types.
 
 ---
@@ -74,7 +73,11 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 ---
 
 # Golden Rule: Strict Mapping
-* Use `[Services]` as your ONLY source of truth. Do not invent tags or methods not in the list.
+75. **Strict Selector Adherence**: You MUST use the device selectors provided in the `[Service Tagging]` section **EXACTLY AS-IS**.
+    - ⛔ Do NOT add, remove, or modify quantifiers (e.g., do NOT add `all` or `any` if it's not in the input).
+    - ⛔ Do NOT modify the tags or category names within the `#` parentheses.
+    - If `[Service Tagging]` provides `(#Light)`, use `(#Light)`. If it provides `all(#Light)`, use `all(#Light)`.
+76. * Use `[Services]` as your ONLY source of truth. Do not invent tags or methods not in the list.
 
 ---
 
@@ -82,6 +85,9 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 
 [Command]
 Output today's weather through the speaker.
+[Service Tagging]
+(#Speaker)
+(#WeatherProvider)
 <Reasoning>
 Read the weather value from the weather service and output it through the speaker.
 </Reasoning>
@@ -89,14 +95,9 @@ weather = (#WeatherProvider).Weather
 (#Speaker).Speak("Today's weather is " + weather)
 
 [Command]
-Start the rice cooker on cooking mode for 30 minutes.
-<Reasoning>
-'SetCookingParametes' has cooking time parameter. No need delay.
-</Reasoning>
-(#RiceCooker).SetCookingParameters("cooking", 1800)
-
-[Command]
 Raise the blind.
+[Service Tagging]
+(#Blind)
 <Reasoning>
 Just single action.
 </Reasoning>
@@ -104,6 +105,8 @@ Just single action.
 
 [Command]
 Close everything in Sector2.
+[Service Tagging]
+all(#Sector2)
 <Reasoning>
 Just single action.
 </Reasoning>
@@ -111,14 +114,19 @@ all(#Sector2).DownOrClose()
 
 [Command]
 Set the living room light brightness to 30 and stop the robot vacuum cleaner.
+[Service Tagging]
+(#LivingRoom #Light)
+(#RobotVacuumCleaner)
 <Reasoning>
 Two sequential actions, no conditions needed.
 </Reasoning>
 (#LivingRoom #Light).MoveToBrightness(30, 0)
-(#RobotVacuumCleaner).SetRobotVacuumCleanerMode("stop")
+(#RobotVacuumCleaner).SetRobotVacuumCleanerRunMode("stop")
 
 [Command]
 Lock all odd-tagged safes in Sector B.
+[Service Tagging]
+all(#SectorB #Odd #Safe)
 <Reasoning>
 Single group action on multi devices.
 </Reasoning>
@@ -126,6 +134,8 @@ all(#SectorB #Odd #Safe).Lock()
 
 [Command]
 Set the AC target temperature to 24 degrees and turn off the AC after 1 hour.
+[Service Tagging]
+(#AirConditioner)
 <Reasoning>
 Sequential action with a delay in between.
 </Reasoning>
@@ -135,6 +145,10 @@ delay(1 HOUR)
 
 [Command]
 If the temperature is 30 degrees or higher now, turn on the AC; otherwise, turn on the fan.
+[Service Tagging]
+(#TemperatureSensor)
+(#AirConditioner)
+(#Fan)
 <Reasoning>
 Snapshot check of current temperature, then branch with if/else.
 </Reasoning>
@@ -145,16 +159,22 @@ if ((#TemperatureSensor).Temperature >= 30) {
 }
 
 [Command]
-If at least one light in the living room is on, lock all doors. (Light: MULTI, Door: MULTI)
+If at least one light in the living room is on, lock all doors.
+[Service Tagging]
+any(#LivingRoom #Light)
+all(#Door)
 <Reasoning>
 Snapshot check with any-quantifier, then group action.
 </Reasoning>
-if (all(#LivingRoom #Light).Switch ==| true) {
+if (any(#LivingRoom #Light).Switch == true) {
   all(#Door).Lock()
 }
 
 [Command]
 Check the wine cellar temperature now and again in 10 minutes. If it changed by 1 degree or more, announce it.
+[Service Tagging]
+(#WineCellar #TemperatureSensor)
+(#Speaker)
 <Reasoning>
 Read temperature now with =, delay 10 min, read again with =. Compute difference with if (no abs allowed), then announce if >= 1.
 </Reasoning>

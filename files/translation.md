@@ -64,7 +64,7 @@ Examples:
 Close the curtain by 10%.
 
 "미세먼지 농도를 스피커로 알려줘"
-Annouce the fine dust level throught the spaker.
+Annouce the fine dust level through the spaker.
 
 "조명의 색조를 200, 채도는 50으로 설정해줘"
 Set the hue of the light to 200 and the saturation to 50.
@@ -76,19 +76,18 @@ Increase the light brightness to 100.
 Set the TV channel to 7.
 
 "회의를 시작한다고 안내해줘"
-Announce "Start the meeting.
+Announce "Start the meeting".
 
-"회의시간이라고 알려주는 알림을 설정해줘"
-Set an alarm to remind me that it's time for the meeting.
+"2초마다 조명을 껐다켜줘"
+Toggle the light every 2 seconds.
 
+"조명을 1초동안 켰다가 꺼줘"
+Turn on the light for 1 second and then turn it off.
 
 # if
 "에어컨의 목표 온도가 30도면 A를 켜줘"
 30도면 -> 상태 + "이면" -> if
 If the target temperature of air conditioner is 30 degrees, turn on the A.
-
-"밥솥이 보온 모드이면"
-If the rice cooker is in keep-warm mode.
 
 "습도가 80% 이상이면 …"
 If the humidity is >= 80%,
@@ -121,13 +120,13 @@ If the very fine dust concentration is >= 50, sound the emergency siren
 열려있으면 -> "있으면" -> if 
 If it is raining and the window is open, close the window
 
-"접촉 센서가 접촉되어 있으면 …"
-접촉되어 있으면 -> "있으면" -> if 
+"접촉 센서가 닫혀 있으면 …"
+닫혀 있으면 -> "있으면" -> if 
 If the contact sensor is closed,
 
-"움직임이 감지되고 있으면 긴급 사이렌을 울려줘" 
-감지되고 있으면(mixed) -> final ending wins -> "있으면" -> if
-If the motion is being detected, sound the emergency siren
+"접촉센서가 감지되고 있으면 긴급 사이렌을 울려줘" 
+감지되고 있으면 -> "있으면" -> if
+If the contact sensor is detected, sound the emergency siren
 
 "버튼3가 위로 스와이프되어있으면 …"
 되어있으면 -> "있으면" -> if
@@ -191,7 +190,7 @@ Whenever the temperature exceeds 20 degrees, sound the alarm.
 Check the status every 2 seconds, every time the TV turns on, turn off the speaker.
 
 "움직임이 감지될 때마다 조명을 켜줘" 
-Whenever the movement is detected, turn on the lights.
+Whenever the motion is detected, turn on the lights.
 
 "1초마다 확인하여 온도가 30도 미만이면서 25도 이상일 때마다 에어컨을 켜 줘"
 Every second, every time the temperature is < 30 and >= 25 degrees, turn on the airconditioner.
@@ -203,24 +202,20 @@ When smoke is detected, thereafter every minute, sound the emergency siren for 5
 
 "로비에서 움직임이 감지되면, 그 뒤로 30초마다 로비 사진을 찍어줘."
 그 뒤로 -> thereafter
-When motion is detected in the lobby, thereafter every 30 seconds, capture an image of the lobby.
+When the motion is detected in the lobby, thereafter every 30 seconds, capture an image of the lobby.
 
 # Time phrases
-"1월 1일에 조명이 꺼지면 3초 대기 후 펌프를 꺼줘"
-On January 1st, when the light turns off, wait 3 seconds, then turn off the pump.
+"1월 1일에 조명이 꺼지면 3초 대기 후 조명를 켜줘"
+On January 1st, when the light turns off, wait 3 seconds, then turn on the light.
 
-"5초마다 움직임을 감지하고, 감지되면 2초 대기 후 알람을 울려 줘"
-Check the movement every 5 seconds; if detected, wait 2 seconds, then sound the alarm.
+"5초마다 접촉 센서를 확인하고, 감지되면 2초 대기 후 알람을 울려 줘"
+Check the contact sensor every 5 seconds; if detected, wait 2 seconds, then sound the alarm.
 
 "주말 오후에 30분마다 A를 해줘"
 Every 30 minutes on weekend afternoons, do A.
 
 "월요일부터 금요일까지 오전 6시마다 문이 닫혀 있으면 모든 공간 불을 꺼줘.
 From Monday to Friday at 6 PM, if the door is closed, turn off all lights in all areas.
-
-# Tag
-"섹터 에이에 있는 선풍기를 꺼 줘."
-Turn off the fan in Sector A.
 
 “짝수 태그가 붙은 창문이 열려 있으면 섹터 에이에 있는 선풍기를 꺼줘" 
 If the window with even tag is open, turn off the fan in SectorA.
@@ -232,10 +227,6 @@ If any windows with odd tags are open, close the odd blind.
 "홀수 태그의 커튼이 열려 있고 상단부 조명이 꺼져 있으면 창문을 열어 줘."
 If the curtain with odd tag is open and the light at the top is off, open the window.
 
-“섹터 A와 B 조명이 하나라도 켜져있으면 꺼줘” 
-켜져있으면 -> "있으면" -> if. 하나라도 -> any
-If any lights in Sector A and B are on, turn them off.
-
 "하우스A 모두 닫아줘"
 모두 -> all
 Close all HouseA.
@@ -244,31 +235,18 @@ Close all HouseA.
 미만이 되면 -> when, 하나라도 -> any
 When the humidity of any Group1 becomes < 30, turn off the Group1.
 
-"상단부에 있는 조명과 커튼이 모두 꺼져 있으면"
-모두 -> all
-If all lights and curtains at the top are off,
-
 "벽에 있는 홀수 태그가 붙은 모든 블라인드가 열려 있으면 조명을 꺼 줘"
 모두 -> all
 If all blinds with odd tags on the wall are open, turn off the light.
 
-"상단부에 있거나 섹터 에이에 있는 조명 중 하나가 켜져 있으면"
-If the light at the top or the light in SectorA is on,
-
 "상단부에 있는 짝수 태그 창문이 열려 있으면 커튼을 닫아줘"
 If the window with even tags at the top is open, close the curtain.
 
-"조광 스위치 3번째 버튼을 누르면"
-When the third button of the dimmer switch is pushed
+"스위치 3번째 버튼을 누르면"
+When the third button of the switch is pushed
 
 "버튼 1을 누를 때마다 조명을 파란색과 빨간색으로 번갈아 전환해줘"
 Every time Button 1 is pressed, set all lights to alternate between blue and red.
-
-"조명 껐다켜줘"
-Toggle the light.
-
-"조명 켰다꺼줘"
-Toggle the light.
 
 "버튼 1을 길게 누르면 조명을 꺼줘"
 When Button 1 is long-pressed, turn off the light.

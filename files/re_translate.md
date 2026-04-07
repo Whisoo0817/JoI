@@ -65,7 +65,7 @@ When `cron` + `period` + `break` appear together (DURATION pattern):
 - `Safe` → "safe"
 - `ContactSensor` → "contact sensor"
 - `PresenceSensor` / `Presence` → "presence sensor" / "presence detected"
-- `MotionSensor` → "motion sensor"
+
 - `Shade` → "shade"
 - `WeatherProvider` properties (Temperature, Humidity, Pm10Weather, etc.) → "outdoor temperature", "outdoor humidity", "outdoor fine dust", etc.
 
@@ -166,8 +166,8 @@ Output: When the first button of the multi-button switch is pushed, announce the
 Input: `[Code] {"cron": "", "period": 60000, "script": "active := 0\nif (active == 0) {\n    wait until ((#SmokeDetector).smokeDetector_smoke == true)\n    active = 1\n}\n(#Siren).siren_setSirenMode(\"emergency\")\ndelay(5 SEC)\n(#Siren).switch_off()"}`
 Output: When smoke is detected, thereafter every minute, sound the emergency siren for 5 seconds then turn it off.
 
-Input: `[Code] {"cron": "", "period": 30000, "script": "active := 0\nif (active == 0) {\n    wait until ((#Lobby #MotionSensor).motionSensor_motion == true)\n    active = 1\n}\n(#Lobby #Camera).camera_captureImage()"}`
-Output: When motion is detected in the lobby, thereafter every 30 seconds, capture an image.
+Input: `[Code] {"cron": "", "period": 30000, "script": "active := 0\nif (active == 0) {\n    wait until ((#Lobby #PresenceSensor).Presence == true)\n    active = 1\n}\n(#Lobby #Camera).camera_captureImage()"}`
+Output: When presence is detected in the lobby, thereafter every 30 seconds, capture an image.
 
 Input: `[Code] {"cron": "", "period": 300000, "script": "phase := 0\nif (phase == 0) {\n    wait until ((#SmokeDetector).Smoke == true)\n    phase = 1\n}\nif (phase == 1) {\n    (#Speaker).speaker_speak(\"Smoke detected!\")\n    (#EmailProvider).emailProvider_sendMail(\"test@example.com\", \"Fire Warning\", \"A fire has occurred. Please evacuate.\")\n}"}`
 Output: When smoke is detected, thereafter every 5 minutes, say "Smoke detected!" and send a fire warning email to test@example.com.

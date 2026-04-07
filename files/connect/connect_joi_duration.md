@@ -9,8 +9,7 @@ This prompt is specialized for **DURATION** commands. These commands are periodi
 - `[Command]`: The natural language request.
 - `[Extractor Analysis]`: English text outlining the temporal logic.
 - `[Services]`: Contains the following sub-sections:
-    - `[Service Tagging]`: Device selectors (e.g., `(#Tag #Category)`).
-    - `[Quantifier]`: Single vs multi analysis for each device.
+    - `[Service Tagging]`: Device selectors with quantifiers (e.g., `(#Tag)`, `all(#Tag)`, `any(#Tag)`).
     - `[Service Details]`: Available methods, arguments, and return types.
 
 ---
@@ -49,10 +48,14 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 - **Control Flow**: `if`, `else`, `break`.
 - **Comparison**: `==`, `!=`, `>`, `<`, `>=`, `<=`.
 - **Time Delay**: `delay(N UNIT)` (Units: `HOUR`, `MIN`, `SEC`, `MSEC`).
-- **Selectors**: `(#Tag #Category).Service(Args)`.
+- **Selectors**: `(#Tag #Category).Service(Args)`
 - **Quantifiers**: 
     - `all(#Tag).Service <op> Value` (ALL units must satisfy).
     - `all(#Tag).Service <op>| Value` (ANY unit satisfies - note the `|`).
+    - **Selection Rule**: You MUST use the device selectors provided in the `[Service Tagging]` section **EXACTLY AS-IS**.
+        - ⛔ Do NOT add, remove, or modify quantifiers (e.g., do NOT add `all` or `any` if it's not in the input).
+        - ⛔ Do NOT modify the tags or category names within the `#` parentheses.
+        - If `[Service Tagging]` provides `(#Light)`, use `(#Light)`. If it provides `all(#Light)`, use `all(#Light)`.
 
 ### Variables & State
 - `:=` : **Initialize Once**. Persists across periodic ticks (e.g., `mode := "sleep"`).
@@ -119,16 +122,16 @@ Derive the EXACT termination by combining `cron` start + the duration's semantic
 ---
 
 # Golden Rule: Strict Mapping
-* Use `[Services]` as your ONLY source of truth. Do not invent tags or methods not in the list.
-
----
-
-# Examples
+* # Examples
 
 [Command]
 At midnight, close the door and check the light every hour until 6 AM; if the brightness is greater than 30, lower it to 10.
-[Analysis] 'At midnight... until 6 AM' is a duration. 'every hour' is an interval.
+[Extractor Analysis]
 [Conclusion] From midnight until 6 AM, close door then check light every 1 hour.
+[Services]
+[Service Tagging]
+(#Door)
+(#Light)
 <Reasoning>
 Sub-day duration, break at 6 AM: (#Clock).Hour == 6. Period=3600000. Closing the door is a one-time action, while checking the light is a recurring action. To separate these within the script, use `phase := 0`.
 </Reasoning>
@@ -150,10 +153,13 @@ if (phase == 1) {
 }"
 }
 
-[Commmand]
+[Command]
 Every 5 minutes from 1 PM to 3 PM, repeat opening and closing all valves.
-[Analysis] 'Every 5 minutes' is a recurring interval. 'from 1 PM to 3 PM' is a duration.
+[Extractor Analysis]
 [Conclusion] From 1 PM to 3 PM, act every 5 minutes.
+[Services]
+[Service Tagging]
+all(#Valve)
 <Reasoning>
 Sub-day duration, break at 3 PM: (#Clock).Hour == 15. Periodic toggle between two actions, period=300000. Each tick must produce a different action, so use a := variable to track the current mode across ticks.
 </Reasoning>
@@ -174,29 +180,12 @@ if (open == false) {
 }
 
 [Command]
-Every 4 seconds from now until midnight, check if the pump is off; turn it on; if it is on, turn it off.
-[Analysis] 'Every 4 seconds' is a recurring interval. 'from now until midnight' is a duration.
-[Conclusion] From now until midnight, act every 4 seconds.
-<Reasoning>
-Start now: cron="", period=4000. Break at midnight: (#Clock).Hour == 0. Check pump state every 4 seconds.
-</Reasoning>
-{
-  "cron": "",
-  "period": 4000,
-  "script": "if ((#Clock).Hour == 0) {
-    break
-}
-if ((#Pump).Switch == false) {
-    (#Pump).On()
-} else {
-    (#Pump).Off()
-}"
-}
-
-[Command]
 Set all kitchen dehumidifiers to refresh mode every hour from 8 AM to midnight on weekdays.
-[Analysis] '8 AM to midnight on weekdays' is a duration. 'every hour' is a recurring interval.
+[Extractor Analysis]
 [Conclusion] From 8 AM to midnight on weekdays, act every 1 hour.
+[Services]
+[Service Tagging]
+all(#Kitchen #Dehumidifier)
 <Reasoning>
 Weekdays 8AM start: cron="0 8 * * 1-5", period=3600000. Sub-day period, break at midnight: (#Clock).Hour == 0.
 </Reasoning>
@@ -211,8 +200,11 @@ all(#Kitchen #Dehumidifier).SetDehumidifierMode(\"refreshing\")"
 
 [Command]
 Speak the current time through the speaker every 5 minutes on weekends.
-[Analysis] 'every 5 minutes on weekends' is a duration + interval.
+[Extractor Analysis]
 [Conclusion] On weekends, act every 5 minutes.
+[Services]
+[Service Tagging]
+(#Speaker)
 <Reasoning>
 Whole-weekend duration: cron="0 0 * * 0,6", period=300000. Break when weekday becomes monday.
 </Reasoning>
@@ -227,8 +219,11 @@ Whole-weekend duration: cron="0 0 * * 0,6", period=300000. Break when weekday be
 
 [Command]
 Play "Christmas.mp3" through the speaker every hour on Christmas.
-[Analysis] 'On Christmas' is a duration (the whole day). 'every hour' is an interval.
+[Extractor Analysis]
 [Conclusion] From 12/25 0 AM to 12/26 0 AM, act every 1 hour.
+[Services]
+[Service Tagging]
+(#Speaker)
 <Reasoning>
 Specific date: cron="0 0 25 12 *", period=3600000. Break when day becomes 26.
 </Reasoning>
@@ -243,10 +238,14 @@ Specific date: cron="0 0 25 12 *", period=3600000. Break when day becomes 26.
 
 [Command]
 Check the living room windows every hour in the afternoon, and if any are open, close them all.
-[Analysis] 'In the afternoon' is a duration. 'every hour' is an interval.
+[Extractor Analysis]
 [Conclusion] From 12 PM to midnight, check window state and act every hour.
+[Services]
+[Service Tagging]
+any(#LivingRoom #Window)
+all(#LivingRoom #Window)
 <Reasoning>
-Afternoon: cron="0 12 * * *", period=3600000. Sub-day period, break at midnight: (#Clock).Hour == 0 . Use any-quantifier to check if open, then close all.
+Afternoon: cron="0 12 * * *", period=3600000. Break at midnight. Use any(#Tag) in if check.
 </Reasoning>
 {
   "cron": "0 12 * * *",
@@ -254,34 +253,21 @@ Afternoon: cron="0 12 * * *", period=3600000. Sub-day period, break at midnight:
   "script": "if ((#Clock).Hour == 0) {
     break
 }
-if (all(#LivingRoom #Window).CurrentPosition >| 0) {
+if (any(#LivingRoom #Window).CurrentPosition > 0) {
   all(#LivingRoom #Window).DownOrClose()
 }"
 }
 
 [Command]
-Every 30 minutes on weekend afternoons, set the robot vacuum cleaner to auto mode.
-[Analysis] 'on weekend afternoons' is a duration that applies to both Saturday and Sunday from 12 PM to midnight. 'Every 30 minutes' is the repetition interval.
-[Conclusion] On Saturday and Sunday, from 12 PM to midnight each day, act every 30 minutes.
-<Reasoning>
-Weekend afternoon: cron="0 12 * * 0,6", Break at 0 AM. Period: 1800000.
-</Reasoning>
-{
-  "cron": "0 12 * * 0,6",
-  "period": 1800000,
-  "script": "if ((#Clock).Hour == 0) {
-    break
-}
-(#RobotVacuumCleaner).SetRobotVacuumCleanerMode("auto")"
-}
-
-
-[Command]
 From 8 AM until 3 PM, check every 10 minutes and if any light is off, turn them all on.
-[Analysis] 'From 8 AM until 3 PM' is a duration. 'every 10 minutes' is an interval.
+[Extractor Analysis]
 [Conclusion] From 8 AM until 3 PM every 10 minutes, check light state and act.
+[Services]
+[Service Tagging]
+any(#Light)
+all(#Light)
 <Reasoning>
-cron="0 8 * * *", period=600000. Break at 3PM: (#Clock).Hour == 15.
+cron="0 8 * * *", period=600000. Break at 3PM. Use any(#Tag) in if check.
 </Reasoning>
 {
   "cron": "0 8 * * *",
@@ -289,7 +275,7 @@ cron="0 8 * * *", period=600000. Break at 3PM: (#Clock).Hour == 15.
   "script": "if ((#Clock).Hour == 15) {
     break
 }
-if (all(#Light).CurrentState ==| \"off\") {
+if (any(#Light).CurrentState == \"off\") {
   all(#Light).On()
 }"
 }

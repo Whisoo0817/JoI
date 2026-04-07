@@ -11,8 +11,7 @@ This prompt is specialized for **SCHEDULED** commands. These commands include:
 - `[Command]`: The natural language request.
 - `[Extractor Analysis]`: English text outlining the temporal logic (polling vs schedule).
 - `[Services]`: Contains the following sub-sections:
-    - `[Service Tagging]`: Device selectors (e.g., `(#Tag #Category)`).
-    - `[Quantifier]`: Single vs multi analysis for each device.
+    - `[Service Tagging]`: Device selectors with quantifiers (e.g., `(#Tag)`, `all(#Tag)`, `any(#Tag)`).
     - `[Service Details]`: Available methods, arguments, and return types.
 
 ---
@@ -59,8 +58,12 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 - **Quantifiers**: 
     - `all(#Tag).Service <op> Value` (ALL units must satisfy).
     - `all(#Tag).Service <op>| Value` (ANY unit satisfies - note the `|`).
-    - **Allowed Operators for ANY (`|`)**: `==|`, `!=|`, `>|`, `<|`, `>=|`, `<=|`.
-    - **Usage Rule**: Strictly follow the **[Quantifier]** input section. If the quantifier for a device says "**any**" (e.g., "any window", "any sensor"), you **MUST** use the `<op>|` version (e.g., `==|`, `!=|`, `>|`). Do NOT omit the `|`. NEVER combine them like `==| >=`.
+    - **Allowed Operators for ANY (`|`)**: `==|`, `!=|`, `>|`, `<|`, `>=|`, `<=|`
+    - 62.     - **Usage Rule**: You MUST use the device selectors provided in the `[Service Tagging]` section **EXACTLY AS-IS**.
+        - ⛔ Do NOT add, remove, or modify quantifiers (e.g., do NOT add `all` or `any` if it's not in the input).
+        - ⛔ Do NOT modify the tags or category names within the `#` parentheses.
+        - If `[Service Tagging]` provides `(#Light)`, use `(#Light)`. If it provides `all(#Light)`, use `all(#Light)`.
+        - If a selector uses `any(#Tag)`, you **MUST** use the `<op>|` version (e.g., `==|`, `!=|`, `>|`). Do NOT omit the `|`. NEVER combine them like `==| >=`.
 
 ### Variables & State
 - `:=` : **Initialize Once**. The value is set ONLY on the very first tick and persists across periodic ticks (e.g., `phase := 0`).
@@ -125,47 +128,53 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 - `cron` = "", `period` = interval ms.
 - Script: `:=` variable to alternate between two actions each tick.
 
-**CRITICAL**: The Extractor conclusion has ALREADY decided between C and D. Do not override it.
-
----
-
 # Examples
 
 [Command]
 At 11 PM, if any window is open, close all of them.
-[Quantifier] Window - "any window" indicates any of multiple units.
-[Analysis] 'At 6 PM' is a specific time, indicating a snapshot schedule. 'If any window is open' is a condition check.
-[Conclusion] At 6 PM, check Window Sensor and act based on result.
+[Extractor Analysis]
+[Conclusion] At 11 PM, check Window Sensor and act based on result.
+[Services]
+[Service Tagging]
+any(#Window)
 <Reasoning>
-At 6 PM, check if there is an open window. If found, close all windows. Quantifier says "any", so use `>=|`.
+At 11 PM, check if there is an open window. If found, close all.
 </Reasoning>
 {
   "cron": "0 23 * * *",
   "period": 0,
-  "script": "if (all(#Window).CurrentPosition >=| 0) {
+  "script": "if (any(#Window).CurrentPosition >= 0) {
   all(#Window).DownOrClose()
 }"
 }
 
 [Command]
 At 3 PM on weekends, check for leakage; if detected, sound all emergency sirens.
-[Analysis] 'at 3 PM on weekends' is a specific recurring snapshot.
+[Extractor Analysis]
 [Conclusion] At 3 PM on weekends, check Leak Sensor and act based on result.
+[Services]
+[Service Tagging]
+(#LeakSensor)
+all(#Siren)
 <Reasoning>
-cron="0 15 * * 0,6", period=0. Single snapshot check at scheduled time. Use if to check leak state and act accordingly.
+Snapshot check at scheduled time. Use if to check leak state and act accordingly.
 </Reasoning>
 {
   "cron": "0 15 * * 0,6",
   "period": 0,
   "script": "if ((#LeakSensor).Leak == true) {
-  all(#Siren).SetSirenMode("emergency")
+  all(#Siren).SetSirenMode(\"emergency\")
 }"
 }
 
 [Command]
 Every morning at 6 AM, open all blinds in Zone 1; At 7 AM, open all blinds in Zone 2.
-[Analysis] 'Every morning at 6 AM' and 'At 7 AM' are specific recurring snapshot schedules.
+[Extractor Analysis]
 [Conclusion] At 6 AM every morning, act. At 7 AM every morning, act.
+[Services]
+[Service Tagging]
+all(#Zone1 #Blind)
+all(#Zone2 #Blind)
 <Reasoning>
 Two scheduled times (6AM, 7AM) but only one JSON allowed. Use cron="0 6 * * *" for the earlier time, then delay(1 HOUR) before the second action.
 </Reasoning>
@@ -179,8 +188,12 @@ all(#Zone2 #Blind).UpOrOpen()"
 
 [Command]
 When the temperature drops below 30 degrees, turn on the AC after 5 seconds.
-[Analysis] 'When' indicates waiting for a future event.
+[Extractor Analysis]
 [Conclusion] Poll Temperature Sensor. When satisfied, delay 5 seconds, then act.
+[Services]
+[Service Tagging]
+(#TemperatureSensor)
+(#AirConditioner)
 <Reasoning>
 'When' type polling means one-time event, not recurring. period=0, use wait until then delay and act.
 </Reasoning>
@@ -194,10 +207,14 @@ delay(5 SEC)
 
 [Command]
 When it rains, close the window and check again after 1 hour; if it's not raining then, open the window again.
-[Analysis] 'When it rains' indicates waiting for a state transition. 'after 1 hour' is a delay. 'if' is a snapshot check.
+[Extractor Analysis]
 [Conclusion] Poll Rain Sensor. When satisfied, delay 1 hour, then check Rain Sensor and act based on result.
+[Services]
+[Service Tagging]
+(#RainSensor)
+(#Window)
 <Reasoning>
-'When' indicates one-time polling (period=0). The rest is a simple sequential delay and snapshot check. Do NOT use phase loop, write sequential delay.
+'When' indicates one-time polling (period=0). The rest is a simple sequential delay and snapshot check.
 </Reasoning>
 {
   "cron": "",
@@ -212,26 +229,31 @@ if ((#RainSensor).Rain == false) {
 
 [Command]
 When any presence sensor in the hallway is triggered, turn all lights purple.
-[Quantifier] PresenceSensor - "any presence sensor" indicates any of multiple units.
-[Analysis] Monitoring for a state change.
+[Extractor Analysis]
 [Conclusion] Poll Presence Sensor. Act once when satisfied.
+[Services]
+[Service Tagging]
+any(#Hallway #PresenceSensor)
+all(#Hallway #Light)
 <Reasoning>
-'When' type polling means one-time event, not recurring. period=0, use wait until. 
-Quantifier says "any", so use the `==|` operator.
+One-time event, not recurring. period=0, use wait until with any.
 </Reasoning>
 {
   "cron": "",
   "period": 0,
-  "script": "wait until (all(#PresenceSensor).Presence ==| true)
+  "script": "wait until (any(#PresenceSensor).Presence == true)
 all(#Hallway #Light).MoveToColor(0.321, 0.154, 0.0)"
 }
 
 [Command]
 Increase the speaker volume by 10 every hour.
-[Analysis] 'every hour' is a repetition interval.
+[Extractor Analysis]
 [Conclusion] Increase speaker volume by 10 every 1 hour.
+[Services]
+[Service Tagging]
+(#Speaker)
 <Reasoning>
-Simple periodic action, period=3600000. Volume max is 100, so need an if guard to cap the value before calling SetVolume. Read volume with = (not :=) to get fresh value each tick.
+Simple periodic action, period=3600000. Volume max is 100, so need an if guard to cap the value. Read volume with = (not :=) to get fresh value each tick.
 </Reasoning>
 {
   "cron": "",
@@ -245,10 +267,14 @@ if (new_volume >= 100) {
 
 [Command]
 When the charger voltage drops below 4V, speak "low voltage" through the speaker every 15 minutes.
-[Analysis] 'When' indicates an event trigger. 'every 15 minutes' is the subsequent repetition.
+[Extractor Analysis]
 [Conclusion] Poll Charger voltage. When satisfied, act every 15 minutes.
+[Services]
+[Service Tagging]
+(#Charger)
+(#Speaker)
 <Reasoning>
-'When' type polling means one-time event, not recurring. However, after the condition is met, the action should be repeated every 15 minutes. To separate the one-time polling stage from the recurring repeating stage within the script, use `phase := 0`.
+After condition met, action repeated every 15 minutes. Use `phase := 0` to separate polling from recurring loop.
 </Reasoning>
 {
   "cron": "",
@@ -265,10 +291,14 @@ if (phase == 1) {
 
 [Command]
 Whenever the light is turned on, open all windows.
-[Analysis] 'Whenever' implies a recurring transition trigger.
+[Extractor Analysis]
 [Conclusion] Infinite polling on light state. Open windows every time it turns on.
+[Services]
+[Service Tagging]
+(#Light)
+all(#Window)
 <Reasoning>
-'Whenever' type polling means infinite polling, not one-time. period=100, use triggered := false latch to detect each OFF→ON edge.
+'Whenever' means infinite polling. period=100, use triggered := false latch for edge detection.
 </Reasoning>
 {
   "cron": "",
@@ -285,39 +315,14 @@ if ((#Light).Switch == \"on\") {
 }
 
 [Command]
-Whenever motion is detected, increase the light brightness by 10. If it reaches max, stop it.
-[Analysis] 'Whenever' indicates infinite event-based triggering. 'If it reaches max, stop it' implies a condition to stop the action once a maximum brightness level is reached.
-[Conclusion] Infinite polling on Motion Sensor. Act on every state change. If the light brightness reaches max, stop it.
-<Reasoning>
-'Whenever' type polling means infinite polling, not one-time. period=100, use triggered := false latch to detect each OFF→ON edge. Check the maximum level and stop increasing the brightness with break if it reaches max.
-</Reasoning>
-{
-  "cron": "",
-  "period": 100,
-  "script": "triggered := false
-current_brightness = (#Light).CurrentBrightness
-
-if ((#MotionSensor).Motion == true) {
-    if (triggered == false) {
-        new_brightness = current_brightness + 10
-        if (new_brightness >= 100) {
-            (#Light).MoveToLevel(100, 0)
-            break            
-        }
-        (#Light).MoveToLevel(new_brightness, 0)
-        triggered = true
-    }
-} else {
-    triggered = false
-}"
-}
-
-[Command]
 Toggle the air purifier between sleep mode and auto mode every hour.
-[Analysis] 'every hour' is a repetition interval.
+[Extractor Analysis]
 [Conclusion] Toggle air purifier mode every hour.
+[Services]
+[Service Tagging]
+(#AirPurifier)
 <Reasoning>
-Periodic toggle between two modes, period=3600000. Each tick must produce a different action, so use a := variable to track the current mode across ticks.
+Periodic toggle between two modes, period=3600000. Use a := variable to track state across ticks.
 </Reasoning>
 {
   "cron": "",
@@ -333,31 +338,15 @@ if (mode == \"sleep\") {
 }
 
 [Command]
-Repeat opening and closing the window every 10 minutes.
-[Analysis] The command specifies repeating an action every 10 minutes without any condition check or specific time frame.
-[Conclusion] Act every 10 minutes.
-<Reasoning>
-Periodic toggle between two actions, period=600000. Each tick must produce a different action, so use a := variable to track the current mode across ticks.
-</Reasoning>
-{
-  "cron": "",
-  "period": 600000,
-  "script": "mode := "open"
-if (mode == "open") {
-    (#Window).UpOrOpen()
-    mode = "close"
-} else {
-    (#Window).DownOrClose()
-    mode = "open"
-}"
-}
-
-[Command]
 When the third button of the switch is pressed, toggle all lights.
-[Analysis] 'When' -> Polling.
+[Extractor Analysis]
 [Conclusion] Poll button. Act once when satisfied.
+[Services]
+[Service Tagging]
+(#MultiButton)
+all(#Light)
 <Reasoning>
-One-time polling for button.
+One-time polling for button. Use exact button number from tagging logic.
 </Reasoning>
 {
   "cron": "",
@@ -367,25 +356,15 @@ One-time polling for button.
 }
 
 [Command]
-When the third button of the switch is long-pushed, toggle all lights.
-[Analysis] 'When' -> Polling.
-[Conclusion] Poll button. Act once when satisfied.
-<Reasoning>
-One-time polling for button.
-</Reasoning>
-{
-  "cron": "",
-  "period": 0,
-  "script": "wait until ((#MultiButton).Button1 == \"down_hold\")
-  all(#Light).Toggle()"
-}
-
-[Command]
 Every time Button 1 is pressed, toggle the light between blue and red.
-[Analysis] 'Every time' indicates infinite polling with edge detection on button press.
+[Extractor Analysis]
 [Conclusion] Infinite polling on Button1. Toggle light color between blue and red on each press.
+[Services]
+[Service Tagging]
+(#MultiButton)
+all(#Light)
 <Reasoning>
-'Every time' type infinite polling, period=100. Use triggered := false latch for edge detection. Use color := variable to track current color state across ticks — do NOT read color from the device.
+'Every time' infinite polling, period=100. Use triggered := false latch and a := variable for state tracking.
 </Reasoning>
 {
   "cron": "",
