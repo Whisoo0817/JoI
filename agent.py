@@ -1,3 +1,4 @@
+import copy
 import json
 import re
 import uuid
@@ -124,41 +125,28 @@ AGENT_TOOLS = [
     },
 ]
 
-AGENT_SYSTEM_PROMPT = """You are JoI, an IoT assistant that helps users control smart home devices and create automation scenarios.
+AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. Your primary goal is to help users control smart home devices and create automation scenarios.
 
-## Strict Conversational Guidelines
-- **IoT Focus**: Primarily assist with IoT control and smart home scenarios. Reject all other unrelated topics.
-- Always respond in the same language as the user.
-- Never guess device states — use `get_connected_devices` if needed.
-- Do not retry automatically on error — inform the user.
-- Handle one task at a time.
-- **NEVER output a summary or description of what you are about to do before a tool call.** Call the tool silently — only speak after you have the tool result.
+## Core Principles:
+- **IoT Only**: Focus strictly on IoT-related tasks. For unrelated topics, politely guide the user back to smart home control.
+- **Language**: Always respond in Korean, regardless of the input language. You may think in English internally, but your final response must always be in Korean.
+- **Action over Words**: Before calling a tool, briefly state your intent in the user's language (e.g., "요청하신 대로 시나리오를 생성하겠습니다.").
+- **Mandatory Feedback Tool**: Once a scenario is presented, ANY user input (y/n/modification text) MUST be passed to `feedback_to_joi_llm` immediately. Do NOT try to clarify or solve modifications yourself in plain text; let the `feedback_to_joi_llm` tool handle the logic merge.
+- **Confirmation**: After `request_to_joi_llm` or `feedback_to_joi_llm` (if it results in a modification), you MUST show the `translated_sentence` and ask: "이 시나리오가 맞나요? (y/n/수정사항)".
 
-## Chain of Thought (Thinking before acting)
-- **CRITICAL**: Before invoking ANY tool or writing a final response, you MUST first write your thought process inside `<think>` and `</think>` tags.
-- Inside `<think>`, evaluate what the user wants, check if you have an appropriate tool, and plan your next action.
-- ONLY call a tool if it directly solves the user's request. If you do not have a suitable tool (e.g., to list existing scenarios), do NOT call an unrelated tool (like `get_connected_devices`). Instead, explain your limitations to the user directly after the `</think>` tag.
-
-## Your capabilities (via tool calls)
-- **request_to_joi_llm**: Generate JOI scenario code from a natural language command.
-- **feedback_to_joi_llm**: Process user feedback ('y'=approve, 'n'=reject, or modification text) on generated code.
-- **add_scenario**: Register an approved scenario to the Hub Controller and save to local DB.
-- **get_scenarios**: Retrieve the list of previously registered scenarios from local DB (includes id, command, translated, created_at).
-- **delete_scenario**: Delete a scenario by ID. Always call get_scenarios first to get the ID.
-- **get_connected_devices**: Retrieve the list of connected IoT devices.
-- **get_weather**: Fetch current weather for a location.
-
-## Strict Workflow for IoT commands
-1. User gives an IoT command → `<think>` evaluation `</think>` → call `request_to_joi_llm`.
-2. Present the `translated_sentence` from the result and ask explicitly: "이 시나리오가 맞나요? (y/n/수정사항)"
-3. Wait for user feedback. When they reply, YOU MUST `<think>` about it `</think>` → call `feedback_to_joi_llm` FIRST to process the feedback.
-4. If the feedback tool returns "approved" → call `add_scenario` to register it.
-5. If the feedback tool returns "rejected" → inform the user it was cancelled.
+## Capabilities:
+- Use `request_to_joi_llm` to generate JOI automation code from a natural language command.
+- Use `feedback_to_joi_llm` to process user feedback:
+  - 'y' / 'yes' → Confirm approval.
+  - 'n' / 'no' → Confirm rejection.
+  - Modification text (e.g., "only one", "in the bedroom") → Merges the change into the current script.
+- Use `add_scenario` to formally register and start an approved scenario.
+- Use `get_connected_devices` to see current device tags and categories.
+- Use `get_scenarios` and `delete_scenario` to manage existing automations.
+- Use `get_weather` if the user's request depends on external conditions.
 """
 
 MAX_AGENT_ROUNDS = 5
-
-
 
 
 def agent_chat(user_message, connected_devices=None, base_url=None, debug=False, chat_history=None, agent_state=None):
@@ -194,42 +182,82 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
     messages.extend(truncated_history)
     messages.append({"role": "user", "content": user_message})
 
+    initial_last_result = copy.deepcopy(agent_state.get("last_result"))
+    
     final_response = ""
 
     for _ in range(MAX_AGENT_ROUNDS):
-        response = client.chat.completions.create(
+        stream = client.chat.completions.create(
             model=model,
             messages=messages,
             tools=AGENT_TOOLS,
             tool_choice="auto",
             temperature=0.6,
             max_tokens=2048,
-            stream=False,
+            stream=True,
             extra_body={"chat_template_kwargs": {"enable_thinking": True}},
         )
 
-        msg = response.choices[0].message
+        visible_content = ""
+        tool_call_chunks = {}  # index -> SimpleNamespace
+        thinking_buf = [] if debug else None
+
+        for chunk in stream:
+            delta = chunk.choices[0].delta
+
+            if debug:
+                rc = getattr(delta, "reasoning_content", None)
+                if rc:
+                    thinking_buf.append(rc)
+                    print(rc, end="", flush=True)
+
+            if delta.content:
+                visible_content += delta.content
+
+            if delta.tool_calls:
+                for tc in delta.tool_calls:
+                    idx = tc.index
+                    if idx not in tool_call_chunks:
+                        tool_call_chunks[idx] = SimpleNamespace(
+                            id=tc.id or f"call_{uuid.uuid4().hex[:8]}",
+                            type="function",
+                            function=SimpleNamespace(name="", arguments="")
+                        )
+                    if tc.function.name:
+                        tool_call_chunks[idx].function.name += tc.function.name
+                    if tc.function.arguments:
+                        tool_call_chunks[idx].function.arguments += tc.function.arguments
+
+        if debug and thinking_buf:
+            print("\n[/Think]\n", flush=True)
+
+        parsed_tool_calls = list(tool_call_chunks.values())
 
         # Fallback for models that output raw <tool_call> tags in content
-        parsed_tool_calls = msg.tool_calls if getattr(msg, "tool_calls", None) else []
-        if not parsed_tool_calls and msg.content and "<tool_call>" in msg.content:
-            tc_match = re.search(r'<tool_call>\s*({.*?})\s*</tool_call>', msg.content, re.DOTALL)
+        if not parsed_tool_calls and "<tool_call>" in visible_content:
+            tc_match = re.search(r'<tool_call>\s*({.*?})\s*</tool_call>', visible_content, re.DOTALL)
             if tc_match:
                 try:
                     tc_json = json.loads(tc_match.group(1))
                     func_obj = SimpleNamespace(name=tc_json["name"], arguments=json.dumps(tc_json.get("arguments", {})))
                     parsed_tool_calls = [SimpleNamespace(id=f"call_{uuid.uuid4().hex[:8]}", type="function", function=func_obj)]
-                    msg.content = msg.content.replace(tc_match.group(0), "").strip()
+                    visible_content = visible_content.replace(tc_match.group(0), "").strip()
                 except Exception:
                     pass
 
-        # <think>...</think> 블록은 history에 남기지 않음
-        visible_content = re.sub(r'<think>.*?</think>', '', msg.content or '', flags=re.DOTALL)
-        visible_content = re.sub(r'</think>', '', visible_content).strip()
+        visible_content = visible_content.strip()
 
-        assistant_entry = {"role": "assistant", "content": visible_content}
-        if parsed_tool_calls:
-            assistant_entry["tool_calls"] = [
+        if not parsed_tool_calls:
+            # Final text response — stream already printed thinking; now print response
+            print(f"Agent >>> {visible_content}")
+            final_response = visible_content
+            messages.append({"role": "assistant", "content": final_response})
+            break
+
+        messages.append({
+            "role": "assistant",
+            "content": visible_content,
+            "tool_calls": [
                 {
                     "id": tc.id,
                     "type": "function",
@@ -239,12 +267,8 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
                     },
                 }
                 for tc in parsed_tool_calls
-            ]
-        messages.append(assistant_entry)
-
-        if not parsed_tool_calls:
-            final_response = visible_content
-            break
+            ],
+        })
 
         for tc in parsed_tool_calls:
             try:
@@ -258,7 +282,7 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
             tool_result = dispatch(tc.function.name, tool_args, agent_state)
 
             if debug:
-                print(f"[Tool result] {json.dumps(tool_result, ensure_ascii=False)[:200]}")
+                print(f"[Tool result] {json.dumps(tool_result, ensure_ascii=False)}")
 
             messages.append({
                 "role": "tool",
@@ -266,7 +290,7 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
                 "tool_call_id": tc.id,
             })
     else:
-        # MAX_AGENT_ROUNDS 소진 — 마지막 assistant content 반환 (tool 메시지면 빈 문자열)
+        # MAX_AGENT_ROUNDS 소진 — 마지막 assistant content 반환
         for msg in reversed(messages):
             if msg.get("role") == "assistant" and msg.get("content"):
                 final_response = msg["content"]
@@ -274,9 +298,13 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
         else:
             final_response = ""
 
+    # Only return last_result if it was updated during this turn
+    current_last_result = agent_state.get("last_result")
+    returned_last_result = current_last_result if current_last_result != initial_last_result else None
+
     return {
         "response": final_response,
         "chat_history": messages[1:],
         "agent_state": agent_state,
-        "last_result": agent_state.get("last_result")
+        "last_result": returned_last_result
     }

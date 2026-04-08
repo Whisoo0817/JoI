@@ -32,6 +32,7 @@ CUSTOM_COMMAND = "30도 이상이고 접촉 센서가 감지되고 있으면 스
 CUSTOM_COMMAND = "조명이 하나라도 켜져있으면 3초 뒤에 하나를 꺼줘"
 CUSTOM_COMMAND = "습도와 온도가 각각 어때 지금?"
 CUSTOM_COMMAND = "30분마다 조명을 토글해줘"
+CUSTOM_COMMAND = "임의의 조명을 꺼줘"
 CUSTOM_DEVICES = """
 {'tc0_Speaker_88A29E1B0557': {'category': ['Switch', 'Speaker'], 'tags': ['Switch', 'Speaker']},
  'tc0_ArmRobot_88A29E1B0557': {'category': ['ArmRobot'], 'tags': ['ArmRobot']},
@@ -156,7 +157,7 @@ def run_agent_chat(debug=False):
             chat_history = result.get("chat_history", [])
             agent_state = result.get("agent_state", None)
 
-            print(f"\nAgent >>> {result['response']}")
+            # Response already streamed live by agent_chat
             lr = result.get("last_result")
             if lr and lr.get("code"):
                 print(f"\n  [code]\n{lr['code']}")
