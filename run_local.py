@@ -213,11 +213,12 @@ def _parse_dict_input(val, default):
 def warmup(debug=False, base_url=None):
     client = get_client(base_url)
     model = get_model_id(client)
-    PROMPTS = dict(PROMPTS)
-    PROMPTS.pop("service_summary", None)
-    print(f"[warmup] Caching {len(PROMPTS)} PROMPTS...")
+    prompts_copy = {k: v for k, v in PROMPTS.items()
+                     if not k.startswith("device_rules_")}
+    prompts_copy.pop("service_summary", None)
+    print(f"[warmup] Caching {len(prompts_copy)} PROMPTS...")
     start = time.perf_counter()
-    for name, prompt in PROMPTS.items():
+    for name, prompt in prompts_copy.items():
         try:
             user_content = "hi"
             client.chat.completions.create(
