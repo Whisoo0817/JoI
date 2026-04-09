@@ -15,7 +15,9 @@ AGENT_TOOLS = [
             "name": "request_to_joi_llm",
             "description": (
                 "Send a natural-language IoT command to the JOI code generator. "
-                "Use this when the user asks to create a scenario or automate IoT devices."
+                "ONLY call this after the user has EXPLICITLY confirmed scenario creation "
+                "(e.g., said '생성해줘', '응', 'y', or confirmed when asked). "
+                "NEVER call this on the first IoT command from the user — always ask for confirmation first."
             ),
             "parameters": {
                 "type": "object",
@@ -130,12 +132,18 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 ## Core Principles:
 - **IoT Only**: Focus strictly on IoT-related tasks. For unrelated topics, politely guide the user back to smart home control.
 - **Language**: Always respond in Korean, regardless of the input language. You may think in English internally, but your final response must always be in Korean.
-- **Action over Words**: Before calling a tool, briefly state your intent in the user's language (e.g., "요청하신 대로 시나리오를 생성하겠습니다.").
-- **Mandatory Feedback Tool**: Once a scenario is presented, ANY user input (y/n/modification text) MUST be passed to `feedback_to_joi_llm` immediately. Do NOT try to clarify or solve modifications yourself in plain text; let the `feedback_to_joi_llm` tool handle the logic merge.
-- **Confirmation**: After `request_to_joi_llm` or `feedback_to_joi_llm` (if it results in a modification), you MUST show the `translated_sentence` and ask: "이 시나리오가 맞나요? (y/n/수정사항)".
+- **Scenario Generation**: Only call `request_to_joi_llm` when the user EXPLICITLY requests generation or confirms after being asked. Otherwise, ask first using the user's EXACT original wording:
+  - ✓ User: "불 꺼줘" → You: "\"불 꺼줘\" 명령을 실행하는 시나리오를 생성할까요?"
+  - ✗ NEVER rephrase: "불을 끄는 시나리오를 생성할까요?" (X)
+  - If ambiguous (e.g., "온도를 알려줘"): offer choices — "1) 날씨 정보를 검색할까요? 2) \"온도를 알려줘\" 시나리오를 생성할까요?"
+- **Feedback**: Once a scenario is shown, pass ANY user input (y/n/text) directly to `feedback_to_joi_llm`. Do NOT handle modifications yourself.
+- **Confirmation**: After `request_to_joi_llm` or `feedback_to_joi_llm`, respond with ONLY this format — no extra explanation, no commentary:
+  "[translated_sentence]
+  이 시나리오가 맞나요? (y/n/수정사항)"
+
 
 ## Capabilities:
-- Use `request_to_joi_llm` to generate JOI automation code from a natural language command.
+- Use `request_to_joi_llm` to generate JOI automation code from a user's natural language command. Preprocessing (quantity/device clarification) is handled automatically inside the tool.
 - Use `feedback_to_joi_llm` to process user feedback:
   - 'y' / 'yes' → Confirm approval.
   - 'n' / 'no' → Confirm rejection.
@@ -143,7 +151,7 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 - Use `add_scenario` to formally register and start an approved scenario.
 - Use `get_connected_devices` to see current device tags and categories.
 - Use `get_scenarios` and `delete_scenario` to manage existing automations.
-- Use `get_weather` if the user's request depends on external conditions.
+- Use `get_weather` if the user asks about current weather conditions.
 """
 
 MAX_AGENT_ROUNDS = 5
@@ -174,6 +182,7 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
             "connected_devices": _parse_dict_input(connected_devices, {}),
             "base_url": base_url,
             "last_result": None,
+            "debug": debug,
         }
 
     truncated_history = chat_history[-6:] if len(chat_history) > 6 else chat_history

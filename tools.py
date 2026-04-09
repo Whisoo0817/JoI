@@ -3,6 +3,7 @@ import os
 import urllib.request
 import urllib.parse
 
+from config import get_client, get_model_id
 from run_local import generate_joi_code
 from loader import PROMPTS, get_device_capability, get_joi_syntax
 import db
@@ -10,9 +11,17 @@ import db
 # ── Tool Implementations ──────────────────────────────────
 
 def tool_request_to_joi_llm(args, state):
+    # Preprocess: refine command before code generation
+    raw_sentence = args["sentence"]
+    refined = _preprocess_command(raw_sentence, state)
+    sentence = refined if refined else raw_sentence
+
+    if state.get("debug"):
+        print(f"[Preprocess] \"{raw_sentence}\" → \"{sentence}\"")
+
     try:
         result = generate_joi_code(
-            sentence=args["sentence"],
+            sentence=sentence,
             connected_devices=state.get("connected_devices", {}),
             other_params={},
             base_url=state.get("base_url"),
@@ -200,6 +209,115 @@ def tool_delete_scenario(args, state):
     return {"status": "deleted", "scenario_id": scenario_id}
 
 
+
+
+
+_PREPROCESS_PROMPT = """You are a command preprocessor for an IoT automation system called JOI.
+
+Your job is to clarify a user's natural language command so the code generator understands it precisely — without losing or distorting any original intent.
+
+## Connected Devices
+{devices_info}
+
+### How to read device info
+- **Categories**: The device's type. The four categories Switch, LevelControl, ColorControl, RotaryControl are NOT standalone devices — they are auxiliary capability tags. Ignore them when identifying devices.
+- **Tags**: Nicknames for this device. The code generator uses tags to map commands to devices.
+
+---
+
+## ABSOLUTE PROHIBITIONS — Never change these
+
+### 1. Time & Schedule information
+Preserve every time detail exactly as stated: repeat intervals, start times, durations, delays.
+- "3분마다" must stay "3분마다". Do NOT omit or paraphrase it.
+- "3초간 켜고 3초간 꺼줘" must stay as-is.
+
+### 2. Korean verb endings carry semantic meaning — never alter them
+These four forms have DIFFERENT meanings and MUST be preserved exactly:
+- "불이 꺼져있으면" — static state check
+- "불이 꺼진 상태면" — static state check
+- "불이 꺼지면" — transition trigger 
+- "불이 꺼지게 되면" — transition trigger (similar to 꺼지면 but more formal)
+- "불이 꺼질때마다" - Repeated trigger (Every trigger)
+NEVER substitute one for another.
+
+---
+
+## PERMITTED clarifications
+
+### 1. AM/PM disambiguation
+If the user says a bare time like "3시" with no AM/PM context, default to AM (오전): "오전 3시".
+
+### 2. Device name clarification
+Map vague device references to the actual device name from the connected device list.
+- Auxiliary categories (Switch, LevelControl, ColorControl, RotaryControl) are NOT real device names. The real device is found in the non-auxiliary categories.
+- Examples:
+  - "스위치가 눌리면" → user means a button device → find the MultiButton → "멀티버튼의 버튼이 눌리면"
+  - "온도를 알려줘" → telling = speaking → find the Speaker → "온도를 스피커로 알려줘"
+  - "스피커 켜줘" → Speaker is a real device → keep as-is (just clarify quantity if needed)
+- Only map if there is a clear unique match in the connected device list. If ambiguous, leave as-is.
+
+### 3. Quantity clarification
+If no quantity is stated, make it explicit using one of three modes:
+- **하나**: one arbitrary device. Use when user says "하나", "임의의", or omits quantity entirely.
+- **모두**: all devices of that type. Use when user says "모든", "전부", "다".
+- **하나라도**: at least one. Only valid in conditions (if/when). Use when user says "하나라도".
+
+---
+
+## Examples
+- "불을 아무거나 꺼줘" → "조명 하나를 꺼줘"
+- "임의의 불을 꺼줘" → "조명 하나를 꺼줘"
+- "불을 모두 꺼줘" → "모든 조명을 꺼줘"
+- "3분마다 불을 토글해" → "3분마다 조명 하나를 토글해"
+- "3분마다 조명 하나를 3초간 켰다가 꺼줘" → "3분마다 조명 하나를 3초간 켰다가 꺼줘"
+- "스위치가 눌리면 불을 꺼줘" → "멀티버튼의 버튼이 눌리면 조명 하나를 꺼줘"
+- "온도를 알려줘" → "온도를 스피커로 알려줘"
+- "온도가 30도 이상이 되면 불을 모두 꺼" → "온도가 30도 이상이 되면 모든 조명을 꺼"
+- "조명이 하나라도 켜져있으면 알려줘" → "조명이 하나라도 켜져있으면 스피커로 알려줘"
+- "3시에 불 꺼줘" → "오전 3시에 조명 하나를 꺼줘"
+
+## Output
+Output ONLY the refined command. No JSON, no explanation, no quotes — just the refined Korean sentence."""
+
+
+def _preprocess_command(user_command, state):
+    """사용자 명령어를 정제하여 명확한 명령어로 변환. 실패 시 빈 문자열 반환."""
+    connected_devices = state.get("connected_devices", {})
+
+    devices_info = ""
+    if isinstance(connected_devices, str):
+        try:
+            connected_devices = json.loads(connected_devices.replace("'", '"'))
+        except Exception:
+            pass
+    for _, dev in connected_devices.items():
+        tags = dev.get("tags", [])
+        cats = dev.get("category", [])
+        devices_info += f"- Tags: {tags}, Categories: {cats}\n"
+
+    prompt = _PREPROCESS_PROMPT.format(
+        devices_info=devices_info.strip() or "No devices connected.",
+    )
+
+    client = get_client(state.get("base_url"))
+    model = get_model_id(client)
+
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "system", "content": prompt},
+                {"role": "user", "content": user_command},
+            ],
+            temperature=0.3,
+            max_tokens=512,
+            stream=False,
+            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        )
+        return (response.choices[0].message.content or "").strip()
+    except Exception:
+        return ""
 
 
 # ── Dispatch ──────────────────────────────────────────────
