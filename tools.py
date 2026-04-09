@@ -5,30 +5,30 @@ import urllib.parse
 
 from config import get_client, get_model_id
 from run_local import generate_joi_code
-from loader import PROMPTS, get_device_capability, get_joi_syntax
+from loader import PROMPTS
 import db
 
 # ── Tool Implementations ──────────────────────────────────
 
-def tool_request_to_joi_llm(args, state):
+def tool_request_to_joi_llm(args, memory):
     # Preprocess: refine command before code generation
     raw_sentence = args["sentence"]
-    refined = _preprocess_command(raw_sentence, state)
+    refined = _preprocess_command(raw_sentence, memory)
     sentence = refined if refined else raw_sentence
 
-    if state.get("debug"):
+    if memory.get("debug"):
         print(f"[Preprocess] \"{raw_sentence}\" → \"{sentence}\"")
 
     try:
         result = generate_joi_code(
             sentence=sentence,
-            connected_devices=state.get("connected_devices", {}),
+            connected_devices=memory.get("connected_devices", {}),
             other_params={},
-            base_url=state.get("base_url"),
+            base_url=memory.get("base_url"),
         )
     except Exception as e:
         return {"error": str(e)}
-    state["last_result"] = result
+    memory["last_result"] = result
     return {
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
@@ -36,27 +36,27 @@ def tool_request_to_joi_llm(args, state):
     }
 
 
-def tool_feedback_to_joi_llm(args, state):
+def tool_feedback_to_joi_llm(args, memory):
     feedback = args["feedback"].strip().lower()
-    last = state.get("last_result") or {}
+    last = memory.get("last_result") or {}
 
     if feedback in ("y", "yes"):
         last["status"] = "approved"
-        state["last_result"] = last
+        memory["last_result"] = last
         return {"status": "approved", "message": "User approved. Ready to register via add_scenario."}
 
     if feedback in ("n", "no"):
-        state["last_result"] = None
+        memory["last_result"] = None
         return {"status": "rejected", "message": "User rejected. Task terminated and context cleared."}
 
     result = generate_joi_code(
         sentence=last.get("merged_command", ""),
-        connected_devices=state.get("connected_devices", {}),
+        connected_devices=memory.get("connected_devices", {}),
         other_params={},
         modification=feedback,
-        base_url=state.get("base_url"),
+        base_url=memory.get("base_url"),
     )
-    state["last_result"] = result
+    memory["last_result"] = result
     return {
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
@@ -64,8 +64,8 @@ def tool_feedback_to_joi_llm(args, state):
     }
 
 
-def tool_add_scenario(args, state):
-    last = state.get("last_result") or {}
+def tool_add_scenario(args, memory):
+    last = memory.get("last_result") or {}
     code_raw = last.get("code", "")
     if isinstance(code_raw, str):
         try:
@@ -91,7 +91,7 @@ def tool_add_scenario(args, state):
     }
 
     # DB 저장
-    session_id = state.get("session_id", "default")
+    session_id = memory.get("session_id", "default")
     db.save_scenario(
         session_id=session_id,
         command=last.get("merged_command", ""),
@@ -129,39 +129,15 @@ def tool_add_scenario(args, state):
         return {"error": f"Hub Controller request failed: {e}"}
 
 
-def tool_get_connected_devices(args, state):
-    devices = state.get("connected_devices", {})
+def tool_get_connected_devices(args, memory):
+    devices = memory.get("connected_devices", {})
     if devices:
         return {"connected_devices": devices}
     return {"connected_devices": {}, "message": "No devices currently connected."}
 
 
-def tool_get_device_capability(args, state):
-    """SERVICE_DATA 또는 device_rules .md에서 카테고리 capability 조회"""
-    category = args.get("category", "")
-    if not category:
-        return {"error": "category is required"}
 
-    capability = get_device_capability(category)
-    if capability:
-        return capability
-
-    doc = PROMPTS.get(f"device_rules_{category.lower()}")
-    if doc:
-        return {"category": category, "description": doc}
-
-    return {"error": f"No capability info found for category: {category}"}
-
-
-def tool_get_joi_syntax(args, state):
-    """Joi code 문법 설명 문서 반환"""
-    syntax = get_joi_syntax()
-    if syntax:
-        return {"syntax": syntax}
-    return {"error": "Joi syntax documentation not found."}
-
-
-def tool_get_weather(args, state):
+def tool_get_weather(args, memory):
     """wttr.in을 이용한 날씨 정보 조회 (네트워크 필요)"""
     location = args.get("location", "Seoul")
     try:
@@ -181,9 +157,9 @@ def tool_get_weather(args, state):
         return {"error": f"Weather fetch failed: {e}"}
 
 
-def tool_get_scenarios(args, state):
+def tool_get_scenarios(args, memory):
     """저장된 시나리오 목록 조회"""
-    session_id = state.get("session_id", "default")
+    session_id = memory.get("session_id", "default")
     scenarios = db.get_scenarios(session_id)
     if not scenarios:
         return {"message": "등록된 시나리오가 없습니다.", "scenarios": []}
@@ -200,7 +176,7 @@ def tool_get_scenarios(args, state):
     return {"session_id": session_id, "count": len(summary), "scenarios": summary}
 
 
-def tool_delete_scenario(args, state):
+def tool_delete_scenario(args, memory):
     """시나리오 삭제"""
     scenario_id = args.get("scenario_id")
     if scenario_id is None:
@@ -281,9 +257,9 @@ If no quantity is stated, make it explicit using one of three modes:
 Output ONLY the refined command. No JSON, no explanation, no quotes — just the refined Korean sentence."""
 
 
-def _preprocess_command(user_command, state):
+def _preprocess_command(user_command, memory):
     """사용자 명령어를 정제하여 명확한 명령어로 변환. 실패 시 빈 문자열 반환."""
-    connected_devices = state.get("connected_devices", {})
+    connected_devices = memory.get("connected_devices", {})
 
     devices_info = ""
     if isinstance(connected_devices, str):
@@ -300,7 +276,7 @@ def _preprocess_command(user_command, state):
         devices_info=devices_info.strip() or "No devices connected.",
     )
 
-    client = get_client(state.get("base_url"))
+    client = get_client(memory.get("base_url"))
     model = get_model_id(client)
 
     try:
@@ -329,14 +305,12 @@ _TOOL_MAP = {
     "get_scenarios":         tool_get_scenarios,
     "delete_scenario":       tool_delete_scenario,
     "get_connected_devices": tool_get_connected_devices,
-    "get_device_capability": tool_get_device_capability,
-    "get_joi_syntax":        tool_get_joi_syntax,
     "get_weather":           tool_get_weather,
 }
 
 
-def dispatch(tool_name: str, tool_args: dict, agent_state: dict) -> dict:
+def dispatch(tool_name: str, tool_args: dict, agent_memory: dict) -> dict:
     fn = _TOOL_MAP.get(tool_name)
     if fn is None:
         return {"error": f"Unknown tool: {tool_name}"}
-    return fn(tool_args, agent_state)
+    return fn(tool_args, agent_memory)

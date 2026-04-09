@@ -49,7 +49,7 @@ A conversational API that enables iterative IoT control and scenario building th
 - `user_message` (str): The user's input message.
 - `connected_devices` (dict): Metadata of currently connected IoT devices.
 - `chat_history` (list, optional): List of previous messages to maintain stateless conversation history.
-- `agent_state` (dict, optional): Operational state containing `last_result`, `base_url`, etc.
+- `agent_memory` (dict, optional): Operational state containing `last_result`, `base_url`, etc.
 
 ---
 

@@ -209,35 +209,6 @@ def _parse_dict_input(val, default):
         except Exception: pass
     return default
 
-# 서버 시작 후 모든 system prompt를 미리 캐싱
-def warmup(debug=False, base_url=None):
-    client = get_client(base_url)
-    model = get_model_id(client)
-    prompts_copy = {k: v for k, v in PROMPTS.items()
-                     if not k.startswith("device_rules_")}
-    prompts_copy.pop("service_summary", None)
-    print(f"[warmup] Caching {len(prompts_copy)} PROMPTS...")
-    start = time.perf_counter()
-    for name, prompt in prompts_copy.items():
-        try:
-            user_content = "hi"
-            client.chat.completions.create(
-                model=model,
-                messages=[
-                    {"role": "system", "content": prompt},
-                    {"role": "user", "content": user_content}
-                ],
-                max_tokens=1,
-                temperature=0.0,
-                stream=False,
-                extra_body={"chat_template_kwargs": {"enable_thinking": False}}
-            )
-            if debug:
-                print(f"[warmup] cached: {name}")
-        except Exception as e:
-            print(f"[warmup] failed: {name} ({e})")
-    print(f"[warmup] Done in {time.perf_counter() - start:.2f}s")
-
 def generate_joi_code(sentence, connected_devices, other_params, model=None, current_time=None, modification=None, debug=False, base_url=None):
     # 1. Parse Inputs - dict type
     connected_devices = _parse_dict_input(connected_devices, None)

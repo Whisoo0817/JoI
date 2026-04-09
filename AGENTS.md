@@ -77,11 +77,11 @@ The AI uses the `connected_devices` metadata to resolve tags and categories.
 To ensure accuracy in local small models, the generation process is segmented into a multi-stage context funnel.
 
 ### ❇️ Stage 1: Pre-processing (Translation & Merging)
-*   **Goal**: Standardize the input command into English and combine it with previous feedback.
-*   **Example**:
-    *   *Input (KOR)*: "문이 닫히면 사무실 불을 꺼줘"
-    *   *Input (Modification)*: "3초 뒤에 꺼줘"
-    *   *Output (Merged ENG)*: "If the door is closed, turn off the office light after 3 seconds."
+*   **목표**: 사용자 입력 명령어를 표준 영어로 정제하고 이전 피드백과 병합.
+*   **예시**:
+    *   *입력 (KOR)*: "문이 닫히면 사무실 불을 꺼줘"
+    *   *입력 (Modification)*: "3초 뒤에 꺼줘"
+    *   *결과 (Merged ENG)*: "If the door is closed, turn off the office light after 3 seconds."
 
 ### ❇️ Stage 2-1: Category Mapping (`connect_mapping_category`)
 *   **Goal**: Identify necessary device categories from the `connected_devices` list to reduce context overhead.
@@ -128,12 +128,20 @@ To ensure accuracy in local small models, the generation process is segmented in
 ## 4. Agent Chat API
 A conversational interface for multi-turn IoT automation.
 
-### ⚛️ 4.1 Stateless Architecture
-The `agent_chat` function is stateless. It expects the caller to pass and maintain the state.
-*   **`chat_history`**: List of previous turns (User/Assistant/Tool).
-*   **`agent_state`**: Carries operational context like `last_result` and `connected_devices`.
+### ⚛️ 4.1 Stateless Architecture & Memory
+`agent_chat` 함수는 **Stateless(무상태)**로 설계됨. 서버는 사용자의 상태를 저장하지 않으며, 호출자가 매번 대화 맥락과 운영 데이터를 직접 전달해야 함.
 
-### ⚛️ 4.2 Tool-Calling Workflow (Qwen Strategy)
+*   **`chat_history`**: 순수 대화 기록 (User/Assistant/Tool). `messages[1:]` 처리를 통해 시스템 프롬프트를 제외하고 전달됨.
+*   **`agent_memory`**: 운영 컨텍스트 데이터 (`last_result`, `connected_devices`, `base_url` 등). 
+
+### ⚛️ 4.2 KV Prefix Caching 최적화
+vLLM 서버의 **Prefix Caching** 성능을 극대화하기 위해 다음과 같은 전략을 사용함.
+
+1.  **Fixed System Prompt at Index 0**: 모든 요청의 `messages[0]`에 동일한 `AGENT_SYSTEM_PROMPT`를 배치하여 KV Cache의 공통 접두사를 유지함.
+2.  **Context Slicing**: 대화가 길어질 경우 `chat_history[-6:]`로 슬라이싱하여 컨텍스트 윈도우를 안정적으로 관리함.
+3.  **Header-first logic**: 시스템 지침을 가장 먼저 배치하여 지시사항 이행력을 높이고 캐시 재사용률을 높임.
+
+### ⚛️ 4.3 Tool-Calling Workflow
 1. **Eval**: Assistant thinking `<think>` ... `</think>` (내부 추론, 사용자에게 노출 안 됨).
 2. **Tool Call**: Invokes `request_to_joi_llm` to trigger the stage-based pipeline.
 3. **Confirm**: Displays the result and asks "Is this correct? (y/n/mod)".
@@ -165,19 +173,19 @@ scenarios 테이블
 ```
 
 *   `HUB_CONTROLLER_URL` 환경변수가 없으면 DB에만 저장하고 허브 전송은 스킵.
-*   `session_id`는 `agent_state`에 주입하지 않으면 `"default"`로 고정.
+*   `session_id`는 `agent_memory`에 주입하지 않으면 `"default"`로 고정.
 
 ### ⚛️ 4.5 Orchestration Example (`test.py`)
 ```python
 history = []
-state = None
+memory = None
 while True:
     input = get_input()
     # Stateless API call
-    res = agent_chat(input, devices, chat_history=history, agent_state=state)
+    res = agent_chat(input, devices, chat_history=history, agent_memory=memory)
     # Update local state for next turn
     history = res["chat_history"]
-    state = res["agent_state"]
+    memory = res["agent_memory"]
     print(res["response"])
 ```
 

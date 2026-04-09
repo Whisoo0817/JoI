@@ -135,7 +135,7 @@ def run_agent_chat(debug=False):
     # print(f"Devices: {CUSTOM_DEVICES}\n")
 
     chat_history = []
-    agent_state = None
+    agent_memory = None
 
     while True:
         user_input = input("You >>> ").strip()
@@ -151,11 +151,11 @@ def run_agent_chat(debug=False):
                 connected_devices=CUSTOM_DEVICES,
                 debug=debug,
                 chat_history=chat_history,
-                agent_state=agent_state
+                agent_memory=agent_memory
             )
             
             chat_history = result.get("chat_history", [])
-            agent_state = result.get("agent_state", None)
+            agent_memory = result.get("agent_memory", None)
 
             # Response already streamed live by agent_chat
             lr = result.get("last_result")
@@ -168,7 +168,7 @@ def run_agent_chat(debug=False):
             print(f"Error: {e}")
 
 if __name__ == "__main__":
-    mode = sys.argv[1] if len(sys.argv) > 1 else "target"
+    mode = sys.argv[1] if len(sys.argv) > 1 else "agent"
     debug_mode = "debug" in sys.argv
     
     if mode == "all":

@@ -157,28 +157,28 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 MAX_AGENT_ROUNDS = 5
 
 
-def agent_chat(user_message, connected_devices=None, base_url=None, debug=False, chat_history=None, agent_state=None):
+def agent_chat(user_message, connected_devices=None, base_url=None, debug=False, chat_history=None, agent_memory=None):
     """
     Qwen tool-calling agent (multi-turn with state mapping).
 
     Args:
-        user_message: 사용자 메시지
-        connected_devices: 연결된 IoT 디바이스 정보 dict
-        base_url: vLLM 서버 URL (None이면 기본값)
-        debug: 디버그 출력
-        chat_history: list of previous conversation turns
-        agent_state: dict carrying operational state across turns
+        user_message: User input message
+        connected_devices: Dictionary of connected IoT devices
+        base_url: vLLM server URL
+        debug: Enable debug logging
+        chat_history: List of previous conversation turns
+        agent_memory: Dictionary carrying operational context across turns
 
     Returns:
-        {"response": str, "chat_history": list, "agent_state": dict, "last_result": dict}
+        {"response": str, "chat_history": list, "agent_memory": dict, "last_result": dict | None}
     """
     client = get_client(base_url)
     model = get_model_id(client)
 
     if chat_history is None:
         chat_history = []
-    if agent_state is None:
-        agent_state = {
+    if agent_memory is None:
+        agent_memory = {
             "connected_devices": _parse_dict_input(connected_devices, {}),
             "base_url": base_url,
             "last_result": None,
@@ -191,7 +191,7 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
     messages.extend(truncated_history)
     messages.append({"role": "user", "content": user_message})
 
-    initial_last_result = copy.deepcopy(agent_state.get("last_result"))
+    initial_last_result = copy.deepcopy(agent_memory.get("last_result"))
     
     final_response = ""
 
@@ -288,7 +288,7 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
             if debug:
                 print(f"[Tool call] {tc.function.name}({tool_args})")
 
-            tool_result = dispatch(tc.function.name, tool_args, agent_state)
+            tool_result = dispatch(tc.function.name, tool_args, agent_memory)
 
             if debug:
                 print(f"[Tool result] {json.dumps(tool_result, ensure_ascii=False)}")
@@ -308,12 +308,12 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
             final_response = ""
 
     # Only return last_result if it was updated during this turn
-    current_last_result = agent_state.get("last_result")
+    current_last_result = agent_memory.get("last_result")
     returned_last_result = current_last_result if current_last_result != initial_last_result else None
 
     return {
         "response": final_response,
-        "chat_history": messages[1:],
-        "agent_state": agent_state,
+        "chat_history": messages[1:], # system prompt 제외
+        "agent_memory": agent_memory,
         "last_result": returned_last_result
     }

@@ -22,31 +22,3 @@ def _load_all_prompts(base_dir):
     return prompts
 
 PROMPTS = _load_all_prompts(os.path.join(_BASE_DIR, "files"))
-
-# ── Joi Syntax Docs ───────────────────────────────────────
-def get_joi_syntax():
-    """skills.md (joi 문법 설명) 반환"""
-    path = os.path.join(_BASE_DIR, "skills.md")
-    if os.path.isfile(path):
-        with open(path, 'r', encoding='utf-8') as f:
-            return f.read()
-    return ""
-
-# ── Device Capability (SERVICE_DATA 기반) ─────────────────
-def get_device_capability(category: str):
-    """SERVICE_DATA에서 특정 카테고리의 서비스 목록 반환"""
-    services = SERVICE_DATA.get(category, {})
-    if not services:
-        return None
-    return {
-        "category": category,
-        "services": {
-            name: {
-                "type": info.get("type"),
-                "argument_type": info.get("argument_type"),
-                "return_type": info.get("return_type"),
-                "description": info.get("description", ""),
-            }
-            for name, info in services.items()
-        }
-    }
