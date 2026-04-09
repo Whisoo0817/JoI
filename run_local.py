@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from config import get_client, get_model_id
 from loader import SERVICE_DATA, PROMPTS
+from parser.validator import validate_joi
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -456,20 +457,24 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
             joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
         except (json.JSONDecodeError, TypeError):
             joi_code_raw = script
+            joi_json = {}
+
+    # ❇️ Validation
+    _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP, debug=debug)
 
     elapsed = time.perf_counter() - start
     # print(f"\nJoI ➡️ {elapsed:.4f} secs")
 
-    # ❇️ Korean Reconversion (any 형태 그대로 re_translate에 전달)
+    # ❇️ Code -> ENG
     translated_sentence = ""
     try:
-        kor_plan = f"\n\n[Code Plan]\n{code_plan}" if code_plan else ""
-        kor_input = f"[Code]\n{joi_code_raw}{kor_plan}\n\n[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
-        translated_sentence = infer("re_translate", kor_input)
+        eng_plan = f"\n\n[Code Plan]\n{code_plan}" if code_plan else ""
+        eng_input = f"[Code]\n{joi_code_raw}{eng_plan}\n\n[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+        translated_sentence = infer("re_translate", eng_input)
     except Exception as e:
         print(f"Re-translation failed: {e}")
 
-    # ❇️ Korean Re-translation (ENG -> KOR)
+    # ❇️ ENG -> KOR
     translated_sentence_kor = ""
     if translated_sentence:
         try:

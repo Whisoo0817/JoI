@@ -1,0 +1,36 @@
+How to re-generate ANTLR-based parser code
+
+Install Java
+Download ANTLR jar binary from Download Page.
+https://www.antlr.org/download.html
+
+Move to the grammar file directory.
+
+cd iot_core/parser/grammar
+
+Run the following command: java -jar [ANTLR jar file path] -Dlanguage=Python3 -o ../generated/ JOILang.g4
+
+
+# Example
+java -jar ../../../antlr-4.13.2-complete.jar -Dlanguage=Python3 -o ../generated/ JOILang.g4
+
+The generated files are located at iot_core/parser/generated directory.
+
+
+    if isinstance(code, Path):
+        input_stream = FileStream(str(code), encoding="utf-8")
+    else:
+        input_stream = InputStream(code)
+
+    lexer = JOILangLexer(input_stream)
+    stream = CommonTokenStream(lexer)
+    parser = JOILangParser(stream)
+
+    parser.removeErrorListeners()
+    parser.addErrorListener(CustomErrorListener())
+
+    try:
+        tree = parser.scenario()
+    except ValueError as e:
+        logger.error(f"Parsing failed: {e}")
+        return ScenarioScript(), None

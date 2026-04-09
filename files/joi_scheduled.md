@@ -136,20 +136,23 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 # Examples
 
 [Command]
-At 11 PM, if any window is open, close all of them.
+At 11 PM, if any window is open, turn on one light for 3 seconds and then turn it off.
 [Extractor Analysis]
 [Conclusion] At 11 PM, check Window Sensor and act based on result.
 [Services]
 [Service Tagging]
 any(#Window)
+(#Light)
 <Reasoning>
-At 11 PM, check if there is an open window. If found, close all.
+At 11 PM, check if there is an open window. If found, turn on one light and wait for 3 seconds, then turn it off.
 </Reasoning>
 {
   "cron": "0 23 * * *",
   "period": 0,
   "script": "if (any(#Window).CurrentPosition >= 0) {
-  all(#Window).DownOrClose()
+  (#Light).On()
+  delay(3 SEC)
+  (#Light).Off()
 }"
 }
 
