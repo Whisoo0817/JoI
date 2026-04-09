@@ -11,8 +11,25 @@ if _GENERATED_DIR not in sys.path:
 
 try:
     from antlr4 import InputStream, CommonTokenStream, error
-    from JOILangLexer import JOILangLexer
-    from JOILangParser import JOILangParser
+    try:
+        # Try absolute import from the 'parser' package (with ignore for VS Code)
+        from parser.generated.JOILangLexer import JOILangLexer # type: ignore
+        from parser.generated.JOILangParser import JOILangParser # type: ignore
+    except (ImportError, ValueError):
+        # Fallback to dynamic loading to avoid static analysis warnings
+        import importlib.util
+        def _load(name, path):
+            spec = importlib.util.spec_from_file_location(name, path)
+            mod = importlib.util.module_from_spec(spec)
+            if spec and spec.loader:
+                spec.loader.exec_module(mod)
+            return mod
+        
+        _lexer_path = os.path.join(_GENERATED_DIR, 'JOILangLexer.py')
+        _parser_path = os.path.join(_GENERATED_DIR, 'JOILangParser.py')
+        
+        JOILangLexer = _load('JOILangLexer', _lexer_path).JOILangLexer
+        JOILangParser = _load('JOILangParser', _parser_path).JOILangParser
 except ImportError:
     # Fallback for environments without antlr4 or generated files
     InputStream = None
