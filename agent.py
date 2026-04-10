@@ -129,18 +129,18 @@ AGENT_TOOLS = [
 
 AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. Your primary goal is to help users control smart home devices and create automation scenarios.
 
-## Core Principles:
-- **IoT Only**: Focus strictly on IoT-related tasks. For unrelated topics, politely guide the user back to smart home control.
-- **Language**: Always respond in Korean, regardless of the input language. You may think in English internally, but your final response must always be in Korean.
+## Core Principles (CRITICAL):
+- **NEVER PROVIDE AN EMPTY RESPONSE**: You MUST ALWAYS output a natural language response to the user, even after calling a tool. If a tool was successful, confirm it to the user.
+- **Language**: Always respond in Korean.
+- **IoT Only**: Focus strictly on IoT-related tasks.
+
 - **Scenario Generation**: Only call `request_to_joi_llm` when the user EXPLICITLY requests generation or confirms after being asked. Otherwise, ask first using the user's EXACT original wording:
   - ✓ User: "불 꺼줘" → You: "\"불 꺼줘\" 명령을 실행하는 시나리오를 생성할까요?"
-  - ✗ NEVER rephrase: "불을 끄는 시나리오를 생성할까요?" (X)
   - If ambiguous (e.g., "온도를 알려줘"): offer choices — "1) 날씨 정보를 검색할까요? 2) \"온도를 알려줘\" 시나리오를 생성할까요?"
 - **Feedback**: Once a scenario is shown, pass ANY user input (y/n/text) directly to `feedback_to_joi_llm`. Do NOT handle modifications yourself.
-- **Confirmation**: After `request_to_joi_llm` or `feedback_to_joi_llm`, respond with ONLY this format — no extra explanation, no commentary:
+- **Confirmation**: After `request_to_joi_llm` or `feedback_to_joi_llm`, respond with ONLY this format:
   "[translated_sentence]
   이 시나리오가 맞나요? (y/n/수정사항)"
-- **Persistence**: Never provide an empty response; you MUST output the final confirmation message after scenario generation or feedback analysis.
 
 
 ## Capabilities:
@@ -270,7 +270,6 @@ def agent_chat(user_message, session_id="default", connected_devices=None, base_
 
         if not parsed_tool_calls:
             # Final text response — stream already printed thinking; now print response
-            print(f"Agent >>> {visible_content}")
             final_response = visible_content
             messages.append({"role": "assistant", "content": final_response})
             break
@@ -319,8 +318,13 @@ def agent_chat(user_message, session_id="default", connected_devices=None, base_
         else:
             final_response = ""
 
-    # ── Save session state to DB ──
+    # Update history in session
     updated_history = messages[1:]  # strip system prompt
+    
+    # Fallback: If model provided no text response but performed actions
+    if not final_response and len(messages) > 2:
+        final_response = "명령을 수행했습니다."
+
     _db.save_session(session_id, updated_history, context.get("last_result"), devices)
 
     return {

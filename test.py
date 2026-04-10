@@ -131,8 +131,12 @@ def run_custom_test(debug=False):
             print(f"Error: {e}")
 
 def run_agent_chat(debug=False):
+    import uuid
     print("\n💬 Agent Chat Mode (종료: 'quit' 또는 'q')")
-    session_id = "test_session"  # 테스트용 고정 세션 ID
+    session_id = f"test_{uuid.uuid4().hex[:4]}"
+    print(f"Session ID: {session_id}\n")
+
+    prev_lr_code = None
 
     while True:
         user_input = input("You >>> ").strip()
@@ -143,7 +147,6 @@ def run_agent_chat(debug=False):
             break
 
         try:
-            # context 보따리 없이 메시지와 세션 ID만 전달
             result = agent_chat(
                 user_message=user_input,
                 session_id=session_id,
@@ -153,12 +156,18 @@ def run_agent_chat(debug=False):
             
             print(f"Agent >>> {result['response']}")
 
-            # 생성된 결과물(Joi 코드 등)이 있다면 출력
             lr = result.get("last_result")
-            if lr and lr.get("code"):
-                print(f"\n  [code]\n{lr['code']}")
-                print(f"  [translated] {lr.get('log', {}).get('translated_sentence', '')}")
-                print(f"  [time] {lr.get('log', {}).get('response_time', '')}")
+            current_code = lr.get("code") if lr else None
+            
+            if lr and current_code and current_code != prev_lr_code:
+                if lr.get("status") in ("confirmation_needed", "approved", "registered_locally"):
+                    print(f"\n  [code]\n{current_code}")
+                    print(f"  [translated] {lr.get('log', {}).get('translated_sentence', '')}")
+                    print(f"  [time] {lr.get('log', {}).get('response_time', '')}")
+                    prev_lr_code = current_code
+            elif not lr:
+                prev_lr_code = None
+
             print()
         except Exception as e:
             print(f"Error: {e}")
