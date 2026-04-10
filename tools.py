@@ -28,6 +28,8 @@ def tool_request_to_joi_llm(args, context):
         )
     except Exception as e:
         return {"error": str(e)}
+    
+    result["status"] = "confirmation_needed"
     context["last_result"] = result
     return {
         "status": "confirmation_needed",
@@ -56,6 +58,7 @@ def tool_feedback_to_joi_llm(args, context):
         modification=feedback,
         base_url=context.get("base_url"),
     )
+    result["status"] = "confirmation_needed"
     context["last_result"] = result
     return {
         "status": "confirmation_needed",

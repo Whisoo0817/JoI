@@ -128,21 +128,20 @@ To ensure accuracy in local small models, the generation process is segmented in
 ## 4. Agent Chat API
 A conversational interface for multi-turn IoT automation.
 
-### ⚛️ 4.1 Stateless Architecture & Context
-`agent_chat` 함수는 **Stateless(무상태)**로 설계됨. 서버는 사용자의 상태를 저장하지 않으며, 모든 대화 맥락과 운영 데이터는 **`context`**라는 단일 객체에 담겨 클라이언드와 서버 사이를 오감.
+### ⚛️ 4.1 Stateful Architecture & Session DB
+`agent_chat` 함수는 **Stateful(상태유지)**로 설계됨. 서버는 사용자의 대화 기록과 기기 상태를 로컬 SQLite DB(`data/joi.db`)에 저장함. 클라이언트는 복잡한 대화 내역(`context`)을 들고 다닐 필요 없이 `session_id`만 전달하면 됨.
 
-*   **`context`**: 다음 항목들을 포함하는 통합 상태 객체.
-    *   `chat_history`: 순수 대화 기록 (User/Assistant/Tool).
-    *   `connected_devices`: 현재 연결된 기기 목록.
-    *   `last_result`: 가장 최근에 생성된 시나리오 코드 및 로그.
-    *   `base_url`: LLM 서버 주소.
-    *   `debug`: 디스플레이 모드 여부.
+*   **세션 데이터 흐름**:
+    1. 클라이언트가 `session_id`와 함께 메시지 전달.
+    2. 서버가 DB에서 해당 세션의 `chat_history`, `last_result`, `connected_devices` 로드.
+    3. 에이전트가 내부적으로 상태를 조립하여 연산 수행.
+    4. 연산 완료 후 업데이트된 내역을 DB에 다시 저장.
 
 ### ⚛️ 4.2 KV Prefix Caching 최적화
 vLLM 서버의 **Prefix Caching** 성능을 극대화하기 위해 다음과 같은 전략을 사용함.
 
 1.  **Fixed System Prompt at Index 0**: 모든 요청의 `messages[0]`에 동일한 `AGENT_SYSTEM_PROMPT`를 배치하여 KV Cache의 공통 접두사를 유지함.
-2.  **Context Slicing**: 대화가 길어질 경우 `chat_history[-6:]`로 슬라이싱하여 컨텍스트 윈도우를 안정적으로 관리함.
+2.  **Context Slicing**: 대화가 길어질 경우 DB에서 로드한 전체 히스토리 중 `chat_history[-10:]`로 슬라이싱하여 컨텍스트 윈도우를 안정적으로 관리함.
 3.  **Header-first logic**: 시스템 지침을 가장 먼저 배치하여 지시사항 이행력을 높이고 캐시 재사용률을 높임.
 
 ### ⚛️ 4.3 Tool-Calling Workflow
@@ -163,33 +162,38 @@ vLLM 서버의 **Prefix Caching** 성능을 극대화하기 위해 다음과 같
 | `get_connected_devices` | 현재 연결된 IoT 디바이스 목록 조회 |
 | `get_weather` | 지역명으로 현재 날씨 조회 (wttr.in, 네트워크 필요) |
 
-### ⚛️ 4.4 Scenario DB
-승인된 시나리오는 `joi/data/joi.db` (SQLite)에 자동 저장됩니다.
+승인된 시나리오 및 대화 세션 정보는 `joi/data/joi.db` (SQLite)에 저장됩니다.
 
 ```
-scenarios 테이블
-  id          - 고유 ID (삭제 시 사용)
-  session_id  - 세션 식별자 (미설정 시 "default")
+scenarios 테이블 (승인된 자동화 기록)
+  id          - 고유 ID
+  session_id  - 세션 식별자
   command     - 원본 명령어
   translated  - 한국어 설명
   code        - 생성된 Joi JSON 코드
   created_at  - 저장 시각 (UTC)
+
+sessions 테이블 (실시간 대화 맥락 유지)
+  session_id        - PK, 세션 식별자
+  chat_history      - JSON 직렬화된 대화 기록
+  last_result       - 마지막으로 생성된(승인 전) 결과
+  connected_devices - 해당 세션에 귀속된 기기 목록
+  updated_at        - 마지막 업데이트 시각
 ```
 
 *   `HUB_CONTROLLER_URL` 환경변수가 없으면 DB에만 저장하고 허브 전송은 스킵.
-*   `session_id`는 `context`에 주입하지 않으면 `"default"`로 고정.
+*   `session_id`를 지정하지 않으면 `"default"`로 고정.
 
-### ⚛️ 4.5 Orchestration Example (`test.py`)
 ```python
-history = []
-context = None
 while True:
-    input = get_input()
-    # Stateless API call
-    res = agent_chat(input, context=context)
-    # Update local state for next turn
-    context = res["context"]
+    input_str = get_input()
+    # Stateful API call (session_id만 유지)
+    res = agent_chat(input_str, session_id="my_session")
+    
+    # 더 이상 context를 반환받아 다시 던질 필요 없음
     print(res["response"])
+    if res.get("last_result"):
+        print("Generated Code:", res["last_result"]["code"])
 ```
 
 ---

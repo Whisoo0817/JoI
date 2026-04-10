@@ -1,3 +1,4 @@
+import json
 import os
 import sqlite3
 from datetime import datetime
@@ -27,6 +28,15 @@ def _init_db():
                 created_at  TEXT NOT NULL
             )
         """)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS sessions (
+                session_id        TEXT PRIMARY KEY,
+                chat_history      TEXT NOT NULL DEFAULT '[]',
+                last_result       TEXT,
+                connected_devices TEXT NOT NULL DEFAULT '{}',
+                updated_at        TEXT NOT NULL
+            )
+        """)
 
 _init_db()
 
@@ -49,3 +59,43 @@ def get_scenarios(session_id: str):
             (session_id,)
         ).fetchall()
     return [dict(r) for r in rows]
+
+
+# ── Session Management ─────────────────────────────────────
+
+def load_session(session_id: str) -> dict:
+    """Load session state from DB. Returns default state if not found."""
+    with _get_conn() as conn:
+        row = conn.execute(
+            "SELECT chat_history, last_result, connected_devices FROM sessions WHERE session_id = ?",
+            (session_id,)
+        ).fetchone()
+    if row:
+        return {
+            "chat_history": json.loads(row["chat_history"]),
+            "last_result": json.loads(row["last_result"]) if row["last_result"] else None,
+            "connected_devices": json.loads(row["connected_devices"]),
+        }
+    return {"chat_history": [], "last_result": None, "connected_devices": {}}
+
+
+def save_session(session_id: str, chat_history: list, last_result, connected_devices):
+    """Upsert session state to DB."""
+    with _get_conn() as conn:
+        conn.execute(
+            """INSERT INTO sessions (session_id, chat_history, last_result, connected_devices, updated_at)
+               VALUES (?, ?, ?, ?, ?)
+               ON CONFLICT(session_id) DO UPDATE SET
+                   chat_history = excluded.chat_history,
+                   last_result = excluded.last_result,
+                   connected_devices = excluded.connected_devices,
+                   updated_at = excluded.updated_at""",
+            (
+                session_id,
+                json.dumps(chat_history, ensure_ascii=False),
+                json.dumps(last_result, ensure_ascii=False) if last_result else None,
+                json.dumps(connected_devices, ensure_ascii=False) if isinstance(connected_devices, dict) else str(connected_devices),
+                datetime.utcnow().isoformat(),
+            )
+        )
+

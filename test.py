@@ -132,12 +132,7 @@ def run_custom_test(debug=False):
 
 def run_agent_chat(debug=False):
     print("\n💬 Agent Chat Mode (종료: 'quit' 또는 'q')")
-    # print(f"Devices: {CUSTOM_DEVICES}\n")
-
-    context = {
-        "connected_devices": CUSTOM_DEVICES,
-        "debug": debug,
-    }
+    session_id = "test_session"  # 테스트용 고정 세션 ID
 
     while True:
         user_input = input("You >>> ").strip()
@@ -148,15 +143,18 @@ def run_agent_chat(debug=False):
             break
 
         try:
+            # context 보따리 없이 메시지와 세션 ID만 전달
             result = agent_chat(
                 user_message=user_input,
-                context=context
+                session_id=session_id,
+                connected_devices=CUSTOM_DEVICES,
+                debug=debug
             )
             
-            context = result.get("context", {})
+            print(f"Agent >>> {result['response']}")
 
             # 생성된 결과물(Joi 코드 등)이 있다면 출력
-            lr = context.get("last_result")
+            lr = result.get("last_result")
             if lr and lr.get("code"):
                 print(f"\n  [code]\n{lr['code']}")
                 print(f"  [translated] {lr.get('log', {}).get('translated_sentence', '')}")

@@ -140,6 +140,7 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 - **Confirmation**: After `request_to_joi_llm` or `feedback_to_joi_llm`, respond with ONLY this format — no extra explanation, no commentary:
   "[translated_sentence]
   이 시나리오가 맞나요? (y/n/수정사항)"
+- **Persistence**: Never provide an empty response; you MUST output the final confirmation message after scenario generation or feedback analysis.
 
 
 ## Capabilities:
@@ -157,56 +158,53 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 MAX_AGENT_ROUNDS = 5
 
 
-def agent_chat(user_message, context=None, connected_devices=None, base_url=None, debug=False):
+def agent_chat(user_message, session_id="default", connected_devices=None, base_url=None, debug=False):
     """
-    Qwen tool-calling agent (multi-turn with state mapping).
+    Qwen tool-calling agent (multi-turn, server-managed state).
 
     Args:
-        user_message: User input message
-        connected_devices: Dictionary of connected IoT devices
-        base_url: vLLM server URL
-        debug: Enable debug logging
-        chat_history: List of previous conversation turns
-        agent_memory: Dictionary carrying operational context across turns
+        user_message (str): The user's input message.
+        session_id (str): Session identifier for DB-backed state persistence.
+        connected_devices (dict, optional): IoT device metadata. Overwrites DB value if provided.
+        base_url (str, optional): LLM server URL.
+        debug (bool, optional): Enable debug logging.
 
     Returns:
-        {"response": str, "context": dict}
+        {"response": str, "last_result": dict | None}
     """
+    import db as _db
+
     client = get_client(base_url)
     model = get_model_id(client)
 
-    if context is None:
-        context = {
-            "chat_history": [],
-            "connected_devices": _parse_dict_input(connected_devices, {}),
-            "base_url": base_url,
-            "last_result": None,
-            "debug": debug,
-        }
-    else:
-        # Ensure critical keys exist
-        if "chat_history" not in context:
-            context["chat_history"] = []
-        if "connected_devices" not in context:
-            context["connected_devices"] = _parse_dict_input(connected_devices, {})
-        if "base_url" not in context:
-            context["base_url"] = base_url
-        if "debug" not in context:
-            context["debug"] = debug
-        if "last_result" not in context:
-            context["last_result"] = None
+    # ── Load session state from DB ──
+    session = _db.load_session(session_id)
+    chat_history = session["chat_history"]
+    last_result = session["last_result"]
+    stored_devices = session["connected_devices"]
 
-    chat_history = context.get("chat_history", [])
-    debug = context.get("debug", False)
-    
-    truncated_history = chat_history[-6:] if len(chat_history) > 6 else chat_history
+    # If caller provides new connected_devices, overwrite DB value
+    if connected_devices is not None:
+        devices = _parse_dict_input(connected_devices, stored_devices)
+    else:
+        devices = stored_devices
+
+    # ── Build internal context for tool dispatch ──
+    context = {
+        "chat_history": chat_history,
+        "connected_devices": devices,
+        "base_url": base_url,
+        "last_result": last_result,
+        "debug": debug,
+        "session_id": session_id,
+    }
+
+    truncated_history = chat_history[-10:] if len(chat_history) > 10 else chat_history
 
     messages = [{"role": "system", "content": AGENT_SYSTEM_PROMPT}]
     messages.extend(truncated_history)
     messages.append({"role": "user", "content": user_message})
 
-    initial_last_result = copy.deepcopy(context.get("last_result"))
-    
     final_response = ""
 
     for _ in range(MAX_AGENT_ROUNDS):
@@ -321,11 +319,12 @@ def agent_chat(user_message, context=None, connected_devices=None, base_url=None
         else:
             final_response = ""
 
-    # Only return last_result if it was updated during this turn
-    # Update history in context
-    context["chat_history"] = messages[1:]
+    # ── Save session state to DB ──
+    updated_history = messages[1:]  # strip system prompt
+    _db.save_session(session_id, updated_history, context.get("last_result"), devices)
 
     return {
         "response": final_response,
-        "context": context
+        "last_result": context.get("last_result"),
     }
+
