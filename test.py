@@ -134,8 +134,10 @@ def run_agent_chat(debug=False):
     print("\n💬 Agent Chat Mode (종료: 'quit' 또는 'q')")
     # print(f"Devices: {CUSTOM_DEVICES}\n")
 
-    chat_history = []
-    agent_memory = None
+    context = {
+        "connected_devices": CUSTOM_DEVICES,
+        "debug": debug,
+    }
 
     while True:
         user_input = input("You >>> ").strip()
@@ -148,17 +150,13 @@ def run_agent_chat(debug=False):
         try:
             result = agent_chat(
                 user_message=user_input,
-                connected_devices=CUSTOM_DEVICES,
-                debug=debug,
-                chat_history=chat_history,
-                agent_memory=agent_memory
+                context=context
             )
             
-            chat_history = result.get("chat_history", [])
-            agent_memory = result.get("agent_memory", None)
+            context = result.get("context", {})
 
-            # Response already streamed live by agent_chat
-            lr = result.get("last_result")
+            # 생성된 결과물(Joi 코드 등)이 있다면 출력
+            lr = context.get("last_result")
             if lr and lr.get("code"):
                 print(f"\n  [code]\n{lr['code']}")
                 print(f"  [translated] {lr.get('log', {}).get('translated_sentence', '')}")

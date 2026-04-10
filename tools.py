@@ -10,25 +10,25 @@ import db
 
 # ── Tool Implementations ──────────────────────────────────
 
-def tool_request_to_joi_llm(args, memory):
+def tool_request_to_joi_llm(args, context):
     # Preprocess: refine command before code generation
     raw_sentence = args["sentence"]
-    refined = _preprocess_command(raw_sentence, memory)
+    refined = _preprocess_command(raw_sentence, context)
     sentence = refined if refined else raw_sentence
 
-    if memory.get("debug"):
+    if context.get("debug"):
         print(f"[Preprocess] \"{raw_sentence}\" → \"{sentence}\"")
 
     try:
         result = generate_joi_code(
             sentence=sentence,
-            connected_devices=memory.get("connected_devices", {}),
+            connected_devices=context.get("connected_devices", {}),
             other_params={},
-            base_url=memory.get("base_url"),
+            base_url=context.get("base_url"),
         )
     except Exception as e:
         return {"error": str(e)}
-    memory["last_result"] = result
+    context["last_result"] = result
     return {
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
@@ -36,27 +36,27 @@ def tool_request_to_joi_llm(args, memory):
     }
 
 
-def tool_feedback_to_joi_llm(args, memory):
+def tool_feedback_to_joi_llm(args, context):
     feedback = args["feedback"].strip().lower()
-    last = memory.get("last_result") or {}
+    last = context.get("last_result") or {}
 
     if feedback in ("y", "yes"):
         last["status"] = "approved"
-        memory["last_result"] = last
+        context["last_result"] = last
         return {"status": "approved", "message": "User approved. Ready to register via add_scenario."}
 
     if feedback in ("n", "no"):
-        memory["last_result"] = None
+        context["last_result"] = None
         return {"status": "rejected", "message": "User rejected. Task terminated and context cleared."}
 
     result = generate_joi_code(
         sentence=last.get("merged_command", ""),
-        connected_devices=memory.get("connected_devices", {}),
+        connected_devices=context.get("connected_devices", {}),
         other_params={},
         modification=feedback,
-        base_url=memory.get("base_url"),
+        base_url=context.get("base_url"),
     )
-    memory["last_result"] = result
+    context["last_result"] = result
     return {
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
@@ -64,8 +64,8 @@ def tool_feedback_to_joi_llm(args, memory):
     }
 
 
-def tool_add_scenario(args, memory):
-    last = memory.get("last_result") or {}
+def tool_add_scenario(args, context):
+    last = context.get("last_result") or {}
     code_raw = last.get("code", "")
     if isinstance(code_raw, str):
         try:
@@ -91,7 +91,7 @@ def tool_add_scenario(args, memory):
     }
 
     # DB 저장
-    session_id = memory.get("session_id", "default")
+    session_id = context.get("session_id", "default")
     db.save_scenario(
         session_id=session_id,
         command=last.get("merged_command", ""),
@@ -129,15 +129,15 @@ def tool_add_scenario(args, memory):
         return {"error": f"Hub Controller request failed: {e}"}
 
 
-def tool_get_connected_devices(args, memory):
-    devices = memory.get("connected_devices", {})
+def tool_get_connected_devices(args, context):
+    devices = context.get("connected_devices", {})
     if devices:
         return {"connected_devices": devices}
     return {"connected_devices": {}, "message": "No devices currently connected."}
 
 
 
-def tool_get_weather(args, memory):
+def tool_get_weather(args, context):
     """wttr.in을 이용한 날씨 정보 조회 (네트워크 필요)"""
     location = args.get("location", "Seoul")
     try:
@@ -157,9 +157,9 @@ def tool_get_weather(args, memory):
         return {"error": f"Weather fetch failed: {e}"}
 
 
-def tool_get_scenarios(args, memory):
+def tool_get_scenarios(args, context):
     """저장된 시나리오 목록 조회"""
-    session_id = memory.get("session_id", "default")
+    session_id = context.get("session_id", "default")
     scenarios = db.get_scenarios(session_id)
     if not scenarios:
         return {"message": "등록된 시나리오가 없습니다.", "scenarios": []}
@@ -176,7 +176,7 @@ def tool_get_scenarios(args, memory):
     return {"session_id": session_id, "count": len(summary), "scenarios": summary}
 
 
-def tool_delete_scenario(args, memory):
+def tool_delete_scenario(args, context):
     """시나리오 삭제"""
     scenario_id = args.get("scenario_id")
     if scenario_id is None:
@@ -244,6 +244,7 @@ If no quantity is stated, make it explicit using one of three modes:
 ## Examples
 - "불을 아무거나 꺼줘" → "조명 하나를 꺼줘"
 - "임의의 불을 꺼줘" → "조명 하나를 꺼줘"
+- "랜덤으로 아무 불이나 꺼줘" → "조명 하나를 꺼줘"
 - "불을 모두 꺼줘" → "모든 조명을 꺼줘"
 - "3분마다 불을 토글해" → "3분마다 조명 하나를 토글해"
 - "3분마다 조명 하나를 3초간 켰다가 꺼줘" → "3분마다 조명 하나를 3초간 켰다가 꺼줘"
@@ -257,9 +258,9 @@ If no quantity is stated, make it explicit using one of three modes:
 Output ONLY the refined command. No JSON, no explanation, no quotes — just the refined Korean sentence."""
 
 
-def _preprocess_command(user_command, memory):
+def _preprocess_command(user_command, context):
     """사용자 명령어를 정제하여 명확한 명령어로 변환. 실패 시 빈 문자열 반환."""
-    connected_devices = memory.get("connected_devices", {})
+    connected_devices = context.get("connected_devices", {})
 
     devices_info = ""
     if isinstance(connected_devices, str):
@@ -276,7 +277,7 @@ def _preprocess_command(user_command, memory):
         devices_info=devices_info.strip() or "No devices connected.",
     )
 
-    client = get_client(memory.get("base_url"))
+    client = get_client(context.get("base_url"))
     model = get_model_id(client)
 
     try:
@@ -309,8 +310,8 @@ _TOOL_MAP = {
 }
 
 
-def dispatch(tool_name: str, tool_args: dict, agent_memory: dict) -> dict:
+def dispatch(tool_name: str, tool_args: dict, context: dict) -> dict:
     fn = _TOOL_MAP.get(tool_name)
     if fn is None:
         return {"error": f"Unknown tool: {tool_name}"}
-    return fn(tool_args, agent_memory)
+    return fn(tool_args, context)

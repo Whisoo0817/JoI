@@ -6,7 +6,7 @@
 
 기존의 `demo2.py`는 서버의 **전역 변수**를 사용하여 대화의 상태를 기억했습니다. 하지만 이 방식은 두 명 이상의 사용자가 동시에 접속할 경우 **서로의 기기 정보나 대화 맥락이 뒤섞이는 결함**이 존재.
 
-새로운 `agent_chat` API는 **Stateless** 설계를 사용. 이제 서버는 사용자를 기억하지 않으며, 모든 대화 맥락과 운영 데이터는 **클라이언트(브라우저/앱)가 직접 들고 있어야 함.**
+새로운 `agent_chat` API는 **Stateless** 설계를 사용. 이제 서버는 사용자를 기억하지 않으며, 모든 대화 맥락과 운영 데이터는 **`context`**라는 단일 보따리에 담겨 클라이언트(브라우저/앱)가 직접 들고 있어야 함.
 
 ---
 
@@ -14,42 +14,37 @@
 
 ### 요청 (Request)
 - **`sentence`**: 사용자의 입력 메시지
-- **`connected_devices`**: **첫 대화에서만 필수**
-- **`chat_history`**: 이전 대화 내용 리스트 - **두 번째 대화부터 필수**
-- **`agent_memory`**: 에이전트 내부 상태 데이터 - **두 번째 대화부터 필수**
+- **`context`**: 대화 내역(`chat_history`), 기기 목록(`connected_devices`), 설정 등을 포함하는 통합 상태 객체.
 
 ### 응답 (Response)
 - **`response`**: 사용자에게 보여줄 에이전트의 답변
-- **`chat_history`**: (업데이트됨) 다음 대화 시 그대로 다시 보내줘야 함
-- **`agent_memory`**: (업데이트됨) 다음 대화 시 그대로 다시 보내줘야 함
-- **`last_result`**: 가장 최근에 생성한 시나리오 (피드백시 사용)
+- **`context`**: (업데이트됨) 다음 대화 시 그대로 다시 보내줘야 함. 생성된 시나리오는 `context.last_result`에 들어있음.
 
 ---
 
 ## 🔄 3. 연동 워크플로우
 
 ### Step 1: 첫 번째 대화
-사용자가 처음 말을 걸 때는 기기 정보와 서버 설정을 모두 전달.
+사용자가 처음 말을 걸 때는 기기 정보와 서버 설정을 `context`에 실어서 전달.
 ```json
 {
   "sentence": "거실 불 꺼줘",
-  "connected_devices": { ...전체기기... },
-  "chat_history": null,
-  "agent_memory": null
+  "context": {
+    "connected_devices": { ...전체기기... },
+    "debug": false
+  }
 }
 ```
 
 ### Step 2: 응답 결과 저장
-서버는 {response, chat_history, agent_memory}를 돌려줍니다. 클라이언트는 이 값들을 저장해야 합니다.
+서버는 {response, context}를 돌려줍니다. 클라이언트는 이 `context`를 그대로 저장해야 하며, 코드 미리보기가 필요한 경우 `context.last_result`를 확인합니다.
 
 ### Step 3: 이어지는 대화
-사용자가 "아니, 3초 뒤에 꺼줘"라고 답하면, **기기 목록은 빼고** 저장해둔 context와 같이 전달.
+사용자가 "아니, 3초 뒤에 꺼줘"라고 답하면, 서버로부터 받은 최신 `context`를 그대로 다시 전달.
 ```json
 {
   "sentence": "아니, 3초 뒤에 꺼줘",
-  "connected_devices": null, 
-  "chat_history": [ ...기존기록... ],
-  "agent_memory": { ...기존메모리... }
+  "context": { ...서버가 준 최신 context... }
 }
 ```
 

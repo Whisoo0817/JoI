@@ -157,7 +157,7 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 MAX_AGENT_ROUNDS = 5
 
 
-def agent_chat(user_message, connected_devices=None, base_url=None, debug=False, chat_history=None, agent_memory=None):
+def agent_chat(user_message, context=None, connected_devices=None, base_url=None, debug=False):
     """
     Qwen tool-calling agent (multi-turn with state mapping).
 
@@ -170,28 +170,42 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
         agent_memory: Dictionary carrying operational context across turns
 
     Returns:
-        {"response": str, "chat_history": list, "agent_memory": dict, "last_result": dict | None}
+        {"response": str, "context": dict}
     """
     client = get_client(base_url)
     model = get_model_id(client)
 
-    if chat_history is None:
-        chat_history = []
-    if agent_memory is None:
-        agent_memory = {
+    if context is None:
+        context = {
+            "chat_history": [],
             "connected_devices": _parse_dict_input(connected_devices, {}),
             "base_url": base_url,
             "last_result": None,
             "debug": debug,
         }
+    else:
+        # Ensure critical keys exist
+        if "chat_history" not in context:
+            context["chat_history"] = []
+        if "connected_devices" not in context:
+            context["connected_devices"] = _parse_dict_input(connected_devices, {})
+        if "base_url" not in context:
+            context["base_url"] = base_url
+        if "debug" not in context:
+            context["debug"] = debug
+        if "last_result" not in context:
+            context["last_result"] = None
 
+    chat_history = context.get("chat_history", [])
+    debug = context.get("debug", False)
+    
     truncated_history = chat_history[-6:] if len(chat_history) > 6 else chat_history
 
     messages = [{"role": "system", "content": AGENT_SYSTEM_PROMPT}]
     messages.extend(truncated_history)
     messages.append({"role": "user", "content": user_message})
 
-    initial_last_result = copy.deepcopy(agent_memory.get("last_result"))
+    initial_last_result = copy.deepcopy(context.get("last_result"))
     
     final_response = ""
 
@@ -288,7 +302,7 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
             if debug:
                 print(f"[Tool call] {tc.function.name}({tool_args})")
 
-            tool_result = dispatch(tc.function.name, tool_args, agent_memory)
+            tool_result = dispatch(tc.function.name, tool_args, context)
 
             if debug:
                 print(f"[Tool result] {json.dumps(tool_result, ensure_ascii=False)}")
@@ -308,12 +322,10 @@ def agent_chat(user_message, connected_devices=None, base_url=None, debug=False,
             final_response = ""
 
     # Only return last_result if it was updated during this turn
-    current_last_result = agent_memory.get("last_result")
-    returned_last_result = current_last_result if current_last_result != initial_last_result else None
+    # Update history in context
+    context["chat_history"] = messages[1:]
 
     return {
         "response": final_response,
-        "chat_history": messages[1:], # system prompt 제외
-        "agent_memory": agent_memory,
-        "last_result": returned_last_result
+        "context": context
     }

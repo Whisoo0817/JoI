@@ -128,11 +128,15 @@ To ensure accuracy in local small models, the generation process is segmented in
 ## 4. Agent Chat API
 A conversational interface for multi-turn IoT automation.
 
-### ⚛️ 4.1 Stateless Architecture & Memory
-`agent_chat` 함수는 **Stateless(무상태)**로 설계됨. 서버는 사용자의 상태를 저장하지 않으며, 호출자가 매번 대화 맥락과 운영 데이터를 직접 전달해야 함.
+### ⚛️ 4.1 Stateless Architecture & Context
+`agent_chat` 함수는 **Stateless(무상태)**로 설계됨. 서버는 사용자의 상태를 저장하지 않으며, 모든 대화 맥락과 운영 데이터는 **`context`**라는 단일 객체에 담겨 클라이언드와 서버 사이를 오감.
 
-*   **`chat_history`**: 순수 대화 기록 (User/Assistant/Tool). `messages[1:]` 처리를 통해 시스템 프롬프트를 제외하고 전달됨.
-*   **`agent_memory`**: 운영 컨텍스트 데이터 (`last_result`, `connected_devices`, `base_url` 등). 
+*   **`context`**: 다음 항목들을 포함하는 통합 상태 객체.
+    *   `chat_history`: 순수 대화 기록 (User/Assistant/Tool).
+    *   `connected_devices`: 현재 연결된 기기 목록.
+    *   `last_result`: 가장 최근에 생성된 시나리오 코드 및 로그.
+    *   `base_url`: LLM 서버 주소.
+    *   `debug`: 디스플레이 모드 여부.
 
 ### ⚛️ 4.2 KV Prefix Caching 최적화
 vLLM 서버의 **Prefix Caching** 성능을 극대화하기 위해 다음과 같은 전략을 사용함.
@@ -173,19 +177,18 @@ scenarios 테이블
 ```
 
 *   `HUB_CONTROLLER_URL` 환경변수가 없으면 DB에만 저장하고 허브 전송은 스킵.
-*   `session_id`는 `agent_memory`에 주입하지 않으면 `"default"`로 고정.
+*   `session_id`는 `context`에 주입하지 않으면 `"default"`로 고정.
 
 ### ⚛️ 4.5 Orchestration Example (`test.py`)
 ```python
 history = []
-memory = None
+context = None
 while True:
     input = get_input()
     # Stateless API call
-    res = agent_chat(input, devices, chat_history=history, agent_memory=memory)
+    res = agent_chat(input, context=context)
     # Update local state for next turn
-    history = res["chat_history"]
-    memory = res["agent_memory"]
+    context = res["context"]
     print(res["response"])
 ```
 

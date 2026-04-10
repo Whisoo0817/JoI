@@ -78,8 +78,8 @@ Set the TV channel to 7.
 "회의를 시작한다고 안내해줘"
 Announce "Start the meeting".
 
-"2초마다 조명을 껐다켜줘"
-Toggle the light every 2 seconds.
+"2초마다 조명 하나를 껐다켜줘"
+Toggle one light every 2 seconds.
 
 "조명을 1초동안 켰다가 꺼줘"
 Turn on the light for 1 second and then turn it off.
@@ -107,9 +107,9 @@ If the carbon dioxide concentration is >= 800 ppm,
 이상이면 -> 상태 +"이면" -> if
 If the outdoor humidity is >= 80%,
 
-"온도가 33도 이상이면 제습기를 켜고 커튼을 닫아줘"
+"온도가 33도 이상이면 제습기를 켜고 커튼 한개를 닫아줘"
 이상이면 -> 상태 +"이면" -> if
-If the temperature is >= 33 degrees, turn on the dehumidifier and close the curtain
+If the temperature is >= 33 degrees, turn on the dehumidifier and close one curtain
 
 "초미세먼지 농도가 50 이상이면 긴급 사이렌을 울려줘"
 이상이면 -> 상태 + "이면" -> if
@@ -245,8 +245,8 @@ If the window with even tags at the top is open, close the curtain.
 "스위치 3번째 버튼을 누르면"
 When the third button of the switch is pushed
 
-"버튼 1을 누를 때마다 조명을 파란색과 빨간색으로 번갈아 전환해줘"
-Every time Button 1 is pressed, set all lights to alternate between blue and red.
+"버튼 1을 누를 때마다 조명을 파란색과 보라색으로 번갈아 전환해줘"
+Every time Button 1 is pressed, set all lights to alternate between blue and purple.
 
 "버튼 1을 길게 누르면 조명을 꺼줘"
 When Button 1 is long-pressed, turn off the light.
