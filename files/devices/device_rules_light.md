@@ -31,6 +31,11 @@ We carefully distinguish between `MoveTo*` and `Move*`.
 - `MoveColor`/`MoveColorTemperature`/`MoveHue`: Continuously shifting WITHOUT a target.
 - Use `Light.MoveToColor` for specific color names like "Red" or "Blue".
 
+## On/Off Fallback
+- To turn OFF: prefer `Switch.Off` if available. If not, use `Light.MoveToBrightness` with value 0.
+- To turn ON: prefer `Switch.On` if available. If not, use `Light.MoveToBrightness` with value 100 (or a user-specified value).
+- Never return an empty list because Switch is unavailable — always fall back to `MoveToBrightness`.
+
 [Command]
 Set the light color to red
 ["Light.MoveToColor"]
@@ -46,3 +51,11 @@ Keep changing the color temperature
 [Command]
 Check the current brightness of the light
 ["Light.CurrentBrightness"]
+
+[Command]
+Turn off the light (Switch not available)
+["Light.MoveToBrightness"]
+
+[Command]
+Turn on the light (Switch not available)
+["Light.MoveToBrightness"]

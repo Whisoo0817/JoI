@@ -4,7 +4,7 @@ import urllib.request
 import urllib.parse
 
 from config import get_client, get_model_id
-from run_local import generate_joi_code
+from run_local import generate_joi_code, JoiGenerationError
 from loader import PROMPTS
 import db
 
@@ -25,9 +25,12 @@ def tool_request_to_joi_llm(args, context):
             connected_devices=context.get("connected_devices", {}),
             other_params={},
             base_url=context.get("base_url"),
+            debug=context.get("debug", False),
         )
+    except JoiGenerationError as e:
+        return {"error": str(e), "error_code": e.error_code, "logs": e.logs}
     except Exception as e:
-        return {"error": str(e)}
+        return {"error": str(e), "error_code": "generation_failed"}
     
     result["status"] = "confirmation_needed"
     context["last_result"] = result
@@ -35,6 +38,7 @@ def tool_request_to_joi_llm(args, context):
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
         "response_time": result.get("log", {}).get("response_time", ""),
+        "code": result.get("code", ""),
     }
 
 
@@ -51,19 +55,27 @@ def tool_feedback_to_joi_llm(args, context):
         context["last_result"] = None
         return {"status": "rejected", "message": "User rejected. Task terminated and context cleared."}
 
-    result = generate_joi_code(
-        sentence=last.get("merged_command", ""),
-        connected_devices=context.get("connected_devices", {}),
-        other_params={},
-        modification=feedback,
-        base_url=context.get("base_url"),
-    )
+    try:
+        result = generate_joi_code(
+            sentence=last.get("merged_command", ""),
+            connected_devices=context.get("connected_devices", {}),
+            other_params={},
+            modification=feedback,
+            base_url=context.get("base_url"),
+            debug=context.get("debug", False),
+        )
+    except JoiGenerationError as e:
+        return {"error": str(e), "error_code": e.error_code, "logs": e.logs}
+    except Exception as e:
+        return {"error": str(e), "error_code": "generation_failed"}
+
     result["status"] = "confirmation_needed"
     context["last_result"] = result
     return {
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
         "response_time": result.get("log", {}).get("response_time", ""),
+        "code": result.get("code", ""),
     }
 
 
@@ -74,7 +86,7 @@ def tool_add_scenario(args, context):
         try:
             code = json.loads(code_raw)
         except json.JSONDecodeError:
-            return {"error": f"Failed to parse code: {code_raw[:100]}"}
+            return {"error": f"Failed to parse code: {code_raw[:100]}", "error_code": "generation_failed"}
     else:
         code = code_raw
     if isinstance(code, list):
@@ -101,6 +113,8 @@ def tool_add_scenario(args, context):
         code=json.dumps(code, ensure_ascii=False),
         translated=scenario["command"],
     )
+
+    context["last_result"] = None
 
     hub_url = os.getenv("HUB_CONTROLLER_URL", "")
     if not hub_url:
@@ -129,7 +143,7 @@ def tool_add_scenario(args, context):
                 "message": f"Scenario '{resp_data.get('name', scenario_name)}' registered and started.",
             }
     except Exception as e:
-        return {"error": f"Hub Controller request failed: {e}"}
+        return {"error": f"Hub Controller request failed: {e}", "error_code": "hub_failed"}
 
 
 def tool_get_connected_devices(args, context):
@@ -157,7 +171,7 @@ def tool_get_weather(args, context):
             "description": current.get("weatherDesc", [{}])[0].get("value", ""),
         }
     except Exception as e:
-        return {"error": f"Weather fetch failed: {e}"}
+        return {"error": f"Weather fetch failed: {e}", "error_code": "weather_failed"}
 
 
 def tool_get_scenarios(args, context):
