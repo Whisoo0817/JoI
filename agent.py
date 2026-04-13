@@ -236,7 +236,7 @@ def _trim_tool_result(msg: dict) -> dict:
     return {**msg, "content": json.dumps(result, ensure_ascii=False)}
 
 
-def agent_chat_stream(user_message, session_id="default", connected_devices=None, base_url=None, debug=True, on_complete=None, on_tool_call=None):
+def agent_chat_stream(user_message, session_id="default", connected_devices=None, base_url=None, debug=False, on_complete=None, on_tool_call=None):
     """
     agent_chat의 스트리밍 버전. 최종 텍스트 응답을 토큰 단위로 yield하고
     마지막에 last_result를 JSON 이벤트로 yield한다.
@@ -335,7 +335,7 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
                     if tc.function.arguments:
                         tool_call_chunks[idx].function.arguments += tc.function.arguments
 
-        if debug and usage:
+        if usage:
             prompt_tokens = usage.prompt_tokens
             history_chars = sum(len(json.dumps(m, ensure_ascii=False)) for m in truncated_history)
             history_tokens_est = history_chars // 4

@@ -1,0 +1,3629 @@
+{
+  "skills": [
+    {
+      "id": "AirConditioner",
+      "descriptor": "Controls air conditioner mode and temperature settings",
+      "values": [
+        {
+          "id": "AirConditionerMode",
+          "descriptor": "Current air conditioner mode",
+          "type": "ENUM",
+          "format": "AirConditionerModeEnum"
+        },
+        {
+          "id": "TargetTemperature",
+          "descriptor": "Current set air conditioner temperature",
+          "type": "DOUBLE"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetAirConditionerMode",
+          "descriptor": "Set air conditioner mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Air conditioner mode to set",
+              "type": "ENUM",
+              "format": "AirConditionerModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetTargetTemperature",
+          "descriptor": "Set air conditioner temperature",
+          "arguments": [
+            {
+              "id": "Temperature",
+              "descriptor": "Temperature to set",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "AirConditionerModeEnum",
+          "members": [
+            {
+              "value": "auto",
+              "description": "Automatically adjusts temperature and fan speed based on room conditions"
+            },
+            {
+              "value": "cool",
+              "description": "Cooling mode that lowers the room temperature"
+            },
+            {
+              "value": "heat",
+              "description": "Heating mode that raises the room temperature"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "AirPurifier",
+      "descriptor": "Controls air purifier mode",
+      "values": [
+        {
+          "id": "AirPurifierMode",
+          "descriptor": "Current air purifier mode",
+          "type": "ENUM",
+          "format": "AirPurifierModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetAirPurifierMode",
+          "descriptor": "Set air purifier mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Air purifier mode to set",
+              "type": "ENUM",
+              "format": "AirPurifierModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "AirPurifierModeEnum",
+          "members": [
+            {
+              "value": "auto",
+              "description": "The fan is on auto"
+            },
+            {
+              "value": "sleep",
+              "description": "The fan is in sleep mode to reduce noise"
+            },
+            {
+              "value": "low",
+              "description": "The fan is on low"
+            },
+            {
+              "value": "medium",
+              "description": "The fan is on medium"
+            },
+            {
+              "value": "high",
+              "description": "The fan is on high"
+            },
+            {
+              "value": "quiet",
+              "description": "The fan is on quiet mode to reduce noise"
+            },
+            {
+              "value": "windFree",
+              "description": "The fan is on wind free mode to reduce the feeling of cold air"
+            },
+            {
+              "value": "off",
+              "description": "The fan is off"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "AirQualitySensor",
+      "descriptor": "Air quality detector device for comprehensive air quality monitoring",
+      "values": [
+        {
+          "id": "CarbonDioxide",
+          "descriptor": "CO2 concentration in ppm",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            50000
+          ]
+        },
+        {
+          "id": "DustLevel",
+          "descriptor": "Dust (PM10) level",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            1000
+          ]
+        },
+        {
+          "id": "FineDustLevel",
+          "descriptor": "Fine dust (PM2.5) level",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            1000
+          ]
+        },
+        {
+          "id": "Humidity",
+          "descriptor": "Humidity in %",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            100
+          ]
+        },
+        {
+          "id": "Temperature",
+          "descriptor": "Temperature in °C",
+          "type": "DOUBLE",
+          "bound": [
+            -40,
+            60
+          ]
+        },
+        {
+          "id": "TvocLevel",
+          "descriptor": "TVOC level in ppb",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            60000
+          ]
+        },
+        {
+          "id": "VeryFineDustLevel",
+          "descriptor": "Very fine dust (PM1.0) level",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            1000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ArmRobot",
+      "descriptor": "Allows for the control of the arm robot.",
+      "values": [
+        {
+          "id": "ArmRobotType",
+          "descriptor": "Current status of the arm robot type",
+          "type": "ENUM",
+          "format": "ArmRobotTypeEnum"
+        },
+        {
+          "id": "CurrentPosition",
+          "descriptor": "Current status of the arm robot position",
+          "type": "STRING"
+        }
+      ],
+      "functions": [
+        {
+          "id": "Hello",
+          "descriptor": "Send hello command to arm robot",
+          "return_type": "VOID"
+        },
+        {
+          "id": "SendCommand",
+          "descriptor": "Send command to arm robot",
+          "arguments": [
+            {
+              "id": "Command",
+              "descriptor": "Command to send to the arm robot. List of string, separated by '|'",
+              "type": "ENUM",
+              "format": "ArmRobotTypeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetPosition",
+          "descriptor": "Send position to arm robot",
+          "arguments": [
+            {
+              "id": "Position",
+              "descriptor": "Position to set for the arm robot.",
+              "type": "ENUM",
+              "format": "ArmRobotPositionEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "ArmRobotPositionEnum",
+          "members": [
+            {
+              "value": "mycobot280_pi",
+              "description": "mycobot280_pi"
+            }
+          ]
+        },
+        {
+          "id": "ArmRobotTypeEnum",
+          "members": [
+            {
+              "value": "mycobot280_pi",
+              "description": "mycobot280_pi"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "AudioRecorder",
+      "descriptor": "Record audio",
+      "values": [
+        {
+          "id": "AudioFile",
+          "descriptor": "The current audio file of the audio recorder",
+          "type": "BINARY",
+          "format": "wav"
+        },
+        {
+          "id": "RecordStatus",
+          "descriptor": "The current status of the audio recorder",
+          "type": "ENUM",
+          "format": "RecordStatusEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "RecordStart",
+          "descriptor": "Start recording audio",
+          "return_type": "VOID"
+        },
+        {
+          "id": "RecordStop",
+          "descriptor": "Stop recording audio",
+          "arguments": [
+            {
+              "id": "File",
+              "descriptor": "The file to save the recording to",
+              "type": "BINARY",
+              "format": "wav"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "RecordWithDuration",
+          "descriptor": "Record audio with a specified duration",
+          "arguments": [
+            {
+              "id": "File",
+              "descriptor": "The file to record to",
+              "type": "STRING"
+            },
+            {
+              "id": "Duration",
+              "descriptor": "The duration to record for",
+              "type": "DOUBLE",
+              "bound": [
+                0,
+                9223372036854775807
+              ]
+            }
+          ],
+          "return_type": {
+            "type": "BINARY"
+          }
+        }
+      ],
+      "enums": [
+        {
+          "id": "RecordStatusEnum",
+          "members": [
+            {
+              "value": "idle",
+              "description": "The recorder is not currently recording"
+            },
+            {
+              "value": "recording",
+              "description": "The recorder is actively capturing audio"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Button",
+      "descriptor": "A device with one or more buttons",
+      "values": [
+        {
+          "id": "Button",
+          "descriptor": "Button state",
+          "type": "ENUM",
+          "format": "ButtonEnum"
+        }
+      ],
+      "enums": [
+        {
+          "id": "ButtonEnum",
+          "members": [
+            {
+              "value": "pushed",
+              "description": "The value if the Button is pushed"
+            },
+            {
+              "value": "held",
+              "description": "The value if the Button is held"
+            },
+            {
+              "value": "double",
+              "description": "The value if the Button is pushed twice"
+            },
+            {
+              "value": "pushed_2x",
+              "description": "The value if the Button is pushed twice"
+            },
+            {
+              "value": "pushed_3x",
+              "description": "The value if the Button is pushed three times"
+            },
+            {
+              "value": "pushed_4x",
+              "description": "The value if the Button is pushed four times"
+            },
+            {
+              "value": "pushed_5x",
+              "description": "The value if the Button is pushed five times"
+            },
+            {
+              "value": "pushed_6x",
+              "description": "The value if the Button is pushed six times"
+            },
+            {
+              "value": "down",
+              "description": "The value if the Button is clicked down"
+            },
+            {
+              "value": "down_2x",
+              "description": "The value if the Button is clicked down twice"
+            },
+            {
+              "value": "down_3x",
+              "description": "The value if the Button is clicked down three times"
+            },
+            {
+              "value": "down_4x",
+              "description": "The value if the Button is clicked down four times"
+            },
+            {
+              "value": "down_5x",
+              "description": "The value if the Button is clicked down five times"
+            },
+            {
+              "value": "down_6x",
+              "description": "The value if the Button is clicked down six times"
+            },
+            {
+              "value": "down_hold",
+              "description": "The value if the Button is clicked down and held"
+            },
+            {
+              "value": "up",
+              "description": "The value if the Button is clicked up"
+            },
+            {
+              "value": "up_2x",
+              "description": "The value if the Button is clicked up twice"
+            },
+            {
+              "value": "up_3x",
+              "description": "The value if the Button is clicked up three times"
+            },
+            {
+              "value": "up_4x",
+              "description": "The value if the Button is clicked up four times"
+            },
+            {
+              "value": "up_5x",
+              "description": "The value if the Button is clicked up five times"
+            },
+            {
+              "value": "up_6x",
+              "description": "The value if the Button is clicked up six times"
+            },
+            {
+              "value": "up_hold",
+              "description": "The value if the Button is clicked up and held"
+            },
+            {
+              "value": "swipe_up",
+              "description": "The value if the Button is swiped up from botton to top"
+            },
+            {
+              "value": "swipe_down",
+              "description": "The value if the Button is swiped down from top to bottom"
+            },
+            {
+              "value": "swipe_left",
+              "description": "The value if the Button is swiped from right to left"
+            },
+            {
+              "value": "swipe_right",
+              "description": "The value if the Button is swiped from left to right"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Camera",
+      "descriptor": "Controls camera device for image/video capture and streaming",
+      "values": [
+        {
+          "id": "CameraState",
+          "descriptor": "Current camera state",
+          "type": "ENUM",
+          "format": "CameraStateEnum"
+        },
+        {
+          "id": "Image",
+          "descriptor": "The latest image captured by the camera",
+          "type": "BINARY"
+        },
+        {
+          "id": "Stream",
+          "descriptor": "The current video stream from the camera",
+          "type": "STRING"
+        },
+        {
+          "id": "Video",
+          "descriptor": "The latest video captured by the camera",
+          "type": "BINARY"
+        }
+      ],
+      "functions": [
+        {
+          "id": "CaptureImage",
+          "descriptor": "Take a picture with the camera - Return the image as binary data",
+          "return_type": {
+            "type": "BINARY"
+          }
+        },
+        {
+          "id": "CaptureVideo",
+          "descriptor": "Take a video with the camera - Return the video as binary data",
+          "return_type": {
+            "type": "BINARY"
+          }
+        },
+        {
+          "id": "StartStream",
+          "descriptor": "Start the camera stream - Return the stream URL",
+          "return_type": {
+            "type": "STRING"
+          }
+        },
+        {
+          "id": "StopStream",
+          "descriptor": "Stop the camera stream",
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "CameraStateEnum",
+          "members": [
+            {
+              "value": "off",
+              "description": "The camera is powered off"
+            },
+            {
+              "value": "on",
+              "description": "The camera is powered on and operational"
+            },
+            {
+              "value": "restarting",
+              "description": "The camera is in the process of restarting"
+            },
+            {
+              "value": "unavailable",
+              "description": "The camera is not accessible or has encountered an error"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CarbonDioxideSensor",
+      "descriptor": "Measure carbon dioxide levels",
+      "values": [
+        {
+          "id": "CarbonDioxide",
+          "descriptor": "The level of carbon dioxide detected",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            1000000
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Charger",
+      "descriptor": "The current status of battery charging",
+      "values": [
+        {
+          "id": "ChargingState",
+          "descriptor": "The current charging state of the device",
+          "type": "ENUM",
+          "format": "ChargingStateEnum"
+        },
+        {
+          "id": "Current",
+          "descriptor": "The current flowing into or out of the battery in amperes",
+          "type": "DOUBLE"
+        },
+        {
+          "id": "Power",
+          "descriptor": "The power consumption of the device in watts",
+          "type": "DOUBLE"
+        },
+        {
+          "id": "Voltage",
+          "descriptor": "The voltage of the battery in millivolts",
+          "type": "DOUBLE"
+        }
+      ],
+      "enums": [
+        {
+          "id": "ChargingStateEnum",
+          "members": [
+            {
+              "value": "charging",
+              "description": "The battery is actively being charged"
+            },
+            {
+              "value": "discharging",
+              "description": "The battery is supplying power and losing charge"
+            },
+            {
+              "value": "stopped",
+              "description": "Charging has been stopped but the battery is not full"
+            },
+            {
+              "value": "fullyCharged",
+              "description": "The battery has reached full capacity"
+            },
+            {
+              "value": "error",
+              "description": "A charging error has occurred"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Clock",
+      "descriptor": "Provide current date and time",
+      "values": [
+        {
+          "id": "Date",
+          "descriptor": "Current date as string - format: YYYYMMdd",
+          "type": "STRING"
+        },
+        {
+          "id": "Datetime",
+          "descriptor": "Current date and time as string - format: YYYYMMddhhmm",
+          "type": "STRING",
+          "bound": [
+            0,
+            9223372036854775807
+          ]
+        },
+        {
+          "id": "Day",
+          "descriptor": "Current day",
+          "type": "INTEGER",
+          "bound": [
+            1,
+            31
+          ]
+        },
+        {
+          "id": "Hour",
+          "descriptor": "Current hour",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            24
+          ]
+        },
+        {
+          "id": "IsHoliday",
+          "descriptor": "Whether today is a holiday",
+          "type": "BOOL"
+        },
+        {
+          "id": "Minute",
+          "descriptor": "Current minute",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            60
+          ]
+        },
+        {
+          "id": "Month",
+          "descriptor": "Current month",
+          "type": "INTEGER",
+          "bound": [
+            1,
+            12
+          ]
+        },
+        {
+          "id": "Second",
+          "descriptor": "Current second",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            60
+          ]
+        },
+        {
+          "id": "Time",
+          "descriptor": "Current time as string - format: hhmm",
+          "type": "STRING"
+        },
+        {
+          "id": "Timestamp",
+          "descriptor": "Current timestamp (return current unix time - unit: seconds with floating point)",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            9223372036854775807
+          ]
+        },
+        {
+          "id": "Weekday",
+          "descriptor": "Current weekday",
+          "type": "ENUM",
+          "format": "WeekdayEnum"
+        },
+        {
+          "id": "Year",
+          "descriptor": "Current year",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            100000
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "id": "Delay",
+          "descriptor": "delay for a given amount of time",
+          "arguments": [
+            {
+              "id": "Hour",
+              "descriptor": "hour",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                9223372036854775807
+              ]
+            },
+            {
+              "id": "Minute",
+              "descriptor": "minute",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                9223372036854775807
+              ]
+            },
+            {
+              "id": "Second",
+              "descriptor": "second",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                9223372036854775807
+              ]
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "WeekdayEnum",
+          "members": [
+            {
+              "value": "monday",
+              "description": "Monday"
+            },
+            {
+              "value": "tuesday",
+              "description": "Tuesday"
+            },
+            {
+              "value": "wednesday",
+              "description": "Wednesday"
+            },
+            {
+              "value": "thursday",
+              "description": "Thursday"
+            },
+            {
+              "value": "friday",
+              "description": "Friday"
+            },
+            {
+              "value": "saturday",
+              "description": "Saturday"
+            },
+            {
+              "value": "sunday",
+              "description": "Sunday"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "CloudServiceProvider",
+      "descriptor": "Provides cloud service functionalities",
+      "values": [
+        {
+          "id": "ChatSession",
+          "descriptor": "Represents a chat session with an AI model via the cloud service",
+          "type": "STRING"
+        },
+        {
+          "id": "GeneratedImage",
+          "descriptor": "Represents an image generated by the cloud service",
+          "type": "BINARY"
+        },
+        {
+          "id": "ImageExplanation",
+          "descriptor": "Represents the description of an image explained by the cloud service",
+          "type": "STRING"
+        },
+        {
+          "id": "LLMModels",
+          "descriptor": "Represents the available large language models provided by the cloud service",
+          "type": "LIST",
+          "format": "list[LLMModelEnum]"
+        },
+        {
+          "id": "UploadedFile",
+          "descriptor": "Represents a file that has been uploaded to the cloud service",
+          "type": "BINARY"
+        }
+      ],
+      "functions": [
+        {
+          "id": "ChatWithAI",
+          "descriptor": "Chat with an AI model using the cloud service",
+          "arguments": [
+            {
+              "id": "Prompt",
+              "descriptor": "The text prompt to chat with the AI model",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "STRING"
+          }
+        },
+        {
+          "id": "ExplainImage",
+          "descriptor": "Explain an image and return a description using the cloud service",
+          "arguments": [
+            {
+              "id": "ImageFile",
+              "descriptor": "Image file to be explained",
+              "type": "BINARY"
+            }
+          ],
+          "return_type": {
+            "type": "STRING"
+          }
+        },
+        {
+          "id": "GenerateImage",
+          "descriptor": "Generate an image based on a text prompt using the cloud service",
+          "arguments": [
+            {
+              "id": "Prompt",
+              "descriptor": "The text prompt to generate the image from",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "BINARY"
+          }
+        },
+        {
+          "id": "IsAvailable",
+          "descriptor": "Check if the cloud service is available",
+          "arguments": [
+            {
+              "id": "ServiceName",
+              "descriptor": "The name of the cloud service to check",
+              "type": "BOOL"
+            }
+          ],
+          "return_type": {
+            "type": "BOOL"
+          }
+        },
+        {
+          "id": "SaveToFile",
+          "descriptor": "Save data to a file in local",
+          "arguments": [
+            {
+              "id": "Data",
+              "descriptor": "The base64 data to save to the file",
+              "type": "BINARY"
+            },
+            {
+              "id": "FilePath",
+              "descriptor": "Path of the file to save data to",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "STRING"
+          }
+        },
+        {
+          "id": "SpeechToText",
+          "descriptor": "Convert speech to text using the cloud service",
+          "arguments": [
+            {
+              "id": "AudioFile",
+              "descriptor": "Audio file containing the speech to convert",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "STRING"
+          }
+        },
+        {
+          "id": "TextToSpeech",
+          "descriptor": "Convert text to speech using the cloud service",
+          "arguments": [
+            {
+              "id": "Text",
+              "descriptor": "Text to be converted to speech",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "BINARY"
+          }
+        },
+        {
+          "id": "UploadFile",
+          "descriptor": "Upload file to the cloud service",
+          "arguments": [
+            {
+              "id": "File",
+              "descriptor": "File to upload to the cloud service",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "BINARY"
+          }
+        },
+        {
+          "id": "UploadToCloudStorage",
+          "descriptor": "Upload a file to cloud storage",
+          "arguments": [
+            {
+              "id": "File",
+              "descriptor": "Path of the file or Base64 data to upload to cloud storage",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "STRING"
+          }
+        }
+      ],
+      "enums": [
+        {
+          "id": "LLMModelEnum",
+          "members": [
+            {
+              "value": "gemini_3_pro",
+              "description": "Google Gemini 3 Pro Preview model"
+            },
+            {
+              "value": "gemini_2_5_pro",
+              "description": "Google Gemini 2.5 Pro model"
+            },
+            {
+              "value": "gemini_2_5_flash",
+              "description": "Google Gemini 2.5 Flash model"
+            },
+            {
+              "value": "gemini_2_5_flash_lite",
+              "description": "Google Gemini 2.5 Flash Lite model"
+            },
+            {
+              "value": "gemini_2_0_flash",
+              "description": "Google Gemini 2.0 Flash model"
+            },
+            {
+              "value": "gemini_2_0_flash_lite",
+              "description": "Google Gemini 2.0 Flash Lite model"
+            },
+            {
+              "value": "gpt_5_1",
+              "description": "OpenAI GPT-5.1 model"
+            },
+            {
+              "value": "gpt_5",
+              "description": "OpenAI GPT-5 model"
+            },
+            {
+              "value": "gpt_5_mini",
+              "description": "OpenAI GPT-5 Mini model"
+            },
+            {
+              "value": "gpt_5_nano",
+              "description": "OpenAI GPT-5 Nano model"
+            },
+            {
+              "value": "gpt_4_1",
+              "description": "OpenAI GPT-4.1 model"
+            },
+            {
+              "value": "gpt_4_1_mini",
+              "description": "OpenAI GPT-4.1 Mini model"
+            },
+            {
+              "value": "gpt_4_1_nano",
+              "description": "OpenAI GPT-4.1 Nano model"
+            },
+            {
+              "value": "gpt_4o",
+              "description": "OpenAI GPT-4o model"
+            },
+            {
+              "value": "gpt_4o_mini",
+              "description": "OpenAI GPT-4o Mini model"
+            },
+            {
+              "value": "gpt_4",
+              "description": "OpenAI GPT-4 model"
+            },
+            {
+              "value": "gpt_3_5_turbo",
+              "description": "OpenAI GPT-3.5 Turbo model"
+            },
+            {
+              "value": "gpt_o4_mini",
+              "description": "OpenAI o4-mini reasoning model"
+            },
+            {
+              "value": "gpt_o3",
+              "description": "OpenAI o3 reasoning model"
+            },
+            {
+              "value": "gpt_o3_mini",
+              "description": "OpenAI o3-mini reasoning model"
+            },
+            {
+              "value": "gpt_o1",
+              "description": "OpenAI o1 reasoning model"
+            }
+          ]
+        },
+        {
+          "id": "LLMServiceEnum",
+          "members": [
+            {
+              "value": "openai",
+              "description": "OpenAI API service"
+            },
+            {
+              "value": "gemini",
+              "description": "Google Gemini API service"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ColorControl",
+      "descriptor": "Allows for control of a color changing device",
+      "values": [
+        {
+          "id": "Color",
+          "descriptor": "Current color in RGB format (r|g|b)",
+          "type": "STRING",
+          "format": "r|g|b"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetColor",
+          "descriptor": "Set the color of the device",
+          "arguments": [
+            {
+              "id": "Color",
+              "descriptor": "RGB color value in format 'r|g|b' (0-255 for each)",
+              "type": "STRING",
+              "format": "r|g|b"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "ColorModeEnum",
+          "members": [
+            {
+              "value": "HSV",
+              "description": "Hue/Saturation/Value color model"
+            },
+            {
+              "value": "RGB",
+              "description": "Red/Green/Blue color model"
+            },
+            {
+              "value": "XY",
+              "description": "CIE 1931 XY chromaticity color space"
+            },
+            {
+              "value": "CT",
+              "description": "Color Temperature in mireds"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ContactSensor",
+      "descriptor": "Allows reading the value of a contact sensor device",
+      "values": [
+        {
+          "id": "Contact",
+          "descriptor": "The current state of the contact sensor. True if the sensor is closed, False if it is open.",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "id": "Dehumidifier",
+      "descriptor": "Allows for the control of the dehumidifier mode.",
+      "values": [
+        {
+          "id": "DehumidifierMode",
+          "descriptor": "Current mode of the dehumidifier",
+          "type": "ENUM",
+          "format": "DehumidifierModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetDehumidifierMode",
+          "descriptor": "Set the dehumidifier mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the dehumidifier mode",
+              "type": "ENUM",
+              "format": "DehumidifierModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "DehumidifierModeEnum",
+          "members": [
+            {
+              "value": "cooling",
+              "description": "Cooling cycle during operation"
+            },
+            {
+              "value": "delayWash",
+              "description": "Scheduled wash or dry cycle with a delayed start"
+            },
+            {
+              "value": "drying",
+              "description": "Active drying cycle"
+            },
+            {
+              "value": "finished",
+              "description": "The current operation has completed"
+            },
+            {
+              "value": "refreshing",
+              "description": "Refresh cycle to remove odors from fabrics"
+            },
+            {
+              "value": "weightSensing",
+              "description": "Detecting load weight to optimize operation"
+            },
+            {
+              "value": "wrinklePrevent",
+              "description": "Periodic tumbling to prevent wrinkles after drying"
+            },
+            {
+              "value": "dehumidifying",
+              "description": "Actively removing moisture from the air"
+            },
+            {
+              "value": "AIDrying",
+              "description": "AI-powered optimized drying based on sensor data"
+            },
+            {
+              "value": "sanitizing",
+              "description": "High-temperature sanitization cycle to eliminate bacteria"
+            },
+            {
+              "value": "internalCare",
+              "description": "Internal component cleaning and maintenance cycle"
+            },
+            {
+              "value": "freezeProtection",
+              "description": "Prevents internal freezing in cold ambient conditions"
+            },
+            {
+              "value": "continuousDehumidifying",
+              "description": "Continuous dehumidification without automatic stop"
+            },
+            {
+              "value": "thawingFrozenInside",
+              "description": "Thawing frozen internal components for recovery"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Dishwasher",
+      "descriptor": "Allows for the control of the dishwasher mode.",
+      "values": [
+        {
+          "id": "DishwasherMode",
+          "descriptor": "Current mode of the dishwasher",
+          "type": "ENUM",
+          "format": "DishwasherModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetDishwasherMode",
+          "descriptor": "Set the dishwasher mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the dishwasher mode to \"eco\", \"intense\", \"auto\", \"quick\", \"rinse\", or \"dry\" mode",
+              "type": "ENUM",
+              "format": "DishwasherModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "DishwasherModeEnum",
+          "members": [
+            {
+              "value": "eco",
+              "description": "Energy-saving wash cycle with lower water temperature"
+            },
+            {
+              "value": "intense",
+              "description": "Intensive wash cycle for heavily soiled dishes"
+            },
+            {
+              "value": "auto",
+              "description": "Automatically selects optimal wash settings based on load"
+            },
+            {
+              "value": "quick",
+              "description": "Fast wash cycle for lightly soiled dishes"
+            },
+            {
+              "value": "rinse",
+              "description": "Rinse-only cycle without detergent"
+            },
+            {
+              "value": "dry",
+              "description": "Drying cycle after washing"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Door",
+      "descriptor": "Allow for the control of a door",
+      "values": [
+        {
+          "id": "DoorState",
+          "descriptor": "The current state of the door",
+          "type": "ENUM",
+          "format": "DoorStateEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "Close",
+          "descriptor": "Close the door",
+          "return_type": "VOID"
+        },
+        {
+          "id": "Open",
+          "descriptor": "Open the door",
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "DoorStateEnum",
+          "members": [
+            {
+              "value": "closed",
+              "description": "The door is fully closed"
+            },
+            {
+              "value": "closing",
+              "description": "The door is in the process of closing"
+            },
+            {
+              "value": "open",
+              "description": "The door is fully open"
+            },
+            {
+              "value": "opening",
+              "description": "The door is in the process of opening"
+            },
+            {
+              "value": "unknown",
+              "description": "The door state cannot be determined"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "DoorLock",
+      "descriptor": "Allow for the control of a door lock",
+      "values": [
+        {
+          "id": "DoorLockState",
+          "descriptor": "The current state of the door lock",
+          "type": "ENUM",
+          "format": "DoorLockStateEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "Lock",
+          "descriptor": "Lock the door",
+          "return_type": "VOID"
+        },
+        {
+          "id": "Unlock",
+          "descriptor": "Unlock the door",
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "DoorLockStateEnum",
+          "members": [
+            {
+              "value": "closed",
+              "description": "The door lock is in the locked (secured) state"
+            },
+            {
+              "value": "closing",
+              "description": "The door lock is in the process of locking"
+            },
+            {
+              "value": "open",
+              "description": "The door lock is in the unlocked state"
+            },
+            {
+              "value": "opening",
+              "description": "The door lock is in the process of unlocking"
+            },
+            {
+              "value": "unknown",
+              "description": "The door lock state cannot be determined"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "EmailProvider",
+      "descriptor": "Provides email service",
+      "functions": [
+        {
+          "id": "SendMail",
+          "descriptor": "Send an email to the specified recipient",
+          "arguments": [
+            {
+              "id": "ToAddress",
+              "descriptor": "The email address of the recipient",
+              "type": "STRING"
+            },
+            {
+              "id": "Title",
+              "descriptor": "The title of the email",
+              "type": "STRING"
+            },
+            {
+              "id": "Body",
+              "descriptor": "The body content of the email",
+              "type": "STRING"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SendMailWithFile",
+          "descriptor": "Send an email with an attachment to the specified recipient",
+          "arguments": [
+            {
+              "id": "ToAddress",
+              "descriptor": "The email address of the recipient",
+              "type": "STRING"
+            },
+            {
+              "id": "Title",
+              "descriptor": "The title of the email",
+              "type": "STRING"
+            },
+            {
+              "id": "Body",
+              "descriptor": "The body content of the email",
+              "type": "STRING"
+            },
+            {
+              "id": "File",
+              "descriptor": "The file path of the attachment or base64 encoded string",
+              "type": "STRING"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ]
+    },
+    {
+      "id": "FaceRecognizer",
+      "descriptor": "Controls face recognition features",
+      "values": [
+        {
+          "id": "RecognizedResult",
+          "descriptor": "ID of the currently recognized face",
+          "type": "STRING"
+        }
+      ],
+      "functions": [
+        {
+          "id": "AddFace",
+          "descriptor": "Add a new face to the recognition database",
+          "arguments": [
+            {
+              "id": "FaceID",
+              "descriptor": "ID for the new face",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "BOOL"
+          }
+        },
+        {
+          "id": "DeleteFace",
+          "descriptor": "Delete a face from the recognition database",
+          "arguments": [
+            {
+              "id": "FaceID",
+              "descriptor": "ID of the face to delete",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "BOOL"
+          }
+        },
+        {
+          "id": "End",
+          "descriptor": "End face recognition",
+          "return_type": {
+            "type": "BOOL"
+          }
+        },
+        {
+          "id": "Start",
+          "descriptor": "Start face recognition",
+          "return_type": {
+            "type": "BOOL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "Humidifier",
+      "descriptor": "Maintains and sets the state of an humidifier",
+      "values": [
+        {
+          "id": "HumidifierMode",
+          "descriptor": "Current mode of the humidifier",
+          "type": "ENUM",
+          "format": "HumidifierModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetHumidifierMode",
+          "descriptor": "Set the humidifier mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the humidifier mode to \"auto\", \"low\", \"medium\", or \"high\" mode",
+              "type": "ENUM",
+              "format": "HumidifierModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "HumidifierModeEnum",
+          "members": [
+            {
+              "value": "auto",
+              "description": "Automatically adjusts humidity output based on room conditions"
+            },
+            {
+              "value": "low",
+              "description": "Low humidity output level"
+            },
+            {
+              "value": "medium",
+              "description": "Medium humidity output level"
+            },
+            {
+              "value": "high",
+              "description": "High humidity output level"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "HumiditySensor",
+      "descriptor": "Allow reading the relative humidity from devices that support it",
+      "values": [
+        {
+          "id": "Humidity",
+          "descriptor": "A numerical representation of the relative humidity measurement taken by the device",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            100
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LaundryDryer",
+      "descriptor": "Allows for the control of the laundry dryer mode.",
+      "values": [
+        {
+          "id": "LaundryDryerMode",
+          "descriptor": "Current mode of the laundry dryer",
+          "type": "ENUM",
+          "format": "LaundryDryerModeEnum"
+        },
+        {
+          "id": "SpinSpeed",
+          "descriptor": "Current spin speed of the laundry dryer",
+          "type": "INTEGER"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetLaundryDryerMode",
+          "descriptor": "Set the laundry dryer mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the laundry dryer mode",
+              "type": "ENUM",
+              "format": "LaundryDryerModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetSpinSpeed",
+          "descriptor": "Set the spin speed of the laundry dryer",
+          "arguments": [
+            {
+              "id": "Speed",
+              "descriptor": "Set the spin speed of the laundry dryer",
+              "type": "INTEGER"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "LaundryDryerModeEnum",
+          "members": [
+            {
+              "value": "auto",
+              "description": "Automatically selects optimal drying settings"
+            },
+            {
+              "value": "quick",
+              "description": "Fast drying cycle for lightly damp items"
+            },
+            {
+              "value": "quiet",
+              "description": "Reduced noise operation mode"
+            },
+            {
+              "value": "lownoise",
+              "description": "Low noise operation mode"
+            },
+            {
+              "value": "lowenergy",
+              "description": "Energy-saving drying cycle"
+            },
+            {
+              "value": "vacation",
+              "description": "Minimal energy mode for extended absence"
+            },
+            {
+              "value": "min",
+              "description": "Minimum drying intensity"
+            },
+            {
+              "value": "max",
+              "description": "Maximum drying intensity"
+            },
+            {
+              "value": "night",
+              "description": "Quiet operation optimized for nighttime use"
+            },
+            {
+              "value": "day",
+              "description": "Standard daytime operation mode"
+            },
+            {
+              "value": "normal",
+              "description": "Standard drying cycle for everyday items"
+            },
+            {
+              "value": "delicate",
+              "description": "Gentle drying cycle for delicate fabrics"
+            },
+            {
+              "value": "heavy",
+              "description": "Intensive drying cycle for heavy or bulky items"
+            },
+            {
+              "value": "whites",
+              "description": "Drying cycle optimized for white fabrics"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LeakSensor",
+      "descriptor": "A Device that senses water leakage",
+      "values": [
+        {
+          "id": "Leakage",
+          "descriptor": "Whether or not water leakage was detected by the Device",
+          "type": "BOOL"
+        }
+      ],
+      "enums": [
+        {
+          "id": "LeakageEnum",
+          "members": [
+            {
+              "value": "detected",
+              "description": "water leak is detected"
+            },
+            {
+              "value": "not detected",
+              "description": "no leak"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LevelControl",
+      "descriptor": "Allows for the control of the level of a device like a light or a dimmer switch.",
+      "values": [
+        {
+          "id": "CurrentLevel",
+          "descriptor": "A number that represents the current level, usually ``0-100`` in percent",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            100
+          ]
+        },
+        {
+          "id": "MaxLevel",
+          "descriptor": "Maximum level the device supports",
+          "type": "DOUBLE"
+        },
+        {
+          "id": "MinLevel",
+          "descriptor": "Minimum level the device supports",
+          "type": "DOUBLE"
+        }
+      ],
+      "functions": [
+        {
+          "id": "MoveToLevel",
+          "descriptor": "Move the level to the given value. If the device supports being turned on and off then it will be turned on if ``level`` is greater than 0 and turned off if ``level`` is equal to 0.",
+          "arguments": [
+            {
+              "id": "Level",
+              "descriptor": "The level value, usually ``0-100`` in percent",
+              "type": "DOUBLE",
+              "bound": [
+                0,
+                100
+              ]
+            },
+            {
+              "id": "Rate",
+              "descriptor": "The rate at which to change the level",
+              "type": "DOUBLE",
+              "bound": [
+                0,
+                100
+              ]
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ]
+    },
+    {
+      "id": "Light",
+      "descriptor": "A numerical representation of the brightness intensity with color control capabilities based on the Matter Color Control cluster",
+      "values": [
+        {
+          "id": "ColorMode",
+          "descriptor": "Current active color mode",
+          "type": "ENUM",
+          "format": "ColorModeEnum"
+        },
+        {
+          "id": "ColorTempPhysicalMaxMireds",
+          "descriptor": "Maximum supported color temperature in mireds",
+          "type": "INTEGER"
+        },
+        {
+          "id": "ColorTempPhysicalMinMireds",
+          "descriptor": "Minimum supported color temperature in mireds",
+          "type": "INTEGER"
+        },
+        {
+          "id": "ColorTemperatureMireds",
+          "descriptor": "Current color temperature in mireds",
+          "type": "INTEGER"
+        },
+        {
+          "id": "CurrentBrightness",
+          "descriptor": "Current brightness level (0~100%)",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            100
+          ]
+        },
+        {
+          "id": "CurrentHue",
+          "descriptor": "Current hue value (0-254)",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            254
+          ]
+        },
+        {
+          "id": "CurrentSaturation",
+          "descriptor": "Current saturation value (0-254)",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            254
+          ]
+        },
+        {
+          "id": "CurrentX",
+          "descriptor": "Current CIE 1931 X chromaticity coordinate (0.0-1.0)",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            1
+          ]
+        },
+        {
+          "id": "CurrentY",
+          "descriptor": "Current CIE 1931 Y chromaticity coordinate (0.0-1.0)",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            1
+          ]
+        },
+        {
+          "id": "EnhancedCurrentHue",
+          "descriptor": "Enhanced current hue value with 16-bit precision (0-65535)",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            65535
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "id": "EnhancedMoveToHue",
+          "descriptor": "Move to the specified enhanced hue value (16-bit precision) in a given direction over a transition time",
+          "arguments": [
+            {
+              "id": "EnhancedHue",
+              "descriptor": "Target enhanced hue value with 16-bit precision (0-65535)",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                65535
+              ]
+            },
+            {
+              "id": "Direction",
+              "descriptor": "Direction to rotate around the hue circle",
+              "type": "ENUM",
+              "format": "HueDirectionEnum"
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "EnhancedMoveToHueAndSaturation",
+          "descriptor": "Move to the specified enhanced hue and saturation values simultaneously over a transition time",
+          "arguments": [
+            {
+              "id": "EnhancedHue",
+              "descriptor": "Target enhanced hue value with 16-bit precision (0-65535)",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                65535
+              ]
+            },
+            {
+              "id": "Saturation",
+              "descriptor": "Target saturation value (0-254)",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                254
+              ]
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveColor",
+          "descriptor": "Continuously move the XY color coordinates at the specified rate",
+          "arguments": [
+            {
+              "id": "RateX",
+              "descriptor": "Rate of change for X coordinate per second",
+              "type": "DOUBLE"
+            },
+            {
+              "id": "RateY",
+              "descriptor": "Rate of change for Y coordinate per second",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveColorTemperature",
+          "descriptor": "Continuously move the color temperature in the specified direction at the given rate",
+          "arguments": [
+            {
+              "id": "MoveMode",
+              "descriptor": "Movement mode (stop, up, or down)",
+              "type": "ENUM",
+              "format": "MoveModeEnum"
+            },
+            {
+              "id": "Rate",
+              "descriptor": "Rate of color temperature change per second in mireds",
+              "type": "INTEGER"
+            },
+            {
+              "id": "ColorTemperatureMinimumMireds",
+              "descriptor": "Minimum color temperature limit in mireds",
+              "type": "INTEGER"
+            },
+            {
+              "id": "ColorTemperatureMaximumMireds",
+              "descriptor": "Maximum color temperature limit in mireds",
+              "type": "INTEGER"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveHue",
+          "descriptor": "Continuously move the hue in the specified direction at the given rate",
+          "arguments": [
+            {
+              "id": "MoveMode",
+              "descriptor": "Movement mode (stop, up, or down)",
+              "type": "ENUM",
+              "format": "MoveModeEnum"
+            },
+            {
+              "id": "Rate",
+              "descriptor": "Rate of hue change per second",
+              "type": "INTEGER"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveToBrightness",
+          "descriptor": "Move the Brightness to the given value. If the device supports being turned on and off then it will be turned on if ``brightness`` is greater than 0 and turned off if ``brightness`` is equal to 0.",
+          "arguments": [
+            {
+              "id": "Brightness",
+              "descriptor": "The brightness value, usually ``0-100`` in percent",
+              "type": "DOUBLE",
+              "bound": [
+                0,
+                100
+              ]
+            },
+            {
+              "id": "Rate",
+              "descriptor": "The rate at which to change the brightness",
+              "type": "DOUBLE",
+              "bound": [
+                0,
+                100
+              ]
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveToColor",
+          "descriptor": "Move to the specified CIE 1931 XY color coordinates over a given transition time",
+          "arguments": [
+            {
+              "id": "ColorX",
+              "descriptor": "Target CIE 1931 X chromaticity coordinate (0.0-1.0)",
+              "type": "DOUBLE",
+              "bound": [
+                0,
+                1
+              ]
+            },
+            {
+              "id": "ColorY",
+              "descriptor": "Target CIE 1931 Y chromaticity coordinate (0.0-1.0)",
+              "type": "DOUBLE",
+              "bound": [
+                0,
+                1
+              ]
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "examples": [
+            "Red:    MoveToColor(ColorX=0.67, ColorY=0.32, TransitionTime=0.0)",
+            "Green:  MoveToColor(ColorX=0.40, ColorY=0.50, TransitionTime=0.0)",
+            "Blue:   MoveToColor(ColorX=0.15, ColorY=0.06, TransitionTime=0.0)",
+            "White:  MoveToColor(ColorX=0.33, ColorY=0.33, TransitionTime=0.0)",
+            "Yellow: MoveToColor(ColorX=0.43, ColorY=0.50, TransitionTime=0.0)",
+            "Purple: MoveToColor(ColorX=0.27, ColorY=0.13, TransitionTime=0.0)"
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveToColorTemperature",
+          "descriptor": "Move to the specified color temperature over a transition time",
+          "arguments": [
+            {
+              "id": "ColorTemperatureMireds",
+              "descriptor": "Target color temperature in mireds",
+              "type": "INTEGER"
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveToHue",
+          "descriptor": "Move to the specified hue value in a given direction over a transition time",
+          "arguments": [
+            {
+              "id": "Hue",
+              "descriptor": "Target hue value (0-254)",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                254
+              ]
+            },
+            {
+              "id": "Direction",
+              "descriptor": "Direction to rotate around the hue circle",
+              "type": "ENUM",
+              "format": "HueDirectionEnum"
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveToHueAndSaturation",
+          "descriptor": "Move to the specified hue and saturation values simultaneously over a transition time",
+          "arguments": [
+            {
+              "id": "Hue",
+              "descriptor": "Target hue value (0-254)",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                254
+              ]
+            },
+            {
+              "id": "Saturation",
+              "descriptor": "Target saturation value (0-254)",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                254
+              ]
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "MoveToSaturation",
+          "descriptor": "Move to the specified saturation value over a transition time",
+          "arguments": [
+            {
+              "id": "Saturation",
+              "descriptor": "Target saturation value (0-254)",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                254
+              ]
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "StepColor",
+          "descriptor": "Step the XY color coordinates by the specified amount over a given transition time",
+          "arguments": [
+            {
+              "id": "StepX",
+              "descriptor": "Step size for X coordinate",
+              "type": "DOUBLE"
+            },
+            {
+              "id": "StepY",
+              "descriptor": "Step size for Y coordinate",
+              "type": "DOUBLE"
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "StepColorTemperature",
+          "descriptor": "Step the color temperature by the specified amount in a given direction over a transition time",
+          "arguments": [
+            {
+              "id": "StepMode",
+              "descriptor": "Step direction (up or down)",
+              "type": "ENUM",
+              "format": "StepModeEnum"
+            },
+            {
+              "id": "StepSize",
+              "descriptor": "Step size for color temperature change in mireds",
+              "type": "INTEGER"
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            },
+            {
+              "id": "ColorTemperatureMinimumMireds",
+              "descriptor": "Minimum color temperature limit in mireds",
+              "type": "INTEGER"
+            },
+            {
+              "id": "ColorTemperatureMaximumMireds",
+              "descriptor": "Maximum color temperature limit in mireds",
+              "type": "INTEGER"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "StepHue",
+          "descriptor": "Step the hue by the specified amount in a given direction over a transition time",
+          "arguments": [
+            {
+              "id": "StepMode",
+              "descriptor": "Step direction (up or down)",
+              "type": "ENUM",
+              "format": "StepModeEnum"
+            },
+            {
+              "id": "StepSize",
+              "descriptor": "Step size for hue change",
+              "type": "INTEGER"
+            },
+            {
+              "id": "TransitionTime",
+              "descriptor": "Transition time in seconds",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "ColorModeEnum",
+          "members": [
+            {
+              "value": "hsv",
+              "description": "Hue/Saturation color mode"
+            },
+            {
+              "value": "xy",
+              "description": "CIE 1931 XY chromaticity color mode"
+            },
+            {
+              "value": "ct",
+              "description": "Color Temperature (Mireds) mode"
+            }
+          ]
+        },
+        {
+          "id": "HueDirectionEnum",
+          "members": [
+            {
+              "value": "shortest_distance",
+              "description": "Shortest path around the hue circle"
+            },
+            {
+              "value": "longest_distance",
+              "description": "Longest path around the hue circle"
+            },
+            {
+              "value": "up",
+              "description": "Increasing direction"
+            },
+            {
+              "value": "down",
+              "description": "Decreasing direction"
+            }
+          ]
+        },
+        {
+          "id": "MoveModeEnum",
+          "members": [
+            {
+              "value": "stop",
+              "description": "Stop moving"
+            },
+            {
+              "value": "up",
+              "description": "Move in increasing direction"
+            },
+            {
+              "value": "down",
+              "description": "Move in decreasing direction"
+            }
+          ]
+        },
+        {
+          "id": "StepModeEnum",
+          "members": [
+            {
+              "value": "up",
+              "description": "Step in increasing direction"
+            },
+            {
+              "value": "down",
+              "description": "Step in decreasing direction"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "LightSensor",
+      "descriptor": "A numerical representation of the brightness intensity",
+      "values": [
+        {
+          "id": "Brightness",
+          "descriptor": "brightness intensity (Unit: lux)",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            9223372036854775807
+          ]
+        }
+      ]
+    },
+    {
+      "id": "MenuProvider",
+      "descriptor": "Provides menu information services",
+      "values": [
+        {
+          "id": "Menu",
+          "descriptor": "Current menu information",
+          "type": "STRING"
+        },
+        {
+          "id": "TodayMenu",
+          "descriptor": "Today's menu",
+          "type": "STRING"
+        },
+        {
+          "id": "TodayPlace",
+          "descriptor": "Today's place",
+          "type": "STRING"
+        }
+      ],
+      "functions": [
+        {
+          "id": "GetMenu",
+          "descriptor": "Get the menu - Return the menu list",
+          "arguments": [
+            {
+              "id": "Command",
+              "descriptor": "The command to get the menu - format: [오늘|내일] [학생식당|수의대식당|전망대(3식당)|예술계식당(아름드리)|기숙사식당|아워홈|동원관식당(113동)|웰스토리(220동)|투굿(공대간이식당)|자하연식당|301동식당] [아침|점심|저녁]",
+              "type": "STRING"
+            }
+          ],
+          "return_type": {
+            "type": "STRING"
+          }
+        }
+      ]
+    },
+    {
+      "id": "MotionSensor",
+      "descriptor": "Detects motion or movement in the sensor's field of view",
+      "values": [
+        {
+          "id": "Motion",
+          "descriptor": "The current state of the motion sensor",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "id": "MultiButton",
+      "descriptor": "A device with multiple buttons (typically 4 buttons)",
+      "values": [
+        {
+          "id": "Button1",
+          "descriptor": "Button 1 state",
+          "type": "ENUM",
+          "format": "ButtonEnum"
+        },
+        {
+          "id": "Button2",
+          "descriptor": "Button 2 state",
+          "type": "ENUM",
+          "format": "ButtonEnum"
+        },
+        {
+          "id": "Button3",
+          "descriptor": "Button 3 state",
+          "type": "ENUM",
+          "format": "ButtonEnum"
+        },
+        {
+          "id": "Button4",
+          "descriptor": "Button 4 state",
+          "type": "ENUM",
+          "format": "ButtonEnum"
+        }
+      ],
+      "enums": [
+        {
+          "id": "ButtonEnum",
+          "members": [
+            {
+              "value": "pushed",
+              "description": "The value if the Button is pushed"
+            },
+            {
+              "value": "held",
+              "description": "The value if the Button is held"
+            },
+            {
+              "value": "double",
+              "description": "The value if the Button is pushed twice"
+            },
+            {
+              "value": "pushed_2x",
+              "description": "The value if the Button is pushed twice"
+            },
+            {
+              "value": "pushed_3x",
+              "description": "The value if the Button is pushed three times"
+            },
+            {
+              "value": "down",
+              "description": "The value if the Button is clicked down"
+            },
+            {
+              "value": "down_hold",
+              "description": "The value if the Button is clicked down and held"
+            },
+            {
+              "value": "up",
+              "description": "The value if the Button is clicked up"
+            },
+            {
+              "value": "up_hold",
+              "description": "The value if the Button is clicked up and held"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Oven",
+      "descriptor": "Allows for the control of the oven mode",
+      "values": [
+        {
+          "id": "OvenMode",
+          "descriptor": "Current mode of the oven",
+          "type": "ENUM",
+          "format": "OvenModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "AddMoreTime",
+          "descriptor": "Add more time to the current cooking process of the oven",
+          "arguments": [
+            {
+              "id": "Time",
+              "descriptor": "Set the additional cooking time of the oven",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetCookingParameters",
+          "descriptor": "Set the cooking parameters of the oven",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the mode of the oven",
+              "type": "ENUM",
+              "format": "OvenModeEnum"
+            },
+            {
+              "id": "Time",
+              "descriptor": "Set the cooking time of the oven",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetOvenMode",
+          "descriptor": "Set the oven mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the oven mode",
+              "type": "ENUM",
+              "format": "OvenModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "OvenModeEnum",
+          "members": [
+            {
+              "value": "heating",
+              "description": "General heating with top and bottom elements"
+            },
+            {
+              "value": "grill",
+              "description": "Top heating element for grilling"
+            },
+            {
+              "value": "warming",
+              "description": "Low temperature to keep food warm"
+            },
+            {
+              "value": "defrosting",
+              "description": "Low temperature cycle to thaw frozen food"
+            },
+            {
+              "value": "Conventional",
+              "description": "Traditional top and bottom heating elements"
+            },
+            {
+              "value": "Bake",
+              "description": "Bottom element focused baking mode"
+            },
+            {
+              "value": "BottomHeat",
+              "description": "Bottom heating element only"
+            },
+            {
+              "value": "ConvectionBake",
+              "description": "Fan-assisted baking with even heat distribution"
+            },
+            {
+              "value": "ConvectionRoast",
+              "description": "Fan-assisted roasting for uniform browning"
+            },
+            {
+              "value": "Broil",
+              "description": "High heat from top element for broiling"
+            },
+            {
+              "value": "ConvectionBroil",
+              "description": "Fan-assisted broiling for even cooking"
+            },
+            {
+              "value": "SteamCook",
+              "description": "Steam injection cooking for moist results"
+            },
+            {
+              "value": "SteamBake",
+              "description": "Steam-assisted baking for crispy crust and moist interior"
+            },
+            {
+              "value": "SteamRoast",
+              "description": "Steam-assisted roasting for juicy results"
+            },
+            {
+              "value": "SteamBottomHeatplusConvection",
+              "description": "Bottom heat with fan and steam combined"
+            },
+            {
+              "value": "Microwave",
+              "description": "Microwave-only cooking mode"
+            },
+            {
+              "value": "MWplusGrill",
+              "description": "Microwave combined with grill heating"
+            },
+            {
+              "value": "MWplusConvection",
+              "description": "Microwave combined with convection fan"
+            },
+            {
+              "value": "MWplusHotBlast",
+              "description": "Microwave combined with hot air blast"
+            },
+            {
+              "value": "MWplusHotBlast2",
+              "description": "Microwave combined with enhanced hot air blast"
+            },
+            {
+              "value": "SlimMiddle",
+              "description": "Slim heating element at medium power"
+            },
+            {
+              "value": "SlimStrong",
+              "description": "Slim heating element at high power"
+            },
+            {
+              "value": "SlowCook",
+              "description": "Low temperature slow cooking over extended time"
+            },
+            {
+              "value": "Proof",
+              "description": "Low temperature mode for yeast dough proofing"
+            },
+            {
+              "value": "Dehydrate",
+              "description": "Low temperature with fan for food dehydration"
+            },
+            {
+              "value": "Others",
+              "description": "Other cooking modes not listed"
+            },
+            {
+              "value": "StrongSteam",
+              "description": "Intensive steam cooking at high steam output"
+            },
+            {
+              "value": "Descale",
+              "description": "Self-cleaning descaling cycle to remove mineral buildup"
+            },
+            {
+              "value": "Rinse",
+              "description": "Water rinse cleaning cycle"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Plug",
+      "descriptor": "Allows for monitoring power consumption of a plug device",
+      "values": [
+        {
+          "id": "Current",
+          "descriptor": "The current flowing into or out of the battery in amperes",
+          "type": "DOUBLE"
+        },
+        {
+          "id": "Power",
+          "descriptor": "The power consumption of the device in watts",
+          "type": "DOUBLE"
+        },
+        {
+          "id": "Voltage",
+          "descriptor": "The voltage of the battery in millivolts",
+          "type": "DOUBLE"
+        }
+      ]
+    },
+    {
+      "id": "PresenceSensor",
+      "descriptor": "The ability to see the current status of a presence sensor device",
+      "values": [
+        {
+          "id": "Presence",
+          "descriptor": "The current state of the presence sensor",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "id": "PresenceVitalSensor",
+      "descriptor": "Presence and vital signs sensor with heart rate, respiratory rate, movement detection",
+      "values": [
+        {
+          "id": "Awakeness",
+          "descriptor": "Sleep/wake status indicator",
+          "type": "DOUBLE",
+          "bound": [
+            -10,
+            10
+          ]
+        },
+        {
+          "id": "Distance",
+          "descriptor": "Distance at which the subject is detected in meters",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            10
+          ]
+        },
+        {
+          "id": "DwellTime",
+          "descriptor": "Time duration the subject has been present in seconds",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            100000
+          ]
+        },
+        {
+          "id": "HeartRate",
+          "descriptor": "Heart rate in beats per minute",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            250
+          ]
+        },
+        {
+          "id": "MovementIndex",
+          "descriptor": "Intensity of detected relative movement",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            100
+          ]
+        },
+        {
+          "id": "Presence",
+          "descriptor": "Presence detection status",
+          "type": "BOOL"
+        },
+        {
+          "id": "RespiratoryRate",
+          "descriptor": "Respiratory rate in breaths per minute",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            60
+          ]
+        }
+      ]
+    },
+    {
+      "id": "PressureSensor",
+      "descriptor": "The ability to see the current status of a pressure sensor device",
+      "values": [
+        {
+          "id": "Presence",
+          "descriptor": "The current state of the pressure sensor",
+          "type": "DOUBLE"
+        }
+      ]
+    },
+    {
+      "id": "Pump",
+      "descriptor": "Allows for the control of a pump device.",
+      "values": [
+        {
+          "id": "PumpMode",
+          "descriptor": "A string representation of whether the Pump is normal, minimum, maximum, or localSetting",
+          "type": "ENUM",
+          "format": "PumpModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetPumpMode",
+          "descriptor": "Set the Pump mode",
+          "arguments": [
+            {
+              "id": "PumpMode",
+              "descriptor": "The desired Pump mode",
+              "type": "ENUM",
+              "format": "PumpModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "PumpModeEnum",
+          "members": [
+            {
+              "value": "normal",
+              "description": "Standard pump operation speed"
+            },
+            {
+              "value": "minimum",
+              "description": "Minimum pump operation speed for low flow"
+            },
+            {
+              "value": "maximum",
+              "description": "Maximum pump operation speed for high flow"
+            },
+            {
+              "value": "localSetting",
+              "description": "Pump speed controlled by local device settings"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RainSensor",
+      "descriptor": "A Device that senses rain",
+      "values": [
+        {
+          "id": "Rain",
+          "descriptor": "The current state of the rain sensor",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "id": "RiceCooker",
+      "descriptor": "Allows for the control of the Rice Cooker.",
+      "values": [
+        {
+          "id": "RiceCookerMode",
+          "descriptor": "Current operating mode of the rice cooker",
+          "type": "ENUM",
+          "format": "RiceCookerModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "AddMoreTime",
+          "descriptor": "Add more time to the Rice Cooker",
+          "arguments": [
+            {
+              "id": "Time",
+              "descriptor": "The additional time to add to the Rice Cooker",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetCookingParameters",
+          "descriptor": "Set the cooking parameters for the Rice Cooker",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "The desired Rice Cooker mode",
+              "type": "ENUM",
+              "format": "RiceCookerModeEnum"
+            },
+            {
+              "id": "Time",
+              "descriptor": "The additional time to add to the Rice Cooker",
+              "type": "DOUBLE"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetRiceCookerMode",
+          "descriptor": "Set the Rice Cooker mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "The desired Rice Cooker mode",
+              "type": "ENUM",
+              "format": "RiceCookerModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "RiceCookerModeEnum",
+          "members": [
+            {
+              "value": "cooking",
+              "description": "Actively cooking rice or other food"
+            },
+            {
+              "value": "keepWarm",
+              "description": "Maintaining cooked food at a warm serving temperature"
+            },
+            {
+              "value": "reheating",
+              "description": "Reheating previously cooked food"
+            },
+            {
+              "value": "autoClean",
+              "description": "Automatic self-cleaning cycle using steam"
+            },
+            {
+              "value": "soakInnerPot",
+              "description": "Soaking the inner pot with water for easier cleaning"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RobotVacuumCleaner",
+      "descriptor": "Allows for the control of the robot cleaner cleaning mode.",
+      "values": [
+        {
+          "id": "RobotVacuumCleanerCleaningMode",
+          "descriptor": "Current status of the robot cleaner cleaning mode",
+          "type": "ENUM",
+          "format": "RobotVacuumCleanerCleaningModeEnum"
+        },
+        {
+          "id": "RobotVacuumCleanerRunMode",
+          "descriptor": "Current status of the robot cleaner run mode",
+          "type": "ENUM",
+          "format": "RobotVacuumCleanerRunModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetRobotVacuumCleanerCleaningMode",
+          "descriptor": "Set the robot cleaner cleaning mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the robot cleaner cleaning mode.",
+              "type": "ENUM",
+              "format": "RobotVacuumCleanerCleaningModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetRobotVacuumCleanerRunMode",
+          "descriptor": "Set the robot cleaner run mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the robot cleaner run mode.",
+              "type": "ENUM",
+              "format": "RobotVacuumCleanerRunModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "RobotVacuumCleanerCleaningModeEnum",
+          "members": [
+            {
+              "value": "auto",
+              "description": "The robot cleaner cleaning mode is in \"auto\" mode"
+            },
+            {
+              "value": "part",
+              "description": "The robot cleaner cleaning mode is in \"part\" mode"
+            },
+            {
+              "value": "repeat",
+              "description": "The robot cleaner cleaning mode is in \"repeat\" mode"
+            },
+            {
+              "value": "manual",
+              "description": "The robot cleaner cleaning mode is in \"manual\" mode"
+            },
+            {
+              "value": "stop",
+              "description": "The robot cleaner cleaning mode is in \"stop\" mode"
+            },
+            {
+              "value": "map",
+              "description": "The robot cleaner cleaning mode is in \"map\" mode"
+            }
+          ]
+        },
+        {
+          "id": "RobotVacuumCleanerOperatingStateEnum",
+          "members": [
+            {
+              "value": "stopped",
+              "description": "The device is stopped."
+            },
+            {
+              "value": "running",
+              "description": "The device is operating."
+            },
+            {
+              "value": "paused",
+              "description": "The device is paused during an operation."
+            },
+            {
+              "value": "seekingCharger",
+              "description": "The device is en route to the charging dock."
+            },
+            {
+              "value": "charging",
+              "description": "The device is charging."
+            },
+            {
+              "value": "docked",
+              "description": "The device is on the dock, not charging."
+            },
+            {
+              "value": "unableToStartOrResume",
+              "description": "The device is unable to start or resume operation."
+            },
+            {
+              "value": "unableToCompleteOperation",
+              "description": "The device was unable to complete the current operation."
+            },
+            {
+              "value": "commandInvalidInState",
+              "description": "The device cannot process the command in its current state."
+            },
+            {
+              "value": "failedToFindChargingDock",
+              "description": "The device has failed to find or reach the charging dock."
+            },
+            {
+              "value": "stuck",
+              "description": "The device is stuck and requires manual intervention."
+            },
+            {
+              "value": "dustBinMissing",
+              "description": "The device has detected that its dust bin is missing."
+            },
+            {
+              "value": "dustBinFull",
+              "description": "The device has detected that its dust bin is full."
+            },
+            {
+              "value": "waterTankEmpty",
+              "description": "The device has detected that its water tank is empty."
+            },
+            {
+              "value": "waterTankMissing",
+              "description": "The device has detected that its water tank is missing."
+            },
+            {
+              "value": "waterTankLidOpen",
+              "description": "The device has detected that its water tank lid is open."
+            },
+            {
+              "value": "mopCleaningPadMissing",
+              "description": "The device has detected that its cleaning pad is missing."
+            }
+          ]
+        },
+        {
+          "id": "RobotVacuumCleanerRunModeEnum",
+          "members": [
+            {
+              "value": "homing",
+              "description": "The robot cleaner movement is in \"homing\" mode"
+            },
+            {
+              "value": "idle",
+              "description": "The robot cleaner movement is in \"idle\" mode"
+            },
+            {
+              "value": "charging",
+              "description": "The robot cleaner movement is in \"charging\" mode"
+            },
+            {
+              "value": "alarm",
+              "description": "The robot cleaner movement is in \"alarm\" mode"
+            },
+            {
+              "value": "powerOff",
+              "description": "The robot cleaner movement is in \"power off\" mode"
+            },
+            {
+              "value": "reserve",
+              "description": "The robot cleaner movement is in \"reserve\" mode"
+            },
+            {
+              "value": "point",
+              "description": "The robot cleaner movement is in \"point\" mode"
+            },
+            {
+              "value": "after",
+              "description": "The robot cleaner movement is in \"after\" mode"
+            },
+            {
+              "value": "cleaning",
+              "description": "The robot cleaner movement is in \"cleaning\" mode"
+            },
+            {
+              "value": "pause",
+              "description": "The robot cleaner movement is in \"pause\" mode"
+            },
+            {
+              "value": "washingMop",
+              "description": "The robot cleaner movement is in \"washing mop\" mode"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "RotaryControl",
+      "descriptor": "A device with rotary/dial control",
+      "values": [
+        {
+          "id": "Rotation",
+          "descriptor": "Rotary control state (direction)",
+          "type": "ENUM",
+          "format": "RotaryEnum"
+        },
+        {
+          "id": "RotationSteps",
+          "descriptor": "Number of rotation steps",
+          "type": "INTEGER",
+          "bound": [
+            -100,
+            100
+          ]
+        }
+      ],
+      "enums": [
+        {
+          "id": "RotaryEnum",
+          "members": [
+            {
+              "value": "clockwise",
+              "description": "Rotated in clockwise direction"
+            },
+            {
+              "value": "counter_clockwise",
+              "description": "Rotated in counter-clockwise direction"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Safe",
+      "descriptor": "Allows for the control of the Safe.",
+      "values": [
+        {
+          "id": "SafeState",
+          "descriptor": "Current Safe state",
+          "type": "ENUM",
+          "format": "SafeStateEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "Lock",
+          "descriptor": "Lock the Safe",
+          "return_type": "VOID"
+        },
+        {
+          "id": "Unlock",
+          "descriptor": "Unlock the Safe",
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "SafeStateEnum",
+          "members": [
+            {
+              "value": "closed",
+              "description": "The safe is fully closed and locked"
+            },
+            {
+              "value": "closing",
+              "description": "The safe is in the process of closing"
+            },
+            {
+              "value": "open",
+              "description": "The safe is fully open and unlocked"
+            },
+            {
+              "value": "opening",
+              "description": "The safe is in the process of opening"
+            },
+            {
+              "value": "unknown",
+              "description": "The safe state cannot be determined"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Siren",
+      "descriptor": "Allows for the control of the Siren.",
+      "values": [
+        {
+          "id": "SirenMode",
+          "descriptor": "Current Siren mode",
+          "type": "ENUM",
+          "format": "SirenModeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "SetSirenMode",
+          "descriptor": "Set the Siren mode",
+          "arguments": [
+            {
+              "id": "Mode",
+              "descriptor": "Set the Siren mode",
+              "type": "ENUM",
+              "format": "SirenModeEnum"
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "SirenModeEnum",
+          "members": [
+            {
+              "value": "emergency",
+              "description": "General emergency alert siren pattern"
+            },
+            {
+              "value": "fire",
+              "description": "Fire alarm siren pattern"
+            },
+            {
+              "value": "police",
+              "description": "Police siren pattern"
+            },
+            {
+              "value": "ambulance",
+              "description": "Ambulance siren pattern"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SmokeDetector",
+      "descriptor": "A Device that detects smoke",
+      "values": [
+        {
+          "id": "Smoke",
+          "descriptor": "The state of the smoke detection device",
+          "type": "BOOL"
+        }
+      ]
+    },
+    {
+      "id": "SoundSensor",
+      "descriptor": "Sound sensor device for measuring sound levels",
+      "values": [
+        {
+          "id": "Sound",
+          "descriptor": "Sound level measurement as a numerical value",
+          "type": "DOUBLE"
+        }
+      ]
+    },
+    {
+      "id": "Speaker",
+      "descriptor": "Speaker device for audio playback and media control",
+      "values": [
+        {
+          "id": "PlaybackState",
+          "descriptor": "Current playback status",
+          "type": "ENUM",
+          "format": "PlaybackStateEnum"
+        },
+        {
+          "id": "Volume",
+          "descriptor": "Current volume level",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            100
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "id": "FastForward",
+          "descriptor": "Fast forward media playback",
+          "return_type": "VOID"
+        },
+        {
+          "id": "Pause",
+          "descriptor": "Pause media playback",
+          "return_type": "VOID"
+        },
+        {
+          "id": "Play",
+          "descriptor": "Start media playback",
+          "arguments": [
+            {
+              "id": "MediaSource",
+              "descriptor": "Media source to play (e.g., URL or file path)",
+              "type": "STRING"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "Rewind",
+          "descriptor": "Rewind media playback",
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetVolume",
+          "descriptor": "Set the speaker volume level. Returns the new volume level.",
+          "arguments": [
+            {
+              "id": "Volume",
+              "descriptor": "Volume level to set (0-100)",
+              "type": "INTEGER"
+            }
+          ],
+          "return_type": {
+            "type": "INTEGER"
+          }
+        },
+        {
+          "id": "Speak",
+          "descriptor": "Speak a text string",
+          "arguments": [
+            {
+              "id": "Text",
+              "descriptor": "Text to speak",
+              "type": "STRING"
+            }
+          ],
+          "return_type": "VOID"
+        },
+        {
+          "id": "Stop",
+          "descriptor": "Stop media playback",
+          "return_type": "VOID"
+        },
+        {
+          "id": "VolumeDown",
+          "descriptor": "Set the speaker volume level. Return the new volume level",
+          "return_type": {
+            "type": "INTEGER"
+          }
+        },
+        {
+          "id": "VolumeUp",
+          "descriptor": "Set the speaker volume level. Return the new volume level",
+          "return_type": {
+            "type": "INTEGER"
+          }
+        }
+      ],
+      "enums": [
+        {
+          "id": "PlaybackStateEnum",
+          "members": [
+            {
+              "value": "paused",
+              "description": "Media playback is temporarily paused"
+            },
+            {
+              "value": "playing",
+              "description": "Media is currently being played"
+            },
+            {
+              "value": "stopped",
+              "description": "Media playback has been fully stopped"
+            },
+            {
+              "value": "fastforwarding",
+              "description": "Media is being fast-forwarded"
+            },
+            {
+              "value": "rewinding",
+              "description": "Media is being rewound"
+            },
+            {
+              "value": "buffering",
+              "description": "Media is loading or buffering before playback"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Switch",
+      "descriptor": "Allows for the control of a Switch device",
+      "values": [
+        {
+          "id": "Switch",
+          "descriptor": "The state of the Switch device",
+          "type": "BOOL"
+        }
+      ],
+      "functions": [
+        {
+          "id": "Off",
+          "descriptor": "Turn a Switch off",
+          "return_type": "VOID"
+        },
+        {
+          "id": "On",
+          "descriptor": "Turn a Switch on",
+          "return_type": "VOID"
+        },
+        {
+          "id": "Toggle",
+          "descriptor": "Toggle a Switch. Returns the new state of the Switch.",
+          "return_type": {
+            "type": "BOOL"
+          }
+        }
+      ]
+    },
+    {
+      "id": "Television",
+      "descriptor": "A television device",
+      "values": [
+        {
+          "id": "Channel",
+          "descriptor": "The current channel",
+          "type": "INTEGER",
+          "bound": [
+            0,
+            10000
+          ]
+        }
+      ],
+      "functions": [
+        {
+          "id": "ChannelDown",
+          "descriptor": "Change the channel down",
+          "return_type": {
+            "type": "INTEGER"
+          }
+        },
+        {
+          "id": "ChannelUp",
+          "descriptor": "Change the channel up",
+          "return_type": {
+            "type": "INTEGER"
+          }
+        },
+        {
+          "id": "SetChannel",
+          "descriptor": "Set the current channel",
+          "arguments": [
+            {
+              "id": "Channel",
+              "descriptor": "Set the current channel",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                10000
+              ]
+            }
+          ],
+          "return_type": "VOID"
+        }
+      ]
+    },
+    {
+      "id": "TemperatureSensor",
+      "descriptor": "Get the temperature from a Device that reports current temperature",
+      "values": [
+        {
+          "id": "Temperature",
+          "descriptor": "A number that usually represents the current temperature",
+          "type": "DOUBLE",
+          "bound": [
+            -40,
+            60
+          ]
+        }
+      ]
+    },
+    {
+      "id": "Valve",
+      "descriptor": "Controls a valve to open or close it",
+      "values": [
+        {
+          "id": "ValveState",
+          "descriptor": "Current state of the valve",
+          "type": "BOOL"
+        }
+      ],
+      "functions": [
+        {
+          "id": "Close",
+          "descriptor": "Close the valve",
+          "return_type": "VOID"
+        },
+        {
+          "id": "Open",
+          "descriptor": "Open the valve",
+          "return_type": "VOID"
+        }
+      ]
+    },
+    {
+      "id": "WeatherProvider",
+      "descriptor": "Provides weather information",
+      "values": [
+        {
+          "id": "HumidityWeather",
+          "descriptor": "Current humidity level",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            100
+          ]
+        },
+        {
+          "id": "Pm10Weather",
+          "descriptor": "Current pm10 level",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            10000
+          ]
+        },
+        {
+          "id": "Pm25Weather",
+          "descriptor": "Current pm25 level",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            10000
+          ]
+        },
+        {
+          "id": "PressureWeather",
+          "descriptor": "Current pressure level",
+          "type": "DOUBLE",
+          "bound": [
+            0,
+            2000
+          ]
+        },
+        {
+          "id": "TemperatureWeather",
+          "descriptor": "Current temperature level",
+          "type": "DOUBLE",
+          "bound": [
+            -470,
+            10000
+          ]
+        },
+        {
+          "id": "Weather",
+          "descriptor": "Current weather condition",
+          "type": "ENUM",
+          "format": "WeatherEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "GetWeatherInfo",
+          "descriptor": "Get the current weather information - Return whole weather information, format: \"temperature, humidity, pressure, pm25, pm10, weather, weather_string, icon_id, location\"",
+          "arguments": [
+            {
+              "id": "Lat",
+              "descriptor": "The latitude of the location",
+              "type": "DOUBLE",
+              "bound": [
+                -90,
+                90
+              ]
+            },
+            {
+              "id": "Lon",
+              "descriptor": "The longitude of the location",
+              "type": "DOUBLE",
+              "bound": [
+                -180,
+                180
+              ]
+            }
+          ],
+          "return_type": {
+            "type": "STRING"
+          }
+        }
+      ],
+      "enums": [
+        {
+          "id": "WeatherEnum",
+          "members": [
+            {
+              "value": "thunderstorm",
+              "description": "Thunderstorm with lightning and heavy rain"
+            },
+            {
+              "value": "drizzle",
+              "description": "Light, fine rain with small droplets"
+            },
+            {
+              "value": "rain",
+              "description": "Moderate to heavy rainfall"
+            },
+            {
+              "value": "snow",
+              "description": "Snowfall or snow showers"
+            },
+            {
+              "value": "mist",
+              "description": "Thin fog with visibility above 1 km"
+            },
+            {
+              "value": "smoke",
+              "description": "Reduced visibility due to smoke particles"
+            },
+            {
+              "value": "haze",
+              "description": "Atmospheric haze from dust or pollution reducing visibility"
+            },
+            {
+              "value": "dust",
+              "description": "Airborne dust particles reducing visibility"
+            },
+            {
+              "value": "fog",
+              "description": "Dense fog with visibility below 1 km"
+            },
+            {
+              "value": "sand",
+              "description": "Sandstorm or blowing sand conditions"
+            },
+            {
+              "value": "ash",
+              "description": "Volcanic ash particles in the atmosphere"
+            },
+            {
+              "value": "squall",
+              "description": "Sudden strong wind gust"
+            },
+            {
+              "value": "tornado",
+              "description": "Violent rotating column of air (tornado warning)"
+            },
+            {
+              "value": "clear",
+              "description": "Clear sky with no significant cloud cover"
+            },
+            {
+              "value": "clouds",
+              "description": "Overcast or partly cloudy sky conditions"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WindowCovering",
+      "descriptor": "Controls a window covering to open or close it",
+      "values": [
+        {
+          "id": "CurrentPosition",
+          "descriptor": "Current position of the window covering (0-100)",
+          "type": "INTEGER"
+        },
+        {
+          "id": "WindowCoveringType",
+          "descriptor": "Type of window covering",
+          "type": "ENUM",
+          "format": "WindowCoveringTypeEnum"
+        }
+      ],
+      "functions": [
+        {
+          "id": "DownOrClose",
+          "descriptor": "Down or close the window",
+          "return_type": "VOID"
+        },
+        {
+          "id": "SetLevel",
+          "descriptor": "Set the level of the window covering (0-100). Return the level set.",
+          "arguments": [
+            {
+              "id": "Level",
+              "descriptor": "Level to set the window covering to (0-100)",
+              "type": "INTEGER",
+              "bound": [
+                0,
+                100
+              ]
+            }
+          ],
+          "return_type": {
+            "type": "INTEGER"
+          }
+        },
+        {
+          "id": "Stop",
+          "descriptor": "Stop the window covering",
+          "return_type": "VOID"
+        },
+        {
+          "id": "UpOrOpen",
+          "descriptor": "Up or open the window",
+          "return_type": "VOID"
+        }
+      ],
+      "enums": [
+        {
+          "id": "WindowCoveringTypeEnum",
+          "members": [
+            {
+              "value": "window",
+              "description": "Standard window covering (e.g., curtain or drape)"
+            },
+            {
+              "value": "blind",
+              "description": "Slatted blind (horizontal or vertical)"
+            },
+            {
+              "value": "shade",
+              "description": "Roller shade or pull-down shade"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

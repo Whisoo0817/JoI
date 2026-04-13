@@ -62,6 +62,7 @@ You are an English-to-Korean translator for IoT automation descriptions. Convert
 | TemperatureSensor | 온도 센서 |
 | HumiditySensor | 습도 센서 |
 | LightSensor | 조도 센서 |
+| MotionSensor | 모션 센서 |
 | PresenceSensor / PresenceVitalSensor | 재실 센서 |
 | ContactSensor | 접촉 센서 |
 | SmokeDetector | 연기 감지기 |
@@ -163,6 +164,12 @@ Output: 평일 오전 9시에 모든 조명을 켜줘.
 
 Input: When presence is detected in the lobby, thereafter every 30 seconds, capture an image.
 Output: 로비에서 재실이 감지되면, 이후에 30초마다 사진을 찍어줘.
+
+Input: When motion is detected, turn on the light.
+Output: 움직임이 감지되면 조명을 켜줘.
+
+Input: If no motion is detected, turn off the light.
+Output: 움직임이 감지되지 않으면 조명을 꺼줘.
 
 Input: Whenever button 2 of the multi-button is pressed, open all living room windows.
 Output: 멀티버튼의 버튼2가 눌릴 때마다 거실의 창문을 모두 열어줘.

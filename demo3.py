@@ -99,10 +99,12 @@ async def chat_endpoint(request: AgentRequest):
 
     def on_tool_call(name, args, result):
         ts_tool = datetime.now(_KST).strftime("%Y-%m-%d %H:%M:%S")
+        stage_logs = result.get('logs', '') if isinstance(result, dict) else ''
         _write_session_log(request.session_id, (
             f"[{ts_tool}] TOOL CALL: {name}\n"
             f"  args   : {json.dumps(args, ensure_ascii=False)}\n"
             f"  result : {json.dumps(result, ensure_ascii=False)[:300]}\n"
+            + (f"  logs   :\n{stage_logs}\n" if stage_logs else "")
         ))
 
     def on_complete(message, last_result):
@@ -110,12 +112,10 @@ async def chat_endpoint(request: AgentRequest):
         entry = f"[{ts2}] RESPONSE (stream complete)\n  message    : {message}\n"
         if last_result:
             lr = last_result
-            stage_logs = lr.get('log', {}).get('logs', '')
             entry += (
                 f"  translated : {lr.get('log', {}).get('translated_sentence', '')}\n"
                 f"  code       : {lr.get('code', '')}\n"
                 f"  status     : {lr.get('status', '')}\n"
-                + (f"  logs       :\n{stage_logs}\n" if stage_logs else "")
             )
         _write_session_log(request.session_id, entry)
 

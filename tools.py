@@ -16,8 +16,7 @@ def tool_request_to_joi_llm(args, context):
     refined = _preprocess_command(raw_sentence, context)
     sentence = refined if refined else raw_sentence
 
-    if context.get("debug"):
-        print(f"[Preprocess] \"{raw_sentence}\" → \"{sentence}\"")
+    preprocess_log = f"[Preprocess] \"{raw_sentence}\" → \"{sentence}\"\n"
 
     try:
         result = generate_joi_code(
@@ -28,18 +27,20 @@ def tool_request_to_joi_llm(args, context):
             debug=context.get("debug", False),
         )
     except JoiGenerationError as e:
-        return {"error": str(e), "error_code": e.error_code, "logs": e.logs}
+        return {"error": str(e), "error_code": e.error_code, "logs": preprocess_log + e.logs}
     except Exception as e:
-        return {"error": str(e), "error_code": "generation_failed"}
-    
+        return {"error": str(e), "error_code": "generation_failed", "logs": preprocess_log}
+
     result["status"] = "confirmation_needed"
     context["last_result"] = result
     context["last_result_updated"] = True
+    stage_logs = preprocess_log + result.get("log", {}).get("logs", "")
     return {
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
         "response_time": result.get("log", {}).get("response_time", ""),
         "code": result.get("code", ""),
+        "logs": stage_logs,
     }
 
 

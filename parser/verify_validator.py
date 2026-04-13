@@ -18,8 +18,9 @@ CUSTOM_DEVICES = {
 # 2. Extract Service Map (Similar to run_local.py)
 def _build_service_category_map(service_data):
     mapping = {}
-    for cat, services in service_data.items():
-        for svc in services:
+    for cat, item in service_data.items():
+        for entry in item.get("values", []) + item.get("functions", []):
+            svc = entry["id"]
             if svc not in mapping:
                 mapping[svc] = cat
     return mapping

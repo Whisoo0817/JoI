@@ -59,6 +59,28 @@ def extract_service_details(selected_services, full_service_data):
     # Light 같은 primary 디바이스에 포함되어 있어 여기서 fallback으로 탐색
     SECONDARY_CATS = ["LevelControl", "ColorControl", "Switch"]
 
+    def _find_service(dev_id, svc_name):
+        """dev_id의 values/functions에서 svc_name을 찾아 반환. 없으면 None."""
+        if dev_id not in full_service_data:
+            return None
+        item = full_service_data[dev_id]
+        for entry in item.get("values", []) + item.get("functions", []):
+            if entry["id"] == svc_name:
+                return json.loads(json.dumps(entry))
+        return None
+
+    def _resolve_enum(svc_entry, enums_map):
+        """svc_entry 내 arguments/return 의 ENUM format을 enums_map에서 해석해 enum_list 주입."""
+        svc_entry = json.loads(json.dumps(svc_entry))
+        # arguments의 ENUM 처리
+        for arg in svc_entry.get("arguments", []):
+            if arg.get("type") == "ENUM" and "format" in arg:
+                arg["enum_list"] = enums_map.get(arg["format"], [])
+        # return_type이 ENUM인 value 서비스
+        if svc_entry.get("type") == "ENUM" and "format" in svc_entry:
+            svc_entry["enum_list"] = enums_map.get(svc_entry["format"], [])
+        return svc_entry
+
     extracted = {}
     dev_to_services = defaultdict(list)
     for s_pair in selected_services:
@@ -69,47 +91,22 @@ def extract_service_details(selected_services, full_service_data):
     for dev_name, selected_svcs in dev_to_services.items():
         if dev_name not in full_service_data:
             continue
-        dev_info = full_service_data[dev_name]
-
-        # enums_descriptor가 있는 것들을 미리 수집 (ENUM fallback용)
-        pool_enums = [
-            s["enums_descriptor"] for s in dev_info.values()
-            if isinstance(s.get("enums_descriptor"), list) and s["enums_descriptor"]
-        ]
+        enums_map = full_service_data[dev_name].get("enums_map", {})
         extracted[dev_name] = {}
 
         for svc_name in selected_svcs:
             # primary 디바이스에서 먼저 찾고, 없으면 secondary 카테고리 순으로 탐색
-            svc_info = None
-            lookup_sources = [dev_info] + [
-                full_service_data[c] for c in SECONDARY_CATS if c in full_service_data
-            ]
-            for source in lookup_sources:
-                if svc_name in source:
-                    svc_info = json.loads(json.dumps(source[svc_name]))
-                    break
-            if not svc_info:
+            svc_info = _find_service(dev_name, svc_name)
+            if svc_info is None:
+                for sec in SECONDARY_CATS:
+                    svc_info = _find_service(sec, svc_name)
+                    if svc_info is not None:
+                        enums_map = {**enums_map, **full_service_data[sec].get("enums_map", {})}
+                        break
+            if svc_info is None:
                 continue
 
-            # 인자가 ENUM인데 ENUM list가 없는 경우:
-            # "Set"을 제거한 이름의 value 서비스(예: SetAirConditionerMode → AirConditionerMode)에서 가져옴.
-            # 거기서도 못 찾으면 순회 -> enum_descriptor search
-            if (svc_info.get("type") == "function"
-                    and "ENUM" in svc_info.get("argument_type", "")
-                    and not isinstance(svc_info.get("argument_bounds"), list)):
-                base = svc_name.replace("Set", "")
-                if base in dev_info and isinstance(dev_info[base].get("enums_descriptor"), list):
-                    svc_info["enum_list"] = dev_info[base]["enums_descriptor"]
-                elif pool_enums:
-                    svc_info["enum_list"] = pool_enums[0]
-
-            # value 서비스의 반환값이 ENUM인데 ENUM list가 없는 경우:
-            # 순회 -> enum_descriptor search
-            if (svc_info.get("return_type") == "ENUM"
-                    and not isinstance(svc_info.get("enums_descriptor"), list)
-                    and pool_enums):
-                svc_info["enums_descriptor"] = pool_enums[0]
-
+            svc_info = _resolve_enum(svc_info, enums_map)
             extracted[dev_name][svc_name] = svc_info
 
     return extracted
@@ -138,15 +135,16 @@ def inject_value_service(selected_services):
 def _build_service_category_map(service_data):
     SECONDARY = {'Switch', 'LevelControl', 'ColorControl'}
     mapping = {}
-    for cat, services in service_data.items():
+    for cat, item in service_data.items():
         if cat not in SECONDARY:
-            for svc in services:
+            for entry in item.get("values", []) + item.get("functions", []):
+                svc = entry["id"]
                 if svc not in mapping:
                     mapping[svc] = cat
     for cat in SECONDARY:
         if cat in service_data:
-            for svc in service_data[cat]:
-                mapping[svc] = cat
+            for entry in service_data[cat].get("values", []) + service_data[cat].get("functions", []):
+                mapping[entry["id"]] = cat
     return mapping
 
 _SERVICE_CATEGORY_MAP = _build_service_category_map(SERVICE_DATA)
@@ -158,10 +156,13 @@ def _apply_service_prefix(script):
         if selector:
             tags = re.findall(r'#(\w+)', selector)
             for tag in tags:
-                if tag in SERVICE_DATA and service in SERVICE_DATA[tag]:
-                    cat_fmt = tag[0].lower() + tag[1:]
-                    svc_fmt = service[0].lower() + service[1:]
-                    return f"{cat_fmt}_{svc_fmt}"
+                if tag in SERVICE_DATA:
+                    item = SERVICE_DATA[tag]
+                    svc_ids = {e["id"] for e in item.get("values", []) + item.get("functions", [])}
+                    if service in svc_ids:
+                        cat_fmt = tag[0].lower() + tag[1:]
+                        svc_fmt = service[0].lower() + service[1:]
+                        return f"{cat_fmt}_{svc_fmt}"
         # 2순위: 전역 service-category 맵에서 탐색
         category = _SERVICE_CATEGORY_MAP.get(service, '')
         if category:
