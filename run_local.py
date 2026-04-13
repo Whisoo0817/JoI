@@ -217,7 +217,7 @@ def _parse_dict_input(val, default):
         except Exception: pass
     return default
 
-def generate_joi_code(sentence, connected_devices, other_params, model=None, current_time=None, modification=None, debug=False, base_url=None):
+def generate_joi_code(sentence, connected_devices, other_params, modification=None, debug=False, base_url=None):
     # 1. Parse Inputs - dict type
     connected_devices = _parse_dict_input(connected_devices, None)
     other_params = _parse_dict_input(other_params, {})
@@ -507,8 +507,7 @@ def generate_joi_code(sentence, connected_devices, other_params, model=None, cur
         "code": joi_code_raw,
         "merged_command": merged_command,
         "log": {
-            "response_time": f"{elapsed:.4f} seconds",
-            "inference_time": f"{elapsed:.4f} seconds",
+            "response_time": f"{elapsed:.4f} seconds",            
             "translated_sentence": re.sub(r'["""\'\'\'.,!?。、！？]', '', translated_sentence_kor or translated_sentence).strip(),
             "mapped_devices": mapped_devices,
             "logs": "\n".join(log_buf),

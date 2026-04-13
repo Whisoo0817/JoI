@@ -34,6 +34,7 @@ def tool_request_to_joi_llm(args, context):
     
     result["status"] = "confirmation_needed"
     context["last_result"] = result
+    context["last_result_updated"] = True
     return {
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
@@ -71,6 +72,7 @@ def tool_feedback_to_joi_llm(args, context):
 
     result["status"] = "confirmation_needed"
     context["last_result"] = result
+    context["last_result_updated"] = True
     return {
         "status": "confirmation_needed",
         "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
@@ -151,7 +153,6 @@ def tool_get_connected_devices(args, context):
     if devices:
         return {"connected_devices": devices}
     return {"connected_devices": {}, "message": "No devices currently connected."}
-
 
 
 def tool_get_weather(args, context):
