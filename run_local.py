@@ -308,10 +308,18 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
         extracted_categories = {k: v for k, v in extracted_categories.items() if k in valid_categories}
 
         # ❇️ Stage 2-2: Mapping Intent (Per Device)
+        missing_descriptors = [dev for dev in extracted_categories if not PROMPTS.get(f"device_rules_{dev.lower()}", "")]
+        if missing_descriptors:
+            raise JoiGenerationError(
+                f"Mapped device(s) {missing_descriptors} are not registered in the service list.",
+                "\n".join(log_buf),
+                error_code="missing_descriptor"
+            )
+
         raw_selected_services = []
         for dev, assigned_task in extracted_categories.items():
             device_rules = PROMPTS.get(f"device_rules_{dev.lower()}", "")
-            
+
             # Identify sub-categories attached to this main device (e.g., Switch, ColorControl)
             sub_cats = set()
             for info in cd_simple.values():

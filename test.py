@@ -1,7 +1,7 @@
 import sys
 import pandas as pd
 from run_local import generate_joi_code
-from agent import agent_chat
+from agent import agent_chat_stream
 
 # [MODE: target] 테스트할 타겟 지정 (python3 test.py target)
 test_targets = {
@@ -50,11 +50,11 @@ CUSTOM_DEVICES = """
       "tags": ["PhilipsHue"]
     },
     "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305": {
-      "category": ["Light", "Switch"],
+      "category": ["Light"],
       "tags": ["PhilipsHue"]
     },
     "tc0_081181c1-3210-4ad2-8af1-f262fdc0fc76": {
-      "category": ["Light", "Switch"],
+      "category": ["Light"],
       "tags": ["PhilipsHue"]
     },
     "tc0_550713ef-d27f-43f3-9dcf-7b16101c618a": {
@@ -182,18 +182,32 @@ def run_agent_chat(debug=False):
             break
 
         try:
-            result = agent_chat(
+            import json as _json
+            response_text = ""
+            last_result = None
+
+            print("Agent >>> ", end="", flush=True)
+            for event in agent_chat_stream(
                 user_message=user_input,
                 session_id=session_id,
                 connected_devices=CUSTOM_DEVICES,
                 debug=debug
-            )
-            
-            print(f"Agent >>> {result['response']}")
+            ):
+                if not event.startswith("data: "):
+                    continue
+                payload = event[len("data: "):].strip()
+                if payload.startswith("[DONE]"):
+                    done_data = _json.loads(payload[len("[DONE] "):])
+                    last_result = done_data.get("last_result")
+                else:
+                    char = _json.loads(payload)
+                    print(char, end="", flush=True)
+                    response_text += char
+            print()
 
-            lr = result.get("last_result")
+            lr = last_result
             current_code = lr.get("code") if lr else None
-            
+
             if lr and current_code and current_code != prev_lr_code:
                 if lr.get("status") in ("confirmation_needed", "approved", "registered_locally"):
                     print(f"\n  [code]\n{current_code}")
