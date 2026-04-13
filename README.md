@@ -42,13 +42,16 @@ The core engine that analyzes natural language intents and generates structured 
 - `other_params` (dict): Optional parameters for scenario generation.
 - `modification` (str, optional): Feedback or modification request to refine previously generated code.
 
-### 2. `agent_chat`
-A conversational API that enables iterative IoT control and scenario building through tool-calling.
+### 2. `agent_chat_stream`
+A streaming conversational API that enables iterative IoT control and scenario building through tool-calling. Yields SSE tokens; session state (chat history, devices, last result) is persisted in a local SQLite DB.
 
 **Arguments:**
 - `user_message` (str): The user's input message.
-- `context` (dict): Unified state object containing `chat_history`, `connected_devices`, `last_result`, etc.
-- `connected_devices` (dict, optional): Initial metadata of IoT devices (only used for initialization).
+- `session_id` (str): Session identifier for state persistence (default: `"default"`).
+- `connected_devices` (dict, optional): IoT device metadata — passed only on first call; auto-loaded from DB on subsequent turns.
+- `base_url` (str, optional): vLLM endpoint URL.
+- `on_complete` (callable, optional): Callback invoked with `(final_response, last_result)` when streaming finishes.
+- `on_tool_call` (callable, optional): Callback invoked with `(tool_name, args, result)` on each tool call.
 
 ---
 

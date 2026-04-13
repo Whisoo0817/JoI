@@ -134,5 +134,5 @@ async def chat_endpoint(request: AgentRequest):
 
 
 if __name__ == "__main__":
-    print(f"[demo3] vLLM backend: {SLLM_LOCAL_BASE_URL}")
-    uvicorn.run("demo3:app", host="0.0.0.0", port=49999, reload=True)
+    print(f"[app] vLLM backend: {SLLM_LOCAL_BASE_URL}")
+    uvicorn.run("app:app", host="0.0.0.0", port=49999, reload=True)

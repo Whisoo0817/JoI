@@ -150,7 +150,7 @@ vLLM 서버의 **Prefix Caching** 성능을 극대화하기 위해 다음과 같
 3. **Confirm**: Displays the result and asks "Is this correct? (y/n/mod)".
 4. **Action**: Depending on `y` or `n`, calls `feedback_to_joi_llm` or `add_scenario`.
 
-### ⚛️ 4.3 Available Tools
+### ⚛️ 4.4 Available Tools
 
 | Tool | 설명 |
 |------|------|
@@ -185,15 +185,22 @@ sessions 테이블 (실시간 대화 맥락 유지)
 *   `session_id`를 지정하지 않으면 `"default"`로 고정.
 
 ```python
-while True:
-    input_str = get_input()
-    # Stateful API call (session_id만 유지)
-    res = agent_chat(input_str, session_id="my_session")
-    
-    # 더 이상 context를 반환받아 다시 던질 필요 없음
-    print(res["response"])
-    if res.get("last_result"):
-        print("Generated Code:", res["last_result"]["code"])
+# agent_chat_stream: SSE 방식으로 토큰 단위 스트리밍 응답
+for event in agent_chat_stream(
+    user_message="오전 8시에 거실 불 꺼줘",
+    session_id="my_session",
+    connected_devices=devices,   # 첫 호출 시에만 전달, 이후 DB에서 자동 로드
+    base_url="http://localhost:8002/v1",
+):
+    # "data: [DONE] {...}" 이벤트에서 last_result 추출
+    if event.startswith("data: [DONE]"):
+        payload = json.loads(event[len("data: [DONE] "):])
+        last_result = payload.get("last_result")
+        if last_result:
+            print("Generated Code:", last_result["code"])
+    else:
+        token = json.loads(event[len("data: "):])
+        print(token, end="", flush=True)
 ```
 
 ---
