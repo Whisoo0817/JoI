@@ -25,7 +25,7 @@ def tool_request_to_joi_llm(args, context):
             connected_devices=context.get("connected_devices", {}),
             other_params={},
             base_url=context.get("base_url"),
-            debug=context.get("debug", False),
+            debug=False,
         )
     except JoiGenerationError as e:
         return {"error": str(e), "error_code": e.error_code, "logs": e.logs}
@@ -63,7 +63,7 @@ def tool_feedback_to_joi_llm(args, context):
             other_params={},
             modification=feedback,
             base_url=context.get("base_url"),
-            debug=context.get("debug", False),
+            debug=False,
         )
     except JoiGenerationError as e:
         return {"error": str(e), "error_code": e.error_code, "logs": e.logs}

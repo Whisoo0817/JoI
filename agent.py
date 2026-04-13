@@ -206,7 +206,37 @@ Describe what you do in ONE concise paragraph — do NOT use bullet lists or num
 MAX_AGENT_ROUNDS = 5
 
 
-def agent_chat_stream(user_message, session_id="default", connected_devices=None, base_url=None, debug=False, on_complete=None, on_tool_call=None):
+def _trim_tool_result(msg: dict) -> dict:
+    """tool 메시지에서 history에 불필요한 대용량 필드를 제거한다."""
+    if msg.get("role") != "tool":
+        return msg
+    try:
+        result = json.loads(msg["content"])
+    except (json.JSONDecodeError, KeyError):
+        return msg
+
+    # get_connected_devices: 디바이스 전체 JSON → category/tags 요약만 남김
+    if "connected_devices" in result and isinstance(result["connected_devices"], dict):
+        result["connected_devices"] = {
+            k: {"category": v.get("category", []), "tags": v.get("tags", [])}
+            for k, v in result["connected_devices"].items()
+        }
+
+    # request_to_joi_llm / feedback_to_joi_llm: log 필드 제거
+    if "log" in result:
+        del result["log"]
+
+    # get_scenarios: code 필드 제거 (name, command만 남김)
+    if "scenarios" in result and isinstance(result["scenarios"], list):
+        result["scenarios"] = [
+            {k: v for k, v in s.items() if k != "code"}
+            for s in result["scenarios"]
+        ]
+
+    return {**msg, "content": json.dumps(result, ensure_ascii=False)}
+
+
+def agent_chat_stream(user_message, session_id="default", connected_devices=None, base_url=None, debug=True, on_complete=None, on_tool_call=None):
     """
     agent_chat의 스트리밍 버전. 최종 텍스트 응답을 토큰 단위로 yield하고
     마지막에 last_result를 JSON 이벤트로 yield한다.
@@ -241,7 +271,12 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
         "session_id": session_id,
     }
 
-    truncated_history = chat_history[-10:] if len(chat_history) > 10 else chat_history
+    truncated_history = list(chat_history)
+    while True:
+        history_tokens_est = sum(len(json.dumps(m, ensure_ascii=False)) for m in truncated_history) // 4
+        if history_tokens_est <= 2000 or len(truncated_history) <= 5:
+            break
+        truncated_history = truncated_history[5:]
 
     # Build example commands from connected device categories
     present_cats = []
@@ -268,13 +303,19 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
             temperature=0.6,
             max_tokens=2048,
             stream=True,
+            stream_options={"include_usage": True},
             extra_body={"chat_template_kwargs": {"enable_thinking": True}},
         )
 
         visible_content = ""
         tool_call_chunks = {}
+        usage = None
 
         for chunk in stream:
+            if chunk.usage:
+                usage = chunk.usage
+            if not chunk.choices:
+                continue
             delta = chunk.choices[0].delta
 
             if delta.content:
@@ -293,6 +334,12 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
                         tool_call_chunks[idx].function.name += tc.function.name
                     if tc.function.arguments:
                         tool_call_chunks[idx].function.arguments += tc.function.arguments
+
+        if debug and usage:
+            prompt_tokens = usage.prompt_tokens
+            history_chars = sum(len(json.dumps(m, ensure_ascii=False)) for m in truncated_history)
+            history_tokens_est = history_chars // 4
+            print(f"[TOKEN] prompt={prompt_tokens} / 16384 ({prompt_tokens / 16384 * 100:.1f}%)  history≈{history_tokens_est}", flush=True)
 
         parsed_tool_calls = list(tool_call_chunks.values())
 
@@ -359,7 +406,7 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
     if not final_response:
         final_response = "명령을 수행했습니다."
 
-    updated_history = messages[1:]
+    updated_history = [_trim_tool_result(m) for m in messages[1:]]
     _db.save_session(session_id, updated_history, context.get("last_result"), devices)
 
     updated_result = context.get("last_result") if context.get("last_result_updated") else None
