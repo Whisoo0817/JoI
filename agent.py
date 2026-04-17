@@ -6,7 +6,44 @@ from types import SimpleNamespace
 
 from config import get_client, get_model_id
 from run_local import _parse_dict_input
-from tools import dispatch
+import asyncio
+import os
+from mcp.client.sse import sse_client
+from mcp.client.session import ClientSession
+
+def call_mcp_tool_sync(tool_name: str, args: dict, context: dict) -> dict:
+    return asyncio.run(_call_mcp_tool(tool_name, args, context))
+
+async def _call_mcp_tool(tool_name: str, args: dict, context: dict):
+    mcp_url = os.environ.get("MCP_SERVER_URL", "http://127.0.0.1:8100/sse")
+    
+    # [Intercept] Implicitly inject joi_llm_result to shield local LLM from complex variables
+    if tool_name == "feedback_to_joi_llm":
+        args["joi_llm_result"] = context.get("last_result", {})
+    elif tool_name == "add_scenario":
+        args["joi_llm_result"] = context.get("last_result", {})
+
+    try:
+        async with sse_client(mcp_url) as (read, write):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool(tool_name, arguments=args)
+                
+                # FastMCP CallToolResult evaluation
+                if hasattr(result, 'content') and len(result.content) > 0:
+                    text_content = result.content[0].text
+                    try:
+                        parsed_result = json.loads(text_content)
+                        # Cache the LLM pipeline result to use in feedback and scenario tasks
+                        if tool_name in ["request_to_joi_llm", "feedback_to_joi_llm"]:
+                            context["last_result"] = parsed_result
+                            context["last_result_updated"] = True
+                        return parsed_result
+                    except json.JSONDecodeError:
+                        return {"result": text_content}
+                return {"result": str(result)}
+    except Exception as e:
+        return {"error": f"MCP Tool calling failed: {str(e)}", "error_code": "mcp_failed"}
 
 
 _ERROR_HINTS = {
@@ -138,17 +175,185 @@ AGENT_TOOLS = [
     {
         "type": "function",
         "function": {
-            "name": "delete_scenario",
-            "description": "Delete a registered scenario from the local DB by its ID.",
+            "name": "get_thing_details",
+            "description": "Get detailed information about a specific device, including its capabilities (functions) and current status.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "scenario_id": {
-                        "type": "integer",
-                        "description": "The ID of the scenario to delete (get it from get_scenarios first)"
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID of the device"
                     }
                 },
-                "required": ["scenario_id"]
+                "required": ["thing_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_values",
+            "description": "Get the current real-time sensor values or status for a specific device.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID of the device"
+                    }
+                },
+                "required": ["thing_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "control_thing_directly",
+            "description": "Immediately control a device without creating a scenario. Use this for one-off actions like 'turn on the light now'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID (UUID) of the device"
+                    },
+                    "service_name": {
+                        "type": "string",
+                        "description": "The service/function name (e.g., 'switch_on', 'switch_off', 'setLevel', 'setTemperature')"
+                    },
+                    "args": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Arguments for the service (e.g., ['50'] for setLevel). For color, use ['R|G|B'] like ['255|0|0']."
+                    },
+                    "service_type": {
+                        "type": "string",
+                        "description": "Type of service, usually 'function'",
+                        "default": "function"
+                    }
+                },
+                "required": ["thing_id", "service_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_locations",
+            "description": "Get the list of locations (rooms) registered in the IoT system.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_value_history",
+            "description": "Get historical data for a specific device attribute (e.g., temperature, energy consumption).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID of the device"
+                    },
+                    "service_name": {
+                        "type": "string",
+                        "description": "The sensor/attribute name (e.g., 'temperature', 'contact', 'power')"
+                    },
+                    "unit": {
+                        "type": "string",
+                        "description": "Time aggregation unit",
+                        "enum": ["minutely", "hourly", "daily", "weekly"]
+                    },
+                    "data_server_id": {
+                        "type": "string",
+                        "description": "Data server ID, default is 'auto'",
+                        "default": "auto"
+                    }
+                },
+                "required": ["thing_id", "service_name", "unit"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_scenario_details",
+            "description": "Get the detailed JOI script and configuration for a specific scenario.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scenario_name": {
+                        "type": "string",
+                        "description": "The name of the scenario"
+                    }
+                },
+                "required": ["scenario_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "start_scenario",
+            "description": "Activate or manually trigger a registered scenario.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scenario_name": {
+                        "type": "string",
+                        "description": "The name of the scenario to start"
+                    }
+                },
+                "required": ["scenario_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "stop_scenario",
+            "description": "Deactivate a running scenario.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scenario_name": {
+                        "type": "string",
+                        "description": "The name of the scenario to stop"
+                    }
+                },
+                "required": ["scenario_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_thing_tags",
+            "description": "Add or remove tags from a device for better categorization.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID of the device"
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "Action to perform: 'add' or 'remove'",
+                        "enum": ["add", "remove"]
+                    },
+                    "tag": {
+                        "type": "string",
+                        "description": "The tag name"
+                    }
+                },
+                "required": ["thing_id", "action", "tag"]
             }
         }
     },
@@ -156,7 +361,7 @@ AGENT_TOOLS = [
         "type": "function",
         "function": {
             "name": "get_weather",
-            "description": "Fetch current weather information for a given location. Use this ONLY when the user explicitly asks about the weather.",
+            "description": "Fetch current weather information or air quality for a given location. (Calls external API via MCP)",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -171,7 +376,7 @@ AGENT_TOOLS = [
     },
 ]
 
-AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. Your primary goal is to help users create smart home automation scenarios.
+AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. Your primary goal is to help users manage their smart home.
 
 ## Core Principles (CRITICAL):
 - **NEVER PROVIDE AN EMPTY RESPONSE**: You MUST ALWAYS output a natural language response to the user, even after calling a tool. If a tool was successful, confirm it to the user.
@@ -179,28 +384,24 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 - **IoT Only**: Focus strictly on IoT-related tasks.
 - **Example Commands**: When showing examples, use ONLY the exact list provided in "## Example Commands" below — copy them verbatim. NEVER invent, paraphrase, or add examples outside that list. If the list is empty, do not show any examples.
 
-- **Scenario Generation**: Only call `request_to_joi_llm` when the user EXPLICITLY requests generation or confirms after being asked. Otherwise, ask first using the user's EXACT original wording:
-  - ✓ User: "불 꺼줘" → You: "\"불 꺼줘\" 명령을 실행하는 시나리오를 생성할까요?"
-  - If ambiguous (e.g., "온도를 알려줘"): offer choices — "1) 날씨 정보를 검색할까요? 2) \"온도를 알려줘\" 시나리오를 생성할까요?"
-- **Feedback**: Once a scenario is shown, pass y/n/modification text to `feedback_to_joi_llm`. If the user asks a question about the code (e.g., "코드 보여줘"), answer directly from the `code` field in the tool result — do NOT call any tool.
-- **Confirmation**: After `request_to_joi_llm` or `feedback_to_joi_llm` returns status "confirmation_needed", respond with EXACTLY this two-line format and NOTHING else — absolutely NO code block, NO JSON, NO script, NO explanation, NO markdown:
-  "[translated_sentence]
-  이 시나리오가 맞나요? (y/n/수정사항)"
-- **Rejection**: If `feedback_to_joi_llm` returns status "rejected", respond with ONLY: "생성된 시나리오 등록을 거부했습니다. 어떤 것을 도와드릴까요?" — do NOT ask about modifications.
+## Capabilities & Tools Usage:
+- **Immediate Action**: If user wants to do something "now" (e.g. "불 켜줘", "에어컨 꺼"), use `control_thing_directly`.
+- **Automation (Scenario)**: If user wants something scheduled or event-driven (e.g. "매일 아침 7시에", "문이 열리면"), use the `request_to_joi_llm` -> `feedback_to_joi_llm` -> `add_scenario` flow.
+- **Monitoring**: Use `get_current_values` for real-time status and `get_value_history` for historical data or trends.
+- **Device Management**: Use `get_connected_devices` (overview), `get_thing_details` (specifics), and `manage_thing_tags` to organize devices.
+- **Scenario Management**: Use `get_scenarios` to list, `start_scenario`/`stop_scenario` to toggle, and `get_scenario_details` to inspect.
+- **External Info**: Use `get_weather` for weather and air quality info.
 
-## Capabilities:
-- Use `request_to_joi_llm` to generate a JOI automation scenario from a user's natural language command.
-- Use `feedback_to_joi_llm` to process user feedback on a generated scenario:
-  - 'y' / 'yes' → Confirm approval.
-  - 'n' / 'no' → Confirm rejection (do NOT follow up with modification questions).
-  - Modification text → Merges the change into the current script.
-- Use `add_scenario` to formally register and start an approved scenario.
-- Use `get_connected_devices` to see current device tags and categories.
-- Use `get_scenarios` and `delete_scenario` to manage existing scenarios.
-- Use `get_weather` if the user asks about current weather. Weather information is independent from scenario generation — do NOT suggest weather-based automation scenarios.
+## Guidelines for Tools:
+- **Direct Control confirmation**: After calling `control_thing_directly`, confirm the result to the user.
+- **Data Interpretation**: When using `get_value_history` or `get_current_values`, interpret the data for the user (e.g. "현재 온도는 25도이며, 지난 1시간 동안 일정하게 유지되었습니다").
+- **JOI LLM Flow**:
+  - Once a scenario is shown, pass y/n/modification text to `feedback_to_joi_llm`.
+  - After "confirmation_needed", use the format: "[translated_sentence]\\n이 시나리오가 맞나요? (y/n/수정사항)"
+  - If rejected, respond with ONLY: "생성된 시나리오 등록을 거부했습니다. 어떤 것을 도와드릴까요?"
 
-## When introducing yourself or your capabilities:
-Describe what you do in ONE concise paragraph — do NOT use bullet lists or numbered lists. Mention only: (1) creating IoT automation scenarios from natural language, (2) managing existing scenarios, (3) checking weather. Do not split "device control" and "automation" as separate items — they are the same thing.
+## When introducing yourself:
+Describe yourself as an intelligent IoT manager who can (1) control devices directly, (2) create complex automation scenarios using JOI language, (3) monitor sensor data and history, and (4) manage registered automations. Use a single concise paragraph.
 """
 
 MAX_AGENT_ROUNDS = 5
@@ -229,9 +430,17 @@ def _trim_tool_result(msg: dict) -> dict:
     # get_scenarios: code 필드 제거 (name, command만 남김)
     if "scenarios" in result and isinstance(result["scenarios"], list):
         result["scenarios"] = [
-            {k: v for k, v in s.items() if k != "code"}
+            {k: v for k, v in s.items() if k not in ["code", "script"]}
             for s in result["scenarios"]
         ]
+
+    # get_value_history: 데이터가 너무 많으면 최근 5개만 남김
+    if "history" in result and isinstance(result["history"], list):
+        if len(result["history"]) > 5:
+            result["history"] = result["history"][-5:]
+            result["_note"] = "Showing only the most recent 5 records to save context space."
+
+    # get_thing_details: functions 리스트가 너무 길면 요약? (일단 유지)
 
     return {**msg, "content": json.dumps(result, ensure_ascii=False)}
 
@@ -380,7 +589,7 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
             except json.JSONDecodeError:
                 tool_args = {}
 
-            tool_result = dispatch(tc.function.name, tool_args, context)
+            tool_result = call_mcp_tool_sync(tc.function.name, tool_args, context)
 
             if on_tool_call:
                 on_tool_call(tc.function.name, tool_args, tool_result)

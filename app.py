@@ -10,6 +10,8 @@ _KST = ZoneInfo("Asia/Seoul")
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 
+from run_local import generate_joi_code, JoiGenerationError
+
 LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 
@@ -51,6 +53,12 @@ class AgentRequest(BaseModel):
     connected_devices: Optional[Dict[str, Any]] = None
     session_id: str = "default"
 
+class GenerateJOICodeRequest(BaseModel):
+    sentence: str
+    model: str
+    connected_devices: Dict[str, Any]
+    current_time: str
+    other_params: Optional[List[Dict[str, Any]]] = None
 
 # ── 전역 상태 ──────────────────────────────────────────────
 DEFAULT_CONNECTED_DEVICES = {}
@@ -131,6 +139,85 @@ async def chat_endpoint(request: AgentRequest):
             yield chunk
 
     return StreamingResponse(generate(), media_type="text/event-stream")
+
+@app.post("/generate_joi_code")
+async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
+    try:
+        result = generate_joi_code(
+            sentence=request.sentence,
+            connected_devices=request.connected_devices,
+            other_params=request.other_params,
+            base_url=SLLM_LOCAL_BASE_URL
+        )
+        return result
+    except JoiGenerationError as e:
+        return {
+            "code": "",
+            "merged_command": request.sentence,
+            "log": {
+                "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
+                "mapped_devices": {},
+                "logs": getattr(e, 'logs', '')
+            },
+            "error": str(e),
+            "error_code": getattr(e, 'error_code', 'unknown')
+        }
+    except Exception as e:
+        return {
+            "code": "",
+            "merged_command": request.sentence,
+            "log": {
+                "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
+                "mapped_devices": {},
+                "logs": str(e)
+            },
+            "error": str(e)
+        }
+
+@app.post("/re_generate_joi_code")
+async def re_generate_joi_code_endpoint(request: GenerateJOICodeRequest):
+    # Extract modification feedback from other_params
+    modification_text = None
+    if request.other_params:
+        for param in request.other_params:
+            if "user_feedback" in param and param["user_feedback"]:
+                mod = param["user_feedback"][0]
+                if mod != "retry":
+                    modification_text = mod.replace("extra:", "").strip()
+                break
+                
+    try:
+        result = generate_joi_code(
+            sentence=request.sentence,
+            connected_devices={}, # Can be inferred or cached, but run_local logic handles dictionary missing
+            other_params=request.other_params,
+            modification=modification_text,
+            base_url=SLLM_LOCAL_BASE_URL
+        )
+        return result
+    except JoiGenerationError as e:
+        return {
+            "code": "",
+            "merged_command": request.sentence,
+            "log": {
+                "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
+                "mapped_devices": {},
+                "logs": getattr(e, 'logs', '')
+            },
+            "error": str(e),
+            "error_code": getattr(e, 'error_code', 'unknown')
+        }
+    except Exception as e:
+        return {
+            "code": "",
+            "merged_command": request.sentence,
+            "log": {
+                "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
+                "mapped_devices": {},
+                "logs": str(e)
+            },
+            "error": str(e)
+        }
 
 
 if __name__ == "__main__":
