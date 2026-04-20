@@ -1,336 +1,383 @@
+import asyncio
 import json
 import os
-import urllib.request
-import urllib.parse
 
-from config import get_client, get_model_id
-from run_local import generate_joi_code, JoiGenerationError
-from loader import PROMPTS
-import db
+from mcp.client.streamable_http import streamablehttp_client
+from mcp.client.session import ClientSession
 
-# ── Tool Implementations ──────────────────────────────────
 
-def tool_request_to_joi_llm(args, context):
-    # Preprocess: refine command before code generation
-    raw_sentence = args["sentence"]
-    refined = _preprocess_command(raw_sentence, context)
-    sentence = refined if refined else raw_sentence
+# ── MCP Tool Calling ───────────────────────────────────────
 
-    preprocess_log = f"[Preprocess] \"{raw_sentence}\" → \"{sentence}\"\n"
+def call_mcp_tool_sync(tool_name: str, args: dict, context: dict) -> dict:
+    return asyncio.run(_call_mcp_tool(tool_name, args, context))
+
+
+async def _call_mcp_tool(tool_name: str, args: dict, context: dict):
+    mcp_url = os.environ.get("MCP_SERVER_URL", "http://127.0.0.1:8100/mcp")
+
+    if tool_name == "feedback_to_joi_llm":
+        args["joi_llm_result"] = context.get("last_result", {})
+    elif tool_name == "add_scenario":
+        args["joi_llm_result"] = context.get("last_result", {})
 
     try:
-        result = generate_joi_code(
-            sentence=sentence,
-            connected_devices=context.get("connected_devices", {}),
-            other_params={},
-            base_url=context.get("base_url"),
-            debug=context.get("debug", False),
-        )
-    except JoiGenerationError as e:
-        return {"error": str(e), "error_code": e.error_code, "logs": preprocess_log + e.logs}
+        async with streamablehttp_client(mcp_url) as (read, write, _):
+            async with ClientSession(read, write) as session:
+                await session.initialize()
+                result = await session.call_tool(tool_name, arguments=args)
+
+                if hasattr(result, 'content') and len(result.content) > 0:
+                    text_content = result.content[0].text
+                    try:
+                        parsed_result = json.loads(text_content)
+                        if tool_name in ["request_to_joi_llm", "feedback_to_joi_llm"]:
+                            context["last_result"] = parsed_result
+                            context["last_result_updated"] = True
+                        return parsed_result
+                    except json.JSONDecodeError:
+                        return {"result": text_content}
+                return {"result": str(result)}
     except Exception as e:
-        return {"error": str(e), "error_code": "generation_failed", "logs": preprocess_log}
-
-    result["status"] = "confirmation_needed"
-    context["last_result"] = result
-    context["last_result_updated"] = True
-    stage_logs = preprocess_log + result.get("log", {}).get("logs", "")
-    return {
-        "status": "confirmation_needed",
-        "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
-        "response_time": result.get("log", {}).get("response_time", ""),
-        "code": result.get("code", ""),
-        "logs": stage_logs,
-    }
+        return {"error": f"MCP Tool calling failed: {str(e)}", "error_code": "mcp_failed"}
 
 
-def tool_feedback_to_joi_llm(args, context):
-    feedback = args["feedback"].strip().lower()
-    last = context.get("last_result") or {}
+# ── Tool Schemas ───────────────────────────────────────────
 
-    if feedback in ("y", "yes"):
-        last["status"] = "approved"
-        context["last_result"] = last
-        return {"status": "approved", "message": "User approved. Ready to register via add_scenario."}
-
-    if feedback in ("n", "no"):
-        context["last_result"] = None
-        return {"status": "rejected", "message": "User rejected. Task terminated and context cleared."}
-
-    try:
-        result = generate_joi_code(
-            sentence=last.get("merged_command", ""),
-            connected_devices=context.get("connected_devices", {}),
-            other_params={},
-            modification=feedback,
-            base_url=context.get("base_url"),
-            debug=context.get("debug", False),
-        )
-    except JoiGenerationError as e:
-        return {"error": str(e), "error_code": e.error_code, "logs": e.logs}
-    except Exception as e:
-        return {"error": str(e), "error_code": "generation_failed"}
-
-    result["status"] = "confirmation_needed"
-    context["last_result"] = result
-    context["last_result_updated"] = True
-    return {
-        "status": "confirmation_needed",
-        "translated_sentence": result.get("log", {}).get("translated_sentence", ""),
-        "response_time": result.get("log", {}).get("response_time", ""),
-        "code": result.get("code", ""),
-    }
-
-
-def tool_add_scenario(args, context):
-    last = context.get("last_result") or {}
-    code_raw = last.get("code", "")
-    if isinstance(code_raw, str):
-        try:
-            code = json.loads(code_raw)
-        except json.JSONDecodeError:
-            return {"error": f"Failed to parse code: {code_raw[:100]}", "error_code": "generation_failed"}
-    else:
-        code = code_raw
-    if isinstance(code, list):
-        code = code[0]
-
-    import uuid
-    scenario_name = code.get("name", "Scenario")
-    if "Scenario" in scenario_name:
-        scenario_name += f"_{uuid.uuid4().hex[:3]}"
-
-    scenario = {
-        "name": scenario_name,
-        "cron": code.get("cron", ""),
-        "period_in_msec": code.get("period", -1),
-        "script": code.get("script") or code.get("code", ""),
-        "command": last.get("log", {}).get("translated_sentence", ""),
-    }
-
-    # DB 저장
-    session_id = context.get("session_id", "default")
-    db.save_scenario(
-        session_id=session_id,
-        command=last.get("merged_command", ""),
-        code=json.dumps(code, ensure_ascii=False),
-        translated=scenario["command"],
-    )
-
-    context["last_result"] = None
-
-    hub_url = os.getenv("HUB_CONTROLLER_URL", "")
-    if not hub_url:
-        return {
-            "status": "registered_locally",
-            "scenario": scenario,
-            "message": "No HUB_CONTROLLER_URL configured. Scenario saved to DB.",
-        }
-
-    hub_token = os.getenv("HUB_AUTH_TOKEN", "")
-    headers = {"Content-Type": "application/json"}
-    if hub_token:
-        headers["Authorization"] = f"Bearer {hub_token}"
-    req = urllib.request.Request(
-        f"{hub_url}/user/scenarios/",
-        data=json.dumps(scenario).encode(),
-        headers=headers,
-        method="POST",
-    )
-    try:
-        with urllib.request.urlopen(req, timeout=10) as resp:
-            resp_data = json.loads(resp.read().decode())
-            return {
-                "status": "scenario_created",
-                "scenario": resp_data,
-                "message": f"Scenario '{resp_data.get('name', scenario_name)}' registered and started.",
+AGENT_TOOLS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "request_to_joi_llm",
+            "description": (
+                "Send a natural-language IoT command to the JOI code generator. "
+                "ONLY call this after the user has EXPLICITLY confirmed scenario creation "
+                "(e.g., said '생성해줘', '응', 'y', or confirmed when asked). "
+                "NEVER call this on the first IoT command from the user — always ask for confirmation first."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "sentence": {
+                        "type": "string",
+                        "description": "Natural language command, e.g. 'turn on living room lights at 9am'"
+                    }
+                },
+                "required": ["sentence"]
             }
-    except Exception as e:
-        return {"error": f"Hub Controller request failed: {e}", "error_code": "hub_failed"}
-
-
-def tool_get_connected_devices(args, context):
-    devices = context.get("connected_devices", {})
-    if devices:
-        return {"connected_devices": devices}
-    return {"connected_devices": {}, "message": "No devices currently connected."}
-
-
-def tool_get_weather(args, context):
-    """wttr.in을 이용한 날씨 정보 조회 (네트워크 필요)"""
-    location = args.get("location", "Seoul")
-    try:
-        url = f"https://wttr.in/{urllib.parse.quote(location)}?format=j1"
-        req = urllib.request.Request(url, headers={"User-Agent": "joi-agent/1.0"})
-        with urllib.request.urlopen(req, timeout=5) as resp:
-            data = json.loads(resp.read().decode())
-        current = data["current_condition"][0]
-        return {
-            "location": location,
-            "temp_c": current.get("temp_C"),
-            "feels_like_c": current.get("FeelsLikeC"),
-            "humidity": current.get("humidity"),
-            "description": current.get("weatherDesc", [{}])[0].get("value", ""),
         }
-    except Exception as e:
-        return {"error": f"Weather fetch failed: {e}", "error_code": "weather_failed"}
-
-
-def tool_get_scenarios(args, context):
-    """저장된 시나리오 목록 조회"""
-    session_id = context.get("session_id", "default")
-    scenarios = db.get_scenarios(session_id)
-    if not scenarios:
-        return {"message": "등록된 시나리오가 없습니다.", "scenarios": []}
-    # 코드 raw는 너무 길어서 제외하고 요약만 반환
-    summary = [
-        {
-            "id": s["id"],
-            "command": s["command"],
-            "translated": s["translated"],
-            "created_at": s["created_at"],
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "add_scenario",
+            "description": "Register the approved JOI scenario to the Hub Controller and start it.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
         }
-        for s in scenarios
-    ]
-    return {"session_id": session_id, "count": len(summary), "scenarios": summary}
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_connected_devices",
+            "description": "Get the list of currently connected IoT devices, including their UUIDs, nicknames, categories, functions, and current values. Use this whenever you need any device information.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_thing_details",
+            "description": "Get detailed functions and values for a specific device. Use this instead of get_connected_devices when you only need info about one device.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique UUID of the device from the connected devices list."
+                    }
+                },
+                "required": ["thing_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_scenarios",
+            "description": "Retrieve the list of previously registered IoT scenarios from the local DB.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_current_values",
+            "description": "Get the current real-time sensor values or status for a specific device.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID of the device"
+                    }
+                },
+                "required": ["thing_id"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "control_thing_directly",
+            "description": "Immediately control a device without creating a scenario. Use this for one-off actions like 'turn on the light now'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID (UUID) of the device"
+                    },
+                    "service_name": {
+                        "type": "string",
+                        "description": "The exact function name from the device's 'functions' list. NEVER guess — call get_thing_details or get_connected_devices first to get the exact name (e.g., 'switch_on', 'switch_off', 'light_moveToBrightness')."
+                    },
+                    "args": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "description": "Arguments for the service (e.g., ['50'] for setLevel). For color, use ['R|G|B'] like ['255|0|0']."
+                    },
+                    "service_type": {
+                        "type": "string",
+                        "description": "Type of service, usually 'function'",
+                        "default": "function"
+                    }
+                },
+                "required": ["thing_id", "service_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_locations",
+            "description": "Get the list of locations (rooms) registered in the IoT system.",
+            "parameters": {
+                "type": "object",
+                "properties": {},
+                "required": []
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_value_history",
+            "description": "Get historical data for a specific device attribute (e.g., temperature, energy consumption).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID of the device"
+                    },
+                    "service_name": {
+                        "type": "string",
+                        "description": "The value name from the device's 'values' list (e.g., 'switch_switch', 'light_currentBrightness'). Call get_connected_devices first to check available values for the device."
+                    },
+                    "unit": {
+                        "type": "string",
+                        "description": "Time aggregation unit",
+                        "enum": ["minutely", "hourly", "daily", "weekly"]
+                    },
+                    "data_server_id": {
+                        "type": "string",
+                        "description": "Data server ID, default is 'auto'",
+                        "default": "auto"
+                    }
+                },
+                "required": ["thing_id", "service_name", "unit"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_scenario_details",
+            "description": "Get the detailed JOI script and configuration for a specific scenario.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scenario_name": {
+                        "type": "string",
+                        "description": "The name of the scenario"
+                    }
+                },
+                "required": ["scenario_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "start_scenario",
+            "description": "Activate or manually trigger a registered scenario.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scenario_name": {
+                        "type": "string",
+                        "description": "The name of the scenario to start"
+                    }
+                },
+                "required": ["scenario_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "stop_scenario",
+            "description": "Deactivate a running scenario.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "scenario_name": {
+                        "type": "string",
+                        "description": "The name of the scenario to stop"
+                    }
+                },
+                "required": ["scenario_name"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "manage_thing_tags",
+            "description": "Add or remove tags from a device for better categorization.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "thing_id": {
+                        "type": "string",
+                        "description": "The unique ID of the device"
+                    },
+                    "action": {
+                        "type": "string",
+                        "description": "Action to perform: 'add' or 'remove'",
+                        "enum": ["add", "remove"]
+                    },
+                    "tag": {
+                        "type": "string",
+                        "description": "The tag name"
+                    }
+                },
+                "required": ["thing_id", "action", "tag"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_weather",
+            "description": "Fetch current weather information or air quality for a given location. (Calls external API via MCP)",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "City name or location, e.g. 'Seoul', 'Busan'"
+                    }
+                },
+                "required": ["location"]
+            }
+        }
+    },
+]
 
 
-def tool_delete_scenario(args, context):
-    """시나리오 삭제"""
-    scenario_id = args.get("scenario_id")
-    if scenario_id is None:
-        return {"error": "scenario_id is required"}
-    db.delete_scenario(int(scenario_id))
-    return {"status": "deleted", "scenario_id": scenario_id}
+# ── Error Handling ─────────────────────────────────────────
 
-
-
-
-
-_PREPROCESS_PROMPT = """You are a command preprocessor for an IoT automation system called JOI.
-
-Your job is to clarify a user's natural language command so the code generator understands it precisely — without losing or distorting any original intent.
-
-## Connected Devices
-{devices_info}
-
-### How to read device info
-- **Categories**: The device's type. The four categories Switch, LevelControl, ColorControl, RotaryControl are NOT standalone devices — they are auxiliary capability tags. Ignore them when identifying devices.
-- **Tags**: Nicknames for this device. The code generator uses tags to map commands to devices.
-
----
-
-## ABSOLUTE PROHIBITIONS — Never change these
-
-### 1. Time & Schedule information
-Preserve every time detail exactly as stated: repeat intervals, start times, durations, delays.
-- "3분마다" must stay "3분마다". Do NOT omit or paraphrase it.
-- "3초간 켜고 3초간 꺼줘" must stay as-is.
-
-### 2. Korean verb endings carry semantic meaning — never alter them
-These four forms have DIFFERENT meanings and MUST be preserved exactly:
-- "불이 꺼져있으면" — static state check
-- "불이 꺼진 상태면" — static state check
-- "불이 꺼지면" — transition trigger 
-- "불이 꺼지게 되면" — transition trigger (similar to 꺼지면 but more formal)
-- "불이 꺼질때마다" - Repeated trigger (Every trigger)
-NEVER substitute one for another.
-
----
-
-## PERMITTED clarifications
-
-### 1. AM/PM disambiguation
-If the user says a bare time like "3시" with no AM/PM context, default to AM (오전): "오전 3시".
-
-### 2. Device name clarification
-Map vague device references to the actual device name from the connected device list.
-- Auxiliary categories (Switch, LevelControl, ColorControl, RotaryControl) are NOT real device names. The real device is found in the non-auxiliary categories.
-- Examples:
-  - "스위치가 눌리면" → user means a button device → find the MultiButton → "멀티버튼의 버튼이 눌리면"
-  - "온도를 알려줘" → telling = speaking → find the Speaker → "온도를 스피커로 알려줘"
-  - "스피커 켜줘" → Speaker is a real device → keep as-is (just clarify quantity if needed)
-- Only map if there is a clear unique match in the connected device list. If ambiguous, leave as-is.
-
-### 3. Quantity clarification
-If no quantity is stated, make it explicit using one of three modes:
-- **하나**: one arbitrary device. Use when user says "하나", "임의의", or omits quantity entirely.
-- **모두**: all devices of that type. Use when user says "모든", "전부", "다".
-- **하나라도**: at least one. Only valid in conditions (if/when). Use when user says "하나라도".
-
----
-
-## Examples
-- "불을 아무거나 꺼줘" → "조명 하나를 꺼줘"
-- "임의의 불을 꺼줘" → "조명 하나를 꺼줘"
-- "랜덤으로 아무 불이나 꺼줘" → "조명 하나를 꺼줘"
-- "불을 모두 꺼줘" → "모든 조명을 꺼줘"
-- "3분마다 불을 토글해" → "3분마다 조명 하나를 토글해"
-- "3분마다 조명 하나를 3초간 켰다가 꺼줘" → "3분마다 조명 하나를 3초간 켰다가 꺼줘"
-- "스위치가 눌리면 불을 꺼줘" → "멀티버튼의 버튼이 눌리면 조명 하나를 꺼줘"
-- "온도를 알려줘" → "온도를 스피커로 알려줘"
-- "온도가 30도 이상이 되면 불을 모두 꺼" → "온도가 30도 이상이 되면 모든 조명을 꺼"
-- "조명이 하나라도 켜져있으면 알려줘" → "조명이 하나라도 켜져있으면 스피커로 알려줘"
-- "3시에 불 꺼줘" → "오전 3시에 조명 하나를 꺼줘"
-
-## Output
-Output ONLY the refined command. No JSON, no explanation, no quotes — just the refined Korean sentence."""
-
-
-def _preprocess_command(user_command, context):
-    """사용자 명령어를 정제하여 명확한 명령어로 변환. 실패 시 빈 문자열 반환."""
-    connected_devices = context.get("connected_devices", {})
-
-    devices_info = ""
-    if isinstance(connected_devices, str):
-        try:
-            connected_devices = json.loads(connected_devices.replace("'", '"'))
-        except Exception:
-            pass
-    for _, dev in connected_devices.items():
-        tags = dev.get("tags", [])
-        cats = dev.get("category", [])
-        devices_info += f"- Tags: {tags}, Categories: {cats}\n"
-
-    prompt = _PREPROCESS_PROMPT.format(
-        devices_info=devices_info.strip() or "No devices connected.",
-    )
-
-    client = get_client(context.get("base_url"))
-    model = get_model_id(client)
-
-    try:
-        response = client.chat.completions.create(
-            model=model,
-            messages=[
-                {"role": "system", "content": prompt},
-                {"role": "user", "content": user_command},
-            ],
-            temperature=0.3,
-            max_tokens=512,
-            stream=False,
-            extra_body={"chat_template_kwargs": {"enable_thinking": False}},
-        )
-        return (response.choices[0].message.content or "").strip()
-    except Exception:
-        return ""
-
-
-# ── Dispatch ──────────────────────────────────────────────
-
-_TOOL_MAP = {
-    "request_to_joi_llm":    tool_request_to_joi_llm,
-    "feedback_to_joi_llm":   tool_feedback_to_joi_llm,
-    "add_scenario":          tool_add_scenario,
-    "get_scenarios":         tool_get_scenarios,
-    "delete_scenario":       tool_delete_scenario,
-    "get_connected_devices": tool_get_connected_devices,
-    "get_weather":           tool_get_weather,
+_ERROR_HINTS = {
+    "no_services":       "연결된 기기가 해당 명령을 지원하는 서비스가 없습니다. 기기 연결 문제가 아니므로 기기 매핑을 제안하지 마세요. 지원되지 않는 명령임을 안내하고 다른 명령을 시도해달라고 하세요. 추가 tool을 호출하지 마세요.",
+    "no_devices":        "연결된 기기가 없습니다. 기기를 연결한 후 다시 시도해달라고 안내하세요. 추가 tool을 호출하지 마세요.",
+    "hub_failed":        "허브 서버에 시나리오를 등록하지 못했습니다. 오류 내용을 그대로 사용자에게 전달하세요. 추가 tool을 호출하지 마세요.",
+    "weather_failed":    "날씨 정보를 가져오지 못했습니다. 네트워크 연결을 확인하거나, 도시 이름을 영어 대도시명(예: Seoul, Busan)으로 다시 시도해달라고 안내하세요. 추가 tool을 호출하지 마세요.",
+    "generation_failed": "코드 생성 중 오류가 발생했습니다. 오류 내용을 그대로 사용자에게 전달하세요. 추가 tool을 호출하지 마세요.",
 }
 
 
-def dispatch(tool_name: str, tool_args: dict, context: dict) -> dict:
-    fn = _TOOL_MAP.get(tool_name)
-    if fn is None:
-        return {"error": f"Unknown tool: {tool_name}"}
-    return fn(tool_args, context)
+def error_hint(tool_result: dict) -> str:
+    code = tool_result.get("error_code", "")
+    msg = tool_result.get("error", "")
+    return _ERROR_HINTS.get(code, f"도구 실행 중 오류가 발생했습니다. 오류 내용을 그대로 사용자에게 전달하세요: {msg}\n추가 tool을 호출하지 마세요.")
+
+
+# ── History Summarization ──────────────────────────────────
+
+def summarize_tool_result(tool_name: str, msg: dict) -> dict:
+    """history 저장용: tool result를 한 줄 요약 문자열로 축약한다."""
+    if msg.get("role") != "tool":
+        return msg
+    try:
+        result = json.loads(msg["content"])
+    except (json.JSONDecodeError, KeyError):
+        return msg
+
+    if isinstance(result, dict) and result.get("error"):
+        summary = f"[{tool_name}: failed - {result.get('error', '')}]"
+
+    elif tool_name == "get_connected_devices":
+        devices = result.get("devices", {})
+        names = [v.get("nickname") or k for k, v in devices.items()]
+        summary = f"[get_connected_devices: {len(names)} devices - {', '.join(names[:5])}{'...' if len(names) > 5 else ''}]"
+
+    elif tool_name == "get_thing_details":
+        nickname = result.get("nickname") or result.get("id", "")
+        funcs = [f["name"] for f in result.get("functions", [])]
+        summary = f"[get_thing_details: {nickname} - functions: {', '.join(funcs[:8])}{'...' if len(funcs) > 8 else ''}]"
+
+    elif tool_name == "control_thing_directly":
+        thing_id = result.get("thing_id", "")
+        service = result.get("service_name", "")
+        action = result.get("action", "completed")
+        summary = f"[control_thing_directly: {service} on {thing_id} → {action}]"
+
+    elif tool_name in ("request_to_joi_llm", "feedback_to_joi_llm"):
+        status = result.get("status", "")
+        translated = result.get("merged_command") or (result.get("log") or {}).get("translated_sentence", "")
+        summary = f"[{tool_name}: {status} - {translated}]"
+
+    elif tool_name == "add_scenario":
+        scenario = result.get("scenario", {})
+        name = scenario.get("name", "")
+        summary = f"[add_scenario: registered '{name}']"
+
+    elif tool_name == "get_scenarios":
+        scenarios = result.get("scenarios", [])
+        names = [s.get("name", "") for s in scenarios]
+        summary = f"[get_scenarios: {len(names)} scenarios - {', '.join(names[:5])}]"
+
+    elif tool_name == "get_current_values":
+        count = len(result.get("values", result.get("current_values", [])))
+        summary = f"[get_current_values: {count} values retrieved]"
+
+    elif tool_name == "get_value_history":
+        count = len(result.get("history", []))
+        summary = f"[get_value_history: {count} records retrieved]"
+
+    else:
+        summary = f"[{tool_name}: completed]"
+
+    return {**msg, "content": summary}

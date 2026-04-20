@@ -30,13 +30,19 @@ def _init_db():
         """)
         conn.execute("""
             CREATE TABLE IF NOT EXISTS sessions (
-                session_id        TEXT PRIMARY KEY,
-                chat_history      TEXT NOT NULL DEFAULT '[]',
-                last_result       TEXT,
-                connected_devices TEXT NOT NULL DEFAULT '{}',
-                updated_at        TEXT NOT NULL
+                session_id          TEXT PRIMARY KEY,
+                chat_history        TEXT NOT NULL DEFAULT '[]',
+                last_result         TEXT,
+                connected_devices   TEXT NOT NULL DEFAULT '{}',
+                last_prompt_tokens  INTEGER NOT NULL DEFAULT 0,
+                updated_at          TEXT NOT NULL
             )
         """)
+        # 기존 DB에 컬럼이 없으면 추가
+        try:
+            conn.execute("ALTER TABLE sessions ADD COLUMN last_prompt_tokens INTEGER NOT NULL DEFAULT 0")
+        except Exception:
+            pass
 
 _init_db()
 

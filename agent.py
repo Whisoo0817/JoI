@@ -6,57 +6,12 @@ from types import SimpleNamespace
 
 from config import get_client, get_model_id
 from run_local import _parse_dict_input
-import asyncio
 import os
-from mcp.client.sse import sse_client
-from mcp.client.session import ClientSession
+from tools import call_mcp_tool_sync, AGENT_TOOLS, error_hint, summarize_tool_result
 
-def call_mcp_tool_sync(tool_name: str, args: dict, context: dict) -> dict:
-    return asyncio.run(_call_mcp_tool(tool_name, args, context))
-
-async def _call_mcp_tool(tool_name: str, args: dict, context: dict):
-    mcp_url = os.environ.get("MCP_SERVER_URL", "http://127.0.0.1:8100/sse")
-    
-    # [Intercept] Implicitly inject joi_llm_result to shield local LLM from complex variables
-    if tool_name == "feedback_to_joi_llm":
-        args["joi_llm_result"] = context.get("last_result", {})
-    elif tool_name == "add_scenario":
-        args["joi_llm_result"] = context.get("last_result", {})
-
-    try:
-        async with sse_client(mcp_url) as (read, write):
-            async with ClientSession(read, write) as session:
-                await session.initialize()
-                result = await session.call_tool(tool_name, arguments=args)
-                
-                # FastMCP CallToolResult evaluation
-                if hasattr(result, 'content') and len(result.content) > 0:
-                    text_content = result.content[0].text
-                    try:
-                        parsed_result = json.loads(text_content)
-                        # Cache the LLM pipeline result to use in feedback and scenario tasks
-                        if tool_name in ["request_to_joi_llm", "feedback_to_joi_llm"]:
-                            context["last_result"] = parsed_result
-                            context["last_result_updated"] = True
-                        return parsed_result
-                    except json.JSONDecodeError:
-                        return {"result": text_content}
-                return {"result": str(result)}
-    except Exception as e:
-        return {"error": f"MCP Tool calling failed: {str(e)}", "error_code": "mcp_failed"}
-
-
-_ERROR_HINTS = {
-    "no_services":       "연결된 기기가 해당 명령을 지원하는 서비스가 없습니다. 기기 연결 문제가 아니므로 기기 매핑을 제안하지 마세요. 지원되지 않는 명령임을 안내하고 다른 명령을 시도해달라고 하세요. 추가 tool을 호출하지 마세요.",
-    "no_devices":        "연결된 기기가 없습니다. 기기를 연결한 후 다시 시도해달라고 안내하세요. 추가 tool을 호출하지 마세요.",
-    "hub_failed":        "허브 서버에 시나리오를 등록하지 못했습니다. 오류 내용을 그대로 사용자에게 전달하세요. 추가 tool을 호출하지 마세요.",
-    "weather_failed":    "날씨 정보를 가져오지 못했습니다. 네트워크 연결을 확인하거나, 도시 이름을 영어 대도시명(예: Seoul, Busan)으로 다시 시도해달라고 안내하세요. 추가 tool을 호출하지 마세요.",
-    "generation_failed": "코드 생성 중 오류가 발생했습니다. 오류 내용을 그대로 사용자에게 전달하세요. 추가 tool을 호출하지 마세요.",
-}
 
 _AUX_CATEGORIES = {"Switch", "LevelControl", "ColorControl", "RotaryControl"}
 
-# One example per device category. Covers varied JOI patterns.
 _CATEGORY_EXAMPLES = {
     "Light":                "오전 8시에 조명을 꺼줘",
     "AirConditioner":       "오후 2시에 에어컨을 켜줘",
@@ -88,307 +43,19 @@ _CATEGORY_EXAMPLES = {
 }
 
 
-def _error_hint(tool_result: dict) -> str:
-    code = tool_result.get("error_code", "")
-    msg = tool_result.get("error", "")
-    return _ERROR_HINTS.get(code, f"도구 실행 중 오류가 발생했습니다. 오류 내용을 그대로 사용자에게 전달하세요: {msg}\n추가 tool을 호출하지 마세요.")
-
-AGENT_TOOLS = [
-    {
-        "type": "function",
-        "function": {
-            "name": "request_to_joi_llm",
-            "description": (
-                "Send a natural-language IoT command to the JOI code generator. "
-                "ONLY call this after the user has EXPLICITLY confirmed scenario creation "
-                "(e.g., said '생성해줘', '응', 'y', or confirmed when asked). "
-                "NEVER call this on the first IoT command from the user — always ask for confirmation first."
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "sentence": {
-                        "type": "string",
-                        "description": "Natural language command, e.g. 'turn on living room lights at 9am'"
-                    }
-                },
-                "required": ["sentence"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "feedback_to_joi_llm",
-            "description": (
-                "Process user feedback on previously generated JOI code. "
-                "'y' = approve, 'n' = reject, or free text = modification request."
-            ),
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "feedback": {
-                        "type": "string",
-                        "description": "'y' to approve, 'n' to reject, or modification text"
-                    }
-                },
-                "required": ["feedback"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "add_scenario",
-            "description": "Register the approved JOI scenario to the Hub Controller and start it.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_connected_devices",
-            "description": "Get the list of currently connected IoT devices with their status and services.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_scenarios",
-            "description": "Retrieve the list of previously registered IoT scenarios from the local DB.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_thing_details",
-            "description": "Get detailed information about a specific device, including its capabilities (functions) and current status.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "thing_id": {
-                        "type": "string",
-                        "description": "The unique ID of the device"
-                    }
-                },
-                "required": ["thing_id"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_current_values",
-            "description": "Get the current real-time sensor values or status for a specific device.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "thing_id": {
-                        "type": "string",
-                        "description": "The unique ID of the device"
-                    }
-                },
-                "required": ["thing_id"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "control_thing_directly",
-            "description": "Immediately control a device without creating a scenario. Use this for one-off actions like 'turn on the light now'.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "thing_id": {
-                        "type": "string",
-                        "description": "The unique ID (UUID) of the device"
-                    },
-                    "service_name": {
-                        "type": "string",
-                        "description": "The service/function name (e.g., 'switch_on', 'switch_off', 'setLevel', 'setTemperature')"
-                    },
-                    "args": {
-                        "type": "array",
-                        "items": {"type": "string"},
-                        "description": "Arguments for the service (e.g., ['50'] for setLevel). For color, use ['R|G|B'] like ['255|0|0']."
-                    },
-                    "service_type": {
-                        "type": "string",
-                        "description": "Type of service, usually 'function'",
-                        "default": "function"
-                    }
-                },
-                "required": ["thing_id", "service_name"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_locations",
-            "description": "Get the list of locations (rooms) registered in the IoT system.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_value_history",
-            "description": "Get historical data for a specific device attribute (e.g., temperature, energy consumption).",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "thing_id": {
-                        "type": "string",
-                        "description": "The unique ID of the device"
-                    },
-                    "service_name": {
-                        "type": "string",
-                        "description": "The sensor/attribute name (e.g., 'temperature', 'contact', 'power')"
-                    },
-                    "unit": {
-                        "type": "string",
-                        "description": "Time aggregation unit",
-                        "enum": ["minutely", "hourly", "daily", "weekly"]
-                    },
-                    "data_server_id": {
-                        "type": "string",
-                        "description": "Data server ID, default is 'auto'",
-                        "default": "auto"
-                    }
-                },
-                "required": ["thing_id", "service_name", "unit"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_scenario_details",
-            "description": "Get the detailed JOI script and configuration for a specific scenario.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "scenario_name": {
-                        "type": "string",
-                        "description": "The name of the scenario"
-                    }
-                },
-                "required": ["scenario_name"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "start_scenario",
-            "description": "Activate or manually trigger a registered scenario.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "scenario_name": {
-                        "type": "string",
-                        "description": "The name of the scenario to start"
-                    }
-                },
-                "required": ["scenario_name"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "stop_scenario",
-            "description": "Deactivate a running scenario.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "scenario_name": {
-                        "type": "string",
-                        "description": "The name of the scenario to stop"
-                    }
-                },
-                "required": ["scenario_name"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "manage_thing_tags",
-            "description": "Add or remove tags from a device for better categorization.",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "thing_id": {
-                        "type": "string",
-                        "description": "The unique ID of the device"
-                    },
-                    "action": {
-                        "type": "string",
-                        "description": "Action to perform: 'add' or 'remove'",
-                        "enum": ["add", "remove"]
-                    },
-                    "tag": {
-                        "type": "string",
-                        "description": "The tag name"
-                    }
-                },
-                "required": ["thing_id", "action", "tag"]
-            }
-        }
-    },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_weather",
-            "description": "Fetch current weather information or air quality for a given location. (Calls external API via MCP)",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "City name or location, e.g. 'Seoul', 'Busan'"
-                    }
-                },
-                "required": ["location"]
-            }
-        }
-    },
-]
-
 AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. Your primary goal is to help users manage their smart home.
 
 ## Core Principles (CRITICAL):
 - **NEVER PROVIDE AN EMPTY RESPONSE**: You MUST ALWAYS output a natural language response to the user, even after calling a tool. If a tool was successful, confirm it to the user.
-- **Language**: Always respond in Korean.
+- **Language**: 반드시 한국어로만 답변하세요. 중국어, 일본어, 영어 등 다른 언어는 절대 사용하지 마세요.
 - **IoT Only**: Focus strictly on IoT-related tasks.
 - **Example Commands**: When showing examples, use ONLY the exact list provided in "## Example Commands" below — copy them verbatim. NEVER invent, paraphrase, or add examples outside that list. If the list is empty, do not show any examples.
 
 ## Capabilities & Tools Usage:
 - **Immediate Action**: If user wants to do something "now" (e.g. "불 켜줘", "에어컨 꺼"), use `control_thing_directly`.
-- **Automation (Scenario)**: If user wants something scheduled or event-driven (e.g. "매일 아침 7시에", "문이 열리면"), use the `request_to_joi_llm` -> `feedback_to_joi_llm` -> `add_scenario` flow.
+- **Automation (Scenario)**: If user wants something scheduled or event-driven (e.g. "매일 아침 7시에", "문이 열리면"), use the `request_to_joi_llm` -> `add_scenario` flow.
 - **Monitoring**: Use `get_current_values` for real-time status and `get_value_history` for historical data or trends.
-- **Device Management**: Use `get_connected_devices` (overview), `get_thing_details` (specifics), and `manage_thing_tags` to organize devices.
+- **Device Management**: Use `get_connected_devices` for all devices overview, `get_thing_details` for one specific device's functions/values, and `manage_thing_tags` to organize devices.
 - **Scenario Management**: Use `get_scenarios` to list, `start_scenario`/`stop_scenario` to toggle, and `get_scenario_details` to inspect.
 - **External Info**: Use `get_weather` for weather and air quality info.
 
@@ -396,65 +63,19 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 - **Direct Control confirmation**: After calling `control_thing_directly`, confirm the result to the user.
 - **Data Interpretation**: When using `get_value_history` or `get_current_values`, interpret the data for the user (e.g. "현재 온도는 25도이며, 지난 1시간 동안 일정하게 유지되었습니다").
 - **JOI LLM Flow**:
-  - Once a scenario is shown, pass y/n/modification text to `feedback_to_joi_llm`.
   - After "confirmation_needed", use the format: "[translated_sentence]\\n이 시나리오가 맞나요? (y/n/수정사항)"
-  - If rejected, respond with ONLY: "생성된 시나리오 등록을 거부했습니다. 어떤 것을 도와드릴까요?"
+  - If user approves ('y'), call `add_scenario`. If user requests modification, call `request_to_joi_llm` again with the updated command.
+  - If rejected ('n'), respond with ONLY: "생성된 시나리오 등록을 거부했습니다. 어떤 것을 도와드릴까요?"
 
-## When introducing yourself:
-Describe yourself as an intelligent IoT manager who can (1) control devices directly, (2) create complex automation scenarios using JOI language, (3) monitor sensor data and history, and (4) manage registered automations. Use a single concise paragraph.
+## 자기소개 시:
+JoI 에이전트로서 (1) 기기 직접 제어, (2) JOI 언어를 활용한 자동화 시나리오 생성, (3) 센서 데이터 및 이력 모니터링, (4) 등록된 시나리오 관리가 가능하다고 한 문단으로 간결하게 소개하세요.
 """
 
 MAX_AGENT_ROUNDS = 5
 
 
-def _trim_tool_result(msg: dict) -> dict:
-    """tool 메시지에서 history에 불필요한 대용량 필드를 제거한다."""
-    if msg.get("role") != "tool":
-        return msg
-    try:
-        result = json.loads(msg["content"])
-    except (json.JSONDecodeError, KeyError):
-        return msg
+def agent_chat_stream(user_message, session_id="default", connected_devices=None, base_url=None, on_complete=None, on_tool_call=None):
 
-    # get_connected_devices: 디바이스 전체 JSON → category/tags 요약만 남김
-    if "connected_devices" in result and isinstance(result["connected_devices"], dict):
-        result["connected_devices"] = {
-            k: {"category": v.get("category", []), "tags": v.get("tags", [])}
-            for k, v in result["connected_devices"].items()
-        }
-
-    # request_to_joi_llm / feedback_to_joi_llm: log 필드 제거
-    if "log" in result:
-        del result["log"]
-
-    # get_scenarios: code 필드 제거 (name, command만 남김)
-    if "scenarios" in result and isinstance(result["scenarios"], list):
-        result["scenarios"] = [
-            {k: v for k, v in s.items() if k not in ["code", "script"]}
-            for s in result["scenarios"]
-        ]
-
-    # get_value_history: 데이터가 너무 많으면 최근 5개만 남김
-    if "history" in result and isinstance(result["history"], list):
-        if len(result["history"]) > 5:
-            result["history"] = result["history"][-5:]
-            result["_note"] = "Showing only the most recent 5 records to save context space."
-
-    # get_thing_details: functions 리스트가 너무 길면 요약? (일단 유지)
-
-    return {**msg, "content": json.dumps(result, ensure_ascii=False)}
-
-
-def agent_chat_stream(user_message, session_id="default", connected_devices=None, base_url=None, debug=False, on_complete=None, on_tool_call=None):
-    """
-    agent_chat의 스트리밍 버전. 최종 텍스트 응답을 토큰 단위로 yield하고
-    마지막에 last_result를 JSON 이벤트로 yield한다.
-
-    Yields:
-        str: SSE 형식 문자열
-            - 텍스트 토큰: "data: <token>\n\n"
-            - 완료: "data: [DONE] <json>\n\n"
-    """
     import db as _db
 
     client = get_client(base_url)
@@ -471,23 +92,28 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
         devices = stored_devices
 
     context = {
-        "chat_history": chat_history,
         "connected_devices": devices,
         "base_url": base_url,
         "last_result": last_result,
         "last_result_updated": False,
-        "debug": debug,
+
         "session_id": session_id,
     }
 
+    # history truncation: DB 요약본 기준 글자 수로 토큰 추정, 턴 단위 제거
+    HISTORY_TOKEN_LIMIT = 4000
     truncated_history = list(chat_history)
-    while True:
-        history_tokens_est = sum(len(json.dumps(m, ensure_ascii=False)) for m in truncated_history) // 4
-        if history_tokens_est <= 2000 or len(truncated_history) <= 5:
+    history_token_est = sum(len(json.dumps(m, ensure_ascii=False)) for m in truncated_history) // 2
+    while history_token_est > HISTORY_TOKEN_LIMIT and len(truncated_history) > 0:
+        first_user = next((i for i, m in enumerate(truncated_history) if m["role"] == "user"), None)
+        if first_user is None:
             break
-        truncated_history = truncated_history[5:]
+        next_user = next((i for i, m in enumerate(truncated_history) if i > first_user and m["role"] == "user"), len(truncated_history))
+        removed = truncated_history[:next_user]
+        truncated_history = truncated_history[next_user:]
+        history_token_est -= sum(len(json.dumps(m, ensure_ascii=False)) for m in removed) // 2
 
-    # Build example commands from connected device categories
+    # system prompt 빌드
     present_cats = []
     for dev in (devices or {}).values():
         for cat in dev.get("category", []):
@@ -496,21 +122,37 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
     sampled = random.sample(present_cats, min(3, len(present_cats)))
     example_lines = "\n".join(f"- {_CATEGORY_EXAMPLES[c]}" for c in sampled)
     example_section = f"\n\n## Example Commands (use ONLY these when showing examples):\n{example_lines}" if example_lines else ""
-    
-    messages = [{"role": "system", "content": AGENT_SYSTEM_PROMPT + example_section}]    
+
+    device_section = ""
+    if devices:
+        device_lines = "\n".join(
+            f"- {v.get('nickname') or k} (id={k}, category={v.get('category', '')}, tags={v.get('tags', '')})"
+            for k, v in devices.items()
+        )
+        device_section = f"\n\n## 현재 연결된 디바이스:\n{device_lines}\n사용자는 닉네임, 태그, 카테고리 등 어떤 방식으로든 디바이스를 지칭할 수 있습니다. 위 목록에서 매핑하여 tool 호출 시 id(UUID)를 사용하세요. 절대 사용자에게 UUID를 물어보지 마세요. get_connected_devices는 functions/values 상세 정보가 필요할 때만 호출하세요."
+
+    messages = [{"role": "system", "content": AGENT_SYSTEM_PROMPT + example_section + device_section}]
     messages.extend(truncated_history)
     messages.append({"role": "user", "content": user_message})
 
+    original_len = len(chat_history)
+    truncated_len = len(truncated_history)
+
     final_response = ""
+    token_log_buf = []
+    if original_len != truncated_len:
+        token_log_buf.append(f"  [HISTORY] trimmed {original_len - truncated_len} msgs")
+    round_num = 0
 
     for _ in range(MAX_AGENT_ROUNDS):
+        clean_messages = [{k: v for k, v in m.items() if k != "_tool_name"} for m in messages]
         stream = client.chat.completions.create(
             model=model,
-            messages=messages,
+            messages=clean_messages,
             tools=AGENT_TOOLS,
             tool_choice="auto",
-            temperature=0.6,
-            max_tokens=2048,
+            temperature=0.4,
+            max_tokens=4096,
             stream=True,
             stream_options={"include_usage": True},
             extra_body={"chat_template_kwargs": {"enable_thinking": True}},
@@ -544,11 +186,15 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
                     if tc.function.arguments:
                         tool_call_chunks[idx].function.arguments += tc.function.arguments
 
+        round_num += 1
         if usage:
             prompt_tokens = usage.prompt_tokens
-            history_chars = sum(len(json.dumps(m, ensure_ascii=False)) for m in truncated_history)
-            history_tokens_est = history_chars // 4
-            print(f"[TOKEN] prompt={prompt_tokens} / 16384 ({prompt_tokens / 16384 * 100:.1f}%)  history≈{history_tokens_est}", flush=True)
+            completion_tokens = usage.completion_tokens
+            token_log_buf.append(
+                f"  [Round {round_num}] prompt={prompt_tokens}/16384 ({prompt_tokens/16384*100:.1f}%)"
+                f"  completion={completion_tokens}"
+            )
+
 
         parsed_tool_calls = list(tool_call_chunks.values())
 
@@ -567,7 +213,11 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
         visible_content = visible_content.strip()
 
         if not parsed_tool_calls:
-            # 최종 텍스트 응답 — 토큰 단위로 yield
+            if not visible_content:
+                # thinking만 하고 텍스트 응답을 생성하지 않은 경우 — 재시도
+                messages.append({"role": "assistant", "content": ""})
+                messages.append({"role": "user", "content": "결과를 사용자에게 한국어로 알려주세요."})
+                continue
             final_response = visible_content
             messages.append({"role": "assistant", "content": final_response})
             for char in final_response:
@@ -598,10 +248,11 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
                 "role": "tool",
                 "content": json.dumps(tool_result, ensure_ascii=False),
                 "tool_call_id": tc.id,
+                "_tool_name": tc.function.name,
             })
 
             if tool_result.get("error"):
-                messages.append({"role": "user", "content": _error_hint(tool_result)})
+                messages.append({"role": "user", "content": error_hint(tool_result)})
     else:
         for msg in reversed(messages):
             if msg.get("role") == "assistant" and msg.get("content"):
@@ -615,22 +266,28 @@ def agent_chat_stream(user_message, session_id="default", connected_devices=None
     if not final_response:
         final_response = "명령을 수행했습니다."
 
-    updated_history = [_trim_tool_result(m) for m in messages[1:]]
+    updated_history = []
+    for m in messages[1:]:
+        tool_name = m.pop("_tool_name", None)
+        if tool_name:
+            updated_history.append(summarize_tool_result(tool_name, m))
+        else:
+            updated_history.append(m)
     _db.save_session(session_id, updated_history, context.get("last_result"), devices)
 
     updated_result = context.get("last_result") if context.get("last_result_updated") else None
 
+    if token_log_buf:
+        log_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "logs", f"{session_id.replace('/', '_').replace('..', '_')}.log")
+        with open(log_path, "a", encoding="utf-8") as _f:
+            _f.write(f"  [TOKENS]\n" + "\n".join(token_log_buf) + "\n")
+
     if on_complete:
         on_complete(final_response, updated_result)
 
-    # 웹 클라이언트에는 logs 제외한 last_result 전달
     if updated_result and "log" in updated_result:
         client_result = {**updated_result, "log": {k: v for k, v in updated_result["log"].items() if k != "logs"}}
     else:
         client_result = updated_result
 
-    done_payload = json.dumps({"last_result": client_result}, ensure_ascii=False)
-    yield f"data: [DONE] {done_payload}\n\n"
-
-
-
+    yield f"data: [DONE] {json.dumps({'last_result': client_result}, ensure_ascii=False)}\n\n"

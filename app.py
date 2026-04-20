@@ -107,11 +107,29 @@ async def chat_endpoint(request: AgentRequest):
 
     def on_tool_call(name, args, result):
         ts_tool = datetime.now(_KST).strftime("%Y-%m-%d %H:%M:%S")
-        stage_logs = result.get('logs', '') if isinstance(result, dict) else ''
+        stage_logs = ''
+        if isinstance(result, dict):
+            stage_logs = result.get('logs', '') or (result.get('log') or {}).get('logs', '')
+            result_clean = {}
+            for k, v in result.items():
+                if k == 'logs':
+                    continue
+                if k == 'log' and isinstance(v, dict):
+                    inner = {ik: iv for ik, iv in v.items() if ik != 'logs'}
+                    result_clean[k] = inner
+                elif k == 'code' and isinstance(v, str):
+                    try:
+                        result_clean[k] = json.loads(v)
+                    except Exception:
+                        result_clean[k] = v
+                else:
+                    result_clean[k] = v
+        else:
+            result_clean = result
         _write_session_log(request.session_id, (
             f"[{ts_tool}] TOOL CALL: {name}\n"
-            f"  args   : {json.dumps(args, ensure_ascii=False)}\n"
-            f"  result : {json.dumps(result, ensure_ascii=False)[:300]}\n"
+            f"  args   : {json.dumps(args, ensure_ascii=False, indent=2)}\n"
+            f"  result : {json.dumps(result_clean, ensure_ascii=False, indent=2)}\n"
             + (f"  logs   :\n{stage_logs}\n" if stage_logs else "")
         ))
 
@@ -122,7 +140,7 @@ async def chat_endpoint(request: AgentRequest):
             lr = last_result
             entry += (
                 f"  translated : {lr.get('log', {}).get('translated_sentence', '')}\n"
-                f"  code       : {lr.get('code', '')}\n"
+                f"  code       : {json.dumps(json.loads(lr['code']), ensure_ascii=False, indent=2) if isinstance(lr.get('code'), str) else json.dumps(lr.get('code', ''), ensure_ascii=False, indent=2)}\n"
                 f"  status     : {lr.get('status', '')}\n"
             )
         _write_session_log(request.session_id, entry)
@@ -156,7 +174,7 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             "merged_command": request.sentence,
             "log": {
                 "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
-                "mapped_devices": {},
+
                 "logs": getattr(e, 'logs', '')
             },
             "error": str(e),
@@ -168,7 +186,7 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             "merged_command": request.sentence,
             "log": {
                 "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
-                "mapped_devices": {},
+
                 "logs": str(e)
             },
             "error": str(e)
@@ -201,7 +219,7 @@ async def re_generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             "merged_command": request.sentence,
             "log": {
                 "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
-                "mapped_devices": {},
+
                 "logs": getattr(e, 'logs', '')
             },
             "error": str(e),
@@ -213,7 +231,7 @@ async def re_generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             "merged_command": request.sentence,
             "log": {
                 "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
-                "mapped_devices": {},
+
                 "logs": str(e)
             },
             "error": str(e)

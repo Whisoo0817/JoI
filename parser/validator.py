@@ -36,7 +36,7 @@ except ImportError:
     JOILangLexer = None
     JOILangParser = None
 
-def validate_joi(script, connected_devices, service_map, debug=False):
+def validate_joi(script, connected_devices, service_map):
     """
     Validates JOI script for grammar, tag existence, and service validity.
     Returns a list of error messages. empty list means success.
@@ -61,8 +61,6 @@ def validate_joi(script, connected_devices, service_map, debug=False):
             parser.scenario()
         except Exception as e:
             if not errors: errors.append(f"Parser Invocation Error: {e}")
-    elif debug:
-        print("⚠️ ANTLR4 parser not available. Skipping grammar check.")
 
     # 2. Tag & Service Check
     # Collect all valid tags from connected_devices
@@ -93,10 +91,4 @@ def validate_joi(script, connected_devices, service_map, debug=False):
         if method not in service_map:
             errors.append(f"Service Error: Method '{method}' not found in SERVICE_DATA.")
 
-    if debug:
-        if errors:
-            print(f"❌ Script Validation Failed:\n" + "\n".join(f"  - {e}" for e in errors))
-        else:
-            print("✅ Script Validation Passed")
-            
     return errors

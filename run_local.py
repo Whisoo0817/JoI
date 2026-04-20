@@ -218,7 +218,7 @@ def _parse_dict_input(val, default):
         except Exception: pass
     return default
 
-def generate_joi_code(sentence, connected_devices, other_params, modification=None, debug=False, base_url=None):
+def generate_joi_code(sentence, connected_devices, other_params, modification=None, base_url=None):
     # 1. Parse Inputs - dict type
     connected_devices = _parse_dict_input(connected_devices, None)
     other_params = _parse_dict_input(other_params, {})
@@ -237,8 +237,6 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
             {"role": "user", "content": user_input}
         ])
         log_buf.append(log_line)
-        if debug:
-            print(log_line)
         return content
 
     # ❇️ Stage 0: Command Merge (original + modification)
@@ -481,7 +479,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
             joi_json = {}
 
     # ❇️ Validation
-    _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP, debug=debug)
+    _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
 
     elapsed = time.perf_counter() - start
     # print(f"\nJoI ➡️ {elapsed:.4f} secs")
@@ -518,7 +516,6 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
         "log": {
             "response_time": f"{elapsed:.4f} seconds",            
             "translated_sentence": re.sub(r'["""\'\'\'.,!?。、！？]', '', translated_sentence_kor or translated_sentence).strip(),
-            "mapped_devices": mapped_devices,
             "logs": "\n".join(log_buf),
         }
     }
