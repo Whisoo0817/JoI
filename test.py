@@ -43,45 +43,34 @@ CUSTOM_DEVICES = """
  'tc0_605c48ef-eb66-45eb-acbc-4e4ef25e28d5': {'category': ['Switch', 'Light'], 'tags': ['PhilipsHue', 'Office', 'Light', 'Switch']},
  'tc0_c66b7261-bdc0-4559-99ac-c2fc35b13451': {'category': ['MultiButton'], 'tags': ['PhilipsHue', 'DimmerSwitch', 'MultiButton']},
  'tc0_df9b47b3-a479-40db-a228-30810e163b32': {'category': ['Switch', 'Light'], 'tags': ['PhilipsHue', 'MeetingRoom', 'Light', 'Switch']}}"""
-CUSTOM_DEVICES = """
-{
-   "tc0_af37207d-f2f2-447f-8006-f1e030755e65": {
-      "category": ["DimmerSwitch"],
-      "tags": ["PhilipsHue"]
-    },
-    "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305": {
-      "category": ["Light"],
-      "tags": ["PhilipsHue"]
-    },
-    "tc0_081181c1-3210-4ad2-8af1-f262fdc0fc76": {
-      "category": ["Light"],
-      "tags": ["PhilipsHue"]
-    },
-    "tc0_550713ef-d27f-43f3-9dcf-7b16101c618a": {
-      "category": ["MotionSensor"],
-      "tags": ["PhilipsHue"]
-    },
-    "tc0_4fab94c3-a3ce-4814-8d03-e84c6775d1f4": {
-      "category": ["TapDialSwitch"],
-      "tags": ["PhilipsHue"]
-    },
-    "tc0_eb96ed1a81375f707artas": {
-      "category": ["Button"],
-      "tags": ["Tuya"]
-    },
-    "tc0_eb6ffacda902bfa126pl9b": {
-      "category": ["Light"],
-      "tags": ["Tuya"]
-    },
-    "tc0_s8e7a31295af78fb09mmpp": {
-      "category": ["AirConditioner"],
-      "tags": ["Hejhome"]
-    }
+CUSTOM_DEVICES = {
+    "tc0_af37207d-f2f2-447f-8006-f1e030755e65": {"category": ["DimmerSwitch"], "tags": ["PhilipsHue"], "nickname": "Hue dimmer switch 1"},
+    "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305": {"category": ["Light"], "tags": ["PhilipsHue"], "nickname": "Hue color lamp 3"},
+    "tc0_9fe5d8b9-9ebc-4203-9963-497546c9740d": {"category": ["Light"], "tags": ["PhilipsHue"], "nickname": "Hue color lamp 4"},
+    "tc0_7def1d9d-721c-4e35-b217-51fb8b46ba59": {"category": ["Light"], "tags": ["PhilipsHue"], "nickname": "Hue go 1"},
+    "tc0_a2e7594e-aced-4e03-a25e-841aa7315614": {"category": ["Light"], "tags": ["PhilipsHue"], "nickname": "Hue lightstrip plus 1"},
+    "tc0_081181c1-3210-4ad2-8af1-f262fdc0fc76": {"category": ["Light"], "tags": ["PhilipsHue"], "nickname": "Hue lindy lamp 3"},
+    "tc0_550713ef-d27f-43f3-9dcf-7b16101c618a": {"category": ["MotionSensor"], "tags": ["PhilipsHue"], "nickname": "Hue motion sensor 2"},
+    "tc0_4fab94c3-a3ce-4814-8d03-e84c6775d1f4": {"category": ["TapDialSwitch"], "tags": ["PhilipsHue"], "nickname": "Hue tap dial switch 1"},
+    "tc0_b990fd42-fe20-4be7-8969-e5b00d605324": {"category": ["TapDialSwitch"], "tags": ["PhilipsHue"], "nickname": "Hue tap dial switch 3"},
+    "tc0_s8e7a31295af78fb09mmpp": {"category": ["AirConditioner"], "tags": ["Hejhome"], "nickname": "에어컨 (office)"},
+    "tc0_eb62d33c2d328d97cdbltl": {"category": ["AirConditioner"], "tags": ["Hejhome"], "nickname": "airconditioner__gulliver"},
+    "tc0_ebf02f5cfcd67e4ce4bexu": {"category": ["AirConditioner"], "tags": ["Hejhome"], "nickname": "Air Conditioner (cafe)"},
+    "tc0_eb3377e5ffd045b5f3qdur": {"category": ["Switch"], "tags": ["Hejhome"], "nickname": "SmartPlug (냉장고)"},
+    "tc0_ebcbfbd4976307a137qq1c": {"category": ["Switch"], "tags": ["Hejhome"], "nickname": "plug__3d_printer__gulliver"},
+    "tc0_ebfce1cbd88459d75bnymz": {"category": ["Etc"], "tags": ["Tuya"], "nickname": "Smart IR with T&H Sensor"},
+    "tc0_eb4dc043204490364bfota": {"category": ["Etc"], "tags": ["Tuya"], "nickname": "Multimode gateway(mini)"},
+    "tc0_ebe47e098219089fc7frjx": {"category": ["Switch"], "tags": ["Tuya"], "nickname": "SMARTvill"},
+    "tc0_ebfb522a028ef8add497wu": {"category": ["Light"], "tags": ["Tuya"], "nickname": "CCT"},
+    "tc0_ebb1abce1f52d16352hugy": {"category": ["Etc"], "tags": ["Tuya"], "nickname": "AIR_DETECTOR"},
+    "tc0_eb8c9cf310d709af51rs9c": {"category": ["Light"], "tags": ["Tuya"], "nickname": "YUER"},
+    "tc0_ebd62449e3a700125du284": {"category": ["Button"], "tags": ["Tuya"], "nickname": "Wireless scene switch"},
+    "tc0_eb70b2f140ec4acb9ebpwt": {"category": ["Etc"], "tags": ["Tuya"], "nickname": "MINI Occupancy Sensor"},
+    "tc0_ebc3c76ceb8d4a5a4907wk": {"category": ["Etc"], "tags": ["Tuya"], "nickname": "Motion Sensor&TH"},
 }
-"""
 csv_file_path = 'local_dataset.csv'
 
-def run_full_batch(df, debug=False):
+def run_full_batch(df):
     print("\n🚀 Starting Full Batch Processing...")
     total_rows = len(df)
     current_cat = None
@@ -103,7 +92,7 @@ def run_full_batch(df, debug=False):
         cmd_input = row['command_eng']
         print(f"[{i+1}/{total_rows}] Category {cat}, Index {int(row['index'])}: {cmd_input}")
         try:
-            result = generate_joi_code(cmd_input, row['connected_devices'], {}, debug=debug)
+            result = generate_joi_code(cmd_input, row['connected_devices'], {})
             print_result(result)
         except Exception as e:
             print(f"Error at row {i}: {e}")
@@ -116,14 +105,14 @@ def run_full_batch(df, debug=False):
 
 def print_result(result):
     print("\n[Final Result]")
-    # print(f"merged_command : {result.get('merged_command', '')}")
-    print(f"code           :\n{result.get('code', '')}")
     log = result.get('log', {})
+    if log.get('logs'):
+        print(f"[logs]\n{log.get('logs', '')}")
+    print(f"code           :\n{result.get('code', '')}")
     print(f"translated     : {log.get('translated_sentence', '')}")
-    # print(f"mapped_devices : {log.get('mapped_devices', [])}")
     print(f"response_time  : {log.get('response_time', '')}")
 
-def run_targeted_test(df, debug=False):
+def run_targeted_test(df):
     print("\n🎯 Running Targeted Tests...")
     for category, indices in test_targets.items():
         print(f"--- Category {category} ---")
@@ -138,18 +127,17 @@ def run_targeted_test(df, debug=False):
             print(f"({idx}) 🛑 {kor}\n 🛑 {eng}")
             try:
                 # Use ENG from CSV as base for targeted testing consistency or KOR to test translation
-                result = generate_joi_code(kor, row['connected_devices'], {}, debug=debug)
-                if not debug: print_result(result)
+                result = generate_joi_code(kor, row['connected_devices'], {})
+                print_result(result)
             except Exception as e:
                 print(f"Error at Idx {idx}: {e}")
 
-def run_custom_test(debug=False):
+def run_custom_test():
     print("\n🛠️ Running Custom Test...")
     print(f"Command: {CUSTOM_COMMAND}")
-    # print(f"Devices: {CUSTOM_DEVICES}")
     try:
-        result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, debug=debug)
-        if not debug: print_result(result)
+        result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {})
+        print_result(result)
     except Exception as e:
         print(f"Error: {e}")
         return
@@ -160,29 +148,90 @@ def run_custom_test(debug=False):
             print("종료합니다.")
             break
         try:
-            result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, modification=modification, debug=debug)
+            result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, modification=modification)
             print_result(result)
         except Exception as e:
             print(f"Error: {e}")
 
-def run_agent_chat(debug=False):
-    import uuid
+def run_agent_chat():
+    import uuid, json as _json, os
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    _KST = ZoneInfo("Asia/Seoul")
+
+    os.environ.setdefault("MCP_SERVER_URL", "http://192.168.0.163:48012/mcp")
+
+    LOG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "logs")
+    os.makedirs(LOG_DIR, exist_ok=True)
+
     print("\n💬 Agent Chat Mode (종료: 'quit' 또는 'q')")
     session_id = f"test_{uuid.uuid4().hex[:4]}"
-    print(f"Session ID: {session_id}\n")
+    log_path = os.path.join(LOG_DIR, f"{session_id}.log")
+    print(f"Session ID: {session_id}")
+    print(f"MCP     : {os.environ['MCP_SERVER_URL']}")
+    print(f"Log     : {log_path}\n")
+
+    def write_log(content):
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(content)
+
+    def on_tool_call(name, args, result):
+        ts = datetime.now(_KST).strftime("%Y-%m-%d %H:%M:%S")
+        stage_logs = ''
+        if isinstance(result, dict):
+            stage_logs = result.get('logs', '') or (result.get('log') or {}).get('logs', '')
+            result_clean = {}
+            for k, v in result.items():
+                if k == 'logs':
+                    continue
+                if k == 'log' and isinstance(v, dict):
+                    result_clean[k] = {ik: iv for ik, iv in v.items() if ik != 'logs'}
+                elif k == 'code' and isinstance(v, str):
+                    try:
+                        result_clean[k] = _json.loads(v)
+                    except Exception:
+                        result_clean[k] = v
+                else:
+                    result_clean[k] = v
+        else:
+            result_clean = result
+        write_log(
+            f"[{ts}] TOOL CALL: {name}\n"
+            f"  args   : {_json.dumps(args, ensure_ascii=False, indent=2)}\n"
+            f"  result : {_json.dumps(result_clean, ensure_ascii=False, indent=2)}\n"
+            + (f"  logs   :\n{stage_logs}\n" if stage_logs else "")
+        )
+
+    def on_complete(message, last_result):
+        ts = datetime.now(_KST).strftime("%Y-%m-%d %H:%M:%S")
+        entry = f"[{ts}] RESPONSE (stream complete)\n  message    : {message}\n"
+        if last_result:
+            lr = last_result
+            entry += (
+                f"  translated : {lr.get('log', {}).get('translated_sentence', '')}\n"
+                f"  code       : {_json.dumps(_json.loads(lr['code']), ensure_ascii=False, indent=2) if isinstance(lr.get('code'), str) else _json.dumps(lr.get('code', ''), ensure_ascii=False, indent=2)}\n"
+                f"  status     : {lr.get('status', '')}\n"
+            )
+        write_log(entry)
 
     prev_lr_code = None
 
     while True:
-        user_input = input("You >>> ").strip()
+        try:
+            user_input = input("You >>> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print("\n종료합니다.")
+            break
         if not user_input:
             continue
         if user_input.lower() in ("quit", "q", "exit"):
             print("종료합니다.")
             break
 
+        ts = datetime.now(_KST).strftime("%Y-%m-%d %H:%M:%S")
+        write_log(f"\n{'='*60}\n[{ts}] REQUEST\n  sentence : {user_input}\n")
+
         try:
-            import json as _json
             response_text = ""
             last_result = None
 
@@ -191,7 +240,8 @@ def run_agent_chat(debug=False):
                 user_message=user_input,
                 session_id=session_id,
                 connected_devices=CUSTOM_DEVICES,
-                debug=debug
+                on_tool_call=on_tool_call,
+                on_complete=on_complete,
             ):
                 if not event.startswith("data: "):
                     continue
@@ -207,7 +257,6 @@ def run_agent_chat(debug=False):
 
             lr = last_result
             current_code = lr.get("code") if lr else None
-
             if lr and current_code and current_code != prev_lr_code:
                 if lr.get("status") in ("confirmation_needed", "approved", "registered_locally"):
                     print(f"\n  [code]\n{current_code}")
@@ -219,29 +268,30 @@ def run_agent_chat(debug=False):
 
             print()
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             print(f"Error: {e}")
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "agent"
-    debug_mode = "debug" in sys.argv
-    
+
     if mode == "all":
         try:
             df = pd.read_csv(csv_file_path, encoding='utf-8-sig')
-            run_full_batch(df, debug=debug_mode)
+            run_full_batch(df)
         except Exception as e:
             print(f"CSV Load Error: {e}")
-            
+
     elif mode == "target":
         try:
             df = pd.read_csv(csv_file_path, encoding='utf-8-sig')
-            run_targeted_test(df, debug=debug_mode)
+            run_targeted_test(df)
         except Exception as e:
             print(f"CSV Load Error: {e}")
-            
+
     elif mode == "custom":
-        run_custom_test(debug=debug_mode)
+        run_custom_test()
     elif mode == "agent":
-        run_agent_chat(debug=debug_mode)
+        run_agent_chat()
     else:
-        print("Usage: python3 test.py [all | target | custom | agent] [debug]")
+        print("Usage: python3 test.py [all | target | custom | agent]")

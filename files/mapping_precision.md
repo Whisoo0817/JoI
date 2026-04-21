@@ -44,7 +44,8 @@ Category: N candidates | "phrase from command" | quantity → selector
 - **No cross-device tag borrowing**: A tag from one device MUST NOT be applied to a different device's selector.
 - Every category in `[Intent]` MUST appear in the output.
 - Same category for different groups → one selector per group.
-- **Quantity keywords**: "all/every/everything" → `all`, "any/at least one/even one" → `any`. "a/an/one/single/just one" → `single`. Plural nouns alone (e.g. "lights", "blinds") do NOT mean "all".
+- **Quantity keywords**: "all/every/everything" → `all`, "any/at least one/even one" → `any`, "a/an/one/single/just one" → `single`. Plural nouns alone (e.g. "lights", "blinds") do NOT mean "all".
+- **`any` means condition, NOT selection**: `any(#Tag)` checks whether at least one device satisfies a condition. It is ONLY valid when the command says something like "if any of them...", "when at least one...", etc. — i.e., used inside a conditional check. NEVER use `any` to mean "pick one device to act on". "Turn on one light" → `single` → `(#Light)`, NOT `any(#Light)`.
 
 ### ⛔ Reasoning Constraints
 - **ONE LINE per category. No more.**
