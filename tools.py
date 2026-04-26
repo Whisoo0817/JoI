@@ -287,23 +287,6 @@ AGENT_TOOLS = [
             }
         }
     },
-    {
-        "type": "function",
-        "function": {
-            "name": "get_weather",
-            "description": "Fetch current weather information or air quality for a given location. (Calls external API via MCP)",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "location": {
-                        "type": "string",
-                        "description": "City name or location, e.g. 'Seoul', 'Busan'"
-                    }
-                },
-                "required": ["location"]
-            }
-        }
-    },
 ]
 
 
@@ -313,7 +296,6 @@ _ERROR_HINTS = {
     "no_services":       "연결된 기기가 해당 명령을 지원하는 서비스가 없습니다. 기기 연결 문제가 아니므로 기기 매핑을 제안하지 마세요. 지원되지 않는 명령임을 안내하고 다른 명령을 시도해달라고 하세요. 추가 tool을 호출하지 마세요.",
     "no_devices":        "연결된 기기가 없습니다. 기기를 연결한 후 다시 시도해달라고 안내하세요. 추가 tool을 호출하지 마세요.",
     "hub_failed":        "허브 서버에 시나리오를 등록하지 못했습니다. 오류 내용을 그대로 사용자에게 전달하세요. 추가 tool을 호출하지 마세요.",
-    "weather_failed":    "날씨 정보를 가져오지 못했습니다. 네트워크 연결을 확인하거나, 도시 이름을 영어 대도시명(예: Seoul, Busan)으로 다시 시도해달라고 안내하세요. 추가 tool을 호출하지 마세요.",
     "generation_failed": "코드 생성 중 오류가 발생했습니다. 오류 내용을 그대로 사용자에게 전달하세요. 추가 tool을 호출하지 마세요.",
 }
 
@@ -322,6 +304,34 @@ def error_hint(tool_result: dict) -> str:
     code = tool_result.get("error_code", "")
     msg = tool_result.get("error", "")
     return _ERROR_HINTS.get(code, f"도구 실행 중 오류가 발생했습니다. 오류 내용을 그대로 사용자에게 전달하세요: {msg}\n추가 tool을 호출하지 마세요.")
+
+
+# ── Context Slimming ──────────────────────────────────────
+
+def slim_devices_for_context(tool_result: dict) -> dict:
+    """get_connected_devices tool result에서 LLM context용 필수 필드만 추출."""
+    devices = tool_result.get("devices", {})
+    slim = {}
+    for k, v in devices.items():
+        if not isinstance(v, dict):
+            continue
+        slim[k] = {
+            "nickname": v.get("nickname", ""),
+            "category": v.get("category", ""),
+            "location": v.get("location", ""),
+            "tags": v.get("tags", []),
+        }
+    return {"devices": slim, "count": len(slim)}
+
+
+def slim_joi_llm_result(tool_result: dict) -> dict:
+    """request_to_joi_llm / feedback_to_joi_llm result에서 log.logs(추론 로그) 제거."""
+    result = dict(tool_result)
+    if isinstance(result.get("log"), dict):
+        log = dict(result["log"])
+        log.pop("logs", None)
+        result["log"] = log
+    return result
 
 
 # ── History Summarization ──────────────────────────────────
@@ -339,9 +349,7 @@ def summarize_tool_result(tool_name: str, msg: dict) -> dict:
         summary = f"[{tool_name}: failed - {result.get('error', '')}]"
 
     elif tool_name == "get_connected_devices":
-        devices = result.get("devices", {})
-        names = [v.get("nickname") or k for k, v in devices.items()]
-        summary = f"[get_connected_devices: {len(names)} devices - {', '.join(names[:5])}{'...' if len(names) > 5 else ''}]"
+        summary = f"[get_connected_devices]"
 
     elif tool_name == "get_thing_details":
         nickname = result.get("nickname") or result.get("id", "")

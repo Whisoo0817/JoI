@@ -420,7 +420,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
     with ThreadPoolExecutor(max_workers=2) as executor:
         f_mapping = executor.submit(run_mapping)
         f_router = executor.submit(run_router)
-        services, mapped_devices, service_details = f_mapping.result()
+        services, _, service_details = f_mapping.result()
         cmd_type, router_conclusion = f_router.result()
 
     # 6. Joi Generation Branching
@@ -514,7 +514,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
         "code": joi_code_raw,
         "merged_command": merged_command,
         "log": {
-            "response_time": f"{elapsed:.4f} seconds",            
+            "response_time": f"{elapsed:.4f} seconds",
             "translated_sentence": re.sub(r'["""\'\'\'.,!?。、！？]', '', translated_sentence_kor or translated_sentence).strip(),
             "logs": "\n".join(log_buf),
         }

@@ -15,8 +15,21 @@ from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
-from agent.tools import call_mcp_tool_sync, AGENT_TOOLS, error_hint, summarize_tool_result
+from agent.tools import call_mcp_tool_sync, AGENT_TOOLS, error_hint, slim_devices_for_context, slim_joi_llm_result
 from agent.config import get_client, get_model_id
+
+# ── 세션 로그 ─────────────────────────────────────────────
+_LOG_DIR = os.environ.get("AGENT_LOG_DIR", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "logs"))
+
+def _ensure_log_dir():
+    os.makedirs(_LOG_DIR, exist_ok=True)
+
+def _write_log(session_id: str, content: str):
+    _ensure_log_dir()
+    safe = session_id.replace("/", "_").replace("..", "_")
+    path = os.path.join(_LOG_DIR, f"{safe}.log")
+    with open(path, "a", encoding="utf-8") as f:
+        f.write(content)
 
 # ── Constants ─────────────────────────────────────────────────
 LLM_BASE_URL = os.environ.get("LLM_BASE_URL", "http://localhost:8002/v1")
@@ -29,8 +42,6 @@ def set_mcp_server_url(url: str):
     import tools as _tools_module
     os.environ["MCP_SERVER_URL"] = url
     # tools.py reads MCP_SERVER_URL from env at call time, so setting env is enough
-HISTORY_TOKEN_LIMIT = 4000
-
 _AUX_CATEGORIES = {"Switch", "LevelControl", "ColorControl", "RotaryControl"}
 
 _CATEGORY_EXAMPLES = {
@@ -77,7 +88,6 @@ AGENT_SYSTEM_PROMPT = """You are JoI, a helpful and efficient IoT assistant. You
 - **Monitoring**: Use `get_current_values` for real-time status and `get_value_history` for historical data or trends.
 - **Device Management**: Use `get_connected_devices` for all devices overview, `get_thing_details` for one specific device's functions/values, and `manage_thing_tags` to organize devices.
 - **Scenario Management**: Use `get_scenarios` to list, `start_scenario`/`stop_scenario` to toggle, and `get_scenario_details` to inspect.
-- **External Info**: Use `get_weather` for weather and air quality info.
 
 ## Guidelines for Tools:
 - **Direct Control confirmation**: After calling `control_thing_directly`, confirm the result to the user.
@@ -125,23 +135,6 @@ def _build_system_prompt(devices: Dict[str, Any]) -> str:
     return AGENT_SYSTEM_PROMPT + example_section + device_section
 
 
-def _truncate_history(chat_history: List[Dict]) -> List[Dict]:
-    """Truncate history to fit within token limit (turn-level removal)."""
-    truncated = list(chat_history)
-    token_est = sum(len(json.dumps(m, ensure_ascii=False)) for m in truncated) // 2
-    while token_est > HISTORY_TOKEN_LIMIT and truncated:
-        first_user = next((i for i, m in enumerate(truncated) if m["role"] == "user"), None)
-        if first_user is None:
-            break
-        next_user = next(
-            (i for i, m in enumerate(truncated) if i > first_user and m["role"] == "user"),
-            len(truncated),
-        )
-        removed = truncated[:next_user]
-        truncated = truncated[next_user:]
-        token_est -= sum(len(json.dumps(m, ensure_ascii=False)) for m in removed) // 2
-    return truncated
-
 
 class LocalAgentManager:
     """Qwen3 9B ReAct loop, compatible with JOIAgentManager interface."""
@@ -155,7 +148,6 @@ class LocalAgentManager:
         self.joi_llm_model: Optional[str] = None
 
         # Internal state
-        self._llm_histories: Dict[str, List[Dict]] = {}   # LLM context per session
         self._device_cache: Dict[str, Dict] = {}           # devices per session
 
     async def ainit(self):
@@ -168,18 +160,9 @@ class LocalAgentManager:
             logger.warning(f"[LocalAgent] LLM not reachable at startup: {e}")
 
     async def aclose(self):
-        self._llm_histories.clear()
         self._device_cache.clear()
         self.tool_executions.clear()
         self.session_data.clear()
-
-    def get_session_summary(self, session_id: str) -> str:
-        """Return a brief summary of recent conversation for the session title."""
-        history = self._llm_histories.get(session_id, [])
-        user_msgs = [m["content"] for m in history if m.get("role") == "user" and m.get("content")]
-        if not user_msgs:
-            return ""
-        return user_msgs[0][:50] if user_msgs else ""
 
     def _get_devices(self, session_id: str) -> Dict[str, Any]:
         """Load devices from cache; fetch from MCP if not cached."""
@@ -208,6 +191,7 @@ class LocalAgentManager:
         voice_mode: bool,
         event_queue: "asyncio.Queue",
         loop: asyncio.AbstractEventLoop,
+        chat_history: Optional[List[Dict]] = None,
     ):
         """
         Sync ReAct loop. Runs in a thread.
@@ -222,11 +206,14 @@ class LocalAgentManager:
             loop.call_soon_threadsafe(event_queue.put_nowait, None)
 
         try:
+            from datetime import datetime
+            _ts = lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            _write_log(session_id, f"\n{'='*60}\n[{_ts()}] REQUEST\n  query: {query}\n  session: {session_id}\n")
+
             client = get_client(LLM_BASE_URL)
             model = get_model_id(client)
 
-            # Load history and devices
-            chat_history = list(self._llm_histories.get(session_id, []))
+            # Load devices
             devices = self._get_devices(session_id)
 
             context = {
@@ -239,11 +226,10 @@ class LocalAgentManager:
             if voice_mode:
                 query = f"[VOICE_MODE] {query}"
 
-            truncated_history = _truncate_history(chat_history)
             system_prompt = _build_system_prompt(devices)
 
             messages = [{"role": "system", "content": system_prompt}]
-            messages.extend(truncated_history)
+            messages.extend(chat_history or [])
             messages.append({"role": "user", "content": query})
 
             # Init tool_executions for this session
@@ -292,6 +278,15 @@ class LocalAgentManager:
                                 tool_call_chunks[idx].function.name += tc.function.name
                             if tc.function.arguments:
                                 tool_call_chunks[idx].function.arguments += tc.function.arguments
+
+                # 토큰 사용량 로그 (스트림 마지막 청크에 usage 포함)
+                try:
+                    last_chunk = chunk
+                    if hasattr(last_chunk, 'usage') and last_chunk.usage:
+                        u = last_chunk.usage
+                        _write_log(session_id, f"[{_ts()}] ROUND {round_num+1} TOKENS  prompt={u.prompt_tokens}  completion={u.completion_tokens}  total={u.total_tokens}\n")
+                except Exception:
+                    pass
 
                 round_num += 1
                 parsed_tool_calls = list(tool_call_chunks.values())
@@ -364,11 +359,22 @@ class LocalAgentManager:
                     }
                     self.tool_executions[session_id].append(exec_entry)
 
+                    _write_log(session_id, f"[{_ts()}] TOOL CALL: {tc.function.name}\n  args: {json.dumps(tool_args, ensure_ascii=False)}\n")
                     tool_result = call_mcp_tool_sync(tc.function.name, tool_args, context)
 
                     # Track tool completion
                     exec_entry["result"] = tool_result
                     exec_entry["status"] = "completed"
+
+                    stage_logs = (tool_result.get("log") or {}).get("logs", "") if isinstance(tool_result, dict) else ""
+                    if stage_logs and isinstance(tool_result.get("log"), dict):
+                        result_clean = {**tool_result, "log": {k: v for k, v in tool_result["log"].items() if k != "logs"}}
+                    else:
+                        result_clean = tool_result
+                    log_entry = f"[{_ts()}] TOOL RESULT: {tc.function.name}\n  result: {json.dumps(result_clean, ensure_ascii=False)}\n"
+                    if stage_logs:
+                        log_entry += f"  logs:\n{stage_logs}\n"
+                    _write_log(session_id, log_entry)
 
                     # Cache joi_llm result for feedback/add_scenario
                     if tc.function.name in ("request_to_joi_llm", "feedback_to_joi_llm"):
@@ -379,10 +385,19 @@ class LocalAgentManager:
                             context["last_result"] = tool_result
                             context["last_result_updated"] = True
 
+                    if tc.function.name == "get_connected_devices" and isinstance(tool_result, dict) and "error" not in tool_result:
+                        devices = {k: v for k, v in tool_result.get("devices", {}).items() if isinstance(v, dict)}
+                        self._device_cache[session_id] = devices
+                        result_for_context = slim_devices_for_context(tool_result)
+                    elif tc.function.name in ("request_to_joi_llm", "feedback_to_joi_llm") and isinstance(tool_result, dict) and "error" not in tool_result:
+                        result_for_context = slim_joi_llm_result(tool_result)
+                    else:
+                        result_for_context = tool_result
+
                     messages.append(
                         {
                             "role": "tool",
-                            "content": json.dumps(tool_result, ensure_ascii=False),
+                            "content": json.dumps(result_for_context, ensure_ascii=False),
                             "tool_call_id": tc.id,
                             "_tool_name": tc.function.name,
                         }
@@ -398,12 +413,7 @@ class LocalAgentManager:
                 if not final_response:
                     final_response = "명령을 수행했습니다."
 
-            # Save LLM history
-            updated_history = []
-            for m in messages[1:]:  # skip system
-                tool_name = m.pop("_tool_name", None)
-                updated_history.append(summarize_tool_result(tool_name, m) if tool_name else m)
-            self._llm_histories[session_id] = updated_history
+            _write_log(session_id, f"[{_ts()}] RESPONSE\n  message: {final_response}\n")
 
         except Exception as e:
             logger.error(f"[LocalAgent] ReAct loop error: {e}", exc_info=True)
@@ -417,6 +427,7 @@ class LocalAgentManager:
         session_id: Optional[str],
         joi_llm_model: Optional[str],
         voice_mode: bool,
+        chat_history: Optional[List[Dict]] = None,
     ):
         """Async generator that streams RunContent events from the sync ReAct loop."""
         loop = asyncio.get_event_loop()
@@ -431,6 +442,7 @@ class LocalAgentManager:
             voice_mode,
             queue,
             loop,
+            chat_history,
         )
 
         while True:
@@ -449,6 +461,7 @@ class LocalAgentManager:
         user_id: Optional[str] = None,
         joi_llm_model: Optional[str] = None,
         voice_mode: bool = False,
+        chat_history: Optional[List[Dict]] = None,
     ):
         """
         Called with `await` by main.py — returns an async generator.
@@ -456,4 +469,4 @@ class LocalAgentManager:
         """
         self.session_id = session_id
         self.joi_llm_model = joi_llm_model
-        return self._stream_events(query, session_id, joi_llm_model, voice_mode)
+        return self._stream_events(query, session_id, joi_llm_model, voice_mode, chat_history)
