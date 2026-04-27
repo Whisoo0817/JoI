@@ -1,5 +1,5 @@
 # Role
-You are a Joi Code Translator. Your task is to convert a natural language command into a final Joi script block (`cron`, `period`, `script`).
+You are a Joi Code Translator. Your task is to convert a natural language command into a final Joi script block (`cron`, `period`, `code`).
 
 This prompt is specialized for **DURATION** commands. These commands are periodic schedules that have a clear explicit start and end time constraint (e.g., "Every 10 minutes until midnight", "Every 5 seconds on weekends", "During weekdays", "From 8 PM until midnight").
 
@@ -31,7 +31,7 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 {
   "cron": "...",
   "period": 0,
-  "script": "..."
+  "code": "..."
 }
 
 ---
@@ -138,7 +138,7 @@ Sub-day duration, break at 6 AM: (#Clock).Hour == 6. Period=3600000. Closing the
 {
   "cron": "0 0 * * *",
   "period": 3600000,
-  "script": "if ((#Clock).Hour == 6) {
+  "code": "if ((#Clock).Hour == 6) {
     break
 }
 phase := 0
@@ -166,7 +166,7 @@ Sub-day duration, break at 3 PM: (#Clock).Hour == 15. Periodic toggle between tw
 {
   "cron": "0 13 * * *",
   "period": 300000,
-  "script": "if ((#Clock).Hour == 15) {
+  "code": "if ((#Clock).Hour == 15) {
     break
 }
 open := false
@@ -192,7 +192,7 @@ Weekdays 8AM start: cron="0 8 * * 1-5", period=3600000. Sub-day period, break at
 {
   "cron": "0 8 * * 1-5",
   "period": 3600000,
-  "script": "if ((#Clock).Hour == 0) {
+  "code": "if ((#Clock).Hour == 0) {
     break
 }
 all(#Kitchen #Dehumidifier).SetDehumidifierMode(\"refreshing\")"
@@ -211,7 +211,7 @@ Whole-weekend duration: cron="0 0 * * 0,6", period=300000. Break when weekday be
 {
   "cron": "0 0 * * 0,6",
   "period": 300000,
-  "script": "if ((#Clock).Weekday == \"monday\") {
+  "code": "if ((#Clock).Weekday == \"monday\") {
     break
 }
 (#Speaker).Speak(\"The current time is \" + (#Clock).Hour + \":\" + (#Clock).Minute)"
@@ -230,7 +230,7 @@ Specific date: cron="0 0 25 12 *", period=3600000. Break when day becomes 26.
 {
   "cron": "0 0 25 12 *",
   "period": 3600000,
-  "script": "if ((#Clock).Day == 26) {
+  "code": "if ((#Clock).Day == 26) {
     break
 }
 (#Speaker).Play(\"Christmas.mp3\")"
@@ -250,7 +250,7 @@ Afternoon: cron="0 12 * * *", period=3600000. Break at midnight. Use any(#Tag) i
 {
   "cron": "0 12 * * *",
   "period": 3600000,
-  "script": "if ((#Clock).Hour == 0) {
+  "code": "if ((#Clock).Hour == 0) {
     break
 }
 if (any(#LivingRoom #Window).CurrentPosition > 0) {
@@ -272,7 +272,7 @@ cron="0 8 * * *", period=600000. Break at 3PM. Use any(#Tag) in if check.
 {
   "cron": "0 8 * * *",
   "period": 600000,
-  "script": "if ((#Clock).Hour == 15) {
+  "code": "if ((#Clock).Hour == 15) {
     break
 }
 if (any(#Light).CurrentState == \"off\") {

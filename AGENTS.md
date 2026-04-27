@@ -12,17 +12,18 @@ A Joi automation is typically delivered as a JSON object containing metadata and
 
 ```json
 {
-  "name": "Morning Routine",
+  "name": "morning_routine",
   "cron": "0 7 * * *",
   "period": 300000,
-  "script": "if (any(#Light).Switch == true) { (#Light).Off() }"
+  "code": "if (any(#Light).Switch == true) { (#Light).Off() }"
 }
 ```
+*   **`name`**: Scenario identifier, auto-generated from the English re-translation of the command (lowercased, spaces → `_`).
 *   **`cron`**: Standard cron expression for scheduled triggers (e.g., `0 7 * * *` for 7 AM daily). If empty, the script is event-driven or manually triggered.
-*   **`period` (milliseconds)**: Defines the polling/re-execution interval. 
-    *   `0`: Runs exactly once.
+*   **`period` (milliseconds)**: Defines the polling/re-execution interval.
+    *   `-1`: NO_SCHEDULE (one-shot, event-driven; no periodic re-execution).
     *   `N > 0`: The script re-executes every N milliseconds to poll for state changes.
-*   **`script`**: The actual Joi logic string.
+*   **`code`**: The actual Joi logic string.
 
 ### ⚛️ 1.2 State Management: `:=` vs `=`
 Joi scripts are executed repeatedly (if `period > 0`). 
@@ -155,53 +156,39 @@ vLLM 서버의 **Prefix Caching** 성능을 극대화하기 위해 다음과 같
 | Tool | 설명 |
 |------|------|
 | `request_to_joi_llm` | 자연어 명령 → Joi 코드 생성 파이프라인 호출 |
-| `feedback_to_joi_llm` | 사용자 피드백 처리 (`y` / `n` / 수정사항 텍스트) |
-| `add_scenario` | 승인된 시나리오를 Hub Controller에 등록 + 로컬 DB 저장 |
-| `get_scenarios` | 로컬 DB에 저장된 시나리오 목록 조회 (id, command, translated, created_at) |
-| `delete_scenario` | 시나리오 ID로 로컬 DB에서 삭제 |
+| `add_scenario` | 승인된 시나리오를 Hub Controller에 등록 |
 | `get_connected_devices` | 현재 연결된 IoT 디바이스 목록 조회 |
-| `get_weather` | 지역명으로 현재 날씨 조회 (wttr.in, 네트워크 필요) |
+| `get_thing_details` | 특정 디바이스의 함수/값 상세 조회 |
+| `get_scenarios` | 등록된 시나리오 목록 조회 |
+| `get_scenario_details` | 특정 시나리오의 JoI 스크립트 상세 조회 |
+| `get_current_values` | 특정 디바이스의 실시간 센서값 조회 |
+| `get_value_history` | 특정 디바이스 속성의 히스토리 조회 |
+| `get_locations` | 등록된 위치(방) 목록 조회 |
+| `control_thing_directly` | 시나리오 없이 디바이스 즉시 제어 |
+| `start_scenario` | 등록된 시나리오 활성화 |
+| `stop_scenario` | 실행 중인 시나리오 비활성화 |
+| `manage_thing_tags` | 디바이스 태그 추가/제거 |
 
-승인된 시나리오 및 대화 세션 정보는 `joi/data/joi.db` (SQLite)에 저장됩니다.
+대화 세션 정보는 `joi-agent` 서버의 SQLite DB(`data/sessions.db`)에 저장됩니다.
 
 ```
-scenarios 테이블 (승인된 자동화 기록)
+sessions 테이블
+  session_id  - PK, 세션 식별자
+  user_id     - 사용자 식별자
+  title       - 세션 제목 (첫 메시지에서 자동 생성)
+  created_at  - 생성 시각
+  updated_at  - 마지막 업데이트 시각
+
+messages 테이블
   id          - 고유 ID
-  session_id  - 세션 식별자
-  command     - 원본 명령어
-  translated  - 한국어 설명
-  code        - 생성된 Joi JSON 코드
-  created_at  - 저장 시각 (UTC)
-
-sessions 테이블 (실시간 대화 맥락 유지)
-  session_id        - PK, 세션 식별자
-  chat_history      - JSON 직렬화된 대화 기록
-  last_result       - 마지막으로 생성된(승인 전) 결과
-  connected_devices - 해당 세션에 귀속된 기기 목록
-  updated_at        - 마지막 업데이트 시각
+  session_id  - FK → sessions
+  sender      - "user" | "agent"
+  content     - 메시지 내용 (JSON 직렬화)
+  created_at  - 저장 시각
 ```
 
-*   `HUB_CONTROLLER_URL` 환경변수가 없으면 DB에만 저장하고 허브 전송은 스킵.
-*   `session_id`를 지정하지 않으면 `"default"`로 고정.
-
-```python
-# agent_chat_stream: SSE 방식으로 토큰 단위 스트리밍 응답
-for event in agent_chat_stream(
-    user_message="오전 8시에 거실 불 꺼줘",
-    session_id="my_session",
-    connected_devices=devices,   # 첫 호출 시에만 전달, 이후 DB에서 자동 로드
-    base_url="http://localhost:8002/v1",
-):
-    # "data: [DONE] {...}" 이벤트에서 last_result 추출
-    if event.startswith("data: [DONE]"):
-        payload = json.loads(event[len("data: [DONE] "):])
-        last_result = payload.get("last_result")
-        if last_result:
-            print("Generated Code:", last_result["code"])
-    else:
-        token = json.loads(event[len("data: "):])
-        print(token, end="", flush=True)
-```
+*   `session_id`를 지정하지 않으면 자동 생성.
+*   시나리오 등록은 `add_scenario` 툴 → MCP 서버 → Hub Controller로 직접 전달.
 
 ---
 

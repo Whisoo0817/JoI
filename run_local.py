@@ -431,8 +431,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
     }
 
     # Fallback to SCHEDULED if unknown type
-    base_prompt_key = type_to_prompt_key.get(cmd_type, "joi_scheduled")
-    prompt_key = base_prompt_key
+    prompt_key = type_to_prompt_key.get(cmd_type, "joi_scheduled")
     
     # Prepare System Prompt
     system_prompt = PROMPTS.get(prompt_key, "")
@@ -455,22 +454,22 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
         joi_json = {
             "name": "Scenario",
             "cron": "",
-            "period": 0,
-            "script": _normalize_script_newlines(script)
+            "period": -1,
+            "code": _normalize_script_newlines(script)
         }
         joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
     else:
         # SCHEDULED/DURATION: LLM returns JSON
-        # Pre-process literal newlines in "script" string before parsing
-        match = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
+        # Pre-process literal newlines in "code" string before parsing
+        match = re.search(r'"code"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
         if match:
             fixed_inner = match.group(1).replace('\n', '\\n')
             script = script[:match.start(1)] + fixed_inner + script[match.end(1):]
 
         try:
             joi_json = json.loads(script)
-            if "script" in joi_json:
-                joi_json["script"] = _normalize_script_newlines(joi_json["script"])
+            if "code" in joi_json:
+                joi_json["code"] = _normalize_script_newlines(joi_json["code"])
             joi_json.setdefault("name", "Scenario")
             joi_json = {"name": joi_json.pop("name"), **joi_json}
             joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
@@ -479,7 +478,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
             joi_json = {}
 
     # ❇️ Validation
-    _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
+    _ = validate_joi(joi_json.get("code", ""), connected_devices, _SERVICE_CATEGORY_MAP)
 
     elapsed = time.perf_counter() - start
     # print(f"\nJoI ➡️ {elapsed:.4f} secs")
@@ -504,14 +503,34 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
     # any → all + operator + | 후처리 (re_translate 이후 적용)
     try:
         joi_json_final = json.loads(joi_code_raw)
-        if "script" in joi_json_final:
-            joi_json_final["script"] = _post_process_joi_any_quantifiers(joi_json_final["script"])
+        if "code" in joi_json_final:
+            joi_json_final["code"] = _post_process_joi_any_quantifiers(joi_json_final["code"])
         joi_code_raw = json.dumps(joi_json_final, indent=2, ensure_ascii=False)
     except (json.JSONDecodeError, TypeError):
         joi_code_raw = _post_process_joi_any_quantifiers(joi_code_raw)
 
+    scenario_name = re.sub(r'[^\w\s]', '', translated_sentence.strip())
+    scenario_name = re.sub(r'\s+', '_', scenario_name).strip('_').lower() or "scenario"
+
+    def _to_hub_format(item: dict) -> dict:
+        return {
+            "name": scenario_name,
+            "cron": item.get("cron", ""),
+            "period": item.get("period", -1),
+            "code": item.get("code", ""),
+        }
+
+    try:
+        code_parsed = json.loads(joi_code_raw)
+        if isinstance(code_parsed, dict):
+            code_field = [_to_hub_format(code_parsed)]
+        else:
+            code_field = [_to_hub_format(item) for item in code_parsed if isinstance(item, dict)]
+    except (json.JSONDecodeError, TypeError):
+        code_field = joi_code_raw
+
     return {
-        "code": joi_code_raw,
+        "code": code_field,
         "merged_command": merged_command,
         "log": {
             "response_time": f"{elapsed:.4f} seconds",

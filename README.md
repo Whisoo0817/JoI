@@ -5,9 +5,10 @@ JoI is an advanced IoT automation system that translates natural language comman
 ---
 
 ## 📢 Latest Updates
-- **[2026/04/07]** Added Agent capabilities (`agent_chat` API) for multi-turn conversational IoT control.
+- **[2026/04/27]** Unified output schema: `code` key (not `script`), `period: -1` for NO_SCHEDULE, `name` auto-generated from re-translate.
+- **[2026/04/27]** Removed `get_weather` tool (not in MCP server). Auto-fetch `connected_devices` on `/generate-joi-code` when not provided.
+- **[2026/04/07]** Added Agent capabilities (LocalAgentManager via joi-agent) for multi-turn conversational IoT control.
 - **[2026/03/20]** Added support for vLLM with `Qwen3.5-9B-AWQ-4bit` optimization.
-- **[2026/03/16]** Added support for `Qwen3.5-9B-Q4_K_M` GGUF models via llama.cpp.
 
 ---
 
@@ -42,16 +43,16 @@ The core engine that analyzes natural language intents and generates structured 
 - `other_params` (dict): Optional parameters for scenario generation.
 - `modification` (str, optional): Feedback or modification request to refine previously generated code.
 
-### 2. `agent_chat_stream`
-A streaming conversational API that enables iterative IoT control and scenario building through tool-calling. Yields SSE tokens; session state (chat history, devices, last result) is persisted in a local SQLite DB.
+### 2. `LocalAgentManager` (joi-agent)
+A streaming conversational agent served via `joi-agent` (port 8012). Handles multi-turn IoT control through a ReAct loop with MCP tool-calling. Session state is persisted in SQLite via `session_manager`.
 
-**Arguments:**
-- `user_message` (str): The user's input message.
-- `session_id` (str): Session identifier for state persistence (default: `"default"`).
-- `connected_devices` (dict, optional): IoT device metadata — passed only on first call; auto-loaded from DB on subsequent turns.
-- `base_url` (str, optional): vLLM endpoint URL.
-- `on_complete` (callable, optional): Callback invoked with `(final_response, last_result)` when streaming finishes.
-- `on_tool_call` (callable, optional): Callback invoked with `(tool_name, args, result)` on each tool call.
+**Endpoint:** `GET /chat?query=...&session_id=...&user_id=...`
+
+**Key behaviors:**
+- Streams SSE tokens to the frontend.
+- Calls `request_to_joi_llm` → `app.py (49999)` → vLLM for code generation.
+- Calls MCP tools (`add_scenario`, `control_thing_directly`, etc.) via `tools.py`.
+- Session logs written to `data/logs/<session_id>.log`.
 
 ---
 
