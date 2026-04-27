@@ -46,25 +46,19 @@
     timeline_ir.py                     타임라인 IR 추출 파이프라인
     run_local_ir.py                    IR 기반 코드 생성 실험 스크립트
   data/logs/                           에이전트 세션 로그 (session_id.log)
-  local_agent/                         로컬 에이전트 관리 파일
-    local_agent.py                     ← 정본. apply_local.sh가 복사
-    tools.py → (joi_new/tools.py 복사본)
-    config.py → (joi_new/config.py 복사본)
-    .env                               ← 정본 환경변수
-    apply_local.sh                     ← git pull 후 실행하는 적용 스크립트
 
-/home/tester/joi-agent/               ← 이삭 레포 clone (local 브랜치)
-  backend/main.py                      채팅 에이전트 FastAPI 서버 (apply_local.sh가 수정)
+/home/tester/joi-agent/               ← 이삭 레포 clone (local 브랜치) — 직접 수정/커밋
+  backend/main.py                      채팅 에이전트 FastAPI 서버
   backend/session_manager.py           세션/메시지 SQLite 관리
-  agent/local_agent.py                 ← apply_local.sh가 복사해온 파일
-  agent/tools.py                       ← apply_local.sh가 복사해온 파일
-  agent/config.py                      ← apply_local.sh가 복사해온 파일
+  agent/local_agent.py                 ReAct 루프 에이전트 (정본)
+  agent/tools.py                       MCP 툴 호출 + AGENT_TOOLS 스키마 (정본)
+  agent/config.py                      vLLM 클라이언트 설정 (정본)
   agent/joi_agent.py                   이삭 원본 (Agno 기반, 미사용)
   mcp_server/                          이삭 MCP 서버 코드 (우리가 켜지 않음)
   scripts/run.py                       백엔드 단독 실행 스크립트 (start-backend만)
   scripts/setup.py                     .venv 의존성 설치
-  .env                                 ← apply_local.sh가 local_agent/.env를 복사
-  data/sessions.db                     세션 DB (현재 프론트와 미연결)
+  .env                                 환경변수 (직접 수정)
+  data/sessions.db                     세션 DB
 ```
 
 ## 서버 실행 방법
@@ -76,18 +70,9 @@ cd /home/ikess/joi-llm/joi_new && bash start_vllm.sh
 # 2. app.py (별도 tmux)
 cd /home/ikess/joi-llm/joi_new && python app.py
 
-# 3. joi-agent (별도 tmux — agent 세션)
-bash /home/ikess/joi-llm/joi_new/local_agent/apply_local.sh
+# 3. joi-agent (별도 tmux)
 cd /home/tester/joi-agent && python scripts/run.py
 ```
-
-## apply_local.sh 하는 일
-
-1. `backend/main.py` 3줄 수정 — `JOIAgentManager` → `LocalAgentManager`
-2. `agent/local_agent.py` 복사 (정본: `joi_new/local_agent/local_agent.py`)
-3. `agent/tools.py` 복사 (정본: `joi_new/tools.py`)
-4. `agent/config.py` 복사 (정본: `joi_new/config.py`)
-5. `.env` 복사 (정본: `joi_new/local_agent/.env`)
 
 ## 주요 환경변수 (.env)
 
@@ -106,14 +91,13 @@ AGENT_LOG_DIR=/home/ikess/joi-llm/joi_new/data/logs
 | 영역 | 담당 |
 |------|------|
 | MCP 서버, 허브, 프론트 | 이삭 |
-| vLLM, app.py, local_agent.py, tools.py | 우리 |
-| joi-agent backend/main.py | 공유 (apply_local.sh로 우리가 수정) |
+| vLLM, app.py | 우리 |
+| joi-agent agent/, backend/main.py | 우리 (local 브랜치에서 직접 수정/커밋) |
 | joi-agent session_manager.py, mcp_server/ | 이삭 (변경 시 알림 요청) |
 
 ## 주의사항
 
-- `tools.py`, `config.py`는 `joi_new/`가 정본. `agent/` 안의 파일은 복사본.
-  수정은 항상 `joi_new/`에서 하고 `apply_local.sh` 실행.
-- MCP 툴 추가/제거 시 `tools.py`의 `AGENT_TOOLS` 스키마도 업데이트 필요.
+- `agent/local_agent.py`, `agent/tools.py`, `agent/config.py`는 `joi-agent local` 브랜치가 정본.
+  수정 후 `git commit` + `git push origin local`.
+- MCP 툴 추가/제거 시 `agent/tools.py`의 `AGENT_TOOLS` 스키마도 업데이트 필요.
 - `get_weather` 툴은 MCP 서버에 없어 `AGENT_TOOLS`에서 제거됨 (환각 방지).
-- `sessions.db`는 현재 프론트와 미연결 상태. 프론트는 이삭 서버 DB를 참조 중.
