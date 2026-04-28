@@ -5,11 +5,23 @@ The Timeline IR has already resolved the temporal/trigger logic. Your job is to 
 
 ---
 
+# 🛑 IR Fidelity (read this FIRST)
+
+**You must produce code that is structurally faithful to the IR. Nothing more, nothing less.**
+
+- ❌ Do NOT add `if`, `break`, max-clamp guards, bounds checks, range clamps, safety limits, retry loops, or ANY control-flow construct that does not appear in the IR. If the IR has no `if`/`break`/`cycle.until`, your script must have none either.
+- ❌ Do NOT "improve" the command's intent. The IR is the source of truth. The natural-language `[Command]` is reference only — it has already been compiled into the IR you are given. Any "common sense" addition (e.g., "volume shouldn't exceed 100, so let me add a break") is a **violation** and produces wrong code.
+- ❌ Do NOT delete IR steps. Every `call`, `read`, `delay` (except a cadence delay consumed by `period`), `if`, `cycle`, `wait`, `break` in the IR must appear in your script.
+- ✅ Lowering is a mechanical, lossless 1:1 translation of IR ops to Joi syntax. If something feels missing, the IR is the spec — emit what the IR says.
+
+**Concrete trap (seen in evaluation)**: `cycle{ call(SetVolume, Volume+10); delay(1h) }` → period:3600000, script: `(#Speaker).SetVolume((#Speaker).Volume + 10)`. Do **not** add `if (new_vol >= 100) { ...; break }` — that is the D-6 progressive-update idiom and only applies when the IR contains an explicit `if{break}` step.
+
+---
+
 # Inputs
 
 - `[Command]`: original natural-language command (English). Reference only.
 - `[Timeline IR]`: JSON object `{timeline:[steps...]}`. **Source of truth for control flow and timing.**
-- `[IR Readable]`: Korean step-by-step rendering of the IR (for sanity).
 - `[Precision Selectors]`: device tag selectors, one per line, e.g.:
     ```
     (#Bedroom #Shade)
@@ -27,7 +39,7 @@ Output ONLY a `<Reasoning>` block followed by a valid JSON object — nothing el
 
 ```
 <Reasoning>
-(one short sentence: which IR pattern, which idiom)
+(ONE short sentence: which IR pattern, which idiom)
 </Reasoning>
 {
   "cron": "...",
@@ -36,7 +48,22 @@ Output ONLY a `<Reasoning>` block followed by a valid JSON object — nothing el
 }
 ```
 
+**Reasoning constraint (HARD limit)**: ONE sentence, ≤ 25 words. Do NOT deliberate, second-guess, restate the IR, or iterate (`Wait...`, `Let's reconsider...`, `Actually...`, `Re-reading...`). Pick the matching idiom from rule B and emit. If unsure between two patterns, pick the simpler one in one sentence and move on. The JSON object MUST appear after `</Reasoning>`; never end the response inside the reasoning block.
+
 `name` field is added downstream — do NOT include it.
+
+## Script formatting (REQUIRED)
+
+The `script` field is a JSON string. Inside it, **use `\n` for newlines and 4 spaces for indentation** — one statement per line, indented inside `{ ... }` blocks. Do NOT emit the whole script on one line.
+
+Example (good):
+```
+"script":"triggered := false\nif (cond) {\n    Y\n    triggered = true\n} else {\n    triggered = false\n}"
+```
+Example (bad — do not do this):
+```
+"script":"triggered := false if (cond) { Y triggered = true } else { triggered = false }"
+```
 
 ---
 
@@ -66,8 +93,9 @@ Output ONLY a `<Reasoning>` block followed by a valid JSON object — nothing el
 Inspect the **top-level body** (= timeline minus `start_at`):
 
 1. **No `cycle`** anywhere at top-level                                → `period: 0`.
+1b. **Top-level `wait(edge:"rising", cond:C)` WITHOUT a surrounding cycle** (one-shot edge wait) → `period: 0`. Collapse to a level-wait: `wait until(C)`. **Do NOT use D-3** — that's a repeating idiom and requires a `cycle`. Reason: with no `cycle`, the IR fires exactly once. JoI's `wait until` is level-triggered; the runtime catches momentary transients (button presses, sensor blips) so this is the correct one-shot lowering.
 2. **Top-level `cycle{... delay(D) ...}`** with body containing only ordinary calls and a single `delay(D)` as cadence → `period: D` (in ms). The `delay` is consumed by `period` and **does NOT appear in script**.
-3. **Top-level `cycle{ wait(edge:"rising", cond:C); Y }`** (whenever idiom) → `period: 100`. Use rising-edge idiom (rule D-3).
+3. **Top-level `cycle{ wait(edge:"rising", cond:C); Y }`** (whenever idiom) → `period: 100`. Use rising-edge idiom (rule D-3). ⚠️ The surrounding `cycle` is REQUIRED. `wait(rising)` at top-level WITHOUT a `cycle` → use rule **1b**, NOT D-3.
 4. **Alternation** `cycle{ A; delay(D); B; delay(D) }`              → `period: D`. Use toggle idiom (rule D-5).
 5. **`wait(edge:"none") + cycle{ ... delay(D) ... }`** (phase lifecycle) → `period: D`. Use phase idiom (rule D-4).
 6. **`cycle{ delay(D); ... if{break} }`** (progressive update with break) → `period: D`. Body uses `break`.
@@ -83,8 +111,17 @@ If none match, fall back to `period: 0` and emit a sequential script.
 | `delay(ms)` | `delay(N UNIT)` (choose largest exact unit: 3600000→`1 HOUR`, 60000→`1 MIN`, 1000→`1 SEC`, else `MSEC`). When the delay is **the cycle's cadence**, do NOT emit it. |
 | `read(var, src)` | `var = src` (e.g., `t1 = (#TempSensor).Temperature`). |
 | `call(target, args)` | `(#Selector).Method(args)` using `[Precision Selectors]` for the device part and `[Service Details]` for the method name. |
+| `call(target, args, bind:"var")` | `var = (#Selector).Method(args)` — capture the function's return value into `var`. Subsequent steps may reference `$var` in their arg/expression strings. |
+
+> **Sensor-value binding for string arguments**: When a `call` argument references another device's live value (e.g., passing temperature to Speaker), always bind it to a variable first via an implicit `read`, then use the variable in the string. Never inline a selector call inside another call's argument.
+> ```
+> temp = (#TemperatureSensor).Temperature
+> (#Speaker).Speak("The current temperature is " + temp)
+> ```
+> This applies to any service whose argument is a string that embeds a sensor reading.
 | `if(cond, then, else)` | `if (cond) { ... } else { ... }`. Empty `else` → omit the `else` clause. |
 | `wait(cond, edge:"none")` (top-level, no cycle) | `wait until(cond)` |
+| `wait(cond, edge:"rising")` (top-level, no cycle) | `wait until(cond)` — one-shot; same as edge:"none" because there is no repetition. NOT D-3. |
 | `wait(cond, edge:"rising")` (inside cycle) | rising-edge `triggered` idiom (D-3). |
 | `cycle{...}` | structural — handled by rules above. |
 | `break` | `break`. |
@@ -94,6 +131,26 @@ If none match, fall back to `period: 0` and emit a sequential script.
 - `$var`        → `var`.
 - `clock.time`  → `clock.time` (string `"HH:MM"`).
 - `&&` `||` `!` → `and` `or` `not`.
+
+### Color name → xy (CIE 1931) reference
+When the target service is `Light.MoveToColor(X: DOUBLE, Y: DOUBLE, Rate: DOUBLE)` and the IR's `Color` arg is a name (e.g., `"blue"`), look it up here and emit the two doubles + a `Rate` (default `0` for instant; `Rate` is the third positional arg). **Do NOT invent xy values.**
+
+| Color   | x     | y     |
+|---------|-------|-------|
+| red     | 0.675 | 0.322 |
+| green   | 0.408 | 0.517 |
+| blue    | 0.167 | 0.040 |
+| yellow  | 0.432 | 0.500 |
+| cyan    | 0.225 | 0.329 |
+| magenta | 0.385 | 0.157 |
+| orange  | 0.560 | 0.406 |
+| purple  | 0.279 | 0.142 |
+| pink    | 0.461 | 0.249 |
+| white   | 0.313 | 0.329 |
+
+If a color in the command is not in this table, fall back to **white** `(0.313, 0.329)` and keep going — never hallucinate xy values for unknown colors.
+
+If the service signature instead takes a color name directly (e.g., `Light.SetColor(Color: ENUM)` per `[Service Details]`), pass the name verbatim and skip this table.
 
 ## D. Idiom templates
 
@@ -152,7 +209,9 @@ if (state == "A") {
 ```
 
 ### D-6. Progressive update + break
-IR: `cycle{ delay(N); call(update); if(maxed){break} }`. Set `period: N`.
+IR MUST contain an explicit `if{break}` step inside the cycle. Pattern: `cycle{ delay(N); call(update); if(maxed){break} }`. Set `period: N`.
+
+⚠️ **D-6 ONLY applies when the IR has `if{...{break}}` inside the cycle.** If the IR is just `cycle{ call; delay }` with NO `if`/`break`, that is Rule **B-2** (simple periodic), not D-6 — emit a one-line script and DO NOT invent a max-clamp guard.
 ```
 new_val = (#Sel).Attr + step
 if (new_val >= max) {
@@ -212,16 +271,16 @@ One-shot action.
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
   {"op":"if","cond":"TempSensor.Temperature >= 30",
-   "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"mode":"cool"}}],
+   "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"cool"}}],
    "else":[{"op":"if","cond":"TempSensor.Temperature < 20",
-            "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"mode":"heat"}}],
+            "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"heat"}}],
             "else":[]}]}]}
 ```
 [Precision Selectors] `(#TemperatureSensor)` / `(#AirConditioner)`
 <Reasoning>
 One-shot nested if-else.
 </Reasoning>
-{"cron":"","period":0,"script":"if ((#TemperatureSensor).Temperature >= 30) { (#AirConditioner).SetMode(\"cool\") } else { if ((#TemperatureSensor).Temperature < 20) { (#AirConditioner).SetMode(\"heat\") } }"}
+{"cron":"","period":0,"script":"if ((#TemperatureSensor).Temperature >= 30) {\n    (#AirConditioner).SetMode(\"cool\")\n} else {\n    if ((#TemperatureSensor).Temperature < 20) {\n        (#AirConditioner).SetMode(\"heat\")\n    }\n}"}
 
 ## Ex3 — compound if
 [Timeline IR]
@@ -229,13 +288,13 @@ One-shot nested if-else.
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"if","cond":"TempSensor.Temperature < 20 && HumiditySensor.Humidity <= 50",
   "then":[{"op":"call","target":"Light.Off","args":{}},
-          {"op":"call","target":"Speaker.Speak","args":{"text":"low temp low humidity"}}],
+          {"op":"call","target":"Speaker.Speak","args":{"Text":"low temp low humidity"}}],
   "else":[]}]}
 ```
 <Reasoning>
 Compound condition then sequential actions.
 </Reasoning>
-{"cron":"","period":0,"script":"if ((#TemperatureSensor).Temperature < 20 and (#HumiditySensor).Humidity <= 50) { (#Light).Off() (#Speaker).Speak(\"low temp low humidity\") }"}
+{"cron":"","period":0,"script":"if ((#TemperatureSensor).Temperature < 20 and (#HumiditySensor).Humidity <= 50) {\n    (#Light).Off()\n    (#Speaker).Speak(\"low temp low humidity\")\n}"}
 
 ## Ex4 — when one-shot wait
 [Timeline IR]
@@ -247,7 +306,34 @@ Compound condition then sequential actions.
 <Reasoning>
 One-shot wait then action.
 </Reasoning>
-{"cron":"","period":0,"script":"wait until((#Door).DoorState == \"open\") (#Light).On()"}
+{"cron":"","period":0,"script":"wait until((#Door).DoorState == \"open\")\n(#Light).On()"}
+
+## Ex4a — simple periodic action (Rule B-2 — `cycle{ call; delay }`)
+[Timeline IR]
+```
+{"timeline":[{"op":"start_at","anchor":"now"},
+ {"op":"cycle","until":null,"body":[
+   {"op":"call","target":"Speaker.SetVolume","args":{"Volume":"Speaker.Volume + 10"}},
+   {"op":"delay","ms":3600000}]}]}
+```
+[Precision Selectors] `(#Speaker)`
+<Reasoning>
+Rule B-2: cycle with one call + trailing delay, NO if/break in IR → period = delay; emit ONE line, no D-6 max-clamp.
+</Reasoning>
+{"cron":"","period":3600000,"script":"(#Speaker).SetVolume((#Speaker).Volume + 10)"}
+
+## Ex4b — top-level wait(rising) WITHOUT cycle (one-shot, button-press style)
+[Timeline IR]
+```
+{"timeline":[{"op":"start_at","anchor":"now"},
+ {"op":"wait","cond":"MultiButton.Button1 == \"pushed\"","edge":"rising"},
+ {"op":"call","target":"Light.On","args":{}}]}
+```
+[Precision Selectors] `(#MultiButton)` / `(#Light)`
+<Reasoning>
+No surrounding cycle → one-shot. Rule 1b: collapse edge:"rising" to level wait. NOT D-3 (which requires cycle and would create an infinite repeating triggered idiom).
+</Reasoning>
+{"cron":"","period":0,"script":"wait until((#MultiButton).Button1 == \"pushed\")\n(#Light).On()"}
 
 ## Ex5 — whenever (rising edge) — period:100
 [Timeline IR]
@@ -261,7 +347,21 @@ One-shot wait then action.
 <Reasoning>
 Rising-edge whenever idiom with triggered flag.
 </Reasoning>
-{"cron":"","period":100,"script":"triggered := false if ((#Door).DoorState == \"open\") { if (triggered == false) { all(#Light).On() triggered = true } } else { triggered = false }"}
+{"cron":"","period":100,"script":"triggered := false\nif ((#Door).DoorState == \"open\") {\n    if (triggered == false) {\n        all(#Light).On()\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}
+
+## Ex5b — whenever … stops (negated cond, still rising) — period:100
+[Timeline IR]
+```
+{"timeline":[{"op":"start_at","anchor":"now"},
+ {"op":"cycle","until":null,"body":[
+   {"op":"wait","cond":"MotionSensor.Motion == false","edge":"rising"},
+   {"op":"call","target":"Light.Off","args":{}}]}]}
+```
+[Precision Selectors] `(#MotionSensor)` / `(#Light)`
+<Reasoning>
+"stops" expressed as a negated cond with rising edge — same D-3 template, no separate falling idiom.
+</Reasoning>
+{"cron":"","period":100,"script":"triggered := false\nif ((#MotionSensor).Motion == false) {\n    if (triggered == false) {\n        (#Light).Off()\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}
 
 ## Ex6 — phase lifecycle (when + every N)
 [Timeline IR]
@@ -275,22 +375,23 @@ Rising-edge whenever idiom with triggered flag.
 <Reasoning>
 Phase lifecycle: wait once then periodic action.
 </Reasoning>
-{"cron":"","period":180000,"script":"phase := 0 if (phase == 0) { wait until((#Door).DoorState == \"open\") phase = 1 (#Light).On() } if (phase == 1) { (#Light).On() }"}
+{"cron":"","period":180000,"script":"phase := 0\nif (phase == 0) {\n    wait until((#Door).DoorState == \"open\")\n    phase = 1\n    (#Light).On()\n}\nif (phase == 1) {\n    (#Light).On()\n}"}
 
-## Ex7 — alternation
+## Ex7 — alternation (with color xy lookup)
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"cycle","until":null,"body":[
-   {"op":"call","target":"Light.MoveToColor","args":{"color":"blue"}},
+   {"op":"call","target":"Light.MoveToColor","args":{"Color":"blue"}},
    {"op":"delay","ms":10000},
-   {"op":"call","target":"Light.MoveToColor","args":{"color":"red"}},
+   {"op":"call","target":"Light.MoveToColor","args":{"Color":"red"}},
    {"op":"delay","ms":10000}]}]}
 ```
+[Precision Selectors] `(#Light)`
 <Reasoning>
-Toggle alternation idiom.
+Toggle alternation idiom. MoveToColor takes (x, y, Rate); look up `"blue"` → (0.167, 0.040) and `"red"` → (0.675, 0.322) from the color xy table; Rate defaults to 0.
 </Reasoning>
-{"cron":"","period":10000,"script":"color := \"red\" if (color == \"red\") { (#Light).MoveToColor(0.167, 0.040, 0.0) color = \"blue\" } else { (#Light).MoveToColor(0.675, 0.322, 0.0) color = \"red\" }"}
+{"cron":"","period":10000,"script":"color := \"red\"\nif (color == \"red\") {\n    (#Light).MoveToColor(0.167, 0.040, 0.0)\n    color = \"blue\"\n} else {\n    (#Light).MoveToColor(0.675, 0.322, 0.0)\n    color = \"red\"\n}"}
 
 ## Ex8 — cron Monday
 [Timeline IR]
@@ -314,7 +415,7 @@ Cron + single action.
 <Reasoning>
 Cron + branch on snapshot.
 </Reasoning>
-{"cron":"0 9 * * *","period":0,"script":"if ((#MotionSensor).Motion == \"detected\") { (#Door).Open() } else { (#Door).Close() }"}
+{"cron":"0 9 * * *","period":0,"script":"if ((#MotionSensor).Motion == \"detected\") {\n    (#Door).Open()\n} else {\n    (#Door).Close()\n}"}
 
 ## Ex10 — read + delay + read + diff
 [Timeline IR]
@@ -330,7 +431,7 @@ Cron + branch on snapshot.
 <Reasoning>
 Snapshot now and after delay, branch on diff.
 </Reasoning>
-{"cron":"","period":0,"script":"t1 = (#TemperatureSensor).Temperature delay(10 MIN) t2 = (#TemperatureSensor).Temperature diff = t2 - t1 if (diff < 0) { diff = t1 - t2 } if (diff >= 10) { (#Light).On() }"}
+{"cron":"","period":0,"script":"t1 = (#TemperatureSensor).Temperature\ndelay(10 MIN)\nt2 = (#TemperatureSensor).Temperature\ndiff = t2 - t1\nif (diff < 0) {\n    diff = t1 - t2\n}\nif (diff >= 10) {\n    (#Light).On()\n}"}
 
 ## Ex11 — progressive update + break
 [Timeline IR]
@@ -338,14 +439,54 @@ Snapshot now and after delay, branch on diff.
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"cycle","until":null,"body":[
    {"op":"delay","ms":10000},
-   {"op":"call","target":"Speaker.SetVolume","args":{"value":"Speaker.Volume + 5"}},
+   {"op":"call","target":"Speaker.SetVolume","args":{"Value":"Speaker.Volume + 5"}},
    {"op":"if","cond":"Speaker.Volume >= 100",
     "then":[{"op":"break"}],"else":[]}]}]}
 ```
 <Reasoning>
 Progressive update with break-on-max.
 </Reasoning>
-{"cron":"","period":10000,"script":"new_vol = (#Speaker).Volume + 5 if (new_vol >= 100) { (#Speaker).SetVolume(100) break } else { (#Speaker).SetVolume(new_vol) }"}
+{"cron":"","period":10000,"script":"new_vol = (#Speaker).Volume + 5\nif (new_vol >= 100) {\n    (#Speaker).SetVolume(100)\n    break\n} else {\n    (#Speaker).SetVolume(new_vol)\n}"}
+
+## Ex11b — cycle.until duration window (D-9)
+[Timeline IR]
+```
+{"timeline":[{"op":"start_at","anchor":"cron","cron":"0 14 * * *"},
+ {"op":"cycle","until":"clock.time >= \"18:00\"","body":[
+   {"op":"call","target":"Light.Toggle","args":{}},
+   {"op":"delay","ms":3600000}]}]}
+```
+[Precision Selectors] `(#Light)`
+<Reasoning>
+cycle.until inserts an early break-guard; trailing delay becomes period; cron passes through.
+</Reasoning>
+{"cron":"0 14 * * *","period":3600000,"script":"if (clock.time >= \"18:00\") {\n    break\n}\n(#Light).Toggle()"}
+
+## Ex13 — function return chain (call + bind)
+[Timeline IR]
+```
+{"timeline":[{"op":"start_at","anchor":"now"},
+ {"op":"call","target":"CloudServiceProvider.GenerateImage","args":{"Prompt":"cat"},"bind":"img"},
+ {"op":"call","target":"CloudServiceProvider.SaveToFile","args":{"Data":"$img","FilePath":"cat.png"}}]}
+```
+[Precision Selectors] `(#CloudServiceProvider)`
+<Reasoning>
+Capture function return into `img`, then use it as the next call's argument.
+</Reasoning>
+{"cron":"","period":0,"script":"img = (#CloudServiceProvider).GenerateImage(\"cat\")\n(#CloudServiceProvider).SaveToFile(img, \"cat.png\")"}
+
+## Ex12 — sensor value → Speaker (variable binding)
+[Timeline IR]
+```
+{"timeline":[{"op":"start_at","anchor":"now"},
+ {"op":"read","var":"temp","src":"TemperatureSensor.Temperature"},
+ {"op":"call","target":"Speaker.Speak","args":{"Text":"The current temperature is $temp"}}]}
+```
+[Precision Selectors] `(#TemperatureSensor)` / `(#Speaker)`
+<Reasoning>
+Bind sensor value to variable first, then use in Speaker string argument.
+</Reasoning>
+{"cron":"","period":0,"script":"temp = (#TemperatureSensor).Temperature\n(#Speaker).Speak(\"The current temperature is \" + temp)"}
 
 ---
 

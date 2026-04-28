@@ -266,10 +266,11 @@ def _strip_json_fences(text: str) -> str:
 
 def extract_ir(
     command: str,
-    devices: dict,
+    devices: dict | str,
     base_url: str | None = None,
     debug: bool = False,
     auto_translate: bool = True,
+    augmentations: str | None = None,
 ) -> dict:
     """Call the local LLM to extract a Timeline IR from a command.
 
@@ -277,9 +278,13 @@ def extract_ir(
     command is first translated to English via the translation.md prompt, then
     extracted. Otherwise the command is passed straight to the extractor.
 
-    Returns a dict that is either a valid IR or `{"error": "...", ...}` on
-    rejection. Raises IRValidationError if the model returned structurally
-    invalid IR that we could not recover from.
+    `devices` can be:
+      - dict: raw device catalog (legacy, passed through _format_services_block)
+      - str: pre-formatted services block (e.g. intent-based "Dev.Svc  (value|function)" lines)
+
+    Returns a tuple (ir_dict, prompt_tokens, completion_tokens, elapsed_sec).
+    ir_dict is either a valid IR or `{"error": "...", ...}` on rejection.
+    Raises IRValidationError if the model returned structurally invalid IR.
     """
     if auto_translate and _is_korean(command):
         english_command = translate_to_english(command, base_url=base_url, debug=debug)
@@ -287,8 +292,10 @@ def extract_ir(
         english_command = command
 
     system = _load_extractor_prompt()
-    services = _format_services_block(devices)
+    services = devices if isinstance(devices, str) else _format_services_block(devices)
     user = f"[Command]\n{english_command}\n\n[Services]\n{services}"
+    if augmentations:
+        user += f"\n\n{augmentations}"
 
     client = get_client(base_url)
     model = get_model_id(client)
@@ -297,6 +304,8 @@ def extract_ir(
         print("[timeline_ir] model =", model)
         print("[timeline_ir] command =", english_command)
 
+    import time as _time
+    _t0 = _time.perf_counter()
     response = client.chat.completions.create(
         model=model,
         messages=[
@@ -308,6 +317,7 @@ def extract_ir(
         stream=False,
         extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     )
+    _elapsed = _time.perf_counter() - _t0
     raw = (response.choices[0].message.content or "").strip()
     raw = _strip_json_fences(raw)
 
@@ -321,10 +331,16 @@ def extract_ir(
 
     # Reject path is allowed as-is.
     if isinstance(ir, dict) and "error" in ir:
-        return ir
+        _usage = response.usage
+        _prompt_tokens = _usage.prompt_tokens if _usage else 0
+        _completion_tokens = _usage.completion_tokens if _usage else 0
+        return ir, _prompt_tokens, _completion_tokens, _elapsed
 
     validate_ir(ir)
-    return ir
+    _usage = response.usage
+    _prompt_tokens = _usage.prompt_tokens if _usage else 0
+    _completion_tokens = _usage.completion_tokens if _usage else 0
+    return ir, _prompt_tokens, _completion_tokens, _elapsed
 
 
 # ── Readable rendering (IR → Korean) ─────────────────────────────────────────

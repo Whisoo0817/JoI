@@ -1,0 +1,162 @@
+[
+  {
+    "index": "29",
+    "category": "3",
+    "command_kor": "거실에 움직임이 감지되고 있으면, 조명을 켜줘.",
+    "command_eng": "If motion is being detected in the living room, turn on the living room light.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#LivingRoom #MotionSensor).motionSensor_motion == true) {\\n\\n    (#LivingRoom #Light).switch_on()\\n\\n}\"}",
+    "connected_devices": "{'LivingRoom_Motion': {'category': 'MotionSensor', 'tags': ['LivingRoom', 'MotionSensor']}, 'LivingRoom_Light': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}}"
+  },
+  {
+    "index": "30",
+    "category": "3",
+    "command_kor": "연구실 습도가 50 이상이면 제습기를 켜고 50 미만이면 가습기를 켜줘.",
+    "command_eng": "If the lab humidity is 50 or higher, turn on the dehumidifier, and if it's below 50, turn on the humidifier.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#Lab #HumiditySensor).humiditySensor_humidity >= 50) {\\n\\n    (#Lab #Dehumidifier).switch_on()\\n\\n} else {\\n\\n    (#Lab #Humidifier).switch_on()\\n\\n}\"}",
+    "connected_devices": "{'Lab_Humidity': {'category': 'HumiditySensor', 'tags': ['Lab', 'HumiditySensor']}, 'Lab_Dehumidifier': {'category': ['Dehumidifier', 'Switch'], 'tags': ['Lab', 'Dehumidifier', 'Switch']}, 'Lab_Humidifier': {'category': ['Humidifier', 'Switch'], 'tags': ['Lab', 'Humidifier', 'Switch']}}"
+  },
+  {
+    "index": "4",
+    "category": "4",
+    "command_kor": "비가 오면 제습기를 켜줘.",
+    "command_eng": "When it rains, turn on the dehumidifier.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#RainSensor).rainSensor_rain == true)\\n\\n(#Dehumidifier).switch_on()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "5",
+    "category": "4",
+    "command_kor": "밝기가 100 럭스 미만이 되면 조명을 켜줘.",
+    "command_eng": "When the brightness falls below 100 lux, turn on the light.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#LightSensor).lightSensor_brightness < 100)\\n\\n(#Light).switch_on()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "6",
+    "category": "4",
+    "command_kor": "이산화탄소 농도가 1000ppm 이상이 되면 긴급 사이렌을 울려줘.",
+    "command_eng": "When the carbon dioxide concentration reaches 1000ppm or higher, sound the emergency siren.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#CarbonDioxideSensor).carbonDioxideSensor_carbonDioxide >= 1000)\\n\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "7",
+    "category": "4",
+    "command_kor": "연기가 감지되면 사이렌으로 화재경보를 울려줘.",
+    "command_eng": "When smoke is detected, sound the fire alarm with the siren.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#SmokeDetector).smokeDetector_smoke == true)\\n\\n(#Siren).siren_setSirenMode(\\\"fire\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "8",
+    "category": "4",
+    "command_kor": "버튼이 세번 눌리면 벨브를 열어줘.",
+    "command_eng": "When the button is pushed 3 times, open the valve.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"wait until ((#Button).button_button == \\\"pushed_3x\\\")\\n\\n(#Valve).valve_open()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "9",
+    "category": "4",
+    "command_kor": "온도가 35도 이상이 되면 에어컨의 목표 온도를 30도로 설정해줘.",
+    "command_eng": "When the temperature reaches 35 degrees or higher, set the air conditioner to 30 degrees.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#TemperatureSensor).temperatureSensor_temperature >= 35)\\n\\n(#AirConditioner).airConditioner_setTargetTemperature(30)\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "10",
+    "category": "4",
+    "command_kor": "금고가 열리면 경찰 사이렌을 울려줘.",
+    "command_eng": "When the safe is unlocked, sound the police siren.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Safe).safe_safeState == \\\"unlocked\\\")\\n\\n(#Siren).siren_setSirenMode(\\\"police\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "11",
+    "category": "4",
+    "command_kor": "누수가 감지되면 벨브를 차단해줘.",
+    "command_eng": "When a leak is detected, close the valve.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#LeakSensor).leakSensor_leakage == true)\\n\\n(#Valve).valve_close()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "12",
+    "category": "4",
+    "command_kor": "습도가 80%보다 커지면 제습기를 건조 모드로 작동시켜줘.",
+    "command_eng": "When the humidity exceeds 80%, start the dehumidifier in drying mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#HumiditySensor).humiditySensor_humidity > 80)\\n\\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "13",
+    "category": "4",
+    "command_kor": "움직임이 감지되면 조명을 켜줘.",
+    "command_eng": "When motion is detected, turn on the light.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#MotionSensor).motionSensor_motion == true)\\n\\n(#Light).switch_on()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "14",
+    "category": "4",
+    "command_kor": "내부 초미세먼지 농도가 35 이상이 되면 공기청정기를 강하게 틀어줘.",
+    "command_eng": "When the indoor very fine dust level becomes 35 or higher, set the air purifier to high.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#AirQualitySensor).airQualitySensor_veryFineDustLevel >= 35)\\n\\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "15",
+    "category": "4",
+    "command_kor": "충전 전압이 250V보다 높아지면 충전을 중단해줘.",
+    "command_eng": "When the charging voltage exceeds 250V, stop charging.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Charger).charger_voltage > 250000)\\n\\n(#Charger).switch_off()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "16",
+    "category": "4",
+    "command_kor": "현관 도어락이 잠금해제되면 거실 조명을 켜줘.",
+    "command_eng": "When the entrance door lock is unlocked, turn on the living room light.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Entrance #DoorLock).doorLock_doorLockState == \\\"unlocked\\\")\\n\\n(#LivingRoom #Light).switch_on()\"}",
+    "connected_devices": "{'Entrance_DoorLock': {'category': 'DoorLock', 'tags': ['Entrance', 'DoorLock']}, 'BackDoor_DoorLock': {'category': 'DoorLock', 'tags': ['BackDoor', 'DoorLock']}, 'LivingRoom_Light': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}}"
+  },
+  {
+    "index": "17",
+    "category": "4",
+    "command_kor": "침실에 움직임이 감지되면 침실 에어컨을 켜줘.",
+    "command_eng": "When motion is detected in the bedroom, turn on the bedroom air conditioner.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Bedroom #MotionSensor).motionSensor_motion == true)\\n\\n(#Bedroom #AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\"}",
+    "connected_devices": "{'Bedroom_Motion': {'category': 'MotionSensor', 'tags': ['Bedroom', 'MotionSensor']}, 'LivingRoom_Motion': {'category': 'MotionSensor', 'tags': ['LivingRoom', 'MotionSensor']}, 'Bedroom_AC': {'category': 'AirConditioner', 'tags': ['Bedroom', 'AirConditioner', 'Switch']}}"
+  },
+  {
+    "index": "18",
+    "category": "4",
+    "command_kor": "주방에 연기가 감지되면 주방 벨브를 잠궈줘.",
+    "command_eng": "When a smoke is detected in the kitchen, close the kitchen valve.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Kitchen #SmokeDetector).smokeDetector_smoke == true)\\n\\n(#Kitchen #Valve).valve_close()\"}",
+    "connected_devices": "{'Kitchen_Smoke': {'category': 'SmokeDetector', 'tags': ['Kitchen', 'SmokeDetector']}, 'Laundry_Smoke': {'category': 'SmokeDetector', 'tags': ['LaundryDryer', 'SmokeDetector']}, 'Kitchen_Valve': {'category': 'Valve', 'tags': ['Kitchen', 'Valve']}}"
+  },
+  {
+    "index": "19",
+    "category": "4",
+    "command_kor": "서재 미세먼지 농도가 30 이상이 되면 서재 공기청정기를 켜줘.",
+    "command_eng": "When the fine dust level in the study reaches 30 or higher, turn on the study air purifier.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Study #AirQualitySensor).airQualitySensor_fineDustLevel >= 30)\\n\\n(#Study #AirPurifier).switch_on()\"}",
+    "connected_devices": "{'Study_AQ': {'category': 'AirQualitySensor', 'tags': ['Study', 'AirQualitySensor']}, 'LivingRoom_AQ': {'category': 'AirQualitySensor', 'tags': ['LivingRoom', 'AirQualitySensor']}, 'Study_AP': {'category': ['AirPurifier', 'Switch'], 'tags': ['Study', 'AirPurifier', 'Switch']}}"
+  },
+  {
+    "index": "20",
+    "category": "4",
+    "command_kor": "지하에 누수가 감지되면 메인 사이렌을 비상모드로 울려줘.",
+    "command_eng": "When a water leak is detected in the basement, sound the main siren in emergency mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Basement #LeakSensor).leakSensor_leakage == true)\\n\\n(#Main #Siren).siren_setSirenMode(\\\"emergency\\\")\"}",
+    "connected_devices": "{'Basement_Leak': {'category': 'LeakSensor', 'tags': ['Basement', 'LeakSensor']}, 'Outdoor_Leak': {'category': 'LeakSensor', 'tags': ['Outdoor', 'LeakSensor']}, 'Main_Siren': {'category': 'Siren', 'tags': ['Main', 'Siren']}}"
+  },
+  {
+    "index": "21",
+    "category": "4",
+    "command_kor": "테라스 조도가 50 미만이 되면 테라스 조명을 켜줘.",
+    "command_eng": "When the terrace illuminance falls below 50, turn on the terrace light.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Terrace #LightSensor).lightSensor_brightness < 50)\\n\\n(#Terrace #Light).switch_on()\"}",
+    "connected_devices": "{'Terrace_Illum': {'category': 'LightSensor', 'tags': ['Terrace', 'LightSensor']}, 'Garden_Illum': {'category': 'LightSensor', 'tags': ['Garden', 'LightSensor']}, 'Terrace_Light': {'category': ['Light', 'Switch'], 'tags': ['Terrace', 'Light', 'Switch']}}"
+  }
+]

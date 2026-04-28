@@ -1,0 +1,162 @@
+[
+  {
+    "index": "31",
+    "category": "8",
+    "command_kor": "문이 열릴 때마다, 복도와 거실의 조명을 모두 켜줘.",
+    "command_eng": "Each time the door is opened, turn on all lights in the hallway and living room.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Door).door_doorState == \\\"open\\\") {\\n    if (triggered == false) {\\n        all(#Hallway #Light).switch_on()\\n        all(#LivingRoom #Light).switch_on()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'Door_1': {'category': 'Door', 'tags': ['Door']}, 'Hall_Light': {'category': ['Light', 'Switch'], 'tags': ['Hallway', 'Light', 'Switch']}, 'LR_Light': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}, 'Kitchen_Light': {'category': ['Light', 'Switch'], 'tags': ['Kitchen', 'Light', 'Switch']}}"
+  },
+  {
+    "index": "32",
+    "category": "8",
+    "command_kor": "중단 태그가 달린 버튼이 눌릴때마다 짝수 태그가 붙은 장치들을 모두 꺼줘.",
+    "command_eng": "Whenever the button with the 'Stop' tag is pressed, turn off all devices with 'Even' tags.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Stop #Button).button_button == \\\"pushed\\\") {\\n    if (triggered == false) {\\n        all(#Even).switch_off()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'Stop_Button': {'category': 'Button', 'tags': ['Stop', 'Button']}, 'Even_Charger': {'category': ['Charger', 'Switch'], 'tags': ['Even', 'Charger', 'Switch']}, 'Even_Light': {'category': ['Light', 'Switch'], 'tags': ['Even', 'Light', 'Switch']}, 'Odd_Charger': {'category': ['Charger', 'Switch'], 'tags': ['Odd', 'Charger', 'Switch']}}"
+  },
+  {
+    "index": "33",
+    "category": "8",
+    "command_kor": "비가 올때마다, 모든 창문과 문을 닫아줘",
+    "command_eng": "Whenever it rains, close all windows and doors.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#RainSensor).rainSensor_rain == true) {\\n    if (triggered == false) {\\n        all(#Window).windowCovering_downOrClose()\\n        all(#Door).door_close()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'Rain': {'category': 'RainSensor', 'tags': ['RainSensor']}, 'Win': {'category': 'WindowCovering', 'tags': ['Window', 'WindowCovering']}, 'Door': {'category': 'Door', 'tags': ['Door']}}"
+  },
+  {
+    "index": "34",
+    "category": "8",
+    "command_kor": "도어락이 잠길때마다 입구의 조명을 최대밝기로 10초 유지하다가 꺼줘.",
+    "command_eng": "Whenever the door lock is locked, turn on the entrance light at maximum brightness for 10 seconds and then turn it off.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#DoorLock).doorLock_doorLockState == \\\"closed\\\") {\\n    if (triggered == false) {\\n        (#Entrance #Light).levelControl_moveToLevel(100, 0)\\n        delay(10 SEC)\\n        (#Entrance #Light).switch_off()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'DoorLock': {'category': 'DoorLock', 'tags': 'DoorLock'}, 'Ent_Light': {'category': ['Light', 'LevelControl', 'Switch'], 'tags': ['Entrance', 'Light', 'LevelControl', 'Switch']}, 'Hall_Light': {'category': ['Light', 'LevelControl', 'Switch'], 'tags': ['Hallway', 'Light', 'LevelControl', 'Switch']}}"
+  },
+  {
+    "index": "35",
+    "category": "8",
+    "command_kor": "입구에 움직임이 감지될 때마다 입구 조명을 최대밝기로 켰다가 3초 뒤에 꺼줘.",
+    "command_eng": "Whenever motion is detected at the entrance, turn on the entrance light at maximum brightness and then turn it off after 3 seconds.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Entrance #MotionSensor).motionSensor_motion == true) {\\n    if (triggered == false) {\\n        (#Entrance #Light).levelControl_moveToLevel(100, 0)\\n        delay(3 SEC)\\n        (#Entrance #Light).switch_off()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'Ent_Pres': {'category': 'PresenceSensor', 'tags': ['Entrance', 'PresenceSensor']}, 'Ent_Light': {'category': ['Light', 'LevelControl', 'Switch'], 'tags': ['Entrance', 'Light', 'LevelControl', 'Switch']}}"
+  },
+  {
+    "index": "36",
+    "category": "8",
+    "command_kor": "조도가 50럭스 미만으로 떨어질 때마다 주차장의 모든 쉐이드를 열어줘.",
+    "command_eng": "Whenever the brightness drops below 50 lux, open all shades in the parking lot.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#LightSensor).lightSensor_brightness < 50) {\\n    if (triggered == false) {\\n        all(#ParkingLot #Shade).windowCovering_upOrOpen()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'Light_S': {'category': 'LightSensor', 'tags': ['LightSensor']}, 'P_Shade': {'category': 'WindowCovering', 'tags': ['ParkingLot', 'Shade', 'WindowCovering']}, 'G_Shade': {'category': 'WindowCovering', 'tags': ['Garden', 'Shade', 'WindowCovering']}}"
+  },
+  {
+    "index": "37",
+    "category": "8",
+    "command_kor": "서버 랙 습도가 70%보다 높아지면 연구실 제습기를 제습모드로 설정하고 1시간마다 습도를 다시 체크해서 50% 밑이면 제습기를 꺼줘.",
+    "command_eng": "When the server rack humidity becomes higher than 70%, set the lab dehumidifier to dehumidifying mode and check the humidity every hour; turn it off if it's below 50%.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#ServerRack #HumiditySensor).humiditySensor_humidity > 70)\\n\\n    (#Lab #Dehumidifier).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\\n\\n    active = 1\\n\\n}\\n\\nif ((#ServerRack #HumiditySensor).humiditySensor_humidity < 50) {\\n\\n    (#Lab #Dehumidifier).switch_off()\\n\\n}\"}",
+    "connected_devices": "{'SR_Humid': {'category': 'HumiditySensor', 'tags': ['ServerRack', 'HumiditySensor']}, 'Lab_Dehum': {'category': ['Dehumidifier', 'Switch'], 'tags': ['Lab', 'Dehumidifier', 'Switch']}}"
+  },
+  {
+    "index": "38",
+    "category": "8",
+    "command_kor": "주차장 이산화탄소 농도가 880ppm보다 높아지면, 그 이후로 10초마다 \"CO2 농도 위험\"이라고 주차장 스피커로 출력해줘.",
+    "command_eng": "When the carbon dioxide level in the parking lot exceeds 880 ppm, speak \"CO2 level danger\" through the parking lot speaker every 10 seconds thereafter.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 10000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#ParkingLot #AirQualitySensor).airQualitySensor_carbonDioxide > 880)\\n\\n    active = 1\\n\\n}\\n\\n(#ParkingLot #Speaker).speaker_speak(\\\"CO2 농도 위험\\\")\"}",
+    "connected_devices": "{'P_AQ': {'category': 'AirQualitySensor', 'tags': ['ParkingLot', 'AirQualitySensor']}, 'P_Speaker': {'category': 'Speaker', 'tags': ['ParkingLot', 'Speaker']}}"
+  },
+  {
+    "index": "39",
+    "category": "8",
+    "command_kor": "거실에서 연기가 감지되면 모든 화재 경보를 울리고, 그 이후로 10초마다 스피커로 \"대피하세요\"라고 출력해줘.",
+    "command_eng": "When smoke is detected in the living room, sound all fire alarms and then speak \"Please evacuate\" through the speaker every 10 seconds thereafter.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 10000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#LivingRoom #SmokeDetector).smokeDetector_smoke == true)\\n\\n    all(#Siren).siren_setSirenMode(\\\"fire\\\")\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"대피하세요\\\")\"}",
+    "connected_devices": "{'LR_Smoke': {'category': 'SmokeDetector', 'tags': ['LivingRoom', 'SmokeDetector']}, 'LR_Siren': {'category': 'Siren', 'tags': ['LivingRoom', 'Siren']}, 'Bedroom_Siren': {'category': 'Siren', 'tags': ['Bedroom', 'Siren']}, 'Speaker': {'category': 'Speaker', 'tags': ['Speaker']}}"
+  },
+  {
+    "index": "40",
+    "category": "8",
+    "command_kor": "1층에서 재실센서가 하나라도 감지되면, 그 이후로 1분마다 모든 긴급 사이렌을 3초간 울렸다 꺼줘.",
+    "command_eng": "When any presence sensor on the 1st floor detects presence, sound all emergency sirens for 3 seconds every minute thereafter and then turn them off.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until (all(#Floor1 #PresenceSensor).presenceSensor_presence ==| true)\\n\\n    active = 1\\n\\n}\\n\\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n\\ndelay(3 SEC)\\n\\nall(#Siren).switch_off()\"}",
+    "connected_devices": "{'F1_Pres': {'category': 'PresenceSensor', 'tags': ['Floor1', 'PresenceSensor']}, 'F1_Siren': {'category': ['Siren', 'Switch'], 'tags': ['Floor1', 'Siren', 'Switch']}, 'F2_Siren': {'category': ['Siren', 'Switch'], 'tags': ['Floor2', 'Siren', 'Switch']}}"
+  },
+  {
+    "index": "41",
+    "category": "8",
+    "command_kor": "로비에서 움직임이 감지되면, 그 뒤로 30초마다 로비 사진을 찍어줘.",
+    "command_eng": "When motion is detected in the lobby, capture an image of the lobby every 30 seconds thereafter.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 30000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#Lobby #MotionSensor).motionSensor_motion == true)\\n\\n    active = 1\\n\\n}\\n\\n(#Lobby #Camera).camera_captureImage()\"}",
+    "connected_devices": "{'Lobby_Mot': {'category': 'MotionSensor', 'tags': ['Lobby', 'MotionSensor']}, 'Lobby_Cam': {'category': 'Camera', 'tags': ['Lobby', 'Camera']}}"
+  },
+  {
+    "index": "42",
+    "category": "8",
+    "command_kor": "주방의 연기 감지기로 연기가 감지되면, 그 이후로 10초마다 거실 스피커로 \"화재 발생\"이라고 말해줘.",
+    "command_eng": "When smoke is detected by the kitchen smoke detector, speak \"Fire outbreak\" through the living room speaker every 10 seconds thereafter.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 10000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#Kitchen #SmokeDetector).smokeDetector_smoke == true)\\n\\n    active = 1\\n\\n}\\n\\n(#LivingRoom #Speaker).speaker_speak(\\\"화재 발생\\\")\"}",
+    "connected_devices": "{'K_Smoke': {'category': 'SmokeDetector', 'tags': ['Kitchen', 'SmokeDetector']}, 'LR_Speaker': {'category': 'Speaker', 'tags': ['LivingRoom', 'Speaker']}}"
+  },
+  {
+    "index": "43",
+    "category": "8",
+    "command_kor": "주방의 누수 센서가 감지될 때마다 주방 카메라로 스트리밍을 시작해줘.",
+    "command_eng": "Whenever the kitchen leak sensor detects a leak, start streaming with the kitchen camera.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Kitchen #LeakSensor).leakSensor_leakage == true) {\\n    if (triggered == false) {\\n        (#Kitchen #Camera).camera_startStream()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'K_Leak': {'category': 'LeakSensor', 'tags': ['Kitchen', 'LeakSensor']}, 'K_Cam': {'category': 'Camera', 'tags': ['Kitchen', 'Camera']}}"
+  },
+  {
+    "index": "44",
+    "category": "8",
+    "command_kor": "마당에 있는 움직임 센서가 감지될 때마다 경찰 사이렌을 울려줘.",
+    "command_eng": "Whenever the motion sensor in the yard detects anything, sound the police siren.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Yard #MotionSensor).motionSensor_motion == true) {\\n    if (triggered == false) {\\n        (#Yard #Siren).siren_setSirenMode(\\\"police\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'Y_Mot': {'category': 'MotionSensor', 'tags': ['Yard', 'MotionSensor']}, 'Y_Siren': {'category': 'Siren', 'tags': ['Yard', 'Siren']}}"
+  },
+  {
+    "index": "45",
+    "category": "8",
+    "command_kor": "멀티버튼의 버튼2가 눌릴 때마다 거실의 창문을 모두 열어줘.",
+    "command_eng": "Whenever button 2 of the multi-button is pressed, open all windows in the living room.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#MultiButton).dimmerSwitch_button2 == \\\"pushed\\\") {\\n    if (triggered == false) {\\n        all(#LivingRoom #Window).windowCovering_upOrOpen()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'LR_MB': {'category': 'MultiButton', 'tags': ['LivingRoom', 'MultiButton']}, 'LR_Win': {'category': 'WindowCovering', 'tags': ['LivingRoom', 'Window', 'WindowCovering']}}"
+  },
+  {
+    "index": "46",
+    "category": "8",
+    "command_kor": "거실 블라인드를 1시간 간격으로 올렸다 내렸다 반복해줘.",
+    "command_eng": "Repeat opening and closing the living room blind every hour.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\nopen := false\\n\\nif (open == false) {\\n\\n    (#LivingRoom #Blind).windowCovering_upOrOpen()\\n\\n    open = true\\n\\n} else {\\n\\n    (#LivingRoom #Blind).windowCovering_downOrClose()\\n\\n    open = false\\n\\n}\"}",
+    "connected_devices": "{'LR_Blind': {'category': 'WindowCovering', 'tags': ['LivingRoom', 'Blind', 'WindowCovering']}}"
+  },
+  {
+    "index": "47",
+    "category": "8",
+    "command_kor": "안방 창문을 2시간마다 열었다 닫았다 반복해줘.",
+    "command_eng": "Repeat opening and closing the bedroom window every 2 hours.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 7200000, \"script\": \"\\nopen := false\\n\\nif (open == false) {\\n\\n    (#Bedroom #Window).windowCovering_upOrOpen()\\n\\n    open = true\\n\\n} else {\\n\\n    (#Bedroom #Window).windowCovering_downOrClose()\\n\\n    open = false\\n\\n}\"}",
+    "connected_devices": "{'BR_Win': {'category': 'WindowCovering', 'tags': ['Bedroom', 'Window', 'WindowCovering']}}"
+  },
+  {
+    "index": "48",
+    "category": "8",
+    "command_kor": "회의실 에어컨의 목표 온도를 1시간마다 25와 20으로 번갈아 설정해줘.",
+    "command_eng": "Every hour, alternate the air conditioner's target temperature between 25 and 20 degrees.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\nstate := 0\\n\\nif (state == 0) {\\n\\n    (#MeetingRoom #AirConditioner).airConditioner_setTargetTemperature(25)\\n\\n    state = 1\\n\\n} else {\\n\\n    (#MeetingRoom #AirConditioner).airConditioner_setTargetTemperature(20)\\n\\n    state = 0\\n\\n}\"}",
+    "connected_devices": "{'MR_AC': {'category': 'AirConditioner', 'tags': ['MeetingRoom', 'AirConditioner']}}"
+  },
+  {
+    "index": "49",
+    "category": "8",
+    "command_kor": "주차장의 차량 충전기가 완충될때마다, 스피커로 \"충전이 완료되었습니다\"라고 말해줘.",
+    "command_eng": "Whenever the car charger in the parking lot is fully charged, speak \"Charging is complete\" through the speaker.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"\\nprev := (#ParkingLot #Charger).charger_chargingState\\n\\ncurr = (#ParkingLot #Charger).charger_chargingState\\n\\nif (prev != \\\"fullyCharged\\\" and curr == \\\"fullyCharged\\\") {\\n\\n    (#ParkingLot #Speaker).speaker_speak(\\\"충전이 완료되었습니다.\\\")\\n\\n}\\n\\nprev = curr\"}",
+    "connected_devices": "{'P_Charge': {'category': 'Charger', 'tags': ['ParkingLot', 'Charger']}, 'P_Speaker': {'category': 'Speaker', 'tags': ['ParkingLot', 'Speaker']}}"
+  },
+  {
+    "index": "50",
+    "category": "8",
+    "command_kor": "회의실 문이 열릴 때마다, 조명의 밝기를 최대밝기로 켰다가 10초뒤에 꺼줘.",
+    "command_eng": "Whenever the meeting room door is opened, turn on the light at maximum brightness and then turn it off after 10 seconds.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#MeetingRoom #Door).door_doorState == \\\"open\\\") {\\n    if (triggered == false) {\\n        (#Light).levelControl_moveToLevel(100, 0)\\n        delay(10 SEC)\\n        (#Light).switch_off()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "connected_devices": "{'MR_Door': {'category': 'Door', 'tags': ['MeetingRoom', 'Door']}, 'MR_Light': {'category': ['Light', 'LevelControl', 'Switch'], 'tags': ['MeetingRoom', 'Light', 'LevelControl', 'Switch']}}"
+  }
+]

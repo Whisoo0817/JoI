@@ -1,0 +1,1073 @@
+[
+  {
+    "index": "16",
+    "category": "7",
+    "command_kor": "오후 6시에 학생 식당의 저녁 메뉴를 스피커로 알려줘.",
+    "command_eng": "At 6 PM every day, announce the dinner menu of the student cafeteria through the speaker.",
+    "connected_devices": {
+      "Main_MenuProvider": {
+        "category": [
+          "MenuProvider"
+        ],
+        "tags": [
+          "Main",
+          "MenuProvider"
+        ]
+      },
+      "Office_MenuProvider": {
+        "category": [
+          "MenuProvider"
+        ],
+        "tags": [
+          "Office",
+          "MenuProvider"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 18 * * *\", \"period\": 0, \"script\": \"\\nmenu = (#MenuProvider).menuProvider_getMenu(\\\"오늘 학생식당 저녁\\\")\\n\\n(#Speaker).speaker_speak(\\\"오늘 학생 식당의 저녁 메뉴는\\\" + menu + \\\"입니다\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 18 * * *\", \"period\": 0, \"script\": \"\\nmenu = (#MenuProvider).menuProvider_getMenu(\\\"오늘 학생식당 저녁\\\")\\n\\n(#Speaker).speaker_speak(\\\"오늘 학생 식당의 저녁 메뉴는\\\" + menu + \\\"입니다\\\")\"}"
+  },
+  {
+    "index": "17",
+    "category": "7",
+    "command_kor": "오후 11시에 금고가 열려있거나 도어락이 열려있으면, 스피커로 \"금고와 도어락을 확인하세요\"라고 말해줘.",
+    "command_eng": "At 11 PM, if safe is unlocked or the door lock is unlocked , speak 'Check the safe and door lock' through the speaker.",
+    "connected_devices": {
+      "Main_Safe": {
+        "category": [
+          "Safe"
+        ],
+        "tags": [
+          "Main",
+          "Safe"
+        ]
+      },
+      "Bedroom_Safe": {
+        "category": [
+          "Safe"
+        ],
+        "tags": [
+          "Bedroom",
+          "Safe"
+        ]
+      },
+      "Entrance_Lock": {
+        "category": [
+          "DoorLock"
+        ],
+        "tags": [
+          "Entrance",
+          "DoorLock"
+        ]
+      },
+      "Garage_Lock": {
+        "category": [
+          "DoorLock"
+        ],
+        "tags": [
+          "Garage",
+          "DoorLock"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 23 * * *\", \"period\": 0, \"script\": \"\\nif ((#Safe).safe_safeState == \\\"open\\\" or (#DoorLock).doorLock_doorLockState == \\\"open\\\") {\\n\\n    (#Speaker).speaker_speak(\\\"금고와 도어락의 잠금 상태를 확인해 주세요.\\\")\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 23 * * *\", \"period\": 0, \"script\": \"\\nif ((#Safe).safe_safeState == \\\"open\\\" or (#DoorLock).doorLock_doorLockState == \\\"open\\\") {\\n\\n    (#Speaker).speaker_speak(\\\"금고와 도어락의 잠금 상태를 확인해 주세요.\\\")\\n\\n}\"}"
+  },
+  {
+    "index": "18",
+    "category": "7",
+    "command_kor": "30분마다 체크해서 온도가 30도 이상이면 목표 온도를 25도로 설정하고, 23도 미만이면 26도로 설정해줘.",
+    "command_eng": "Check every 30 minutes; if the temperature is 30 degrees or higher, set the target temperature to 25 degrees; if it's below 23 degrees, set it to 26 degrees.",
+    "connected_devices": {
+      "Living_Temp": {
+        "category": [
+          "TemperatureSensor"
+        ],
+        "tags": [
+          "Living",
+          "TemperatureSensor"
+        ]
+      },
+      "Bedroom_Temp": {
+        "category": [
+          "TemperatureSensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "TemperatureSensor"
+        ]
+      },
+      "Living_AC": {
+        "category": [
+          "AirConditioner"
+        ],
+        "tags": [
+          "Living",
+          "AirConditioner"
+        ]
+      },
+      "Bedroom_AC": {
+        "category": [
+          "AirConditioner"
+        ],
+        "tags": [
+          "Bedroom",
+          "AirConditioner"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 1800000, \"script\": \"\\ntemp = (#TemperatureSensor).temperatureSensor_temperature\\n\\nif (temp >= 30) {\\n\\n    (#AirConditioner).airConditioner_setTargetTemperature(25)\\n\\n} else if (temp < 23) {\\n\\n    (#AirConditioner).airConditioner_setTargetTemperature(26)\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 1800000, \"script\": \"\\ntemp = (#TemperatureSensor).temperatureSensor_temperature\\n\\nif (temp >= 30) {\\n\\n    (#AirConditioner).airConditioner_setTargetTemperature(25)\\n\\n} else if (temp < 23) {\\n\\n    (#AirConditioner).airConditioner_setTargetTemperature(26)\\n\\n}\"}"
+  },
+  {
+    "index": "19",
+    "category": "7",
+    "command_kor": "10분마다 습도를 체크해서 50 이상이면 가습기를 끄고 20 이하면 가습기를 켜고 자동모드로 설정해줘.",
+    "command_eng": "Check humidity every 10 minutes; if it's 50 or higher, turn off the humidifier; if it's 20 or lower, turn on the humidifier and set it to auto mode.",
+    "connected_devices": {
+      "Living_Hum": {
+        "category": [
+          "HumiditySensor"
+        ],
+        "tags": [
+          "Living",
+          "HumiditySensor"
+        ]
+      },
+      "Bedroom_Hum": {
+        "category": [
+          "HumiditySensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "HumiditySensor"
+        ]
+      },
+      "Living_Humidifier": {
+        "category": [
+          "Humidifier",
+          "Switch"
+        ],
+        "tags": [
+          "Living",
+          "Humidifier",
+          "Switch"
+        ]
+      },
+      "Bedroom_Humidifier": {
+        "category": [
+          "Humidifier",
+          "Switch"
+        ],
+        "tags": [
+          "Bedroom",
+          "Humidifier",
+          "Switch"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 600000, \"script\": \"\\nhum = (#HumiditySensor).humiditySensor_humidity\\n\\nif (hum >= 50) {\\n\\n    (#Humidifier).switch_off()\\n\\n} else if (hum <= 20) {\\n\\n    (#Humidifier).switch_on()\\n\\n    (#Humidifier).humidifier_setHumidifierMode(\\\"auto\\\")\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 600000, \"script\": \"\\nhum = (#HumiditySensor).humiditySensor_humidity\\n\\nif (hum >= 50) {\\n\\n    (#Humidifier).switch_off()\\n\\n} else if (hum <= 20) {\\n\\n    (#Humidifier).switch_on()\\n\\n    (#Humidifier).humidifier_setHumidifierMode(\\\"auto\\\")\\n\\n}\"}"
+  },
+  {
+    "index": "20",
+    "category": "7",
+    "command_kor": "1시간마다 미세먼지 농도를 체크해서 200 이상이면 공기청정기를 강풍모드로 설정하고 100 이하이면 미풍모드로 설정해줘.",
+    "command_eng": "Check the fine dust level every hour; if it's 200 or higher, set the air purifier to high speed; if it's 100 or lower, set it to low speed.",
+    "connected_devices": {
+      "Living_AQ": {
+        "category": [
+          "AirQualitySensor"
+        ],
+        "tags": [
+          "Living",
+          "AirQualitySensor"
+        ]
+      },
+      "Bedroom_AQ": {
+        "category": [
+          "AirQualitySensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "AirQualitySensor"
+        ]
+      },
+      "Living_AP": {
+        "category": [
+          "AirPurifier"
+        ],
+        "tags": [
+          "Living",
+          "AirPurifier"
+        ]
+      },
+      "Bedroom_AP": {
+        "category": [
+          "AirPurifier"
+        ],
+        "tags": [
+          "Bedroom",
+          "AirPurifier"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\ndust = (#AirQualitySensor).airQualitySensor_fineDustLevel\\n\\nif (dust >= 200) {\\n\\n    (#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n\\n} else if (dust <= 100) {\\n\\n    (#AirPurifier).airPurifier_setAirPurifierMode(\\\"low\\\")\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\ndust = (#AirQualitySensor).airQualitySensor_fineDustLevel\\n\\nif (dust >= 200) {\\n\\n    (#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n\\n} else if (dust <= 100) {\\n\\n    (#AirPurifier).airPurifier_setAirPurifierMode(\\\"low\\\")\\n\\n}\"}"
+  },
+  {
+    "index": "21",
+    "category": "7",
+    "command_kor": "5분마다 체크해서 충전기가 완충됐으면 충전기를 꺼줘.",
+    "command_eng": "Check every 5 minutes; if the charger is fully charged, turn it off.",
+    "connected_devices": {
+      "Main_Charger": {
+        "category": [
+          "Charger",
+          "Switch"
+        ],
+        "tags": [
+          "Main",
+          "Charger"
+        ]
+      },
+      "Garage_Charger": {
+        "category": [
+          "Charger",
+          "Switch"
+        ],
+        "tags": [
+          "Garage",
+          "Charger"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 300000, \"script\": \"\\nif ((#Charger).charger_chargingState == \\\"fullyCharged\\\") {\\n\\n    (#Charger).switch_off()\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 300000, \"script\": \"\\nif ((#Charger).charger_chargingState == \\\"fullyCharged\\\") {\\n\\n    (#Charger).switch_off()\\n\\n}\"}"
+  },
+  {
+    "index": "22",
+    "category": "7",
+    "command_kor": "크리스마스가 되면 불을 빨간색으로 바꿔줘.",
+    "command_eng": "When the Christmas arrives, change the light color to red.",
+    "connected_devices": {
+      "Living_Light": {
+        "category": [
+          "Light"
+        ],
+        "tags": [
+          "Living",
+          "Light"
+        ]
+      },
+      "Bedroom_Light": {
+        "category": [
+          "Light"
+        ],
+        "tags": [
+          "Bedroom",
+          "Light"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 0 25 12 *\", \"period\": 0, \"script\": \"\\n(#Light).light_moveToColor(0.675, 0.322, 0.0)\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 0 25 12 *\", \"period\": 0, \"script\": \"\\n(#Light).light_moveToColor(0.675, 0.322, 0.0)\"}"
+  },
+  {
+    "index": "23",
+    "category": "7",
+    "command_kor": "크리스마스에 1시간마다 스피커로 \"Christmas.mp3\"을 재생해줘.",
+    "command_eng": "Every hour on Christmas, play 'Christmas.mp3' through the speaker.",
+    "connected_devices": {
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 * 25 12 *\", \"period\": 0, \"script\": \"\\n(#Speaker).speaker_play(\\\"Christmas.mp3\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 * 25 12 *\", \"period\": 0, \"script\": \"\\n(#Speaker).speaker_play(\\\"Christmas.mp3\\\")\"}"
+  },
+  {
+    "index": "24",
+    "category": "7",
+    "command_kor": "지금부터 자정까지 30분마다 현재 시각을 스피커로 출력해줘.",
+    "command_eng": "Every 30 minutes from now until midnight, output the current time through the speaker.",
+    "connected_devices": {
+      "Main_Clock": {
+        "category": [
+          "Clock"
+        ],
+        "tags": [
+          "Main",
+          "Clock"
+        ]
+      },
+      "Backup_Clock": {
+        "category": [
+          "Clock"
+        ],
+        "tags": [
+          "Backup",
+          "Clock"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 1800000, \"script\": \"\\nif ((#Clock).clock_hour == 0) {\\n\\n    break\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"현재 시각은 \\\" + (#Clock).clock_hour + \\\"시\\\" + (#Clock).clock_minute + \\\"분 입니다\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 1800000, \"script\": \"\\nif ((#Clock).clock_hour == 0) {\\n\\n    break\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"현재 시각은 \\\" + (#Clock).clock_hour + \\\"시\\\" + (#Clock).clock_minute + \\\"분 입니다\\\")\"}"
+  },
+  {
+    "index": "25",
+    "category": "7",
+    "command_kor": "지금부터 오후 3시까지 10분마다 긴급 사이렌을 5초간 울렸다 꺼줘.",
+    "command_eng": "Every 10 minutes from now until 3 PM, sound the emergency siren for 5 seconds and then turn it off.",
+    "connected_devices": {
+      "Main_Clock": {
+        "category": [
+          "Clock"
+        ],
+        "tags": [
+          "Main",
+          "Clock"
+        ]
+      },
+      "Backup_Clock": {
+        "category": [
+          "Clock"
+        ],
+        "tags": [
+          "Backup",
+          "Clock"
+        ]
+      },
+      "Main_Siren": {
+        "category": [
+          "Siren",
+          "Switch"
+        ],
+        "tags": [
+          "Main",
+          "Siren"
+        ]
+      },
+      "Entrance_Siren": {
+        "category": [
+          "Siren",
+          "Switch"
+        ],
+        "tags": [
+          "Entrance",
+          "Siren"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 600000, \"script\": \"\\nif ((#Clock).clock_hour == 15) {\\n \\n    break\\n\\n}\\n\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n\\ndelay(5 SEC)\\n\\n(#Siren).switch_off()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 600000, \"script\": \"\\nif ((#Clock).clock_hour == 15) {\\n \\n    break\\n\\n}\\n\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n\\ndelay(5 SEC)\\n\\n(#Siren).switch_off()\"}"
+  },
+  {
+    "index": "28",
+    "category": "7",
+    "command_kor": "그룹 2에 속한 습도 센서들을 1분마다 체크해서 모두 50% 이상이면, 모든 제습기를 리프레쉬 모드로 설정해줘.",
+    "command_eng": "Every minute, if the humidity of all sensors in Group2 is 50% or higher, set all dehumidifiers to refresh mode.",
+    "connected_devices": {
+      "Grp2_Hum_1": {
+        "category": [
+          "HumiditySensor"
+        ],
+        "tags": [
+          "Group2",
+          "HumiditySensor",
+          "North"
+        ]
+      },
+      "Grp2_Hum_2": {
+        "category": [
+          "HumiditySensor"
+        ],
+        "tags": [
+          "Group2",
+          "HumiditySensor",
+          "South"
+        ]
+      },
+      "Grp1_Hum_1": {
+        "category": [
+          "HumiditySensor"
+        ],
+        "tags": [
+          "Group1",
+          "HumiditySensor",
+          "East"
+        ]
+      },
+      "Dehum_1": {
+        "category": [
+          "Dehumidifier",
+          "Switch"
+        ],
+        "tags": [
+          "Main",
+          "Dehumidifier",
+          "Switch"
+        ]
+      },
+      "Dehum_2": {
+        "category": [
+          "Dehumidifier",
+          "Switch"
+        ],
+        "tags": [
+          "Backup",
+          "Dehumidifier",
+          "Switch"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nif (all(#Group2 #HumiditySensor).humiditySensor_humidity >= 50) {\\n\\n    all(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"refreshing\\\")\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nif (all(#Group2 #HumiditySensor).humiditySensor_humidity >= 50) {\\n\\n    all(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"refreshing\\\")\\n\\n}\"}"
+  },
+  {
+    "index": "29",
+    "category": "7",
+    "command_kor": "밤 11시에 짝수 태그가 붙은 모든 문을 닫아줘.",
+    "command_eng": "Every 11 PM, close all doors with even tags.",
+    "connected_devices": {
+      "Door_2": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Even",
+          "Door",
+          "Entrance"
+        ]
+      },
+      "Door_4": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Even",
+          "Door",
+          "Back"
+        ]
+      },
+      "Door_1": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Odd",
+          "Door",
+          "Side"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 23 * * *\", \"period\": 0, \"script\": \"\\nall(#Even #Door).door_close()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 23 * * *\", \"period\": 0, \"script\": \"\\nall(#Even #Door).door_close()\"}"
+  },
+  {
+    "index": "30",
+    "category": "7",
+    "command_kor": "매일 아침 7시에 구역1에 있는 모든 블라인드를 올려줘.",
+    "command_eng": "Every morning at 7 AM, open all blinds in Zone 1.",
+    "connected_devices": {
+      "Z1_Blind_1": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Sector1",
+          "Blind",
+          "WindowCovering"
+        ]
+      },
+      "Z1_Blind_2": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Sector1",
+          "Blind",
+          "WindowCovering"
+        ]
+      },
+      "Z2_Blind_1": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Sector2",
+          "Blind",
+          "WindowCovering"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 7 * * *\", \"period\": 0, \"script\": \"\\nall(#Sector1 #Blind).windowCovering_upOrOpen()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 7 * * *\", \"period\": 0, \"script\": \"\\nall(#Sector1 #Blind).windowCovering_upOrOpen()\"}"
+  },
+  {
+    "index": "31",
+    "category": "7",
+    "command_kor": "밤 7시에 1층에 사람이 없으면 불을 다 꺼주고 2층은 8시에 사람이 없으면 불을 다 꺼줘.",
+    "command_eng": "Every 7 PM, if no one is detected on the 1st floor, turn off all lights; for the 2nd floor, check at 8 PM and turn off all its lights if no one is present.",
+    "connected_devices": {
+      "F1_Presence": {
+        "category": [
+          "PresenceSensor"
+        ],
+        "tags": [
+          "Floor1",
+          "PresenceSensor"
+        ]
+      },
+      "F3_Presence": {
+        "category": [
+          "PresenceSensor"
+        ],
+        "tags": [
+          "Floor3",
+          "PresenceSensor"
+        ]
+      },
+      "F2_Presence": {
+        "category": [
+          "PresenceSensor"
+        ],
+        "tags": [
+          "Floor2",
+          "PresenceSensor"
+        ]
+      },
+      "F1_Light_1": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Floor1",
+          "Light",
+          "Switch"
+        ]
+      },
+      "F1_Light_2": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Floor1",
+          "Light",
+          "Switch"
+        ]
+      },
+      "F2_Light_1": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Floor2",
+          "Light",
+          "Switch"
+        ]
+      },
+      "F2_Light_2": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Floor2",
+          "Light",
+          "Switch"
+        ]
+      },
+      "F3_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Floor3",
+          "Light",
+          "Switch"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 19 * * *\", \"period\": 0, \"script\": \"\\nif ((#Floor1 #PresenceSensor).presenceSensor_presence == false) {\\n\\n    all(#Floor1 #Light).switch_off()\\n\\n}\\n\\ndelay(1 HOUR)\\n\\nif ((#Floor2 #PresenceSensor).presenceSensor_presence == false) {\\n\\n    all(#Floor2 #Light).switch_off()\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 19 * * *\", \"period\": 0, \"script\": \"\\nif ((#Floor1 #PresenceSensor).presenceSensor_presence == false) {\\n\\n    all(#Floor1 #Light).switch_off()\\n\\n}\\n\\ndelay(1 HOUR)\\n\\nif ((#Floor2 #PresenceSensor).presenceSensor_presence == false) {\\n\\n    all(#Floor2 #Light).switch_off()\\n\\n}\"}"
+  },
+  {
+    "index": "32",
+    "category": "7",
+    "command_kor": "섹터1의 모든 도어락을 1시간마다 확인해서, 하나라도 열려 있으면 해당 섹터의 모든 조명을 빨간색으로 바꿔줘.",
+    "command_eng": "Check all door locks in Sector 1 every hour; if any one is open, change all lights in that sector to red.",
+    "connected_devices": {
+      "S1_Lock_1": {
+        "category": [
+          "DoorLock"
+        ],
+        "tags": [
+          "Sector1",
+          "DoorLock"
+        ]
+      },
+      "S1_Lock_2": {
+        "category": [
+          "DoorLock"
+        ],
+        "tags": [
+          "Sector1",
+          "DoorLock"
+        ]
+      },
+      "S2_Lock": {
+        "category": [
+          "DoorLock"
+        ],
+        "tags": [
+          "Sector2",
+          "DoorLock"
+        ]
+      },
+      "S1_Light_1": {
+        "category": [
+          "Light",
+          "ColorControl"
+        ],
+        "tags": [
+          "Sector1",
+          "Light",
+          "ColorControl"
+        ]
+      },
+      "S1_Light_2": {
+        "category": [
+          "Light",
+          "ColorControl"
+        ],
+        "tags": [
+          "Sector1",
+          "Light",
+          "ColorControl"
+        ]
+      },
+      "S2_Light": {
+        "category": [
+          "Light",
+          "ColorControl"
+        ],
+        "tags": [
+          "Sector2",
+          "Light",
+          "ColorControl"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\nif (all(#Sector1 #DoorLock).doorLock_doorLockState ==| \\\"open\\\") {\\n\\n    all(#Sector1 #Light).light_moveToColor(0.675, 0.322, 0.0)\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\nif (all(#Sector1 #DoorLock).doorLock_doorLockState ==| \\\"open\\\") {\\n\\n    all(#Sector1 #Light).light_moveToColor(0.675, 0.322, 0.0)\\n\\n}\"}"
+  },
+  {
+    "index": "33",
+    "category": "7",
+    "command_kor": "평일 오후 6시에 사무실의 재실 센서가 부재 상태를 나타내면 사무실 에어컨과 가습기를 전부 꺼줘.",
+    "command_eng": "At 6 PM on weekdays, if presence sensors in the office show no presence, turn off all air conditioners and humidifiers in the office.",
+    "connected_devices": {
+      "Off_Presence": {
+        "category": [
+          "PresenceSensor"
+        ],
+        "tags": [
+          "Office",
+          "PresenceSensor"
+        ]
+      },
+      "Home_Presence": {
+        "category": [
+          "PresenceSensor"
+        ],
+        "tags": [
+          "Home",
+          "PresenceSensor"
+        ]
+      },
+      "Off_AC_1": {
+        "category": [
+          "AirConditioner",
+          "Switch"
+        ],
+        "tags": [
+          "Office",
+          "AirConditioner",
+          "Switch"
+        ]
+      },
+      "Off_AC_2": {
+        "category": [
+          "AirConditioner",
+          "Switch"
+        ],
+        "tags": [
+          "Office",
+          "AirConditioner",
+          "Switch"
+        ]
+      },
+      "Off_Hum_1": {
+        "category": [
+          "Humidifier",
+          "Switch"
+        ],
+        "tags": [
+          "Office",
+          "Humidifier",
+          "Switch"
+        ]
+      },
+      "Off_Hum_2": {
+        "category": [
+          "Humidifier",
+          "Switch"
+        ],
+        "tags": [
+          "Office",
+          "Humidifier",
+          "Switch"
+        ]
+      },
+      "Home_AC": {
+        "category": [
+          "AirConditioner",
+          "Switch"
+        ],
+        "tags": [
+          "Home",
+          "AirConditioner",
+          "Switch"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 18 * * 1-5\", \"period\": 0, \"script\": \"\\nif ((#Office #PresenceSensor).presenceSensor_presence == false) {\\n\\n    all(#Office #AirConditioner).switch_off()\\n\\n    all(#Office #Humidifier).switch_off()\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 18 * * 1-5\", \"period\": 0, \"script\": \"\\nif ((#Office #PresenceSensor).presenceSensor_presence == false) {\\n\\n    all(#Office #AirConditioner).switch_off()\\n\\n    all(#Office #Humidifier).switch_off()\\n\\n}\"}"
+  },
+  {
+    "index": "34",
+    "category": "7",
+    "command_kor": "아침 8시에 홀수 태그가 붙은 블라인드를 모두 열어주고, 9시에는 짝수 태그가 붙은 모든 블라인드를 열어줘.",
+    "command_eng": "Every 8 AM, open all blinds with odd tags, and at 9 AM, open all blinds with even tags.",
+    "connected_devices": {
+      "Odd_Blind_1": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Odd",
+          "Blind",
+          "WindowCovering"
+        ]
+      },
+      "Odd_Blind_2": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Odd",
+          "Blind",
+          "WindowCovering"
+        ]
+      },
+      "Even_Blind_1": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Even",
+          "Blind",
+          "WindowCovering"
+        ]
+      },
+      "Even_Blind_2": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Even",
+          "Blind",
+          "WindowCovering"
+        ]
+      },
+      "Fixed_Window": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Fixed",
+          "WindowCovering"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 8 * * *\", \"period\": 0, \"script\": \"\\nall(#Odd #Blind).windowCovering_upOrOpen()\\n\\ndelay(1 HOUR)\\n\\nall(#Even #Blind).windowCovering_upOrOpen()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 8 * * *\", \"period\": 0, \"script\": \"\\nall(#Odd #Blind).windowCovering_upOrOpen()\\n\\ndelay(1 HOUR)\\n\\nall(#Even #Blind).windowCovering_upOrOpen()\"}"
+  },
+  {
+    "index": "35",
+    "category": "7",
+    "command_kor": "주말 동안 공장의 모든 펌프를 30분마다 확인해서, 켜진 펌프가 하나라도 있으면 모두 꺼주고 \"test@example.com\"에게 \"위험\" 제목으로 \"펌프가 켜졌습니다\"라는 내용의 메일 보내줘.",
+    "command_eng": "Every 30 minutes during weekends, check all pumps in the factory; if any one is turned on, turn off all pumps and send an email to \"test@example.com\" with the subject 'Risk' and message 'A pump is turned on'.",
+    "connected_devices": {
+      "Fac_Pump_1": {
+        "category": [
+          "Pump",
+          "Switch"
+        ],
+        "tags": [
+          "Factory",
+          "Pump",
+          "Switch"
+        ]
+      },
+      "Fac_Pump_2": {
+        "category": [
+          "Pump",
+          "Switch"
+        ],
+        "tags": [
+          "Factory",
+          "Pump",
+          "Switch"
+        ]
+      },
+      "Office_Pump": {
+        "category": [
+          "Pump",
+          "Switch"
+        ],
+        "tags": [
+          "Office",
+          "Pump",
+          "Switch"
+        ]
+      },
+      "Main_Clock": {
+        "category": [
+          "Clock"
+        ],
+        "tags": [
+          "Main",
+          "Clock"
+        ]
+      },
+      "Backup_Clock": {
+        "category": [
+          "Clock"
+        ],
+        "tags": [
+          "Backup",
+          "Clock"
+        ]
+      },
+      "EmailProvider": {
+        "category": [
+          "EmailProvider"
+        ],
+        "tags": [
+          "EmailProvider"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 0 * * 0,6\", \"period\": 1800000, \"script\": \"\\nif ((#Clock).clock_weekday != \\\"saturday\\\" and (#Clock).clock_weekday != \\\"sunday\\\") {\\n\\n    break\\n\\n}\\n\\nif (all(#Factory #Pump).switch_switch ==| true) {\\n\\n    all(#Factory #Pump).switch_off()\\n\\n    (#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"위험\\\", \\\"펌프가 켜졌습니다\\\")\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 0 * * 0,6\", \"period\": 1800000, \"script\": \"\\nif ((#Clock).clock_weekday != \\\"saturday\\\" and (#Clock).clock_weekday != \\\"sunday\\\") {\\n\\n    break\\n\\n}\\n\\nif (all(#Factory #Pump).switch_switch ==| true) {\\n\\n    all(#Factory #Pump).switch_off()\\n\\n    (#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"위험\\\", \\\"펌프가 켜졌습니다\\\")\\n\\n}\"}"
+  },
+  {
+    "index": "36",
+    "category": "7",
+    "command_kor": "밤 10시에 거실에 사람이 감지되면, 모든 불을 켜줘.",
+    "command_eng": "Every 10 PM, if presence is detected in the living room, turn on all lights.",
+    "connected_devices": {
+      "LR_Presence": {
+        "category": [
+          "PresenceSensor"
+        ],
+        "tags": [
+          "LivingRoom",
+          "PresenceSensor"
+        ]
+      },
+      "Bedroom_Presence": {
+        "category": [
+          "PresenceSensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "PresenceSensor"
+        ]
+      },
+      "LR_Light": {
+        "category": [
+          "Light",
+          "Switch",
+          "LevelControl"
+        ],
+        "tags": [
+          "LivingRoom",
+          "Light",
+          "Switch",
+          "LevelControl"
+        ]
+      },
+      "Kitchen_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Kitchen",
+          "Light",
+          "Switch"
+        ]
+      },
+      "Bedroom_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Bedroom",
+          "Light",
+          "Switch"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 22 * * *\", \"period\": 0, \"script\": \"\\nif ((#LivingRoom #PresenceSensor).presenceSensor_presence == true) {\\n\\n    all(#Light).light_moveToBrightness(100, 0.0)\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 22 * * *\", \"period\": 0, \"script\": \"\\nif ((#LivingRoom #PresenceSensor).presenceSensor_presence == true) {\\n\\n    all(#Light).light_moveToBrightness(100, 0.0)\\n\\n}\"}"
+  },
+  {
+    "index": "37",
+    "category": "7",
+    "command_kor": "자정에 복도에 움직임이 감지되면, 복도의 모든 조명을 100%로 켜줘.",
+    "command_eng": "At midnight, if motion is detected in the hallway, turn all hallway lights to 100% brightness.",
+    "connected_devices": {
+      "Hall_Motion": {
+        "category": [
+          "MotionSensor"
+        ],
+        "tags": [
+          "Hallway",
+          "MotionSensor"
+        ]
+      },
+      "Bedroom_Motion": {
+        "category": [
+          "MotionSensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "MotionSensor"
+        ]
+      },
+      "Hall_Light_1": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Hallway",
+          "Light",
+          "LevelControl"
+        ]
+      },
+      "Hall_Light_2": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Hallway",
+          "Light",
+          "LevelControl"
+        ]
+      },
+      "LR_Light": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "LivingRoom",
+          "Light",
+          "LevelControl"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 0 * * *\", \"period\": 0, \"script\": \"\\nif ((#Hallway #MotionSensor).motionSensor_motion == true) {\\n\\n    all(#Hallway #Light).light_moveToBrightness(100, 0.0)\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 0 * * *\", \"period\": 0, \"script\": \"\\nif ((#Hallway #MotionSensor).motionSensor_motion == true) {\\n\\n    all(#Hallway #Light).light_moveToBrightness(100, 0.0)\\n\\n}\"}"
+  }
+]

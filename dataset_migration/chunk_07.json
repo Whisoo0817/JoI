@@ -1,0 +1,162 @@
+[
+  {
+    "index": "12",
+    "category": "5",
+    "command_kor": "조명 밝기를 30으로 설정했다가 10분 뒤에 80으로 올려줘.",
+    "command_eng": "Set the light brightness to 30, then increase it to 80 after 10 minutes.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Light).light_moveToBrightness(30, 0)\\n\\ndelay(10 MIN)\\n\\n(#Light).light_moveToBrightness(80, 0)\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "13",
+    "category": "5",
+    "command_kor": "로봇 청소기를 자동 모드로 시작하고 30분 뒤에 수동 모드로 바꿔줘.",
+    "command_eng": "Start the robot vacuum cleaner in auto mode and switch to manual mode after 30 minutes.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerModeMode(\\\"auto\\\")\\n\\ndelay(30 MIN)\\n\\n(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerModeMode(\\\"manual\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "14",
+    "category": "5",
+    "command_kor": "스피커 볼륨을 20으로 설정하고 10분 뒤에 40으로 높여줘.",
+    "command_eng": "Set the speaker volume to 20 and increase it to 40 after 10 minutes.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#Speaker).speaker_setVolume(20)\\n\\ndelay(10 MIN)\\n\\n(#Speaker).speaker_setVolume(40)\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "15",
+    "category": "5",
+    "command_kor": "제습기를 건조 모드로 작동시키고 1시간 뒤에 리프레쉬 모드로 바꿔줘.",
+    "command_eng": "Start the dehumidifier in drying mode and change to refreshing mode after 1 hour.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n\\ndelay(1 HOUR)\\n\\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"refreshing\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "16",
+    "category": "5",
+    "command_kor": "거실의 모든 전등을 켜고 1시간 뒤에 꺼줘.",
+    "command_eng": "Turn on all lights in the living room and turn them off after 1 hour.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nall(#LivingRoom #Light).switch_on()\\n\\ndelay(1 HOUR)\\n\\nall(#LivingRoom #Light).switch_off()\"}",
+    "connected_devices": "{'LivingRoom_Light_1': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}, 'LivingRoom_Light_2': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}, 'Kitchen_Light': {'category': ['Light', 'Switch'], 'tags': ['Kitchen', 'Light', 'Switch']}}"
+  },
+  {
+    "index": "17",
+    "category": "5",
+    "command_kor": "집안의 재실 센서가 하나라도 감지되면 10초 뒤에 모든 긴급 사이렌을 울려줘.",
+    "command_eng": "When any presence sensor in the house detects presence, sound all emergency sirens after 10 seconds.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until (all(#House #PresenceSensor).presenceSensor_presence ==| true)\\n\\ndelay(10 SEC)\\n\\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\"}",
+    "connected_devices": "{'House_Presence_1': {'category': 'PresenceSensor', 'tags': ['House', 'PresenceSensor']}, 'House_Presence_2': {'category': 'PresenceSensor', 'tags': ['House', 'PresenceSensor']}, 'Main_Siren': {'category': 'Siren', 'tags': ['House', 'Siren']}, 'Sub_Siren': {'category': 'Siren', 'tags': ['House', 'Siren']}}"
+  },
+  {
+    "index": "18",
+    "category": "5",
+    "command_kor": "주방의 모든 벨브를 열고 5분 뒤에 다시 잠궈줘.",
+    "command_eng": "Open all valves in the kitchen and close them again after 5 minutes.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nall(#Kitchen #Valve).valve_open()\\n\\ndelay(5 MIN)\\n\\nall(#Kitchen #Valve).valve_close()\"}",
+    "connected_devices": "{'Kitchen_Valve_Gas': {'category': 'Valve', 'tags': ['Kitchen', 'Valve']}, 'Kitchen_Valve_Water': {'category': 'Valve', 'tags': ['Kitchen', 'Valve']}, 'Garden_Valve': {'category': 'Valve', 'tags': ['Garden', 'Valve']}}"
+  },
+  {
+    "index": "19",
+    "category": "5",
+    "command_kor": "안방의 모든 블라인드를 닫고 2시간 뒤에 다시 열어줘.",
+    "command_eng": "Close all blinds in the bedroom and open them again after 2 hours.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nall(#Bedroom #Blind).windowCovering_downOrClose()\\n\\ndelay(2 HOUR)\\n\\nall(#Bedroom #Blind).windowCovering_upOrOpen()\"}",
+    "connected_devices": "{'Bedroom_Blind': {'category': 'WindowCovering', 'tags': ['Bedroom', 'Bllind', 'WindowCovering']}, 'Bedroom_Curtain': {'category': 'WindowCovering', 'tags': ['Bedroom', 'Curtain', 'WindowCovering']}, 'LivingRoom_Blind': {'category': 'WindowCovering', 'tags': ['LivingRoom', 'Blind', 'WindowCovering']}}"
+  },
+  {
+    "index": "20",
+    "category": "5",
+    "command_kor": "복도의 조명이 하나라도 켜지면 5분 뒤에 거실의 모든 조명을 꺼줘.",
+    "command_eng": "When any light in the hallway is turned on, turn off all lights in the living room after 5 minutes.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until (all(#Hallway #Light).switch_switch ==| true)\\n\\ndelay(5 MIN)\\n\\nall(#LivingRoom #Light).switch_off()\"}",
+    "connected_devices": "{'Hallway_Light': {'category': ['Light', 'Switch'], 'tags': ['Hallway', 'Light', 'Switch']}, 'LivingRoom_Light_1': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}, 'LivingRoom_Light_2': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}}"
+  },
+  {
+    "index": "21",
+    "category": "5",
+    "command_kor": "연구실의 모든 제습기를 켜고 4시간 뒤에 꺼줘.",
+    "command_eng": "Turn on all dehumidifiers in the lab and turn them off after 4 hours.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nall(#Lab #Dehumidifier).switch_on()\\n\\ndelay(4 HOUR)\\n\\nall(#Lab #Dehumidifier).switch_off()\"}",
+    "connected_devices": "{'Lab_Dehumidifier_1': {'category': ['Dehumidifier', 'Switch'], 'tags': ['Lab', 'Dehumidifier', 'Switch']}, 'Lab_Dehumidifier_2': {'category': ['Dehumidifier', 'Switch'], 'tags': ['Lab', 'Dehumidifier', 'Switch']}, 'Office_Dehumidifier': {'category': ['Dehumidifier', 'Switch'], 'tags': ['Office', 'Dehumidifier', 'Switch']}}"
+  },
+  {
+    "index": "22",
+    "category": "5",
+    "command_kor": "사무실의 공기청정기가 하나라도 수면모드로 바뀌면 10분 뒤에 조명을 꺼줘.",
+    "command_eng": "When any air purifier in the office switches to sleep mode, turn off the light after 10 minutes.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until (all(#Office #AirPurifier).airPurifier_airPurifierMode ==| \\\"sleep\\\")\\n\\ndelay(10 MIN)\\n\\n(#Office #Light).switch_off()\"}",
+    "connected_devices": "{'Office_AP_1': {'category': 'AirPurifier', 'tags': ['Office', 'AirPurifier']}, 'Office_AP_2': {'category': 'AirPurifier', 'tags': ['Office', 'AirPurifier']}, 'Office_Light': {'category': ['Light', 'Switch'], 'tags': ['Office', 'Light', 'Switch']}}"
+  },
+  {
+    "index": "23",
+    "category": "5",
+    "command_kor": "창고의 모든 도어락을 잠그고 1분 뒤에 긴급 사이렌을 울려줘.",
+    "command_eng": "Lock all warehouse door locks and sound the emergency siren 1 minute later.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nall(#Warehouse #DoorLock).doorLock_lock()\\n\\ndelay(1 MIN)\\n\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\"}",
+    "connected_devices": "{'Warehouse_Lock_1': {'category': 'DoorLock', 'tags': ['Warehouse', 'DoorLock']}, 'Warehouse_Lock_2': {'category': 'DoorLock', 'tags': ['Warehouse', 'DoorLock']}, 'Warehouse_Siren': {'category': 'Siren', 'tags': ['Warehouse', 'Siren']}}"
+  },
+  {
+    "index": "24",
+    "category": "5",
+    "command_kor": "테라스의 어느 조도 센서라도 100 럭스 이상이 되면 5초 뒤에 모든 블라인드를 올려줘.",
+    "command_eng": "When any illuminance sensor on the terrace reaches 100 lux or higher, raise all blinds after 5 seconds.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until (all(#Terrace #LightSensor).lightSensor_brightness >=| 100)\\n\\ndelay(5 SEC)\\n\\nall(#Terrace #Blind).windowCovering_upOrOpen()\"}",
+    "connected_devices": "{'Terrace_Sensor_1': {'category': 'LightSensor', 'tags': ['Terrace', 'LightSensor']}, 'Terrace_Sensor_2': {'category': 'LightSensor', 'tags': ['Terrace', 'LightSensor']}, 'Terrace_Blind_1': {'category': 'WindowCovering', 'tags': ['Terrace', 'WindowCovering', 'Blind']}, 'Terrace_Blind_2': {'category': 'WindowCovering', 'tags': ['Terrace', 'WindowCovering', 'Blind']}}"
+  },
+  {
+    "index": "25",
+    "category": "5",
+    "command_kor": "데이터 센터의 어느 온도 센서라도 30도 이상이 되면 1분 뒤에 모든 에어컨을 냉방 모드로 작동시켜줘.",
+    "command_eng": "When any temperature sensor in the data center reaches 30 degrees or higher, set all air conditioners to cool mode after 1 minute.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until (all(#DataCenter #TemperatureSensor).temperatureSensor_temperature >=| 30)\\n\\ndelay(1 MIN)\\n\\nall(#DataCenter #AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\"}",
+    "connected_devices": "{'DC_Temp_1': {'category': 'TemperatureSensor', 'tags': ['DataCenter', 'TemperatureSensor']}, 'DC_Temp_2': {'category': 'TemperatureSensor', 'tags': ['DataCenter', 'TemperatureSensor']}, 'DC_AC_1': {'category': 'AirConditioner', 'tags': ['DataCenter', 'AirConditioner']}, 'DC_AC_2': {'category': 'AirConditioner', 'tags': ['DataCenter', 'AirConditioner']}}"
+  },
+  {
+    "index": "26",
+    "category": "5",
+    "command_kor": "주방 조명을 켜고 10초 뒤에 주방 제습기를 켜줘.",
+    "command_eng": "Turn on the kitchen light and turn on the kitchen dehumidifier 10 seconds later.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Kitchen #Light).switch_on()\\n\\ndelay(10 SEC)\\n\\n(#Kitchen #Dehumidifier).switch_on()\"}",
+    "connected_devices": "{'Kitchen_Light': {'category': ['Light', 'Switch'], 'tags': ['Kitchen', 'Light', 'Switch']}, 'Kitchen_Dehumidifier': {'category': 'Switch', 'tags': ['Kitchen', 'Dehumidifier', 'Switch']}, 'LivingRoom_Light': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}}"
+  },
+  {
+    "index": "27",
+    "category": "5",
+    "command_kor": "서재 공기청정기를 강풍으로 틀고 2시간 뒤에 꺼줘.",
+    "command_eng": "Set the study air purifier to high and turn it off after 2 hours.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Study #AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n\\ndelay(2 HOUR)\\n\\n(#Study #AirPurifier).switch_off()\"}",
+    "connected_devices": "{'Study_AP': {'category': 'AirPurifier', 'tags': ['Study', 'AirPurifier']}, 'Bedroom_AP': {'category': 'AirPurifier', 'tags': ['Bedroom', 'AirPurifier']}}"
+  },
+  {
+    "index": "28",
+    "category": "5",
+    "command_kor": "욕실 조명을 끄고 5분 뒤에 켜줘.",
+    "command_eng": "Turn off the bathroom light and turn on after 5 minutes.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Bathroom #Light).switch_off()\\n\\ndelay(5 MIN)\\n\\n(#Bathroom #Light).switch_on()\"}",
+    "connected_devices": "{'Bathroom_Light': {'category': ['Light', 'Switch'], 'tags': ['Bathroom', 'Light', 'Switch']}, 'Bathroom_Dehumidifer': {'category': ['Dehumidifier', 'Switch'], 'tags': ['Bathroom', 'Dehumidifier', 'Switch']}}"
+  },
+  {
+    "index": "29",
+    "category": "5",
+    "command_kor": "회의실 문을 닫고 3초 뒤에 회의실 카메라로 촬영해줘.",
+    "command_eng": "Close the meeting room door. After 3 seconds take a picture with the meeting room camera.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#MeetingRoom #Door).door_close()\\n\\ndelay(3 SEC)\\n\\n(#MeetingRoom #Camera).camera_captureImage()\"}",
+    "connected_devices": "{'MeetingRoom_Door': {'category': 'Door', 'tags': ['MeetingRoom', 'Door']}, 'MeetingRoom_Camera': {'category': 'Camera', 'tags': ['MeetingRoom', 'Camera']}}"
+  },
+  {
+    "index": "30",
+    "category": "5",
+    "command_kor": "지금 와인 셀러 온도를 체크하고 10분뒤에 다시 체크해서 1도 이상 차이가 나면, 스피커로 온도가 급변했다고 안내해줘. ",
+    "command_eng": "Check the wine cellar temperature now and again in 10 minutes. If it has changed by 1 degree or higher, announce through the speaker that the wine cellar temperature has changed rapidly.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\noriginal_temp = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\\n\\ndelay(10 MIN)\\n\\ntemp = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\\n\\nif (temp >= original_temp + 1 or temp <= original_temp - 1) {\\n\\n    (#Speaker).speaker_speak(\\\"와인셀러의 온도가 급변했습니다\\\")\\n}\"}",
+    "connected_devices": "{'WineCellar_Temp': {'category': 'TemperatureSensor', 'tags': ['WineCellar', 'TemperatureSensor']}, 'WineCellar_Hum': {'category': 'HumiditySensor', 'tags': ['WineCellar', 'HumiditySensor']}, 'Speaker': {'category': 'Speaker', 'tags': ['Speaker']}}"
+  },
+  {
+    "index": "1",
+    "category": "6",
+    "command_kor": "온도가 28도 이상이고 습도가 70% 이상이면, 에어컨을 냉방 모드로 설정하고 온도를 24도로 맞춰줘.",
+    "command_eng": "If the temperature is 28 degrees or higher and the humidity is 70% or higher, set the air conditioner to cool mode and 24 degrees.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#TemperatureSensor).temperatureSensor_temperature >= 28 and (#HumiditySensor).humiditySensor_humidity >= 70) {\\n\\n    (#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n\\n    (#AirConditioner).airConditioner_setTargetTemperature(24)\\n \\n}\"}",
+    "connected_devices": ""
+  }
+]

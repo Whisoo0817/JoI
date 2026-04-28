@@ -14,12 +14,42 @@
   <Service "ChatWithAI" type="action">Chat/Q&A with an AI model</Service>
 </Device>
 
+# Selection Rules
+
+- **Asking the AI a question** ("ask AI ...", "what is X", "explain X using AI", "Q&A") → `ChatWithAI(Prompt)`. The literal word "LLM" or "AI" in the question itself does NOT mean the user wants `LLMModels` — it's just the topic of the question.
+- **Listing/checking available models** ("which LLMs are available", "list the models") → `LLMModels` (value).
+- **Generate / create an image** → `GenerateImage`.
+- **Describe / explain an image** → `ExplainImage`.
+- **Saving binary output of a previous AI call** (image, audio) to a file → chain with `SaveToFile`.
+- **TextToSpeech** does NOT play audio. It only **generates an audio binary file** from text and returns it. Use it ONLY when the user explicitly wants an audio file produced (e.g., "generate a TTS audio file", "save speech as a wav") — typically chained with `SaveToFile`. If the user just wants something said out loud through a speaker, use `Speaker.Speak` directly with the text; do NOT route through `TextToSpeech`.
+- **SpeechToText** converts an audio file to text (file in → text out). Not a microphone listener.
+
 # CloudServiceProvider Examples
 
 [Command]
-Generate an image of a cat (using CloudServiceProvider)
+Generate an image
 ["CloudServiceProvider.GenerateImage"]
 
 [Command]
-Chat with AI about smart homes
+Chat with AI
 ["CloudServiceProvider.ChatWithAI"]
+
+[Command]
+Ask AI to explain quantum computing
+["CloudServiceProvider.ChatWithAI"]
+
+[Command]
+List the available LLM models
+["CloudServiceProvider.LLMModels"]
+
+[Command]
+Ask the cloud AI what LLM is and announce the answer through the speaker
+["CloudServiceProvider.ChatWithAI", "Speaker.Speak"]
+
+[Command]
+Convert "hello" to a TTS audio file and save it as hello.wav
+["CloudServiceProvider.TextToSpeech", "CloudServiceProvider.SaveToFile"]
+
+[Command]
+Generate a cat image and save it as cat.png
+["CloudServiceProvider.GenerateImage", "CloudServiceProvider.SaveToFile"]

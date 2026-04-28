@@ -3,20 +3,45 @@
 Modes:
     python3 test.py target   # run targeted indices from local_dataset.csv
     python3 test.py custom   # run a single CUSTOM_COMMAND interactively
+
+When run with `target`, all stdout is mirrored to a timestamped log file in /tmp.
+The path is printed at start and end so the caller can grep / tail it.
 """
 
+import os
 import sys
+import time
 import pandas as pd
 
 from paper.run_local_ir import generate_joi_code
 
 # [MODE: target] 테스트할 타겟 지정 (python3 test.py target)
+# Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    8: list(range(1, 51)),
+    "C07": [24],
 }
 
+
+class _Tee:
+    """Write to multiple streams (e.g. real stdout + log file) at once."""
+    def __init__(self, *streams):
+        self._streams = streams
+    def write(self, data):
+        for s in self._streams:
+            try:
+                s.write(data)
+                s.flush()
+            except Exception:
+                pass
+    def flush(self):
+        for s in self._streams:
+            try:
+                s.flush()
+            except Exception:
+                pass
+
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-CUSTOM_COMMAND = "오후 3시마다 조명을 켜줘"
+CUSTOM_COMMAND = "사이렌을 켜줘"
 
 # format_connected_devices_for_joi_llm 결과 형식
 # key: device name, category: skills 기반, tags: tags + predefined_tags + category_labels 머지
@@ -55,14 +80,13 @@ CUSTOM_DEVICES = {
     },
 }
 
-csv_file_path = 'local_dataset.csv'
+csv_file_path = 'dataset_migration/local_dataset2.csv'
 
 
 def print_result(result):
-    print("\n[Final Result]")
     log = result.get('log', {})
     if log.get('logs'):
-        print(f"[logs]\n{log.get('logs', '')}")
+        print(f"{log.get('logs', '')}")
     print("\n⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️\n")
     if result.get('ir_readable'):
         print(f"\n[IR Readable]\n{result['ir_readable']}")
@@ -74,8 +98,11 @@ def run_targeted_test(df):
     print("\n🎯 Running Targeted Tests...")
     for category, indices in test_targets.items():
         print(f"--- Category {category} ---")
+        sub = df[df['category_v2'] == category]
+        if indices is None:
+            indices = sorted(sub['index'].tolist())
         for idx in indices:
-            match = df[(df['category'] == category) & (df['index'] == idx)]
+            match = sub[sub['index'] == idx]
             if match.empty:
                 print(f"(Idx {idx}) - Not Found")
                 continue
@@ -83,16 +110,21 @@ def run_targeted_test(df):
             kor = row['command_kor']
             eng = row['command_eng']
             print(f"({idx}) 🛑 {kor}\n 🛑 {eng}")
+            print(f"[connected_devices]\n{row['connected_devices']}")
             try:
                 result = generate_joi_code(kor, row['connected_devices'], {})
                 print_result(result)
             except Exception as e:
                 print(f"Error at Idx {idx}: {e}")
+                logs = getattr(e, 'logs', '')
+                if logs:
+                    print(f"[logs]\n{logs}")
 
 
 def run_custom_test(modification=None):
     print("\n🛠️ Running Custom Test...")
     print(f"Command: {CUSTOM_COMMAND}")
+    print(f"[connected_devices]\n{CUSTOM_DEVICES}")
     try:
         result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, modification=modification)
         print_result(result)
@@ -100,17 +132,30 @@ def run_custom_test(modification=None):
         import traceback
         traceback.print_exc()
         print(f"Error: {e}")
+        logs = getattr(e, 'logs', '')
+        if logs:
+            print(f"[logs]\n{logs}")
 
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "custom"
 
     if mode == "target":
+        log_path = f"/tmp/joi_test_{time.strftime('%Y%m%d_%H%M%S')}.log"
+        log_fh = open(log_path, "w", encoding="utf-8")
+        original_stdout = sys.stdout
+        sys.stdout = _Tee(original_stdout, log_fh)
         try:
+            print(f"📁 Log file: {log_path}")
             df = pd.read_csv(csv_file_path, encoding='utf-8-sig')
             run_targeted_test(df)
+            print(f"\n📁 Log file: {log_path}")
         except Exception as e:
             print(f"CSV Load Error: {e}")
+        finally:
+            sys.stdout = original_stdout
+            log_fh.close()
+            print(f"\n✅ Done. Log saved to: {log_path}")
     elif mode == "custom":
         run_custom_test()
     else:

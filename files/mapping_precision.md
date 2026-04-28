@@ -23,7 +23,7 @@ For each category in `[Intent]`, reason in ONE line:
 Category: N candidates | "phrase from command" | quantity → selector
 ```
 
-### Step-by-step:
+### Step-by-step (PRIMARY categories — Light, Door, AirConditioner, Speaker, etc.):
 
 1. **Count candidates**: How many devices in `[Connected Devices]` have this category?
 2. **Check quantity**:
@@ -38,14 +38,42 @@ Category: N candidates | "phrase from command" | quantity → selector
    - **N candidates + single** → find location/qualifier in command that matches a candidate's `tags` → `(#Location #Category)`. If no location in command → `(#Category)`.
 4. **WindowCovering**: blind→`#Blind`, curtain/shade→`#Shade`, window→`#Window`.
 
+### Step-by-step (SUB-SKILL categories — `Switch`, `LevelControl`, `ColorControl`, `RotaryControl`):
+
+These sub-skills appear in `[Intent]` only when a parent appliance (Light, Humidifier, Dehumidifier, Charger, etc.) exposes them. The sub-skill name itself is **never** a real device — many parent devices share it.
+
+**Goal**: map ONLY the devices that have BOTH (a) the sub-skill in their `category` array, AND (b) the qualifying tags / parent device names from the command. Output the smallest set of selectors that reaches exactly those devices.
+
+For each **action unit** in the command (each separately referenced action — e.g., "turn on the dehumidifier" and "turn on the humidifier" are two units; "turn on the light" is ONE unit even when multiple lights exist):
+
+- **Step A — Detect quantity** for this action unit (`all` / `any` / `single`) using the same keywords as primary categories (Step 2 above).
+- **Step B — Extract command filters**: location words (`Lab`, `Kitchen`, `Floor1`), qualifier tags (`Even`, `Odd`, `PhilipsHue`), and any explicitly named parent device (`humidifier`, `dehumidifier`, `light`, `charger`, etc.). Sub-skill name itself is NOT a filter.
+- **Step C — Build SUPERSET**: devices in `[Connected Devices]` that match ALL the command filters of this action unit (ignoring whether they have the sub-skill).
+- **Step D — Build TARGET**: `SUPERSET ∩ {devices listing the sub-skill in their category}`.
+- **Step E — Pick strategy** based on quantity AND set comparison:
+  - **`single` quantity**:
+    - Emit ONE selector with ONLY the tags that appear as words in the command. The hub picks one device at runtime; never enumerate per-location and never pull a location tag from metadata to "disambiguate".
+    - If the command names only the parent (e.g., "the TV", "the light") → `(#Parent)`. With a location word ("bedroom light") → `(#Location #Parent)`.
+    - If `TARGET ⊊ SUPERSET` (some matching devices lack the sub-skill) AND TARGET has one parent category → include that parent: `(#Filters #Parent)`.
+  - **`all` quantity**:
+    - If `TARGET == SUPERSET` → ONE selector `all(#Filters)` (qualifier-only).
+    - If `TARGET ⊊ SUPERSET` → split by parent: one `all(#Filters #Parent)` per parent category in TARGET.
+  - **Multiple action units** in the command (each naming a distinct parent — e.g., "turn on dehumidifier" AND "turn on humidifier"): treat each as a separate single-action unit and emit one selector per unit, using each unit's filters + its named parent. This is the `named-parents` strategy.
+- **Step F — Forbidden**: NEVER write `#Switch` / `#LevelControl` / `#ColorControl` / `#RotaryControl` inside any selector. The sub-skill name disappears in the selector.
+
+**Sub-skill reasoning line format** (one line per sub-skill in `[Intent]`):
+```
+Switch (sub-skill): SUPERSET=N, TARGET=M | "phrase" | <quantity> | <strategy> → selectors
+```
+where `<strategy>` is `qualifier-only`, `split-by-parent`, or `named-parents`.
+
 ### Rules
-- **Command-first tagging**: Only use tags that correspond to words **actually in** `[Command]`. Do NOT pull tags from metadata.
+- **Command-first tagging**: Location and qualifier tags (Bedroom, Kitchen, Floor1, Even, Odd, PhilipsHue, etc.) MUST correspond to words **actually in** `[Command]` — never pulled from metadata to "disambiguate". **Exception**: parent-category tags (Light, Door, Television, Humidifier, …) used by Step E split-by-parent are STRUCTURAL and may be added even when the command does not literally name them.
 - **`[Intent]` overrides command wording**: If `[Intent]` says `MultiButton`, use `#MultiButton` — even if the command says "switch".
 - **No cross-device tag borrowing**: A tag from one device MUST NOT be applied to a different device's selector.
 - Every category in `[Intent]` MUST appear in the output.
 - Same category for different groups → one selector per group.
-- **Quantity keywords**: "all/every/everything" → `all`, "any/at least one/even one" → `any`, "a/an/one/single/just one" → `single`. Plural nouns alone (e.g. "lights", "blinds") do NOT mean "all".
-- **`any` means condition, NOT selection**: `any(#Tag)` checks whether at least one device satisfies a condition. It is ONLY valid when the command says something like "if any of them...", "when at least one...", etc. — i.e., used inside a conditional check. NEVER use `any` to mean "pick one device to act on". "Turn on one light" → `single` → `(#Light)`, NOT `any(#Light)`.
+- **`any` means condition, NOT selection**: `any(#Tag)` checks whether at least one device satisfies a condition — ONLY valid when the command says "if any...", "when at least one...", etc. (used inside a conditional check). NEVER use `any` to mean "pick one device to act on". "Turn on one light" → `single` → `(#Light)`, NOT `any(#Light)`.
 
 ### ⛔ Reasoning Constraints
 - **ONE LINE per category. No more.**
@@ -139,43 +167,6 @@ WindowCovering: 2 candidates | "all blinds with even tags on the 2nd floor" | al
 all(#Floor2 #Even #Blind)
 
 [Command]
-If presence is detected in the garage and the main siren is off, sound the siren in emergency mode.
-[Intent]
-["Siren", "PresenceSensor"]
-[Connected Devices]
-{"Garage_Presence": {"category": ["PresenceSensor"], "tags": ["Garage"]}, "Main_Siren": {"category": ["Siren", "Switch"], "tags": ["Main"]}}
-<Reasoning>
-PresenceSensor: 1 candidate | "in the garage" | single → (#PresenceSensor)
-Siren: 1 candidate | "the siren" | single → (#Siren)
-</Reasoning>
-(#PresenceSensor)
-(#Siren)
-
-[Command]
-Take a picture of the meeting room with the camera.
-[Intent]
-["Camera"]
-[Connected Devices]
-{"MeetingRoom_Cam": {"category": ["Camera"], "tags": ["MeetingRoom"]}, "Hallway_Cam": {"category": ["Camera"], "tags": ["Hallway"]}}
-<Reasoning>
-Camera: 2 candidates | "of the meeting room" | single → (#MeetingRoom #Camera)
-</Reasoning>
-(#MeetingRoom #Camera)
-
-[Command]
-If the temperature in the kitchen is 30 degrees or higher, set the air conditioner to cool mode.
-[Intent]
-["TemperatureSensor", "AirConditioner"]
-[Connected Devices]
-{"K_Temp": {"category": ["TemperatureSensor"], "tags": ["Kitchen"]}, "K_AC": {"category": ["AirConditioner"], "tags": ["Kitchen"]}}
-<Reasoning>
-TemperatureSensor: 1 candidate | "in the kitchen" | single → (#TemperatureSensor)
-AirConditioner: 1 candidate | "the air conditioner" | single → (#AirConditioner)
-</Reasoning>
-(#TemperatureSensor)
-(#AirConditioner)
-
-[Command]
 Whenever it rains, close all windows and doors.
 [Intent]
 ["RainSensor", "WindowCovering", "Door"]
@@ -219,19 +210,6 @@ any(#Terrace #LightSensor)
 all(#Blind)
 
 [Command]
-Check humidity sensors in Group 2, and if they are all 50% or higher, set all dehumidifiers to refresh mode.
-[Intent]
-["HumiditySensor", "Dehumidifier"]
-[Connected Devices]
-{"Grp2_H1": {"category": ["HumiditySensor"], "tags": ["Group2"]}, "Grp2_H2": {"category": ["HumiditySensor"], "tags": ["Group2"]}, "Main_D": {"category": ["Dehumidifier"], "tags": ["Main"]}}
-<Reasoning>
-HumiditySensor: 2 candidates | "humidity sensors in Group 2" | all → all(#Group2 #HumiditySensor)
-Dehumidifier: 1 candidate | "all dehumidifiers" | all → all(#Dehumidifier)
-</Reasoning>
-all(#Group2 #HumiditySensor)
-all(#Dehumidifier)
-
-[Command]
 If the light with the odd tag at the top turns on, turn on the light at the bottom as well.
 [Intent]
 ["Light"]
@@ -242,34 +220,6 @@ Light: 2 candidates | "the odd tag at the top" + "at the bottom" | single → (#
 </Reasoning>
 (#Top #Odd #Light)
 (#Bottom #Light)
-
-[Command]
-If the server room temperature is 30 degrees or higher, turn on the air conditioner and sound the siren.
-[Intent]
-["TemperatureSensor", "AirConditioner", "Siren"]
-[Connected Devices]
-{"S_Temp": {"category": ["TemperatureSensor"], "tags": ["ServerRoom"]}, "S_AC": {"category": ["AirConditioner"], "tags": ["ServerRoom"]}, "M_Siren": {"category": ["Siren"], "tags": ["Main"]}}
-<Reasoning>
-TemperatureSensor: 1 candidate | "server room temperature" | single → (#TemperatureSensor)
-AirConditioner: 1 candidate | "the air conditioner" | single → (#AirConditioner)
-Siren: 1 candidate | "the siren" | single → (#Siren)
-</Reasoning>
-(#TemperatureSensor)
-(#AirConditioner)
-(#Siren)
-
-[Command]
-Measure the temperature every 15 minutes, and if it's 25 degrees, turn on the air conditioner, otherwise turn it off.
-[Intent]
-["TemperatureSensor", "AirConditioner"]
-[Connected Devices]
-{"Temp": {"category": ["TemperatureSensor"], "tags": ["Inside"]}, "AC": {"category": ["AirConditioner", "Switch"], "tags": ["Main"]}}
-<Reasoning>
-TemperatureSensor: 1 candidate | "the temperature" | single → (#TemperatureSensor)
-AirConditioner: 1 candidate | "the air conditioner" | single → (#AirConditioner)
-</Reasoning>
-(#TemperatureSensor)
-(#AirConditioner)
 
 [Command]
 If smoke is detected in the living room, sound all sirens and speak through the speaker.
@@ -309,6 +259,90 @@ Light: 2 candidates | "any light is on" + "turn it off" | any + single → any(#
 </Reasoning>
 any(#Light)
 (#Light)
+
+# Sub-skill Examples
+
+[Command]
+When the presence sensor detects someone, turn on the TV.
+[Intent]
+["PresenceSensor", "Switch"]
+[Connected Devices]
+{"LR_Presence": {"category": ["PresenceSensor"], "tags": ["LivingRoom"]},
+ "LR_TV": {"category": ["Television", "Switch"], "tags": ["LivingRoom"]},
+ "BR_TV": {"category": ["Television", "Switch"], "tags": ["Bedroom"]}}
+<Reasoning>
+PresenceSensor: 1 candidate | "the presence sensor" | single → (#PresenceSensor)
+Switch (sub-skill): SUPERSET=2 (both TVs), TARGET=2 | "the TV" — no location word in command | single | qualifier-only → (#Television)
+</Reasoning>
+(#PresenceSensor)
+(#Television)
+
+[Command]
+Turn on the bedroom light.
+[Intent]
+["Switch"]
+[Connected Devices]
+{"BR_Light": {"category": ["Light", "Switch"], "tags": ["Bedroom"]},
+ "LR_Light": {"category": ["Light", "Switch"], "tags": ["LivingRoom"]}}
+<Reasoning>
+Switch (sub-skill): SUPERSET=1 (Bedroom Light), TARGET=1 | "the bedroom light" | single | qualifier-only → (#Bedroom #Light)
+</Reasoning>
+(#Bedroom #Light)
+
+[Command]
+If lab humidity is 50% or higher, turn on the dehumidifier; otherwise turn on the humidifier.
+[Intent]
+["HumiditySensor", "Switch"]
+[Connected Devices]
+{"Lab_Sensor": {"category": ["HumiditySensor"], "tags": ["Lab"]},
+ "Lab_Hum": {"category": ["Switch", "Humidifier"], "tags": ["Lab"]},
+ "Lab_Dehum": {"category": ["Switch", "Dehumidifier"], "tags": ["Lab"]}}
+<Reasoning>
+HumiditySensor: 1 candidate | "lab humidity" | single → (#Lab #HumiditySensor)
+Switch (sub-skill): two action units (dehumidifier, humidifier) | single each | named-parents → (#Lab #Dehumidifier), (#Lab #Humidifier)
+</Reasoning>
+(#Lab #HumiditySensor)
+(#Lab #Dehumidifier)
+(#Lab #Humidifier)
+
+[Command]
+Turn off all even-tagged devices.
+[Intent]
+["Switch"]
+[Connected Devices]
+{"E_Light": {"category": ["Light", "Switch"], "tags": ["Even"]},
+ "E_Door": {"category": ["Door", "Switch"], "tags": ["Even"]}}
+<Reasoning>
+Switch (sub-skill): SUPERSET=2 (both Even devices), TARGET=2 | "all even-tagged" | all | qualifier-only → all(#Even)
+</Reasoning>
+all(#Even)
+
+[Command]
+Turn off all even-tagged devices.
+[Intent]
+["Switch"]
+[Connected Devices]
+{"E_Light": {"category": ["Light", "Switch"], "tags": ["Even"]},
+ "E_Door": {"category": ["Door", "Switch"], "tags": ["Even"]},
+ "E_Sensor": {"category": ["TemperatureSensor"], "tags": ["Even"]}}
+<Reasoning>
+Switch (sub-skill): SUPERSET=3 (all Even), TARGET=2 (Sensor lacks Switch) | "all even-tagged" | all | split-by-parent → all(#Even #Light), all(#Even #Door)
+</Reasoning>
+all(#Even #Light)
+all(#Even #Door)
+
+[Command]
+Turn off all kitchen devices.
+[Intent]
+["Switch"]
+[Connected Devices]
+{"K_Light_1": {"category": ["Light", "Switch"], "tags": ["Kitchen"]},
+ "K_Light_2": {"category": ["Light", "Switch"], "tags": ["Kitchen"]},
+ "K_Charger": {"category": ["Charger", "Switch"], "tags": ["Kitchen"]}}
+<Reasoning>
+Switch (sub-skill): SUPERSET=3 (all Kitchen), TARGET=3 | "all kitchen devices" | all | qualifier-only → all(#Kitchen)
+</Reasoning>
+all(#Kitchen)
 
 # ⛔ Wrong Example (do NOT do this)
 

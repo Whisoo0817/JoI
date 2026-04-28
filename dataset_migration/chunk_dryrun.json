@@ -1,0 +1,162 @@
+[
+  {
+    "index": "1",
+    "category": "1",
+    "command_kor": "식기세척기를 건조 모드로 설정해줘.",
+    "command_eng": "Switch the dishwasher to dry mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#Dishwasher).dishwasher_setDishwasherMode(\\\"dry\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "2",
+    "category": "1",
+    "command_kor": "오븐의 작동 시간을 5분 늘려줘.",
+    "command_eng": "Add 5 minutes to the oven.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#Oven).oven_addMoreTime(300)\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "3",
+    "category": "1",
+    "command_kor": "밥솥을 조리 모드로 30분 작동시켜.",
+    "command_eng": "Start the rice cooker on cooking mode for 30 minutes.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#RiceCooker).riceCooker_setCookingParameters(\\\"cooking\\\", 1800)\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "4",
+    "category": "1",
+    "command_kor": "사이렌을 응급모드로 울려줘.",
+    "command_eng": "Set the siren to emergency mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#Siren).siren_setSirenMode(\\\"emergency\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "5",
+    "category": "1",
+    "command_kor": "스피커의 볼륨을 30으로 설정해줘.",
+    "command_eng": "Set the speaker volume to 30.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#Speaker).speaker_setVolume(30)\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "1",
+    "category": "2",
+    "command_kor": "거실 조명을 노란색으로 설정해줘.",
+    "command_eng": "Set the living room light to yellow.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#LivingRoom #Light).colorControl_setColor(\\\"255|255|0\\\")\"}",
+    "connected_devices": "{'LivingRoom_Light': {'category': ['Light', 'ColorControl'], 'tags': ['LivingRoom', 'Light', 'ColorControl']}, 'Kitchen_Light': {'category': ['Light', 'ColorControl'], 'tags': ['Kitchen', 'Light', 'ColorControl']}}"
+  },
+  {
+    "index": "2",
+    "category": "2",
+    "command_kor": "카메라로 회의실 사진을 촬영해줘.",
+    "command_eng": "Capture an image of the meeting room with the camera.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#MeetingRoom #Camera).camera_captureImage()\"}",
+    "connected_devices": "{'MeetingRoom_Camera': {'category': 'Camera', 'tags': ['MeetingRoom', 'Camera']}, 'Hallway_Camera': {'category': 'Camera', 'tags': ['Hallway', 'Camera']}}"
+  },
+  {
+    "index": "3",
+    "category": "2",
+    "command_kor": "거실 조명의 밝기를 80%로 설정해줘.",
+    "command_eng": "Set the brightness of the living room light to 80%.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"(#LivingRoom #Light).light_moveToBrightness(80, 0)\"}",
+    "connected_devices": "{'LivingRoom_Light': {'category': 'Light', 'tags': ['LivingRoom', 'Light']}, 'Bedroom_Light': {'category': 'Light', 'tags': ['Bedroom', 'Light']}}"
+  },
+  {
+    "index": "1",
+    "category": "4",
+    "command_kor": "접촉 센서가 감지되면 조명을 켜줘.",
+    "command_eng": "When the contact sensor is detected, turn on the light.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#ContactSensor).contactSensor_contact == true)\\n\\n(#Light).switch_on()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "2",
+    "category": "4",
+    "command_kor": "재실 센서가 감지되면 TV를 켜줘.",
+    "command_eng": "When the presence sensor detects someone, turn on the TV.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#PresenceSensor).presenceSensor_presence == true)\\n\\n(#Television).switch_on()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "3",
+    "category": "4",
+    "command_kor": "소리 센서의 수치가 50보다 커지면 스피커 재생을 멈춰줘.",
+    "command_eng": "When the sound sensor value exceeds 50, stop speaker playback.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#SoundSensor).soundSensor_sound > 50)\\n\\n(#Speaker).speaker_stop()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "16",
+    "category": "6",
+    "command_kor": "거실에 사람이 있고 주방에서 연기가 감지되고 있으면, 거실 스피커로 주방에 연기가 감지되었다고 출력하고 주방 밸브를 잠궈줘.",
+    "command_eng": "If someone is in the living room and smoke is being detected in the kitchen, play an announcement in the living room and close the kitchen valve.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#LivingRoom #PresenceSensor).presenceSensor_presence == true and (#Kitchen #SmokeDetector).smokeDetector_smoke == true) {\\n\\n    (#LivingRoom #Speaker).speaker_speak(\\\"주방에 연기가 감지되었습니다.\\\")\\n\\n    (#Kitchen #Valve).valve_close()\\n\\n}\"}",
+    "connected_devices": "{'LivingRoom_Presence': {'category': 'PresenceSensor', 'tags': ['LivingRoom', 'PresenceSensor']}, 'Kitchen_Smoke': {'category': 'SmokeDetector', 'tags': ['Kitchen', 'SmokeDetector']}, 'LivingRoom_Speaker': {'category': 'Speaker', 'tags': ['LivingRoom', 'Speaker']}, 'Kitchen_Valve': {'category': 'Valve', 'tags': ['Kitchen', 'Valve']}}"
+  },
+  {
+    "index": "17",
+    "category": "6",
+    "command_kor": "안방의 온도가 26도 이상이고 창문이 열려 있으면, 창문을 닫고 에어컨을 켜줘.",
+    "command_eng": "If the bedroom temperature is 26 degrees or higher and the bedroom window is open, close the window and turn on the air conditioner.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#Bedroom #TemperatureSensor).temperatureSensor_temperature >= 26 and (#Bedroom #Window).windowCovering_currentPosition > 0) {\\n\\n    (#Bedroom #Window).windowCovering_downOrClose()\\n\\n    (#Bedroom #AirConditioner).switch_on()\\n\\n}\"}",
+    "connected_devices": "{'Bedroom_Temp': {'category': 'TemperatureSensor', 'tags': ['Bedroom', 'TemperatureSensor']}, 'Bedroom_Window': {'category': 'WindowCovering', 'tags': ['Bedroom', 'WindowCovering', 'Window']}, 'Bedroom_AC': {'category': ['AirConditioner', 'Switch'], 'tags': ['Bedroom', 'AirConditioner', 'Switch']}}"
+  },
+  {
+    "index": "18",
+    "category": "6",
+    "command_kor": "차고에서 움직임이 감지되고 있고 메인 사이렌이 꺼져있으면, 비상 사이렌을 울리고 차고 사진을 찍어줘.",
+    "command_eng": "If motion is detected in the garage and the main siren is off, sound the siren in emergency and take a picture.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#Garage #MotionSensor).motionSensor_motion == true and (#Main #Siren).switch_switch == false) {\\n\\n    (#Main #Siren).siren_setSirenMode(\\\"emergency\\\")\\n\\n    (#Garage #Camera).camera_captureImage()\\n\\n}\"}",
+    "connected_devices": "{'Garage_Motion': {'category': 'MotionSensor', 'tags': ['Garage', 'MotionSensor']}, 'Main_Siren': {'category': ['Siren', 'Switch'], 'tags': ['Main', 'Siren', 'Switch']}, 'Garage_Camera': {'category': 'Camera', 'tags': ['Garage', 'Camera']}}"
+  },
+  {
+    "index": "1",
+    "category": "7",
+    "command_kor": "10분마다 확인해서 온도가 30도 이상이면 에어컨을 쿨모드로 설정해줘.",
+    "command_eng": "Every 10 minutes, if the temperature is 30 degrees or higher, set the air conditioner to cool mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 600000, \"script\": \"\\nif ((#TemperatureSensor).temperatureSensor_temperature >= 30) {\\n\\n    (#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n\\n}\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "26",
+    "category": "7",
+    "command_kor": "오후 6시에 벽에 있는 홀수 태그가 붙은 블라인드 높이를 모두 50%로 조절해줘.",
+    "command_eng": "At 6 PM, set the level of all blinds with odd tags on the wall to 50%.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 18 * * *\", \"period\": 0, \"script\": \"\\nall(#Wall #Odd #Blind).windowCovering_setLevel(50)\"}",
+    "connected_devices": "{'Wall_Blind_1': {'category': ['WindowCovering'], 'tags': ['Wall', 'Odd', 'Blind', 'WindowCovering', 'LivingRoom']}, 'Wall_Blind_3': {'category': ['WindowCovering'], 'tags': ['Wall', 'Odd', 'Blind', 'WindowCovering', 'Kitchen']}, 'Floor_Blind_2': {'category': ['WindowCovering'], 'tags': ['Wall', 'Even', 'Blind', 'WindowCovering', 'Bedroom']}}"
+  },
+  {
+    "index": "27",
+    "category": "7",
+    "command_kor": "주말에 2시간마다 거실에 있는 로봇 청소기들을 모두 반복 모드로 설정해줘.",
+    "command_eng": "Every 2 hours on weekends, set all robot vacuum cleaners in the living room to repeat mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 */2 * * 0,6\", \"period\": 0, \"script\": \"\\nall(#LivingRoom #RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerModeMode(\\\"repeat\\\")\"}",
+    "connected_devices": "{'LR_RVC_1': {'category': ['RobotVacuumCleaner'], 'tags': ['LivingRoom', 'RobotVacuumCleaner', 'ModelA']}, 'LR_RVC_2': {'category': ['RobotVacuumCleaner'], 'tags': ['LivingRoom', 'RobotVacuumCleaner', 'ModelB']}, 'Kitchen_RVC': {'category': ['RobotVacuumCleaner'], 'tags': ['Kitchen', 'RobotVacuumCleaner', 'ModelA']}}"
+  },
+  {
+    "index": "1",
+    "category": "8",
+    "command_kor": "1시간마다 문을 열었다 닫았다 반복해줘.",
+    "command_eng": "Every hour, repeat opening and closing the door.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\nopen := false\\n\\nif (open == false) {\\n\\n    (#Door).door_open()\\n\\n    open = true\\n\\n} else {\\n\\n    (#Door).door_close()\\n\\n    open = false\\n\\n}\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "2",
+    "category": "8",
+    "command_kor": "오후 1시부터 3시까지 5분마다 벨브를 열었다 닫았다 반복해줘.",
+    "command_eng": "Every 5 minutes from 1 PM to 3 PM, repeat opening and closing the valve.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 13 * * *\", \"period\": 300000, \"script\": \"\\nif ((#Clock).clock_hour == 15) {\\n    break\\n}\\nopen := false\\nif (open == false) {\\n    (#Valve).valve_open()\\n    open = true\\n} else {\\n    (#Valve).valve_close()\\n    open = false\\n}\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "3",
+    "category": "8",
+    "command_kor": "30분마다 거실 공기청정기를 수면모드와 자동모드 사이에서 전환해줘.",
+    "command_eng": "Every 30 minutes, toggle the living room air purifier between sleep mode and auto mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 1800000, \"script\": \"\\nmode := 0\\n\\nif (mode == 0) {\\n\\n    (#LivingRoom #AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\n\\n    mode = 1\\n\\n} else {\\n\\n    (#LivingRoom #AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n\\n    mode = 0\\n\\n}\"}",
+    "connected_devices": ""
+  }
+]

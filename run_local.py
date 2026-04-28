@@ -149,6 +149,15 @@ def _build_service_category_map(service_data):
 
 _SERVICE_CATEGORY_MAP = _build_service_category_map(SERVICE_DATA)
 
+# Sub-type tags imply a specific parent category. Used to disambiguate when a
+# service name (e.g. CurrentPosition) exists in multiple categories.
+_TAG_CATEGORY_HINT = {
+    "Shade": "WindowCovering",
+    "Blind": "WindowCovering",
+    "Curtain": "WindowCovering",
+    "Window": "WindowCovering",
+}
+
 # Add Prefix: (#Light).On() → (#Light).switch_on()
 def _apply_service_prefix(script):
     def _fmt(service, selector=None):
@@ -161,6 +170,16 @@ def _apply_service_prefix(script):
                     svc_ids = {e["id"] for e in item.get("values", []) + item.get("functions", [])}
                     if service in svc_ids:
                         cat_fmt = tag[0].lower() + tag[1:]
+                        svc_fmt = service[0].lower() + service[1:]
+                        return f"{cat_fmt}_{svc_fmt}"
+            # 1.5순위: selector tag가 sub-type hint면 그 parent category 사용
+            for tag in tags:
+                hinted = _TAG_CATEGORY_HINT.get(tag)
+                if hinted and hinted in SERVICE_DATA:
+                    item = SERVICE_DATA[hinted]
+                    svc_ids = {e["id"] for e in item.get("values", []) + item.get("functions", [])}
+                    if service in svc_ids:
+                        cat_fmt = hinted[0].lower() + hinted[1:]
                         svc_fmt = service[0].lower() + service[1:]
                         return f"{cat_fmt}_{svc_fmt}"
         # 2순위: 전역 service-category 맵에서 탐색

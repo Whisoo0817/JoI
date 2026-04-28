@@ -1,0 +1,1024 @@
+[
+  {
+    "index": "11",
+    "category": "8",
+    "command_kor": "움직임이 감지될 때마다 조명의 밝기를 10씩 높여줘. 최대 밝기가 되면 그만해.",
+    "command_eng": "Whenever motion is detected, increase the light brightness by 10. If it reaches max, stop it.",
+    "connected_devices": {
+      "Entrance_Motion": {
+        "category": [
+          "MotionSensor"
+        ],
+        "tags": [
+          "Entrance",
+          "MotionSensor"
+        ]
+      },
+      "Garage_Motion": {
+        "category": [
+          "MotionSensor"
+        ],
+        "tags": [
+          "Garage",
+          "MotionSensor"
+        ]
+      },
+      "Living_Light": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Living",
+          "Light",
+          "LevelControl"
+        ]
+      },
+      "Bedroom_Light": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Bedroom",
+          "Light",
+          "LevelControl"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#MotionSensor).motionSensor_motion == true) {\\n    if (triggered == false) {\\n        new = (#Light).light_currentBrightness + 10\\n        if (new >= 100) { (#Light).light_moveToBrightness(100, 0.0); break; }\\n        else { (#Light).light_moveToBrightness(new, 0.0); }\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#MotionSensor).motionSensor_motion == true) {\\n    if (triggered == false) {\\n        new = (#Light).light_currentBrightness + 10\\n        if (new >= 100) { (#Light).light_moveToBrightness(100, 0.0); break; }\\n        else { (#Light).light_moveToBrightness(new, 0.0); }\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "12",
+    "category": "8",
+    "command_kor": "조도가 100룩스 미만이 될 때마다 조명을 켜줘.",
+    "command_eng": "Each time the brightness level falls below 100 lux, turn on the light.",
+    "connected_devices": {
+      "Living_LightSensor": {
+        "category": [
+          "LightSensor"
+        ],
+        "tags": [
+          "Living",
+          "LightSensor"
+        ]
+      },
+      "Bedroom_LightSensor": {
+        "category": [
+          "LightSensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "LightSensor"
+        ]
+      },
+      "Living_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Living",
+          "Light",
+          "Switch"
+        ]
+      },
+      "Bedroom_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Bedroom",
+          "Light",
+          "Switch"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#LightSensor).lightSensor_brightness < 100) {\\n    if (triggered == false) {\\n        (#Light).switch_on()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#LightSensor).lightSensor_brightness < 100) {\\n    if (triggered == false) {\\n        (#Light).switch_on()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "13",
+    "category": "8",
+    "command_kor": "미세먼지 농도가 80보다 높아질 때마다 공기청정기를 강풍으로 설정해줘.",
+    "command_eng": "Every time the fine dust level goes above 80, set the air purifier to high speed.",
+    "connected_devices": {
+      "Living_AQ": {
+        "category": [
+          "AirQualitySensor"
+        ],
+        "tags": [
+          "Living",
+          "AirQualitySensor"
+        ]
+      },
+      "Bedroom_AQ": {
+        "category": [
+          "AirQualitySensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "AirQualitySensor"
+        ]
+      },
+      "Living_AP": {
+        "category": [
+          "AirPurifier"
+        ],
+        "tags": [
+          "Living",
+          "AirPurifier"
+        ]
+      },
+      "Bedroom_AP": {
+        "category": [
+          "AirPurifier"
+        ],
+        "tags": [
+          "Bedroom",
+          "AirPurifier"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#AirQualitySensor).airQualitySensor_fineDustLevel > 80) {\\n    if (triggered == false) {\\n        (#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#AirQualitySensor).airQualitySensor_fineDustLevel > 80) {\\n    if (triggered == false) {\\n        (#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "14",
+    "category": "8",
+    "command_kor": "이산화탄소 농도가 900ppm 이상이 될때마다 벨브를 닫아줘.",
+    "command_eng": "Each time the carbon dioxide level reaches 900ppm or higher, close the valve.",
+    "connected_devices": {
+      "Living_AQ": {
+        "category": [
+          "AirQualitySensor"
+        ],
+        "tags": [
+          "Living",
+          "AirQualitySensor"
+        ]
+      },
+      "Bedroom_AQ": {
+        "category": [
+          "AirQualitySensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "AirQualitySensor"
+        ]
+      },
+      "Main_Valve": {
+        "category": [
+          "Valve"
+        ],
+        "tags": [
+          "Main",
+          "Valve"
+        ]
+      },
+      "Garden_Valve": {
+        "category": [
+          "Valve"
+        ],
+        "tags": [
+          "Garden",
+          "Valve"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#AirQualitySensor).airQualitySensor_carbonDioxide >= 900) {\\n    if (triggered == false) {\\n        (#Valve).valve_close()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#AirQualitySensor).airQualitySensor_carbonDioxide >= 900) {\\n    if (triggered == false) {\\n        (#Valve).valve_close()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "15",
+    "category": "8",
+    "command_kor": "온도가 30도 이상이 될 때마다 블라인드를 닫아줘.",
+    "command_eng": "Whenever the temperature becomes 30 degrees or higher, close the blind.",
+    "connected_devices": {
+      "Living_Temp": {
+        "category": [
+          "TemperatureSensor"
+        ],
+        "tags": [
+          "Living",
+          "TemperatureSensor"
+        ]
+      },
+      "Bedroom_Temp": {
+        "category": [
+          "TemperatureSensor"
+        ],
+        "tags": [
+          "Bedroom",
+          "TemperatureSensor"
+        ]
+      },
+      "Living_Blind": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Living",
+          "Blind",
+          "WindowCovering"
+        ]
+      },
+      "Bedroom_Blind": {
+        "category": [
+          "WindowCovering"
+        ],
+        "tags": [
+          "Bedroom",
+          "Blind",
+          "WindowCovering"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#TemperatureSensor).temperatureSensor_temperature >= 30) {\\n    if (triggered == false) {\\n        (#Blind).windowCovering_downOrClose()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#TemperatureSensor).temperatureSensor_temperature >= 30) {\\n    if (triggered == false) {\\n        (#Blind).windowCovering_downOrClose()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "16",
+    "category": "8",
+    "command_kor": "문이 열리면 이후에 1분마다 스피커로 \"어서오세요\"를 출력해줘.",
+    "command_eng": "When the door opens, make the speaker speak \"Welcome\" every minute thereafter.",
+    "connected_devices": {
+      "Entrance_Door": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Entrance",
+          "Door"
+        ]
+      },
+      "Garage_Door": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Garage",
+          "Door"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#Door).door_doorState == \\\"open\\\")\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"어서오세요\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#Door).door_doorState == \\\"open\\\")\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"어서오세요\\\")\"}"
+  },
+  {
+    "index": "17",
+    "category": "8",
+    "command_kor": "접촉센서가 닫히면, 그 이후로 10초마다 경찰 사이렌을 울려줘.",
+    "command_eng": "When the contact sensor is closed, sound the police siren every 10 seconds thereafter.",
+    "connected_devices": {
+      "Entrance_Contact": {
+        "category": [
+          "ContactSensor"
+        ],
+        "tags": [
+          "Entrance",
+          "ContactSensor"
+        ]
+      },
+      "Garage_Contact": {
+        "category": [
+          "ContactSensor"
+        ],
+        "tags": [
+          "Garage",
+          "ContactSensor"
+        ]
+      },
+      "Main_Siren": {
+        "category": [
+          "Siren"
+        ],
+        "tags": [
+          "Main",
+          "Siren"
+        ]
+      },
+      "Entrance_Siren": {
+        "category": [
+          "Siren"
+        ],
+        "tags": [
+          "Entrance",
+          "Siren"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 10000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#ContactSensor).contactSensor_contact == true)\\n\\n    active = 1\\n\\n}\\n\\n(#Siren).siren_setSirenMode(\\\"police\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 10000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#ContactSensor).contactSensor_contact == true)\\n\\n    active = 1\\n\\n}\\n\\n(#Siren).siren_setSirenMode(\\\"police\\\")\"}"
+  },
+  {
+    "index": "18",
+    "category": "8",
+    "command_kor": "현관문이 열리면 그 후부터 5분마다 금고를 체크해서 잠겨있지 않으면 스피커로 금고가 열려있다고 출력해줘.",
+    "command_eng": "Once the entrance door is opened, check the safe every 5 minutes thereafter and announce \"The safe is open\" through the speaker if it's not locked.",
+    "connected_devices": {
+      "Entrance_Door": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Entrance",
+          "Door"
+        ]
+      },
+      "Garage_Door": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Garage",
+          "Door"
+        ]
+      },
+      "Main_Safe": {
+        "category": [
+          "Safe"
+        ],
+        "tags": [
+          "Main",
+          "Safe"
+        ]
+      },
+      "Bedroom_Safe": {
+        "category": [
+          "Safe"
+        ],
+        "tags": [
+          "Bedroom",
+          "Safe"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 300000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#Entrance #Door).door_doorState == \\\"open\\\")\\n\\n    active = 1\\n\\n}\\n\\nif ((#Safe).safe_safeState != \\\"closed\\\") {\\n\\n    (#Speaker).speaker_speak(\\\"금고가 열려있습니다\\\")\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 300000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#Entrance #Door).door_doorState == \\\"open\\\")\\n\\n    active = 1\\n\\n}\\n\\nif ((#Safe).safe_safeState != \\\"closed\\\") {\\n\\n    (#Speaker).speaker_speak(\\\"금고가 열려있습니다\\\")\\n\\n}\"}"
+  },
+  {
+    "index": "19",
+    "category": "8",
+    "command_kor": "누수가 감지되면 즉시 밸브를 잠그고, 그 이후로 1분마다 스피커로 \"누수가 감지되었습니다. 대피하세요\"라고 출력해줘.",
+    "command_eng": "When a leak is detected, close the valve immediately and then speak \"Leak detected. Please evacuate.\" through the speaker every minute thereafter.",
+    "connected_devices": {
+      "Basement_Leak": {
+        "category": [
+          "LeakSensor"
+        ],
+        "tags": [
+          "Basement",
+          "LeakSensor"
+        ]
+      },
+      "Kitchen_Leak": {
+        "category": [
+          "LeakSensor"
+        ],
+        "tags": [
+          "Kitchen",
+          "LeakSensor"
+        ]
+      },
+      "Main_Valve": {
+        "category": [
+          "Valve"
+        ],
+        "tags": [
+          "Main",
+          "Valve"
+        ]
+      },
+      "Garden_Valve": {
+        "category": [
+          "Valve"
+        ],
+        "tags": [
+          "Garden",
+          "Valve"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#LeakSensor).leakSensor_leakage == \\\"detected\\\")\\n\\n    (#Valve).valve_close()\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"누수가 감지되었습니다. 대피하세요\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#LeakSensor).leakSensor_leakage == \\\"detected\\\")\\n\\n    (#Valve).valve_close()\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"누수가 감지되었습니다. 대피하세요\\\")\"}"
+  },
+  {
+    "index": "20",
+    "category": "8",
+    "command_kor": "연기가 감지되면, 그 이후로 1분마다 긴급 사이렌을 5초간 울려줘.",
+    "command_eng": "When smoke is detected, sound the emergency siren for 5 seconds every minute thereafter.",
+    "connected_devices": {
+      "Kitchen_Smoke": {
+        "category": [
+          "SmokeDetector"
+        ],
+        "tags": [
+          "Kitchen",
+          "SmokeDetector"
+        ]
+      },
+      "Bedroom_Smoke": {
+        "category": [
+          "SmokeDetector"
+        ],
+        "tags": [
+          "Bedroom",
+          "SmokeDetector"
+        ]
+      },
+      "Main_Siren": {
+        "category": [
+          "Siren",
+          "Switch"
+        ],
+        "tags": [
+          "Main",
+          "Siren"
+        ]
+      },
+      "Entrance_Siren": {
+        "category": [
+          "Siren",
+          "Switch"
+        ],
+        "tags": [
+          "Entrance",
+          "Siren"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#SmokeDetector).smokeDetector_smoke == true)\\n\\n    active = 1\\n\\n}\\n\\n(#Siren).siren_setSirenMode(\\\"fire\\\")\\n\\ndelay(5 SEC)\\n\\n(#Siren).switch_off()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 60000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#SmokeDetector).smokeDetector_smoke == true)\\n\\n    active = 1\\n\\n}\\n\\n(#Siren).siren_setSirenMode(\\\"fire\\\")\\n\\ndelay(5 SEC)\\n\\n(#Siren).switch_off()\"}"
+  },
+  {
+    "index": "21",
+    "category": "8",
+    "command_kor": "자정이 되면 문을 닫고, 오전 6시까지 한 시간마다 조명을 체크해서 밝기가 30보다 크면 10으로 낮춰줘.",
+    "command_eng": "At midnight, close the door and check the light every hour until 6 AM; if the brightness is greater than 30, lower it to 10.",
+    "connected_devices": {
+      "Entrance_Door": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Entrance",
+          "Door"
+        ]
+      },
+      "Garage_Door": {
+        "category": [
+          "Door"
+        ],
+        "tags": [
+          "Garage",
+          "Door"
+        ]
+      },
+      "Main_Clock": {
+        "category": [
+          "Clock"
+        ],
+        "tags": [
+          "Main",
+          "Clock"
+        ]
+      },
+      "Backup_Clock": {
+        "category": [
+          "Clock"
+        ],
+        "tags": [
+          "Backup",
+          "Clock"
+        ]
+      },
+      "Living_Light": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Living",
+          "Light",
+          "LevelControl"
+        ]
+      },
+      "Bedroom_Light": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Bedroom",
+          "Light",
+          "LevelControl"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"0 0 * * *\", \"period\": 3600000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    (#Door).door_close()\\n\\n    active = 1\\n\\n}\\n\\nif ((#Clock).clock_hour == 6) {\\n\\n    break\\n\\n}\\n\\nif ((#Light).light_currentBrightness > 30) {\\n\\n    (#Light).light_moveToBrightness(10, 0.0)\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"0 0 * * *\", \"period\": 3600000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    (#Door).door_close()\\n\\n    active = 1\\n\\n}\\n\\nif ((#Clock).clock_hour == 6) {\\n\\n    break\\n\\n}\\n\\nif ((#Light).light_currentBrightness > 30) {\\n\\n    (#Light).light_moveToBrightness(10, 0.0)\\n\\n}\"}"
+  },
+  {
+    "index": "22",
+    "category": "8",
+    "command_kor": "충전기 전압이 4V 이하로 떨어지면, 그 이후로 30분마다 \"충전 전압이 낮습니다\"라고 스피커로 말해줘.",
+    "command_eng": "When the charger voltage drops to 4V or lower, speak \"The charging voltage is low\" through the speaker every 30 minutes thereafter.",
+    "connected_devices": {
+      "Main_Charger": {
+        "category": [
+          "Charger"
+        ],
+        "tags": [
+          "Main",
+          "Charger"
+        ]
+      },
+      "Garage_Charger": {
+        "category": [
+          "Charger"
+        ],
+        "tags": [
+          "Garage",
+          "Charger"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 1800000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#Charger).charger_voltage <= 4000)\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"충전 전압이 낮습니다\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 1800000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#Charger).charger_voltage <= 4000)\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"충전 전압이 낮습니다\\\")\"}"
+  },
+  {
+    "index": "23",
+    "category": "8",
+    "command_kor": "연기가 감지되면 스피커로 화재를 알리고, 그 이후로 5분마다 test@example.com으로 \"화재 경고\"라는 제목과 \"화재가 발생했습니다. 대피하세요\"라는 내용의 이메일을 보내줘.",
+    "command_eng": "When smoke is detected, announce it through the speaker and then send an email every 5 minutes thereafter to \"test@example.com\" with the subject \"Fire Warning\" and the content \"A fire has occurred. Please evacuate.\".",
+    "connected_devices": {
+      "Kitchen_Smoke": {
+        "category": [
+          "SmokeDetector"
+        ],
+        "tags": [
+          "Kitchen",
+          "SmokeDetector"
+        ]
+      },
+      "Bedroom_Smoke": {
+        "category": [
+          "SmokeDetector"
+        ],
+        "tags": [
+          "Bedroom",
+          "SmokeDetector"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      },
+      "EmailProvider": {
+        "category": [
+          "EmailProvider"
+        ],
+        "tags": [
+          "EmailProvider"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 300000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#SmokeDetector).smokeDetector_smoke == true)\\n\\n    (#Speaker).speaker_speak(\\\"화재 발생! 즉시 대피하세요.\\\" )\\n\\n    active = 1\\n\\n}\\n\\n(#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"화재 경고\\\", \\\"화재가 발생했습니다. 대피하세요.\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 300000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#SmokeDetector).smokeDetector_smoke == true)\\n\\n    (#Speaker).speaker_speak(\\\"화재 발생! 즉시 대피하세요.\\\" )\\n\\n    active = 1\\n\\n}\\n\\n(#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"화재 경고\\\", \\\"화재가 발생했습니다. 대피하세요.\\\")\"}"
+  },
+  {
+    "index": "24",
+    "category": "8",
+    "command_kor": "건조가 끝나면, 그 이후로 10분마다 '세탁물을 꺼내세요'라고 스피커로 말해줘.",
+    "command_eng": "When the drying is finished, say 'Please take out the laundry' through the speaker every 10 minutes thereafter.",
+    "connected_devices": {
+      "Main_LaundryDryer": {
+        "category": [
+          "LaundryDryer"
+        ],
+        "tags": [
+          "Main",
+          "LaundryDryer"
+        ]
+      },
+      "Garage_LaundryDryer": {
+        "category": [
+          "LaundryDryer"
+        ],
+        "tags": [
+          "Garage",
+          "LaundryDryer"
+        ]
+      },
+      "Living_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Living",
+          "Speaker"
+        ]
+      },
+      "Bedroom_Speaker": {
+        "category": [
+          "Speaker"
+        ],
+        "tags": [
+          "Bedroom",
+          "Speaker"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 600000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#LaundryDryer).laundryDryer_spinSpeed == 0)\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"세탁물을 꺼내세요\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 600000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#LaundryDryer).laundryDryer_spinSpeed == 0)\\n\\n    active = 1\\n\\n}\\n\\n(#Speaker).speaker_speak(\\\"세탁물을 꺼내세요\\\")\"}"
+  },
+  {
+    "index": "25",
+    "category": "8",
+    "command_kor": "움직임이 감지되면 그 뒤로 10초마다 사진을 찍어줘.",
+    "command_eng": "When motion is detected, capture an image every 10 seconds thereafter.",
+    "connected_devices": {
+      "Entrance_Motion": {
+        "category": [
+          "MotionSensor"
+        ],
+        "tags": [
+          "Entrance",
+          "MotionSensor"
+        ]
+      },
+      "Garage_Motion": {
+        "category": [
+          "MotionSensor"
+        ],
+        "tags": [
+          "Garage",
+          "MotionSensor"
+        ]
+      },
+      "Entrance_Camera": {
+        "category": [
+          "Camera"
+        ],
+        "tags": [
+          "Entrance",
+          "Camera"
+        ]
+      },
+      "Garage_Camera": {
+        "category": [
+          "Camera"
+        ],
+        "tags": [
+          "Garage",
+          "Camera"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 10000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#MotionSensor).motionSensor_motion == true)\\n\\n    active = 1\\n\\n}\\n\\n(#Camera).camera_captureImage()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 10000, \"script\": \"\\nactive := 0\\n\\nif (active == 0) {\\n\\n    wait until ((#MotionSensor).motionSensor_motion == true)\\n\\n    active = 1\\n\\n}\\n\\n(#Camera).camera_captureImage()\"}"
+  },
+  {
+    "index": "26",
+    "category": "8",
+    "command_kor": "습도가 50% 이상이 될 때마다, 그룹1 태그가 붙은 제습기를 모두 건조모드로 작동시켜.",
+    "command_eng": "Whenever the humidity reaches 50% or higher, set all dehumidifiers with the Group 1 tag to drying mode.",
+    "connected_devices": {
+      "G1_Humidity": {
+        "category": [
+          "HumiditySensor"
+        ],
+        "tags": [
+          "Group1",
+          "HumiditySensor"
+        ]
+      },
+      "G2_Humidity": {
+        "category": [
+          "HumiditySensor"
+        ],
+        "tags": [
+          "Group2",
+          "HumiditySensor"
+        ]
+      },
+      "G1_Dehum_1": {
+        "category": [
+          "Dehumidifier"
+        ],
+        "tags": [
+          "Group1",
+          "Dehumidifier"
+        ]
+      },
+      "G1_Dehum_2": {
+        "category": [
+          "Dehumidifier"
+        ],
+        "tags": [
+          "Group1",
+          "Dehumidifier"
+        ]
+      },
+      "G2_Dehum": {
+        "category": [
+          "Dehumidifier"
+        ],
+        "tags": [
+          "Group2",
+          "Dehumidifier"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#HumiditySensor).humiditySensor_humidity >= 50) {\\n    if (triggered == false) {\\n        all(#Group1 #Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#HumiditySensor).humiditySensor_humidity >= 50) {\\n    if (triggered == false) {\\n        all(#Group1 #Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "27",
+    "category": "8",
+    "command_kor": "조도가 200럭스보다 낮아질 때마다 모든 조명을 켜줘.",
+    "command_eng": "Whenever the brightness drops below 200 lux, turn on all lights.",
+    "connected_devices": {
+      "LightSens": {
+        "category": [
+          "LightSensor"
+        ],
+        "tags": [
+          "LightSensor"
+        ]
+      },
+      "LR_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "LivingRoom",
+          "Light",
+          "Switch"
+        ]
+      },
+      "Out_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Outdoor",
+          "Light",
+          "Switch"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#LightSensor).lightSensor_brightness < 200) {\\n    if (triggered == false) {\\n        all(#Light).switch_on()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#LightSensor).lightSensor_brightness < 200) {\\n    if (triggered == false) {\\n        all(#Light).switch_on()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "28",
+    "category": "8",
+    "command_kor": "상단부에 있는 조명이 켜질 때마다, 하단부에 있는 조명도 켜줘.",
+    "command_eng": "Whenever a light in the upper part is turned on, turn on a light in the lower part as well.",
+    "connected_devices": {
+      "Up_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Top",
+          "Light",
+          "Switch"
+        ]
+      },
+      "Down_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Bottom",
+          "Light",
+          "Switch"
+        ]
+      },
+      "Mid_Light": {
+        "category": [
+          "Light",
+          "Switch"
+        ],
+        "tags": [
+          "Middle",
+          "Light",
+          "Switch"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Top #Light).switch_switch == true) {\\n    if (triggered == false) {\\n        (#Bottom #Light).switch_on()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Top #Light).switch_switch == true) {\\n    if (triggered == false) {\\n        (#Bottom #Light).switch_on()\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "29",
+    "category": "8",
+    "command_kor": "조명 태그가 붙은 버튼이 눌릴때마다, 홀수 태그가 붙은 모든 조명의 밝기를 최대로 밝혀줘.",
+    "command_eng": "Whenever the button with the 'Light' tag is pressed, set the brightness of all lights with 'Odd' tags to maximum.",
+    "connected_devices": {
+      "L_Button": {
+        "category": [
+          "Button"
+        ],
+        "tags": [
+          "Light",
+          "Button"
+        ]
+      },
+      "R_Button": {
+        "category": [
+          "Button"
+        ],
+        "tags": [
+          "Robot",
+          "Button"
+        ]
+      },
+      "Odd_Light_1": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Odd",
+          "Light",
+          "LevelControl"
+        ]
+      },
+      "Odd_Light_2": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Odd",
+          "Light",
+          "LevelControl"
+        ]
+      },
+      "Even_Light": {
+        "category": [
+          "Light",
+          "LevelControl"
+        ],
+        "tags": [
+          "Even",
+          "Light",
+          "LevelControl"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Light #Button).button_button == \\\"pushed\\\") {\\n    if (triggered == false) {\\n        all(#Odd #Light).light_moveToBrightness(100, 0.0)\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Light #Button).button_button == \\\"pushed\\\") {\\n    if (triggered == false) {\\n        all(#Odd #Light).light_moveToBrightness(100, 0.0)\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  },
+  {
+    "index": "30",
+    "category": "8",
+    "command_kor": "로봇 태그가 붙은 버튼이 눌릴때마다, 짝수 태그 로봇청소기들을 모두 자동모드로 작동시켜줘.",
+    "command_eng": "Every time the button with the 'Robot' tag is pressed, set all robot vacuum cleaners with 'Even' tags to auto mode.",
+    "connected_devices": {
+      "R_Button": {
+        "category": [
+          "Button"
+        ],
+        "tags": [
+          "Robot",
+          "Button"
+        ]
+      },
+      "L_Button": {
+        "category": [
+          "Button"
+        ],
+        "tags": [
+          "Light",
+          "Button"
+        ]
+      },
+      "Even_Robot_1": {
+        "category": [
+          "RobotVacuumCleaner"
+        ],
+        "tags": [
+          "Even",
+          "RobotVacuumCleaner"
+        ]
+      },
+      "Even_Robot_2": {
+        "category": [
+          "RobotVacuumCleaner"
+        ],
+        "tags": [
+          "Even",
+          "RobotVacuumCleaner"
+        ]
+      },
+      "Odd_Robot": {
+        "category": [
+          "RobotVacuumCleaner"
+        ],
+        "tags": [
+          "Odd",
+          "RobotVacuumCleaner"
+        ]
+      }
+    },
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Robot #Button).button_button == \\\"pushed\\\") {\\n    if (triggered == false) {\\n        all(#Even #RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 100, \"script\": \"triggered := false\\nif ((#Robot #Button).button_button == \\\"pushed\\\") {\\n    if (triggered == false) {\\n        all(#Even #RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}"
+  }
+]

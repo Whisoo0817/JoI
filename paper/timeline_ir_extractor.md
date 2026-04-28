@@ -32,8 +32,8 @@ The three trigger words `if`, `when`, `whenever` / `every time` produce **DIFFER
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"wait","cond":"Light.value == \"on\"","edge":"none"},
-  {"op":"call","target":"Light.off","args":{}}
+  {"op":"wait","cond":"Light.Value == \"on\"","edge":"none"},
+  {"op":"call","target":"Light.Off","args":{}}
 ]}
 ```
 
@@ -54,11 +54,15 @@ Output ONLY a single JSON object. No prose, no markdown, no code fences.
 
 1. `{"op":"start_at","anchor":"now"}` — scenario starts immediately.
 2. `{"op":"start_at","anchor":"cron","cron":"<5-field cron>"}` — scenario starts at each cron firing.
-3. `{"op":"wait","cond":"<expr>","edge":"none|rising|falling"}` — block until `cond` true. `edge:"none"` is a level check (fires if already true). `edge:"rising"` requires a false→true transition. `edge:"falling"` requires true→false.
+3. `{"op":"wait","cond":"<expr>","edge":"none|rising"}` — block until `cond` true. `edge:"none"` is a level check (fires if already true). `edge:"rising"` requires a false→true transition. Use `edge:"rising"` with a **negated cond** for "stops/no longer holds" cases (e.g., `cond:"Rain == false"`) — do NOT emit `edge:"falling"`.
 4. `{"op":"delay","ms":<int>}` — pause for N milliseconds.
 5. `{"op":"read","var":"<name>","src":"<Device.attr>"}` — snapshot a value to a local variable for later reuse. ONLY use this if the same attribute must be compared across different time points. Otherwise reference `Device.attr` directly in an expression.
-6. `{"op":"call","target":"<Device.method>","args":{ "<k>":<literal-or-expr-string>, ... }}` — perform an action.
-7. `{"op":"if","cond":"<expr>","then":[<step>,...],"else":[<step>,...]}` — one-shot branch.
+6. `{"op":"call","target":"<Device.method>","args":{ "<k>":<literal-or-expr-string>, ... }}` — perform an action. **Implicit return binding**: when the called function has a non-VOID return type (per `[Services]`), its return value is automatically available to later steps as `$<MethodName>`, where `<MethodName>` is the last segment of `target` (e.g., `target:"X.GetMenu"` → `$GetMenu`). NEVER invent unbound names like `$result` or `$response`.
+7. `{"op":"if","cond":"<expr>","then":[<step>,...],"else":[<step>,...]}` — one-shot branch. **`cond` MUST be a complete boolean expression with an explicit comparator** (`==`, `!=`, `<`, `>`, `<=`, `>=`). Reading a `value` service does NOT auto-coerce to boolean.
+   - ❌ `cond:"CloudServiceProvider.IsAvailable"` — bare value reference, no comparator
+   - ❌ `cond:"CloudServiceProvider.IsAvailable(true)"` — value services are NOT functions; never call them with `(...)` arguments
+   - ✅ `cond:"CloudServiceProvider.IsAvailable == true"` — explicit comparator with literal
+   - Same applies inside `wait.cond`. Boolean value services (e.g., `RainSensor.Rain`, `Switch.Switch`, `IsAvailable`) MUST be compared to `true`/`false` explicitly.
 8. `{"op":"cycle","until":"<expr>|null","body":[<step>,...]}` — repeat body forever. If `until` is non-null, exit the loop before each iteration when `until` becomes true. `cycle` MUST contain at least one `delay` step in its body (otherwise reject the command).
 9. `{"op":"break"}` — exit nearest `cycle`.
 
@@ -68,20 +72,36 @@ Output ONLY a single JSON object. No prose, no markdown, no code fences.
 
 Used in `cond` and `args` values.
 
-- **Literals**: numbers (`30`, `3.14`), strings (`"cool"`, `"open"`, `"15:00"`), booleans (`true`, `false`).
-- **Device attribute reference**: `Device_id.attr` (e.g., `Light_1.value`, `TempSensor_1.temperature`).
+- **Literals**: numbers (`30`, `3.14`, `1800`), strings (`"cool"`, `"open"`, `"MON"`), booleans (`true`, `false`).
+- **Device attribute reference**: `Category.Attr` (e.g., `Light.Value`, `TempSensor.Temperature`). Use the category name verbatim from `[Services]` — never a device id like `Light_1` or `tc0_xxx`.
 - **Local variable reference**: `$varname` (from a prior `read` step).
-- **Clock reference**: `clock.time` (string `"HH:MM"` today), `clock.date` (string `"MM-DD"` or `"YYYY-MM-DD"`), `clock.dayOfWeek` (`"MON".."SUN"`).
+- **Clock reference**:
+  - `clock.time` — **4-digit zero-padded `hhmm` integer** (midnight = `0000`, 09:05 AM = `0905`, 6 PM = `1800`, 11:59 PM = `2359`). Compare with bare 4-digit integer literals, NEVER strings. ✅ `clock.time >= 1800`. ❌ `clock.time >= "18:00"`. ❌ `clock.time >= 0` for midnight (use `0000`).
+  - `clock.date` — **8-digit zero-padded `YYYYMMdd` string** (e.g. Christmas 2026 = `"20261225"`). NO dashes.
+  - `clock.dayOfWeek` — string (`"MON".."SUN"`).
+- **Prefer `clock.time` over `Clock.Hour` + `Clock.Minute`**. `clock.time` is an IR built-in available without any service call — use it for both time comparisons AND for reading the current time into a variable.
 - **Operators**: `+ - * / ( )`, `== != < > <= >=`, `&& || !`, `abs(x)`.
+- **Functions**: ONLY `abs(x)` is allowed. **`min()`, `max()`, `floor()`, `ceil()`, `round()`, `Math.*` are FORBIDDEN.** Express clamps as a comparison + ternary structure inside an `if` step (the IR `if` op), not as a function call inside an args expression.
+  - ❌ `"Brightness": "max(Light.CurrentBrightness - 10, 0)"` — `max()` not allowed
+  - ✅ Express the clamp via the IR's branching ops (or pass the raw expression `Light.CurrentBrightness - 10` and let the lowering apply the clamp pattern). When uncertain, emit the simplest expression and let the JoI runtime / lowering handle bounds.
 
 ### args value parsing (important)
 - If a string value contains `.`, `$`, or any operator (`+-*/()<>=!&|`), treat it as an expression to evaluate at runtime.
 - Otherwise it is a literal.
 - Examples:
-  - `{"mode":"cool"}` → literal string "cool"
-  - `{"value":5}` → literal number 5
-  - `{"value":"Speaker_1.volume + 5"}` → expression
-  - `{"color":"blue"}` → literal string "blue"
+  - `{"Mode":"cool"}` → literal string "cool"
+  - `{"Value":5}` → literal number 5
+  - `{"Value":"Speaker.Volume + 5"}` → expression
+  - `{"Color":"blue"}` → literal string "blue"
+
+### String args with embedded variables (e.g. Speaker text)
+When a text/message argument needs to embed a variable (like a sensor value read in a prior step), embed `$var` **inside** the string literal. The output MUST remain valid JSON. NEVER write JS-style concatenation with `+` or unquoted `$var` in the JSON.
+
+- ✅ Correct: `{"Text": "The indoor temperature is $temp"}`
+- ❌ Wrong: `{"Text": "The indoor temperature is " + $temp}`  (invalid JSON)
+- ❌ Wrong: `{"Text": "The indoor temperature is " + "$temp"}`  (invalid JSON)
+
+The lowering stage expands `$temp` inside the string into proper concatenation. Your job is just to keep it inline as `$varname` and produce valid JSON.
 
 ---
 
@@ -92,14 +112,21 @@ Used in `cond` and `args` values.
 |---|---|
 | `if X, do Y` | `if(X){Y}` one-shot, no wait. |
 | `when X, do Y` | `wait(X, edge="none")` then Y. One-shot level-trigger wait. |
-| `whenever X, do Y` / `every time X, do Y` | `cycle{ wait(X, edge="rising"); Y }`. |
+| `whenever X, do Y` / `every time X, do Y` | `cycle{ wait(X, edge="rising"); Y }`. **Cond expresses the state to enter.** For "whenever X stops" use `cond:"X == false"` (or the negated comparison) with `edge:"rising"` — do NOT use `edge:"falling"`. |
 
 ### Timing anchors
+
+⚠️ **Cron has 5 fields in this exact order**: `minute hour day-of-month month day-of-week`.
+- Day-of-week is the **5th** field (NOT 4th). `MON`, `TUE`, ..., `SUN`.
+- Day-of-month is the 3rd field. Month is the 4th.
+- Multi-value lists use comma, no spaces: `MON,WED`, `1,15`, `1,3,5`.
+
 | English | IR |
 |---|---|
 | (no time phrase) | `start_at("now")` |
 | `At 3 PM, ...` | `start_at(cron "0 15 * * *")` |
 | `On Monday, ...` / `Every Monday, ...` | `start_at(cron "0 0 * * MON")` |
+| `On Mondays and Wednesdays at 6 AM, ...` | `start_at(cron "0 6 * * MON,WED")` ← **MON,WED in 5th field, not 4th** |
 | `On January 1st, ...` | `start_at(cron "0 0 1 1 *")` |
 | `Every day at 8 AM, ...` | `start_at(cron "0 8 * * *")` |
 
@@ -112,10 +139,18 @@ Used in `cond` and `args` values.
 ### Duration (repeat within a time window)
 | English | IR |
 |---|---|
-| `From HH to HH, every N, ...` | `start_at(cron)` + `cycle(until="clock.time >= end_time"){...}` |
-| `On <holiday/day>, every N, ...` | `start_at(cron)` + `cycle(until="clock.date != <date>"){...}` |
-| `On weekends, every N, ...` | `start_at(cron "0 0 * * SAT")` + `cycle(until="clock.dayOfWeek != \"SAT\" && clock.dayOfWeek != \"SUN\""){...}` |
-| `Until HH, every N, ...` (starting now) | `start_at("now")` + `cycle(until="clock.time >= HH"){...}` |
+| `From HH to HH, every N, ...` | `start_at(cron "0 H_start * * *")` + `cycle(until="clock.time >= H_end00"){...}` (e.g. end at 18 → `clock.time >= 1800`) |
+| `On <holiday/day>, every N, ...` | `start_at(cron)` + `cycle(until="clock.date != \"YYYYMMdd\""){...}` (e.g. `clock.date != "20261225"`) |
+| `On weekends, every N, ...` | `start_at(cron "0 0 * * SAT,SUN")` + `cycle(until="clock.dayOfWeek != \"SAT\" && clock.dayOfWeek != \"SUN\""){...}` |
+| `On weekend mornings/afternoons/evenings/nights, every N, ...` | **2-D window — pin BOTH day AND hour.** cron starts at the **hour-of-day boundary** (e.g., `0 12 * * SAT,SUN` for "afternoons"); cycle.until checks the **end-of-block time** in hhmm integer form (e.g., `clock.time >= 1800`). ⚠️ Do NOT start at midnight — `0 0 * * SAT,SUN` fires at the wrong time. |
+| `On <day> mornings/afternoons/evenings, every N, ...` | Same pattern but single day-of-week (e.g., `0 13 * * MON`, until `clock.time >= 1800`). |
+
+**Time-of-day blocks (treat as "afternoons" / "evenings" etc.)**:
+- morning ≈ 06:00 – 12:00
+- afternoon ≈ 12:00 – 18:00
+- evening ≈ 18:00 – 22:00
+- night ≈ 22:00 – 06:00 (crosses midnight — for these, cron starts at 22:00 and cycle.until uses `clock.hour < 22 && clock.hour >= 6` or similar)
+| `Until HH, every N, ...` (starting now) | `start_at("now")` + `cycle(until="clock.time >= HHmm"){...}` (e.g. until 3 PM → `clock.time >= 1500`) |
 
 ### Delayed / sequential
 | English | IR |
@@ -164,6 +199,18 @@ Reject when:
 
 ---
 
+# Critical IR Rules (read BEFORE the examples)
+
+Examples below conform to these — when ambiguous, fall back to these rules, not pattern-matching the nearest example.
+
+- **R1. Category-only targets + verbatim attrs**: `target`/`src`/`cond` attrs MUST be `Category.Service` exactly as in `[Services]` (e.g. `Light.MoveToBrightness`, `PressureSensor.Pressure`). NEVER suffix with device IDs. NEVER copy an attr name from a similar-looking device in the same expression — `PressureSensor.Pressure` is different from `PresenceSensor.Presence`; check `[Services]` for each one.
+- **R2. Single call for multi-device actions**: "turn on all bedroom lights" → ONE `call` op (`Light.MoveToBrightness`), NEVER one per device. The `all(#Bedroom #Light)` selector fans out downstream.
+- **R3. Argument-vs-delay**: if a service has a duration argument (e.g. `Time: DOUBLE (unit: seconds)` on `RiceCooker.SetCookingParameters`, `Oven.AddMoreTime`), put the value INTO the argument — do NOT emit a separate `delay`. Convert unit per descriptor (e.g. "30 minutes" with `unit: seconds` → `1800`). A trailing `delay` is only for wall-clock pauses AFTER the action completes. Use argument ids verbatim (`Mode`, `Time` — never `mode`, `duration`).
+- **R4. Transition / rate defaults**: when a service has a transition-time / rate argument (e.g. `Rate` on `Light.MoveToBrightness`, 3rd arg of `Light.MoveToColor`, descriptors mentioning "transition time" / "0 for instant"), default to `0` unless the command says "slowly", "over N seconds", "gradually", etc.
+- **R5. Argument format compliance**: if an argument descriptor specifies a structured `format:` (e.g. `[오늘|내일] [장소] [아침|점심|저녁]`, `"HH:MM"`), the **format tokens themselves are literal catalog spec** — preserve them exactly. Fill EVERY slot from the (English) command: today → 오늘 slot; tomorrow → 내일 slot; meal-of-day → meal slot; location words → location slot. NEVER drop a slot — use the most plausible default if implicit.
+
+---
+
 # Examples
 
 ## Example 1 — one-shot action
@@ -171,7 +218,7 @@ Reject when:
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"call","target":"Light_1.on","args":{}}
+  {"op":"call","target":"Light.On","args":{}}
 ]}
 ```
 
@@ -180,11 +227,11 @@ Reject when:
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"if","cond":"TempSensor_1.temperature >= 30",
-    "then":[{"op":"call","target":"AirConditioner_1.setMode","args":{"mode":"cool"}}],
+  {"op":"if","cond":"TempSensor.Temperature >= 30",
+    "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"cool"}}],
     "else":[
-      {"op":"if","cond":"TempSensor_1.temperature < 20",
-        "then":[{"op":"call","target":"AirConditioner_1.setMode","args":{"mode":"heat"}}],
+      {"op":"if","cond":"TempSensor.Temperature < 20",
+        "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"heat"}}],
         "else":[]}
     ]}
 ]}
@@ -195,10 +242,10 @@ Reject when:
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"if","cond":"TempSensor_1.temperature < 20 && HumiditySensor_1.humidity <= 50",
+  {"op":"if","cond":"TempSensor.Temperature < 20 && HumiditySensor.Humidity <= 50",
     "then":[
-      {"op":"call","target":"Light_1.off","args":{}},
-      {"op":"call","target":"Speaker_1.say","args":{"text":"low temperature and low humidity"}}
+      {"op":"call","target":"Light.Off","args":{}},
+      {"op":"call","target":"Speaker.Say","args":{"Text":"low temperature and low humidity"}}
     ],
     "else":[]}
 ]}
@@ -209,31 +256,32 @@ Reject when:
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"wait","cond":"Door_1.value == \"open\"","edge":"none"},
-  {"op":"call","target":"Light_1.on","args":{}}
+  {"op":"wait","cond":"Door.Value == \"open\"","edge":"none"},
+  {"op":"call","target":"Light.On","args":{}}
 ]}
 ```
 
-## Example 5 — `whenever` edge cycle
+## Example 5 — `whenever` edge cycle (incl. "stops" variant via negated cond)
 **Command**: `Whenever the door opens, turn on the light.`
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
   {"op":"cycle","until":null,"body":[
-    {"op":"wait","cond":"Door_1.value == \"open\"","edge":"rising"},
-    {"op":"call","target":"Light_1.on","args":{}}
+    {"op":"wait","cond":"Door.Value == \"open\"","edge":"rising"},
+    {"op":"call","target":"Light.On","args":{}}
   ]}
 ]}
 ```
+**"Stops / no longer holds / becomes false" variant** — same template, just **negate the cond**. Edge stays `"rising"`. Never use `"falling"`. e.g. `Whenever motion stops being detected, turn off the light.` → `wait(cond:"MotionSensor.Detected == false", edge:"rising")` then `Light.Off`.
 
 ## Example 6 — phase lifecycle (wait then periodic)
 **Command**: `When the door opens, turn on the light every 3 minutes.`
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"wait","cond":"Door_1.value == \"open\"","edge":"none"},
+  {"op":"wait","cond":"Door.Value == \"open\"","edge":"none"},
   {"op":"cycle","until":null,"body":[
-    {"op":"call","target":"Light_1.on","args":{}},
+    {"op":"call","target":"Light.On","args":{}},
     {"op":"delay","ms":180000}
   ]}
 ]}
@@ -245,9 +293,9 @@ Reject when:
 {"timeline":[
   {"op":"start_at","anchor":"now"},
   {"op":"cycle","until":null,"body":[
-    {"op":"call","target":"Light_1.setColor","args":{"color":"blue"}},
+    {"op":"call","target":"Light.SetColor","args":{"Color":"blue"}},
     {"op":"delay","ms":5000},
-    {"op":"call","target":"Light_1.setColor","args":{"color":"red"}},
+    {"op":"call","target":"Light.SetColor","args":{"Color":"red"}},
     {"op":"delay","ms":5000}
   ]}
 ]}
@@ -258,7 +306,7 @@ Reject when:
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"cron","cron":"0 0 * * MON"},
-  {"op":"call","target":"Window_1.open","args":{}}
+  {"op":"call","target":"Window.Open","args":{}}
 ]}
 ```
 
@@ -267,9 +315,9 @@ Reject when:
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"cron","cron":"0 9 * * *"},
-  {"op":"if","cond":"MotionSensor_1.detected == true",
-    "then":[{"op":"call","target":"Door_1.open","args":{}}],
-    "else":[{"op":"call","target":"Door_1.close","args":{}}]}
+  {"op":"if","cond":"MotionSensor.Detected == true",
+    "then":[{"op":"call","target":"Door.Open","args":{}}],
+    "else":[{"op":"call","target":"Door.Close","args":{}}]}
 ]}
 ```
 
@@ -278,11 +326,11 @@ Reject when:
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"read","var":"t1","src":"TempSensor_1.temperature"},
+  {"op":"read","var":"t1","src":"TempSensor.Temperature"},
   {"op":"delay","ms":600000},
-  {"op":"read","var":"t2","src":"TempSensor_1.temperature"},
+  {"op":"read","var":"t2","src":"TempSensor.Temperature"},
   {"op":"if","cond":"abs($t2 - $t1) >= 10",
-    "then":[{"op":"call","target":"Light_1.on","args":{}}],
+    "then":[{"op":"call","target":"Light.On","args":{}}],
     "else":[]}
 ]}
 ```
@@ -293,8 +341,8 @@ Reject when:
 {"timeline":[
   {"op":"start_at","anchor":"now"},
   {"op":"cycle","until":null,"body":[
-    {"op":"call","target":"Speaker_1.setVolume","args":{"value":"Speaker_1.volume + 5"}},
-    {"op":"if","cond":"Speaker_1.volume >= 100",
+    {"op":"call","target":"Speaker.SetVolume","args":{"Value":"Speaker.Volume + 5"}},
+    {"op":"if","cond":"Speaker.Volume >= 100",
       "then":[{"op":"break"}],
       "else":[]},
     {"op":"delay","ms":10000}
@@ -302,37 +350,26 @@ Reject when:
 ]}
 ```
 
-## Example 12 — duration "from now until"
-**Command**: `From now until 3 PM, toggle the light every 3 minutes.`
-```json
-{"timeline":[
-  {"op":"start_at","anchor":"now"},
-  {"op":"cycle","until":"clock.time >= \"15:00\"","body":[
-    {"op":"call","target":"Light_1.toggle","args":{}},
-    {"op":"delay","ms":180000}
-  ]}
-]}
-```
-
-## Example 13 — duration "from X to Y"
+## Example 12 — duration "from X to Y" (and "from now until")
 **Command**: `From 2 PM to 6 PM, toggle the light every hour.`
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"cron","cron":"0 14 * * *"},
-  {"op":"cycle","until":"clock.time >= \"18:00\"","body":[
-    {"op":"call","target":"Light_1.toggle","args":{}},
+  {"op":"cycle","until":"clock.time >= 1800","body":[
+    {"op":"call","target":"Light.Toggle","args":{}},
     {"op":"delay","ms":3600000}
   ]}
 ]}
 ```
+**Variant**: `From now until 3 PM, ...` — replace `start_at(cron …)` with `start_at("now")` and adjust the until-time. Same shape.
 
 ## Example 14 — duration "on <holiday>"
-**Command**: `On Christmas, toggle the light every hour.`
+**Command**: `On Christmas (2026), toggle the light every hour.`
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"cron","cron":"0 0 25 12 *"},
-  {"op":"cycle","until":"clock.date != \"12-25\"","body":[
-    {"op":"call","target":"Light_1.toggle","args":{}},
+  {"op":"cycle","until":"clock.date != \"20261225\"","body":[
+    {"op":"call","target":"Light.Toggle","args":{}},
     {"op":"delay","ms":3600000}
   ]}
 ]}
@@ -342,10 +379,23 @@ Reject when:
 **Command**: `On weekends, announce the time through the speaker every 10 minutes.`
 ```json
 {"timeline":[
-  {"op":"start_at","anchor":"cron","cron":"0 0 * * SAT"},
+  {"op":"start_at","anchor":"cron","cron":"0 0 * * SAT,SUN"},
   {"op":"cycle","until":"clock.dayOfWeek != \"SAT\" && clock.dayOfWeek != \"SUN\"","body":[
-    {"op":"call","target":"Speaker_1.sayTime","args":{}},
+    {"op":"call","target":"Speaker.SayTime","args":{}},
     {"op":"delay","ms":600000}
+  ]}
+]}
+```
+
+## Example 15b — 2-D window: weekend AFTERNOONS
+**Command**: `Every 30 minutes on weekend afternoons, run the robot vacuum in auto mode.`
+"Afternoons" = 12:00–18:00. Cron starts at 12:00 on SAT/SUN; cycle exits at 18:00 (end of afternoon). Each weekend day re-fires the cron.
+```json
+{"timeline":[
+  {"op":"start_at","anchor":"cron","cron":"0 12 * * SAT,SUN"},
+  {"op":"cycle","until":"clock.time >= 1800","body":[
+    {"op":"call","target":"RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode","args":{"Mode":"auto"}},
+    {"op":"delay","ms":1800000}
   ]}
 ]}
 ```
@@ -355,11 +405,11 @@ Reject when:
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"wait","cond":"SmokeSensor_1.detected == true","edge":"none"},
+  {"op":"wait","cond":"SmokeSensor.Detected == true","edge":"none"},
   {"op":"cycle","until":null,"body":[
-    {"op":"call","target":"Siren_1.on","args":{}},
+    {"op":"call","target":"Siren.On","args":{}},
     {"op":"delay","ms":5000},
-    {"op":"call","target":"Siren_1.off","args":{}},
+    {"op":"call","target":"Siren.Off","args":{}},
     {"op":"delay","ms":55000}
   ]}
 ]}
@@ -372,20 +422,44 @@ Reject when:
   {"op":"start_at","anchor":"now"},
   {"op":"cycle","until":null,"body":[
     {"op":"delay","ms":2000},
-    {"op":"wait","cond":"TV_1.value == \"on\"","edge":"rising"},
-    {"op":"call","target":"Speaker_1.off","args":{}}
+    {"op":"wait","cond":"TV.Value == \"on\"","edge":"rising"},
+    {"op":"call","target":"Speaker.Off","args":{}}
   ]}
 ]}
 ```
 (Note: the outer `delay(2s)` is the polling cadence. The edge-wait fires on each rising transition observed during polling.)
+
+## Example 18 — function return chained into next call (implicit binding)
+**Command**: `Generate a cat image and save it as cat.png.`
+**Services**:
+```
+CloudServiceProvider.GenerateImage(Prompt: STRING) → BINARY  (function)
+CloudServiceProvider.SaveToFile(Data: BINARY, FilePath: STRING) → STRING  (function)
+```
+```json
+{"timeline":[
+  {"op":"start_at","anchor":"now"},
+  {"op":"call","target":"CloudServiceProvider.GenerateImage","args":{"Prompt":"cat"}},
+  {"op":"call","target":"CloudServiceProvider.SaveToFile","args":{"Data":"$GenerateImage","FilePath":"cat.png"}}
+]}
+```
+(Note: `GenerateImage` returns BINARY. Reference its return implicitly as `$GenerateImage` — the method name. NEVER write `$result` or any other invented name.)
 
 ---
 
 # Input
 You will receive:
 - `[Command]`: the English command.
-- `[Services]`: available devices with their attributes and methods.
+- `[Services]`: the services pre-selected by the intent stage. Each entry has the form:
+    ```
+    Dev.Service  (value|function) - descriptor
+      args:
+        - ArgId: TYPE [{enum_value, ...}] — descriptor (may include unit, e.g. "unit: seconds")
+      returns: TYPE             # for value-type services
+    ```
+  - `(value)` means a sensor reading → emit a `read` op (or use it in `if`/expression).
+  - `(function)` means an action → emit a `call` op.
 
-Use EXACTLY the device ids provided. Do NOT invent device ids or attributes.
+Use ONLY the services listed in `[Services]` and EXACTLY their `Dev.Service` names and argument ids. Do NOT invent services, devices, or argument names.
 
 Output ONLY the JSON object.

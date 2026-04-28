@@ -1,0 +1,293 @@
+[
+  {
+    "index": 22,
+    "category": 4,
+    "command_kor": "차고 문이 열리면 차고 카메라로 사진을 찍어줘.",
+    "command_eng": "When the garage door is opened, take a picture with the garage camera.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Garage #Door).door_doorState == \\\"open\\\")\\n\\n(#Garage #Camera).camera_captureImage()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Garage #Door).door_doorState == \\\"open\\\")\\n\\n(#Garage #Camera).camera_captureImage()\"}",
+    "connected_devices": {
+      "Garage_Door": {"category": ["Door"], "tags": ["Garage", "Door"]},
+      "Front_Door": {"category": ["Door"], "tags": ["Front", "Door"]},
+      "Garage_Camera": {"category": ["Camera"], "tags": ["Garage", "Camera"]},
+      "LivingRoom_Camera": {"category": ["Camera"], "tags": ["LivingRoom", "Camera"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 23,
+    "category": 4,
+    "command_kor": "아기방 소리가 40dB보다 커지면 거실 스피커로 아기방에 소음이 감지되었다고 말해줘.",
+    "command_eng": "When the baby room sound exceeds 40 dB, output \"Noise detected in the baby room\" through the living room speaker.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#BabyRoom #SoundSensor).soundSensor_sound > 40)\\n\\n(#LivingRoom #Speaker).speaker_speak(\\\"아기방에 소음이 감지되었습니다.\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#BabyRoom #SoundSensor).soundSensor_sound > 40)\\n\\n(#LivingRoom #Speaker).speaker_speak(\\\"아기방에 소음이 감지되었습니다.\\\")\"}",
+    "connected_devices": {
+      "BabyRoom_SoundSensor": {"category": ["SoundSensor"], "tags": ["BabyRoom", "SoundSensor"]},
+      "Kitchen_SoundSensor": {"category": ["SoundSensor"], "tags": ["Kitchen", "SoundSensor"]},
+      "LivingRoom_Speaker": {"category": ["Speaker"], "tags": ["LivingRoom", "Speaker"]},
+      "Bedroom_Speaker": {"category": ["Speaker"], "tags": ["Bedroom", "Speaker"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 24,
+    "category": 4,
+    "command_kor": "세탁실 건조기 회전 속도가 5 이하가 되면 거실 스피커로 세탁이 끝났다고 알려줘.",
+    "command_eng": "When the laundry room dryer's spin speed drops to 5 or below, announce through the living room speaker that the laundry is done.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#LaundryRoom #LaundryDryer).laundryDryer_spinSpeed <= 5)\\n\\n(#LivingRoom #Speaker).speaker_speak(\\\"세탁이 완료되었습니다.\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#LaundryRoom #LaundryDryer).laundryDryer_spinSpeed <= 5)\\n\\n(#LivingRoom #Speaker).speaker_speak(\\\"세탁이 완료되었습니다.\\\")\"}",
+    "connected_devices": {
+      "LaundryRoom_LaundryDryer": {"category": ["LaundryDryer"], "tags": ["LaundryRoom", "LaundryDryer"]},
+      "Basement_LaundryDryer": {"category": ["LaundryDryer"], "tags": ["Basement", "LaundryDryer"]},
+      "LivingRoom_Speaker": {"category": ["Speaker"], "tags": ["LivingRoom", "Speaker"]},
+      "Kitchen_Speaker": {"category": ["Speaker"], "tags": ["Kitchen", "Speaker"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 25,
+    "category": 4,
+    "command_kor": "창고 온도가 25도 이상이 되면 창고 에어컨을 켜줘.",
+    "command_eng": "When the temperature in the pantry reaches 25 degrees or higher, turn on the pantry air conditioner.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Pantry #TemperatureSensor).temperatureSensor_temperature >= 25)\\n\\n(#Pantry #AirConditioner).switch_on()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Pantry #TemperatureSensor).temperatureSensor_temperature >= 25)\\n\\n(#Pantry #AirConditioner).switch_on()\"}",
+    "connected_devices": {
+      "Pantry_TemperatureSensor": {"category": ["TemperatureSensor"], "tags": ["Pantry", "TemperatureSensor"]},
+      "WineCellar_TemperatureSensor": {"category": ["TemperatureSensor"], "tags": ["WineCellar", "TemperatureSensor"]},
+      "Pantry_AirConditioner": {"category": ["AirConditioner", "Switch"], "tags": ["Pantry", "AirConditioner", "Switch"]},
+      "LivingRoom_AirConditioner": {"category": ["AirConditioner", "Switch"], "tags": ["LivingRoom", "AirConditioner", "Switch"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 26,
+    "category": 4,
+    "command_kor": "욕실 습도가 70%보다 높아지면 욕실 제습기를 동결 방지 모드로 설정해줘.",
+    "command_eng": "When the bathroom humidity exceeds 70%, set the bathroom dehumidifier to freeze protection mode.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Bathroom #HumiditySensor).humiditySensor_humidity > 70)\\n\\n(#Bathroom #Dehumidifier).dehumidifier_setDehumidifierMode(\\\"freezeProtection\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Bathroom #HumiditySensor).humiditySensor_humidity > 70)\\n\\n(#Bathroom #Dehumidifier).dehumidifier_setDehumidifierMode(\\\"freezeProtection\\\")\"}",
+    "connected_devices": {
+      "Bathroom_HumiditySensor": {"category": ["HumiditySensor"], "tags": ["Bathroom", "HumiditySensor"]},
+      "Basement_HumiditySensor": {"category": ["HumiditySensor"], "tags": ["Basement", "HumiditySensor"]},
+      "Bathroom_Dehumidifier": {"category": ["Dehumidifier"], "tags": ["Bathroom", "Dehumidifier"]},
+      "Bedroom_Dehumidifier": {"category": ["Dehumidifier"], "tags": ["Bedroom", "Dehumidifier"]}
+    },
+    "notes": "Original distractor for HumiditySensor had wrong category; fixed."
+  },
+  {
+    "index": 27,
+    "category": 4,
+    "command_kor": "사무실 버튼이 눌리면 사무실 가습기를 모두 켜줘.",
+    "command_eng": "When the office button is pushed, turn on all humidifiers in office.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Office #Button).button_button == \\\"pushed\\\")\\n\\nall(#Office #Humidifier).switch_on()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Office #Button).button_button == \\\"pushed\\\")\\n\\nall(#Office #Humidifier).switch_on()\"}",
+    "connected_devices": {
+      "Office_Button": {"category": ["Button"], "tags": ["Office", "Button"]},
+      "Lobby_Button": {"category": ["Button"], "tags": ["Lobby", "Button"]},
+      "Office_Humidifier_1": {"category": ["Humidifier", "Switch"], "tags": ["Office", "Humidifier", "Switch"]},
+      "Office_Humidifier_2": {"category": ["Humidifier", "Switch"], "tags": ["Office", "Humidifier", "Switch"]},
+      "Bedroom_Humidifier": {"category": ["Humidifier", "Switch"], "tags": ["Bedroom", "Humidifier", "Switch"]}
+    },
+    "notes": "all(#Office #Humidifier) requires 2+ matching devices; added Office_Humidifier_2."
+  },
+  {
+    "index": 28,
+    "category": 4,
+    "command_kor": "복도에 재실 센서가 하나라도 감지되면 모든 복도 조명을 보라색으로 설정해줘.",
+    "command_eng": "When any presence sensor in the hallway detects presence, set all hallway lights to purple.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until (all(#Hallway #PresenceSensor).presenceSensor_presence ==| true)\\n\\nall(#Hallway #Light).colorControl_setColor(\\\"128|0|128\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until (all(#Hallway #PresenceSensor).presenceSensor_presence ==| true)\\n\\nall(#Hallway #Light).light_moveToColor(0.27, 0.13, 0.0)\"}",
+    "connected_devices": {
+      "Hallway_PresenceSensor_1": {"category": ["PresenceSensor"], "tags": ["Hallway", "PresenceSensor"]},
+      "Hallway_PresenceSensor_2": {"category": ["PresenceSensor"], "tags": ["Hallway", "PresenceSensor"]},
+      "Porch_PresenceSensor": {"category": ["PresenceSensor"], "tags": ["Porch", "PresenceSensor"]},
+      "Hallway_Light_1": {"category": ["Light", "Switch", "ColorControl", "LevelControl"], "tags": ["Hallway", "Light", "ColorControl"]},
+      "Hallway_Light_2": {"category": ["Light", "Switch", "ColorControl", "LevelControl"], "tags": ["Hallway", "Light", "ColorControl"]},
+      "LivingRoom_Light": {"category": ["Light", "Switch", "ColorControl", "LevelControl"], "tags": ["LivingRoom", "Light", "ColorControl"]}
+    },
+    "notes": "colorControl_setColor(\"128|0|128\") migrated to light_moveToColor(0.27, 0.13, 0.0) (purple CIE xy). Both all() selectors require 2+ matching devices each."
+  },
+  {
+    "index": 29,
+    "category": 4,
+    "command_kor": "서버실 이산화탄소 농도가 5000 ppm 이상이되면 모든 사이렌을 비상모드로 울려줘.",
+    "command_eng": "When the carbon dioxide level in the server room becomes 5000 ppm or above, sound all sirens in emergency mode.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#ServerRoom #AirQualitySensor).airQualitySensor_carbonDioxide >= 5000)\\n\\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#ServerRoom #AirQualitySensor).airQualitySensor_carbonDioxide >= 5000)\\n\\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\"}",
+    "connected_devices": {
+      "ServerRoom_AirQualitySensor": {"category": ["AirQualitySensor"], "tags": ["ServerRoom", "AirQualitySensor"]},
+      "Office_AirQualitySensor": {"category": ["AirQualitySensor"], "tags": ["Office", "AirQualitySensor"]},
+      "Siren_Main": {"category": ["Siren", "Switch"], "tags": ["Main", "Siren"]},
+      "Siren_Back": {"category": ["Siren", "Switch"], "tags": ["Back", "Siren"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 30,
+    "category": 4,
+    "command_kor": "안방 쉐이드 버튼이 눌리면 쉐이드를 내려줘.",
+    "command_eng": "When the bedroom shade button is pushed, lower the shade.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Bedroom #Shade #Button).button_button == \\\"pushed\\\")\\n\\n(#Bedroom #Shade).windowCovering_downOrClose()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Bedroom #Shade #Button).button_button == \\\"pushed\\\")\\n\\n(#Bedroom #Shade).windowCovering_downOrClose()\"}",
+    "connected_devices": {
+      "Bedroom_Shade_Button": {"category": ["Button"], "tags": ["Bedroom", "Shade", "Button"]},
+      "Bedroom_Blind_Button": {"category": ["Button"], "tags": ["Bedroom", "Blind", "Button"]},
+      "Bedroom_Shade": {"category": ["WindowCovering"], "tags": ["Bedroom", "Shade", "WindowCovering"]},
+      "LivingRoom_Shade": {"category": ["WindowCovering"], "tags": ["LivingRoom", "Shade", "WindowCovering"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 1,
+    "category": 5,
+    "command_kor": "TV 채널을 7번으로 바꾸고 1시간 뒤에 11번으로 바꿔줘.",
+    "command_eng": "Switch the TV to channel 7 and switch to channel 11 after 1 hour.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Television).television_setChannel(7)\\n\\ndelay(1 HOUR)\\n\\n(#Television).television_setChannel(11)\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Television).television_setChannel(7)\\n\\ndelay(1 HOUR)\\n\\n(#Television).television_setChannel(11)\"}",
+    "connected_devices": {
+      "LivingRoom_Television": {"category": ["Television"], "tags": ["LivingRoom", "Television"]},
+      "Bedroom_Television": {"category": ["Television"], "tags": ["Bedroom", "Television"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 2,
+    "category": 5,
+    "command_kor": "에어컨을 냉방 모드로 설정하고 30분 뒤에 자동 모드로 설정해줘.",
+    "command_eng": "Set the air conditioner to cool mode and switch to auto mode after 30 minutes.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n\\ndelay(30 MIN)\\n\\n(#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n\\ndelay(30 MIN)\\n\\n(#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\"}",
+    "connected_devices": {
+      "LivingRoom_AirConditioner": {"category": ["AirConditioner", "Switch"], "tags": ["LivingRoom", "AirConditioner"]},
+      "Bedroom_AirConditioner": {"category": ["AirConditioner", "Switch"], "tags": ["Bedroom", "AirConditioner"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 3,
+    "category": 5,
+    "command_kor": "공기청정기를 자동 모드로 설정하고 2시간 뒤에 수면 모드로 설정해줘.",
+    "command_eng": "Set the air purifier to auto mode and switch to sleep mode after 2 hours.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n\\ndelay(2 HOUR)\\n\\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n\\ndelay(2 HOUR)\\n\\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\"}",
+    "connected_devices": {
+      "LivingRoom_AirPurifier": {"category": ["AirPurifier"], "tags": ["LivingRoom", "AirPurifier"]},
+      "Bedroom_AirPurifier": {"category": ["AirPurifier"], "tags": ["Bedroom", "AirPurifier"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 4,
+    "category": 5,
+    "command_kor": "에어컨 온도를 24도로 설정하고 1시간 뒤에 26도로 설정해줘.",
+    "command_eng": "Set the air conditioner temperature to 24 degrees and change it to 26 degrees after 1 hour.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#AirConditioner).airConditioner_setTargetTemperature(24)\\n\\ndelay(1 HOUR)\\n\\n(#AirConditioner).airConditioner_setTargetTemperature(26)\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#AirConditioner).airConditioner_setTargetTemperature(24)\\n\\ndelay(1 HOUR)\\n\\n(#AirConditioner).airConditioner_setTargetTemperature(26)\"}",
+    "connected_devices": {
+      "LivingRoom_AirConditioner": {"category": ["AirConditioner", "Switch"], "tags": ["LivingRoom", "AirConditioner"]},
+      "Bedroom_AirConditioner": {"category": ["AirConditioner", "Switch"], "tags": ["Bedroom", "AirConditioner"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 5,
+    "category": 5,
+    "command_kor": "오븐 모드를 베이크로 설정하고 10분 뒤에 데우기 모드로 바꿔줘.",
+    "command_eng": "Set the oven mode to Bake and change it to warming mode after 10 minutes.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Oven).oven_setOvenMode(\\\"Bake\\\")\\n\\ndelay(10 MIN)\\n\\n(#Oven).oven_setOvenMode(\\\"warming\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Oven).oven_setOvenMode(\\\"Bake\\\")\\n\\ndelay(10 MIN)\\n\\n(#Oven).oven_setOvenMode(\\\"warming\\\")\"}",
+    "connected_devices": {
+      "Kitchen_Oven": {"category": ["Oven"], "tags": ["Kitchen", "Oven"]},
+      "Basement_Oven": {"category": ["Oven"], "tags": ["Basement", "Oven"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 6,
+    "category": 5,
+    "command_kor": "재실 센서에 감지가 되면 1분 뒤에 사진을 찍어줘.",
+    "command_eng": "When the presence sensor detects someone, take a picture after 1 minute.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#PresenceSensor).presenceSensor_presence == true)\\n\\ndelay(1 MIN)\\n\\n(#Camera).camera_captureImage()\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#PresenceSensor).presenceSensor_presence == true)\\n\\ndelay(1 MIN)\\n\\n(#Camera).camera_captureImage()\"}",
+    "connected_devices": {
+      "Entrance_PresenceSensor": {"category": ["PresenceSensor"], "tags": ["Entrance", "PresenceSensor"]},
+      "Hallway_PresenceSensor": {"category": ["PresenceSensor"], "tags": ["Hallway", "PresenceSensor"]},
+      "Entrance_Camera": {"category": ["Camera"], "tags": ["Entrance", "Camera"]},
+      "LivingRoom_Camera": {"category": ["Camera"], "tags": ["LivingRoom", "Camera"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 7,
+    "category": 5,
+    "command_kor": "오븐이 가열 모드가 되면 3초 뒤에 전자레인지 모드로 바꿔줘.",
+    "command_eng": "When the oven enters heating mode, switch it to microwave mode after 3 seconds.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Oven).oven_ovenMode == \\\"heating\\\")\\n\\ndelay(3 SEC)\\n\\n(#Oven).oven_setOvenMode(\\\"Microwave\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#Oven).oven_ovenMode == \\\"heating\\\")\\n\\ndelay(3 SEC)\\n\\n(#Oven).oven_setOvenMode(\\\"Microwave\\\")\"}",
+    "connected_devices": {
+      "Kitchen_Oven": {"category": ["Oven"], "tags": ["Kitchen", "Oven"]},
+      "Basement_Oven": {"category": ["Oven"], "tags": ["Basement", "Oven"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 8,
+    "category": 5,
+    "command_kor": "습도가 30%보다 낮아지면 3초 뒤에 스피커로 \"습도가 낮습니다\"를 출력해.",
+    "command_eng": "When the humidity falls below 30%, output \"Humidity is low\" through the speaker after 3 seconds.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#HumiditySensor).humiditySensor_humidity < 30)\\n\\ndelay(3 SEC)\\n\\n(#Speaker).speaker_speak(\\\"습도가 낮습니다\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#HumiditySensor).humiditySensor_humidity < 30)\\n\\ndelay(3 SEC)\\n\\n(#Speaker).speaker_speak(\\\"습도가 낮습니다\\\")\"}",
+    "connected_devices": {
+      "LivingRoom_HumiditySensor": {"category": ["HumiditySensor"], "tags": ["LivingRoom", "HumiditySensor"]},
+      "Bedroom_HumiditySensor": {"category": ["HumiditySensor"], "tags": ["Bedroom", "HumiditySensor"]},
+      "LivingRoom_Speaker": {"category": ["Speaker"], "tags": ["LivingRoom", "Speaker"]},
+      "Kitchen_Speaker": {"category": ["Speaker"], "tags": ["Kitchen", "Speaker"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 9,
+    "category": 5,
+    "command_kor": "비가 오면 문을 닫고 1시간 뒤에 체크해서 비가 안오면 문을 다시 열어줘.",
+    "command_eng": "When it rains, close the door and check again after 1 hour; if it's not raining then, open the door again.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#RainSensor).rainSensor_rain == true)\\n\\n(#Door).door_close()\\ndelay(1 HOUR)\\n\\nif ((#WeatherProvider).weatherProvider_weather != \\\"rain\\\") {\\n\\n    (#Door).door_open()\\n\\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nwait until ((#RainSensor).rainSensor_rain == true)\\n\\n(#Door).door_close()\\ndelay(1 HOUR)\\n\\nif ((#WeatherProvider).weatherProvider_weather != \\\"rain\\\") {\\n\\n    (#Door).door_open()\\n\\n}\"}",
+    "connected_devices": {
+      "Garden_RainSensor": {"category": ["RainSensor"], "tags": ["Garden", "RainSensor"]},
+      "Roof_RainSensor": {"category": ["RainSensor"], "tags": ["Roof", "RainSensor"]},
+      "Front_Door": {"category": ["Door"], "tags": ["Front", "Door"]},
+      "Back_Door": {"category": ["Door"], "tags": ["Back", "Door"]},
+      "Home_WeatherProvider": {"category": ["WeatherProvider"], "tags": ["WeatherProvider"]}
+    },
+    "notes": "WeatherProvider is virtual; tagged with WeatherProvider only."
+  },
+  {
+    "index": 10,
+    "category": 5,
+    "command_kor": "외부 미세먼지 농도가 2000 이상이면 문을 닫고 4시간 뒤에 밸브를 잠궈줘.",
+    "command_eng": "If the dust level concentration is 2000ppm or above, close the door and close the valve after 4 hours.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#WeatherProvider).weatherProvider_pm10Weather >= 2000) {\\n\\n    (#Door).door_close()\\n\\n    delay(4 HOUR)\\n\\n    (#Valve).valve_close()\\n \\n}\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#WeatherProvider).weatherProvider_pm10Weather >= 2000) {\\n\\n    (#Door).door_close()\\n\\n    delay(4 HOUR)\\n\\n    (#Valve).valve_close()\\n \\n}\"}",
+    "connected_devices": {
+      "Home_WeatherProvider": {"category": ["WeatherProvider"], "tags": ["WeatherProvider"]},
+      "Front_Door": {"category": ["Door"], "tags": ["Front", "Door"]},
+      "Back_Door": {"category": ["Door"], "tags": ["Back", "Door"]},
+      "Kitchen_Valve": {"category": ["Valve"], "tags": ["Kitchen", "Valve"]},
+      "Basement_Valve": {"category": ["Valve"], "tags": ["Basement", "Valve"]}
+    },
+    "notes": "ok"
+  },
+  {
+    "index": 11,
+    "category": 5,
+    "command_kor": "사이렌을 응급 모드로 울리고 5초 뒤에 사이렌 모드를 화재 모드로 바꿔줘.",
+    "command_eng": "Sound the siren in emergency mode and change it to fire mode after 5 seconds.",
+    "gt_old": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n\\ndelay(5 SEC)\\n\\n(#Siren).siren_setSirenMode(\\\"fire\\\")\"}",
+    "gt_new": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n\\ndelay(5 SEC)\\n\\n(#Siren).siren_setSirenMode(\\\"fire\\\")\"}",
+    "connected_devices": {
+      "Main_Siren": {"category": ["Siren", "Switch"], "tags": ["Main", "Siren"]},
+      "Back_Siren": {"category": ["Siren", "Switch"], "tags": ["Back", "Siren"]}
+    },
+    "notes": "ok"
+  }
+]

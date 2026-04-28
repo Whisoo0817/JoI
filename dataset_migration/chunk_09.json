@@ -1,0 +1,162 @@
+[
+  {
+    "index": "25",
+    "category": "6",
+    "command_kor": "서버실 온도가 30도 이상이고 에어컨이 꺼져 있으면, 에어컨을 냉방 모드로 켜고 메인 사이렌을 긴급 모드로 울려줘.",
+    "command_eng": "If the server room temperature is 30 degrees or higher and the AC is off, turn it on and sound the main emergency siren.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#ServerRoom #TemperatureSensor).temperatureSensor_temperature >= 30 and (#ServerRoom #AirConditioner).switch_switch == false) {\\n\\n    (#ServerRoom #AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n\\n    (#Main #Siren).siren_setSirenMode(\\\"emergency\\\")\\n\\n}\"}",
+    "connected_devices": "{'Server_Temp': {'category': 'TemperatureSensor', 'tags': ['ServerRoom', 'TemperatureSensor']}, 'Server_AC': {'category': ['AirConditioner', 'Switch'], 'tags': ['ServerRoom', 'AirConditioner', 'Switch']}, 'Main_Siren': {'category': 'Siren', 'tags': ['Main', 'Siren']}}"
+  },
+  {
+    "index": "26",
+    "category": "6",
+    "command_kor": "와인 셀러 온도가 15도 이상이고 습도가 60% 이상이면, 에어컨을 켜고 가습기를 꺼줘.",
+    "command_eng": "If the wine cellar temperature is 15 degrees or higher and humidity is 60% or higher, turn on the air conditioner and turn off the humidifier.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#WineCellar #TemperatureSensor).temperatureSensor_temperature >= 15 and (#WineCellar #HumiditySensor).humiditySensor_humidity >= 60) {\\n\\n    (#AirConditioner).switch_on()\\n\\n    (#Humidifier).switch_off()\\n\\n}\"}",
+    "connected_devices": "{'WineCellar_Temp': {'category': 'TemperatureSensor', 'tags': ['WineCellar', 'TemperatureSensor']}, 'WineCellar_Hum': {'category': 'HumiditySensor', 'tags': ['WineCellar', 'HumiditySensor']}, 'AC': {'category': ['AirConditioner', 'Switch'], 'tags': ['AirConditioner', 'Switch']}, 'WineCellar_Humidifier': {'category': ['Humidifier', 'Switch'], 'tags': ['Humidifier', 'Switch']}}"
+  },
+  {
+    "index": "27",
+    "category": "6",
+    "command_kor": "지하에서 누수가 감지되고 메인 밸브가 열려 있으면, 모든 메인 밸브를 잠그고 경찰 사이렌을 울려줘.",
+    "command_eng": "If a water leak is detected in the basement and the main valve is open, close all main valves and sound the police siren.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#Basement #LeakSensor).leakSensor_leakage == true and (#Main #Valve).valve_valveState == true) {\\n\\n    all(#Main #Valve).valve_close()\\n\\n    (#Siren).siren_setSirenMode(\\\"police\\\")\\n\\n}\"}",
+    "connected_devices": "{'Basement_Leak': {'category': 'LeakSensor', 'tags': ['Basement', 'LeakSensor']}, 'Main_Valve': {'category': 'Valve', 'tags': ['Main', 'Valve']}, 'Siren': {'category': 'Siren', 'tags': ['Siren']}}"
+  },
+  {
+    "index": "28",
+    "category": "6",
+    "command_kor": "창고 미세먼지가 100 이상이고 공기청정기가 자동 모드이면, 모드를 강풍 모드로 바꾸고 창고 스피커로 \"강풍 모드로 전환합니다\"라고 말해줘.",
+    "command_eng": "If the warehouse fine dust level is 100 or higher and the air purifier is in auto mode, switch it to high mode and say through the warehouse speaker \"Switching to high mode\".",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#Warehouse #AirQualitySensor).airQualitySensor_fineDustLevel >= 100 and (#Warehouse #AirPurifier).airPurifier_airPurifierMode == \\\"auto\\\") {\\n\\n    (#Warehouse #AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n\\n    (#Warehouse #Speaker).speaker_speak(\\\"강풍 모드로 전환합니다\\\")\\n\\n}\"}",
+    "connected_devices": "{'Warehouse_AQ': {'category': 'AirQualitySensor', 'tags': ['Warehouse', 'AirQualitySensor']}, 'Warehouse_AP': {'category': 'AirPurifier', 'tags': ['Warehouse', 'AirPurifier']}, 'Warehouse_Speaker': {'category': 'Speaker', 'tags': ['Warehouse', 'Speaker']}}"
+  },
+  {
+    "index": "29",
+    "category": "6",
+    "command_kor": "게스트룸에 움직임이 감지되고 있고 에어컨이 꺼져 있으면, 에어컨을 자동 모드로 설정하고 목표 온도를 24도로 설정해줘.",
+    "command_eng": "If the motion is detected in the guest room and the air conditioner is off, set the air conditioner to auto mode and set the target temperature to 24.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#GuestRoom #MotionSensor).motionSensor_motion == true and (#GuestRoom #AirConditioner).switch_switch == false) {\\n\\n    (#GuestRoom #AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n\\n    (#GuestRoom #AirConditioner).airConditioner_setTargetTemperature(24)\\n\\n}\"}",
+    "connected_devices": "{'GuestRoom_Motion': {'category': 'MotionSensor', 'tags': ['GuestRoom', 'MotionSensor']}, 'GuestRoom_AC': {'category': ['AirConditioner', 'Switch'], 'tags': ['GuestRoom', 'AirConditioner', 'Switch']}}"
+  },
+  {
+    "index": "30",
+    "category": "6",
+    "command_kor": "거실 조명이 켜져 있고 조도가 50 럭스 이상이면, 거실 블라인드를 닫고 에어컨을 자동 모드로 설정해줘.",
+    "command_eng": "If the living room light is on and the illuminance is 50 lux or higher, close the living room blind and set the AC to auto mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 0, \"script\": \"\\nif ((#LivingRoom #Light).switch_switch == true and (#LivingRoom #LightSensor).lightSensor_brightness >= 50) {\\n\\n    (#LivingRoom #Blind).windowCovering_downOrClose()\\n\\n    (#LivingRoom #AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n\\n}\"}",
+    "connected_devices": "{'LivingRoom_Light': {'category': ['Light', 'Switch'], 'tags': ['LivingRoom', 'Light', 'Switch']}, 'LivingRoom_AC': {'category': 'AirConditioner', 'tags': ['LivingRoom', 'AirConditioner']}, 'LivingRoom_Blind': {'category': 'WindowCovering', 'tags': ['LivingRoom', 'Blind', 'WindowCovering']}, 'LivingRoom_LightSensor': {'category': 'LightSensor', 'tags': ['LivingRoom', 'LightSensor']}}"
+  },
+  {
+    "index": "2",
+    "category": "7",
+    "command_kor": "30분마다 체크해서 온도가 20도 이상, 30도 미만이면 에어컨을 자동모드로 설정하고, 30도 이상이면 쿨모드로 설정해줘.",
+    "command_eng": "Every 30 minutes, if the temperature is 20 degrees or higher and below 30 degrees, set the air conditioner to auto mode; if it is 30 degrees or higher, set it to cool mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 1800000, \"script\": \"\\ntemp = (#TemperatureSensor).temperatureSensor_temperature\\n\\nif (temp >= 20 and temp < 30) {\\n\\n    (#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n\\n} else if (temp >= 30) {\\n\\n    (#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n\\n}\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "3",
+    "category": "7",
+    "command_kor": "매일 자정에 도어락을 잠궈줘.",
+    "command_eng": "Lock the doorlock every day at midnight.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 0 * * *\", \"period\": 0, \"script\": \"\\n(#DoorLock).doorLock_lock()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "4",
+    "category": "7",
+    "command_kor": "주말 오후 3시에 누수를 체크해서 감지되면 긴급 사이렌을 울려줘.",
+    "command_eng": "On weekends at 3 PM, check for leakage; if detected, set the siren to emergency mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 15 * * 0,6\", \"period\": 0, \"script\": \"\\nif ((#LeakSensor).leakSensor_leakage == true) {\\n\\n    (#Siren).siren_setSirenMode(\\\"emergency\\\")\\n}\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "5",
+    "category": "7",
+    "command_kor": "매일 아침 7시에 밥솥을 재가열 모드로 설정해줘.",
+    "command_eng": "Set the rice cooker to reheating mode every morning at 7 AM.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 7 * * *\", \"period\": 0, \"script\": \"\\n(#RiceCooker).riceCooker_setRiceCookerMode(\\\"reheating\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "6",
+    "category": "7",
+    "command_kor": "주말 오후에 30분마다 로봇청소기를 자동모드로 작동시켜줘.",
+    "command_eng": "Every 30 minutes on weekend afternoons, set the robot vacuum cleaner to auto mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 12 * * 0,6\", \"period\": 1800000, \"script\": \"\\nif ((#Clock).clock_hour == 0) {\\n\\n    break\\n\\n}\\n\\n(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerModeMode(\\\"auto\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "7",
+    "category": "7",
+    "command_kor": "밤10시부터 자정까지 10분마다 긴급 사이렌을 울려줘.",
+    "command_eng": "From 10 PM to midnight every 10 minutes, sound the emergency siren.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 22 * * *\", \"period\": 600000, \"script\": \"\\nif ((#Clock).clock_hour == 0) {\\n\\n    break\\n\\n}\\n\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "8",
+    "category": "7",
+    "command_kor": "평일 오전 8시부터 자정까지 한 시간마다 카메라로 사진을 찍어줘.",
+    "command_eng": "On weekdays from 8 AM to midnight every hour, capture an image with the camera.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 0,8-23 * * 1-5\", \"period\": 0, \"script\": \"\\n(#Camera).camera_captureImage()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "9",
+    "category": "7",
+    "command_kor": "새해가 되면 로봇팔로 인사해줘.",
+    "command_eng": "When the new year begins, make the arm robot say hello.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 0 1 1 *\", \"period\": 0, \"script\": \"\\n(#ArmRobot).armRobot_hello()\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "10",
+    "category": "7",
+    "command_kor": "평일 오전 7시에 밥솥을 자동청소 모드로 작동해줘.",
+    "command_eng": "On weekdays at 7 AM, start the rice cooker in auto-cleaning mode.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 7 * * 1-5\", \"period\": 0, \"script\": \"\\n(#RiceCooker).riceCooker_setRiceCookerMode(\\\"autoClean\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "11",
+    "category": "7",
+    "command_kor": "월요일과 수요일 오전 6시에 날씨 정보를 스피커로 알려줘.",
+    "command_eng": "At 6 AM on Mondays and Wednesdays, announce the weather information through the speaker.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 6 * * 1,3\", \"period\": 0, \"script\": \"\\n(#Speaker).speaker_speak(\\\"현재 날씨는 \\\" + (#WeatherProvider).weatherProvider_weather + \\\"입니다\\\")\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "12",
+    "category": "7",
+    "command_kor": "1시간마다 스피커 볼륨을 10씩 올려줘.",
+    "command_eng": "Every hour, increase the speaker volume by 10.",
+    "gt": "{\"name\": \"\", \"cron\": \"\", \"period\": 3600000, \"script\": \"\\nnew = (#Speaker).speaker_volume + 10\\n\\nif (new > 100) {\\n\\n    new = 100\\n\\n}\\n\\n(#Speaker).speaker_setVolume(new)\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "13",
+    "category": "7",
+    "command_kor": "월요일 아침 8시마다 금고와 도어락이 모두 잠겨있으면 스피커로 \"안전합니다\"라고 말해줘.",
+    "command_eng": "Every Monday at 8 AM, if both the safe and the door lock are locked, say 'It is safe' through the speaker",
+    "gt": "{\"name\": \"\", \"cron\": \"0 8 * * 1\", \"period\": 0, \"script\": \"\\nif ((#Safe).safe_safeState == \\\"locked\\\" and (#DoorLock).doorLock_doorLockState == \\\"locked\\\") {\\n\\n    (#Speaker).speaker_speak(\\\"안전합니다\\\")\\n\\n}\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "14",
+    "category": "7",
+    "command_kor": "저녁 7시부터 10시까지 30분마다 로봇청소기를 체크해서 멈춰있으면 자동 모드로 실행시켜줘.",
+    "command_eng": "Every 30 minutes from 7 PM to 10 PM, check the robot vacuum cleaner and start it in auto mode if it is stopped.",
+    "gt": "{\"name\": \"\", \"cron\": \"0,30 19-21 * * *\", \"period\": 0, \"script\": \"\\nif ((#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerMode == \\\"stop\\\") {\\n\\n    (#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerModeMode(\\\"auto\\\")\\n\\n}\"}",
+    "connected_devices": ""
+  },
+  {
+    "index": "15",
+    "category": "7",
+    "command_kor": "정오마다 301동 식당의 점심 메뉴를 스피커로 말해줘.",
+    "command_eng": "At noon every day, announce the lunch menu of the 301 building cafeteria through the speaker.",
+    "gt": "{\"name\": \"\", \"cron\": \"0 12 * * *\", \"period\": 0, \"script\": \"\\nmenu = (#MenuProvider).menuProvider_getMenu(\\\"오늘 301동식당 점심\\\")\\n\\n(#Speaker).speaker_speak(\\\"오늘 301동식당의 점심 메뉴는\\\" + menu + \\\"입니다\\\")\"}",
+    "connected_devices": ""
+  }
+]
