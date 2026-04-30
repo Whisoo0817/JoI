@@ -5,7 +5,11 @@ import os
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 
+import httpx
+import openai
+
 from run_local import generate_joi_code, JoiGenerationError
+from schemas import JoiErrorCode, JoiLLMResponse, JoiLog, JoiCodeItem
 from warmup import warmup as sllm_warmup
 
 import uvicorn
@@ -49,7 +53,51 @@ async def warmup_endpoint():
 
 
 
-@app.post("/generate_joi_code")
+def _success_response(result: Dict[str, Any]) -> JoiLLMResponse:
+    """generate_joi_code의 성공 dict를 JoiLLMResponse로 변환."""
+    raw_code = result.get("code")
+    code_field: Optional[Any]
+    if isinstance(raw_code, list):
+        code_field = [JoiCodeItem(**item) if isinstance(item, dict) else item for item in raw_code]
+    else:
+        code_field = raw_code
+
+    log_dict = result.get("log") or {}
+    return JoiLLMResponse(
+        success=True,
+        error_code=JoiErrorCode.SUCCESS,
+        error_message="",
+        code=code_field,
+        command=result.get("command"),
+        log=JoiLog(**log_dict) if isinstance(log_dict, dict) else None,
+    )
+
+
+def _error_response(
+    sentence: str,
+    error_code: int,
+    error_message: str,
+    logs: str = "",
+) -> JoiLLMResponse:
+    return JoiLLMResponse(
+        success=False,
+        error_code=error_code,
+        error_message=error_message,
+        command=sentence,
+        log=JoiLog(logs=logs),
+    )
+
+
+def _classify_exception(exc: Exception) -> int:
+    """vLLM/네트워크 예외를 ErrorCode로 매핑."""
+    if isinstance(exc, (httpx.TimeoutException, openai.APITimeoutError)):
+        return JoiErrorCode.VLLM_TIMEOUT
+    if isinstance(exc, (httpx.ConnectError, openai.APIConnectionError)):
+        return JoiErrorCode.VLLM_UNAVAILABLE
+    return JoiErrorCode.INTERNAL_ERROR
+
+
+@app.post("/generate_joi_code", response_model=JoiLLMResponse)
 async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
     try:
         result = generate_joi_code(
@@ -58,34 +106,25 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             other_params=request.other_params,
             base_url=SLLM_LOCAL_BASE_URL
         )
-        return result
+        return _success_response(result)
     except JoiGenerationError as e:
-        return {
-            "code": "",
-            "merged_command": request.sentence,
-            "log": {
-                "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
-
-                "logs": getattr(e, 'logs', '')
-            },
-            "error": str(e),
-            "error_code": getattr(e, 'error_code', 'unknown')
-        }
+        return _error_response(
+            sentence=request.sentence,
+            error_code=int(getattr(e, "error_code", JoiErrorCode.INTERNAL_ERROR)),
+            error_message=str(e),
+            logs=getattr(e, "logs", ""),
+        )
     except Exception as e:
-        return {
-            "code": "",
-            "merged_command": request.sentence,
-            "log": {
-                "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
+        return _error_response(
+            sentence=request.sentence,
+            error_code=_classify_exception(e),
+            error_message=str(e),
+            logs=str(e),
+        )
 
-                "logs": str(e)
-            },
-            "error": str(e)
-        }
 
-@app.post("/re_generate_joi_code")
+@app.post("/re_generate_joi_code", response_model=JoiLLMResponse)
 async def re_generate_joi_code_endpoint(request: GenerateJOICodeRequest):
-    # Extract modification feedback from other_params
     modification_text = None
     if request.other_params:
         for param in request.other_params:
@@ -94,39 +133,30 @@ async def re_generate_joi_code_endpoint(request: GenerateJOICodeRequest):
                 if mod != "retry":
                     modification_text = mod.replace("extra:", "").strip()
                 break
-                
+
     try:
         result = generate_joi_code(
             sentence=request.sentence,
-            connected_devices={}, # Can be inferred or cached, but run_local logic handles dictionary missing
+            connected_devices={},
             other_params=request.other_params,
             modification=modification_text,
             base_url=SLLM_LOCAL_BASE_URL
         )
-        return result
+        return _success_response(result)
     except JoiGenerationError as e:
-        return {
-            "code": "",
-            "merged_command": request.sentence,
-            "log": {
-                "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
-
-                "logs": getattr(e, 'logs', '')
-            },
-            "error": str(e),
-            "error_code": getattr(e, 'error_code', 'unknown')
-        }
+        return _error_response(
+            sentence=request.sentence,
+            error_code=int(getattr(e, "error_code", JoiErrorCode.INTERNAL_ERROR)),
+            error_message=str(e),
+            logs=getattr(e, "logs", ""),
+        )
     except Exception as e:
-        return {
-            "code": "",
-            "merged_command": request.sentence,
-            "log": {
-                "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
-
-                "logs": str(e)
-            },
-            "error": str(e)
-        }
+        return _error_response(
+            sentence=request.sentence,
+            error_code=_classify_exception(e),
+            error_message=str(e),
+            logs=str(e),
+        )
 
 
 if __name__ == "__main__":

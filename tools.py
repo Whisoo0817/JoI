@@ -364,7 +364,7 @@ def summarize_tool_result(tool_name: str, msg: dict) -> dict:
 
     elif tool_name in ("request_to_joi_llm", "feedback_to_joi_llm"):
         status = result.get("status", "")
-        translated = result.get("merged_command") or (result.get("log") or {}).get("translated_sentence", "")
+        translated = result.get("command") or (result.get("log") or {}).get("translated_sentence", "")
         summary = f"[{tool_name}: {status} - {translated}]"
 
     elif tool_name == "add_scenario":

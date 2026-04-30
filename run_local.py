@@ -9,15 +9,16 @@ from concurrent.futures import ThreadPoolExecutor
 from config import get_client, get_model_id
 from loader import SERVICE_DATA, PROMPTS
 from parser.validator import validate_joi
+from schemas import JoiErrorCode
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 class JoiGenerationError(ValueError):
     """generate_joi_code 내부 오류. logs 속성에 오류 발생 전까지의 로그를 담는다."""
-    def __init__(self, message, logs="", error_code=""):
+    def __init__(self, message, logs="", error_code: int = JoiErrorCode.INTERNAL_ERROR):
         super().__init__(message)
         self.logs = logs
-        self.error_code = error_code
+        self.error_code = int(error_code)
 
 
 def run_llm_inference(model, client, inference_type, messages):
@@ -256,7 +257,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
 
     def run_mapping():
         if not isinstance(connected_devices, dict) or not connected_devices:
-            raise JoiGenerationError("No connected devices provided. IoT mapping requires a device list.", "\n".join(log_buf), error_code="no_devices")
+            raise JoiGenerationError("No connected devices provided. IoT mapping requires a device list.", "\n".join(log_buf), error_code=JoiErrorCode.NO_DEVICES)
         valid_categories = set()
         for v in connected_devices.values():
             cats = v.get("category", [])
@@ -312,7 +313,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
             raise JoiGenerationError(
                 f"Mapped device(s) {missing_descriptors} are not registered in the service list.",
                 "\n".join(log_buf),
-                error_code="missing_descriptor"
+                error_code=JoiErrorCode.MISSING_DESCRIPTOR
             )
 
         raw_selected_services = []
@@ -370,7 +371,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
         # ❇️ Mapping Precision + Quantifier (merged)
         intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
         if not intent_categories:
-            raise JoiGenerationError(f"No services found for the command: '{sentence}'. Category/Intent mapping failed.", "\n".join(log_buf), error_code="no_services")
+            raise JoiGenerationError(f"No services found for the command: '{sentence}'. Category/Intent mapping failed.", "\n".join(log_buf), error_code=JoiErrorCode.NO_SERVICES)
 
         precision_input = f"[Command]\n{sentence}\n[Intent]\n{json.dumps(intent_categories, indent=2, ensure_ascii=False)}\n[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"
         precision_output = infer("mapping_precision", precision_input)
@@ -531,7 +532,7 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
 
     return {
         "code": code_field,
-        "merged_command": merged_command,
+        "command": merged_command,
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "translated_sentence": re.sub(r'["""\'\'\'.,!?。、！？]', '', translated_sentence_kor or translated_sentence).strip(),

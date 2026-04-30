@@ -10,9 +10,9 @@
   웹 프론트엔드      (이삭 서버)            채팅 UI, 세션 목록
 
 [로컬 LLM 서버 — 우리(5090) 관리]
-  vLLM              192.168.0.250:8002    Qwen3.5-9B-AWQ 추론 서버
-  app.py            192.168.0.250:49999   JoI 코드 생성 API
-  joi-agent         192.168.0.250:8012    채팅 에이전트 API (LocalAgentManager)
+  vLLM              http://192.168.0.250:8002    Qwen3.5-9B-AWQ 추론 서버
+  app.py            http://192.168.0.250:49999   JoI 코드 생성 API
+  joi-agent         https://192.168.0.250:8012   채팅 에이전트 API (LocalAgentManager, TLS — self-signed 인증서)
 ```
 
 ## 채팅 데이터 흐름
@@ -67,12 +67,15 @@
 # 1. vLLM (별도 tmux)
 cd /home/ikess/joi-llm/joi_new && bash start_vllm.sh
 
-# 2. app.py (별도 tmux)
+# 2. app.py (별도 tmux) — http, 포트 49999
 cd /home/ikess/joi-llm/joi_new && python app.py
 
-# 3. joi-agent (별도 tmux)
-cd /home/tester/joi-agent && python scripts/run.py
+# 3. joi-agent (별도 tmux) — https, 포트 8012, local 브랜치
+cd /home/tester/joi-agent && git checkout local && ./scripts/run.py
 ```
+
+> joi-agent는 self-signed 인증서로 HTTPS 제공 — 클라이언트는 `https://...` + 인증서 검증 우회 필요 (curl `-k`, requests `verify=False`).
+> 내부 통신(agent → app.py)은 HTTP라 인증서 무관.
 
 ## 주요 환경변수 (.env)
 
