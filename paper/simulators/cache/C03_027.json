@@ -1,0 +1,92 @@
+{
+  "command_eng": "If no one is present in the office, turn off the office air conditioner.",
+  "connected_devices": {
+    "Office_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Office",
+        "PresenceSensor"
+      ]
+    },
+    "Living_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Office_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Living_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Living",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Office #PresenceSensor).presenceSensor_presence == false) {\n(#Office #AirConditioner).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Office #PresenceSensor).presenceSensor_presence == false) {\n(#Office #AirConditioner).switch_off()\n}\"\n}"
+}

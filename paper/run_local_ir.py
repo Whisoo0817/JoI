@@ -5,11 +5,13 @@ Timeline IR extraction. The pipeline is:
 
     [Stage 0] command_merge (if modification)
     [Stage 1] translation (KOR -> ENG)
-    [Stage 2] service_plan: command + full catalogs -> ordered service list
+    [Stage 2] service_plan: command -> ordered service list
     [Stage 3 // parallel]
-        - precision: planned categories -> device selectors
-        - IR branch: NL + planned services -> Timeline IR (timeline_ir.extract_ir)
-    [Stage 4] joi_from_ir lowering: (IR + precision selectors + service details) -> JoI
+        - branch A (resolve + ir): enum_cond_check -> enum_resolve -> arg_resolve
+                                   -> ir_extract (sequential within branch)
+        - branch B (precision): command + selected services -> selector dict
+        IR is selector-free, so branch A no longer depends on branch B.
+    [Stage 4] joi_from_ir lowering (currently DISABLED): IR + precision -> JoI
 
 Service & post-processing helpers are imported from run_local.py to keep a
 single source of truth — DO NOT mutate run_local.py from here.
@@ -163,6 +165,19 @@ def generate_joi_code_ir(
         log_buf.append(log_line)
         return content
 
+    def infer_followup(key, user_input, *, system, prior_user, prior_assistant):
+        """Multi-turn inference that reuses a prior (user, assistant) exchange so
+        the KV cache hits on the shared prefix. The follow-up question goes in as
+        the next user turn."""
+        content, log_line = run_llm_inference(model, client, key, [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prior_user},
+            {"role": "assistant", "content": prior_assistant},
+            {"role": "user", "content": user_input},
+        ])
+        log_buf.append(log_line)
+        return content
+
     # ❇️ Stage 0: Command Merge
     merged_command = sentence
     if modification:
@@ -230,42 +245,6 @@ def generate_joi_code_ir(
             return rt
         return "VOID"
 
-    def _build_full_service_catalog(categories):
-        """Build the full service catalog block (all services per category) for service_plan."""
-        blocks = []
-        for cat in categories:
-            data = SERVICE_DATA.get(cat, {})
-            if not data:
-                continue
-            lines = [f"### {cat}"]
-            for v in data.get("values", []):
-                rt = _format_return(v, is_value=True)
-                lines.append(f"{cat}.{v['id']} (value) → {rt}")
-                desc = v.get("descriptor", "")
-                if desc:
-                    lines.append(f"  {desc}")
-                if v.get("type") == "ENUM" and v.get("format"):
-                    enum_members = data.get("enums_map", {}).get(v["format"], [])
-                    if enum_members:
-                        vals = [m.split(" - ")[0] for m in enum_members]
-                        lines.append(f"  enum values: {{{', '.join(vals)}}}")
-            for fn in data.get("functions", []):
-                arg_strs = [_format_arg(a) for a in fn.get("arguments", [])]
-                rt = _format_return(fn, is_value=False)
-                sig = ", ".join(arg_strs)
-                lines.append(f"{cat}.{fn['id']}({sig}) → {rt}")
-                desc = fn.get("descriptor", "")
-                if desc:
-                    lines.append(f"  {desc}")
-                for a in fn.get("arguments", []):
-                    if a.get("type") == "ENUM" and a.get("format"):
-                        enum_members = data.get("enums_map", {}).get(a["format"], [])
-                        if enum_members:
-                            vals = [m.split(" - ")[0] for m in enum_members]
-                            lines.append(f"  {a['id']} enum values: {{{', '.join(vals)}}}")
-            blocks.append("\n".join(lines))
-        return "\n\n".join(blocks) if blocks else "(no services)"
-
     def _build_device_selection_rules(categories):
         """Concatenate device_rules_*.md content for the planner to read selection guidance."""
         chunks = []
@@ -275,15 +254,13 @@ def generate_joi_code_ir(
                 chunks.append(f"### {cat}\n{rule}")
         return "\n\n".join(chunks) if chunks else "(no device-specific rules)"
 
-    service_catalog_block = _build_full_service_catalog(primary_categories)
     device_rules_block = _build_device_selection_rules(primary_categories)
 
     plan_sys_prompt = PROMPTS.get("service_plan", "")
     plan_input = (
         f"[Command]\n{sentence}\n\n"
         f"[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}\n\n"
-        f"[Service Catalog]\n{service_catalog_block}\n\n"
-        f"[Device Selection Rules]\n{device_rules_block}"
+        f"[Device Rules]\n{device_rules_block}"
     )
     plan_output = infer("service_plan", plan_input, system=plan_sys_prompt)
 
@@ -322,40 +299,60 @@ def generate_joi_code_ir(
             error_code="no_services",
         )
 
-    # ── Stage 3: precision || ir-extract (parallel, both use intent results) ──
-    def _build_intent_services_block(svcs, details):
-        """Build a services block for IR extraction from intent results.
+    # ── Helper builders for resolve / precision / ir-extract stages ──
+    def _is_enum_value_service(s):
+        if '.' not in s:
+            return False
+        dev, svc_name = s.split('.', 1)
+        svc_name_clean = svc_name.replace("()", "")
+        for v in SERVICE_DATA.get(dev, {}).get("values", []):
+            if v.get("id") == svc_name_clean:
+                return v.get("type") == "ENUM"
+        return False
 
-        Format per service:
-            Dev.Service  (value|function)  [- descriptor]
-              args:
-                - ArgId: TYPE [(unit/enum)] - descriptor
-
-        IR LLM uses this to:
-          - distinguish read ops (value) from call ops (function)
-          - know exact argument names, types, units → avoid inventing wrong args
-            or adding redundant delays for time already encoded in arguments
-        """
-        lines = []
-        for s in svcs:
-            if '.' not in s:
-                continue
+    def _build_enum_resolve_input(targets):
+        lines = [f"[Command]\n{sentence}\n", "[ENUM-Value Services]"]
+        for s in targets:
             dev, svc_name = s.split('.', 1)
             svc_name_clean = svc_name.replace("()", "")
+            svc_info = (local_service_details.get(dev) or {}).get(svc_name_clean) or {}
+            descriptor = svc_info.get("descriptor", "") if isinstance(svc_info, dict) else ""
+            header = f"{s}"
+            if descriptor:
+                header += f": {descriptor}"
+            lines.append(header)
+            lines.append("Members:")
+            for member in (svc_info.get("enum_list") or []):
+                if isinstance(member, str) and " - " in member:
+                    val, desc = member.split(" - ", 1)
+                    lines.append(f"  - {val.strip()}: {desc.strip()}")
+                else:
+                    lines.append(f"  - {str(member).strip()}")
+            lines.append("")
+        return "\n".join(lines)
 
-            svc_info = (details.get(dev) or {}).get(svc_name_clean)
-            dev_data = SERVICE_DATA.get(dev, {})
+    def _is_function_service(s):
+        if '.' not in s:
+            return False
+        dev, svc_name = s.split('.', 1)
+        svc_name_clean = svc_name.replace("()", "")
+        dev_data = SERVICE_DATA.get(dev, {})
+        return not any(e["id"] == svc_name_clean for e in dev_data.get("values", []))
 
-            is_value = any(e["id"] == svc_name_clean for e in dev_data.get("values", []))
-            svc_type = "value" if is_value else "function"
-
-            descriptor = (svc_info or {}).get("descriptor", "") if isinstance(svc_info, dict) else ""
-            header = f"{dev}.{svc_name_clean}  ({svc_type})"
+    def _build_arg_resolve_input(svcs, details):
+        """Compact service-detail block for the resolver: id, args+enum, returns."""
+        lines = []
+        for s in svcs:
+            dev, svc_name = s.split('.', 1)
+            svc_name_clean = svc_name.replace("()", "")
+            svc_info = (details.get(dev) or {}).get(svc_name_clean) or {}
+            descriptor = svc_info.get("descriptor", "") if isinstance(svc_info, dict) else ""
+            header = f"{dev}.{svc_name_clean}"
             if descriptor:
                 header += f" - {descriptor}"
             lines.append(header)
 
-            args = (svc_info or {}).get("arguments", []) if isinstance(svc_info, dict) else []
+            args = svc_info.get("arguments", []) if isinstance(svc_info, dict) else []
             if args:
                 lines.append("  args:")
                 for a in args:
@@ -374,56 +371,230 @@ def generate_joi_code_ir(
                     lines.append(line)
 
             if isinstance(svc_info, dict):
+                rt = svc_info.get("return_type")
+                rt_type = rt.get("type", "") if isinstance(rt, dict) else (rt if isinstance(rt, str) else "")
+                if rt_type and rt_type != "VOID":
+                    lines.append(f"  returns: {rt_type}")
+        return "\n".join(lines) if lines else "(no services)"
+
+    enum_value_targets = [s for s in selected_services if _is_enum_value_service(s)]
+    arg_services = [s for s in selected_services if _is_function_service(s)]
+
+    # ── Resolve branch: enum_cond_check → enum_resolve → arg_resolve (sequential within branch) ──
+    def run_resolve_branch():
+        resolved_enum_conds_local = {}
+        if enum_value_targets:
+            yesno_user = (
+                "[ENUM-Value Targets]\n"
+                f"{json.dumps(enum_value_targets, ensure_ascii=False)}\n\n"
+                "For any of these value services, does the command imply a "
+                "condition expression that compares the read value to a SPECIFIC "
+                "enum member (e.g., `Service == \"someMember\"`)? Answer with one "
+                "lowercase word: yes or no."
+            )
+            yesno_raw = infer_followup(
+                "enum_cond_check",
+                user_input=yesno_user,
+                system=PROMPTS.get("enum_cond_check", ""),
+                prior_user=plan_input,
+                prior_assistant=plan_output,
+            )
+            need_enum_resolve = yesno_raw.strip().lower().startswith("yes")
+            log_buf.append(f"🔎 enum_cond_check → {yesno_raw.strip()}")
+
+            if need_enum_resolve:
+                enum_input = _build_enum_resolve_input(enum_value_targets)
+                enum_raw = infer("enum_resolve", enum_input)
+                er_clean = re.sub(r'```(?:json)?\s*', '', enum_raw).strip().rstrip("`").strip()
+                try:
+                    parsed_er = json.loads(er_clean)
+                    if isinstance(parsed_er, dict):
+                        for k, v in parsed_er.items():
+                            if v is None:
+                                continue
+                            if isinstance(v, dict) and "value" in v:
+                                resolved_enum_conds_local[k] = {
+                                    "op": v.get("op", "=="),
+                                    "value": v["value"],
+                                }
+                except Exception:
+                    m_er = re.search(r'\{.*\}', er_clean, re.DOTALL)
+                    if m_er:
+                        try:
+                            parsed_er = json.loads(m_er.group(0))
+                            if isinstance(parsed_er, dict):
+                                for k, v in parsed_er.items():
+                                    if v is None:
+                                        continue
+                                    if isinstance(v, dict) and "value" in v:
+                                        resolved_enum_conds_local[k] = {
+                                            "op": v.get("op", "=="),
+                                            "value": v["value"],
+                                        }
+                        except Exception:
+                            pass
+
+        resolved_args_local = {}
+        if arg_services:
+            arg_resolve_input = (
+                f"[Command]\n{sentence}\n\n"
+                f"[Selected Services]\n{json.dumps(arg_services, ensure_ascii=False)}\n\n"
+                f"[Service Details]\n{_build_arg_resolve_input(arg_services, local_service_details)}"
+            )
+            arg_resolve_raw = infer("arg_resolve", arg_resolve_input)
+            _ar_clean = re.sub(r'<Reasoning>.*?</Reasoning>', '', arg_resolve_raw, flags=re.DOTALL).strip()
+            _ar_clean = re.sub(r'```(?:json)?\s*', '', _ar_clean).strip().rstrip("`").strip()
+            try:
+                parsed_ar = json.loads(_ar_clean)
+                if isinstance(parsed_ar, dict):
+                    resolved_args_local = parsed_ar
+            except Exception:
+                m = re.search(r'\{.*\}', _ar_clean, re.DOTALL)
+                if m:
+                    try:
+                        parsed_ar = json.loads(m.group(0))
+                        if isinstance(parsed_ar, dict):
+                            resolved_args_local = parsed_ar
+                    except Exception:
+                        pass
+
+        return resolved_args_local, resolved_enum_conds_local
+
+    # ── Precision branch: command + selected services → JSON dict of selectors ──
+    def run_precision():
+        precision_input = (
+            f"[Command]\n{sentence}\n\n"
+            f"[Selected Services]\n{json.dumps(selected_services, ensure_ascii=False)}\n\n"
+            f"[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"
+        )
+        raw = infer("mapping_precision", precision_input).strip()
+        cleaned = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
+        cleaned = re.sub(r'```(?:json)?\s*', '', cleaned).strip().rstrip('`').strip()
+        parsed = {}
+        try:
+            obj = json.loads(cleaned)
+            if isinstance(obj, dict):
+                for k, v in obj.items():
+                    if isinstance(v, list):
+                        parsed[k] = [str(s) for s in v if isinstance(s, str)]
+                    elif isinstance(v, str):
+                        parsed[k] = [v]
+        except Exception:
+            m = re.search(r'\{.*\}', cleaned, re.DOTALL)
+            if m:
+                try:
+                    obj = json.loads(m.group(0))
+                    if isinstance(obj, dict):
+                        for k, v in obj.items():
+                            if isinstance(v, list):
+                                parsed[k] = [str(s) for s in v if isinstance(s, str)]
+                            elif isinstance(v, str):
+                                parsed[k] = [v]
+                except Exception:
+                    pass
+        return parsed
+
+    # ── IR extract (sequential, after both branches finish) ──
+    def _build_intent_services_block(svcs, details):
+        """Build a MINIMAL services block for the IR extractor.
+
+        Argument values come from Stage 2.5 (arg_resolve) and ENUM cond
+        comparisons come from Stage 2.4 (enum_resolve) — both surfaced via the
+        `[Resolved Args]` augmentation. The extractor only needs to know, per
+        service:
+          - kind (value or function) — chooses `read` vs `call` op
+          - return type (non-VOID, simple type only) — informs chain/bind decisions
+          - 1-line descriptor — disambiguates intent
+
+        Argument schemas AND ENUM member lists are intentionally OMITTED to
+        prevent the extractor from re-deciding values (those are upstream stages'
+        job).
+
+        Format per service:
+            Dev.Service  (value|function)  → ReturnType  - descriptor
+        """
+        lines = []
+        for s in svcs:
+            if '.' not in s:
+                continue
+            dev, svc_name = s.split('.', 1)
+            svc_name_clean = svc_name.replace("()", "")
+
+            svc_info = (details.get(dev) or {}).get(svc_name_clean)
+            dev_data = SERVICE_DATA.get(dev, {})
+
+            is_value = any(e["id"] == svc_name_clean for e in dev_data.get("values", []))
+            svc_type = "value" if is_value else "function"
+
+            # Return type (skip if VOID for functions; values always have a type)
+            ret_str = ""
+            if isinstance(svc_info, dict):
                 if svc_type == "value":
-                    v_type = svc_info.get("type", "")
-                    if v_type == "ENUM":
-                        enum_vals = [str(v).split(" - ")[0] for v in svc_info.get("enum_list", [])]
-                        if enum_vals:
-                            lines.append(f"  returns: ENUM {{{', '.join(enum_vals)}}}")
-                    elif v_type:
-                        lines.append(f"  returns: {v_type}")
+                    v_type = svc_info.get("type", "") or ""
+                    ret_str = v_type
                 else:
                     rt = svc_info.get("return_type")
                     if isinstance(rt, dict):
-                        rt_type = rt.get("type", "")
+                        rt_type = rt.get("type", "") or ""
                         if rt_type and rt_type != "VOID":
-                            lines.append(f"  returns: {rt_type}")
+                            ret_str = rt_type
                     elif isinstance(rt, str) and rt and rt != "VOID":
-                        lines.append(f"  returns: {rt}")
+                        ret_str = rt
+
+            descriptor = (svc_info or {}).get("descriptor", "") if isinstance(svc_info, dict) else ""
+
+            header = f"{dev}.{svc_name_clean}  ({svc_type})"
+            if ret_str:
+                header += f" → {ret_str}"
+            if descriptor:
+                header += f"  - {descriptor}"
+            lines.append(header)
 
         return "\n".join(lines) if lines else "(no services)"
 
-    def run_precision():
-        precision_input = (
-            f"[Command]\n{sentence}\n[Intent]\n{json.dumps(intent_categories, indent=2, ensure_ascii=False)}"
-            f"\n[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"
-        )
-        return infer("mapping_precision", precision_input).strip()
-
     def run_ir_extract():
         intent_services_block = _build_intent_services_block(selected_services, local_service_details)
-        # Conditionally inject the color name → xy reference when MoveToColor (or
-        # any service taking CIE xy coordinates) is in the planned services.
-        # Keeps the extractor prompt lean for the common case.
-        augmentations = None
-        if any(s.endswith(".MoveToColor") for s in selected_services):
-            augmentations = (
-                "[Color name → xy (CIE 1931) reference]\n"
-                "When a `MoveToColor`-style service requires xy coordinates, look up the color name here and emit numeric doubles. **Do NOT invent xy values.**\n"
-                "| Color | x | y |\n"
-                "|---|---|---|\n"
-                "| red | 0.675 | 0.322 |\n"
-                "| green | 0.408 | 0.517 |\n"
-                "| blue | 0.167 | 0.040 |\n"
-                "| yellow | 0.432 | 0.500 |\n"
-                "| cyan | 0.225 | 0.329 |\n"
-                "| magenta | 0.385 | 0.157 |\n"
-                "| orange | 0.560 | 0.406 |\n"
-                "| purple | 0.279 | 0.142 |\n"
-                "| pink | 0.461 | 0.249 |\n"
-                "| white | 0.313 | 0.329 |\n"
-                "If the color isn't in this table, fall back to white (0.313, 0.329)."
-            )
+
+        # Build the [Resolved Args] augmentation block from arg_resolve output.
+        # Format expected by the extractor prompt:
+        #   Service.Method: {arg: value, ...}
+        # The extractor copies these values verbatim into call.args (no re-decision).
+        aug_parts = []
+        if (isinstance(resolved_args, dict) and resolved_args) or resolved_enum_conds:
+            ra_lines = ["[Resolved Args]",
+                        "Use these argument values verbatim in matching `call` ops. Do NOT invent or override.",
+                        "Services with `{}` have no arguments — emit `args: {}` exactly."]
+            if isinstance(resolved_args, dict):
+                for svc, vals in resolved_args.items():
+                    ra_lines.append(f"  {svc}: {json.dumps(vals, ensure_ascii=False)}")
+            if resolved_enum_conds:
+                ra_lines.append("")
+                ra_lines.append(
+                    "Value-service condition specs (slot directly into `wait`/`if` "
+                    "expressions; do NOT re-decide the operator or right-hand value):"
+                )
+                for svc, spec in resolved_enum_conds.items():
+                    ra_lines.append(f"  {svc}: {json.dumps(spec, ensure_ascii=False)}")
+            aug_parts.append("\n".join(ra_lines))
+
+            # Bind Hints: methods referenced via $<Method> in any later arg value.
+            # arg_resolve is the chain-decision authority; we just propagate.
+            bind_methods = set()
+            _ref_re = re.compile(r'\$([A-Za-z_][A-Za-z0-9_]*)')
+            for vals in resolved_args.values():
+                if isinstance(vals, dict):
+                    for v in vals.values():
+                        if isinstance(v, str):
+                            bind_methods.update(_ref_re.findall(v))
+            hints_body = "\n".join(sorted(bind_methods)) if bind_methods else "(none)"
+            aug_parts.append("[Bind Hints]\n" + hints_body)
+
+        # NOTE: Color name → xy table is owned by arg_resolve (§5.5 in
+        # arg_resolve.md). It populates ColorX/ColorY directly into [Resolved
+        # Args]; the extractor copies them verbatim via R3 and never sees the
+        # table.
+
+        augmentations = "\n\n".join(aug_parts) if aug_parts else None
         try:
             ir, _prompt_tok, _comp_tok, _elapsed = extract_ir(
                 sentence,
@@ -453,18 +624,33 @@ def generate_joi_code_ir(
             )
         return ir
 
+    # ── Stage 3: (resolve → ir_extract) || precision (parallel) ──
+    # Branch A (resolve+ir): enum_cond_check → enum_resolve → arg_resolve → ir_extract
+    #   (sequential within branch; IR is selector-free so no precision dependency).
+    # Branch B (precision): command + selected services → selector dict.
+    # Branches are fully parallel — IR no longer waits for precision.
+    def run_resolve_and_ir_branch():
+        resolved_args_local, resolved_enum_conds_local = run_resolve_branch()
+        # Stash on enclosing names so run_ir_extract picks them up.
+        nonlocal resolved_args, resolved_enum_conds
+        resolved_args = resolved_args_local
+        resolved_enum_conds = resolved_enum_conds_local
+        return run_ir_extract()
+
+    resolved_args = {}
+    resolved_enum_conds = {}
     with ThreadPoolExecutor(max_workers=2) as executor:
+        f_branch_a = executor.submit(run_resolve_and_ir_branch)
         f_precision = executor.submit(run_precision)
-        f_ir = executor.submit(run_ir_extract)
+        ir = f_branch_a.result()
         precision_output = f_precision.result()
-        ir = f_ir.result()
 
     service_details = local_service_details
 
-    # Auto-inject `bind` on prior calls whose method-name suffix is referenced
-    # via `$<MethodName>` in any later step's args/cond. Lets the IR LLM use the
-    # natural `$MethodName` convention without writing `bind` explicitly.
-    def _inject_implicit_binds(ir_obj):
+    # Auto-inject `var` on prior calls whose method-name suffix is referenced
+    # via `$<MethodName>` in any later step's args/cond. Backstop for cases
+    # where the extractor LLM forgets to declare `var`.
+    def _inject_implicit_vars(ir_obj):
         if not isinstance(ir_obj, dict):
             return
         timeline = ir_obj.get("timeline")
@@ -493,7 +679,7 @@ def generate_joi_code_ir(
                     _walk(step.get("else", []) or [])
                 elif step.get("op") == "cycle":
                     _walk(step.get("body", []) or [])
-                if step.get("op") == "call" and "bind" not in step:
+                if step.get("op") == "call" and "var" not in step and "bind" not in step:
                     target = step.get("target", "")
                     method = target.rsplit(".", 1)[-1] if "." in target else target
                     if not method:
@@ -502,94 +688,87 @@ def generate_joi_code_ir(
                     for later in steps[i + 1:]:
                         later_refs |= _collect_refs(later)
                     if method in later_refs:
-                        step["bind"] = method
+                        step["var"] = method
 
         _walk(timeline)
 
-    _inject_implicit_binds(ir)
+    _inject_implicit_vars(ir)
 
     ir_readable = ir_to_readable(ir)
     ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
 
-    # 6. JoI generation from IR — pick bucket-specific lowering prompt
-    bucket = classify_ir(ir)
-    log_buf.append(f"📦 IR bucket: {bucket}")
-    prompt_key = f"joi_from_ir_{bucket}"
-    try:
-        system_prompt = _load_lowering_prompt(bucket)
-    except FileNotFoundError as e:
-        raise JoiGenerationError(
-            f"Lowering prompt missing: {e}",
-            "\n".join(log_buf),
-            error_code="missing_lowering_prompt",
-        )
-
-    joi_input = (
-        f"[Command]\n{sentence}\n\n"
-        f"[Timeline IR]\n{ir_json_str}\n\n"
-        f"[IR Readable]\n{ir_readable}\n\n"
-        f"[Precision Selectors]\n{precision_output}\n\n"
-        f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
-    )
-    joi_code_raw = infer(prompt_key, joi_input, system=system_prompt)
-
-    # Reasoning strip
-    script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
-
-    # The lowering prompt is asked to return a full JSON {name, cron, period, script}.
-    # Try parsing; if it fails (e.g. raw script returned), wrap it.
-    joi_json = {}
-    try:
-        # Pre-fix literal newlines inside "script" string
-        m = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
-        if m:
-            fixed_inner = m.group(1).replace('\n', '\\n')
-            script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
-        joi_json = json.loads(script)
-        if "script" in joi_json:
-            joi_json["script"] = _apply_service_prefix(joi_json["script"])
-            joi_json["script"] = _normalize_script_newlines(joi_json["script"])
-        joi_json.setdefault("name", "Scenario")
-        joi_json = {"name": joi_json.pop("name"), **joi_json}
-        joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
-    except (json.JSONDecodeError, TypeError):
-        # Fallback: treat as raw script body
-        body = _apply_service_prefix(script)
-        joi_json = {
-            "name": "Scenario",
-            "cron": "",
-            "period": 0,
-            "script": _normalize_script_newlines(body),
-        }
-        joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
-
-    # ❇️ Validation
-    try:
-        _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
-    except Exception as e:
-        log_buf.append(f"⚠️ validate_joi warning: {e}")
-
+    # ── Stage 4 (JoI lowering) DISABLED for stage-by-stage IR validation ──
+    # Re-enable by uncommenting the block below.
+    code_pretty = ""
     elapsed = time.perf_counter() - start
-
-    # any → all + |
-    try:
-        joi_json_final = json.loads(joi_code_raw)
-        if "script" in joi_json_final:
-            joi_json_final["script"] = _post_process_joi_any_quantifiers(joi_json_final["script"])
-        joi_code_raw = json.dumps(joi_json_final, indent=2, ensure_ascii=False)
-    except (json.JSONDecodeError, TypeError):
-        joi_code_raw = _post_process_joi_any_quantifiers(joi_code_raw)
-
-    # Render escaped \n inside "script" as real newlines for readability.
-    # Note: this makes `code` non-strict-JSON; consumers needing valid JSON
-    # should parse joi_json_final directly instead.
-    code_pretty = re.sub(
-        r'("script"\s*:\s*")(.*?)(")',
-        lambda m: m.group(1) + m.group(2).replace('\\n', '\n') + m.group(3),
-        joi_code_raw,
-        count=1,
-        flags=re.DOTALL,
-    )
+    # bucket = classify_ir(ir)
+    # log_buf.append(f"📦 IR bucket: {bucket}")
+    # prompt_key = f"joi_from_ir_{bucket}"
+    # try:
+    #     system_prompt = _load_lowering_prompt(bucket)
+    # except FileNotFoundError as e:
+    #     raise JoiGenerationError(
+    #         f"Lowering prompt missing: {e}",
+    #         "\n".join(log_buf),
+    #         error_code="missing_lowering_prompt",
+    #     )
+    #
+    # joi_input = (
+    #     f"[Command]\n{sentence}\n\n"
+    #     f"[Timeline IR]\n{ir_json_str}\n\n"
+    #     f"[IR Readable]\n{ir_readable}\n\n"
+    #     f"[Precision Selectors]\n{precision_output}\n\n"
+    #     f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+    # )
+    # joi_code_raw = infer(prompt_key, joi_input, system=system_prompt)
+    #
+    # script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
+    #
+    # joi_json = {}
+    # try:
+    #     m = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
+    #     if m:
+    #         fixed_inner = m.group(1).replace('\n', '\\n')
+    #         script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
+    #     joi_json = json.loads(script)
+    #     if "script" in joi_json:
+    #         joi_json["script"] = _apply_service_prefix(joi_json["script"])
+    #         joi_json["script"] = _normalize_script_newlines(joi_json["script"])
+    #     joi_json.setdefault("name", "Scenario")
+    #     joi_json = {"name": joi_json.pop("name"), **joi_json}
+    #     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
+    # except (json.JSONDecodeError, TypeError):
+    #     body = _apply_service_prefix(script)
+    #     joi_json = {
+    #         "name": "Scenario",
+    #         "cron": "",
+    #         "period": 0,
+    #         "script": _normalize_script_newlines(body),
+    #     }
+    #     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
+    #
+    # try:
+    #     _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
+    # except Exception as e:
+    #     log_buf.append(f"⚠️ validate_joi warning: {e}")
+    #
+    # elapsed = time.perf_counter() - start
+    #
+    # try:
+    #     joi_json_final = json.loads(joi_code_raw)
+    #     if "script" in joi_json_final:
+    #         joi_json_final["script"] = _post_process_joi_any_quantifiers(joi_json_final["script"])
+    #     joi_code_raw = json.dumps(joi_json_final, indent=2, ensure_ascii=False)
+    # except (json.JSONDecodeError, TypeError):
+    #     joi_code_raw = _post_process_joi_any_quantifiers(joi_code_raw)
+    #
+    # code_pretty = re.sub(
+    #     r'("script"\s*:\s*")(.*?)(")',
+    #     lambda m: m.group(1) + m.group(2).replace('\\n', '\n') + m.group(3),
+    #     joi_code_raw,
+    #     count=1,
+    #     flags=re.DOTALL,
+    # )
 
     return {
         "code": code_pretty,

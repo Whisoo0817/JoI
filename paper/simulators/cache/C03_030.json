@@ -1,0 +1,88 @@
+{
+  "command_eng": "If any door lock in sector 1 is open, sound the sector 1 siren in police mode.",
+  "connected_devices": {
+    "S1_Lock_1": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector1",
+        "DoorLock"
+      ]
+    },
+    "S1_Lock_2": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector1",
+        "DoorLock"
+      ]
+    },
+    "S2_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector2",
+        "DoorLock"
+      ]
+    },
+    "S3_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector3",
+        "DoorLock"
+      ]
+    },
+    "S1_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Sector1",
+        "Siren"
+      ]
+    },
+    "S2_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Sector2",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "DoorLock.DoorLockState == \"open\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "police"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (any(#Sector1 #DoorLock).doorLock_doorLockState == \"open\") {\n(#Sector1 #Siren).siren_setSirenMode(\"police\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (any(#Sector1 #DoorLock).doorLock_doorLockState == \\\"open\\\") {\\n(#Sector1 #Siren).siren_setSirenMode(\\\"police\\\")\\n}\"\n}"
+}

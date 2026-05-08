@@ -1,0 +1,52 @@
+{
+  "command_eng": "If the rice cooker is on keep-warm mode, switch it to cooking mode.",
+  "connected_devices": {
+    "Kitchen_RiceCooker": {
+      "category": [
+        "RiceCooker"
+      ],
+      "tags": [
+        "RiceCooker",
+        "Kitchen"
+      ]
+    },
+    "Pantry_RiceCooker": {
+      "category": [
+        "RiceCooker"
+      ],
+      "tags": [
+        "RiceCooker",
+        "Pantry"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "RiceCooker.RiceCookerMode == \"keepWarm\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "RiceCooker.SetRiceCookerMode",
+            "args": {
+              "Mode": "cooking"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#RiceCooker).riceCooker_riceCookerMode == \"keepWarm\") {\n(#RiceCooker).riceCooker_setRiceCookerMode(\"cooking\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#RiceCooker).riceCooker_riceCookerMode == \\\"keepWarm\\\") {\\n(#RiceCooker).riceCooker_setRiceCookerMode(\\\"cooking\\\")\\n}\"\n}"
+}

@@ -1,0 +1,97 @@
+{
+  "command_eng": "If the garden illuminance is below 50 and the terrace light is off, turn on the light and play an announcement in the garden.",
+  "connected_devices": {
+    "Garden_Illum": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Garden",
+        "LightSensor"
+      ]
+    },
+    "Porch_Illum": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Porch",
+        "LightSensor"
+      ]
+    },
+    "Terrace_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Terrace",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Porch_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Porch",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Garden_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Garden",
+        "Speaker"
+      ]
+    },
+    "Terrace_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Terrace",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LightSensor.Brightness < 50 && Switch.Switch == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "announcement in the garden"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Garden #LightSensor).lightSensor_brightness < 50 and (#Terrace #Light).switch_switch == false) {\n(#Terrace #Light).switch_on()\n(#Garden #Speaker).speaker_speak(\"announcement in the garden\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Garden #LightSensor).lightSensor_brightness < 50 and (#Terrace #Light).switch_switch == false) {\n(#Terrace #Light).switch_on()\n(#Garden #Speaker).speaker_speak(\\\"announcement in the garden\\\")\\n}\"\n}"
+}

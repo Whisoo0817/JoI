@@ -5,37 +5,22 @@ The Timeline IR expresses the command as a linear sequence of time-ordered steps
 
 ---
 
-# ⚠️ CRITICAL — Trigger Word Distinction (read this FIRST)
+# ⚠️ CRITICAL — `wait.edge` is decided STRUCTURALLY (read this FIRST)
 
-The three trigger words `if`, `when`, `whenever` / `every time` produce **DIFFERENT** IR. Confusing them is the most common failure mode.
+The `edge` field of a `wait` step is decided ONLY by where the `wait` lives:
 
-| Word | Behavior | IR pattern |
-|---|---|---|
-| **`if X, do Y`** | Evaluate X once NOW. Branch. Done. | `if` step (no wait, no cycle) |
-| **`when X, do Y`** | Wait until X becomes true ONCE. Do Y. Done. | `wait(edge="none")` + action. **NO cycle. NO rising edge.** |
-| **`whenever X, do Y`** / **`every time X, do Y`** | Repeat forever: each time X transitions false→true, do Y. | `cycle { wait(edge="rising"); Y }` |
+| Position | edge |
+|---|---|
+| `wait` directly in the top-level timeline (one-shot) | **`"none"`** |
+| `wait` inside a `cycle` body (repeat) | **`"rising"`** |
 
-**`when` is ONE-SHOT.** It does NOT repeat. It does NOT use `cycle`. It does NOT use `edge:"rising"`. The correct IR for "when X, do Y" is just two steps after `start_at`:
-```
-{"op":"wait","cond":"X","edge":"none"}
-{"op":"call","target":"Y", ...}
-```
+Do NOT decide `edge` from NL trigger words ("when", "whenever", "if", "감지되면", "눌리면", etc.). The keyword chooses **op** (`if` vs `wait` vs `cycle{wait}`); position chooses **edge**.
 
-**Only `whenever` / `every time` uses `cycle` + `edge:"rising"`.**
-
-❌ WRONG — do NOT produce this for "when the light turns on, turn off the light":
-```
-{"op":"cycle", "body":[{"op":"wait","edge":"rising",...}, ...]}
-```
-
-✅ CORRECT for "when the light turns on, turn off the light":
-```json
-{"timeline":[
-  {"op":"start_at","anchor":"now"},
-  {"op":"wait","cond":"Light.Value == \"on\"","edge":"none"},
-  {"op":"call","target":"Light.Off","args":{}}
-]}
-```
+| Phrase | Op | Position | edge |
+|---|---|---|---|
+| `if X, do Y` | `if` step | n/a | n/a |
+| `when X, do Y` / "X 하면 Y" (one-shot) | `wait` then `call` | top-level | `"none"` |
+| `whenever X, do Y` / `every time X, do Y` | `cycle{wait; Y}` | inside `cycle` | `"rising"` |
 
 ---
 
@@ -54,10 +39,10 @@ Output ONLY a single JSON object. No prose, no markdown, no code fences.
 
 1. `{"op":"start_at","anchor":"now"}` — scenario starts immediately.
 2. `{"op":"start_at","anchor":"cron","cron":"<5-field cron>"}` — scenario starts at each cron firing.
-3. `{"op":"wait","cond":"<expr>","edge":"none|rising"}` — block until `cond` true. `edge:"none"` is a level check (fires if already true). `edge:"rising"` requires a false→true transition. Use `edge:"rising"` with a **negated cond** for "stops/no longer holds" cases (e.g., `cond:"Rain == false"`) — do NOT emit `edge:"falling"`.
+3. `{"op":"wait","cond":"<expr>","edge":"none|rising"}` — block until `cond` true. `edge` is set by position (top-level→`"none"`, inside `cycle`→`"rising"`), never by keyword. For "stops / no longer holds" cases, **negate the cond** (e.g., `cond:"Rain == false"`); never emit `edge:"falling"`.
 4. `{"op":"delay","ms":<int>}` — pause for N milliseconds.
 5. `{"op":"read","var":"<name>","src":"<Device.attr>"}` — snapshot a value to a local variable for later reuse. ONLY use this if the same attribute must be compared across different time points. Otherwise reference `Device.attr` directly in an expression.
-6. `{"op":"call","target":"<Device.method>","args":{ "<k>":<literal-or-expr-string>, ... }}` — perform an action. **Implicit return binding**: when the called function has a non-VOID return type (per `[Services]`), its return value is automatically available to later steps as `$<MethodName>`, where `<MethodName>` is the last segment of `target` (e.g., `target:"X.GetMenu"` → `$GetMenu`). NEVER invent unbound names like `$result` or `$response`.
+6. `{"op":"call","target":"<Device.method>","args":{ "<k>":<literal-or-expr-string>, ... },"var":"<Name>"?}` — perform an action. The optional `var` declares a variable holding the call's return value, parallel to how `read` declares its `var`. Add it ONLY per R-var below.
 7. `{"op":"if","cond":"<expr>","then":[<step>,...],"else":[<step>,...]}` — one-shot branch. **`cond` MUST be a complete boolean expression with an explicit comparator** (`==`, `!=`, `<`, `>`, `<=`, `>=`). Reading a `value` service does NOT auto-coerce to boolean.
    - ❌ `cond:"CloudServiceProvider.IsAvailable"` — bare value reference, no comparator
    - ❌ `cond:"CloudServiceProvider.IsAvailable(true)"` — value services are NOT functions; never call them with `(...)` arguments
@@ -85,23 +70,8 @@ Used in `cond` and `args` values.
   - ❌ `"Brightness": "max(Light.CurrentBrightness - 10, 0)"` — `max()` not allowed
   - ✅ Express the clamp via the IR's branching ops (or pass the raw expression `Light.CurrentBrightness - 10` and let the lowering apply the clamp pattern). When uncertain, emit the simplest expression and let the JoI runtime / lowering handle bounds.
 
-### args value parsing (important)
-- If a string value contains `.`, `$`, or any operator (`+-*/()<>=!&|`), treat it as an expression to evaluate at runtime.
-- Otherwise it is a literal.
-- Examples:
-  - `{"Mode":"cool"}` → literal string "cool"
-  - `{"Value":5}` → literal number 5
-  - `{"Value":"Speaker.Volume + 5"}` → expression
-  - `{"Color":"blue"}` → literal string "blue"
-
-### String args with embedded variables (e.g. Speaker text)
-When a text/message argument needs to embed a variable (like a sensor value read in a prior step), embed `$var` **inside** the string literal. The output MUST remain valid JSON. NEVER write JS-style concatenation with `+` or unquoted `$var` in the JSON.
-
-- ✅ Correct: `{"Text": "The indoor temperature is $temp"}`
-- ❌ Wrong: `{"Text": "The indoor temperature is " + $temp}`  (invalid JSON)
-- ❌ Wrong: `{"Text": "The indoor temperature is " + "$temp"}`  (invalid JSON)
-
-The lowering stage expands `$temp` inside the string into proper concatenation. Your job is just to keep it inline as `$varname` and produce valid JSON.
+### Note on `call.args`
+All `call.args` values come pre-resolved from `[Resolved Args]` (R6). Use them verbatim. The notes below apply only to expressions inside `wait.cond`, `if.cond`, and arithmetic transforms of read-bound vars.
 
 ---
 
@@ -111,8 +81,8 @@ The lowering stage expands `$temp` inside the string into proper concatenation. 
 | English | IR |
 |---|---|
 | `if X, do Y` | `if(X){Y}` one-shot, no wait. |
-| `when X, do Y` | `wait(X, edge="none")` then Y. One-shot level-trigger wait. |
-| `whenever X, do Y` / `every time X, do Y` | `cycle{ wait(X, edge="rising"); Y }`. **Cond expresses the state to enter.** For "whenever X stops" use `cond:"X == false"` (or the negated comparison) with `edge:"rising"` — do NOT use `edge:"falling"`. |
+| `when X, do Y` | `wait(X, edge="none")` then Y. (top-level → `none` per CRITICAL section.) |
+| `whenever X, do Y` / `every time X, do Y` | `cycle{ wait(X, edge="rising"); Y }`. **Cond expresses the state to enter.** For "whenever X stops" use `cond:"X == false"` (or the negated comparison) — never `edge:"falling"`. |
 
 ### Timing anchors
 
@@ -178,8 +148,8 @@ The lowering stage expands `$temp` inside the string into proper concatenation. 
 3. **Detect periodic repetition**: "every N seconds/minutes/hours" → wrap the repeating part in `cycle{...}` with a `delay(N)` inside.
 4. **Detect conditional type**:
    - `if` → `{"op":"if"}` one-shot.
-   - `when` → `{"op":"wait","edge":"none"}` one-shot level.
-   - `whenever` / `every time` → `cycle` + `wait edge:"rising"`.
+   - one-shot block-until-true (`when X, do Y`) → top-level `{"op":"wait","edge":"none"}`.
+   - repeat-on-trigger (`whenever`/`every time`) → `cycle` containing `wait` (edge becomes `"rising"` by position).
 5. **Detect snapshot need**: Is the same device attribute read at two different moments and compared? → use `read` for each capture.
 6. **Reject if ambiguous**: If a `cycle` has no periodic `delay` (e.g. "alternate" with no interval), reject — a period is required.
 
@@ -205,9 +175,14 @@ Examples below conform to these — when ambiguous, fall back to these rules, no
 
 - **R1. Category-only targets + verbatim attrs**: `target`/`src`/`cond` attrs MUST be `Category.Service` exactly as in `[Services]` (e.g. `Light.MoveToBrightness`, `PressureSensor.Pressure`). NEVER suffix with device IDs. NEVER copy an attr name from a similar-looking device in the same expression — `PressureSensor.Pressure` is different from `PresenceSensor.Presence`; check `[Services]` for each one.
 - **R2. Single call for multi-device actions**: "turn on all bedroom lights" → ONE `call` op (`Light.MoveToBrightness`), NEVER one per device. The `all(#Bedroom #Light)` selector fans out downstream.
-- **R3. Argument-vs-delay**: if a service has a duration argument (e.g. `Time: DOUBLE (unit: seconds)` on `RiceCooker.SetCookingParameters`, `Oven.AddMoreTime`), put the value INTO the argument — do NOT emit a separate `delay`. Convert unit per descriptor (e.g. "30 minutes" with `unit: seconds` → `1800`). A trailing `delay` is only for wall-clock pauses AFTER the action completes. Use argument ids verbatim (`Mode`, `Time` — never `mode`, `duration`).
-- **R4. Transition / rate defaults**: when a service has a transition-time / rate argument (e.g. `Rate` on `Light.MoveToBrightness`, 3rd arg of `Light.MoveToColor`, descriptors mentioning "transition time" / "0 for instant"), default to `0` unless the command says "slowly", "over N seconds", "gradually", etc.
-- **R5. Argument format compliance**: if an argument descriptor specifies a structured `format:` (e.g. `[오늘|내일] [장소] [아침|점심|저녁]`, `"HH:MM"`), the **format tokens themselves are literal catalog spec** — preserve them exactly. Fill EVERY slot from the (English) command: today → 오늘 slot; tomorrow → 내일 slot; meal-of-day → meal slot; location words → location slot. NEVER drop a slot — use the most plausible default if implicit.
+- **R-var**: a `call` MUST have `var: "<X>"` if and only if `<X>` appears in `[Bind Hints]`. Methods absent from `[Bind Hints]` MUST NOT carry `var`.
+- **R3. Trust `[Resolved Args]` verbatim**: argument values (enums, units, literals, transition times, structured-format slots, color xy) are pre-resolved by an upstream stage. For each `call`, copy the matching `[Resolved Args]` entry into `call.args` byte-for-byte.
+  - Resolved `{}` → `call.args` MUST be `{}`. Do NOT inject selectors, tags, conditions, or invented fields. **Exception (delta)**: when NL implies "increase/decrease X by N" AND a `(value)` read for the matching attribute is in scope, derive the setter arg from the read variable: `{"<ArgId>": "$<var> + N"}` for increase, `"$<var> - N"` for decrease. In if-else delta cases, each branch derives its own operator.
+  - No translation, no recasing, no unit "correction", no slot dropping.
+  - If a service has a duration arg already populated in `[Resolved Args]` (e.g., `Time: 1800`), do NOT emit a redundant `delay` — the arg encodes the wall-clock duration. A separate `delay` is only for pauses BETWEEN distinct ops.
+  - Arithmetic transforms over `read`-bound vars (e.g. `Volume + 10`) may modify the base value if the command implies a delta, but the base must come from `[Resolved Args]` when listed.
+  - Threshold/comparison values inside `wait.cond` / `if.cond` (e.g. `Temperature >= 30`) are still your responsibility; `[Resolved Args]` covers `call.args` only.
+- **R3.1. Value-service condition specs**: If `[Resolved Args]` lists a value service with a spec like `Service: {"op": "==", "value": "<member>"}`, that service is being compared to that exact enum member in a condition. Slot the spec verbatim into the matching `wait.cond` / `if.cond` expression as `Service == "<member>"`. Do NOT re-decide the operator, do NOT pick a different enum member, do NOT split into separate ops. If a value service does NOT appear in this section, fall back to your own reasoning for any condition that uses it.
 
 ---
 
@@ -429,21 +404,20 @@ Examples below conform to these — when ambiguous, fall back to these rules, no
 ```
 (Note: the outer `delay(2s)` is the polling cadence. The edge-wait fires on each rising transition observed during polling.)
 
-## Example 18 — function return chained into next call (implicit binding)
+## Example 18 — function return chained into next call (explicit `var`)
 **Command**: `Generate a cat image and save it as cat.png.`
 **Services**:
 ```
-CloudServiceProvider.GenerateImage(Prompt: STRING) → BINARY  (function)
-CloudServiceProvider.SaveToFile(Data: BINARY, FilePath: STRING) → STRING  (function)
+CloudServiceProvider.GenerateImage  (function) → BINARY
+CloudServiceProvider.SaveToFile  (function) → STRING
 ```
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"call","target":"CloudServiceProvider.GenerateImage","args":{"Prompt":"cat"}},
+  {"op":"call","target":"CloudServiceProvider.GenerateImage","args":{"Prompt":"cat"},"var":"GenerateImage"},
   {"op":"call","target":"CloudServiceProvider.SaveToFile","args":{"Data":"$GenerateImage","FilePath":"cat.png"}}
 ]}
 ```
-(Note: `GenerateImage` returns BINARY. Reference its return implicitly as `$GenerateImage` — the method name. NEVER write `$result` or any other invented name.)
 
 ---
 
@@ -452,14 +426,15 @@ You will receive:
 - `[Command]`: the English command.
 - `[Services]`: the services pre-selected by the intent stage. Each entry has the form:
     ```
-    Dev.Service  (value|function) - descriptor
-      args:
-        - ArgId: TYPE [{enum_value, ...}] — descriptor (may include unit, e.g. "unit: seconds")
-      returns: TYPE             # for value-type services
+    Dev.Service  (value|function) → ReturnType  - descriptor
     ```
-  - `(value)` means a sensor reading → emit a `read` op (or use it in `if`/expression).
+  - `(value)` means a sensor reading → emit a `read` op (or reference it inside `if`/`wait` cond expressions).
   - `(function)` means an action → emit a `call` op.
+  - `→ ReturnType` indicates the call returns a value; the return is exposed via `var` per R-var.
+  - **Argument schemas are NOT shown here.** All `call.args` values come from `[Resolved Args]` (R3).
+- `[Resolved Args]` (when present): pre-computed argument dicts keyed by `Service.Method`. Use these byte-for-byte (R3).
+- `[Bind Hints]`: the list of method names that MUST carry `var`. If `(none)`, no `call` may have `var`.
 
-Use ONLY the services listed in `[Services]` and EXACTLY their `Dev.Service` names and argument ids. Do NOT invent services, devices, or argument names.
+Use ONLY the services listed in `[Services]` and EXACTLY their `Dev.Service` names. Do NOT invent services, devices, or argument names. For `wait.cond` / `if.cond` expressions, you may form predicates like `Service.Attr op value` using value-type services — these threshold values are your responsibility (Resolved Args only covers `call.args`).
 
 Output ONLY the JSON object.

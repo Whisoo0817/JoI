@@ -1,0 +1,44 @@
+{
+  "command_eng": "Generate a cat image using cloud service and save it as \"cat.png\".",
+  "connected_devices": {
+    "System_CloudServiceProvider": {
+      "category": [
+        "CloudServiceProvider"
+      ],
+      "tags": [
+        "CloudServiceProvider"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "CloudServiceProvider.GenerateImage",
+        "args": {
+          "Prompt": "cat"
+        },
+        "bind": "GenerateImage"
+      },
+      {
+        "op": "call",
+        "target": "CloudServiceProvider.SaveToFile",
+        "args": {
+          "Data": "$GenerateImage",
+          "FilePath": "cat.png"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "GenerateImage = (#CloudServiceProvider).cloudServiceProvider_generateImage(\"cat\")\n(#CloudServiceProvider).cloudServiceProvider_saveToFile(GenerateImage, \"cat.png\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"GenerateImage = (#CloudServiceProvider).cloudServiceProvider_generateImage(\\\"cat\\\")\\n(#CloudServiceProvider).cloudServiceProvider_saveToFile(GenerateImage, \\\"cat.png\\\")\"\n}"
+}

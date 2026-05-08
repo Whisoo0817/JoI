@@ -1,18 +1,18 @@
 [Device Summary]
 <Device "SoundSensor">
-  <Service "Sound" type="value">Sound level measurement</Service>
+  <Service "Sound" type="value">Sound level measurement (DOUBLE)</Service>
 </Device>
 
 # SoundSensor Examples
 
 [Command]
-Turn on the SoundSensor
-["SoundSensor.On"]
+Read the current sound level
+["SoundSensor.Sound"]
 
 [Command]
-Turn off the SoundSensor
-["SoundSensor.Off"]
+What is the sound level on the SoundSensor?
+["SoundSensor.Sound"]
 
 [Command]
-Toggle the SoundSensor
-["SoundSensor.Toggle"]
+When the sound level exceeds 80 dB, do something
+["SoundSensor.Sound"]

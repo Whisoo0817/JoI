@@ -1,9 +1,9 @@
 [Device Summary]
 <Device "MultiButton">
-  <Service "Button1" type="value">State of button1 (pushed, held, etc.)</Service>
-  <Service "Button2" type="value">State of button2</Service>
-  <Service "Button3" type="value">State of button3</Service>
-  <Service "Button4" type="value">State of button4</Service>
+  <Service "Button1" type="value">State of button 1. Enum values: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold.</Service>
+  <Service "Button2" type="value">State of button 2. Enum values: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold.</Service>
+  <Service "Button3" type="value">State of button 3. Enum values: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold.</Service>
+  <Service "Button4" type="value">State of button 4. Enum values: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold.</Service>
 </Device>
 
 # MultiButton Examples

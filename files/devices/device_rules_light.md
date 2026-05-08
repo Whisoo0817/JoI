@@ -8,6 +8,8 @@
   <Service "ColorTempPhysicalMinMireds" type="value">Physical minimum limit of color temperature in mireds</Service>
   <Service "ColorTempPhysicalMaxMireds" type="value">Physical maximum limit of color temperature in mireds</Service>
   <Service "ColorMode" type="value">Current color mode (hsv, xy, ct)</Service>
+  <Service "CurrentX" type="value">Current CIE 1931 X chromaticity coordinate (0.0-1.0)</Service>
+  <Service "CurrentY" type="value">Current CIE 1931 Y chromaticity coordinate (0.0-1.0)</Service>
   <Service "MoveToBrightness" type="action">Set brightness to a target value over a transition time. (Use time 0.0 for instant change)</Service>
   <Service "MoveToHue" type="action">Move to a specific target hue over a transition time.</Service>
   <Service "MoveToSaturation" type="action">Move to a specific target saturation over a transition time.</Service>

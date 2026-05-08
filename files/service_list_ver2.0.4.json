@@ -2275,7 +2275,7 @@
           "arguments": [
             {
               "id": "Command",
-              "descriptor": "The command to get the menu - format: [오늘|내일] [학생식당|수의대식당|전망대(3식당)|예술계식당(아름드리)|기숙사식당|아워홈|동원관식당(113동)|웰스토리(220동)|투굿(공대간이식당)|자하연식당|301동식당] [아침|점심|저녁]",
+              "descriptor": "Korean structured string. Format: [오늘|내일] [학생식당|수의대식당|전망대(3식당)|예술계식당(아름드리)|기숙사식당|아워홈|동원관식당(113동)|웰스토리(220동)|투굿(공대간이식당)|자하연식당|301동식당] [아침|점심|저녁]. Use exact Korean tokens; no English, no paraphrase. Defaults when slot implicit: date→오늘, meal→점심, location→학생식당. Building number maps to closest token: 301동→301동식당, 113동→동원관식당(113동), 220동→웰스토리(220동). Examples: tomorrow's lunch → \"내일 학생식당 점심\"; Building 301 today's lunch → \"오늘 301동식당 점심\"; today's dinner → \"오늘 학생식당 저녁\".",
               "type": "STRING"
             }
           ],
@@ -3560,7 +3560,7 @@
       "values": [
         {
           "id": "CurrentPosition",
-          "descriptor": "Current position of the window covering (0-100)",
+          "descriptor": "Current openness, 0-100. 0 = fully closed, 100 = fully open. 'is open' means > 0; 'is closed' means == 0.",
           "type": "INTEGER"
         },
         {

@@ -1,10 +1,10 @@
 [Device Summary]
 <Device "Siren">
-  <Service "SirenMode" type="value">Return siren mode</Service>
-  <Service "SetSirenMode" type="action">Turn on and sound siren in specific mode (emergency, fire, police, ambulance)</Service>
+  <Service "SirenMode" type="value">Current siren mode. Enum values: emergency, fire, police, ambulance.</Service>
+  <Service "SetSirenMode" type="action">Activate siren in specified mode</Service>
 </Device>
 
-⚠️ "Sound the siren" / "siren in <mode> mode" / "fire alarm" / "police siren" → ALWAYS `SetSirenMode` (with the implied mode), never `Switch.On`. The mode IS the on-state.
+WARNING: "Sound the siren" / "fire alarm" / "police siren" → ALWAYS use SetSirenMode (with the implied mode). The mode IS the activation — there is no separate on/off.
 
 # Siren Examples
 
@@ -14,6 +14,10 @@ Sound the Siren in emergency mode
 
 [Command]
 Set the Siren to fire mode
+["Siren.SetSirenMode"]
+
+[Command]
+Activate the police siren
 ["Siren.SetSirenMode"]
 
 [Command]

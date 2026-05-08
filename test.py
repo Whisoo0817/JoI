@@ -18,7 +18,15 @@ from paper.run_local_ir import generate_joi_code
 # [MODE: target] 테스트할 타겟 지정 (python3 test.py target)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    "C07": [24],
+    # enum_resolve verification:
+    #   C01 idx 12 — "Output today's weather through the speaker." → enum_cond_check should answer "no" (TTS source, no comparison). resolved_enum_conds={} expected.
+    #   C15 idx 8  — "At 6 AM... announce the weather..." → also "no" (periodic announce, no comparison).
+    #   C10 idx 2  — "When the oven enters heating mode, switch it to microwave mode after 3 seconds." → "yes", enum_resolve picks Oven.OvenMode == "heating".
+    #   C08 idx 1  — "When button 1 of the multi-button is pressed, turn on all lights in the bedroom." → "yes", enum_resolve picks MultiButton.Button1 == "pushed".
+    "C01": [12],
+    "C15": [8],
+    "C10": [2],
+    "C08": [1],
 }
 
 

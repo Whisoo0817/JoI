@@ -1,0 +1,57 @@
+{
+  "command_eng": "Close all windows in the living room.",
+  "connected_devices": {
+    "LR_Window_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "LR_Window_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {
+          "Target": "all(#LivingRoom #WindowCovering)"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#LivingRoom #Window).windowCovering_downOrClose()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#LivingRoom #Window).windowCovering_downOrClose()\"\n}"
+}

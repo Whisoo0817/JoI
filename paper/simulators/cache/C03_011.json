@@ -1,0 +1,70 @@
+{
+  "command_eng": "If the button is in the pushed state, raise the blind.",
+  "connected_devices": {
+    "Main_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Main",
+        "Button"
+      ]
+    },
+    "Garage_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Garage",
+        "Button"
+      ]
+    },
+    "LivingRoom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "Button.Button == \"pushed\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Button).button_button == \"pushed\") {\n(#Blind).windowCovering_upOrOpen()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Button).button_button == \\\"pushed\\\") {\\n(#Blind).windowCovering_upOrOpen()\\n}\"\n}"
+}

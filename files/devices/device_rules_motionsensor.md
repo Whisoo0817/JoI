@@ -6,13 +6,13 @@
 # MotionSensor Examples
 
 [Command]
-If motion is detected, turn on the light
-["MotionSensor.Motion"]
-
-[Command]
-Turn off the light when no one is present
-["MotionSensor.Motion"]
-
-[Command]
 Check whether motion is currently detected
+["MotionSensor.Motion"]
+
+[Command]
+When motion is detected, do something
+["MotionSensor.Motion"]
+
+[Command]
+When there is no motion for a while, do something
 ["MotionSensor.Motion"]

@@ -1,43 +1,46 @@
 [Device Summary]
 <Device "RobotVacuumCleaner">
-  <Service "RobotVacuumCleanerRunMode" type="value">Run mode (auto, spot, repeat, manual, stop, map)</Service>
-  <Service "SetRobotVacuumCleanerRunMode" type="action">Set robot vacuum run mode (auto/spot/repeat/manual/stop/map)</Service>
-  <Service "RobotVacuumCleanerCleaningMode" type="value">Cleaning mode (different enum from RunMode)</Service>
-  <Service "SetRobotVacuumCleanerCleaningMode" type="action">Set robot vacuum cleaning mode</Service>
+  <Service "RobotVacuumCleanerCleaningMode" type="value">Cleaning mode. Enum values: auto, part, repeat, manual, stop, map.</Service>
+  <Service "RobotVacuumCleanerRunMode" type="value">Run mode. Enum values: homing, idle, charging, alarm, powerOff, reserve, point, after, cleaning, pause, washingMop.</Service>
+  <Service "SetRobotVacuumCleanerCleaningMode" type="action">Set cleaning mode</Service>
+  <Service "SetRobotVacuumCleanerRunMode" type="action">Set run mode</Service>
 </Device>
 
 # Rules — RunMode vs CleaningMode (CRITICAL)
 
-The two `Set...Mode` services accept **different enum sets**. Pick by the user's intent word:
+The two `Set...Mode` services accept **different enum sets**:
 
-| User intent | Service | Enum value |
+| User intent | Service | Example enum values |
 |---|---|---|
-| "stop", "halt", "turn off" (when about playback/operation) | **RunMode** | `"stop"` |
-| "auto mode", "automatic" | **RunMode** | `"auto"` |
-| "spot", "repeat", "manual", "map" | **RunMode** | matching enum |
-| Any cleaning-style adjective ("intensive cleaning", "quiet cleaning", etc. — phrasings about HOW to clean rather than WHEN/WHETHER to run) | **CleaningMode** | from CleaningMode enum |
+| "go home", "dock", "charge" | **RunMode** | `homing`, `charging` |
+| "pause", "idle", "power off" | **RunMode** | `pause`, `idle`, `powerOff` |
+| "auto", "part", "repeat", "manual", "map" (how to clean) | **CleaningMode** | matching enum |
+| "stop cleaning" | **CleaningMode** | `stop` |
 
-⚠️ **"stop" is a RunMode value, NOT a CleaningMode value.** Never call `SetRobotVacuumCleanerCleaningMode("stop")` — it's invalid.
+NOTE: `stop` is a **CleaningMode** value. `homing`, `pause`, `idle` are **RunMode** values.
 
 # RobotVacuumCleaner Examples
 
 [Command]
-Set the robot vacuum to auto mode
-<Reasoning>
-"auto" is in the RunMode enum → use SetRobotVacuumCleanerRunMode.
-</Reasoning>
-["RobotVacuumCleaner.SetRobotVacuumCleanerRunMode"]
+Start automatic cleaning
+["RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode"]
 
 [Command]
 Stop the robot vacuum
-<Reasoning>
-"stop" is in the RunMode enum → use SetRobotVacuumCleanerRunMode (Mode="stop"). NOT CleaningMode.
-</Reasoning>
+["RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode"]
+
+[Command]
+Send the robot vacuum home to charge
 ["RobotVacuumCleaner.SetRobotVacuumCleanerRunMode"]
 
 [Command]
+Pause the robot vacuum
+["RobotVacuumCleaner.SetRobotVacuumCleanerRunMode"]
+
+[Command]
+What is the current run mode of the RobotVacuumCleaner?
+["RobotVacuumCleaner.RobotVacuumCleanerRunMode"]
+
+[Command]
 What is the current cleaning mode of the RobotVacuumCleaner?
-<Reasoning>
-Asking about cleaning mode value → read CleaningMode.
-</Reasoning>
 ["RobotVacuumCleaner.RobotVacuumCleanerCleaningMode"]

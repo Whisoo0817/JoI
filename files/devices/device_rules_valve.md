@@ -1,8 +1,8 @@
 [Device Summary]
 <Device "Valve">
   <Service "ValveState" type="value">Valve state (true: open, false: closed)</Service>
-  <Service "Open" type="action">Open Valve</Service>
-  <Service "Close" type="action">Close Valve</Service>
+  <Service "Close" type="action">Close the valve</Service>
+  <Service "Open" type="action">Open the valve</Service>
 </Device>
 
 # Valve Examples
@@ -17,4 +17,8 @@ Close the Valve
 
 [Command]
 Check if the Valve is open
+["Valve.ValveState"]
+
+[Command]
+When the valve opens, do something
 ["Valve.ValveState"]

@@ -1,0 +1,67 @@
+{
+  "command_eng": "Open all windows on floor 1.",
+  "connected_devices": {
+    "F1_Win_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Floor1",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "F1_Win_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Floor1",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "F2_Win": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Floor2",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "F3_Win": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Floor3",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.UpOrOpen",
+        "args": {
+          "Mode": "all(#Floor1 #WindowCovering)"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Floor1 #Window).windowCovering_upOrOpen()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Floor1 #Window).windowCovering_upOrOpen()\"\n}"
+}

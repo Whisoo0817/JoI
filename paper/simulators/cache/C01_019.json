@@ -1,0 +1,61 @@
+{
+  "command_eng": "Ask the cloud AI what an LLM is, and output its answer through the speaker.",
+  "connected_devices": {
+    "System_CloudServiceProvider": {
+      "category": [
+        "CloudServiceProvider"
+      ],
+      "tags": [
+        "CloudServiceProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "CloudServiceProvider.ChatWithAI",
+        "args": {
+          "Prompt": "what is an LLM"
+        },
+        "bind": "ChatWithAI"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "$ChatWithAI"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "ChatWithAI = (#CloudServiceProvider).cloudServiceProvider_chatWithAI(\"what is an LLM\")\n(#Speaker).speaker_speak(ChatWithAI)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"ChatWithAI = (#CloudServiceProvider).cloudServiceProvider_chatWithAI(\\\"what is an LLM\\\")\\n(#Speaker).speaker_speak(ChatWithAI)\"\n}"
+}

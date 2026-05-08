@@ -421,11 +421,15 @@ def _render_step_kr(step: dict, indent: int = 0) -> list[str]:
 
     elif op == "call":
         args = step.get("args") or {}
+        var_name = step.get("var") or step.get("bind")
         if args:
             arg_strs = [f"{k}={v}" for k, v in args.items()]
-            out.append(f"{pad}• 실행: {step['target']}({', '.join(arg_strs)})")
+            line = f"{pad}• 실행: {step['target']}({', '.join(arg_strs)})"
         else:
-            out.append(f"{pad}• 실행: {step['target']}()")
+            line = f"{pad}• 실행: {step['target']}()"
+        if var_name:
+            line += f"  → `${var_name}`에 저장"
+        out.append(line)
 
     elif op == "if":
         out.append(f"{pad}• 만약 [{_render_cond_kr(step['cond'])}]이면:")

@@ -1,20 +1,23 @@
 [Device Summary]
 <Device "RotaryControl">
-  <Service "Button" type="value">State of button (pushed, held, double, etc.)</Service>
-  <Service "Rotation" type="value">Rotary dial state (clockwise, counter_clockwise)</Service>
-  <Service "RotationSteps" type="value">Number of rotation steps</Service>
+  <Service "Rotation" type="value">Rotary direction. Enum values: clockwise, counter_clockwise.</Service>
+  <Service "RotationSteps" type="value">Number of rotation steps (INTEGER)</Service>
 </Device>
 
 # RotaryControl Examples
 
 [Command]
-Turn on the RotaryControl
-["RotaryControl.On"]
+Read the current rotation direction of the RotaryControl
+["RotaryControl.Rotation"]
 
 [Command]
-Turn off the RotaryControl
-["RotaryControl.Off"]
+How many steps has the RotaryControl rotated?
+["RotaryControl.RotationSteps"]
 
 [Command]
-Toggle the RotaryControl
-["RotaryControl.Toggle"]
+When the RotaryControl turns clockwise, do something
+["RotaryControl.Rotation"]
+
+[Command]
+When the RotaryControl is rotated, do something
+["RotaryControl.RotationSteps"]

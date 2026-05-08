@@ -10,5 +10,9 @@ Read the LightSensor lux value
 ["LightSensor.Brightness"]
 
 [Command]
-What's the current illuminance of the LightSensor?
+What's the current illuminance?
+["LightSensor.Brightness"]
+
+[Command]
+When the brightness drops below 100 lux, do something
 ["LightSensor.Brightness"]

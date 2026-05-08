@@ -1,8 +1,8 @@
 [Device Summary]
 <Device "DoorLock">
-  <Service "DoorLockState" type="value">Door lock state (unlocked, locked)</Service>
-  <Service "Lock" type="action">Lock/Close</Service>
-  <Service "Unlock" type="action">Unlock/Open</Service>
+  <Service "DoorLockState" type="value">Current lock state. Enum values: closed, closing, open, opening, unknown.</Service>
+  <Service "Lock" type="action">Lock the door</Service>
+  <Service "Unlock" type="action">Unlock the door</Service>
 </Device>
 
 # DoorLock Examples
@@ -17,4 +17,8 @@ Unlock the DoorLock
 
 [Command]
 Is the DoorLock currently locked?
+["DoorLock.DoorLockState"]
+
+[Command]
+When the door is unlocked, do something
 ["DoorLock.DoorLockState"]

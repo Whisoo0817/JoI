@@ -1,13 +1,13 @@
 [Device Summary]
 <Device "Pump">
-  <Service "PumpMode" type="value">Current pump operation mode (normal / minimum / maximum / localSetting)</Service>
-  <Service "SetPumpMode" type="action">Set pump operation mode (normal / minimum / maximum / localSetting)</Service>
+  <Service "PumpMode" type="value">Current pump mode. Enum values: normal, minimum, maximum, localSetting.</Service>
+  <Service "SetPumpMode" type="action">Set pump mode</Service>
 </Device>
 
 # Pump Examples
 
 [Command]
-Set the pump to maximum speed
+Set the pump to maximum mode
 ["Pump.SetPumpMode"]
 
 [Command]
@@ -19,5 +19,5 @@ Check the current pump mode
 ["Pump.PumpMode"]
 
 [Command]
-Set the pump to normal operation
-["Pump.SetPumpMode"]
+When the pump mode changes, do something
+["Pump.PumpMode"]

@@ -1,10 +1,10 @@
 [Device Summary]
 <Device "ArmRobot">
-  <Service "ArmRobotType" type="value">Robot type</Service>
-  <Service "CurrentPosition" type="value">Current position status</Service>
-  <Service "SendCommand" type="action">Send commands to the robot (multiple commands separated by '|')</Service>
-  <Service "SetPosition" type="action">Set to a specific position (home, hello, refuse)</Service>
-  <Service "Hello" type="action">Perform a greeting action</Service>
+  <Service "ArmRobotType" type="value">Current status of the arm robot type. Enum values: mycobot280_pi.</Service>
+  <Service "CurrentPosition" type="value">Current status of the arm robot position</Service>
+  <Service "Hello" type="action">Send hello command to arm robot</Service>
+  <Service "SendCommand" type="action">Send command to arm robot. List of string, separated by '|'</Service>
+  <Service "SetPosition" type="action">Send position to arm robot</Service>
 </Device>
 
 # ArmRobot Examples
@@ -20,3 +20,7 @@ Make the ArmRobot say hello
 [Command]
 What is the ArmRobot's current position?
 ["ArmRobot.CurrentPosition"]
+
+[Command]
+Check the ArmRobot type
+["ArmRobot.ArmRobotType"]

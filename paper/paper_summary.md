@@ -2,7 +2,7 @@
 
 **Constraints**: English input only → JoI output. SLLM (≤9B) is the primary deployment target. No formal Idiom-Quotient theorem. No MC/DC.
 
-> **Thesis**: In the deployable setting where natural-language IoT commands are compiled to a reactive DSL by a small (≤9B) LLM running on-device, three problems block end-to-end generation: unreliable idiom selection, absent verification, and opaque user feedback. We show all three share a single structural cause — reactive temporal semantics encoded as **idioms** rather than first-class primitives — and that one artifact, an executable **Timeline IR** that elevates those semantics to first-class, resolves all three together. The SLLM constraint forces the architecture; the root-cause structure makes the architecture sufficient.
+> **Thesis**: In the deployable setting where natural-language IoT commands are compiled to a reactive DSL by a small (≤9B) LLM running on-device, three problems block end-to-end generation: unreliable idiom selection, absent verification, and opaque user feedback. We show all three share a single structural cause — reactive temporal semantics encoded as **idioms** rather than first-class primitives — and resolve them by **decomposing NL→JoI into NL→IR→JoI with a user-confirmed IR as the spec**. The user-confirmed IR is also the source from which we *deterministically derive a finite-state machine of transition obligations*; covering every transition point with synthesized scenarios gives a structurally-grounded coverage claim (transition-obligation completeness) without requiring a formal property language or full-state enumeration. The SLLM constraint forces the architecture; the IR-as-spec structure makes verification tractable.
 
 ---
 
@@ -249,15 +249,17 @@ trace(IR') ≟ trace(JoI)  ── on mismatch, retry Stage 2 with diff signal
 
 ### 3.2 Contributions
 
-The four contributions all flow from one artifact (Timeline IR) and are linked by a single structural argument: idiomatic encoding is the root cause; first-class primitives are the resolution.
+**Hero contribution (the structural insight).** NL→JoI verification is unsolvable as a single problem because no spec exists. Decomposing it into NL→IR (LLM, human-confirmable) + IR→JoI (deterministic lowering), where the **user-confirmed IR plays the spec role**, transforms the problem into IR↔JoI behavioral equivalence — which is solvable by transition-obligation coverage on a deterministic verdict path (no LLM in verdict). This decomposition is what makes the rest of the framework possible. C1–C3 enable it as artifact + interface; C4 is the verification mechanism that realizes it; C5 closes the LLM-correction loop.
 
-**C1 — Timeline IR.** A 9-op fixed-grammar executable IR that promotes reactive temporal semantics (rising/falling edges, time windows, phase transitions, periodic-after-event) to first-class primitives. Designed to be (a) extractable by a 9B LLM via left-to-right pattern matching, (b) renderable to English deterministically, (c) executable as a reference simulator. **The artifact that resolves the root cause.**
+**C1 — Timeline IR.** A 9-op fixed-grammar executable IR that promotes reactive temporal semantics (rising/falling edges, time windows, phase transitions, periodic-after-event) to first-class primitives. Designed to be (a) extractable by a 9B LLM via left-to-right pattern matching, (b) renderable to Korean/English deterministically, (c) executable as a reference simulator AND derivable as a finite-state machine of transition obligations. **The artifact whose four properties together enable the hero decomposition.**
 
-**C2 — Two-stage generation (NL → IR → JoI).** The decomposition isolates idiom selection (Stage 1, semantic) from code syntax (Stage 2, mechanical). Nine deterministic lowering rules cover the full expressible idiom set. This is the mechanism by which C1 improves generation accuracy on reactive temporal commands.
+**C2 — Two-stage generation (NL → IR → JoI).** The decomposition isolates idiom selection (Stage 1, semantic) from code syntax (Stage 2, mechanical). Nine deterministic lowering rules cover the expressible idiom set observed in our deployment regime. This is the mechanism by which the hero decomposition improves generation accuracy on reactive temporal commands.
 
-**C3 — Simulation-based behavioral verification.** IR as executable reference + IR-guided event synthesis (covering each branch condition and edge transition in the IR) + trace comparison between IR and JoI simulators. Achieves behavioral equivalence checking **without a compiler, executor, ground-truth program, or formal specification** — this combination of absences defines the problem class, and simulation-trace comparison is the first technique that resolves it for reactive IoT DSLs.
+**C3 — IR-mediated user feedback loop (spec grounding).** IR → readable Korean/English is deterministic *because* IR ops are first-class primitives. User confirmation of the rendered IR is the structural element that gives the verifier something to verify *against*. Without it, NL→JoI has no spec; with it, IR↔JoI has one. The closing link of the hero argument.
 
-**C4 — IR-mediated user feedback loop.** IR → readable English is deterministic *because* IR ops are first-class primitives — which is the same property that enables C2 and C3. User confirmation of the rendered IR grounds the NL→IR mapping, which is what makes C3's verification meaningful (it gives the verifier something to verify *against*). This is not a UX feature bolted on; it is the closing link in the verification chain.
+**C4 — Transition-obligation coverage on IR-derived FSM (the verification mechanism).** From the user-confirmed IR we deterministically derive an IR-FSM whose transitions encode the reactive obligations the lowered JoI must honor. Scenarios are synthesized to cover every transition point in the IR-FSM. The lowered JoI runs in a reference simulator; its observable trace is checked against IR-FSM transition rules (L2). For composition cases where transition-locality breaks, full differential simulation between IR and JoI simulators is the conservative fallback (L3). All static (L1), live (L2), and fallback (L3) checks are deterministic — verdict path is LLM-free. We claim **transition-obligation completeness** under explicitly stated assumptions (§6.5): a weaker guarantee than full equivalence, stronger than ad-hoc testing. Position: model-based testing adapted to NL-derived smart-home DSL lowering — not a new paradigm, but the first principled MBT application to this setting (§6.10).
+
+**C5 — Counterexample-guided self-correction.** Failed transition obligations from C4 produce structured retry signals at IR-feature granularity ("rising-edge encoding broken" rather than just "trace mismatch"). The signal feeds Stage 2 (lowering) for LLM retry. This closes the loop from verification failure to LLM-actionable diagnosis. Optional mutation-based diagnostic enrichment (§6.8) is included as evaluation-decided ablation — kept if it improves retry success, cut otherwise.
 
 ---
 
@@ -285,94 +287,192 @@ The asymmetry is *directional*: JoI → NL is hard, but **IR → NL is easy**. I
 
 ---
 
-## 5. Why Model Checking Does Not Apply
+## 5. Why Standard Model Checking Does Not Apply (Even Though Our Method Borrows Its Spirit)
 
-A natural reviewer reaction is "use SPIN / NuSMV / UPPAAL." We address this directly: the technique does not fit the problem class.
+A natural reviewer reaction is "use SPIN / NuSMV / UPPAAL." Our method (§6) is in fact a model-based testing technique — a *lightweight cousin* of model checking — but the standard heavy-weight tooling does not fit. Two specific mismatches are the operative reasons; the rest follow.
 
-### 5.1 Five Mismatches
+**(1) No formal property φ to check, and no formal target semantics.** Model checking decides M ⊨ φ for a formal model M and a temporal-logic property φ. We have neither: the spec is an LLM-extracted user-confirmed IR (not LTL/CTL); the target JoI has no formal small-step semantics (manual prose only). Translating either into a standard model-checker's input language is itself the research problem we are trying to avoid. **Our method sidesteps this by treating the IR-derived FSM as the spec and the JoI simulator as the operational definition** — a stipulative semantics route (see §6.7 T1 for honest scoping).
 
-**Property checking vs. equivalence checking.** Model checking decides M ⊨ φ — whether a model satisfies a formal specification. We have no φ. Translating natural language into LTL/CTL is itself the original NL → semantic-representation problem in a different target language. Circular.
+**(2) Heavy state-space explosion under JoI's reactive setting.** A `period:100 ms` JoI program over a one-hour scenario produces 36,000 ticks; continuous sensor values and persistent flag/phase state multiply on top. Standard model checking explores reachable states; we cannot afford that under a ≤2 s edge-runtime budget. **Our method sidesteps this by checking transition obligations along observed traces, not by enumerating reachable states.** The cost is bounded by IR shape, not by JoI's reachable configuration space.
 
-**Idiom-induced bisimulation gap.** IR's `wait(edge:rising)` and JoI's `triggered`-flag idiom yield different finite state structures. They are not bisimilar in the strict sense; equivalence holds only modulo an idiom-aware abstraction that off-the-shelf model checkers cannot perform without manual encoding per idiom.
+Two further frictions confirm the choice:
 
-**State-space explosion.** A `period:100ms` JoI program over a one-hour scenario yields 36,000 ticks. Combined with continuous-valued sensor variables (temperature, humidity) and persistent flag/phase state, the reachable space is intractable for explicit-state methods. Symbolic abstraction is possible in principle but loses the device-level granularity we need.
+**(3) Idiom-induced bisimulation gap.** IR's `wait edge:rising` and JoI's `triggered`-flag idiom (or `prev/curr`, or `phase` enum) have different state shapes. Strict bisimulation fails. Our trace-level approach observes only external behavior, sidestepping the alignment problem.
 
-**Tooling barrier.** SPIN consumes Promela; NuSMV consumes SMV; UPPAAL consumes timed automata. None accepts JoI directly. JoI → any of these is a semantics-preserving program transformation — a research problem itself.
+**(4) Output mismatch.** Standard model checkers return ✓/✗ plus a counterexample. We need quantitative signals (per-feature transition-coverage rate, retry signals for Stage 2 self-correction). Trace-based verification gives these naturally.
 
-**Output mismatch.** Model checkers return ✓/✗ + counterexample. We need continuous quantitative signals (per-difficulty trace-match rate, per-idiom error attribution, retry signals for self-correction) to drive evaluation and pipeline feedback.
-
-### 5.2 Comparison
-
-| Dimension | Model Checking | Our approach |
+| Dimension | Standard heavy MC | Our method (transition-obligation coverage) |
 |---|---|---|
-| Goal | property satisfaction (M ⊨ φ) | behavioral equivalence (trace(IR) = trace(JoI)) |
-| Specification | LTL/CTL — absent here | reference IR plays the spec role |
-| Real values / continuous time | manual abstraction; decidability risk | discrete simulator runs them directly |
-| Idiom abstraction | requires custom equivalence relation | absorbed by simulator's tick semantics |
-| State explosion | exponential in sensors × ticks × variables | bounded by IR-guided test event set |
-| Input language | re-translation to Promela/SMV | JoI consumed directly (parser + simulator) |
-| Output | ✓/✗ + counterexample | quantitative trace-match rate |
+| Goal | M ⊨ φ | IR-FSM transition obligations on JoI trace |
+| Specification | LTL/CTL formula | LLM-extracted user-confirmed IR |
+| Target semantics | requires formal definition | simulator stipulates operational semantics |
+| Continuous values / time | manual abstraction; decidability risk | concrete simulation |
+| Idiom abstraction | custom equivalence per idiom | external trace only |
+| State exploration | reachable states (exponential) | transition points in IR-FSM (bounded by IR) |
+| Input language | Promela/SMV/timed automata | JoI parsed directly into simulator AST |
+| Output | ✓/✗ + counterexample | per-transition pass/fail + diagnostic feature label |
+| Runtime budget fit (≤ 2 s edge) | typically no | yes (§6.6 affordability) |
 
-### 5.3 Limitation We Accept
-
-The trace approach is **sample-based**: it tests behavior on a synthesized event set, not all events. We make no completeness claim. The empirical claim is that IR-guided synthesis reaches every behaviorally significant decision point in the IR (each branch, each edge transition, each cycle entry/exit), which is what the failure modes in this domain hinge on. Mutation testing (§9) measures this directly: programs with injected semantic mutations are detected at high rate while behaviorally equivalent variants are not flagged.
+**Position summary.** Our method is **lightweight model-based testing**, in the lineage of MBT (Utting-Legeard) and runtime verification (Bauer-Leucker), not a new verification paradigm. What is new is the *setting* (NL→IR→LLM-lowered DSL on edge runtime) and the *coverage notion* (transition-obligation completeness on a small grammar-derived IR-FSM). Heavy model checking does not fit; lightweight MBT, adapted to this setting, does. See §6.10 for full prior-art positioning.
 
 ---
 
-## 6. Verification Method: IR-Guided Simulation Trace Comparison
+## 6. Verification Method: Transition-Obligation Coverage on IR-Derived FSM
 
-The verification approach has four mechanical components and one design property that justifies them all.
+The verification mechanism that makes the §3 decomposition useful in practice. We position this as **model-based testing adapted to NL-derived smart-home DSL lowering** — not a new verification paradigm, but the first principled application of MBT to this setting (NL→IR pipeline, LLM-generated reactive code, no formal target semantics, edge-runtime budget).
 
-### 6.1 The Design Property
+### 6.1 Why Direct FSM-FSM Comparison Is Not Viable for JoI
 
-Timeline IR is **executable**: its semantics are given by a reference simulator (§6.2). This is the design property that lets the rest of the verification framework exist — IR provides the reference behavior that NL alone cannot, and JoI lacks. Every component below follows mechanically from this.
+The textbook model-checking move is to compile both the spec and the implementation into FSMs and compare transition tables. For JoI as the implementation side, this fails for three reasons:
 
-### 6.2 IR Simulator (Reference Execution)
+**(a) Informal target semantics.** JoI's behavior is documented in manual prose, not by a formal small-step semantics. FSM extraction would require defining JoI semantics from scratch — a separate research problem.
 
-A small interpreter walks the IR's `timeline` linearly, evaluating expressions against an event-driven device state. Each `call` op emits an observable record `(target, args, timestamp)`. The output is a sequence of these records — the **IR trace**. The simulator is small enough to be auditable; it is the operational definition of what the IR *means*.
+**(b) Continuous values, time, and tag resolution.** Sensor values (temperature, brightness), virtual time spanning days (cron-anchored), and dynamic device sets behind `all/any` selectors introduce infinite or continuous state dimensions. Finite-state abstraction loses boundary precision (a bug at exactly 30°C disappears between discretization grid points).
 
-### 6.3 JoI Simulator (Target Execution)
+**(c) Idiom multiplicity.** The same intent can be lowered to JoI in multiple valid ways (`triggered := false` flag, `prev/curr` comparison, `phase` enum). FSM extraction by static code analysis must pattern-match these idioms; novel encodings the LLM produces fall outside any pattern catalog. Embedding such a catalog inside the verifier reintroduces precisely the closed-set assumption we want to avoid.
 
-JoI has a deployed runtime on IoT hubs but no formal operational semantics: the language behavior is documented prose, and live execution produces non-replayable physical side effects. We provide a tick-based reference interpreter over JoI's parsed AST that constitutes the **operational semantics we verify against**. It models:
-- `:=` initializers persist across ticks (state for `triggered`, `phase`, `color`, etc.)
-- `=` assignments update each tick
-- `wait until` blocks the script until its condition is satisfied
-- `period` controls the polling cadence (`period: 100` for rising-edge idiom; `period: N` for periodic actions)
+We restrict this argument to JoI-style smart-home DSLs (informal semantics + continuous values + idiom multiplicity). We do not claim a general theorem about reactive DSLs.
 
-The same observable record format is emitted, producing the **JoI trace**.
+### 6.2 Therefore: Simulation-Based Trace Verification
 
-We treat this simulator not as an approximation of an ideal runtime, but as **the formal definition of JoI semantics for verification purposes** — JoI lacks one, and providing one is part of this work's contribution. The simulator is a small, auditable artifact; downstream verification verdicts are sound with respect to it. Drift between this definition and real-hub behavior is itself a finding worth measuring (and is orthogonal to the verification framework).
+The remaining route is to run JoI in a reference simulator, observe its external trace, and compare against IR's expected behavior.
 
-### 6.4 IR-Guided Event Synthesis
+**JoI simulator** (paper §6.5): a tick-based AST interpreter that we treat as **the operational definition of JoI for verification purposes**. The simulator handles `:=`/`=` persistence, `wait until` blocking, `period` polling, and `cron` scheduling. We do not approximate an ideal runtime; we stipulate the simulator as the canonical semantics, and bound real-hardware drift as a separate fidelity question (§6.7).
 
-Given an IR, we synthesize event sequences that exercise its decision structure. Walking the IR AST, for each behaviorally significant node we emit:
+**Observable trace alphabet**: each event is a tuple `(timestamp_ms, service, method, args, affected_set)` where `affected_set` is the device IDs reached after precision-stage selector resolution. Internal JoI variables (flags, phases) are not in the trace — idiom freedom is preserved by construction.
 
-| IR node | Synthesized events |
+**Limitation** (this section's central tension): simulation is sample-based. Verdict soundness depends on which event sequences are input. Without a coverage discipline, sample bias is unavoidable.
+
+### 6.3 The Question: How to Make Simulation Coverage Defensible
+
+Three naïve approaches all fail.
+
+| Approach | Failure mode |
 |---|---|
-| `if(cond, then, else)` | one sequence satisfying `cond`, one violating it |
-| `wait(cond, edge:none)` | events transitioning `cond` from undefined/false to true |
-| `wait(cond, edge:rising)` | events that hold `cond` false then drive false→true (and back, for cycles) |
-| `cycle(until:φ)` | events keeping φ false then driving φ true |
+| Random events | Edge cases (init state, rearm, boundary, race timing) reached only by chance |
+| Hand-curated scenarios | Sample bias; cannot defend against "what about case X you didn't think of" |
+| Full state enumeration | State explosion; exceeds the ≤2 s edge-runtime budget |
 
-Coupled with the `devices_referenced` annotation, the synthesizer knows which sensors to manipulate and in what order. The result is a small (typically <20) set of event sequences that touch every branching and edge-detecting point in the IR.
+The required property is: cover every IR-prescribed structural behavior point, but avoid combinatorial explosion. This is the gap our method fills.
 
-This replaces the formal coverage construction of earlier drafts with a directly implementable rule set. We do not claim it is provably sufficient; we claim it is empirically adequate for the failure modes that matter (§5.3, validated by mutation testing in §9).
+### 6.4 Method: IR-Derived Transition-Obligation Coverage
 
-### 6.5 Trace Comparison
+**Insight.** IR is itself a small spec with formal semantics (§6.5). The 9 IR ops produce a finite, structurally bounded set of *transition points* — moments where the IR's state must change in response to an event.
 
-For each synthesized event sequence E:
-1. Run IR simulator on E → `trace_IR`
-2. Run JoI simulator on E → `trace_JoI`
-3. Compare as ordered sequences of `(target, args, timestamp)` tuples, with timestamp tolerance bounded by the JoI period
+**Per-op transition rules** (the building blocks):
 
-If all comparisons match across the synthesized set, we declare IR and JoI behaviorally equivalent under our coverage. If any comparison fails, the diff (which event, which step, what was expected vs. observed) is fed back to Stage 2 as a structured retry signal — this drives self-correction.
+| IR op | Transition point |
+|---|---|
+| `wait(cond, edge:none)` | cond becomes true |
+| `wait(cond, edge:rising)` | cond transitions false→true |
+| `wait(cond, edge:falling)` | cond transitions true→false |
+| `if(cond, then, else)` | cond evaluation, branching |
+| `start_at(cron)` | cron firing instant |
+| `delay(ms)` | timer expiration |
+| `cycle.body` boundaries | iteration entry, iteration exit |
+| `cycle.until` | termination evaluation |
+| `read(var, src)` | src observation, var register write |
+| `call(target, args)` | service invocation |
 
-### 6.6 Scope and Honest Limitations
+**IR-FSM as composition over per-op rules.** Per-op rules alone do not capture inter-op obligations:
+- *Sequencing*: `cycle{wait; call}` requires `call` follows the wait's rising in every iteration; a `call` without preceding wait is a violation.
+- *Rearming*: after the body completes, the wait must re-arm for the next iteration.
+- *Register dependency*: `read $v1; delay; read $v2; if ($v2-$v1 > 5, ...)` forces v1 to be observed-then-stored before v2 is read, with delay between.
+- *Reachability*: branches inside `if` can render parts of subsequent control flow unreachable on a given path.
 
-- **Sample-based.** The method tests behavior on synthesized events, not all events. No completeness claim. The empirical case for adequacy is made through mutation detection rate (§9).
-- **Discrete time.** Both simulators operate on discrete ticks. Continuous-time reactive devices (analog feedback loops) are out of scope.
-- **Single-program.** We verify one JoI program against one IR. Concurrent automation interaction is out of scope (§1.6).
-- **Semantics are stipulative.** Our verdicts are sound with respect to the operational semantics defined by our simulators (§6.2, §6.3). This is the strongest soundness guarantee a language without a formal spec can support; it is also *exactly* the guarantee a real deployment needs once the simulator becomes the canonical reference.
+The IR-FSM is the formal artifact obtained by composing per-op rules with the IR's control-flow tree. States encode "where in the timeline are we, and what register values do we carry." Transitions encode the obligations above. The IR-FSM is *derived deterministically* from the IR; no human authoring.
+
+**Coverage scenario synthesis.** For each transition point in the IR-FSM, we synthesize the *minimum* event sequence that activates it. The synthesizer is a static IR walk that uses the per-op rules and the FSM's path structure to bound the event domain. The output is a finite scenario set S; |S| is a function of IR shape, not of the runtime universe.
+
+### 6.5 Coverage Claim: Transition-Obligation Completeness (with Stated Assumptions)
+
+We claim **transition-obligation completeness**, not full lowering correctness. Precisely:
+
+> Under assumptions (A1)–(A6), if scenario set S covers every transition point of IR-FSM(IR), and the lowered JoI program is trace-equivalent to IR on every scenario in S, then every reactive obligation prescribed by IR's per-op semantic rules is verified.
+
+**Required assumptions** (state explicitly in the paper, do not hide):
+
+- **(A1) Deterministic IR semantics.** The IR-FSM is a deterministic transition system; same event under same state yields same successor.
+- **(A2) Transition-local obligations.** Each per-op rule's obligation is expressible by a finite predicate over (current FSM state, event, observable next emission), without reference to global trace history beyond what is captured in registers.
+- **(A3) Compositional lowering.** The IR→JoI lowering preserves IR's compositional structure: if op patterns A and B compose to AB in the IR, JoI's lowering of AB realizes the obligations of A's lowering plus B's lowering.
+- **(A4) Simulator faithfulness (stipulative).** The JoI simulator is the canonical operational semantics of JoI; verdicts are sound with respect to it. Real-hub drift is bounded by the real-backend validation layer (§6.7).
+- **(A5) Scenario activates pre-state.** For each transition point, the synthesized scenario establishes the FSM pre-state required for that transition to fire.
+- **(A6) No unmodeled nondeterminism.** No scheduler races, device nondeterminism, or external interleaving outside the simulator's modeled tick semantics.
+
+The claim is **weaker than full equivalence** but **stronger than "we tested some scenarios."** It is the strongest defensible statement under the constraints (A1)–(A6) hold by simulator construction; the contestable assumptions are (A4) and (A6), and we address both via the §6.7 threats discussion.
+
+### 6.6 Combinatorial Affordability
+
+**Concern**: the IR-FSM transition point count, naïvely combined, could explode (n! worst case for arbitrary interleavings).
+
+**Argument**: IR's timeline is dominated by sequential composition with strong ordering dependencies. A `wait` must activate before its successor `call` is possible; a `cycle` body must complete before its next iteration's wait re-arms. These dependencies make most paths near-linear in IR control-flow tree depth, not factorial in transition point count. Branching (`if`, `cycle.until`) introduces multiplicative factors but bounded by branch fan-out, which is small in observed IRs.
+
+**Empirical defense (mandatory experiment, §9)**:
+
+- *Stress-test variables*: nesting depth (1–6), `if` branch fan-out (1–4), simultaneous timers (1–5), cycle iterations bound (3–20), connected devices per scenario (1–10), tags per device (1–5).
+- *Metrics*: per-IR scenario count |S|, total simulation time, worst-case scenario length.
+- *Baselines for comparison*: random testing (matched scenario count), naïve path enumeration (when feasible), hand-crafted suite.
+- *Target evidence*: |S| grows near-linearly with IR depth on the dataset and on synthetic stress tests; p95 verification time stays under 2 s.
+
+We claim affordability empirically; we do not claim a closed-form complexity theorem, since IR variants outside the dataset may exhibit different behavior.
+
+### 6.7 Three-Layer Verification Architecture
+
+The transition-obligation coverage is operationalized in three layers, ordered by increasing cost. Each scenario flows through layers sequentially; early failure short-circuits later layers.
+
+**L1 — Static well-formedness checks (≪ ms per IR/JoI pair).** AST-level checks: missing flag initializations, malformed selectors, unit-mismatched delay, references to undefined services. Catches simple lowering bugs without execution. Runs once per IR/JoI pair, not per scenario.
+
+**L2 — IR-FSM transition coverage (~tens of ms per scenario, the hero layer).** For each scenario in S: run the JoI simulator, stream the resulting trace through the IR-FSM, and check whether each FSM transition obligation is satisfied. The IR-FSM is derived once per IR (cached); the scenario set S is derived from the IR-FSM. Most lowering bugs are detected here.
+
+**L3 — Differential simulation (≤ 1 s per scenario, conservative fallback).** For IRs whose composition violates assumption (A2)'s transition-locality — deeply nested cycles, multi-device fan-out with cross-device state, complex compositional interactions — the IR-FSM cannot encode all obligations as local transitions. For these residual cases we fall back to running both IR simulator and JoI simulator and comparing full traces. This catches global behavioral mismatches that L2's transition-local check misses.
+
+L3 is **honest fallback**, not a hidden weakness: it bounds the scope of L2's coverage claim by handling exactly the cases where (A2) does not hold. The criterion for routing an IR to L3 is structural (presence of nested cycles ≥ depth 3, multi-device cross-tag conditions, etc.), determined statically.
+
+**Verdict path is LLM-free**: L1 (static analyzer), L2 (FSM derivation + simulator + transition checker), and L3 (two simulators + comparator) are all deterministic. No LLM judges correctness. This addresses circular-judging concerns common in LLM-evaluation papers.
+
+**Diagnostic output**: when L2 fails, the violating transition obligation (with its IR feature label, optionally enriched by mutation-based diagnostics in §6.8) is the structured retry signal sent to Stage 2 (lowering). Failure localization at the IR-feature granularity, not just "trace mismatch."
+
+### 6.8 Optional Layer: Mutation-Based Diagnostic Enrichment
+
+A failing scenario in L2 already identifies the violating transition. We additionally label each scenario with which IR features it discriminates, by perturbing each IR field (e.g., `wait.edge:rising → none`, `cycle.until X → ¬X`, `delay 100 → 200`) and checking which perturbation causes the IR-FSM trace to diverge under that scenario. Labels are attached as metadata.
+
+This is **mutation-based diagnostic**, not scenario synthesis. It does not add scenarios; it annotates the ones produced by §6.4. Its contribution is empirical: does richer per-feature labeling improve self-correction (Stage 2 retry) success rate over plain trace-mismatch reporting?
+
+**Status**: included as an evaluation-decided component. If ablation (§9) shows meaningful retry-success improvement, kept as a contribution. Otherwise demoted to engineering detail or cut.
+
+### 6.9 Threats to Validity
+
+**(T1) Stipulative semantics / circularity.** IR semantics, simulator, and expected traces are all defined by us. Passing tests means the JoI conforms to our simulator's interpretation of IR, not necessarily to a human's intent or to real-hub behavior. *Mitigation*: human study on user-confirmed IR rendering (Stage 1's NL→IR check) grounds intent; real-backend validation layer (running representative counterexamples on actual JoI runtime) bounds simulator-vs-runtime drift.
+
+**(T2) Real-runtime fidelity.** Edge-hub deployment may diverge from simulator on timing, scheduling, or device peculiarities. *Mitigation*: report drift rate empirically; document scope clearly.
+
+**(T3) Idiom catalog creep.** The mutation diagnostic (§6.8) and the routing criterion for L3 (§6.7) involve some hand-crafted rules. *Mitigation*: keep the rules small, derived from IR grammar (not from JoI patterns); document each rule explicitly; report which rules fire how often.
+
+**(T4) Tag resolution timing.** `all/any` device sets are resolved by the precision stage; we assume resolution is fixed for a scenario (devices do not appear/disappear mid-scenario). *Mitigation*: state explicitly; note that dynamic device-set verification is out of scope.
+
+**(T5) Concurrency / races.** Out of scope. We verify single-program lowering against single-IR. Concurrent automations and runtime races are explicitly excluded (§1.6).
+
+**(T6) LLM lowering bug class coverage.** Our framework verifies *lowering correctness against IR*. It does not verify whether the LLM-extracted IR matches the user's actual intent — that is Stage 1's user-confirmation responsibility. We do not double-count: the verifier's claim is conditional on the user-confirmed IR being the spec.
+
+**(T7) Failure localization granularity.** L2 reports the violating transition obligation; L3 reports trace divergence. We claim IR-feature-level localization for L2-caught bugs; L3 reports require additional analysis. Both failure modes feed Stage 2 retries.
+
+### 6.10 Positioning and Prior Art
+
+The technique is **model-based testing adapted to a new setting**. We do not claim a new verification paradigm.
+
+- **Standard MBT** (Utting-Legeard 2007 and successors): derive tests from a model, compare implementation traces. We do this.
+- **Conformance testing** (Tretmans IOSTS, distinguishing-sequence generation): also relates to our transition-coverage approach.
+- **Runtime verification / monitoring** (Bauer-Leucker): L2's transition-stream check is in this lineage.
+
+What is novel for top-tier:
+
+- **Spec source**: the model is not hand-authored. It is an LLM-extracted user-confirmed IR from a NL→DSL pipeline.
+- **Target**: LLM-generated reactive DSL code with informal semantics and idiom multiplicity.
+- **Domain**: edge-runtime smart-home automation with ≤2 s budget and offline operation.
+- **Coverage discipline**: IR-FSM transition-obligation coverage as a structurally-derived completeness notion (weaker than full equivalence, stronger than test sample).
+- **Integration**: verification feeds Stage 2 retry signal at IR-feature granularity, closing the LLM-correction loop.
+
+The contribution is the **integration and adaptation of these techniques to a setting where MBT has not been applied**, plus the structural completeness notion (transition-obligation coverage on IR-FSM derived from a small IR grammar).
 
 ---
 

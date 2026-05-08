@@ -1,7 +1,7 @@
 [Device Summary]
 <Device "Dishwasher">
-  <Service "DishwasherMode" type="value">Current mode</Service>
-  <Service "SetDishwasherMode" type="action">Set dishwasher mode (eco, intense, auto, quick, rinse, dry)</Service>
+  <Service "DishwasherMode" type="value">Current mode. Enum values: eco, intense, auto, quick, rinse, dry.</Service>
+  <Service "SetDishwasherMode" type="action">Set dishwasher mode</Service>
 </Device>
 
 # Dishwasher Examples
@@ -12,4 +12,12 @@ Set the Dishwasher to eco mode
 
 [Command]
 What mode is the Dishwasher in?
+["Dishwasher.DishwasherMode"]
+
+[Command]
+Switch the Dishwasher to quick mode
+["Dishwasher.SetDishwasherMode"]
+
+[Command]
+When the Dishwasher finishes its cycle, do something
 ["Dishwasher.DishwasherMode"]

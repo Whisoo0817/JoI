@@ -1,19 +1,16 @@
 [Device Summary]
 <Device "LeakSensor">
-  <Service "Leakage" type="value">Water leak detection status (true/false)</Service>
+  <Service "Leakage" type="value">Water leak detection status (true: leak detected, false: no leak)</Service>
 </Device>
 
-⚠️ "leak is detected / water leak" → ALWAYS include `LeakSensor.Leakage` for the cond read. NEVER put a `leak`/`detected` attr on the action device (e.g. Valve/Siren).
+WARNING: "leak is detected / water leak" → ALWAYS use LeakSensor.Leakage for the cond read. NEVER put a leak/detected attribute on the action device (e.g., Valve, Siren).
 
 # LeakSensor Examples
 
 [Command]
-Check for water leaks (Ask LeakSensor)
+Check for water leaks
 ["LeakSensor.Leakage"]
 
 [Command]
-If a leak is detected, close the valve.
-<Reasoning>
-LeakSensor reads the leak; Valve is the action target.
-</Reasoning>
-["LeakSensor.Leakage", "Valve.Close"]
+When a leak is detected, do something
+["LeakSensor.Leakage"]

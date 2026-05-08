@@ -1,0 +1,113 @@
+{
+  "command_eng": "If it is raining and the humidity is 80% or higher, set the dehumidifier to drying mode and output \"It's raining and himidity is high\" through the speaker.",
+  "connected_devices": {
+    "Outdoor_Rain": {
+      "category": [
+        "RainSensor"
+      ],
+      "tags": [
+        "Outdoor",
+        "RainSensor"
+      ]
+    },
+    "Garden_Rain": {
+      "category": [
+        "RainSensor"
+      ],
+      "tags": [
+        "Garden",
+        "RainSensor"
+      ]
+    },
+    "Living_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Living",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Living_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Living",
+        "Dehumidifier"
+      ]
+    },
+    "Bedroom_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "RainSensor.Rain == true && HumiditySensor.Humidity >= 80",
+        "then": [
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "It's raining and himidity is high"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#RainSensor).rainSensor_rain ==| true && any(#HumiditySensor).humiditySensor_humidity >= 80) {\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n(#Speaker).speaker_speak(\"It's raining and himidity is high\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#RainSensor).rainSensor_rain ==| true && any(#HumiditySensor).humiditySensor_humidity >= 80) {\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n(#Speaker).speaker_speak(\\\"It's raining and himidity is high\\\")\\n}\"\n}"
+}

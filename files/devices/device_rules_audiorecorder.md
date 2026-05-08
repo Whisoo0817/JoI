@@ -1,26 +1,30 @@
 [Device Summary]
 <Device "AudioRecorder">
-  <Service "RecordStatus" type="value">Recording status (standby, recording)</Service>
-  <Service "AudioFile" type="value">Recorded audio file</Service>
-  <Service "RecordStart" type="action">Start recording</Service>
-  <Service "RecordStop" type="action">Stop recording and save file</Service>
-  <Service "RecordWithDuration" type="action">Record for a specified duration (in seconds)</Service>
+  <Service "AudioFile" type="value">The current audio file of the audio recorder</Service>
+  <Service "RecordStatus" type="value">The current status of the audio recorder. Enum values: idle, recording.</Service>
+  <Service "RecordStart" type="action">Start recording audio</Service>
+  <Service "RecordStop" type="action">Stop recording audio and save the file</Service>
+  <Service "RecordWithDuration" type="action">Record audio with a specified duration</Service>
 </Device>
 
 # AudioRecorder Examples
 
 [Command]
-Turn on the AudioRecorder
-["AudioRecorder.On"]
+Start recording audio
+["AudioRecorder.RecordStart"]
 
 [Command]
-Turn off the AudioRecorder
-["AudioRecorder.Off"]
+Stop recording and save the file
+["AudioRecorder.RecordStop"]
 
 [Command]
-Toggle the AudioRecorder
-["AudioRecorder.Toggle"]
+Record audio for 30 seconds
+["AudioRecorder.RecordWithDuration"]
 
 [Command]
 Check the RecordStatus of the AudioRecorder
+["AudioRecorder.RecordStatus"]
+
+[Command]
+When the AudioRecorder starts recording, do something
 ["AudioRecorder.RecordStatus"]

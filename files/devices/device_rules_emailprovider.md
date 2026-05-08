@@ -1,17 +1,19 @@
 [Device Summary]
 <Device "EmailProvider">
-  <Service "LatestEmail" type="value">Content of the most recent email</Service>
-  <Service "UnreadCount" type="value">Number of unread emails</Service>
-  <Service "SendEmail" type="action">Send an email (to, subject, body)</Service>
-  <Service "CheckNewEmails" type="action">Fetch new emails from server</Service>
+  <Service "SendMail" type="action">Send an email (to, subject, body)</Service>
+  <Service "SendMailWithFile" type="action">Send an email with a file attachment</Service>
 </Device>
 
 # EmailProvider Examples
 
 [Command]
-Read the latest email from the EmailProvider
-["EmailProvider.LatestEmail"]
+Send an email to John saying I'm late
+["EmailProvider.SendMail"]
 
 [Command]
-Send an email to John saying I'm late
-["EmailProvider.SendEmail"]
+Email the report file to the team
+["EmailProvider.SendMailWithFile"]
+
+[Command]
+Send a notification email
+["EmailProvider.SendMail"]
