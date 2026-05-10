@@ -18,15 +18,8 @@ from paper.run_local_ir import generate_joi_code
 # [MODE: target] 테스트할 타겟 지정 (python3 test.py target)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    # enum_resolve verification:
-    #   C01 idx 12 — "Output today's weather through the speaker." → enum_cond_check should answer "no" (TTS source, no comparison). resolved_enum_conds={} expected.
-    #   C15 idx 8  — "At 6 AM... announce the weather..." → also "no" (periodic announce, no comparison).
-    #   C10 idx 2  — "When the oven enters heating mode, switch it to microwave mode after 3 seconds." → "yes", enum_resolve picks Oven.OvenMode == "heating".
-    #   C08 idx 1  — "When button 1 of the multi-button is pressed, turn on all lights in the bedroom." → "yes", enum_resolve picks MultiButton.Button1 == "pushed".
-    "C01": [12],
-    "C15": [8],
-    "C10": [2],
-    "C08": [1],
+    "C01": [5,25],
+    
 }
 
 
@@ -49,42 +42,45 @@ class _Tee:
                 pass
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-CUSTOM_COMMAND = "사이렌을 켜줘"
+# Sector2에 WindowCovering(Window+Blind) + Door 함께 두고 "everything in Sector2" 시 답이 어떻게 갈리는지 검증
+CUSTOM_COMMAND = "tc0_plug_001 꺼줘."
 
-# format_connected_devices_for_joi_llm 결과 형식
-# key: device name, category: skills 기반, tags: tags + predefined_tags + category_labels 머지
 CUSTOM_DEVICES = {
     "tc0_af37207d-f2f2-447f-8006-f1e030755e65": {
         "category": ["MultiButton"],
-        "tags": ["PhilipsHue", "tc0_af37207d-f2f2-447f-8006-f1e030755e65", "DimmerSwitch", "MultiButton", "tc0_philipshue"],
+        "tags": ["PhilipsHue", "DimmerSwitch", "MultiButton"],
     },
     "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305": {
         "category": ["Switch", "Light"],
-        "tags": ["PhilipsHue", "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305", "Light", "Switch", "tc0_philipshue"],
+        "tags": ["PhilipsHue", "Light", "Switch"],
     },
     "tc0_9fe5d8b9-9ebc-4203-9963-497546c9740d": {
         "category": ["Switch", "Light"],
-        "tags": ["PhilipsHue", "tc0_9fe5d8b9-9ebc-4203-9963-497546c9740d", "Light", "Switch", "tc0_philipshue"],
+        "tags": ["PhilipsHue", "Light", "Switch"],
     },
     "tc0_7def1d9d-721c-4e35-b217-51fb8b46ba59": {
         "category": ["Switch", "Light"],
-        "tags": ["PhilipsHue", "tc0_7def1d9d-721c-4e35-b217-51fb8b46ba59", "Light", "Switch", "tc0_philipshue"],
+        "tags": ["PhilipsHue", "Light", "Switch"],
     },
     "tc0_a2e7594e-aced-4e03-a25e-841aa7315614": {
         "category": ["Switch", "Light"],
-        "tags": ["PhilipsHue", "tc0_a2e7594e-aced-4e03-a25e-841aa7315614", "Light", "Switch", "tc0_philipshue"],
+        "tags": ["PhilipsHue", "Light", "Switch"],
     },
     "tc0_ebf02f5cfcd67e4ce4bexu": {
         "category": ["Switch", "AirConditioner", "TemperatureSensor"],
-        "tags": ["Hejhome", "tc0_ebf02f5cfcd67e4ce4bexu", "AirConditioner", "Switch", "TemperatureSensor", "tc0_local"],
+        "tags": ["Hejhome", "AirConditioner", "Switch", "TemperatureSensor"],
     },
     "tc0_eba69f1846b797f9a72gis": {
         "category": ["Switch"],
-        "tags": ["Hejhome", "tc0_eba69f1846b797f9a72gis", "Siren", "Switch", "tc0_local"],
+        "tags": ["Hejhome", "Siren", "Switch"],
     },
     "tc0_ebd382239e6a6e4a29lccz": {
         "category": ["Switch"],
-        "tags": ["Hejhome", "tc0_ebd382239e6a6e4a29lccz", "Switch", "tc0_local"],
+        "tags": ["Hejhome", "Switch"],
+    },
+    "tc0_plug_001": {
+        "category": ["Switch", "Plug"],
+        "tags": ["Hejhome", "Plug", "Switch"],
     },
 }
 

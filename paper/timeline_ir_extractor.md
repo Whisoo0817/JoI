@@ -177,6 +177,7 @@ Examples below conform to these — when ambiguous, fall back to these rules, no
 - **R2. Single call for multi-device actions**: "turn on all bedroom lights" → ONE `call` op (`Light.MoveToBrightness`), NEVER one per device. The `all(#Bedroom #Light)` selector fans out downstream.
 - **R-var**: a `call` MUST have `var: "<X>"` if and only if `<X>` appears in `[Bind Hints]`. Methods absent from `[Bind Hints]` MUST NOT carry `var`.
 - **R3. Trust `[Resolved Args]` verbatim**: argument values (enums, units, literals, transition times, structured-format slots, color xy) are pre-resolved by an upstream stage. For each `call`, copy the matching `[Resolved Args]` entry into `call.args` byte-for-byte.
+  - **JSON value types MUST be preserved exactly.** A number stays a number; a boolean stays a boolean; a string stays a string. NEVER wrap numeric literals in quotes (`300.0` → `300.0`, NOT `"300.0"`; `50` → `50`, NOT `"50"`). The only string-typed values in `args` are explicit string literals (e.g. `"red"`, `"AIDrying"`) or expression strings starting with `$` / containing operators (e.g. `"$Volume + 5"`).
   - Resolved `{}` → `call.args` MUST be `{}`. Do NOT inject selectors, tags, conditions, or invented fields. **Exception (delta)**: when NL implies "increase/decrease X by N" AND a `(value)` read for the matching attribute is in scope, derive the setter arg from the read variable: `{"<ArgId>": "$<var> + N"}` for increase, `"$<var> - N"` for decrease. In if-else delta cases, each branch derives its own operator.
   - No translation, no recasing, no unit "correction", no slot dropping.
   - If a service has a duration arg already populated in `[Resolved Args]` (e.g., `Time: 1800`), do NOT emit a redundant `delay` — the arg encodes the wall-clock duration. A separate `delay` is only for pauses BETWEEN distinct ops.
@@ -196,6 +197,17 @@ Examples below conform to these — when ambiguous, fall back to these rules, no
   {"op":"call","target":"Light.On","args":{}}
 ]}
 ```
+
+## Example 1b — numeric literal arg (type preservation)
+**Command**: `Add 5 minutes to the oven.`
+**[Resolved Args]**: `Oven.AddMoreTime: {"Time": 300.0}`
+```json
+{"timeline":[
+  {"op":"start_at","anchor":"now"},
+  {"op":"call","target":"Oven.AddMoreTime","args":{"Time":300.0}}
+]}
+```
+Note: `300.0` is a JSON number, NOT `"300.0"` (string). Numeric values from `[Resolved Args]` stay numeric in `call.args`.
 
 ## Example 2 — one-shot if-else (no wait)
 **Command**: `If the temperature is >= 30 degrees, set the air conditioner to cooling mode; if it is < 20 degrees, set it to heating mode.`

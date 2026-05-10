@@ -123,3 +123,10 @@ Generate a cat image and save it as cat.png
 Call CloudServiceProvider.GenerateImage; Call CloudServiceProvider.SaveToFile
 </Reasoning>
 ["CloudServiceProvider.GenerateImage", "CloudServiceProvider.SaveToFile"]
+
+[Command]
+If the bedroom temperature is 26 degrees or higher and the window is open, close the window and turn on the air conditioner.
+<Reasoning>
+Read TemperatureSensor.Temperature; Read WindowCovering.CurrentPosition; Call WindowCovering.DownOrClose; Call Switch.On
+</Reasoning>
+["TemperatureSensor.Temperature", "WindowCovering.CurrentPosition", "WindowCovering.DownOrClose", "Switch.On"]

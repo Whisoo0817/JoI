@@ -461,38 +461,89 @@ def generate_joi_code_ir(
         return resolved_args_local, resolved_enum_conds_local
 
     # ── Precision branch: command + selected services → JSON dict of selectors ──
-    def run_precision():
-        precision_input = (
+    def _build_precision_services_block(svcs):
+        """Annotate each service with kind (value|function) so precision LLM
+        does not have to infer cond-context applicability from the name alone.
+        """
+        lines = []
+        for s in svcs:
+            if '.' not in s:
+                lines.append(s)
+                continue
+            dev, svc_name = s.split('.', 1)
+            svc_name_clean = svc_name.replace("()", "")
+            dev_data = SERVICE_DATA.get(dev, {})
+            is_value = any(e["id"] == svc_name_clean for e in dev_data.get("values", []))
+            kind = "value" if is_value else "function"
+            lines.append(f"- {dev}.{svc_name_clean} ({kind})")
+        return "\n".join(lines) if lines else "(no services)"
+
+    def _precision_one_service(svc):
+        """Run precision LLM for ONE service. Returns (svc, [selectors], reasoning_text)."""
+        if '.' not in svc:
+            return svc, [], ""
+        dev, svc_name = svc.split('.', 1)
+        svc_name_clean = svc_name.replace("()", "")
+        is_value = any(e["id"] == svc_name_clean for e in SERVICE_DATA.get(dev, {}).get("values", []))
+        kind = "value" if is_value else "function"
+
+        per_input = (
             f"[Command]\n{sentence}\n\n"
-            f"[Selected Services]\n{json.dumps(selected_services, ensure_ascii=False)}\n\n"
+            f"[Service]\n{dev}.{svc_name_clean} ({kind})\n\n"
             f"[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"
         )
-        raw = infer("mapping_precision", precision_input).strip()
+        raw = infer("mapping_precision", per_input).strip()
+
+        reasoning_local = ""
+        m_r = re.search(r'<Reasoning>(.*?)</Reasoning>', raw, flags=re.DOTALL)
+        if m_r:
+            reasoning_local = m_r.group(1).strip()
+
         cleaned = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
         cleaned = re.sub(r'```(?:json)?\s*', '', cleaned).strip().rstrip('`').strip()
-        parsed = {}
+
+        sel_list = []
+        # Try parsing as JSON list directly
         try:
             obj = json.loads(cleaned)
-            if isinstance(obj, dict):
+            if isinstance(obj, list):
+                sel_list = [str(x) for x in obj if isinstance(x, str)]
+            elif isinstance(obj, dict):
+                # Backward-compat: model emitted dict — extract values for THIS svc
                 for k, v in obj.items():
-                    if isinstance(v, list):
-                        parsed[k] = [str(s) for s in v if isinstance(s, str)]
-                    elif isinstance(v, str):
-                        parsed[k] = [v]
+                    if k == f"{dev}.{svc_name_clean}":
+                        if isinstance(v, list):
+                            sel_list = [str(x) for x in v if isinstance(x, str)]
+                        elif isinstance(v, str):
+                            sel_list = [v]
+                        break
         except Exception:
-            m = re.search(r'\{.*\}', cleaned, re.DOTALL)
+            m = re.search(r'\[.*?\]', cleaned, re.DOTALL)
             if m:
                 try:
                     obj = json.loads(m.group(0))
-                    if isinstance(obj, dict):
-                        for k, v in obj.items():
-                            if isinstance(v, list):
-                                parsed[k] = [str(s) for s in v if isinstance(s, str)]
-                            elif isinstance(v, str):
-                                parsed[k] = [v]
+                    if isinstance(obj, list):
+                        sel_list = [str(x) for x in obj if isinstance(x, str)]
                 except Exception:
                     pass
-        return parsed
+
+        return svc, sel_list, reasoning_local
+
+    def run_precision():
+        # Fan out: one LLM call per service in parallel.
+        if not selected_services:
+            return {"selectors": {}, "reasoning": ""}
+        results = {}
+        reasoning_blocks = []
+        with ThreadPoolExecutor(max_workers=max(1, len(selected_services))) as px:
+            futures = [px.submit(_precision_one_service, s) for s in selected_services]
+            for f in futures:
+                svc, sel_list, rs = f.result()
+                if sel_list:
+                    results[svc] = sel_list
+                if rs:
+                    reasoning_blocks.append(f"{svc}:\n  {rs}")
+        return {"selectors": results, "reasoning": "\n".join(reasoning_blocks)}
 
     # ── IR extract (sequential, after both branches finish) ──
     def _build_intent_services_block(svcs, details):
@@ -775,7 +826,8 @@ def generate_joi_code_ir(
         "merged_command": merged_command,
         "ir": ir,
         "ir_readable": ir_readable,
-        "precision": precision_output,
+        "precision": precision_output.get("selectors", {}) if isinstance(precision_output, dict) else {},
+        "precision_reasoning": precision_output.get("reasoning", "") if isinstance(precision_output, dict) else "",
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "logs": "\n".join(log_buf),
