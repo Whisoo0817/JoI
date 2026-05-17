@@ -23,3 +23,7 @@ What is the maximum level of the LevelControl?
 [Command]
 When the level reaches the minimum, do something
 ["LevelControl.CurrentLevel"]
+
+[Command]
+Raise the level by 5
+["LevelControl.CurrentLevel", "LevelControl.MoveToLevel"]

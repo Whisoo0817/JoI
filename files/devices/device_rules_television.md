@@ -23,3 +23,7 @@ Go back one channel
 [Command]
 What channel is the TV currently on?
 ["Television.Channel"]
+
+[Command]
+Raise the TV channel by 2
+["Television.Channel", "Television.SetChannel"]

@@ -130,7 +130,7 @@ if ((#Door).DoorState == "open") {
                 {"op": "wait", "cond": 'Door.DoorState == "open"', "edge": "none"},
                 {"op": "cycle", "until": None, "body": [
                     {"op": "call", "target": "Switch.On", "args": {}},
-                    {"op": "delay", "ms": 1000},
+                    {"op": "delay", "duration": "1 SEC"},
                 ]},
             ],
         },
@@ -156,10 +156,10 @@ if (phase == 1) {
                 {"op": "cycle", "until": None, "body": [
                     {"op": "call", "target": "Light.MoveToColor",
                      "args": {"ColorX": 0.675, "ColorY": 0.322, "TransitionTime": 0}},
-                    {"op": "delay", "ms": 1000},
+                    {"op": "delay", "duration": "1 SEC"},
                     {"op": "call", "target": "Light.MoveToColor",
                      "args": {"ColorX": 0.167, "ColorY": 0.040, "TransitionTime": 0}},
-                    {"op": "delay", "ms": 1000},
+                    {"op": "delay", "duration": "1 SEC"},
                 ]},
             ],
         },
@@ -197,7 +197,7 @@ if (state == "red") {
                 {"op": "start_at", "anchor": "now"},
                 {"op": "cycle", "until": None, "body": [
                     {"op": "call", "target": "Switch.Toggle", "args": {}},
-                    {"op": "delay", "ms": 1000},
+                    {"op": "delay", "duration": "1 SEC"},
                 ]},
             ],
         },
@@ -216,7 +216,7 @@ if (state == "red") {
                 {"op": "start_at", "anchor": "now"},
                 {"op": "cycle", "until": "clock.time >= 10", "body": [
                     {"op": "call", "target": "Switch.Toggle", "args": {}},
-                    {"op": "delay", "ms": 60_000},
+                    {"op": "delay", "duration": "1 MIN"},
                 ]},
             ],
         },

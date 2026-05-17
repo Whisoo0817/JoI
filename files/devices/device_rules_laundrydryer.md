@@ -23,3 +23,7 @@ Set the LaundryDryer spin speed to 800
 [Command]
 When the LaundryDryer finishes, do something
 ["LaundryDryer.LaundryDryerMode"]
+
+[Command]
+Increase the LaundryDryer spin speed by 100
+["LaundryDryer.SpinSpeed", "LaundryDryer.SetSpinSpeed"]

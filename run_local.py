@@ -7,7 +7,7 @@ from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 
 from config import get_client, get_model_id
-from loader import SERVICE_DATA, PROMPTS
+from loader import SERVICE_DATA, PROMPTS, SUB_SKILL_TAGS
 from parser.validator import validate_joi
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -133,15 +133,17 @@ def inject_value_service(selected_services):
 # SERVICE_DATA 순회 -> { 서비스명: 카테고리 } 역방향 맵을 생성.
 # Secondary Category 우선
 def _build_service_category_map(service_data):
-    SECONDARY = {'Switch', 'LevelControl', 'ColorControl'}
+    # Sub-skill capability categories (Switch / LevelControl / ColorControl /
+    # RotaryControl) overwrite primary mappings so a shared service name resolves
+    # to the sub-skill prefix when a sub-skill device is the actual target.
     mapping = {}
     for cat, item in service_data.items():
-        if cat not in SECONDARY:
+        if cat not in SUB_SKILL_TAGS:
             for entry in item.get("values", []) + item.get("functions", []):
                 svc = entry["id"]
                 if svc not in mapping:
                     mapping[svc] = cat
-    for cat in SECONDARY:
+    for cat in SUB_SKILL_TAGS:
         if cat in service_data:
             for entry in service_data[cat].get("values", []) + service_data[cat].get("functions", []):
                 mapping[entry["id"]] = cat

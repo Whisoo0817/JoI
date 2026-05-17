@@ -6,7 +6,7 @@ external `call` invocations. Defines paper §6.2 IR operational semantics.
 Semantics summary:
 - `start_at(now)`: t starts at 0 (Monday 00:00).
 - `start_at(cron)`: t starts at the first cron fire on/after Monday 00:00.
-- `delay(ms)`: advance clock by ms.
+- `delay(duration)`: parse `"N UNIT"` (HOUR/MIN/SEC/MSEC) and advance clock by N units.
 - `read(var, src)`: vars[var] = world[src].
 - `call(target, args, bind?)`: emit trace; apply effects; if `bind`, store
   a synthetic return value into vars[bind].
@@ -30,6 +30,7 @@ from . import expr
 from .scenario import Scenario
 from .traces import Trace, normalize_args, normalize_value
 from .world import World
+from ..timeline_ir import parse_duration_to_ms
 
 MAX_TRACE = 1000
 MAX_T_MS = 7 * 86_400_000  # 7 days
@@ -95,7 +96,7 @@ def _exec_steps(steps: list, world: World, trace: Trace, catalog, debug: bool) -
         _check_stop(world, trace)
         op = step.get("op")
         if op == "delay":
-            world.advance_by(int(step.get("ms", 0)))
+            world.advance_by(parse_duration_to_ms(step.get("duration", "0 MSEC")))
         elif op == "read":
             _exec_read(step, world)
         elif op == "call":
@@ -264,7 +265,9 @@ def _exec_cycle(step: dict, world: World, trace: Trace, catalog, debug: bool) ->
 # ── Cron handling ────────────────────────────────────────────────────────────
 
 _DOW_NAME_TO_NUM = {"MON": 1, "TUE": 2, "WED": 3, "THU": 4, "FRI": 5, "SAT": 6, "SUN": 7,
-                    "0": 7, "7": 7}  # cron treats 0 and 7 as Sunday
+                    "0": 7, "7": 7}  # legacy: 0/7=Sun for GT replay compat
+# Canonical pipeline form is digit 1-7 (1=Mon..7=Sun). Names and "0" are
+# retained ONLY to replay older test IRs / dataset GT crons without crashing.
 
 
 def _next_cron_fire(cron: str, after_ms: int, scenario: Scenario) -> int | None:
@@ -335,21 +338,42 @@ def _expand_field(spec: str, lo: int, hi: int) -> set[int]:
 
 
 def _expand_dow(spec: str) -> set[int]:
-    """Expand cron dow field. Accepts numeric (0-7, 0/7=Sunday) and MON..SUN names."""
+    """Expand cron dow field. Canonical form is digit 1-7 (1=Mon..7=Sun) with
+    optional hyphen-ranges (e.g. `1-5` for weekdays). Legacy `0` and English
+    names (MON..SUN) are accepted for GT-replay compat.
+    """
     if spec == "*":
         return set(range(1, 8))
     parts = spec.replace(",", " ").split()
     out: set[int] = set()
+
+    def _to_num(tok: str) -> int | None:
+        tok_up = tok.upper()
+        if tok_up in _DOW_NAME_TO_NUM:
+            return _DOW_NAME_TO_NUM[tok_up]
+        try:
+            n = int(tok)
+            if n == 0:
+                n = 7
+            if 1 <= n <= 7:
+                return n
+        except ValueError:
+            pass
+        return None
+
     for p in parts:
-        p_up = p.upper()
-        if p_up in _DOW_NAME_TO_NUM:
-            out.add(_DOW_NAME_TO_NUM[p_up])
-        else:
-            try:
-                n = int(p)
-                if n == 0:
-                    n = 7
-                out.add(n)
-            except ValueError:
-                pass
+        if "-" in p and p.count("-") == 1:
+            lo_s, hi_s = p.split("-", 1)
+            lo, hi = _to_num(lo_s), _to_num(hi_s)
+            if lo is not None and hi is not None:
+                # Wrap-around range (e.g. 6-2 meaning Sat,Sun,Mon,Tue) not in
+                # canonical pipeline output but supported defensively.
+                if lo <= hi:
+                    out.update(range(lo, hi + 1))
+                else:
+                    out.update(list(range(lo, 8)) + list(range(1, hi + 1)))
+                continue
+        n = _to_num(p)
+        if n is not None:
+            out.add(n)
     return out

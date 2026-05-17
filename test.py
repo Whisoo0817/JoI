@@ -1,25 +1,29 @@
 """Local test entry point for generate_joi_code.
 
 Modes:
-    python3 test.py target   # run targeted indices from local_dataset.csv
+    python3 test.py target   # run full pipeline on test_targets indices
+    python3 test.py pre      # run translation + pre_analysis ONLY on test_targets
     python3 test.py custom   # run a single CUSTOM_COMMAND interactively
 
-When run with `target`, all stdout is mirrored to a timestamped log file in /tmp.
+When run with `target` or `pre`, all stdout is mirrored to a timestamped log file in /tmp.
 The path is printed at start and end so the caller can grep / tail it.
 """
 
 import os
+import re
 import sys
 import time
 import pandas as pd
 
+from config import get_client, get_model_id
+from loader import PROMPTS
 from paper.run_local_ir import generate_joi_code
+from run_local import run_llm_inference
 
-# [MODE: target] 테스트할 타겟 지정 (python3 test.py target)
+# [MODE: target | pre] 테스트할 타겟 지정 (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    "C01": [5,25],
-    
+    "C09": [13],
 }
 
 
@@ -43,45 +47,10 @@ class _Tee:
 
 # [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
 # Sector2에 WindowCovering(Window+Blind) + Door 함께 두고 "everything in Sector2" 시 답이 어떻게 갈리는지 검증
-CUSTOM_COMMAND = "tc0_plug_001 꺼줘."
+CUSTOM_COMMAND = "거실 조명 색깔을 보라색으로 바꿔줘."
 
 CUSTOM_DEVICES = {
-    "tc0_af37207d-f2f2-447f-8006-f1e030755e65": {
-        "category": ["MultiButton"],
-        "tags": ["PhilipsHue", "DimmerSwitch", "MultiButton"],
-    },
-    "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305": {
-        "category": ["Switch", "Light"],
-        "tags": ["PhilipsHue", "Light", "Switch"],
-    },
-    "tc0_9fe5d8b9-9ebc-4203-9963-497546c9740d": {
-        "category": ["Switch", "Light"],
-        "tags": ["PhilipsHue", "Light", "Switch"],
-    },
-    "tc0_7def1d9d-721c-4e35-b217-51fb8b46ba59": {
-        "category": ["Switch", "Light"],
-        "tags": ["PhilipsHue", "Light", "Switch"],
-    },
-    "tc0_a2e7594e-aced-4e03-a25e-841aa7315614": {
-        "category": ["Switch", "Light"],
-        "tags": ["PhilipsHue", "Light", "Switch"],
-    },
-    "tc0_ebf02f5cfcd67e4ce4bexu": {
-        "category": ["Switch", "AirConditioner", "TemperatureSensor"],
-        "tags": ["Hejhome", "AirConditioner", "Switch", "TemperatureSensor"],
-    },
-    "tc0_eba69f1846b797f9a72gis": {
-        "category": ["Switch"],
-        "tags": ["Hejhome", "Siren", "Switch"],
-    },
-    "tc0_ebd382239e6a6e4a29lccz": {
-        "category": ["Switch"],
-        "tags": ["Hejhome", "Switch"],
-    },
-    "tc0_plug_001": {
-        "category": ["Switch", "Plug"],
-        "tags": ["Hejhome", "Plug", "Switch"],
-    },
+    "LR_Light": {"category": ["Light"], "tags": ["LivingRoom", "Light"]},
 }
 
 csv_file_path = 'dataset_migration/local_dataset2.csv'
@@ -92,6 +61,11 @@ def print_result(result):
     if log.get('logs'):
         print(f"{log.get('logs', '')}")
     print("\n⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️⬜️\n")
+    precision = result.get('precision')
+    if precision:
+        print("\n[Selectors]")
+        for svc, sel_list in precision.items():
+            print(f"  {svc}: {sel_list}")
     if result.get('ir_readable'):
         print(f"\n[IR Readable]\n{result['ir_readable']}")
     print(f"\ncode           :\n{result.get('code', '')}")
@@ -125,6 +99,55 @@ def run_targeted_test(df):
                     print(f"[logs]\n{logs}")
 
 
+def run_pre_analysis_only(df):
+    """Translation + pre_analysis only. No service_plan, no precision, no IR."""
+    print("\n🔍 Running Pre-Analysis Only...")
+    client = get_client()
+    model = get_model_id(client)
+
+    def infer(key, user_input):
+        sys_content = PROMPTS.get(key, "")
+        content, log_line = run_llm_inference(model, client, key, [
+            {"role": "system", "content": sys_content},
+            {"role": "user", "content": user_input},
+        ])
+        return content, log_line
+
+    for category, indices in test_targets.items():
+        print(f"--- Category {category} ---")
+        sub = df[df['category_v2'] == category]
+        if indices is None:
+            indices = sorted(sub['index'].tolist())
+        for idx in indices:
+            match = sub[sub['index'] == idx]
+            if match.empty:
+                print(f"(Idx {idx}) - Not Found")
+                continue
+            row = match.iloc[0]
+            kor = row['command_kor']
+            print(f"\n({idx}) 🛑 {kor}")
+            t0 = time.perf_counter()
+            try:
+                sentence = kor
+                logs = []
+                if re.search("[가-힣]", sentence):
+                    sentence, log_line = infer("translation", sentence)
+                    logs.append(log_line)
+                print(f"     ENG: {sentence}")
+                pre, log_line = infer("pre_analysis", f"[Command]\n{sentence}")
+                logs.append(log_line)
+                elapsed = time.perf_counter() - t0
+                print(f"\n[pre_analysis]\n{pre}")
+                print(f"\n[stage timings]")
+                for line in logs:
+                    head = line.split("\n", 1)[0]
+                    print(f"  {head}")
+                print(f"[total: {elapsed:.2f}s]")
+            except Exception as e:
+                elapsed = time.perf_counter() - t0
+                print(f"Error at Idx {idx} after {elapsed:.2f}s: {e}")
+
+
 def run_custom_test(modification=None):
     print("\n🛠️ Running Custom Test...")
     print(f"Command: {CUSTOM_COMMAND}")
@@ -144,15 +167,18 @@ def run_custom_test(modification=None):
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "custom"
 
-    if mode == "target":
-        log_path = f"/tmp/joi_test_{time.strftime('%Y%m%d_%H%M%S')}.log"
+    if mode in ("target", "pre"):
+        log_path = f"/tmp/joi_{mode}_{time.strftime('%Y%m%d_%H%M%S')}.log"
         log_fh = open(log_path, "w", encoding="utf-8")
         original_stdout = sys.stdout
         sys.stdout = _Tee(original_stdout, log_fh)
         try:
             print(f"📁 Log file: {log_path}")
             df = pd.read_csv(csv_file_path, encoding='utf-8-sig')
-            run_targeted_test(df)
+            if mode == "target":
+                run_targeted_test(df)
+            else:
+                run_pre_analysis_only(df)
             print(f"\n📁 Log file: {log_path}")
         except Exception as e:
             print(f"CSV Load Error: {e}")
@@ -163,4 +189,4 @@ if __name__ == "__main__":
     elif mode == "custom":
         run_custom_test()
     else:
-        print("Usage: python3 test.py [target | custom]")
+        print("Usage: python3 test.py [target | pre | custom]")

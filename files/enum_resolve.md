@@ -53,30 +53,27 @@ If the command does not clearly map to ONE member, output `null` for that servic
 Resolve each independently. One service may be `null` while another resolves cleanly.
 
 ## 5. Synonym handling
-Common verb-to-enum mappings:
-- "pressed" / "clicked" / "pushed" → `pushed` (if present)
-- "double-clicked" / "double press" → `double` or `pushed_2x`
-- "held" / "held down" / "long press" → `held` (if present, NOT `down` unless desc explicitly says "held down")
-- "swipe up/down/left/right" → matching `swipe_*` member
-Always cross-check with member descriptions. If two members both look plausible (e.g., `held` vs `down_hold`), prefer the one whose description language matches the command more closely.
+Match command verbs to the enum member whose description (or name) best fits. When two members are both plausible, prefer the one whose description language matches the command more closely. Cross-check the verbatim phrase against the member descriptions in `[ENUM-Value Services]`.
+
+## 6. Device-specific hints
+The optional `[Device-specific Enum Hints]` block (if present) carries category-scoped verb-to-member mappings (e.g. "pressed/clicked/pushed → pushed" for buttons, or device-specific synonym tables). Each `### <Category>` sub-section applies ONLY to services of that category. Treat its mappings as authoritative when the user's wording matches.
 
 # Examples
 
-## Example 1 — Clear match
+## Example 1 — Clear match (description picks the member)
 ```
 [Command]
-When the button is pressed, turn off all devices.
+If the oven is in convection bake mode, ...
 [ENUM-Value Services]
-Button.Button: Current click pattern of the button.
+Oven.OvenMode: Current oven mode.
 Members:
-  - pushed: The value if the Button is pushed
-  - held: The value if the Button is held
-  - down: The value if the Button is being held down
-  - swipe_up: ...
+  - heating: heating cycle
+  - ConvectionBake: Fan-assisted baking with even heat distribution
+  - Bake: Bottom element focused baking mode
 ```
 Output:
 ```json
-{"Button.Button": {"op": "==", "value": "pushed"}}
+{"Oven.OvenMode": {"op": "==", "value": "ConvectionBake"}}
 ```
 
 ## Example 2 — Ambiguous (no comparison implied)
@@ -89,32 +86,9 @@ Members:
   - clear: ...
   - rain: ...
   - snow: ...
-  - clouds: ...
-  ...
 ```
 Output:
 ```json
 {"WeatherProvider.Weather": null}
 ```
 
-## Example 3 — Multi-service mixed
-```
-[Command]
-If the oven is in convection bake mode, announce the current weather.
-[ENUM-Value Services]
-Oven.OvenMode: Current oven mode.
-Members:
-  - heating: ...
-  - ConvectionBake: Fan-assisted baking with even heat distribution
-  - Bake: Bottom element focused baking mode
-  ...
-WeatherProvider.Weather: Current weather condition.
-Members:
-  - clear: ...
-  - rain: ...
-  ...
-```
-Output:
-```json
-{"Oven.OvenMode": {"op": "==", "value": "ConvectionBake"}, "WeatherProvider.Weather": null}
-```

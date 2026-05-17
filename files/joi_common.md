@@ -83,8 +83,11 @@ Example (bad — do not do this):
   - ❌ Inside a cycle body, `brightness := (#Light).Brightness + 10` is **WRONG** — that "+10" would be computed once and frozen forever. Use `brightness = ...` instead.
   - ❌ At top of script, `triggered = false` (without `:=`) is WRONG when `triggered` is a state flag — it would reset every tick and never persist. Use `triggered := false`.
   - Rule of thumb: declare each persistent state var with `:=` ONCE at the very top of the script; everything else is `=`.
-- **NO** `var`/`let`/`const`, `for`/`while`, `Math.*`, `abs()`, `min()`, `max()`, `.ToString()`. Only the `abs` workaround below.
-- **abs workaround**: `diff = a - b; if (diff < 0) { diff = b - a }`.
+- **NO** `var`/`let`/`const`, `for`/`while`, `Math.*`, `abs()`, `min()`, `max()`, `.ToString()`. JoI has no built-in functions — the IR may use `abs`/`max`/`min` as a convenience, but lowering MUST rewrite each into the explicit workaround below.
+- **abs workaround**: IR `abs(a - b)` → `diff = a - b; if (diff < 0) { diff = b - a }` (then use `diff`).
+- **max workaround**: IR `max(a, b)` → `m = a; if (b > a) { m = b }` (then use `m`). For 3+ args, chain pairwise.
+- **min workaround**: IR `min(a, b)` → `m = a; if (b < a) { m = b }` (then use `m`).
+- When `abs`/`max`/`min` appears inside a `call.args` value (e.g. `SetVolume(min($v+10, 100))`), pre-compute the value into a temp variable on the line BEFORE the call, then pass the temp: `tmp = $v + 10; if (100 < tmp) { tmp = 100 }; (#Speaker).SetVolume(tmp)`.
 - **String concat**: `"text" + value` (auto-cast).
 
 ---
@@ -93,14 +96,14 @@ Example (bad — do not do this):
 
 ## A. `cron` field
 - `timeline[0]` is `start_at(anchor:"now")` → `cron: ""`.
-- `timeline[0]` is `start_at(anchor:"cron", cron:X)` → `cron: X` (5-field passthrough; convert dow `MON..SUN` → `1..7` if needed but prefer raw).
+- `timeline[0]` is `start_at(anchor:"cron", cron:X)` → `cron: X` (5-field passthrough; dow MUST already be digit 1–7 from the extractor, where `1=Mon ... 7=Sun`. NEVER `0`, NEVER English names — extractor convention guarantees this. If you see otherwise, the IR is malformed; emit as-is so the validator catches it).
 
 ## C. Per-op script lowering
 
 | IR op | Joi |
 |---|---|
 | `start_at` | (consumed by cron) |
-| `delay(ms)` | `delay(N UNIT)` (choose largest exact unit: 3600000→`1 HOUR`, 60000→`1 MIN`, 1000→`1 SEC`, else `MSEC`). When the delay is **the cycle's cadence**, do NOT emit it. |
+| `delay(duration:"N UNIT")` | `delay(N UNIT)` — passthrough (IR's `duration` string already matches JoI's `delay(N UNIT)` literal exactly). UNIT is one of `HOUR`/`MIN`/`SEC`/`MSEC`. When the delay is **the cycle's cadence**, do NOT emit it. |
 | `read(var, src)` | `var = src` (e.g., `t1 = (#TempSensor).Temperature`). |
 | `call(target, args)` | `(#Selector).Method(args)` using `[Precision Selectors]` for the device part and `[Service Details]` for the method name. |
 | `call(target, args, bind:"var")` | `var = (#Selector).Method(args)` — capture the function's return value into `var`. Subsequent steps may reference `$var`. |

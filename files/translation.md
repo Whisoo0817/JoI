@@ -22,6 +22,7 @@ Device words: light, air conditioner, blind, camera, siren, window, curtain, dim
 - 식기세척기 = **dishwasher**.
 - 밥솥 = **rice cooker**.
 - 청소기 / 로봇 청소기 = **(robot) vacuum (cleaner)**.
+- 아기방 = **baby room** (NOT nursery).
 
 # Time Phrases (cron-like)
 Absolute start times go first as a prepositional phrase (NOT "if…"):

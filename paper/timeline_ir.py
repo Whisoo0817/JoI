@@ -39,6 +39,31 @@ _ANCHOR_VALUES = {"now", "cron"}
 _EXPR_MARKERS = set(".$+-*/()<>=!&|")
 
 
+# ── Delay duration parsing ───────────────────────────────────────────────────
+# IR delay uses the SAME mini-grammar as JoI's `delay(N UNIT)` literal so
+# lowering is a near-passthrough. UNIT is one of HOUR/MIN/SEC/MSEC; value is a
+# non-negative integer; exactly one space separates them.
+_DURATION_UNIT_MS = {"HOUR": 3_600_000, "MIN": 60_000, "SEC": 1_000, "MSEC": 1}
+_DURATION_RE = re.compile(r"^(\d+)\s+(HOUR|MIN|SEC|MSEC)$")
+
+
+def parse_duration_to_ms(s: str) -> int:
+    """Parse an IR delay duration string like '5 MIN' or '100 MSEC' into ms.
+
+    Raises ValueError on malformed input. Use this everywhere the simulator /
+    validator / FSM derivation needs the millisecond value — never re-implement
+    the regex elsewhere.
+    """
+    if not isinstance(s, str):
+        raise ValueError(f"duration must be a string, got {type(s).__name__}")
+    m = _DURATION_RE.match(s.strip())
+    if not m:
+        raise ValueError(
+            f"malformed duration {s!r}; expected '<int> <HOUR|MIN|SEC|MSEC>'"
+        )
+    return int(m.group(1)) * _DURATION_UNIT_MS[m.group(2)]
+
+
 # ── Schema validation ────────────────────────────────────────────────────────
 
 class IRValidationError(ValueError):
@@ -73,6 +98,15 @@ def validate_ir(ir: Any) -> None:
     if first is None or first.get("op") != "start_at":
         raise IRValidationError("timeline[0] must be a start_at step")
 
+    # Timeline-level rule: exactly ONE start_at, at index 0. A second start_at
+    # mid-timeline encodes two independent scenarios that cannot share one IR.
+    extras = [i for i, s in enumerate(ir["timeline"][1:], start=1)
+              if isinstance(s, dict) and s.get("op") == "start_at"]
+    if extras:
+        raise IRValidationError(
+            f"start_at may appear only at timeline[0]; found extras at {extras}"
+        )
+
 
 def _validate_step(step: Any) -> None:
     if not isinstance(step, dict):
@@ -95,9 +129,15 @@ def _validate_step(step: Any) -> None:
             raise IRValidationError(f"wait.edge must be one of {_EDGE_VALUES}")
 
     elif op == "delay":
-        ms = step.get("ms")
-        if not isinstance(ms, int) or ms < 0:
-            raise IRValidationError("delay.ms must be non-negative int")
+        dur = step.get("duration")
+        if not isinstance(dur, str):
+            raise IRValidationError(
+                "delay requires 'duration' string like '5 MIN' (UNIT ∈ HOUR/MIN/SEC/MSEC)"
+            )
+        try:
+            parse_duration_to_ms(dur)
+        except ValueError as e:
+            raise IRValidationError(f"delay.duration: {e}")
 
     elif op == "read":
         if not isinstance(step.get("var"), str) or not isinstance(step.get("src"), str):
@@ -345,22 +385,20 @@ def extract_ir(
 
 # ── Readable rendering (IR → Korean) ─────────────────────────────────────────
 
-_UNIT_TABLE = [
-    (3600000, "시간"),
-    (60000,   "분"),
-    (1000,    "초"),
-    (1,       "밀리초"),
-]
-
 _DOW_KR = {"MON": "월", "TUE": "화", "WED": "수", "THU": "목",
            "FRI": "금", "SAT": "토", "SUN": "일"}
 
+_DURATION_UNIT_KR = {"HOUR": "시간", "MIN": "분", "SEC": "초", "MSEC": "밀리초"}
 
-def _ms_to_kr(ms: int) -> str:
-    for unit_ms, label in _UNIT_TABLE:
-        if ms % unit_ms == 0 and ms >= unit_ms:
-            return f"{ms // unit_ms}{label}"
-    return f"{ms}밀리초"
+
+def _duration_to_kr(dur: str) -> str:
+    """Render '5 MIN' as '5분'. Falls back to the raw string if malformed."""
+    if not isinstance(dur, str):
+        return str(dur)
+    m = _DURATION_RE.match(dur.strip())
+    if not m:
+        return dur
+    return f"{m.group(1)}{_DURATION_UNIT_KR[m.group(2)]}"
 
 
 def _cron_to_kr(cron: str) -> str:
@@ -414,7 +452,7 @@ def _render_step_kr(step: dict, indent: int = 0) -> list[str]:
             out.append(f"{pad}• [{cond}]이(가) 참인 상태가 될 때까지 대기")
 
     elif op == "delay":
-        out.append(f"{pad}• {_ms_to_kr(step['ms'])} 대기")
+        out.append(f"{pad}• {_duration_to_kr(step.get('duration', '?'))} 대기")
 
     elif op == "read":
         out.append(f"{pad}• {step['src']} 값을 읽어 `${step['var']}`에 저장")

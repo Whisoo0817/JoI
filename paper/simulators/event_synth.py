@@ -26,6 +26,7 @@ from typing import Any
 
 from . import expr
 from .scenario import Scenario
+from ..timeline_ir import parse_duration_to_ms
 
 
 def synthesize_scenarios(ir: dict) -> list[Scenario]:
@@ -55,7 +56,7 @@ def _walk(steps: list, scn: Scenario, cursor: list[int], in_cycle: bool) -> None
             # Walk body once for synthesis (events for first iteration only)
             _walk(step.get("body", []) or [], scn, cursor, in_cycle=True)
         elif op == "delay":
-            cursor[0] += int(step.get("ms", 0))
+            cursor[0] += parse_duration_to_ms(step.get("duration", "0 MSEC"))
         # call, read, start_at, break: no synthesis needed
 
 

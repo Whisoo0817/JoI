@@ -33,7 +33,7 @@ if _BASE_DIR not in sys.path:
     sys.path.insert(0, _BASE_DIR)
 
 from config import get_client, get_model_id
-from loader import SERVICE_DATA, PROMPTS
+from loader import SERVICE_DATA, PROMPTS, SUB_SKILL_TAGS, get_device_rules_section
 from parser.validator import validate_joi
 
 from run_local import (
@@ -190,9 +190,11 @@ def generate_joi_code_ir(
         sentence = merged_command
 
     # ❇️ Stage 1: Translation (KOR -> ENG)
-    first_word = sentence.strip().split()[0] if sentence.strip() else ""
-    if re.search("[가-힣]", first_word):
+    if re.search("[가-힣]", sentence):
         sentence = infer("translation", sentence)
+
+    # ❇️ Stage 1.5: Pre-analysis — verbatim-anchored intent hints fed to downstream stages
+    command_hints = infer("pre_analysis", f"[Command]\n{sentence}")
 
     # ── Stage 2: service_plan (unified category + intent) ──
     if not isinstance(connected_devices, dict) or not connected_devices:
@@ -246,19 +248,36 @@ def generate_joi_code_ir(
         return "VOID"
 
     def _build_device_selection_rules(categories):
-        """Concatenate device_rules_*.md content for the planner to read selection guidance."""
+        """Concatenate the default ('service_plan') section of each connected device's
+        device_rules_*.md. Stage-scoped sections (e.g. `# @ArgResolve`) are stripped —
+        those are pulled by their respective stages.
+        """
         chunks = []
         for cat in categories:
-            rule = PROMPTS.get(f"device_rules_{cat.lower()}", "")
+            rule = get_device_rules_section(cat, "service_plan")
             if rule:
                 chunks.append(f"### {cat}\n{rule}")
         return "\n\n".join(chunks) if chunks else "(no device-specific rules)"
+
+    def _build_device_specific_hints(svcs, section):
+        """Collect stage-scoped device hints from device_rules_<cat>.md for each
+        distinct category present in `svcs`. Returns scoped block text or empty
+        string if no hints are defined.
+        """
+        cats = sorted({s.split('.', 1)[0] for s in svcs if '.' in s})
+        chunks = []
+        for cat in cats:
+            hint = get_device_rules_section(cat, section)
+            if hint:
+                chunks.append(f"### {cat}\n{hint}")
+        return "\n\n".join(chunks)
 
     device_rules_block = _build_device_selection_rules(primary_categories)
 
     plan_sys_prompt = PROMPTS.get("service_plan", "")
     plan_input = (
         f"[Command]\n{sentence}\n\n"
+        f"[Command Hints]\n{command_hints}\n\n"
         f"[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}\n\n"
         f"[Device Rules]\n{device_rules_block}"
     )
@@ -288,7 +307,10 @@ def generate_joi_code_ir(
     for s in raw_selected_services:
         if s not in selected_services:
             selected_services.append(s)
-    inject_value_service(selected_services)
+    # NOTE: inject_value_service(selected_services) removed 2026-05-11.
+    # service_plan now decides companion-read inclusion semantically (see Rule 10
+    # in files/service_plan.md). Absolute setters get setter-only; relative
+    # adjustments get read + setter. No Python-level auto-injection.
     local_service_details = extract_service_details(selected_services, SERVICE_DATA)
 
     intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
@@ -404,7 +426,16 @@ def generate_joi_code_ir(
 
             if need_enum_resolve:
                 enum_input = _build_enum_resolve_input(enum_value_targets)
-                enum_raw = infer("enum_resolve", enum_input)
+                enum_hints = _build_device_specific_hints(enum_value_targets, "enum_resolve")
+                if enum_hints:
+                    enum_input += f"\n\n[Device-specific Enum Hints]\n{enum_hints}"
+                enum_raw = infer_followup(
+                    "enum_resolve",
+                    enum_input,
+                    system=PROMPTS.get("enum_resolve", ""),
+                    prior_user=plan_input,
+                    prior_assistant=plan_output,
+                )
                 er_clean = re.sub(r'```(?:json)?\s*', '', enum_raw).strip().rstrip("`").strip()
                 try:
                     parsed_er = json.loads(er_clean)
@@ -436,12 +467,20 @@ def generate_joi_code_ir(
 
         resolved_args_local = {}
         if arg_services:
+            arg_hints = _build_device_specific_hints(arg_services, "arg_resolve")
             arg_resolve_input = (
                 f"[Command]\n{sentence}\n\n"
                 f"[Selected Services]\n{json.dumps(arg_services, ensure_ascii=False)}\n\n"
                 f"[Service Details]\n{_build_arg_resolve_input(arg_services, local_service_details)}"
+                + (f"\n\n[Device-specific Arg Hints]\n{arg_hints}" if arg_hints else "")
             )
-            arg_resolve_raw = infer("arg_resolve", arg_resolve_input)
+            arg_resolve_raw = infer_followup(
+                "arg_resolve",
+                arg_resolve_input,
+                system=PROMPTS.get("arg_resolve", ""),
+                prior_user=plan_input,
+                prior_assistant=plan_output,
+            )
             _ar_clean = re.sub(r'<Reasoning>.*?</Reasoning>', '', arg_resolve_raw, flags=re.DOTALL).strip()
             _ar_clean = re.sub(r'```(?:json)?\s*', '', _ar_clean).strip().rstrip("`").strip()
             try:
@@ -478,72 +517,196 @@ def generate_joi_code_ir(
             lines.append(f"- {dev}.{svc_name_clean} ({kind})")
         return "\n".join(lines) if lines else "(no services)"
 
-    def _precision_one_service(svc):
-        """Run precision LLM for ONE service. Returns (svc, [selectors], reasoning_text)."""
-        if '.' not in svc:
-            return svc, [], ""
-        dev, svc_name = svc.split('.', 1)
-        svc_name_clean = svc_name.replace("()", "")
-        is_value = any(e["id"] == svc_name_clean for e in SERVICE_DATA.get(dev, {}).get("values", []))
-        kind = "value" if is_value else "function"
-
-        per_input = (
-            f"[Command]\n{sentence}\n\n"
-            f"[Service]\n{dev}.{svc_name_clean} ({kind})\n\n"
-            f"[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}"
-        )
-        raw = infer("mapping_precision", per_input).strip()
-
-        reasoning_local = ""
+    def _parse_json_dict_of_str_lists(raw):
+        """Strip reasoning/fences, parse a JSON dict whose values are list[str] (or coerce str→[str])."""
+        reasoning_text = ""
         m_r = re.search(r'<Reasoning>(.*?)</Reasoning>', raw, flags=re.DOTALL)
         if m_r:
-            reasoning_local = m_r.group(1).strip()
-
+            reasoning_text = m_r.group(1).strip()
         cleaned = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
         cleaned = re.sub(r'```(?:json)?\s*', '', cleaned).strip().rstrip('`').strip()
-
-        sel_list = []
-        # Try parsing as JSON list directly
+        parsed = {}
+        def _ingest(obj):
+            if not isinstance(obj, dict):
+                return
+            for k, v in obj.items():
+                if isinstance(v, list):
+                    parsed[k] = [str(s) for s in v if isinstance(s, str)]
+                elif isinstance(v, str):
+                    parsed[k] = [v]
         try:
-            obj = json.loads(cleaned)
-            if isinstance(obj, list):
-                sel_list = [str(x) for x in obj if isinstance(x, str)]
-            elif isinstance(obj, dict):
-                # Backward-compat: model emitted dict — extract values for THIS svc
-                for k, v in obj.items():
-                    if k == f"{dev}.{svc_name_clean}":
-                        if isinstance(v, list):
-                            sel_list = [str(x) for x in v if isinstance(x, str)]
-                        elif isinstance(v, str):
-                            sel_list = [v]
-                        break
+            _ingest(json.loads(cleaned))
         except Exception:
-            m = re.search(r'\[.*?\]', cleaned, re.DOTALL)
+            m = re.search(r'\{.*\}', cleaned, re.DOTALL)
             if m:
                 try:
-                    obj = json.loads(m.group(0))
-                    if isinstance(obj, list):
-                        sel_list = [str(x) for x in obj if isinstance(x, str)]
+                    _ingest(json.loads(m.group(0)))
                 except Exception:
                     pass
+        return parsed, reasoning_text
 
-        return svc, sel_list, reasoning_local
+    def _parse_device_match_qids(raw):
+        """Parse {Service: {"q": "one|all|any", "groups": [[ids], ...]}} from Step 1 raw output.
+        Accepts both new (`groups`) and legacy (`ids`) forms. Returns normalized {q, groups}.
+        """
+        reasoning_text = ""
+        m_r = re.search(r'<Reasoning>(.*?)</Reasoning>', raw, flags=re.DOTALL)
+        if m_r:
+            reasoning_text = m_r.group(1).strip()
+        cleaned = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
+        cleaned = re.sub(r'```(?:json)?\s*', '', cleaned).strip().rstrip('`').strip()
+        out = {}
+        def _norm_ids(seq):
+            if isinstance(seq, str):
+                seq = [seq]
+            return [str(x) for x in (seq or []) if isinstance(x, (str, int))]
+        def _ingest(obj):
+            if not isinstance(obj, dict):
+                return
+            for k, v in obj.items():
+                if isinstance(v, dict):
+                    q = str(v.get("q", "one")).strip().lower()
+                    if q not in ("one", "all", "any"):
+                        q = "one"
+                    if "groups" in v and isinstance(v["groups"], list):
+                        groups = []
+                        for g in v["groups"]:
+                            ids = _norm_ids(g)
+                            if ids:
+                                groups.append(ids)
+                        if not groups:
+                            groups = [[]]
+                    else:
+                        # legacy: ids → single group
+                        groups = [_norm_ids(v.get("ids", []))]
+                    out[k] = {"q": q, "groups": groups}
+                elif isinstance(v, list):
+                    out[k] = {"q": "one", "groups": [_norm_ids(v)]}
+        try:
+            _ingest(json.loads(cleaned))
+        except Exception:
+            m = re.search(r'\{.*\}', cleaned, re.DOTALL)
+            if m:
+                try:
+                    _ingest(json.loads(m.group(0)))
+                except Exception:
+                    pass
+        return out, reasoning_text
 
     def run_precision():
-        # Fan out: one LLM call per service in parallel.
+        # Two-step LLM call with id-aliasing + selector validator + retry:
+        #   1. Build alias map (d1, d2, ...) for cd_simple keys; rewrite [Connected Devices].
+        #   2. Step 1 (mapping_device_match): {Service: {q, ids}}.
+        #   3. Step 2 (mapping_selector, multi-turn): {Service: ["(#Tag ...)"]}.
+        #   4. Python validator: apply each selector to cd_aliased, check it matches exactly target ids.
+        #   5. If mismatch, send mismatch info as follow-up user msg; retry up to 2 times.
+        #   6. If still mismatch, fall back to deterministic minimum-tag-set selector.
         if not selected_services:
             return {"selectors": {}, "reasoning": ""}
-        results = {}
-        reasoning_blocks = []
-        with ThreadPoolExecutor(max_workers=max(1, len(selected_services))) as px:
-            futures = [px.submit(_precision_one_service, s) for s in selected_services]
-            for f in futures:
-                svc, sel_list, rs = f.result()
-                if sel_list:
-                    results[svc] = sel_list
-                if rs:
-                    reasoning_blocks.append(f"{svc}:\n  {rs}")
-        return {"selectors": results, "reasoning": "\n".join(reasoning_blocks)}
+
+        # ---- alias the device ids so the LLM sees short, stable tokens ----
+        real_ids = list(cd_simple.keys())
+        alias_of = {real: f"d{i+1}" for i, real in enumerate(real_ids)}
+        real_of = {a: r for r, a in alias_of.items()}
+        cd_aliased = {alias_of[r]: cd_simple[r] for r in real_ids}
+
+        # Pre-compute alias → tags array (category + tags merged)
+        alias_tags = {}
+        for a, dev in cd_aliased.items():
+            seen = set()
+            arr = []
+            for t in list(dev.get("category", [])) + list(dev.get("tags", [])):
+                if t not in seen:
+                    seen.add(t)
+                    arr.append(t)
+            alias_tags[a] = arr
+
+        step1_user = (
+            f"[Command]\n{sentence}\n\n"
+            f"[Command Hints]\n{command_hints}\n\n"
+            f"[Selected Services]\n{json.dumps(selected_services, ensure_ascii=False)}\n\n"
+            f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}"
+        )
+        step1_raw = infer("mapping_device_match", step1_user).strip()
+        match_qids, step1_reasoning = _parse_device_match_qids(step1_raw)
+        # Flatten groups for downstream consumers that still expect a flat id list per service
+        matches = {
+            svc: [a for g in entry.get("groups", []) for a in g]
+            for svc, entry in match_qids.items()
+        }
+
+        # Build [Targets] block for logging/reasoning trail
+        target_lines = []
+        for svc in selected_services:
+            entry = match_qids.get(svc, {"q": "one", "groups": [[]]})
+            q = entry.get("q", "one")
+            groups = entry.get("groups", [[]])
+            groups_str = " | ".join("[" + ", ".join(g) + "]" for g in groups)
+            target_lines.append(f"{svc}: q={q}, groups={groups_str}")
+        targets_block = "\n".join(target_lines)
+
+        # ---- Deterministic Python selector generation ----
+        # For each service, for each group: take group's tag intersection; wrap with quantifier.
+        # Each group → one selector. Multi-group → multiple selectors in list.
+        # The mapping_selector LLM step is disabled; this Python path is the sole producer.
+        # Sub-skill capability tags ({{SUB_SKILLS}} per loader.SUB_SKILL_TAGS) are
+        # kept ONLY when the service's prefix matches the sub-skill (e.g. Switch.Off keeps
+        # #Switch; Television.SetChannel drops #Switch even if device has Switch in its tags).
+
+        def _selector_for_group(group_ids, q, service_prefix):
+            wrap = "" if q == "one" else q
+            tag_lists = [alias_tags.get(a, []) for a in group_ids if a in alias_tags]
+            if not tag_lists:
+                return None
+            inter_set = set(tag_lists[0])
+            for tl in tag_lists[1:]:
+                inter_set &= set(tl)
+            # Filter out sub-skill capability tags that don't match the service prefix
+            filtered = [
+                t for t in tag_lists[0]
+                if t in inter_set and (t not in SUB_SKILL_TAGS or t == service_prefix)
+            ]
+            if not filtered:
+                return None
+            return f"{wrap}(#{' #'.join(filtered)})"
+
+        selectors = {}
+        for svc in selected_services:
+            entry = match_qids.get(svc, {"q": "one", "groups": [[]]})
+            q = entry.get("q", "one")
+            groups = entry.get("groups", [[]])
+            service_prefix = svc.split(".", 1)[0]
+            sel_list = []
+            for g in groups:
+                if not g:
+                    continue
+                s = _selector_for_group(g, q, service_prefix)
+                if s:
+                    sel_list.append(s)
+            if not sel_list:
+                wrap = "" if q == "one" else q
+                sel_list = [f"{wrap}(#{service_prefix})"]
+            selectors[svc] = sel_list
+
+        # Restore real ids inside selectors when the alias represented an id-literal-in-tags case
+        def _restore_alias_in_selector(s):
+            for a, r in real_of.items():
+                real_dev = cd_simple.get(r, {})
+                real_tags = list(real_dev.get("category", [])) + list(real_dev.get("tags", []))
+                if r in real_tags:
+                    s = re.sub(rf'(?<=#){re.escape(a)}\b', r, s)
+                else:
+                    s = re.sub(rf'(?<=#){re.escape(a)}\b', '', s)
+            return s
+        for svc in list(selectors.keys()):
+            selectors[svc] = [_restore_alias_in_selector(s) for s in selectors[svc]]
+
+        combined_reasoning = (
+            f"[Step1 device match]\n{step1_reasoning}\n\n"
+            f"[Targets]\n{targets_block}\n\n"
+            f"[Selectors generated deterministically by Python (intersection of target tags)]"
+        )
+        return {"selectors": selectors, "reasoning": combined_reasoning}
 
     # ── IR extract (sequential, after both branches finish) ──
     def _build_intent_services_block(svcs, details):
@@ -611,6 +774,8 @@ def generate_joi_code_ir(
         #   Service.Method: {arg: value, ...}
         # The extractor copies these values verbatim into call.args (no re-decision).
         aug_parts = []
+        if command_hints:
+            aug_parts.append("[Command Hints]\n" + command_hints.strip())
         if (isinstance(resolved_args, dict) and resolved_args) or resolved_enum_conds:
             ra_lines = ["[Resolved Args]",
                         "Use these argument values verbatim in matching `call` ops. Do NOT invent or override.",

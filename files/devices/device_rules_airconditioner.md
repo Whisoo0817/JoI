@@ -19,3 +19,7 @@ Change the target temperature to 24 degrees
 [Command]
 What is the current mode of the AirConditioner?
 ["AirConditioner.AirConditionerMode"]
+
+[Command]
+Lower the AC temperature by 1 degree
+["AirConditioner.TargetTemperature", "AirConditioner.SetTargetTemperature"]

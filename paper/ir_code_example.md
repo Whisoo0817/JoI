@@ -240,8 +240,7 @@ IR:
         "args": {}
     },
     {
-        "op": "delay",
-        "ms": 180000
+        "op":"delay","duration":"3 MIN"
     }
     ]
 }
@@ -292,8 +291,7 @@ IR:
         }
     },
     {
-        "op": "delay",
-        "ms": 10000
+        "op":"delay","duration":"10 SEC"
     },
     {
         "op": "call",
@@ -303,8 +301,7 @@ IR:
         }
     },
     {
-        "op": "delay",
-        "ms": 10000
+        "op":"delay","duration":"10 SEC"
     }
     ]
 }
@@ -429,8 +426,7 @@ IR:
     "src": "TempSensor.temperature"
 },
 {
-    "op": "delay",
-    "ms": 600000
+    "op":"delay","duration":"10 MIN"
 },
 {
     "op": "read",
@@ -487,8 +483,7 @@ IR:
     "until": null,
     "body": [
     {
-        "op": "delay",
-        "ms": 10000
+        "op":"delay","duration":"10 SEC"
     },
     {
         "op": "call",

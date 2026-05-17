@@ -1,20 +1,18 @@
 [Device Summary]
 <Device "PressureSensor">
-  <Service "Presence" type="value">Current pressure value (DOUBLE)</Service>
+  <Service "Pressure" type="value">Current pressure value (DOUBLE)</Service>
 </Device>
-
-NOTE: The catalog service ID is "Presence" (not "Pressure"). Use PressureSensor.Presence to read pressure.
 
 # PressureSensor Examples
 
 [Command]
 Read the PressureSensor pressure
-["PressureSensor.Presence"]
+["PressureSensor.Pressure"]
 
 [Command]
 What is the current pressure?
-["PressureSensor.Presence"]
+["PressureSensor.Pressure"]
 
 [Command]
 When the pressure exceeds a threshold, do something
-["PressureSensor.Presence"]
+["PressureSensor.Pressure"]

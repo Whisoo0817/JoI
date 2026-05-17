@@ -87,7 +87,7 @@ Example (bad — do not do this):
 
 ## A. `cron` field
 - `timeline[0]` is `start_at(anchor:"now")`        → `cron: ""`
-- `timeline[0]` is `start_at(anchor:"cron", cron:X)` → `cron: X` (5-field passthrough; convert dow `MON..SUN` → `1..7` if needed but prefer raw).
+- `timeline[0]` is `start_at(anchor:"cron", cron:X)` → `cron: X` (5-field passthrough; dow MUST already be digit 1–7 from the extractor, where `1=Mon ... 7=Sun`. NEVER `0`, NEVER English names).
 
 ## B. `period` field
 Inspect the **top-level body** (= timeline minus `start_at`):
@@ -108,7 +108,7 @@ If none match, fall back to `period: 0` and emit a sequential script.
 | IR op | Joi |
 |---|---|
 | `start_at` | (consumed by cron) |
-| `delay(ms)` | `delay(N UNIT)` (choose largest exact unit: 3600000→`1 HOUR`, 60000→`1 MIN`, 1000→`1 SEC`, else `MSEC`). When the delay is **the cycle's cadence**, do NOT emit it. |
+| `delay(duration:"N UNIT")` | `delay(N UNIT)` — passthrough (IR's `duration` string already matches JoI's `delay(N UNIT)` literal exactly). UNIT is one of `HOUR`/`MIN`/`SEC`/`MSEC`. When the delay is **the cycle's cadence**, do NOT emit it. |
 | `read(var, src)` | `var = src` (e.g., `t1 = (#TempSensor).Temperature`). |
 | `call(target, args)` | `(#Selector).Method(args)` using `[Precision Selectors]` for the device part and `[Service Details]` for the method name. |
 | `call(target, args, bind:"var")` | `var = (#Selector).Method(args)` — capture the function's return value into `var`. Subsequent steps may reference `$var` in their arg/expression strings. |
@@ -314,7 +314,7 @@ One-shot wait then action.
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"cycle","until":null,"body":[
    {"op":"call","target":"Speaker.SetVolume","args":{"Volume":"Speaker.Volume + 10"}},
-   {"op":"delay","ms":3600000}]}]}
+   {"op":"delay","duration":"1 HOUR"}]}]}
 ```
 [Precision Selectors] `(#Speaker)`
 <Reasoning>
@@ -370,7 +370,7 @@ Rising-edge whenever idiom with triggered flag.
  {"op":"wait","cond":"Door.DoorState == \"open\"","edge":"none"},
  {"op":"cycle","until":null,"body":[
    {"op":"call","target":"Light.On","args":{}},
-   {"op":"delay","ms":180000}]}]}
+   {"op":"delay","duration":"3 MIN"}]}]}
 ```
 <Reasoning>
 Phase lifecycle: wait once then periodic action.
@@ -383,9 +383,9 @@ Phase lifecycle: wait once then periodic action.
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"cycle","until":null,"body":[
    {"op":"call","target":"Light.MoveToColor","args":{"Color":"blue"}},
-   {"op":"delay","ms":10000},
+   {"op":"delay","duration":"10 SEC"},
    {"op":"call","target":"Light.MoveToColor","args":{"Color":"red"}},
-   {"op":"delay","ms":10000}]}]}
+   {"op":"delay","duration":"10 SEC"}]}]}
 ```
 [Precision Selectors] `(#Light)`
 <Reasoning>
@@ -422,7 +422,7 @@ Cron + branch on snapshot.
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"read","var":"t1","src":"TempSensor.Temperature"},
- {"op":"delay","ms":600000},
+ {"op":"delay","duration":"10 MIN"},
  {"op":"read","var":"t2","src":"TempSensor.Temperature"},
  {"op":"if","cond":"abs($t2 - $t1) >= 10",
   "then":[{"op":"call","target":"Light.On","args":{}}],
@@ -438,7 +438,7 @@ Snapshot now and after delay, branch on diff.
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"cycle","until":null,"body":[
-   {"op":"delay","ms":10000},
+   {"op":"delay","duration":"10 SEC"},
    {"op":"call","target":"Speaker.SetVolume","args":{"Value":"Speaker.Volume + 5"}},
    {"op":"if","cond":"Speaker.Volume >= 100",
     "then":[{"op":"break"}],"else":[]}]}]}
@@ -454,7 +454,7 @@ Progressive update with break-on-max.
 {"timeline":[{"op":"start_at","anchor":"cron","cron":"0 14 * * *"},
  {"op":"cycle","until":"clock.time >= \"18:00\"","body":[
    {"op":"call","target":"Light.Toggle","args":{}},
-   {"op":"delay","ms":3600000}]}]}
+   {"op":"delay","duration":"1 HOUR"}]}]}
 ```
 [Precision Selectors] `(#Light)`
 <Reasoning>

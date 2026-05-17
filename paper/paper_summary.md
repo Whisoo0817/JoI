@@ -515,7 +515,7 @@ Appendix-bound in the paper; included here for completeness of the planning doc.
 |---|---|---|
 | `start_at` | scenario anchor | `anchor: "now"`, or `anchor:"cron", cron:"<5-field>"` |
 | `wait` | block until cond | `cond`, `edge: none\|rising\|falling` |
-| `delay` | pause for ms | `ms:<int>` |
+| `delay` | pause for N units | `duration:"<N> <HOUR\|MIN\|SEC\|MSEC>"` |
 | `read` | snapshot a value to a local var | `var`, `src:"<Device.attr>"` |
 | `call` | device method call | `target:"<Device.method>"`, `args:{...}` |
 | `if` | one-shot branch | `cond`, `then:[...]`, `else:[...]` |

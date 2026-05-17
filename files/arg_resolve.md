@@ -17,7 +17,7 @@ Sensor reads (value-type services) are handled separately by the IR extractor �
    ```
 
 # Output Format
-Strict JSON object keyed by the exact `Category.ServiceName` string from `[Selected Services]`. Each value is a dict of `argId → resolvedValue`.
+Strict JSON object keyed by the exact `Category.ServiceName` string from `[Selected Services]`. Each value is a dict of `argId → resolvedValue` (single call) or a LIST of such dicts (sequential multi-call).
 
 ```json
 {
@@ -30,8 +30,20 @@ Strict JSON object keyed by the exact `Category.ServiceName` string from `[Selec
 ```
 
 - A service with no declared args → empty object `{}`. Do NOT omit the service entirely.
-- The set of keys MUST equal the set of selected services. No additions, no omissions.
+- The set of keys MUST equal the set of distinct services in `[Selected Services]`. No additions, no omissions.
 - Argument keys MUST be the exact `ArgId` from the catalog (case-sensitive).
+- **Sequential multi-call**: if `[Selected Services]` contains the SAME `Category.ServiceName` more than once (because the command calls it multiple times with different args, e.g. "turn on to 100% then dim to 30% after 5 min"), output a **list of arg-dicts** in execution order — one dict per occurrence:
+
+```json
+{
+  "Light.MoveToBrightness": [
+    {"Brightness": 100.0, "Rate": 0.0},
+    {"Brightness": 30.0, "Rate": 0.0}
+  ]
+}
+```
+
+  The list length MUST equal the number of occurrences in `[Selected Services]`. If only one occurrence, use a single dict (NOT a one-element list).
 
 # Output discipline (STRICT)
 
@@ -59,44 +71,22 @@ If a service has no `args:` listed, emit `{}`. Do NOT put selectors, tags, or ot
 - ❌ `"Switch.On": {"Selector": "all(#Bedroom #Switch)"}`  ← NEVER
 - ✅ `"Switch.On": {}`
 
+## 4.1 Implicit intents from `<intent>` hints in service_plan reasoning
+The conversation context includes the service_plan reasoning (e.g. `Call <Cat>.<Setter>(turn on); Call <Cat>.<Setter>(turn off)`). Use the `<intent>` hint in parentheses to resolve args when the command does not state numeric values explicitly:
+- `turn on` + a setter whose primary numeric arg controls a continuous "fully on ↔ fully off" range (brightness, level, volume, position, etc. — anything where MAX = fully on) → set that arg to catalog MAX (e.g. `100.0` for a 0–100 percentage arg, or the arg's declared upper bound).
+- `turn off` + the same setter shape → set that arg to catalog MIN (typically `0` or `0.0`).
+- `max` / `maximum` / `full` → catalog max.
+- `min` / `minimum` → catalog min.
+- The catalog descriptor / arg type / `[Device-specific Arg Hints]` (§5.1) decides whether a given setter has "fully on/off" semantics. If unclear, fall back to the most direct literal in the command.
+- Always emit ONE arg-dict per occurrence in `[Selected Services]` (list form if the same service appears multiple times — see Output Format).
+
 ## 5. Reference to another service's return — use `$<MethodName>`
 If an arg should consume the return of an earlier service (which may be a value-type read upstream that you cannot see in `[Selected Services]`, or a chained function), use the literal string `"$<MethodName>"` where MethodName is the **method portion of the producing service, character-for-character**. The producing service is whichever earlier service in the planner's full chain emits the value the command implies — typically a sensor read named in the command (e.g. "announce the temperature" → `$Temperature`). Never invent a name, never abbreviate, never re-derive from the command's wording.
 - `Speaker.Speak(Text=$Temperature)` when an earlier `TemperatureSensor.Temperature` read produced the value.
 - ❌ `$TodayMenu` when the producing service is `MenuProvider.GetMenu` → must be `$GetMenu`.
 
-## 5.1 Speaker.Speak — context prefix policy
-When the `Text` arg embeds a `$Var`, decide between two forms based on what `$Var` produces:
-
-- **Sensor / provider value (single fact, e.g. `$Weather`, `$Temp`, `$TodayMenu`)**: wrap with a short, NL-implied lead-in so the speaker utterance is a natural sentence.
-  - `"Today's weather is $Weather"`, `"The current temperature is $Temp"`, `"Today's menu is $TodayMenu"`.
-  - The lead-in MUST come from the user command's own wording (e.g. "오늘의 날씨" → "Today's weather"). Do NOT invent unrelated greetings or filler ("Hi!", "Here's the info...").
-- **Function-call return that is already a complete sentence (e.g. `$ChatWithAI`, `$AskQuestion`, generated explanatory text)**: use `$Var` raw without any prefix.
-  - `Text: "$ChatWithAI"`, NOT `"The answer is $ChatWithAI"`.
-- **Multiple variables**: chain with NL-implied connectors only. Never invent.
-
-## 5.2 Query / prompt args — full-sentence reformulation
-When an arg is a query, prompt, or question being sent to an external service (AI, Cloud, search, weather lookup), reformulate the NL phrase as a **complete, grammatical question or imperative**, not a fragment.
-- ❌ `Prompt: "what LLM is"`, `Prompt: "the weather"`, `Prompt: "translate hello"`.
-- ✅ `Prompt: "What is an LLM?"`, `Prompt: "What is the weather?"`, `Prompt: "Translate 'hello' to Korean."`.
-Subordinate clauses ("what X is") MUST be promoted to independent questions ("What is X?"). Trim only stop-words at the boundary; preserve named entities and quoted literals byte-for-byte.
-
-## 5.5 Color name → xy (CIE 1931) — use this table verbatim
-For services like `Light.MoveToColor` that take `ColorX`/`ColorY` (DOUBLE 0.0–1.0):
-
-| Color | x | y |
-|---|---|---|
-| red | 0.675 | 0.322 |
-| green | 0.408 | 0.517 |
-| blue | 0.167 | 0.040 |
-| yellow | 0.432 | 0.500 |
-| cyan | 0.225 | 0.329 |
-| magenta | 0.385 | 0.157 |
-| orange | 0.560 | 0.406 |
-| purple | 0.279 | 0.142 |
-| pink | 0.461 | 0.249 |
-| white | 0.313 | 0.329 |
-
-If the color isn't in this table, fall back to white (0.313, 0.329). Do NOT invent xy values.
+## 5.1 Device-specific hints
+The optional `[Device-specific Arg Hints]` block (if present) carries category-scoped supplemental info — color tables, value wrapping policies, query reformulation rules, mode synonyms, etc. Each `### <Category>` sub-section applies ONLY to services of that category. When the hint specifies a verbatim mapping (table value, wrap template, fallback default), copy it byte-for-byte; do not paraphrase. When two devices' hints both apply, use each within its own service scope.
 
 ## 7. Numeric tolerance, ranges, percentages
 - "maximum" / "max" + percentage arg (0–100) → `100`.
@@ -149,6 +139,24 @@ Output:
 }
 ```
 
+## Example 2b — Sequential multi-call (same service, two different args, list form)
+service_plan reasoning (prior turn): `Read MultiButton.Button1(pressed?); Call Light.MoveToBrightness(turn on); Call Light.MoveToBrightness(turn off)`
+```
+[Command]
+When button 1 is pressed, turn on the entrance light and turn it off after 5 minutes.
+[Selected Services]
+["MultiButton.Button1", "Light.MoveToBrightness", "Light.MoveToBrightness"]
+```
+Output (list form because `Light.MoveToBrightness` appears twice; intents map to 100.0 / 0.0):
+```json
+{
+  "Light.MoveToBrightness": [
+    {"Brightness": 100.0, "Rate": 0.0},
+    {"Brightness": 0.0, "Rate": 0.0}
+  ]
+}
+```
+
 ## Example 3 — Quoted-string preservation (any language)
 ```
 [Command]
@@ -184,68 +192,6 @@ Output:
   "Speaker.SetVolume": {"Volume": 100}
 }
 ```
-
-## Example 5 — Provider read + Speaker context prefix
-```
-[Command]
-Announce today's weather through the speaker.
-[Selected Services]
-["Speaker.Speak"]
-[Service Details]
-Speaker.Speak - Speak the given text.
-  args:
-    - Text: STRING — text to speak
-```
-Output:
-```json
-{
-  "Speaker.Speak": {"Text": "Today's weather is $Weather"}
-}
-```
-*(Upstream value-service `WeatherProvider.Weather` produces the value; you reference it via `$Weather` and wrap with NL-implied lead-in.)*
-
-## Example 5b — AI/Cloud function chain (raw $Var, no prefix)
-```
-[Command]
-Ask the cloud AI what an LLM is and output the answer through the speaker.
-[Selected Services]
-["CloudServiceProvider.ChatWithAI", "Speaker.Speak"]
-[Service Details]
-CloudServiceProvider.ChatWithAI - Send a prompt to the AI and return its answer.
-  args:
-    - Prompt: STRING — the question or instruction
-  returns: STRING
-Speaker.Speak - Speak the given text.
-  args:
-    - Text: STRING — text to speak
-```
-Output:
-```json
-{
-  "CloudServiceProvider.ChatWithAI": {"Prompt": "What is an LLM?"},
-  "Speaker.Speak": {"Text": "$ChatWithAI"}
-}
-```
-*(`$ChatWithAI` already returns a full sentence answer, so no prefix. Note `Prompt` reformulated as a complete question — not the raw fragment "what LLM is".)*
-
-## Example 6 — Stop vs powerOff (verb-to-enum fallback)
-```
-[Command]
-Stop all robot vacuum cleaners on the 3rd floor.
-[Selected Services]
-["RobotVacuumCleaner.SetRobotVacuumCleanerRunMode"]
-[Service Details]
-RobotVacuumCleaner.SetRobotVacuumCleanerRunMode - Set the run mode.
-  args:
-    - Mode: ENUM {auto, cleaning, drying, charging, powerOff} — operating mode
-```
-Output:
-```json
-{
-  "RobotVacuumCleaner.SetRobotVacuumCleanerRunMode": {"Mode": "powerOff"}
-}
-```
-*(Enum has no `stop` member; `powerOff` is the closest match.)*
 
 # Final Reminder
 - Output ONLY the JSON dict. Optionally a `<Reasoning>...</Reasoning>` block first.

@@ -5,9 +5,13 @@ You are a follow-up classifier for the IoT Service Planner. The full planning co
 For any of the planned ENUM-typed value services, does the user's command imply a **condition expression that compares the read value to a SPECIFIC enum member**?
 
 Examples that mean **yes**:
-- "When the button is pressed, ..." (compares Button.Button to a specific click pattern)
+- "When the button is pressed, ..." (compares Button.Button to a specific click pattern like "pushed")
+- "When button N is pressed, ..." (compares MultiButton.ButtonN to "pushed")
+- "Every time the button is pushed, ..." (still a comparison — `whenever`/`every time` is a repetition cue, not a quantifier)
 - "If the AC mode is cool, ..." (compares ACMode to "cool")
 - "Whenever the dehumidifier finishes, ..." (compares mode to a finished-state member)
+- "If the door state is open, ..." (compares DoorState to "open")
+- A multi-condition trigger that contains AT LEAST ONE enum comparison (e.g. "when button is pressed AND illuminance < 50") — still **yes**.
 
 Examples that mean **no**:
 - "Speak the current weather" (read weather, embed in TTS — no comparison)

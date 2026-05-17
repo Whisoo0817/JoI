@@ -29,11 +29,15 @@ _TOK_RE = re.compile(
     (?P<NUMBER>\d+\.\d+|\d+)             |  # numeric literal
     (?P<STRING>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')  |  # string literal
     (?P<SELECTOR>\b(?:all|any)?\s*\(\s*\#[^)]*\))    |  # JoI selector chunk: (#X), all(#X #Y), any(#X)
-    (?P<OP>==|!=|<=|>=|&&|\|\||[+\-*/<>!=()])        |  # operators / parens
+    (?P<OP>==|!=|<=|>=|&&|\|\||[+\-*/<>!=(),])       |  # operators / parens / comma (func-call separator)
     (?P<IDENT>\$?[A-Za-z_][A-Za-z0-9_.]*)               # ident with optional $ prefix and dots
     """,
     re.VERBOSE,
 )
+
+# Allowed function names in IR/JoI expressions. abs/max/min are convenience
+# primitives in IR (JoI itself has none — lowering emits a manual workaround).
+_BUILTIN_FUNCS = {"abs", "max", "min"}
 
 
 @dataclass
@@ -131,6 +135,11 @@ class BinaryOp:
     op: str
     left: Any
     right: Any
+
+@dataclass
+class FuncCall:
+    name: str       # one of _BUILTIN_FUNCS
+    args: list      # list of AST nodes
 
 
 # ── Parser ───────────────────────────────────────────────────────────────────
@@ -275,6 +284,21 @@ class _Parser:
         if tok.kind == "IDENT":
             self.consume()
             name = tok.value
+            # Builtin function call: IDENT '(' expr (',' expr)* ')'
+            if name in _BUILTIN_FUNCS:
+                nxt = self.peek()
+                if nxt and nxt.kind == "OP" and nxt.value == "(":
+                    self.consume()  # '('
+                    args = [self.parse_expr()]
+                    while True:
+                        nxt2 = self.peek()
+                        if nxt2 and nxt2.kind == "OP" and nxt2.value == ",":
+                            self.consume()
+                            args.append(self.parse_expr())
+                        else:
+                            break
+                    self.expect_op(")")
+                    return FuncCall(name, args)
             # Reserved literals
             if name == "true":
                 return Lit(True)
@@ -330,7 +354,7 @@ def _tokenize_with_leading_dot(src: str) -> list[Token]:
         (?P<NUMBER>\d+\.\d+|\d+)             |
         (?P<STRING>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')  |
         (?P<SELECTOR>\b(?:all|any)?\s*\(\s*\#[^)]*\))    |
-        (?P<OP>==|!=|<=|>=|&&|\|\||[+\-*/<>!=()])        |
+        (?P<OP>==|!=|<=|>=|&&|\|\||[+\-*/<>!=(),])       |
         (?P<DOTIDENT>\.[A-Za-z_][A-Za-z0-9_]*)           |
         (?P<IDENT>\$?[A-Za-z_][A-Za-z0-9_.]*)
         """,
@@ -385,6 +409,21 @@ def evaluate(node: Any, ctx: EvalContext) -> Any:
         if node.op == "-":
             return -v
         raise ValueError(f"unknown unary op: {node.op}")
+    if isinstance(node, FuncCall):
+        vals = [evaluate(a, ctx) for a in node.args]
+        # None substitution: skip None args so abs/max/min still produce useful
+        # values when an unseeded var slips through (matches BinaryOp's lenient
+        # arithmetic policy).
+        vals = [v for v in vals if v is not None]
+        if not vals:
+            return None
+        if node.name == "abs":
+            return abs(vals[0])
+        if node.name == "max":
+            return max(vals)
+        if node.name == "min":
+            return min(vals)
+        raise ValueError(f"unknown function: {node.name}")
     if isinstance(node, BinaryOp):
         a = evaluate(node.left, ctx)
         b = evaluate(node.right, ctx)
@@ -444,4 +483,7 @@ def collect_device_refs(node: Any, out: list[str]) -> None:
     elif isinstance(node, BinaryOp):
         collect_device_refs(node.left, out)
         collect_device_refs(node.right, out)
+    elif isinstance(node, FuncCall):
+        for a in node.args:
+            collect_device_refs(a, out)
     # Lit, ClockRef, VarRef have no device refs

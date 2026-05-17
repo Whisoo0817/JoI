@@ -29,3 +29,7 @@ Check the current position of the WindowCovering
 [Command]
 When the WindowCovering is fully closed, do something
 ["WindowCovering.CurrentPosition"]
+
+[Command]
+Lower the WindowCovering by 20%
+["WindowCovering.CurrentPosition", "WindowCovering.SetLevel"]
