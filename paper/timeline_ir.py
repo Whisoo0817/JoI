@@ -168,12 +168,26 @@ def _validate_step(step: Any) -> None:
             raise IRValidationError("cycle.body must be non-empty list")
         if step.get("until") is not None and not isinstance(step["until"], str):
             raise IRValidationError("cycle.until must be string or null")
-        # cycle MUST have some cadence source: either a delay step OR an
-        # edge-triggered wait (rising/falling). A delay-less cycle with only a
-        # level wait or no wait at all would spin unbounded — that's rejected.
-        if not _body_has_cadence(body):
+        # Optional `period`: explicit per-iteration cadence (e.g. "10 MIN").
+        # When present, the simulator pads each iteration up to this duration
+        # and lowering uses it as the wrapper.period directly. Same grammar as
+        # delay.duration. Eliminates LLM arithmetic for "every N, do brief X"
+        # bounded patterns (replaces manual "rest delay" inside body).
+        period = step.get("period")
+        if period is not None:
+            if not isinstance(period, str):
+                raise IRValidationError("cycle.period must be a string like '10 MIN'")
+            try:
+                parse_duration_to_ms(period)
+            except ValueError as e:
+                raise IRValidationError(f"cycle.period: {e}")
+        # cycle MUST have some cadence source: cycle.period, OR a delay step
+        # in body, OR an edge-triggered wait (rising/falling). A delay-less
+        # cycle with only a level wait would spin unbounded — rejected.
+        if period is None and not _body_has_cadence(body):
             raise IRValidationError(
-                "cycle.body must contain at least one delay or edge-triggered wait"
+                "cycle.body must contain at least one delay or edge-triggered wait "
+                "(or set cycle.period for an explicit cadence)"
             )
         for j, s in enumerate(body):
             try:

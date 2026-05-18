@@ -28,7 +28,7 @@ The quoted target phrase MUST be a substring of `[Command]` covering the device 
 2. **Location / qualifier narrowing**: if the command literally names a location word AND that word appears in some candidate's `tags` (case-insensitive, compound-aware), narrow to those candidates. Common translation synonyms: `Zone N ↔ Sector N`, `Floor N ↔ FloorN`, `conference room ↔ MeetingRoom`, `nursery ↔ BabyRoom`, `living room ↔ LivingRoom`, etc.
 3. **Device ID literal**: if the command literally contains a `device_id`, match that one device.
 4. **Multi-group splitting**: when distinct device groups share one service, emit each as its own inner list — do NOT merge across location/qualifier/class boundaries. Example: "hallway and living room lights" for `Switch.On` → `groups: [[d_hall...], [d_lr...]]` (NOT `[[all merged]]`).
-5. **No quantifier filtering**: always list ALL candidates that pass filters 1-3. The `q` label decides one/all/any downstream.
+5. **No quantifier filtering, one group default**: emit ONE group containing ALL candidates that pass filters 1-3. `q=one` with 2+ candidates is still ONE group (runtime picks one). Split into multiple groups ONLY when rule 4 requires it (distinct device classes, locations, or qualifiers explicitly named in the command). Alias number (`d2`, `d3`, …) is meaningless — never let it affect grouping.
 6. **No selector syntax**: do NOT output `all(#Tag)` here — that is the downstream Python stage's job.
 
 # Reasoning format — STRICT
@@ -36,7 +36,7 @@ Exactly ONE line per service. Mechanical. NO prose, no debate, no second-guessin
 
 Forbidden: `Wait:`, `Note:`, `However`, `Usually`, `synonymous`, `implies`, `Let's check`, multi-line per-service prose.
 
-When no location qualifier from the command matches any candidate tag, list ALL category-filtered candidates. Do NOT subset by semantic inference (mode words like "emergency", "fire" are NEVER location filters).
+When no location qualifier from the command matches any candidate tag, emit ONE group containing ALL category-filtered candidates — never split per candidate. Mode words like "emergency", "fire" are NEVER location filters.
 
 # Examples
 
@@ -82,4 +82,19 @@ DoorLock.Lock: "lock all of them" → q=all → groups: [[d1, d2]]
 </Reasoning>
 ```json
 {"DoorLock.DoorLockState": {"q": "any", "groups": [["d1", "d2"]]}, "DoorLock.Lock": {"q": "all", "groups": [["d1", "d2"]]}}
+```
+
+[Command]
+Announce the outdoor temperature through the speaker.
+[Selected Services]
+["WeatherProvider.TemperatureWeather", "Speaker.Speak"]
+[Connected Devices]
+{"d1": {"category": ["WeatherProvider"], "tags": ["WeatherProvider"]}, "d2": {"category": ["Speaker"], "tags": ["LivingRoom", "Speaker"]}, "d3": {"category": ["Speaker"], "tags": ["Kitchen", "Speaker"]}}
+
+<Reasoning>
+WeatherProvider.TemperatureWeather: "the outdoor temperature" → q=one → groups: [[d1]]
+Speaker.Speak: "the speaker" → q=one → groups: [[d2, d3]]
+</Reasoning>
+```json
+{"WeatherProvider.TemperatureWeather": {"q": "one", "groups": [["d1"]]}, "Speaker.Speak": {"q": "one", "groups": [["d2", "d3"]]}}
 ```

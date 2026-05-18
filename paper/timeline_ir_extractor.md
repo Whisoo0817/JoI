@@ -31,7 +31,7 @@ If the command is not expressible, output `{"error":"<reason>"}` instead. Reject
 5. `{"op":"read","var":"<name>","src":"<Device.attr>"}` — snapshot a value to a local variable. Use ONLY when the same attribute is compared across different time points; otherwise reference `Device.attr` directly in expressions.
 6. `{"op":"call","target":"<Device.method>","args":{...},"var":"<Name>"?}` — perform an action. `var` declares the return value's binding. Add ONLY per R-var.
 7. `{"op":"if","cond":"<expr>","then":[...],"else":[...]}` — one-shot branch. **`cond` MUST be a complete boolean expression with an explicit comparator** (`==`, `!=`, `<`, `>`, `<=`, `>=`). Bare value references like `cond:"X.IsAvailable"` are forbidden — write `cond:"X.IsAvailable == true"`.
-8. `{"op":"cycle","until":"<expr>|null","body":[...]}` — repeat body. Body MUST contain at least one `delay`. `until` exits before each iteration when true.
+8. `{"op":"cycle","until":"<expr>|null","period":"<N> <UNIT>"?,"body":[...]}` — repeat body. `until` exits before each iteration when true. Body MUST contain at least one `delay`, UNLESS the optional `period` field is set (then `period` is the cadence and body just describes ONE iteration; the simulator pads each iter up to `period`, and lowering uses `period` as wrapper.period). Use `period` when the command states a cadence (`every N min`) AND a brief in-tick action so you do NOT have to manually subtract the brief duration from the cadence inside `body`.
 9. `{"op":"break"}` — exit nearest `cycle`.
 
 ---
@@ -133,6 +133,16 @@ Markers: `thereafter`, `from then on`, `from that point`, `after that ... every 
 
 Time-of-day blocks (when literal hours not given):
 - morning ≈ 06:00–12:00 · afternoon ≈ 12:00–18:00 · evening ≈ 18:00–22:00 · night ≈ 22:00–06:00 (crosses midnight)
+
+## D7b. `cycle.period` — explicit cadence, brief in-tick action
+Use `cycle.period` when the command states `every N <unit>` AND each iteration is a brief sequence (e.g. `set + delay K < N + off`). Body describes ONE iteration only; do NOT add a trailing rest-delay (`N - K`). The simulator pads to `period` automatically and lowering copies `period` to wrapper.period.
+
+| English | IR shape |
+|---|---|
+| `Every N min until H, sound siren for K sec then off` | `start_at(now)` + `cycle(until="clock.time >= H00", period="N MIN", body=[ call(Set...), delay(K SEC), call(Switch.Off) ])` |
+| `Every N min, briefly do X` (unbounded) | `start_at(now)` + `cycle(period="N MIN", body=[ call(X), delay(...), call(...) ])` |
+
+Do NOT use `cycle.period` when the cycle's cadence is the body's natural duration (e.g. D-5 alternation `cycle{call A; delay N; call B; delay N}` has cadence built into body). `period` is for "cadence is much larger than action duration; no point computing the gap".
 
 ## D8. Snapshot need
 Same device attribute compared at two different moments → use `read` for each capture. Otherwise reference `Device.attr` directly.

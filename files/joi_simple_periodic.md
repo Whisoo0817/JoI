@@ -3,7 +3,9 @@
 The IR is `cycle{ call(s) ... ; ONE trailing delay }` with **NO `wait`, NO `if`, NO `break`** inside the cycle, and `cycle.until` is null.
 
 ## Period rule
-**`period = <trailing delay ms>`**. The trailing delay is consumed by the `period` field and **does NOT appear in the script body**.
+**Priority 1 — `cycle.period` precedence (HARD)**: if the IR's `cycle` op has a `period` field (e.g. `"5 MIN"`), wrapper.period = `parse_duration_to_ms(cycle.period)` (e.g. `300000`). Body has NO trailing rest-delay; the hub pads.
+
+**Priority 2 — fallback**: when `cycle.period` is absent, `period = <trailing body delay in ms>`. The trailing delay is consumed by the `period` field and **does NOT appear in the script body**.
 
 ## Script body
 Emit the cycle body's calls (and any non-cadence steps) in order, exactly as the IR states. **One statement per line**, no extra control flow.

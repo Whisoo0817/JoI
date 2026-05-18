@@ -156,13 +156,15 @@ def generate_joi_code_ir(
 
     log_buf = []
 
-    def infer(key, user_input, *, system=None):
+    def infer(key, user_input, *, system=None, enable_thinking=False, max_tokens=512):
         sys_content = system or PROMPTS.get(key, "")
         content, log_line = run_llm_inference(model, client, key, [
             {"role": "system", "content": sys_content},
             {"role": "user", "content": user_input}
-        ])
+        ], enable_thinking=enable_thinking, max_tokens=max_tokens)
         log_buf.append(log_line)
+        if enable_thinking:
+            content = re.sub(r'<think>.*?</think>\s*', '', content, flags=re.DOTALL).strip()
         return content
 
     def infer_followup(key, user_input, *, system, prior_user, prior_assistant):
@@ -193,10 +195,9 @@ def generate_joi_code_ir(
     if re.search("[가-힣]", sentence):
         sentence = infer("translation", sentence)
 
-    # ❇️ Stage 1.5: Pre-analysis — verbatim-anchored intent hints fed to downstream stages
-    command_hints = infer("pre_analysis", f"[Command]\n{sentence}")
-
-    # ── Stage 2: service_plan (unified category + intent) ──
+    # ── Stage 2 pre-work: build cd_simple + device categories early so pre_analysis
+    # can see them (pre_analysis is now kitchen-sink — full verbatim + device + service
+    # analysis in one caveman pass).
     if not isinstance(connected_devices, dict) or not connected_devices:
         raise JoiGenerationError(
             "No connected devices provided.",
@@ -273,6 +274,20 @@ def generate_joi_code_ir(
         return "\n\n".join(chunks)
 
     device_rules_block = _build_device_selection_rules(primary_categories)
+
+    # ❇️ Stage 1.5: Pre-analysis — verbatim-grounded caveman dump.
+    # Sees [Command] + [Connected Devices] + [Device Summary] as REFERENCE for
+    # awareness (so it can recognize service/tag/quantifier/trigger dimensions),
+    # but must not pre-commit to specific d-ids / Cat.Method / enum values.
+    # Downstream stages may ignore or override.
+    pre_input = (
+        f"[Command]\n{sentence}\n\n"
+        f"[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}\n\n"
+        f"[Device Summary]\n{device_rules_block}"
+    )
+    command_hints_raw = infer("pre_analysis", pre_input, max_tokens=512)
+    # Strip only the <Reasoning> wrapper tags; keep the caveman content for downstream.
+    command_hints = re.sub(r'</?Reasoning>\s*', '', command_hints_raw).strip()
 
     plan_sys_prompt = PROMPTS.get("service_plan", "")
     plan_input = (
@@ -913,78 +928,73 @@ def generate_joi_code_ir(
     ir_readable = ir_to_readable(ir)
     ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
 
-    # ── Stage 4 (JoI lowering) DISABLED for stage-by-stage IR validation ──
-    # Re-enable by uncommenting the block below.
-    code_pretty = ""
+    bucket = classify_ir(ir)
+    log_buf.append(f"📦 IR bucket: {bucket}")
+    prompt_key = f"joi_from_ir_{bucket}"
+    try:
+        system_prompt = _load_lowering_prompt(bucket)
+    except FileNotFoundError as e:
+        raise JoiGenerationError(
+            f"Lowering prompt missing: {e}",
+            "\n".join(log_buf),
+            error_code="missing_lowering_prompt",
+        )
+
+    joi_input = (
+        f"[Command]\n{sentence}\n\n"
+        f"[Timeline IR]\n{ir_json_str}\n\n"
+        f"[Precision Selectors]\n{precision_output}\n\n"
+        f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+    )
+    joi_code_raw = infer(prompt_key, joi_input, system=system_prompt)
+
+    script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
+
+    joi_json = {}
+    try:
+        m = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
+        if m:
+            fixed_inner = m.group(1).replace('\n', '\\n')
+            script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
+        joi_json = json.loads(script)
+        if "script" in joi_json:
+            joi_json["script"] = _apply_service_prefix(joi_json["script"])
+            joi_json["script"] = _normalize_script_newlines(joi_json["script"])
+        joi_json.setdefault("name", "Scenario")
+        joi_json = {"name": joi_json.pop("name"), **joi_json}
+        joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
+    except (json.JSONDecodeError, TypeError):
+        body = _apply_service_prefix(script)
+        joi_json = {
+            "name": "Scenario",
+            "cron": "",
+            "period": 0,
+            "script": _normalize_script_newlines(body),
+        }
+        joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
+
+    try:
+        _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
+    except Exception as e:
+        log_buf.append(f"⚠️ validate_joi warning: {e}")
+
     elapsed = time.perf_counter() - start
-    # bucket = classify_ir(ir)
-    # log_buf.append(f"📦 IR bucket: {bucket}")
-    # prompt_key = f"joi_from_ir_{bucket}"
-    # try:
-    #     system_prompt = _load_lowering_prompt(bucket)
-    # except FileNotFoundError as e:
-    #     raise JoiGenerationError(
-    #         f"Lowering prompt missing: {e}",
-    #         "\n".join(log_buf),
-    #         error_code="missing_lowering_prompt",
-    #     )
-    #
-    # joi_input = (
-    #     f"[Command]\n{sentence}\n\n"
-    #     f"[Timeline IR]\n{ir_json_str}\n\n"
-    #     f"[IR Readable]\n{ir_readable}\n\n"
-    #     f"[Precision Selectors]\n{precision_output}\n\n"
-    #     f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
-    # )
-    # joi_code_raw = infer(prompt_key, joi_input, system=system_prompt)
-    #
-    # script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
-    #
-    # joi_json = {}
-    # try:
-    #     m = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
-    #     if m:
-    #         fixed_inner = m.group(1).replace('\n', '\\n')
-    #         script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
-    #     joi_json = json.loads(script)
-    #     if "script" in joi_json:
-    #         joi_json["script"] = _apply_service_prefix(joi_json["script"])
-    #         joi_json["script"] = _normalize_script_newlines(joi_json["script"])
-    #     joi_json.setdefault("name", "Scenario")
-    #     joi_json = {"name": joi_json.pop("name"), **joi_json}
-    #     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
-    # except (json.JSONDecodeError, TypeError):
-    #     body = _apply_service_prefix(script)
-    #     joi_json = {
-    #         "name": "Scenario",
-    #         "cron": "",
-    #         "period": 0,
-    #         "script": _normalize_script_newlines(body),
-    #     }
-    #     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
-    #
-    # try:
-    #     _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
-    # except Exception as e:
-    #     log_buf.append(f"⚠️ validate_joi warning: {e}")
-    #
-    # elapsed = time.perf_counter() - start
-    #
-    # try:
-    #     joi_json_final = json.loads(joi_code_raw)
-    #     if "script" in joi_json_final:
-    #         joi_json_final["script"] = _post_process_joi_any_quantifiers(joi_json_final["script"])
-    #     joi_code_raw = json.dumps(joi_json_final, indent=2, ensure_ascii=False)
-    # except (json.JSONDecodeError, TypeError):
-    #     joi_code_raw = _post_process_joi_any_quantifiers(joi_code_raw)
-    #
-    # code_pretty = re.sub(
-    #     r'("script"\s*:\s*")(.*?)(")',
-    #     lambda m: m.group(1) + m.group(2).replace('\\n', '\n') + m.group(3),
-    #     joi_code_raw,
-    #     count=1,
-    #     flags=re.DOTALL,
-    # )
+
+    try:
+        joi_json_final = json.loads(joi_code_raw)
+        if "script" in joi_json_final:
+            joi_json_final["script"] = _post_process_joi_any_quantifiers(joi_json_final["script"])
+        joi_code_raw = json.dumps(joi_json_final, indent=2, ensure_ascii=False)
+    except (json.JSONDecodeError, TypeError):
+        joi_code_raw = _post_process_joi_any_quantifiers(joi_code_raw)
+
+    code_pretty = re.sub(
+        r'("script"\s*:\s*")(.*?)(")',
+        lambda m: m.group(1) + m.group(2).replace('\\n', '\n') + m.group(3),
+        joi_code_raw,
+        count=1,
+        flags=re.DOTALL,
+    )
 
     return {
         "code": code_pretty,

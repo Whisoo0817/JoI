@@ -4,6 +4,9 @@ A cycle that contains a **break-out condition**, either:
 - An explicit `if{break}` step inside the cycle body (D-6), OR
 - A non-null `cycle.until` field (D-9).
 
+## Period precedence (HARD)
+If the IR's `cycle` op has a `period` field (string like `"10 MIN"`, `"5 SEC"`), wrapper.period = `parse_duration_to_ms(cycle.period)` (e.g. `"10 MIN"` → `600000`). The body describes ONE iteration only — do NOT add a rest-delay yourself (the hub pads to the period between iterations). When `cycle.period` is absent, fall back to the per-pattern Period rules below.
+
 ## D-6. Progressive update + break
 **IR shape**: `cycle{ delay(N); call(update); if(maxed){break} }` (or any cycle whose body contains an explicit `if{break}` step).
 

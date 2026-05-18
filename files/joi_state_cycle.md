@@ -2,6 +2,9 @@
 
 A cycle that needs a **state variable** to remember progress across ticks. Two sub-patterns:
 
+## Period precedence (HARD)
+If the IR's `cycle` op has a `period` field (string like `"10 MIN"`, `"30 MIN"`), wrapper.period = `parse_duration_to_ms(cycle.period)` (e.g. `"30 MIN"` → `1800000`). The body describes ONE iteration only — do NOT add a rest-delay (the hub pads to the period between iterations). When `cycle.period` is absent, fall back to the per-pattern Period rules below.
+
 ## D-4. Phase lifecycle (when X, thereafter every N)
 **IR shape**: `wait(edge:"none", cond:X)` at top level, BEFORE a `cycle{ Y; delay(N) }`.
 

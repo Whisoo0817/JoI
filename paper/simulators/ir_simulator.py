@@ -252,14 +252,21 @@ def _exec_cycle(step: dict, world: World, trace: Trace, catalog, debug: bool) ->
     body = step.get("body", []) or []
     until_src = step.get("until")
     until_ast = expr.parse(until_src) if until_src else None
+    period_str = step.get("period")
+    period_ms = parse_duration_to_ms(period_str) if period_str else None
     while True:
         _check_stop(world, trace)
         if until_ast is not None and expr.evaluate(until_ast, _ctx(world)):
             return
+        iter_start_ms = world.t_ms
         try:
             _exec_steps(body, world, trace, catalog, debug)
         except _BreakException:
             return
+        if period_ms is not None:
+            elapsed = world.t_ms - iter_start_ms
+            if elapsed < period_ms:
+                world.advance_by(period_ms - elapsed)
 
 
 # ── Cron handling ────────────────────────────────────────────────────────────

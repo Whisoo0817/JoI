@@ -20,16 +20,16 @@ class JoiGenerationError(ValueError):
         self.error_code = error_code
 
 
-def run_llm_inference(model, client, inference_type, messages):
+def run_llm_inference(model, client, inference_type, messages, *, enable_thinking=False, max_tokens=512):
     start_inference = time.perf_counter()
     stream = client.chat.completions.create(
         messages=messages,
         model=model,
         temperature=0.1,
-        max_tokens=512,
+        max_tokens=max_tokens,
         stream=True,
         stream_options={"include_usage": True},
-        extra_body={"chat_template_kwargs": {"enable_thinking": False}}
+        extra_body={"chat_template_kwargs": {"enable_thinking": enable_thinking}}
     )
     chunks = []
     usage = None

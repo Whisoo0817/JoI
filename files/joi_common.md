@@ -141,7 +141,7 @@ Example (bad — do not do this):
 **This applies inside `cond` too.** IR cond `Device.Attr op X` lowers to `(precision selector).Attr op X` verbatim — do NOT inject `any(...)`/`all(...)` based on candidate count.
 - ✅ IR `RainSensor.Rain == true` + precision `(#RainSensor)` → `if ((#RainSensor).Rain == true)`. ❌ NOT `any(#RainSensor).Rain == true`.
 
-If an IR call maps to multiple precision selectors, pick the ONE whose tags best match the IR step's context. Never combine, expand, or invent variants.
+If a service in `[Precision Selectors]` has multiple selector entries (a list of 2+ selectors), that is a **fan-out**: emit ONE call statement per selector in list order, all with identical args. Never collapse into `all(...)`, never drop any selector, never pick "the best one".
 
 ---
 

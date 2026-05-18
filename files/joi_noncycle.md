@@ -110,18 +110,20 @@ Snapshot pair with abs workaround on the diff.
 </Reasoning>
 {"cron":"","period":0,"script":"t1 = (#TemperatureSensor).Temperature\ndelay(10 MIN)\nt2 = (#TemperatureSensor).Temperature\ndiff = t2 - t1\nif (diff < 0) {\n    diff = t1 - t2\n}\nif (diff >= 10) {\n    (#Light).On()\n}"}
 
-### Ex7 — sensor value → Speaker (variable binding)
+### Ex7 — sensor → multi-selector Speaker (binding + fan-out)
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"read","var":"temp","src":"TemperatureSensor.Temperature"},
  {"op":"call","target":"Speaker.Speak","args":{"Text":"The current temperature is $temp"}}]}
 ```
-[Precision Selectors] `(#TemperatureSensor)` / `(#Speaker)`
+[Precision Selectors]
+TemperatureSensor.Temperature: `(#TemperatureSensor)`
+Speaker.Speak: `(#Speaker #LivingRoom)` / `(#Speaker #Kitchen)`
 <Reasoning>
-Bind sensor value, then use in the string with `+`.
+Bind sensor value; Speaker.Speak has 2 selectors → fan out to 2 calls with identical args.
 </Reasoning>
-{"cron":"","period":0,"script":"temp = (#TemperatureSensor).Temperature\n(#Speaker).Speak(\"The current temperature is \" + temp)"}
+{"cron":"","period":0,"script":"temp = (#TemperatureSensor).Temperature\n(#Speaker #LivingRoom).Speak(\"The current temperature is \" + temp)\n(#Speaker #Kitchen).Speak(\"The current temperature is \" + temp)"}
 
 ### Ex8 — function return chain (call + bind)
 [Timeline IR]

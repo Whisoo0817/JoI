@@ -23,7 +23,8 @@ from run_local import run_llm_inference
 # [MODE: target | pre] 테스트할 타겟 지정 (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    "C09": [13],
+    "C12": [10],  # enum_resolve fix (locked → closed)
+    "C18": [4],  # cycle.period (bounded periodic with brief action)
 }
 
 
@@ -66,8 +67,8 @@ def print_result(result):
         print("\n[Selectors]")
         for svc, sel_list in precision.items():
             print(f"  {svc}: {sel_list}")
-    if result.get('ir_readable'):
-        print(f"\n[IR Readable]\n{result['ir_readable']}")
+    # if result.get('ir_readable'):
+    #     print(f"\n[IR Readable]\n{result['ir_readable']}")
     print(f"\ncode           :\n{result.get('code', '')}")
     print(f"response_time  : {log.get('response_time', '')}")
 
