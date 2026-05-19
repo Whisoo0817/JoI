@@ -76,7 +76,7 @@ Example (bad — do not do this):
 - **Logical**: `and`, `or`, `not` (NOT `&&`, `||`, `!`).
 - **Control flow**: `if {} else {}`, `wait until(cond)`, `break`.
 - **Comparison**: `==`, `!=`, `>`, `<`, `>=`, `<=`.
-- **Time**: `delay(N UNIT)` (UNIT: `HOUR`, `MIN`, `SEC`, `MSEC`).
+- **Time**: `delay(N UNIT)` (UNIT: `HOUR`, `MIN`, `SEC`, `MSEC`). **ms conversion** (used for `wrapper.period`): `MSEC` → 1, `SEC` → 1000, `MIN` → 60000, `HOUR` → 3600000. e.g. `"30 SEC"` → 30000, `"10 MIN"` → 600000, `"1 HOUR"` → 3600000. NEVER conflate units.
 - **Variables — `:=` vs `=` (CRITICAL distinction)**:
   - `:=` **initialize-once-then-persist**. The right-hand side is evaluated EXACTLY ONCE at script start; the variable then carries its value across every periodic tick. Use ONLY for **state flags whose value must survive across ticks**: `triggered := false`, `phase := 0`, `state := "open"`, `color := "red"`. The left-hand side becomes a persistent slot.
   - `=` **per-tick assignment**. Re-evaluated every tick. Use for **fresh sensor reads** (`current = (#Light).Brightness`), **arithmetic on values that change tick-to-tick** (`new_vol = (#Speaker).Volume + 5`, `diff = t2 - t1`), and **updating an existing `:=` slot** (`triggered = true`, `state = "closed"`).
@@ -135,11 +135,18 @@ Example (bad — do not do this):
 - ❌ Do NOT add `any(...)` (likewise). `any(...)` means "exists" quantifier; adding it changes a single-sensor read into a fleet-wide existence check.
 - ❌ Do NOT remove `all`/`any` from a precision-given selector.
 - ❌ Do NOT add or remove tags. Do NOT rename tags. Do NOT swap tag order.
+- ❌ Do NOT wrap a selector in extra parentheses. Write `any(#Door).DoorState`, NOT `(any(#Door)).DoorState`. Write `all(#Light #LR).MoveToLevel(...)`, NOT `(all(#Light #LR)).MoveToLevel(...)`. The outer `if (...)` / `while (...)` parens are mandatory, but the selector token itself must stand alone.
+- ❌ Do NOT split a multi-tag selector `(#A #B)` into separate calls `(#A).M(); (#B).M()`. Tags inside ONE selector are an intersection (a single device that carries all listed tags) — never an enumeration of devices. Emit ONE call: `(#A #B).M()`.
+- ❌ The "no `all(...)`" / "no `any(...)`" rules apply in **call sites** too, not just `cond`. `(#Humidifier #Switch).switch_on()` is correct; `all(#Humidifier #Switch).switch_on()` is a violation when precision said `(#Humidifier #Switch)`.
+- ⚠️ **Multi-tag is the trap.** Bare multi-tag selectors like `(#Light #Entrance)`, `(#Door #MeetingRoom)`, `(#Light #LevelControl #MeetingRoom)` LOOK like they should fan out — they DO NOT. They are still intersections of one device. Never wrap them with `all(...)` unless precision literally wrote `all(...)`.
 - ✅ If precision is `all(#Floor2 #Light)`, write **exactly** `all(#Floor2 #Light).Method()`.
 - ✅ If precision is `(#Light)`, write **exactly** `(#Light).Method()` — never `all(#Light)`.
+- ✅ If precision is `(#Television #Switch)`, write **exactly** `(#Television #Switch).switch_on()` — ONE call, both tags together.
 
-**This applies inside `cond` too.** IR cond `Device.Attr op X` lowers to `(precision selector).Attr op X` verbatim — do NOT inject `any(...)`/`all(...)` based on candidate count.
-- ✅ IR `RainSensor.Rain == true` + precision `(#RainSensor)` → `if ((#RainSensor).Rain == true)`. ❌ NOT `any(#RainSensor).Rain == true`.
+**This applies inside `cond` too.** IR cond `Device.Attr op X` lowers to `(precision selector).Attr op X` verbatim — do NOT inject `any(...)`/`all(...)` based on candidate count. Apply the rule to **every operand** in compound `and`/`or` conds, not just the first.
+- ✅ IR `RainSensor.Rain == true` + precision `(#RainSensor)` → `if ((#RainSensor).Rain == true)`. ❌ NOT `all(#RainSensor).Rain == true`.
+- ✅ Precision `any(#X)` in a cond → emit `any(#X).Attr op value` verbatim. A deterministic post-process step rewrites it to JoI canonical form (`all(#X).Attr op| value`). You do NOT perform that rewrite.
+- ✅ Compound `and`: precision `(#Button)` + `(#IlluminanceSensor #LivingRoom)` → `if ((#Button).Button1 == "pushed" and (#IlluminanceSensor #LivingRoom).Illuminance < 50)`. The second operand's multi-tag stays **bare** — do NOT promote it to `all(#IlluminanceSensor #LivingRoom)`.
 
 If a service in `[Precision Selectors]` has multiple selector entries (a list of 2+ selectors), that is a **fan-out**: emit ONE call statement per selector in list order, all with identical args. Never collapse into `all(...)`, never drop any selector, never pick "the best one".
 

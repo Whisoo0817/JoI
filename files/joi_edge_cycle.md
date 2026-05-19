@@ -31,21 +31,21 @@ If the IR has `wait(edge:"rising")` but NO surrounding cycle, this is a **one-sh
 
 ## Examples
 
-### Ex1 — whenever rising
+### Ex1 — whenever rising (multi-tag bare both sides)
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"cycle","until":null,"body":[
    {"op":"wait","cond":"Door.DoorState == \"open\"","edge":"rising"},
-   {"op":"call","target":"Light.On","args":{}}]}]}
+   {"op":"call","target":"Light.MoveToBrightness","args":{"Brightness":100,"Rate":0}}]}]}
 ```
-[Precision Selectors] `(#Door)` / `all(#Light)`
+[Precision Selectors] `(#Door #Bedroom)` / `(#Light #Bedroom)`
 <Reasoning>
-Rising-edge whenever idiom (D-3) with triggered flag; period 100.
+Rising-edge whenever idiom (D-3) with triggered flag; period 100. Both selectors are multi-tag bare — keep them bare in cond AND in call.
 </Reasoning>
-{"cron":"","period":100,"script":"triggered := false\nif ((#Door).DoorState == \"open\") {\n    if (triggered == false) {\n        all(#Light).On()\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}
+{"cron":"","period":100,"script":"triggered := false\nif ((#Door #Bedroom).DoorState == \"open\") {\n    if (triggered == false) {\n        (#Light #Bedroom).MoveToBrightness(100, 0)\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}
 
-### Ex2 — whenever … stops (negated cond, still rising)
+### Ex2 — whenever … stops (negated cond, still rising) + MULTI-TAG bare selector
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
@@ -53,11 +53,11 @@ Rising-edge whenever idiom (D-3) with triggered flag; period 100.
    {"op":"wait","cond":"MotionSensor.Motion == false","edge":"rising"},
    {"op":"call","target":"Light.Off","args":{}}]}]}
 ```
-[Precision Selectors] `(#MotionSensor)` / `(#Light)`
+[Precision Selectors] `(#MotionSensor #Entrance)` / `(#Light #Entrance)`
 <Reasoning>
-"Stops" = negated cond with rising edge; same D-3 template, no separate falling idiom.
+"Stops" = negated cond with rising edge; same D-3 template. Multi-tag bare precision `(#Light #Entrance)` stays bare — NOT `all(#Light #Entrance)`.
 </Reasoning>
-{"cron":"","period":100,"script":"triggered := false\nif ((#MotionSensor).Motion == false) {\n    if (triggered == false) {\n        (#Light).Off()\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}
+{"cron":"","period":100,"script":"triggered := false\nif ((#MotionSensor #Entrance).Motion == false) {\n    if (triggered == false) {\n        (#Light #Entrance).Off()\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}
 
 ### Ex3 — multi-step Y inside whenever
 [Timeline IR]

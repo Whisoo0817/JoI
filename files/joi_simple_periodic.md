@@ -1,11 +1,13 @@
 # IR Pattern: SIMPLE_PERIODIC (Rule B-2)
 
-The IR is `cycle{ call(s) ... ; ONE trailing delay }` with **NO `wait`, NO `if`, NO `break`** inside the cycle, and `cycle.until` is null.
+The IR is a `cycle` whose cadence is expressed by `cycle.period` (canonical) — or, in legacy form, by a single body `delay` step — with **NO `wait`, NO edge, NO `break`** inside the cycle, and `cycle.until` is null. The body may contain `call`/`read`/`if` ops; what makes this bucket is the absence of edge/until/break and the cycle.period (or single cadence delay) carrying the loop's period.
 
 ## Period rule
-**Priority 1 — `cycle.period` precedence (HARD)**: if the IR's `cycle` op has a `period` field (e.g. `"5 MIN"`), wrapper.period = `parse_duration_to_ms(cycle.period)` (e.g. `300000`). Body has NO trailing rest-delay; the hub pads.
+**Priority 1 — `cycle.period` precedence (HARD, the canonical post-2026-05-18 shape)**: if the IR's `cycle` op has a `period` field (e.g. `"5 MIN"`), wrapper.period = `parse_duration_to_ms(cycle.period)` (e.g. `300000`). The body has NO cadence delay; the hub pads between iterations. Emit body exactly.
 
-**Priority 2 — fallback**: when `cycle.period` is absent, `period = <trailing body delay in ms>`. The trailing delay is consumed by the `period` field and **does NOT appear in the script body**.
+**Priority 2 — legacy fallback (extractor lagging)**: when `cycle.period` is absent and the body contains a cadence `delay` step, wrapper.period = `parse_duration_to_ms(delay.duration)`. Then **REMOVE that delay step from the script body**, regardless of position (head, middle, or tail). The hub pads between iterations.
+
+❌ Do NOT keep `delay(N UNIT)` in the script when its duration is also set as `wrapper.period` — this double-counts (hub re-runs every N AND script waits N → 2N effective cadence).
 
 ## Script body
 Emit the cycle body's calls (and any non-cadence steps) in order, exactly as the IR states. **One statement per line**, no extra control flow.
@@ -24,13 +26,12 @@ If the IR's call uses an expression argument like `Speaker.Volume + 10`, just pa
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"cycle","until":null,"body":[
-   {"op":"call","target":"Speaker.SetVolume","args":{"Volume":"Speaker.Volume + 10"}},
-   {"op":"delay","ms":3600000}]}]}
+ {"op":"cycle","until":null,"period":"1 HOUR","body":[
+   {"op":"call","target":"Speaker.SetVolume","args":{"Volume":"Speaker.Volume + 10"}}]}]}
 ```
 [Precision Selectors] `(#Speaker)`
 <Reasoning>
-Cycle with one call + trailing delay; period = delay; ONE-line script, no D-6 max-clamp.
+cycle.period = 1 HOUR → wrapper.period = 3600000; emit body as-is (no cadence delay to consume); no D-6 max-clamp.
 </Reasoning>
 {"cron":"","period":3600000,"script":"(#Speaker).SetVolume((#Speaker).Volume + 10)"}
 
@@ -38,27 +39,26 @@ Cycle with one call + trailing delay; period = delay; ONE-line script, no D-6 ma
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"cycle","until":null,"body":[
-   {"op":"call","target":"Camera.Capture","args":{}},
-   {"op":"delay","ms":300000}]}]}
+ {"op":"cycle","until":null,"period":"5 MIN","body":[
+   {"op":"call","target":"Camera.Capture","args":{}}]}]}
 ```
 [Precision Selectors] `(#Camera)`
 <Reasoning>
-Cycle with one call + trailing delay; period = 300000; emit single call.
+cycle.period = 5 MIN → wrapper.period = 300000; emit single call.
 </Reasoning>
 {"cron":"","period":300000,"script":"(#Camera).Capture()"}
 
-### Ex3 — multiple calls + trailing delay
+### Ex3 — multiple calls in one iteration
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"cron","cron":"0 8 * * *"},
- {"op":"cycle","until":null,"body":[
+ {"op":"cycle","until":null,"period":"24 HOUR","body":[
    {"op":"call","target":"Light.On","args":{}},
-   {"op":"call","target":"Speaker.Speak","args":{"Text":"Good morning"}},
-   {"op":"delay","ms":86400000}]}]}
+   {"op":"call","target":"Speaker.Speak","args":{"Text":"Good morning"}}]}]}
 ```
 [Precision Selectors] `(#Light)` / `(#Speaker)`
 <Reasoning>
-Cron-anchored cycle with two calls then trailing daily delay; period = delay; emit calls in order.
+Cron-anchored cycle; cycle.period = 24 HOUR → wrapper.period = 86400000; emit both calls in order.
 </Reasoning>
 {"cron":"0 8 * * *","period":86400000,"script":"(#Light).On()\n(#Speaker).Speak(\"Good morning\")"}
+

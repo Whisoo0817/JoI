@@ -217,17 +217,32 @@ def _normalize_script_newlines(script):
     script = re.sub(r'\n\s*\n+', '\n', script)
     return script.strip()
 
-# LLM이 any(#Tag).Prop == val 형태로 생성한 경우 Joi 문법에 맞게 후처리.
+# Strip a single redundant paren wrap around selectors emitted by LLM hallucination:
+#   ((#X #Y)).Method → (#X #Y).Method
+#   (all(#X)).Method → all(#X).Method
+#   (any(#X)).Attr   → any(#X).Attr
+# Run BEFORE _apply_service_prefix / _post_process_joi_any_quantifiers so their
+# regexes (which expect bare `(selector).Method` form) match correctly.
+def _strip_selector_extra_parens(script):
+    script = re.sub(r'\((all\([^)]+\)|any\([^)]+\))\)(?=\.)', r'\1', script)
+    script = re.sub(r'\((\(#[^)]+\))\)(?=\.)', r'\1', script)
+    return script
+
+
+# Convert convenience form `any(#Tag1 [#Tag2 ...]).Prop op val` (single OR multi-tag)
+# to canonical JoI quantifier-comparison: `all(#Tag1 [#Tag2 ...]).Prop op| val`.
+# This lets the lowering LLM copy precision selectors verbatim — operator transform is deterministic here.
 def _post_process_joi_any_quantifiers(script):
-    pattern = r'any\(#(\w+)\)\.(\w+)\s*([=!<>:]=|[<>])\s*([^)\n{}|]+)'
+    # value: either a quoted string literal OR a single bare token (no spaces / parens)
+    pattern = r'any\((#\w+(?:\s+#\w+)*)\)\.(\w+)\s*([=!<>]=|[<>])\s*("[^"]*"|[^\s)]+)'
 
     def replacer(match):
-        tag = match.group(1)
+        tags = match.group(1)
         prop = match.group(2)
         op = match.group(3)
         val = match.group(4).strip()
-        if op.endswith('|'): return match.group(0)  # 이미 처리된 경우 스킵
-        return f'all(#{tag}).{prop} {op}| {val}'
+        if op.endswith('|'): return match.group(0)  # already in canonical form
+        return f'all({tags}).{prop} {op}| {val}'
 
     return re.sub(pattern, replacer, script)
 

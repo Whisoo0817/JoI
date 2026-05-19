@@ -54,13 +54,12 @@ For 3-way or more alternations (rare), generalize the toggle to track which step
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"wait","cond":"Door.DoorState == \"open\"","edge":"none"},
- {"op":"cycle","until":null,"body":[
-   {"op":"call","target":"Light.On","args":{}},
-   {"op":"delay","ms":180000}]}]}
+ {"op":"cycle","until":null,"period":"3 MIN","body":[
+   {"op":"call","target":"Light.On","args":{}}]}]}
 ```
 [Precision Selectors] `(#Door)` / `(#Light)`
 <Reasoning>
-Phase lifecycle: wait once, then periodic action; phase 0 → 1 transition.
+Phase lifecycle: wait once, then periodic action; cycle.period = 3 MIN → wrapper.period = 180000; body emits as-is.
 </Reasoning>
 {"cron":"","period":180000,"script":"phase := 0\nif (phase == 0) {\n    wait until((#Door).DoorState == \"open\")\n    phase = 1\n    (#Light).On()\n}\nif (phase == 1) {\n    (#Light).On()\n}"}
 

@@ -98,7 +98,7 @@ Cron + snapshot branch.
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"read","var":"t1","src":"TempSensor.Temperature"},
- {"op":"delay","ms":600000},
+ {"op":"delay","duration":"10 MIN"},
  {"op":"read","var":"t2","src":"TempSensor.Temperature"},
  {"op":"if","cond":"abs($t2 - $t1) >= 10",
   "then":[{"op":"call","target":"Light.On","args":{}}],

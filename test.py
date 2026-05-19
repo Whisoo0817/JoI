@@ -23,8 +23,8 @@ from run_local import run_llm_inference
 # [MODE: target | pre] 테스트할 타겟 지정 (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    "C12": [10],  # enum_resolve fix (locked → closed)
-    "C18": [4],  # cycle.period (bounded periodic with brief action)
+    "C08": [36],    # D-3
+    "C12": [14],     # D-4
 }
 
 
@@ -91,7 +91,7 @@ def run_targeted_test(df):
             print(f"({idx}) 🛑 {kor}\n 🛑 {eng}")
             print(f"[connected_devices]\n{row['connected_devices']}")
             try:
-                result = generate_joi_code(kor, row['connected_devices'], {})
+                result = generate_joi_code(eng, row['connected_devices'], {})
                 print_result(result)
             except Exception as e:
                 print(f"Error at Idx {idx}: {e}")
@@ -126,15 +126,13 @@ def run_pre_analysis_only(df):
                 continue
             row = match.iloc[0]
             kor = row['command_kor']
+            eng = row['command_eng']
             print(f"\n({idx}) 🛑 {kor}")
+            print(f"     ENG: {eng}")
             t0 = time.perf_counter()
             try:
-                sentence = kor
+                sentence = eng
                 logs = []
-                if re.search("[가-힣]", sentence):
-                    sentence, log_line = infer("translation", sentence)
-                    logs.append(log_line)
-                print(f"     ENG: {sentence}")
                 pre, log_line = infer("pre_analysis", f"[Command]\n{sentence}")
                 logs.append(log_line)
                 elapsed = time.perf_counter() - t0

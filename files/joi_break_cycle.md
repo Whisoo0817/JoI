@@ -68,15 +68,14 @@ For 3-way (A; delay; B; delay; C; delay) extend the toggle: `state := "A" → "B
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"cycle","until":null,"body":[
-   {"op":"delay","ms":10000},
+ {"op":"cycle","until":null,"period":"10 SEC","body":[
    {"op":"call","target":"Speaker.SetVolume","args":{"Value":"Speaker.Volume + 5"}},
    {"op":"if","cond":"Speaker.Volume >= 100",
     "then":[{"op":"break"}],"else":[]}]}]}
 ```
 [Precision Selectors] `(#Speaker)`
 <Reasoning>
-Progressive update with explicit if{break}; fold +step + ceiling check + break into one branch.
+Progressive update with explicit if{break}; cycle.period = 10 SEC → wrapper.period = 10000; fold +step + ceiling check + break into one branch.
 </Reasoning>
 {"cron":"","period":10000,"script":"new_vol = (#Speaker).Volume + 5\nif (new_vol >= 100) {\n    (#Speaker).SetVolume(100)\n    break\n} else {\n    (#Speaker).SetVolume(new_vol)\n}"}
 
@@ -84,13 +83,12 @@ Progressive update with explicit if{break}; fold +step + ceiling check + break i
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"cron","cron":"0 14 * * *"},
- {"op":"cycle","until":"clock.time >= 1800","body":[
-   {"op":"call","target":"Light.Toggle","args":{}},
-   {"op":"delay","ms":3600000}]}]}
+ {"op":"cycle","until":"clock.time >= 1800","period":"1 HOUR","body":[
+   {"op":"call","target":"Light.Toggle","args":{}}]}]}
 ```
 [Precision Selectors] `(#Light)`
 <Reasoning>
-cycle.until inserts an early break-guard; trailing delay becomes period; cron passes through.
+cycle.until + cycle.period: insert early break-guard; wrapper.period = 3600000; cron passes through.
 </Reasoning>
 {"cron":"0 14 * * *","period":3600000,"script":"if (clock.time >= 1800) {\n    break\n}\n(#Light).Toggle()"}
 
@@ -98,14 +96,13 @@ cycle.until inserts an early break-guard; trailing delay becomes period; cron pa
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"cycle","until":"clock.time >= 1500","body":[
+ {"op":"cycle","until":"clock.time >= 1500","period":"5 MIN","body":[
    {"op":"call","target":"TempSensor.Temperature","bind":"t"},
-   {"op":"call","target":"Speaker.Speak","args":{"Text":"Current $t degrees"}},
-   {"op":"delay","ms":300000}]}]}
+   {"op":"call","target":"Speaker.Speak","args":{"Text":"Current $t degrees"}}]}]}
 ```
 [Precision Selectors] `(#TempSensor)` / `(#Speaker)`
 <Reasoning>
-cycle.until with multi-step body; emit break-guard, then the body without the trailing delay.
+cycle.until + cycle.period multi-step body; emit break-guard then both calls.
 </Reasoning>
 {"cron":"","period":300000,"script":"if (clock.time >= 1500) {\n    break\n}\nt = (#TempSensor).Temperature\n(#Speaker).Speak(\"Current \" + t + \" degrees\")"}
 

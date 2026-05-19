@@ -11,7 +11,7 @@ Timeline IR extraction. The pipeline is:
                                    -> ir_extract (sequential within branch)
         - branch B (precision): command + selected services -> selector dict
         IR is selector-free, so branch A no longer depends on branch B.
-    [Stage 4] joi_from_ir lowering (currently DISABLED): IR + precision -> JoI
+    [Stage 4] joi_from_ir lowering: IR + precision -> JoI (bucket-routed)
 
 Service & post-processing helpers are imported from run_local.py to keep a
 single source of truth — DO NOT mutate run_local.py from here.
@@ -45,86 +45,37 @@ from run_local import (
     _apply_service_prefix,
     _normalize_script_newlines,
     _post_process_joi_any_quantifiers,
+    _strip_selector_extra_parens,
     _parse_dict_input,
 )
-from timeline_ir import extract_ir, ir_to_readable, validate_ir, IRValidationError
+from timeline_ir import extract_ir, ir_to_readable, validate_ir, IRValidationError, parse_duration_to_ms
 
 # Bucket-specific lowering prompt is assembled at runtime as
 # joi_common.md + joi_<bucket>.md, both loaded from files/ via PROMPTS.
-_BUCKET_KEYS = (
-    "noncycle",
-    "simple_periodic",
-    "edge_cycle",
-    "state_cycle",
-    "break_cycle",
-)
+#
+# Two buckets only: the IR is either acyclic (sequence) or contains a top-level
+# cycle. Within `cycle`, the joi_cycle.md prompt's own switchboard (D-3/D-4/D-5/
+# D-6/D-9/B-2) picks the idiom from explicit IR signals — no Python heuristic.
+_BUCKET_KEYS = ("noncycle", "cycle")
 
 
 def classify_ir(ir):
-    """Classify the IR into one of the 5 lowering buckets.
+    """Return 'cycle' if any top-level cycle op exists, else 'noncycle'.
 
-    Buckets:
-      - noncycle        : no top-level cycle. Covers D-1, D-2, D-7, D-8, B-1b.
-      - simple_periodic : cycle{ call(s); ONE trailing delay } with no wait/if/break/until. (B-2)
-      - edge_cycle      : cycle whose body contains wait(edge:"rising"). (D-3)
-      - state_cycle     : D-4 phase (top-level wait(none) before cycle) or
-                          D-5 alternation (cycle body has >=2 delays).
-      - break_cycle     : cycle.until non-null, OR cycle body has if{break}. (D-6 / D-9)
-
-    Selection order matters: break_cycle > edge_cycle > state_cycle > simple_periodic.
+    Idiom discrimination (D-3/D-4/D-5/D-6/D-9/B-2) is delegated to the cycle
+    prompt's switchboard, which reads explicit IR signals: cycle.until,
+    body wait(edge:"rising"), pre-cycle wait(edge:"none"), if{break}, and
+    body delay count. This keeps Python free of brittle heuristics.
     """
     if not isinstance(ir, dict):
         return "noncycle"
     timeline = ir.get("timeline") or []
     if not isinstance(timeline, list):
         return "noncycle"
-
-    cycle_idx = next(
-        (i for i, s in enumerate(timeline)
-         if isinstance(s, dict) and s.get("op") == "cycle"),
-        None,
-    )
-    if cycle_idx is None:
-        return "noncycle"
-
-    cyc = timeline[cycle_idx]
-    body = cyc.get("body") or []
-
-    # break_cycle: cycle.until set OR explicit if{break} step inside body
-    if cyc.get("until"):
-        return "break_cycle"
-
-    def _has_break_in_if(steps):
-        for s in steps:
-            if not isinstance(s, dict):
-                continue
-            if s.get("op") == "if":
-                branches = (s.get("then") or []) + (s.get("else") or [])
-                if any(isinstance(c, dict) and c.get("op") == "break" for c in branches):
-                    return True
-        return False
-
-    if _has_break_in_if(body):
-        return "break_cycle"
-
-    # edge_cycle: rising-edge wait inside cycle body
-    if any(isinstance(s, dict) and s.get("op") == "wait" and s.get("edge") == "rising"
-           for s in body):
-        return "edge_cycle"
-
-    # state_cycle: D-4 (wait(none) at top level BEFORE the cycle)
-    pre_cycle = timeline[:cycle_idx]
-    if any(isinstance(s, dict) and s.get("op") == "wait" and s.get("edge") in (None, "none")
-           for s in pre_cycle):
-        return "state_cycle"
-
-    # state_cycle: D-5 alternation (>=2 delays in cycle body)
-    delay_count = sum(1 for s in body if isinstance(s, dict) and s.get("op") == "delay")
-    if delay_count >= 2:
-        return "state_cycle"
-
-    # default: simple periodic (cycle with body + ONE trailing delay, no extras)
-    return "simple_periodic"
+    for s in timeline:
+        if isinstance(s, dict) and s.get("op") == "cycle":
+            return "cycle"
+    return "noncycle"
 
 
 def _load_lowering_prompt(bucket: str) -> str:
@@ -878,6 +829,89 @@ def generate_joi_code_ir(
 
     service_details = local_service_details
 
+    # Enforce [Resolved Args] verbatim: strip any LLM-hallucinated keys from
+    # `call.args` (e.g. `Selector`, `Scope`, `Filter`) by overriding with
+    # what arg_resolve produced. Skip overrides when the LLM used the R3
+    # "Delta exception" ($var arithmetic), since arg_resolve doesn't know
+    # those derived values.
+    def _enforce_resolved_args(ir_obj, ra):
+        if not isinstance(ir_obj, dict) or not isinstance(ra, dict):
+            return
+        timeline = ir_obj.get("timeline")
+        if not isinstance(timeline, list):
+            return
+        counters = {}
+
+        def _walk(steps):
+            for step in steps:
+                if not isinstance(step, dict):
+                    continue
+                op = step.get("op")
+                if op == "if":
+                    _walk(step.get("then", []) or [])
+                    _walk(step.get("else", []) or [])
+                    continue
+                if op == "cycle":
+                    _walk(step.get("body", []) or [])
+                    continue
+                if op != "call":
+                    continue
+                target = step.get("target", "")
+                if target not in ra:
+                    continue
+                resolved = ra[target]
+                cur_args = step.get("args", {})
+                if isinstance(cur_args, dict) and any(
+                    isinstance(v, str) and v.startswith("$") for v in cur_args.values()
+                ):
+                    continue
+                if isinstance(resolved, list):
+                    idx = counters.get(target, 0)
+                    if idx < len(resolved) and isinstance(resolved[idx], dict):
+                        step["args"] = resolved[idx]
+                        counters[target] = idx + 1
+                elif isinstance(resolved, dict):
+                    step["args"] = resolved
+                else:
+                    step["args"] = {}
+
+        _walk(timeline)
+
+    _enforce_resolved_args(ir, resolved_args)
+
+    # Normalize logical operators in cond/until expressions to JoI keywords.
+    # IR-extractor occasionally emits C-style `&&`/`||`/`!` despite the prompt.
+    def _normalize_logical_ops(ir_obj):
+        if not isinstance(ir_obj, dict):
+            return
+        def _fix(s):
+            if not isinstance(s, str):
+                return s
+            s = re.sub(r'\s*&&\s*', ' and ', s)
+            s = re.sub(r'\s*\|\|\s*', ' or ', s)
+            s = re.sub(r'(^|[\s(])!\s*(?=[A-Za-z_$(])', r'\1not ', s)
+            return s
+
+        def _walk(steps):
+            for step in steps:
+                if not isinstance(step, dict):
+                    continue
+                for k in ("cond", "until"):
+                    if k in step:
+                        step[k] = _fix(step[k])
+                op = step.get("op")
+                if op == "if":
+                    _walk(step.get("then", []) or [])
+                    _walk(step.get("else", []) or [])
+                elif op == "cycle":
+                    _walk(step.get("body", []) or [])
+
+        tl = ir_obj.get("timeline")
+        if isinstance(tl, list):
+            _walk(tl)
+
+    _normalize_logical_ops(ir)
+
     # Auto-inject `var` on prior calls whose method-name suffix is referenced
     # via `$<MethodName>` in any later step's args/cond. Backstop for cases
     # where the extractor LLM forgets to declare `var`.
@@ -928,6 +962,7 @@ def generate_joi_code_ir(
     ir_readable = ir_to_readable(ir)
     ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
 
+    # === Stage 4 (joi_from_ir lowering) ===
     bucket = classify_ir(ir)
     log_buf.append(f"📦 IR bucket: {bucket}")
     prompt_key = f"joi_from_ir_{bucket}"
@@ -958,13 +993,14 @@ def generate_joi_code_ir(
             script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
         joi_json = json.loads(script)
         if "script" in joi_json:
+            joi_json["script"] = _strip_selector_extra_parens(joi_json["script"])
             joi_json["script"] = _apply_service_prefix(joi_json["script"])
             joi_json["script"] = _normalize_script_newlines(joi_json["script"])
         joi_json.setdefault("name", "Scenario")
         joi_json = {"name": joi_json.pop("name"), **joi_json}
         joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
     except (json.JSONDecodeError, TypeError):
-        body = _apply_service_prefix(script)
+        body = _apply_service_prefix(_strip_selector_extra_parens(script))
         joi_json = {
             "name": "Scenario",
             "cron": "",
@@ -978,7 +1014,29 @@ def generate_joi_code_ir(
     except Exception as e:
         log_buf.append(f"⚠️ validate_joi warning: {e}")
 
-    elapsed = time.perf_counter() - start
+    # Deterministic wrapper.period override from IR.cycle.period.
+    # LLM is unreliable at unit arithmetic ("30 SEC" → 1800000); compute it here.
+    # D-3 (cycle body has wait edge="rising") is hardcoded to 100 regardless of cycle.period value.
+    def _wrapper_period_from_ir(ir_obj):
+        tl = (ir_obj or {}).get("timeline", [])
+        for s in tl:
+            if isinstance(s, dict) and s.get("op") == "cycle":
+                body = s.get("body") or []
+                if any(isinstance(x, dict) and x.get("op") == "wait" and x.get("edge") == "rising" for x in body):
+                    return 100
+                p = s.get("period")
+                if isinstance(p, str):
+                    try:
+                        return parse_duration_to_ms(p)
+                    except ValueError:
+                        return None
+                return None
+        return None  # no cycle → keep LLM's value (typically 0 for noncycle)
+    _override_ms = _wrapper_period_from_ir(ir)
+    if _override_ms is not None and joi_json.get("period") != _override_ms:
+        log_buf.append(f"🔧 wrapper.period override: {joi_json.get('period')} → {_override_ms} (from IR cycle.period)")
+        joi_json["period"] = _override_ms
+        joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
 
     try:
         joi_json_final = json.loads(joi_code_raw)
@@ -995,6 +1053,8 @@ def generate_joi_code_ir(
         count=1,
         flags=re.DOTALL,
     )
+
+    elapsed = time.perf_counter() - start
 
     return {
         "code": code_pretty,

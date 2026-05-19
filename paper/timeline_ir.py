@@ -168,27 +168,22 @@ def _validate_step(step: Any) -> None:
             raise IRValidationError("cycle.body must be non-empty list")
         if step.get("until") is not None and not isinstance(step["until"], str):
             raise IRValidationError("cycle.until must be string or null")
-        # Optional `period`: explicit per-iteration cadence (e.g. "10 MIN").
-        # When present, the simulator pads each iteration up to this duration
-        # and lowering uses it as the wrapper.period directly. Same grammar as
-        # delay.duration. Eliminates LLM arithmetic for "every N, do brief X"
-        # bounded patterns (replaces manual "rest delay" inside body).
+        # `period`: REQUIRED per-iteration cadence (e.g. "10 MIN"). Lowering uses
+        # it as the wrapper.period. Defaults per convention: D-3 edge cycle (body
+        # has wait(rising)) → "100 MSEC"; D-5 alternation → equal to each inter-call
+        # delay; all others → NL's `every N <unit>`. Same grammar as delay.duration.
         period = step.get("period")
-        if period is not None:
-            if not isinstance(period, str):
-                raise IRValidationError("cycle.period must be a string like '10 MIN'")
-            try:
-                parse_duration_to_ms(period)
-            except ValueError as e:
-                raise IRValidationError(f"cycle.period: {e}")
-        # cycle MUST have some cadence source: cycle.period, OR a delay step
-        # in body, OR an edge-triggered wait (rising/falling). A delay-less
-        # cycle with only a level wait would spin unbounded — rejected.
-        if period is None and not _body_has_cadence(body):
+        if period is None:
             raise IRValidationError(
-                "cycle.body must contain at least one delay or edge-triggered wait "
-                "(or set cycle.period for an explicit cadence)"
+                "cycle.period is required (use '100 MSEC' for D-3 edge cycles, "
+                "the inter-call delay for D-5 alternation, or the NL cadence otherwise)"
             )
+        if not isinstance(period, str):
+            raise IRValidationError("cycle.period must be a string like '10 MIN'")
+        try:
+            parse_duration_to_ms(period)
+        except ValueError as e:
+            raise IRValidationError(f"cycle.period: {e}")
         for j, s in enumerate(body):
             try:
                 _validate_step(s)
