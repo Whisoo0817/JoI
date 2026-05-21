@@ -23,7 +23,18 @@ from pipeline_helpers import run_llm_inference
 # [MODE: target | pre] 테스트할 타겟 지정 (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    "C20": [1],  # wait.for verifier-retry smoke
+    # IR-only batch failures (350-row run, 2026-05-21 evening). 22 cases.
+    # See /tmp/joi_ir_grade.json for full bug-type breakdown.
+    "C01": [9, 10, 14],          # 3× pipeline-error: timeline[0]!=start_at
+    "C03": [30],                  # 1× C03 "if" got cycle
+    "C06": [1, 5],                # 2× pipeline-error: service_not_in_devices
+    "C07": [15, 18, 24],          # 3× "when" NL got cycle / edge=rising
+    "C15": [15],                  # 1× pipeline-error: multi-cron rejected
+    "C16": [5],                   # 1× pipeline-error: multi-cron rejected
+    "C17": [2, 3, 8, 9],          # 4× "every <period>" got noncycle
+    "C18": [5],                   # 1× C18 missing cycle
+    "C19": [1, 2, 3, 6],          # 4× hysteresis collapsed to one-shot
+    "C21": [1, 3],                # 2× "either/or" / "both/and" lost in cond
 }
 
 

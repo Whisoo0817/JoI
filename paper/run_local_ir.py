@@ -63,6 +63,15 @@ from paper.simulators.catalog import load_catalog as _load_catalog
 _VERIFY_ENABLED = os.environ.get("JOI_VERIFY", "0") == "1"
 _VERIFY_MAX_ATTEMPTS = int(os.environ.get("JOI_VERIFY_MAX_ATTEMPTS", "2"))
 
+# IR-only short-circuit. When JOI_IR_ONLY=1, the pipeline runs through
+# Stage 1-3 (translation → service_plan → resolve/precision → IR extract
+# → post-process trio) and then writes the IR + supporting state to
+# JOI_IR_DUMP_DIR/<JOI_IR_DUMP_NAME>.json, skipping Stage 4 lowering.
+# Used for offline IR-confirm validation prior to running lowering.
+_IR_ONLY = os.environ.get("JOI_IR_ONLY", "0") == "1"
+_IR_DUMP_DIR = os.environ.get("JOI_IR_DUMP_DIR", "/tmp/joi_ir_dump")
+_IR_DUMP_NAME = os.environ.get("JOI_IR_DUMP_NAME", "")
+
 # Bucket-specific lowering prompt is assembled at runtime as
 # joi_common.md + joi_<bucket>.md, both loaded from files/ via PROMPTS.
 #
@@ -688,6 +697,17 @@ def generate_joi_code_ir(
 
     device_rules_block = _build_device_selection_rules(primary_categories)
 
+    # ── ID aliasing: anonymize device ids as d1/d2/... once, share across every
+    # LLM stage that sees the device dict (pre_analysis, service_plan,
+    # mapping_device_match). Keeps reasoning consistent and prevents raw IDs
+    # from leaking into pre_analysis/service_plan reasoning that downstream
+    # stages would then have to undo. real_of / alias_of are also reused by
+    # the precision selector validator.
+    real_ids = list(cd_simple.keys())
+    alias_of = {real: f"d{i+1}" for i, real in enumerate(real_ids)}
+    real_of = {a: r for r, a in alias_of.items()}
+    cd_aliased = {alias_of[r]: cd_simple[r] for r in real_ids}
+
     # ❇️ Stage 1.5: Pre-analysis — verbatim-grounded caveman dump.
     # Sees [Command] + [Connected Devices] + [Device Summary] as REFERENCE for
     # awareness (so it can recognize service/tag/quantifier/trigger dimensions),
@@ -695,7 +715,7 @@ def generate_joi_code_ir(
     # Downstream stages may ignore or override.
     pre_input = (
         f"[Command]\n{sentence}\n\n"
-        f"[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}\n\n"
+        f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
         f"[Device Summary]\n{device_rules_block}"
     )
     command_hints_raw = infer("pre_analysis", pre_input, max_tokens=512)
@@ -706,7 +726,7 @@ def generate_joi_code_ir(
     plan_input = (
         f"[Command]\n{sentence}\n\n"
         f"[Command Hints]\n{command_hints}\n\n"
-        f"[Connected Devices]\n{json.dumps(cd_simple, indent=2, ensure_ascii=False)}\n\n"
+        f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
         f"[Device Rules]\n{device_rules_block}"
     )
     plan_output = infer("service_plan", plan_input, system=plan_sys_prompt)
@@ -811,11 +831,7 @@ def generate_joi_code_ir(
         if not selected_services:
             return {"selectors": {}, "reasoning": ""}
 
-        # ---- alias the device ids so the LLM sees short, stable tokens ----
-        real_ids = list(cd_simple.keys())
-        alias_of = {real: f"d{i+1}" for i, real in enumerate(real_ids)}
-        real_of = {a: r for r, a in alias_of.items()}
-        cd_aliased = {alias_of[r]: cd_simple[r] for r in real_ids}
+        # alias_of / real_of / cd_aliased computed upstream (see Stage 2 pre-work).
 
         # Pre-compute alias → tags array (category + tags merged)
         alias_tags = {}
@@ -1074,8 +1090,53 @@ def generate_joi_code_ir(
     ir_readable = ir_to_readable(ir)
     ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
 
-    # === Stage 4 (joi_from_ir lowering) ===
     bucket = classify_ir(ir)
+
+    # === IR-only short-circuit ===
+    # When JOI_IR_ONLY=1, persist all state needed to resume lowering later
+    # and return without running Stage 4. The dump captures the exact inputs
+    # that lowering would have consumed (sentence, ir, precision_output,
+    # service_details, connected_devices, bucket) plus IR provenance (the
+    # resolved_args / resolved_enum_conds that were folded into IR).
+    if _IR_ONLY:
+        os.makedirs(_IR_DUMP_DIR, exist_ok=True)
+        dump_name = _IR_DUMP_NAME or f"row_{int(time.time()*1000)}"
+        dump_path = os.path.join(_IR_DUMP_DIR, f"{dump_name}.json")
+        precision_for_dump = (
+            precision_output if isinstance(precision_output, dict)
+            else {"selectors": {}, "reasoning": str(precision_output)}
+        )
+        elapsed = time.perf_counter() - start
+        dump_obj = {
+            "sentence": sentence,
+            "connected_devices": connected_devices,
+            "ir": ir,
+            "ir_readable": ir_readable,
+            "bucket": bucket,
+            "precision": precision_for_dump,
+            "service_details": service_details,
+            "resolved_args": resolved_args,
+            "resolved_enum_conds": resolved_enum_conds,
+            "elapsed_seconds": elapsed,
+            "log": "\n".join(log_buf),
+        }
+        with open(dump_path, "w", encoding="utf-8") as _f:
+            json.dump(dump_obj, _f, ensure_ascii=False, indent=2)
+        log_buf.append(f"💾 IR-only dump: {dump_path}")
+        return {
+            "code": "",
+            "ir": ir,
+            "ir_readable": ir_readable,
+            "precision": precision_for_dump.get("selectors", {}),
+            "precision_reasoning": precision_for_dump.get("reasoning", ""),
+            "ir_dump_path": dump_path,
+            "log": {
+                "response_time": f"{elapsed:.4f} seconds",
+                "logs": "\n".join(log_buf),
+            },
+        }
+
+    # === Stage 4 (joi_from_ir lowering) ===
     log_buf.append(f"📦 IR bucket: {bucket}")
     prompt_key = f"joi_from_ir_{bucket}"
     try:

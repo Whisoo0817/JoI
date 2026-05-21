@@ -805,7 +805,14 @@ def extract_ir(
         _completion_tokens = _usage.completion_tokens if _usage else 0
         return ir, _prompt_tokens, _completion_tokens, _elapsed, out_user, raw_assistant
 
-    validate_ir(ir)
+    try:
+        validate_ir(ir)
+    except IRValidationError as e:
+        # Re-raise with the raw model output appended so upstream callers can
+        # surface it for debugging (otherwise the rejected IR is silently lost).
+        raise IRValidationError(
+            f"{e}\n--- raw model output ---\n{raw_assistant}"
+        ) from None
     _usage = response.usage
     _prompt_tokens = _usage.prompt_tokens if _usage else 0
     _completion_tokens = _usage.completion_tokens if _usage else 0
