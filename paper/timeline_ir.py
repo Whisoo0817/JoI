@@ -686,10 +686,12 @@ def build_extract_retry_hint(violations: list[IRViolation]) -> str:
                     f"value of `{svc}`. Look up the right service in the catalog."
                 )
         elif v.code == "service_not_in_devices":
+            valid = v.hint.get("valid_categories") or []
+            valid_str = ", ".join(f"`{c}`" for c in valid) if valid else "(see [Connected Devices])"
             lines.append(
                 f"- {v.path}: service `{v.hint.get('service')}` is not present in "
-                f"connected_devices. Pick a service whose category exists in "
-                f"the [Connected Devices] block."
+                f"connected_devices. ONLY use services from these categories: "
+                f"{valid_str}."
             )
         elif v.code == "arg_not_in_catalog":
             lines.append(
@@ -805,14 +807,48 @@ def extract_ir(
         _completion_tokens = _usage.completion_tokens if _usage else 0
         return ir, _prompt_tokens, _completion_tokens, _elapsed, out_user, raw_assistant
 
+    # If the LLM dropped start_at (a recurring failure mode for simple commands
+    # like "Tell me the temperature."), one-shot retry with prefix-prefilling:
+    # force the assistant response to begin with `{"timeline":[{"op":"start_at"`
+    # via continue_final_message=True so the start_at step is decode-time
+    # guaranteed; the model freely completes anchor + the rest. Reject path
+    # (`{"error": ...}`) only fires on first attempt, preserving multi-cron
+    # rejection. Prefix stops before `,"anchor":...` so cron-anchored cases
+    # can still emit anchor="cron" + cron string.
     try:
         validate_ir(ir)
     except IRValidationError as e:
-        # Re-raise with the raw model output appended so upstream callers can
-        # surface it for debugging (otherwise the rejected IR is silently lost).
-        raise IRValidationError(
-            f"{e}\n--- raw model output ---\n{raw_assistant}"
-        ) from None
+        if "timeline[0] must be a start_at step" in str(e):
+            _PREFIX = '{"timeline":[{"op":"start_at"'
+            messages_prefill = messages + [{"role": "assistant", "content": _PREFIX}]
+            _t1 = _time.perf_counter()
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages_prefill,
+                temperature=0.0,
+                max_tokens=2048,
+                stream=False,
+                extra_body={
+                    "chat_template_kwargs": {"enable_thinking": False},
+                    "add_generation_prompt": False,
+                    "continue_final_message": True,
+                },
+            )
+            _elapsed += _time.perf_counter() - _t1
+            raw_continuation = (response.choices[0].message.content or "").strip()
+            raw = _strip_json_fences(_PREFIX + raw_continuation)
+            raw_assistant = raw
+            try:
+                ir = json.loads(raw)
+                validate_ir(ir)
+            except (json.JSONDecodeError, IRValidationError) as e2:
+                raise IRValidationError(
+                    f"{e2}\n--- raw model output (after prefix-prefill retry) ---\n{raw}"
+                ) from None
+        else:
+            raise IRValidationError(
+                f"{e}\n--- raw model output ---\n{raw_assistant}"
+            ) from None
     _usage = response.usage
     _prompt_tokens = _usage.prompt_tokens if _usage else 0
     _completion_tokens = _usage.completion_tokens if _usage else 0
