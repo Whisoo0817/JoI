@@ -56,20 +56,20 @@ Used in `cond`, `if.cond`, `wait.cond`, and read-derived `args` values.
 
 ---
 
-# Structural Decisions (apply IN ORDER before consulting Lexical Cues)
+# Structural Decisions (D-rules)
 
-These rules choose the IR SHAPE. The Lexical Cues table below is a lookup for filling in slots once the shape is decided.
+D-rules choose the IR SHAPE. Apply IN ORDER. Each `[Command Hints]` cue maps to the D-rule listed in parentheses below; consult D-rules first and treat hints as confirmation.
 
 ## D1. Anchor (`start_at`)
 - Absolute time / day-of-week / date in the command → `start_at("cron", "<5-field>")`.
 - Otherwise → `start_at("now")`.
 
-## D2. Day-of-week filter MUST appear in cron 5th field
-Cron has 5 fields: `minute hour day-of-month month day-of-week`. The 5th field is `dayOfWeek`.
+## D2. Cron 5th field — day-of-week filter (HARD)
+Cron has 5 fields: `minute hour day-of-month month day-of-week`. The 5th field encodes day-of-week.
 
-**Convention (HARD)**: dow is always a **digit 1–7** where `1=Mon, 2=Tue, 3=Wed, 4=Thu, 5=Fri, 6=Sat, 7=Sun`. NEVER emit `MON`/`TUE`/`...`/`SUN` English names. NEVER emit `0` (no zero-Sunday).
+**Format**: digit `1–7` only, where `1=Mon … 7=Sun`. NEVER English names (`MON`/`TUE`/`...`); NEVER `0`.
 
-| Command phrase (English) | Cron 5th field |
+| Command / hint phrase | 5th field |
 |---|---|
 | `every day`, `daily`, (no day phrase) | `*` |
 | `every Monday` / `on Monday(s)` | `1` |
@@ -78,48 +78,42 @@ Cron has 5 fields: `minute hour day-of-month month day-of-week`. The 5th field i
 | `on weekdays` | `1-5` |
 | Specific date (`Christmas`, `Jan 1`) | use fields 3+4, set 5th to `*` |
 
-A pre_analysis hint like `cron trigger: weekends only (Saturday and Sunday)` or `cron trigger: weekdays only` MUST be honored — drop the day-filter at your peril.
+**Filter preservation is HARD**: if a day-filter phrase appears ANYWHERE in the command OR a `cron trigger: <weekends/weekdays/Mondays>` hint is present, the 5th field MUST carry it. Dropping to `*` when a filter exists is a HARD ERROR.
+
+- ❌ `On weekends at 3 PM, …` → `"0 15 * * *"` (filter dropped). HARD ERROR.
+- ✅ `"0 15 * * 6,7"`.
 
 ## D3. Op selection: `if` vs `wait` vs `cycle{wait}`
-| English shape | Op | Position |
+| English shape (or hint marker) | Op | Position |
 |---|---|---|
 | `if X, do Y` (state check at this instant) | `if(X){Y}` | top-level or nested |
 | `when X, do Y` (one-shot, block until X then act once) | `wait(X)` then `call` | top-level |
-| `whenever X, do Y` / `every time X, Y` (re-arm trigger) | `cycle{ wait(X); Y }` | wait inside cycle |
-| `when X, thereafter every N, do Y` (phase D-4) | `wait(X)` then `cycle(period="N UNIT"){ Y }` | wait OUTSIDE cycle |
+| `whenever X, do Y` / `every time X, Y` / hint `rising-edge trigger; repeats on each transition` | `cycle{ wait(X); Y }` | wait inside cycle (D-3) |
+| `when X, thereafter every N, do Y` / hint `phase-lifecycle: trigger fires once, then perpetual cycle` | `wait(X)` then `cycle(period="N UNIT"){ Y }` | wait OUTSIDE cycle (D-4) — see D6 |
 
 `any` / `at least one` is a **selector quantifier only** — it never changes the IR shape. "When any sensor detects, do Y" is still ONE-SHOT `wait(...edge:"none"); call`.
 
-## D4. `wait.edge` decided STRUCTURALLY
+## D4. `wait.edge` decided STRUCTURALLY (single source of truth)
 | Position of `wait` | edge |
 |---|---|
 | Top-level (one-shot) | `"none"` |
 | Inside a `cycle` body | `"rising"` |
 
-NEVER decide edge from NL keywords. NEVER emit `edge:"falling"` — negate the cond instead (`cond:"X == false"`).
+NEVER decide edge from NL keywords. NEVER emit `edge:"falling"` — negate the cond instead (`cond:"X == false"`). D5/D5.5/D6 inherit this rule without restating it.
 
 ## D5. Inside a `cycle` body: `if` vs `wait`
-This is the most-confused rule. Apply it precisely:
-
-- **Polling cycle** (`every N <unit>, check X and if/whenever … do Y`): cadence is `cycle.period="N UNIT"`. State checks at each tick MUST use `if`, NEVER `wait`. A `wait` inside a polling body would block indefinitely between ticks and defeat the polling cadence.
-  - ✅ `cycle(period="N UNIT"){ if(<state>){ Y } }` — instantaneous tick check.
-  - ❌ `cycle(period="N UNIT"){ wait(<state>, rising); Y }` — wait blocks until the next true; polling defeated.
-
-- **Edge-cycle / re-arming trigger** (`whenever X (transitions to true), do Y` / `every time X, Y`): cadence is `cycle.period="100 MSEC"` (10Hz polling). The wait IS the trigger; the period is the polling rate.
-  - ✅ `cycle(period="100 MSEC"){ wait(<state>, rising); Y }` — wait re-arms each tick. (When a separate `delay(N)` is requested as iteration-internal sub-step, place it inside Y: `cycle(period="100 MSEC"){ wait(...); Y_part1; delay(N); Y_part2 }`.)
-
-Heuristic: if `[Command Hints]` contains a `polling cycle:` line, use `if`. If it contains a `rising-edge trigger; repeats on each transition` line WITHOUT a `polling cycle:` line, use `wait`.
+- **Polling cycle** (`every N <unit>, check X and if/whenever … do Y` / hint `polling cycle: each tick checks …`): cadence is `cycle.period="N UNIT"`. State checks at each tick MUST use `if`, NEVER `wait`. A `wait` inside a polling body would block indefinitely between ticks and defeat the polling cadence.
+  - ✅ `cycle(period="N UNIT"){ if(<state>){ Y } }`
+  - ❌ `cycle(period="N UNIT"){ wait(<state>, rising); Y }`
+- **Edge-cycle / re-arming trigger** (D-3, see D3): cadence is `cycle.period="100 MSEC"` (10Hz polling). The `wait` IS the trigger.
+  - ✅ `cycle(period="100 MSEC"){ wait(<state>, rising); Y }` — when iteration has internal sub-steps: `cycle(period="100 MSEC"){ wait(...); Y_part1; delay(N); Y_part2 }`.
 
 ## D5.5. Sustained-cond → `wait.for`
-When the command requires a condition to hold for a duration (NOT a fixed delay), use the `for` field on a `wait` op. The semantic difference vs `delay`:
+Cond must hold CONTINUOUSLY for a duration (NOT a fixed delay).
 - `delay(30 SEC)` — pause 30s regardless of cond.
 - `wait(cond, for:"30 SEC")` — cond must remain true CONTINUOUSLY for 30s; timer resets if cond flips false midway.
 
-### Shape decision — one-shot vs re-arming
-Same sustain semantics; the shape is decided STRUCTURALLY by re-arm markers, mirroring D-3 vs D-2:
-
-- **Re-arm (cycle-wrapped)** — markers: `whenever`, `every time`, `each time`, `매번`, `~할 때마다`. Use `cycle(period="100 MSEC"){ wait(C, edge:"rising", for:"N UNIT"); Y }`.
-- **One-shot (top-level)** — DEFAULT when no re-arm marker. Use `wait(C, edge:"none", for:"N UNIT"); Y`. This includes plain `when X for N` / `if X for N` / `N초 이상 X면` / `N분 이상 X일 때` — none of these are re-arming unless an explicit re-arm marker is present.
+**Shape**: re-arm markers (`whenever`, `every time`, `each time`, `매번`, `~할 때마다`) → cycle-wrapped. Otherwise → one-shot (DEFAULT, applies to plain `when X for N` / `if X for N` / `N초 이상 X면`).
 
 | English / Korean | IR |
 |---|---|
@@ -127,22 +121,20 @@ Same sustain semantics; the shape is decided STRUCTURALLY by re-arm markers, mir
 | `if no motion for 30 sec, turn off` / `30초 이상 동작 감지 안 되면` | `wait(Motion == false, edge:"none", for:"30 SEC"); Switch.Off` |
 | `whenever person stays for 1 min, do Y` / `1분 이상 머무를 때마다` | `cycle(period="100 MSEC"){ wait(Presence == true, edge:"rising", for:"1 MIN"); Y }` |
 
-Sustain markers (NL → use wait.for): `for N seconds/minutes`, `for at least N`, `stays/remains for N`, `N초 이상`, `N분 동안 계속`, `N분 이상 유지`, `N초 이상 ~안되면`.
+Markers (NL → use `wait.for`): `for N seconds/minutes`, `for at least N`, `stays/remains for N`, `N초 이상`, `N분 동안 계속`, `N분 이상 유지`, `N초 이상 ~안되면`.
 
-**Anti-pattern**: do NOT lower "for 30 seconds without motion" as `wait(Motion==false); delay(30 SEC); if(Motion==false){...}`. That checks endpoints only; a brief mid-window motion blip passes when it shouldn't. Use `wait.for`.
+**Anti-pattern**: do NOT lower as `wait(cond); delay(N); if(cond){…}`. Endpoint-check only; a mid-window flip silently passes. Always use `wait.for`.
 
 ## D6. Phase lifecycle (D-4) — wait OUTSIDE cycle
-When the command says `when X (one-time event), thereafter / from then on / from that point every N, do Y`, the trigger is **one-shot**. The IR is:
+Trigger fires ONCE then a cycle takes over. Markers (NL or hint): `thereafter`, `from then on`, `from that point`, `after that … every N`, `starting then`, hint `phase-lifecycle: …`.
 
 ```
 start_at(now)
-wait(X, edge:"none")               ← outside cycle
-cycle(period="N UNIT"){ Y }        ← cycle body has NO wait; cadence in cycle.period
+wait(X, edge:"none")               ← outside cycle (D4)
+cycle(period="N UNIT"){ Y }        ← body has NO wait; cadence in period
 ```
 
-NOT `cycle(period="100 MSEC"){ wait(X, rising); Y }` (that re-arms X every iteration; wrong for D-4).
-
-Markers: `thereafter`, `from then on`, `from that point`, `after that ... every N`, `starting then`. A pre_analysis hint `phase-lifecycle: trigger fires once, then perpetual cycle` is the authoritative signal. When this marker is absent and the trigger is `whenever` / `every time`, it is D-3 edge-cycle (D5 case 2).
+NOT `cycle(period="100 MSEC"){ wait(X, rising); Y }` (that is D-3 re-arming; wrong for D-4). When no `thereafter`-class marker is present and the trigger is `whenever`/`every time`, it is D-3 (D3 row 3).
 
 ## D7. Bounded windows (`cycle.until`)
 | English | Cron + until |
@@ -151,116 +143,67 @@ Markers: `thereafter`, `from then on`, `from that point`, `after that ... every 
 | `On <holiday>, every N, ...` | `start_at(cron)` for that date + `cycle(until="clock.date != \"YYYYMMdd\"", period="N UNIT")` |
 | `On weekend mornings`, etc. (2-D) | cron pins both day AND hour-of-day; until pins hour-of-day end; period=cadence |
 | `Until HH, every N, ...` (starts now) | `start_at("now")` + `cycle(until="clock.time >= HHmm", period="N UNIT")` |
-| `From HH to HH; if X happened (or didn't) during window, do Y` (window-end evaluation) | `cycle.until` cannot perform end-evaluation by itself. Use: `start_at(cron)` + a polling cycle that tracks a flag, then `if(flag){...}` after the loop. If no flag mechanism is natural, emit best-effort cycle and accept that "X never happened during window" semantics are partial. |
-| `Every N hours/minutes on <weekdays/weekends/Mondays/...>` (no explicit start/end window) | Encode the cadence in cron itself: `start_at(cron "0 */N * * <dow>")` + body call(s) only, NO `cycle`. The cron fires every N hours within the day-filter; wrapping in a cycle would spill into days the filter excludes. |
+| `From HH to HH; if X happened (or didn't) during window, do Y` (window-end evaluation) | `cycle.until` cannot perform end-evaluation by itself. Use: `start_at(cron)` + a polling cycle that tracks a flag, then `if(flag){...}` after the loop. Partial-semantics fallback acceptable when no flag is natural. |
+| `Every N hours/minutes on <weekdays/weekends/Mondays/...>` (no explicit window) | Encode cadence in cron itself: `start_at(cron "0 */N * * <dow>")` + body call(s), NO `cycle`. Wrapping in cycle would spill into excluded days. |
 
-Time-of-day blocks (when literal hours not given):
-- morning ≈ 06:00–12:00 · afternoon ≈ 12:00–18:00 · evening ≈ 18:00–22:00 · night ≈ 22:00–06:00 (crosses midnight)
+Time-of-day blocks (when literal hours not given): morning ≈ 06:00–12:00 · afternoon ≈ 12:00–18:00 · evening ≈ 18:00–22:00 · night ≈ 22:00–06:00 (crosses midnight).
 
 ## D7b. `cycle.period` — REQUIRED for every cycle
 Pick the value by body shape:
-- **D-3 edge cycle** (body has `wait(edge:"rising")`): `period:"100 MSEC"` (10Hz polling default; lowering hardcodes 100ms).
-- **D-5 alternation** (body has 2+ inter-call `delay`s): `period:"N UNIT"` matching each inter-call delay (keep body delays — they signal alternation). **The two (or more) call slots MUST take DIFFERENT values** drawn from the NL — never copy the first into the second. NL like `between A and B`, `alternate A and B`, `toggle X and Y` always names two distinct values; if you write the same value twice the alternation semantics is destroyed.
-- **All others** (NL says `every N <unit>`): `period:"N UNIT"`. Body describes ONE iteration; do NOT compute `N - K` rest-delays.
+- **D-3 edge cycle** (body has `wait(edge:"rising")` or `wait.for`): `period:"100 MSEC"`.
+- **D-5 alternation** (body has 2+ inter-call `delay`s): `period:"N UNIT"` matching each inter-call delay (keep body delays — they signal alternation). The two (or more) call slots MUST take DIFFERENT values from NL — never copy one value into both.
+- **All others** (NL `every N <unit>`): `period:"N UNIT"`. Body describes ONE iteration; do NOT compute `N - K` rest-delays.
 
 | English | IR shape |
 |---|---|
 | `Every N min until H, sound siren for K sec then off` | `cycle(until="clock.time >= H00", period="N MIN", body=[call(Set...), delay(K SEC), call(Switch.Off)])` |
-| `Whenever X, do Y` (D-3) | `cycle(until=null, period="100 MSEC", body=[wait(...,rising), call(Y)])` |
-| `Every N, alternate A then B` (D-5) | `cycle(until=null, period="N UNIT", body=[A, delay(N), B, delay(N)])` — A and B carry DIFFERENT arg values from NL (e.g., A=`{Mode:"sleep"}`, B=`{Mode:"auto"}`); never the same value twice |
+| `Every N, alternate A then B` (D-5) | `cycle(until=null, period="N UNIT", body=[A, delay(N), B, delay(N)])` — A and B with DIFFERENT NL values (`{Mode:"sleep"}` vs `{Mode:"auto"}`) |
 
 ## D8. Snapshot need
 Same device attribute compared at two different moments → use `read` for each capture. Otherwise reference `Device.attr` directly.
 
 ---
 
-# Lexical Cues (compact lookup table)
+# Critical IR Rules
 
-| English | IR slot to fill |
-|---|---|
-| `if X, do Y` | `if(X){Y}` |
-| `when X, do Y` | `wait(X, edge=none); Y` |
-| `whenever X, do Y` / `every time X, Y` | `cycle(period="100 MSEC"){ wait(X, edge=rising); Y }` |
-| `when X, thereafter every N, Y` | `wait(X, edge=none); cycle(period="N UNIT"){ Y }` (D-4) |
-| `every N <unit>, check X and if/when …, Y` | `cycle(period="N UNIT"){ if(<state>){ Y } }` (polling) |
-| `alternate A and B every N` / `toggle X and Y every N` | `cycle(period="N UNIT"){ A; delay(N); B; delay(N) }` — A and B carry the TWO DISTINCT values named in the NL (e.g., for "between sleep mode and auto mode": A=`call(...,{Mode:"sleep"})`, B=`call(...,{Mode:"auto"})`). Never duplicate one value into both slots. |
-| `at HH` / `every day at HH` | `start_at(cron "M H * * *")` |
-| `every Monday at HH` | `start_at(cron "M H * * 1")` |
-| `on weekdays at HH` | `start_at(cron "M H * * 1-5")` |
-| `on weekends at HH` | `start_at(cron "M H * * 6,7")` |
-| `from H1 to H2, every N, Y` | cron `0 H1 * * *` + `cycle(until="clock.time >= H2*100", period="N UNIT"){ Y }` |
-| `wait N seconds, then ...` / `after N minutes ...` | `delay(N*unit)` step |
-| `check X now and N later; if diff, Y` | `read t1` → `delay` → `read t2` → `if abs($t2-$t1) ...` |
-
----
-
-# Critical IR Rules (read BEFORE the examples)
-
-These rules are authoritative; examples conform to them.
-
-- **R0. Trust `[Command Hints]` for structure**: hints are verbatim-anchored intent clues. Treat as authoritative for **action order, action kind, delay placement, and lifecycle shape**:
-  - `first action: power on` / `second action: power off` ⇒ both `call` ops appear in that order. Do NOT collapse them into a single `SetMode`. If a hint says `second action: power off`, emit `Switch.Off` (or off-counterpart in `[Services]`), NEVER `SetMode(<low>)`.
-  - `delay N between the first and second action` ⇒ `delay` sits between the two calls, not before/after both.
+- **R0. `[Command Hints]` is authoritative for structure** — action order, action kind, delay placement, lifecycle shape. Most hint cues are anchored into the D-rules above (hint phrases like `rising-edge trigger`, `phase-lifecycle`, `polling cycle`, `cron trigger:` appear inline in D2/D3/D5/D6). The few cues that aren't shape decisions:
+  - `first action: power on` / `second action: power off` ⇒ both `call` ops in that order. Do NOT collapse them into a single `SetMode`. If a hint names `second action: power off`, emit `Switch.Off` (or off-counterpart in `[Services]`), NEVER `SetMode(<low>)`.
+  - `delay N between the first and second action` ⇒ `delay` sits between the two calls.
   - `delay N before the first action` ⇒ `delay` precedes the first call.
-  - `conditional keyword (if)` / `conditional keyword (else)` ⇒ wrap matching actions in an `if` op; you decide branch nesting from keyword positions.
-  - `rising-edge trigger; repeats on each transition` ⇒ wait inside cycle (D-3).
-  - `phase-lifecycle: trigger fires once, then perpetual cycle` ⇒ wait OUTSIDE cycle, cycle body has no wait (D-4 — see D6).
-  - `polling cycle: each tick checks <cond> and conditionally acts` ⇒ inner check is `if`, NOT `wait` (D5).
-  - `cron trigger: weekdays only` / `weekends only` / `Mondays only` / ⇒ cron 5th field MUST encode the filter (D2).
+  - `conditional keyword (if)` / `conditional keyword (else)` ⇒ wrap matching actions in an `if` op.
   - `read one X sensor; compare <op> <V>` ⇒ build the cond expression with that comparison verbatim.
   - Hints are reference; `[Services]` and `[Resolved Args]` are catalog/value ground truth.
 
 - **R1. Category-only targets + verbatim attrs**: `target`/`src`/`cond` attrs MUST be `Category.Service` exactly as in `[Services]`. NEVER suffix device IDs. NEVER swap similar-looking attrs (`PressureSensor.Pressure` ≠ `PresenceSensor.Presence`).
 
-- **R1.1. Generic capabilities live on the sub-service, NEVER on the parent category**: capabilities `Switch` / `On` / `Off` / `Toggle` (Switch service), `LevelControl.MaxLevel` / `MinLevel` / `CurrentLevel` (LevelControl service), `ColorControl.MoveToColor` / `MoveToColorTemperature` (ColorControl service) belong to their respective sub-service. A device's `[Services]` block lists BOTH the parent category (e.g. `FaceRecognizer`, `Pump`, `Light`) AND the relevant sub-services. ALWAYS use the sub-service as the `Service` portion.
-  - ❌ FORBIDDEN: `FaceRecognizer.Switch`, `Pump.Switch`, `Light.Switch`, `Door.Switch`, `Light.On`, `Pump.Off`, `Light.MaxLevel`, `Speaker.Switch`. The parent category does NOT own these members.
-  - ✅ REQUIRED: `Switch.Switch` (the Switch-state attribute), `Switch.On` / `Switch.Off` / `Switch.Toggle` (Switch functions), `LevelControl.MaxLevel`, `ColorControl.MoveToColor`. Parent-category methods (e.g. `FaceRecognizer.Start`, `Pump.SetPumpMode`) stay on the parent.
-  - Heuristic: if the member name is `Switch` / `On` / `Off` / `Toggle` / `MaxLevel` / `MinLevel` / `CurrentLevel` / `MoveToColor` / `MoveToColorTemperature` / `CurrentBrightness` / `MoveToBrightness`, the Service portion is the matching sub-service, NOT the device's parent category — even though the parent is listed in `[Services]` for that device.
+- **R1.1. Generic capabilities live on the sub-service.** If the member name is `Switch` / `On` / `Off` / `Toggle` / `MaxLevel` / `MinLevel` / `CurrentLevel` / `MoveToColor` / `MoveToColorTemperature` / `CurrentBrightness` / `MoveToBrightness`, the Service portion is the matching sub-service (`Switch`, `LevelControl`, `ColorControl`) — NEVER the device's parent category, even though the parent is listed in `[Services]`. Parent-category methods (e.g. `FaceRecognizer.Start`, `Pump.SetPumpMode`) stay on the parent.
+  - ❌ `FaceRecognizer.Switch`, `Pump.Switch`, `Light.On`, `Speaker.Switch`, `Light.MaxLevel`.
+  - ✅ `Switch.Switch`, `Switch.On`/`Switch.Off`/`Switch.Toggle`, `LevelControl.MaxLevel`, `ColorControl.MoveToColor`.
 
-- **R1.2. Enum values in `cond` MUST be string literals (quoted)**: when comparing an attribute against an enum member from the catalog (e.g. `"open"`, `"fullyCharged"`, `"emergency"`, `"auto"`, `"sleep"`, `"pushed"`), wrap the value in DOUBLE QUOTES. A bare identifier becomes a variable reference at evaluation time and silently resolves to `None`.
-  - ❌ FORBIDDEN: `Charger.ChargingState == fullyCharged`, `DoorLock.DoorLockState == open`, `Door.DoorState == open`.
-  - ✅ REQUIRED: `Charger.ChargingState == "fullyCharged"`, `DoorLock.DoorLockState == "open"`, `Door.DoorState == "open"`.
-  - This applies in `if.cond`, `wait.cond`, `cycle.until` — anywhere a value is compared against an enum member.
+- **R1.2. Enum values in `cond` MUST be string literals (quoted)**: a bare identifier becomes a variable reference and silently resolves to `None`.
+  - ❌ `Door.DoorState == open`, `Charger.ChargingState == fullyCharged`.
+  - ✅ `Door.DoorState == "open"`, `Charger.ChargingState == "fullyCharged"`.
+  - Applies in `if.cond`, `wait.cond`, `cycle.until`.
 
 - **R2. Single call for multi-device actions**: "turn on all bedroom lights" → ONE `call` op. The `all(#Bedroom #Light)` selector fans out downstream.
 
 - **R-var**: a `call` has `var:"<X>"` iff `<X>` is in `[Bind Hints]`. Methods absent from `[Bind Hints]` MUST NOT carry `var`.
 
-- **R3. Trust `[Resolved Args]` verbatim**: argument values are pre-resolved.
-  - Copy byte-for-byte into matching `call.args`.
-  - **JSON types preserved**: numbers stay numbers (`300.0` not `"300.0"`); booleans stay booleans; strings stay strings.
-  - Resolved `{}` → emit `args:{}` (no injected fields).
-  - **No selector/scope/filter/target fields in args.** Tag-based device scoping (`Selector`, `Scope`, `Filter`, `Target`, `Devices`, `Tags`, `Category`) belongs to a downstream selector stage — it is NEVER an `args` field. If the command contains scope words ("all safes with odd tags in Sector B", "every bedroom light"), the action service still has `args:{}` (or its real schema args). The selector stage owns scope; you only emit one `call` op with the abstract `Category.Method` target.
-    - ❌ FORBIDDEN: `{"target":"Safe.Lock","args":{"Selector":"all(#SectorB #Odd)"}}` 
-    - ❌ FORBIDDEN: `{"target":"Safe.Lock","args":{"Selector":{"Category":"Safe","Tags":["SectorB","Odd"]}}}`
-    - ✅ CORRECT: `{"target":"Safe.Lock","args":{}}` (selector resolved separately downstream)
-  - **`args` keys MUST come ONLY from `[Resolved Args]` for that service.** Never invent keys the resolver did not list, even if the command mentions scope/filter/target language.
+- **R3. Trust `[Resolved Args]` verbatim**. Copy byte-for-byte into matching `call.args`. JSON types preserved (`300.0` stays number; booleans stay booleans; strings stay strings). Resolved `{}` → emit `args:{}`.
+  - **No selector/scope/filter/target fields in args.** Tag-based device scoping (`Selector`, `Scope`, `Filter`, `Target`, `Devices`, `Tags`, `Category`) belongs to the downstream selector stage. Scope phrases in the command ("all safes with odd tags", "every bedroom light") do NOT add args fields; the call stays `args:{}` (or its real schema args).
+    - ❌ `{"target":"Safe.Lock","args":{"Selector":"all(#SectorB #Odd)"}}`
+    - ✅ `{"target":"Safe.Lock","args":{}}`
+  - **`args` keys come ONLY from `[Resolved Args]` for that service.** Never invent keys.
   - **Delta exception**: when NL implies "increase/decrease X by N" AND a `(value)` read for the matching attribute is in scope, derive setter arg from the read variable: `"<Arg>": "$<var> + N"` / `"$<var> - N"`.
-  - If a service has duration in its args already (e.g. `Time:1800`), do NOT emit a redundant `delay` — that arg encodes the duration.
+  - If a service has duration in args already (`Time:1800`), do NOT emit a redundant `delay`.
   - Threshold values inside `wait.cond` / `if.cond` are YOUR responsibility (`[Resolved Args]` covers `call.args` only).
+  - **R3.1 sub-rule (value-service spec)**: `[Resolved Args]` may list `Service: {"op":"==", "value":"<member>"}`. Slot into cond verbatim as `Service == "<member>"`. Do NOT re-decide op or value.
+  - **R3.2 sub-rule (list value = sequential)**: a service with a LIST of arg-dicts → emit that many `call` ops in encounter order, each consuming one index.
 
-- **R3.1. Value-service condition specs**: `[Resolved Args]` may list a value service like `Service: {"op":"==", "value":"<member>"}`. Slot into the matching cond verbatim as `Service == "<member>"`. Do NOT re-decide op or value.
-
-- **R3.2. Sequential same-service multi-args (list value)**: `[Resolved Args]` may list a service with a LIST of arg-dicts. Emit that many `call` ops in encounter order, each consuming one index.
-
-- **R4. Day-of-week filter preservation (HARD ERROR if violated)**: cron 5th field MUST encode any day-of-week / day-type filter present in the command or hints. Default `*` is allowed ONLY when the command says "every day" / "daily" / has no day phrase. The filter word can appear ANYWHERE in the sentence (start, middle, end) — scan the entire command, not just the leading clause.
-  - ❌ FORBIDDEN — command `On weekends at 3 PM, ...` → cron `"0 15 * * *"` (filter dropped to `*`). This is a hard error.
-  - ✅ REQUIRED — cron `"0 15 * * 6,7"`.
-  - ❌ FORBIDDEN — command `On weekdays at 6 PM, ...` → cron `"0 18 * * *"`.
-  - ✅ REQUIRED — cron `"0 18 * * 1-5"`.
-  - ❌ FORBIDDEN — command `On Mondays and Wednesdays at 6 AM, ...` → cron `"0 6 * * *"`.
-  - ✅ REQUIRED — cron `"0 6 * * 1,3"`.
-  - When `[Command Hints]` contains a line `cron trigger: <weekends/weekdays/MON-only/etc>`, that filter MUST appear in the 5th field. Copy it verbatim.
-
-- **R4.1. Cron-triggered conditional check uses `if`, not `cycle{wait}`**: when `start_at` is a cron AND the command has a single check on a sensor state (any of: "check for X", "if X is detected", "when X is detected", "if X, do Y", "when X, do Y"), use `start_at(cron) → if(<cond>){Y}`. The cron itself IS the trigger; the sensor check is an instantaneous test at that scheduled moment. This rule OVERRIDES any `rising-edge trigger` hint from `[Command Hints]` for the sensor phrase — when a cron-trigger hint is ALSO present, downgrade the rising-edge hint to an `if`-cond.
-  - ❌ FORBIDDEN — `start_at(cron) → cycle{ wait(<sensor> == true, rising); call }`. The cycle re-arms forever, unrelated to the cron schedule.
-  - ✅ REQUIRED — `start_at(cron) → if(<sensor> == true){ call }`.
-  - **Exception**: if the command ALSO includes a periodic phrase like `every N <unit>` or a duration window (`from H to H`), the cycle/until pattern of D7 applies — but the inner sensor check is still `if` (polling, per D5/R5), never an unbounded edge-wait.
-  - This applies regardless of NL wording. `At 10 PM, if presence is detected` and `At midnight, if motion is detected` both follow this rule, NOT a `whenever`-style edge cycle.
-
-- **R5. Polling vs edge-cycle distinction**: inside any `cycle`, the inner conditional MUST be `if` (polling) OR `wait edge=rising` (edge cycle), per D5. Never `wait` inside a polling cycle that has a periodic `delay` for cadence.
-
-- **R6. Phase lifecycle wait position**: when `[Command Hints]` carries a `phase-lifecycle` line OR command has `thereafter` / `from then on`, the trigger wait sits OUTSIDE the cycle and the cycle body contains NO wait. Per D6.
+- **R4.1. Cron-triggered conditional check uses `if`, not `cycle{wait}`**: when `start_at` is a cron AND the command has a single check on a sensor state ("check for X", "if X is detected", "when X is detected", "if X, do Y", "when X, do Y"), use `start_at(cron) → if(<cond>){Y}`. The cron itself IS the trigger; the sensor check is an instantaneous test at that scheduled moment. OVERRIDES any `rising-edge trigger` hint for that sensor phrase.
+  - ❌ `start_at(cron) → cycle{ wait(<sensor> == true, rising); call }` (cycle re-arms forever).
+  - ✅ `start_at(cron) → if(<sensor> == true){ call }`.
+  - **Exception**: if the command ALSO has a periodic phrase (`every N <unit>`) or a window (`from H to H`), the D7 cycle/until pattern applies — but the inner sensor check is still `if` (per D5).
 
 ---
 
@@ -275,22 +218,7 @@ These rules are authoritative; examples conform to them.
 ]}
 ```
 
-## Example 2 — one-shot if-else
-**Command**: `If the temperature >= 30, set the AC to cool; if < 20, set to heat.`
-```json
-{"timeline":[
-  {"op":"start_at","anchor":"now"},
-  {"op":"if","cond":"TempSensor.Temperature >= 30",
-    "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"cool"}}],
-    "else":[
-      {"op":"if","cond":"TempSensor.Temperature < 20",
-        "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"heat"}}],
-        "else":[]}
-    ]}
-]}
-```
-
-## Example 3 — `when` one-shot wait (level, edge=none)
+## Example 2 — `when` one-shot wait (level, edge=none)
 **Command**: `When the door opens, turn on the light.`
 ```json
 {"timeline":[
@@ -300,7 +228,7 @@ These rules are authoritative; examples conform to them.
 ]}
 ```
 
-## Example 4 — compound if (AND) — operators inside `cond`
+## Example 3 — compound if (AND) — operators inside `cond`
 **Command**: `If temperature < 20 AND humidity <= 50, turn off the light and announce through speaker.`
 ```json
 {"timeline":[
@@ -314,7 +242,7 @@ These rules are authoritative; examples conform to them.
 ]}
 ```
 
-## Example 5 — `whenever` edge-cycle (D-3)
+## Example 4 — `whenever` edge-cycle (D-3)
 **Command**: `Whenever the door opens, turn on the light.`
 ```json
 {"timeline":[
@@ -327,7 +255,7 @@ These rules are authoritative; examples conform to them.
 ```
 **"Stops / becomes false" variant** — negate the cond, edge stays `"rising"`. ✅ `wait(cond:"Motion.Detected == false", edge:"rising")`. ❌ `edge:"falling"`.
 
-## Example 6 — phase lifecycle D-4 (wait OUTSIDE cycle)
+## Example 5 — phase lifecycle D-4 (wait OUTSIDE cycle)
 **Command**: `When the door opens, thereafter every 1 minute, announce "Welcome" through the speaker.`
 **[Command Hints]** includes: `phase-lifecycle: trigger fires once, then perpetual cycle every 1 minute.`
 ```json
@@ -339,11 +267,10 @@ These rules are authoritative; examples conform to them.
   ]}
 ]}
 ```
-Contrast with Example 5 (no `thereafter` → D-3 with wait INSIDE cycle).
+Contrast with Example 4 (no `thereafter` → D-3 with wait INSIDE cycle).
 
-## Example 7 — polling cycle: inner `if` (NOT `wait`)
+## Example 6 — polling cycle: inner `if` (NOT `wait`)
 **Command**: `Every 5 minutes, check the charger; if it is fully charged, turn it off.`
-**[Command Hints]** includes: `polling cycle: each tick checks <cond> and conditionally acts; the inner check is instantaneous (use if), not a state-transition wait.`
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
@@ -356,7 +283,7 @@ Contrast with Example 5 (no `thereafter` → D-3 with wait INSIDE cycle).
 ```
 ❌ FORBIDDEN: `cycle(period="5 MIN"){ wait(Charger.ChargingState == "fullyCharged", rising); Switch.Off }` — `wait` blocks until the next true and breaks the 5-minute cadence.
 
-## Example 8 — cron with day-of-week filter + branch (covers two sub-cases)
+## Example 7 — cron with day-of-week filter + branch (two sub-cases)
 **Sub-case A — direct `if` condition**: `On weekdays at 6 PM, if no one is in the office, turn off the office AC.`
 **[Command Hints]** includes: `cron trigger: weekdays only (Monday through Friday) at 18:00.`
 ```json
@@ -370,7 +297,7 @@ Contrast with Example 5 (no `thereafter` → D-3 with wait INSIDE cycle).
 
 **Sub-case B — sensor check with `"when detected"` wording inside cron**: `On weekends at 3 PM, check for leaks; if detected, sound the emergency siren.`
 
-The cron is the trigger; the sensor check is an instantaneous `if` at the scheduled moment, NOT an edge-cycle. Override any `rising-edge trigger` hint when the structural context is `cron → conditional sensor check`.
+The cron is the trigger; the sensor check is an instantaneous `if` at the scheduled moment (R4.1), NOT an edge-cycle.
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"cron","cron":"0 15 * * 6,7"},
@@ -379,9 +306,8 @@ The cron is the trigger; the sensor check is an instantaneous `if` at the schedu
     "else":[]}
 ]}
 ```
-NOTE: cron 5th field MUST encode the day filter (`1-5` for weekdays, `6,7` for weekends — digit form, never English names). NEVER drop to `*`.
 
-## Example 9 — bounded window with weekend cron
+## Example 8 — bounded window with weekend cron
 **Command**: `On weekends, every 2 hours from noon to 6 PM, run the robot vacuum in auto mode.`
 ```json
 {"timeline":[
@@ -392,7 +318,7 @@ NOTE: cron 5th field MUST encode the day filter (`1-5` for weekdays, `6,7` for w
 ]}
 ```
 
-## Example 10 — snapshot diff
+## Example 9 — snapshot diff
 **Command**: `Check the temperature now and again 10 minutes later; if the difference is >= 10, turn on the light.`
 ```json
 {"timeline":[
@@ -406,7 +332,7 @@ NOTE: cron 5th field MUST encode the day filter (`1-5` for weekdays, `6,7` for w
 ]}
 ```
 
-## Example 11 — counter with break
+## Example 10 — counter with break
 **Command**: `Every 10 seconds, increase the speaker volume by 5. Stop when it reaches max.`
 ```json
 {"timeline":[
@@ -420,9 +346,9 @@ NOTE: cron 5th field MUST encode the day filter (`1-5` for weekdays, `6,7` for w
 ]}
 ```
 
-## Example 12 — thereafter with paired on/off (D-4 multi-step iteration)
+## Example 11 — thereafter with paired on/off (D-4 multi-step iteration)
 **Command**: `When smoke is detected, thereafter every minute, sound the siren in emergency mode and turn it off 5 seconds later.`
-The command pairs the on call with an explicit off call inside one iteration. cycle.period = `"1 MIN"` carries the cadence; the body delay `5 SEC` is iteration-internal (between on and off) and is KEPT. NEVER compute a trailing rest-delay (`1 MIN − 5 SEC = 55 SEC`).
+The command pairs the on call with an explicit off call inside one iteration. `cycle.period = "1 MIN"` carries the cadence; the body delay `5 SEC` is iteration-internal (between on and off) and is KEPT. NEVER compute a trailing rest-delay (`1 MIN − 5 SEC = 55 SEC`).
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
@@ -432,17 +358,6 @@ The command pairs the on call with an explicit off call inside one iteration. cy
     {"op":"delay","duration":"5 SEC"},
     {"op":"call","target":"Switch.Off","args":{}}
   ]}
-]}
-```
-
-## Example 13 — function return chained into next call
-**Command**: `Generate a cat image and save it as cat.png.`
-**[Services]**: `CloudServiceProvider.GenerateImage (function) → BINARY`, `CloudServiceProvider.SaveToFile (function) → STRING`. **[Bind Hints]**: `GenerateImage`
-```json
-{"timeline":[
-  {"op":"start_at","anchor":"now"},
-  {"op":"call","target":"CloudServiceProvider.GenerateImage","args":{"Prompt":"cat"},"var":"GenerateImage"},
-  {"op":"call","target":"CloudServiceProvider.SaveToFile","args":{"Data":"$GenerateImage","FilePath":"cat.png"}}
 ]}
 ```
 

@@ -4,40 +4,31 @@ The IR timeline contains a top-level `{"op":"cycle",...}`. The hub re-runs the s
 
 ---
 
-# Step 1 — Pick idiom from IR signals (apply IN ORDER, first match wins)
+# Step 1 — Idiom selection + wrapper.period (apply IN ORDER, first match wins)
 
 | # | Trigger (IR signal) | Idiom | Wrapper.period |
 |---|---|---|---|
-| 1 | `cycle.until != null` AND body has ≥2 `delay` ops interleaving calls | D-9+D-5 hybrid (until + alternation) | each delay (or `cycle.period`) |
-| 2 | `cycle.until != null` | D-9 (until window) | `cycle.period` (preferred) or trailing/cadence delay |
-| 3 | body has `if{break}` step | D-6 (progressive update) | `cycle.period` or cadence delay |
-| 4 | body has `wait(edge:"rising")` | D-3 (triggered whenever) | **100 (fixed, 10Hz polling)** |
-| 5 | pre-cycle `wait(edge:"none"\|null)` at top level | D-4 (phase lifecycle) | `cycle.period` or cadence delay |
-| 6 | body has ≥2 `delay` ops interleaving calls | D-5 (alternation) | each delay (or `cycle.period`) |
-| 7 | else | B-2 (simple periodic) | `cycle.period` or cadence delay |
+| 1 | `cycle.until != null` AND body has ≥2 `delay` ops interleaving calls | D-9+D-5 hybrid | `parse_ms(cycle.period)` |
+| 2 | `cycle.until != null` | D-9 (until window) | `parse_ms(cycle.period)` |
+| 3 | body has `if{break}` step | D-6 (progressive update) | `parse_ms(cycle.period)` |
+| 4 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`) | D-3 / D-10 (edge / sustained) | **100 (fixed)** |
+| 5 | pre-cycle `wait(edge:"none"\|null)` at top level | D-4 (phase lifecycle) | `parse_ms(cycle.period)` |
+| 6 | body has ≥2 `delay` ops interleaving calls | D-5 (alternation) | `parse_ms(cycle.period)` |
+| 7 | else | B-2 (simple periodic) | `parse_ms(cycle.period)` |
+
+**Cadence consumption**: when wrapper.period = `parse_ms(cycle.period)`, the body's cadence `delay(N UNIT)` (whose N matches cycle.period) is consumed by the wrapper and does NOT appear in script. **D-5 / D-9+D-5** additionally consume the inter-call `delay`s into the state-toggle template.
+
+**Iteration-internal sub-step delays** are KEPT in script: e.g. cycle.period = 1 MIN, body `delay(5 SEC)` between siren-on and switch-off — the 5 SEC has a different role (intra-iteration), distinguishable from cadence.
 
 ---
 
-# Step 2 — Wrapper.period rule
-
-`cycle.period` is always present in IR. Apply per Step-1 idiom:
-
-- **D-3** (edge cycle): wrapper.period = `100` (fixed; cycle.period is `"100 MSEC"` by convention, ignore the value).
-- **D-5 / D-9+D-5** (alternation): wrapper.period = `parse_duration_to_ms(cycle.period)`. The body's inter-call `delay`s are consumed by the state-toggle template; they do NOT appear in script.
-- **All others** (B-2 / D-4 / D-6 / D-9): wrapper.period = `parse_duration_to_ms(cycle.period)`. Body emits as-is.
-
-❌ Do NOT emit `delay(N UNIT)` in the script when its duration is `cycle.period` (cadence is consumed).
-✅ Iteration-internal sub-step delays (e.g. cycle.period = 1 MIN, body has `delay(5 SEC)` between siren-on and switch-off) ARE kept in script — distinguish by role.
-
----
-
-# Step 3 — Cron field
+# Step 2 — Cron field
 
 From `joi_common` Rule A: `start_at(anchor:"cron", cron:X)` → `cron: X`; otherwise `cron: ""`.
 
 ---
 
-# Step 4 — Apply the idiom template
+# Step 3 — Apply the idiom template
 
 ## D-3 — rising-edge `triggered` flag (whenever idiom)
 Wraps `wait(rising, cond:C); Y` in cycle. Emits `Y` exactly once per `false→true` transition of `C`.
@@ -165,18 +156,7 @@ if (C) {
 ❌ **NEVER** lower `wait.for` as `wait until(C); delay(<for>); if(C){Y}` — endpoint-check only, fails the flap scenario. Always use the polling-counter template.
 
 ## B-2 — simple periodic (default)
-Cycle without edge/until/break/pre-wait/multi-delay markers. Just emit body's calls/reads/ifs as-is, after the wrapper.period has consumed the cadence delay.
-
----
-
-# Anti-pattern reminders (consolidated)
-
-- ❌ Do NOT add `if{break}` to a B-2 cycle — only D-6 has it (because IR has it).
-- ❌ Do NOT add max-clamp / safety guards / range checks not present in IR.
-- ❌ Do NOT delete IR ops — every `call`/`read`/`if` must appear (cadence `delay` is the only consumable).
-- ❌ Do NOT use `wait until(...)` inside a D-3 cycle body — the `wait(rising)` is consumed by the triggered template, never emitted as `wait until`.
-- ❌ Do NOT inject `all(...)` / `any(...)` around precision selectors (see `joi_common` Strict Selector Rule).
-- ❌ Do NOT keep cadence `delay(N UNIT)` in script when N became wrapper.period.
+Cycle without edge/until/break/pre-wait/multi-delay markers. Just emit body's calls/reads/ifs as-is, after the wrapper.period has consumed the cadence delay. ❌ Do NOT add `if{break}`, max-clamps, or safety guards not present in IR.
 
 ---
 

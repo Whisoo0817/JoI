@@ -152,26 +152,19 @@ Example (bad — do not do this):
 
 # Strict Selector Rule
 
-⚠️ **`[Precision Selectors]` is the SOLE source of truth for the selector form.** Copy each selector character-for-character into the script — in `cond` expressions AND in `call` invocations.
+⚠️ **`[Precision Selectors]` is the SOLE source of truth.** Copy each selector character-for-character into the script — in `cond` AND `call`. Never add, remove, rename, reorder, or re-wrap.
 
-- ❌ Do NOT add `all(...)` if precision is `(#Light)`. `all(...)` means "fan out across every matching device" — adding it changes the program's meaning. Even if the IR call refers to multiple physical devices, **trust precision** — it has already decided.
-- ❌ Do NOT add `any(...)` (likewise). `any(...)` means "exists" quantifier; adding it changes a single-sensor read into a fleet-wide existence check.
-- ❌ Do NOT remove `all`/`any` from a precision-given selector.
-- ❌ Do NOT add or remove tags. Do NOT rename tags. Do NOT swap tag order.
-- ❌ Do NOT wrap a selector in extra parentheses. Write `any(#Door).DoorState`, NOT `(any(#Door)).DoorState`. Write `all(#Light #LR).MoveToLevel(...)`, NOT `(all(#Light #LR)).MoveToLevel(...)`. The outer `if (...)` / `while (...)` parens are mandatory, but the selector token itself must stand alone.
-- ❌ Do NOT split a multi-tag selector `(#A #B)` into separate calls `(#A).M(); (#B).M()`. Tags inside ONE selector are an intersection (a single device that carries all listed tags) — never an enumeration of devices. Emit ONE call: `(#A #B).M()`.
-- ❌ The "no `all(...)`" / "no `any(...)`" rules apply in **call sites** too, not just `cond`. `(#Humidifier #Switch).switch_on()` is correct; `all(#Humidifier #Switch).switch_on()` is a violation when precision said `(#Humidifier #Switch)`.
-- ⚠️ **Multi-tag is the trap.** Bare multi-tag selectors like `(#Light #Entrance)`, `(#Door #MeetingRoom)`, `(#Light #LevelControl #MeetingRoom)` LOOK like they should fan out — they DO NOT. They are still intersections of one device. Never wrap them with `all(...)` unless precision literally wrote `all(...)`.
-- ✅ If precision is `all(#Floor2 #Light)`, write **exactly** `all(#Floor2 #Light).Method()`.
-- ✅ If precision is `(#Light)`, write **exactly** `(#Light).Method()` — never `all(#Light)`.
-- ✅ If precision is `(#Television #Switch)`, write **exactly** `(#Television #Switch).switch_on()` — ONE call, both tags together.
+- ❌ Do NOT add `all(...)` / `any(...)` to a precision-given `(#X)`. Quantifiers change semantics (fan-out vs intersection vs existence).
+- ❌ Do NOT remove `all`/`any` from a precision selector that has them.
+- ❌ Do NOT split a multi-tag selector `(#A #B)` into separate calls. Tags inside ONE selector are an intersection (a single device that carries all listed tags) — emit ONE call: `(#A #B).M()`.
+- ❌ Do NOT wrap a selector in extra parentheses. Write `any(#Door).DoorState`, NOT `(any(#Door)).DoorState`.
+- ⚠️ **Multi-tag is the trap.** Bare `(#Light #Entrance)`, `(#Door #MeetingRoom)` LOOK like fan-outs — they are NOT; still intersection of one device. Never promote to `all(...)` unless precision literally wrote it.
 
-**This applies inside `cond` too.** IR cond `Device.Attr op X` lowers to `(precision selector).Attr op X` verbatim — do NOT inject `any(...)`/`all(...)` based on candidate count. Apply the rule to **every operand** in compound `and`/`or` conds, not just the first.
-- ✅ IR `RainSensor.Rain == true` + precision `(#RainSensor)` → `if ((#RainSensor).Rain == true)`. ❌ NOT `all(#RainSensor).Rain == true`.
-- ✅ Precision `any(#X)` in a cond → emit `any(#X).Attr op value` verbatim. A deterministic post-process step rewrites it to JoI canonical form (`all(#X).Attr op| value`). You do NOT perform that rewrite.
-- ✅ Compound `and`: precision `(#Button)` + `(#IlluminanceSensor #LivingRoom)` → `if ((#Button).Button1 == "pushed" and (#IlluminanceSensor #LivingRoom).Illuminance < 50)`. The second operand's multi-tag stays **bare** — do NOT promote it to `all(#IlluminanceSensor #LivingRoom)`.
+**Applies inside `cond` too** — to EVERY operand in `and`/`or` compounds, not just the first.
+- ✅ Precision `(#X)` → `(#X).Attr op V`. ❌ NOT `all(#X).Attr op V`.
+- ✅ Precision `any(#X)` → emit `any(#X).Attr op V` verbatim. A post-process step rewrites to canonical JoI form; you do NOT perform that rewrite.
 
-If a service in `[Precision Selectors]` has multiple selector entries (a list of 2+ selectors), that is a **fan-out**: emit ONE call statement per selector in list order, all with identical args. Never collapse into `all(...)`, never drop any selector, never pick "the best one".
+**Fan-out** — when a service in `[Precision Selectors]` has 2+ selector entries: emit ONE call statement per selector in list order, identical args. Never collapse into `all(...)`, never drop, never pick "the best".
 
 ---
 

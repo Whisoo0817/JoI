@@ -3,7 +3,7 @@
 The IR has **no top-level `cycle`**. The script runs once and ends.
 
 ## Period rule
-**ALWAYS `period: 0`** for this bucket, EXCEPT D-10n (sustained-cond `wait.for` one-shot) which requires `period: 100` for polling.
+Default `period: 0` (script runs once and ends). The single exception is **D-10n** (sustained-cond `wait.for` one-shot, see below) which uses `period: 100` because polling is required to detect the sustain window.
 
 ## Patterns covered
 - **D-1** one-shot action: `start_at(now) + call`.
