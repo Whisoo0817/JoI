@@ -47,24 +47,31 @@
         "anchor": "now"
       },
       {
-        "op": "wait",
-        "cond": "SmokeDetector.Smoke == true",
-        "edge": "none"
-      },
-      {
-        "op": "call",
-        "target": "Siren.SetSirenMode",
-        "args": {
-          "Mode": "fire"
-        }
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "SmokeDetector.Smoke == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "fire"
+            }
+          }
+        ]
       }
     ]
   },
   "joi_block": {
     "name": "Scenario",
     "cron": "",
-    "period": 0,
-    "script": "wait until((#SmokeDetector).smokeDetector_smoke == true)\n(#Siren).siren_setSirenMode(\"fire\")"
+    "period": 100,
+    "script": "triggered := false\nif ((#SmokeDetector).smokeDetector_smoke == true) {\nif (triggered == false) {\n(#Siren).siren_setSirenMode(\"fire\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#SmokeDetector).smokeDetector_smoke == true)\n(#Siren).siren_setSirenMode(\\\"fire\\\")\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#SmokeDetector).smokeDetector_smoke == true) {\nif (triggered == false) {\n(#Siren).siren_setSirenMode(\\\"fire\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
 }

@@ -37,7 +37,11 @@ _TOK_RE = re.compile(
 
 # Allowed function names in IR/JoI expressions. abs/max/min are convenience
 # primitives in IR (JoI itself has none — lowering emits a manual workaround).
-_BUILTIN_FUNCS = {"abs", "max", "min"}
+# all/any/avg are single-device collapse fallbacks (framework 2026-05-08): when
+# IR's extractor produces `all(<expr>)`, `any(<expr>)`, or `avg(<expr>)` wrapping
+# a single-device read or relation, we evaluate the inner expression directly
+# (avg → value, all/any → bool). Multi-device world model is out of scope.
+_BUILTIN_FUNCS = {"abs", "max", "min", "all", "any", "avg"}
 
 
 @dataclass
@@ -423,6 +427,15 @@ def evaluate(node: Any, ctx: EvalContext) -> Any:
             return max(vals)
         if node.name == "min":
             return min(vals)
+        # Single-device collapse: with one matching device, all/any over the
+        # inner predicate reduce to its value; avg over one reading is itself.
+        if node.name == "all":
+            return all(bool(v) for v in vals) if vals else None
+        if node.name == "any":
+            return any(bool(v) for v in vals) if vals else None
+        if node.name == "avg":
+            nums = [v for v in vals if isinstance(v, (int, float))]
+            return sum(nums) / len(nums) if nums else None
         raise ValueError(f"unknown function: {node.name}")
     if isinstance(node, BinaryOp):
         a = evaluate(node.left, ctx)

@@ -1,0 +1,75 @@
+{
+  "command_eng": "Whenever the car charger in the parking lot is fully charged, speak \"Charging is complete\" through the speaker.",
+  "connected_devices": {
+    "P_Charge": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Charger"
+      ]
+    },
+    "Garage_Charge": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "Garage",
+        "Charger"
+      ]
+    },
+    "P_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Speaker"
+      ]
+    },
+    "Garage_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Garage",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Charger.ChargingState == \"fullyCharged\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Charging is complete"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#Charger #ParkingLot).charger_chargingState == \"fullyCharged\") {\nif (triggered == false) {\n(#Speaker).speaker_speak(\"Charging is complete\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#Charger #ParkingLot).charger_chargingState == \\\"fullyCharged\\\") {\\nif (triggered == false) {\\n(#Speaker).speaker_speak(\\\"Charging is complete\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
+}

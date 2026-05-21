@@ -1,0 +1,73 @@
+{
+  "command_eng": "When motion is detected in the lobby, capture an image of the lobby every 30 seconds thereafter.",
+  "connected_devices": {
+    "Lobby_Mot": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Lobby",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Mot": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Lobby_Cam": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Lobby",
+        "Camera"
+      ]
+    },
+    "Garage_Cam": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == true",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 SEC",
+        "body": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 30000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((#MotionSensor #Lobby).motionSensor_motion == true)\n    phase = 1\n    (#Camera #Lobby).camera_captureImage()\n}\nelse {\n(#Camera #Lobby).camera_captureImage()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 30000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#MotionSensor #Lobby).motionSensor_motion == true)\n    phase = 1\n    (#Camera #Lobby).camera_captureImage()\n}\nelse {\n(#Camera #Lobby).camera_captureImage()\n}\"\n}"
+}

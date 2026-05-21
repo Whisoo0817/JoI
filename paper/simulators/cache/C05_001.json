@@ -55,13 +55,13 @@
       },
       {
         "op": "if",
-        "cond": "PresenceSensor.Presence == true && SmokeDetector.Smoke == true",
+        "cond": "PresenceSensor.Presence == true and SmokeDetector.Smoke == true",
         "then": [
           {
             "op": "call",
             "target": "Speaker.Speak",
             "args": {
-              "Text": "Smoke detected in the kitchen"
+              "Text": "If someone is in the living room and smoke is being detected in the kitchen, play an announcement in the living room and close the kitchen valve."
             }
           },
           {
@@ -78,7 +78,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#LivingRoom #PresenceSensor).presenceSensor_presence == true and (#Kitchen #SmokeDetector).smokeDetector_smoke == true) {\n(#LivingRoom #Speaker).speaker_speak(\"Smoke detected in the kitchen\")\n(#Kitchen #Valve).valve_close()\n}"
+    "script": "if ((#PresenceSensor #LivingRoom).presenceSensor_presence == true and (#SmokeDetector #Kitchen).smokeDetector_smoke == true) {\n(#Speaker #LivingRoom).speaker_speak(\"If someone is in the living room and smoke is being detected in the kitchen, play an announcement in the living room and close the kitchen valve.\")\n(#Valve #Kitchen).valve_close()\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom #PresenceSensor).presenceSensor_presence == true and (#Kitchen #SmokeDetector).smokeDetector_smoke == true) {\n(#LivingRoom #Speaker).speaker_speak(\\\"Smoke detected in the kitchen\\\")\\n(#Kitchen #Valve).valve_close()\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#PresenceSensor #LivingRoom).presenceSensor_presence == true and (#SmokeDetector #Kitchen).smokeDetector_smoke == true) {\n(#Speaker #LivingRoom).speaker_speak(\\\"If someone is in the living room and smoke is being detected in the kitchen, play an announcement in the living room and close the kitchen valve.\\\")\\n(#Valve #Kitchen).valve_close()\\n}\"\n}"
 }

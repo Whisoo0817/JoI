@@ -2,7 +2,7 @@
 
 **Constraints**: English input only → JoI output. SLLM (≤9B) is the primary deployment target. No formal Idiom-Quotient theorem. No MC/DC.
 
-> **Thesis**: In the deployable setting where natural-language IoT commands are compiled to a reactive DSL by a small (≤9B) LLM running on-device, three problems block end-to-end generation: unreliable idiom selection, absent verification, and opaque user feedback. We show all three share a single structural cause — reactive temporal semantics encoded as **idioms** rather than first-class primitives — and resolve them by **decomposing NL→JoI into NL→IR→JoI with a user-confirmed IR as the spec**. The user-confirmed IR is also the source from which we *deterministically derive a finite-state machine of transition obligations*; covering every transition point with synthesized scenarios gives a structurally-grounded coverage claim (transition-obligation completeness) without requiring a formal property language or full-state enumeration. The SLLM constraint forces the architecture; the IR-as-spec structure makes verification tractable.
+> **Thesis**: In the deployable setting where natural-language IoT commands are compiled to a reactive DSL by a small (≤9B) LLM running on-device, three problems block end-to-end generation: unreliable idiom selection, absent verification, and opaque user feedback. We show all three share a single structural cause — reactive temporal semantics encoded as **idioms** rather than first-class primitives — and resolve them by **decomposing NL→JoI into NL→IR→JoI with a user-confirmed IR as the spec**. The single design property that simultaneously enables user confirmation (idiom noise suppressed in re-rendering) and verifier targeting (deterministic obligation FSM derivable) is **idiom-invariance** — an abstraction lift above JoI's idiom layer. The Timeline IR is the minimal artifact achieving idiom-invariance while remaining NL-projectable and SLLM-lowerable. From the same user-confirmed IR we *deterministically derive a finite-state machine of transition obligations*; covering every transition point with synthesized scenarios gives a structurally-grounded coverage claim (transition-obligation coverage on IR-FSM) — a *conditional finite-trace monitor coverage* under specified test generator and observation model, weaker than full equivalence but stronger than ad-hoc testing. The SLLM constraint motivates the architecture; the idiom-invariance argument makes it necessary, not optional.
 
 ---
 
@@ -138,6 +138,8 @@ Root cause: reactive temporal semantics encoded as idioms
 **Claim:** These three problems cannot be solved independently. Any generation-only solution leaves verification open. Any verification-only solution requires the spec that doesn't exist. User feedback requires understanding what generated code *means* — which requires decompiling idioms.
 
 **The same artifact that eliminates the root cause resolves all three.** A representation in which reactive temporal semantics are first-class primitives makes idiom selection explicit (helps generation), provides an executable reference (enables verification), and renders deterministically to English (enables user confirmation). That artifact is the **Timeline IR**.
+
+**Sharpening the root cause: idiom-invariance is the single property both confirmation and verification require.** JoI behaves as a *self-contained semantic island* — code is present, but its meaning does not project outward in any direction. The user-direction projection (JoI → NL for confirmation) is defeated by idiom multiplicity: a `triggered`-flag, a `prev/curr` comparison, and a `phase` enum all express the same intent in surface-distinguishable but semantics-equivalent ways, so re-rendering collapses them and the user cannot distinguish their lowering from a buggy variant. The tooling-direction projection (JoI → executor / model checker for verification) is defeated by absent formal semantics. Both failures share one fix: an artifact one abstraction level above the idiom layer that the user can read *and* the verifier can target. That joint requirement is idiom-invariance, and it is the property the IR is engineered for. The natural alternative — NL → JoI → simulator-trace → user-confirms-trace — does not avoid the IR; it must reinvent it, because synthesizing meaningful scenarios for the trace requires an intent representation, and that representation must itself be idiom-invariant or it cannot serve as the oracle.
 
 ### 1.5 Research Questions
 
@@ -329,9 +331,21 @@ The textbook model-checking move is to compile both the spec and the implementat
 
 **(b) Continuous values, time, and tag resolution.** Sensor values (temperature, brightness), virtual time spanning days (cron-anchored), and dynamic device sets behind `all/any` selectors introduce infinite or continuous state dimensions. Finite-state abstraction loses boundary precision (a bug at exactly 30°C disappears between discretization grid points).
 
-**(c) Idiom multiplicity.** The same intent can be lowered to JoI in multiple valid ways (`triggered := false` flag, `prev/curr` comparison, `phase` enum). FSM extraction by static code analysis must pattern-match these idioms; novel encodings the LLM produces fall outside any pattern catalog. Embedding such a catalog inside the verifier reintroduces precisely the closed-set assumption we want to avoid.
+**(c) Idiom multiplicity (extraction side).** The same intent can be lowered to JoI in multiple valid ways (`triggered := false` flag, `prev/curr` comparison, `phase` enum). FSM extraction by static code analysis must pattern-match these idioms; novel encodings the LLM produces fall outside any pattern catalog. Embedding such a catalog inside the verifier reintroduces precisely the closed-set assumption we want to avoid.
+
+**(d) Strict bisimulation is not a practical verifier target across idioms (comparison side).** Even granting (a)–(c), the *comparison step* itself becomes intractable. Each valid idiom realizes a different internal state shape — `triggered`-flag carries a boolean register, `prev/curr` carries a value pair, `phase` carries an enum. The spec-FSM derived from IR and the impl-FSM extracted from JoI therefore admit no canonical, syntax-independent correspondence to relate. Strict bisimulation is formally definable (one can always declare two transition systems and an equivalence on observable labels), but a *canonical bisimulation relation that holds across all valid idioms simultaneously* is unavailable without either (i) formal JoI semantics plus per-idiom abstraction functions, or (ii) a closed idiom catalog embedded in the verifier — both of which we set out to avoid. Weakening to trace inclusion or weak bisimulation only relocates the problem: deciding which internal actions are τ-hidden requires knowing the idiom, returning us to (c). The only escape is to observe purely external behavior and discard internal state alignment entirely — which is exactly what §6.2 does.
 
 We restrict this argument to JoI-style smart-home DSLs (informal semantics + continuous values + idiom multiplicity). We do not claim a general theorem about reactive DSLs.
+
+### 6.1bis Why Not Weaker Alternatives (Final-State-Only, State-Less Transition Observation)
+
+Two narrower comparison schemes occasionally suggested in reviews — both rejected before settling on transition-obligation coverage on the IR-FSM.
+
+**Final-state-only comparison is unfit for reactive DSLs.** JoI programs are non-terminating: `cycle`, `period`, `wait`, `start_at(cron)` run indefinitely, so "final state" is undefined in general. Even truncating at a horizon, final-state comparison is blind to (i) frequency (a "blink twice" lowering that never blinks still ends with light off), (ii) ordering (e.g., "stop recording then save" vs the reverse — same end state, opposite externally-visible side-effect order), (iii) timing (a `delay 5min` mutated to `delay 5s` yields the same end state), (iv) re-arming (a one-shot bug after the first trigger leaves the end state identical to the bug-free run), and (v) liveness (failing to fire a `wait` looks like benign idle). It also produces no IR-feature-level signal for Stage 2 self-correction (§6.9 / C5).
+
+**State-less pointwise transition observation discards inter-op composition obligations.** If transitions are checked individually without their FSM context, the verifier loses precisely the obligations that make the IR a *temporal* spec: *sequencing* (a `call` is legal only after its guarding `wait` has fired in the same cycle iteration), *re-arming* (the wait must re-arm at iteration boundary), *register dependency* (`$v1` must be read and stored before `$v2-$v1` is evaluated), *reachability* (the legal successor of a transition depends on which `if` branch was taken), and *off-by-one / first-iteration* obligations (some intents skip the first cycle). Worse, idiom multiplicity reappears: the same external transition (`Switch.Off`) has different legal pre-states under `triggered`-flag vs `phase`-enum lowerings, and only a state-aware view can tell which idiom-context applies. Pointwise checking also forfeits the completeness anchor — "every transition point of IR-FSM is covered" is a meaningful claim only when transitions live on an FSM.
+
+The remaining route is therefore neither final-state-only nor state-less transition-by-transition, but *transition obligations on an IR-derived FSM verified through external trace*. §6.4 specifies how.
 
 ### 6.2 Therefore: Simulation-Based Trace Verification
 
@@ -473,6 +487,21 @@ What is novel for top-tier:
 - **Integration**: verification feeds Stage 2 retry signal at IR-feature granularity, closing the LLM-correction loop.
 
 The contribution is the **integration and adaptation of these techniques to a setting where MBT has not been applied**, plus the structural completeness notion (transition-obligation coverage on IR-FSM derived from a small IR grammar).
+
+**Explicit differentiation from monitor synthesis / runtime verification.** The credible weaker baseline a reviewer will press is: *"compile a spec to a monitor automaton and stream the trace through it."* That is structurally close to what we do, and the difference must be stated, not implied.
+
+| Dimension | Standard monitor synthesis | This work |
+|---|---|---|
+| Spec source | hand-authored LTL / regular property | LLM-extracted user-confirmed reactive program (IR) |
+| Spec language | temporal logic over atomic propositions | reactive DSL grammar (9-op IR) — reactive structure as typed fields (`wait.edge`, `cycle.until`, `start_at(cron)`) |
+| Audience for spec | engineers writing formulas | end-users reading rendered NL of the IR |
+| Coverage notion | trace satisfaction of a single formula | transition-obligation coverage on an IR-derived FSM |
+| Diagnostic granularity | "formula violated" | IR-path-grained obligation (e.g., `timeline[2].then[0]` missing call) |
+| Closing the LLM correction loop | not applicable | IR-feature-level retry signal feeds Stage 2 lowering (§6.9 / C5) |
+
+The unique contribution is that **the spec is a user-confirmed reactive program drawn from an NL→DSL pipeline**, not a hand-authored formula, and the verification mechanism is jointly designed with that pipeline so verdicts produce IR-feature-level retry signals that the LLM lowerer can act on. We do not claim a new monitor-synthesis technique; we claim a coherent integration of monitor-synthesis-flavored runtime checking into an NL→DSL lowering loop where it was previously absent.
+
+**Claim wording (scope discipline).** Throughout the paper we say *"covered under specified test generator and observation model"*, not *"verified"* or *"model-checked"*. The guarantee is conditional finite-trace monitor coverage under (A1)–(A6). Boundary sensor values outside the scenario synthesizer's range, rare cron alignments, and timing races not modeled by the simulator are explicitly outside the claim (§6.5, §6.9).
 
 ---
 

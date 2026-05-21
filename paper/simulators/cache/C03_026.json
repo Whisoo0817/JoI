@@ -74,8 +74,11 @@
         "then": [
           {
             "op": "call",
-            "target": "Switch.On",
-            "args": {}
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
           }
         ],
         "else": []
@@ -86,7 +89,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#LivingRoom #LightSensor).lightSensor_brightness < 50) {\n(#LivingRoom #Light).switch_on()\n}"
+    "script": "if ((#LightSensor #LivingRoom).lightSensor_brightness < 50) {\n(#Light #LivingRoom).light_moveToBrightness(100.0, 0.0)\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom #LightSensor).lightSensor_brightness < 50) {\n(#LivingRoom #Light).switch_on()\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LightSensor #LivingRoom).lightSensor_brightness < 50) {\n(#Light #LivingRoom).light_moveToBrightness(100.0, 0.0)\n}\"\n}"
 }

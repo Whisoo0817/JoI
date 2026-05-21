@@ -1,0 +1,52 @@
+{
+  "command_eng": "If face recognition at the entrance is off, start it.",
+  "connected_devices": {
+    "Entrance_FaceRecognizer": {
+      "category": [
+        "FaceRecognizer",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "FaceRecognizer"
+      ]
+    },
+    "Garage_FaceRecognizer": {
+      "category": [
+        "FaceRecognizer",
+        "Switch"
+      ],
+      "tags": [
+        "Garage",
+        "FaceRecognizer"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "Switch.Switch == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Entrance #FaceRecognizer).switch_switch == false) {\n(#Entrance #FaceRecognizer).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Entrance #FaceRecognizer).switch_switch == false) {\n(#Entrance #FaceRecognizer).switch_on()\n}\"\n}"
+}

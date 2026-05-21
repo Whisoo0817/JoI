@@ -1,0 +1,65 @@
+{
+  "command_eng": "Every 2 hours on weekends, set all robot vacuum cleaners in the living room to repeat mode.",
+  "connected_devices": {
+    "LR_RVC_1": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "LivingRoom",
+        "RobotVacuumCleaner",
+        "ModelA"
+      ]
+    },
+    "LR_RVC_2": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "LivingRoom",
+        "RobotVacuumCleaner",
+        "ModelB"
+      ]
+    },
+    "Kitchen_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Kitchen",
+        "RobotVacuumCleaner",
+        "ModelA"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * 6,7"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "2 HOUR",
+        "body": [
+          {
+            "op": "call",
+            "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+            "args": {
+              "Mode": "repeat"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * 6,7",
+    "period": 7200000,
+    "script": "all(#RobotVacuumCleaner #LivingRoom).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"repeat\", 0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * 6,7\",\n  \"period\": 7200000,\n  \"script\": \"all(#RobotVacuumCleaner #LivingRoom).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"repeat\\\", 0)\"\n}"
+}

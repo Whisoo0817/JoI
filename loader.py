@@ -46,10 +46,9 @@ PROMPTS = _load_all_prompts(os.path.join(_BASE_DIR, "files"))
 # rather than re-defining it locally:
 #   - paper/run_local_ir.py precision builder (filters sub-skill tags from
 #     selectors unless the service prefix matches)
-#   - run_local.py _build_service_category_map (lets sub-skill categories
+#   - pipeline_helpers.py _build_service_category_map (lets sub-skill categories
 #     overwrite primary mappings for shared service names)
 #   - files/mapping_device_match.md Rule 1 (rendered via {{SUB_SKILLS}})
-#   - files/mapping_precision.md (rendered via {{SUB_SKILLS}} / {{SUB_SKILLS_HASH}})
 SUB_SKILL_TAGS = {"Switch", "LevelControl", "ColorControl", "RotaryControl"}
 
 

@@ -77,6 +77,7 @@
       {
         "op": "cycle",
         "until": null,
+        "period": "100 MSEC",
         "body": [
           {
             "op": "wait",
@@ -89,7 +90,7 @@
             "args": {
               "ColorX": 0.279,
               "ColorY": 0.142,
-              "TransitionTime": 0
+              "TransitionTime": 0.0
             }
           }
         ]
@@ -100,7 +101,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 100,
-    "script": "triggered := false\nif (any(#Hallway #PresenceSensor).presenceSensor_presence == true) {\nif (triggered == false) {\nall(#Hallway #Light).light_moveToColor(0.279, 0.142, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+    "script": "triggered := false\nif (all(#PresenceSensor #Hallway).presenceSensor_presence ==| true) {\nif (triggered == false) {\nall(#Light #Hallway).light_moveToColor(0.279, 0.142, 0.0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif (any(#Hallway #PresenceSensor).presenceSensor_presence == true) {\nif (triggered == false) {\nall(#Hallway #Light).light_moveToColor(0.279, 0.142, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif (all(#PresenceSensor #Hallway).presenceSensor_presence ==| true) {\nif (triggered == false) {\nall(#Light #Hallway).light_moveToColor(0.279, 0.142, 0.0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
 }

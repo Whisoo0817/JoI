@@ -1,0 +1,70 @@
+{
+  "command_eng": "At 6 AM on Mondays and Wednesdays, announce the weather information through the speaker.",
+  "connected_devices": {
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    },
+    "Main_Weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Main",
+        "WeatherProvider"
+      ]
+    },
+    "Outdoor_Weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Outdoor",
+        "WeatherProvider"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 6 * * 1,3"
+      },
+      {
+        "op": "call",
+        "target": "WeatherProvider.Weather",
+        "args": {},
+        "var": "Weather"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Today's weather is $Weather"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 6 * * 1,3",
+    "period": 0,
+    "script": "Weather = (#WeatherProvider).weatherProvider_weather()\n(#Speaker).speaker_speak(\"Today's weather is \" + Weather)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 6 * * 1,3\",\n  \"period\": 0,\n  \"script\": \"Weather = (#WeatherProvider).weatherProvider_weather()\n(#Speaker).speaker_speak(\\\"Today's weather is \\\" + Weather)\"\n}"
+}

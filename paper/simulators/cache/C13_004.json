@@ -1,0 +1,71 @@
+{
+  "command_eng": "Every 30 minutes, toggle the air purifier between sleep mode and high speed mode.",
+  "connected_devices": {
+    "Main_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "sleep"
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "30 MIN"
+          },
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "sleep"
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "30 MIN"
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "state := \"sleep\"\nif (state == \"sleep\") {\n(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n    state = \"high\"\n}\nelse {\n(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n    state = \"sleep\"\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"state := \\\"sleep\\\"\\nif (state == \\\"sleep\\\") {\\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\n    state = \\\"high\\\"\\n}\\nelse {\\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n    state = \\\"sleep\\\"\\n}\"\n}"
+}

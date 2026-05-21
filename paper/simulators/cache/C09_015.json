@@ -1,0 +1,83 @@
+{
+  "command_eng": "Turn on the kitchen light and turn on the kitchen dehumidifier 10 seconds later.",
+  "connected_devices": {
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Kitchen_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 100.0,
+          "Rate": 0.0
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "10 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "dehumidifying"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#Light #Kitchen).light_moveToBrightness(100.0, 0.0)\ndelay(10 SEC)\n(#Dehumidifier #Kitchen).dehumidifier_setDehumidifierMode(\"dehumidifying\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#Light #Kitchen).light_moveToBrightness(100.0, 0.0)\ndelay(10 SEC)\n(#Dehumidifier #Kitchen).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\"\n}"
+}

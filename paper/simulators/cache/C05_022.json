@@ -68,7 +68,7 @@
       },
       {
         "op": "if",
-        "cond": "LightSensor.Brightness < 50 && Switch.Switch == false",
+        "cond": "LightSensor.Brightness < 50 and Switch.Switch == false",
         "then": [
           {
             "op": "call",
@@ -78,9 +78,7 @@
           {
             "op": "call",
             "target": "Speaker.Speak",
-            "args": {
-              "Text": "announcement in the garden"
-            }
+            "args": {}
           }
         ],
         "else": []
@@ -91,7 +89,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#Garden #LightSensor).lightSensor_brightness < 50 and (#Terrace #Light).switch_switch == false) {\n(#Terrace #Light).switch_on()\n(#Garden #Speaker).speaker_speak(\"announcement in the garden\")\n}"
+    "script": "if ((#LightSensor #Garden).lightSensor_brightness < 50 and (#Light #Switch #Terrace).switch_switch == false) {\n(#Light #Switch #Terrace).switch_on()\n(#Speaker #Garden).speaker_speak()\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Garden #LightSensor).lightSensor_brightness < 50 and (#Terrace #Light).switch_switch == false) {\n(#Terrace #Light).switch_on()\n(#Garden #Speaker).speaker_speak(\\\"announcement in the garden\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LightSensor #Garden).lightSensor_brightness < 50 and (#Light #Switch #Terrace).switch_switch == false) {\n(#Light #Switch #Terrace).switch_on()\n(#Speaker #Garden).speaker_speak()\n}\"\n}"
 }

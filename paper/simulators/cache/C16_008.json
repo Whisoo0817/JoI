@@ -1,0 +1,87 @@
+{
+  "command_eng": "At midnight, if motion is detected in the hallway, turn all hallway lights to 100% brightness.",
+  "connected_devices": {
+    "Hall_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "MotionSensor"
+      ]
+    },
+    "Bedroom_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "MotionSensor"
+      ]
+    },
+    "Hall_Light_1": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Hall_Light_2": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "LevelControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * *"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "LevelControl.MoveToLevel",
+            "args": {
+              "Level": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * *",
+    "period": 0,
+    "script": "if ((#MotionSensor #Hallway).motionSensor_motion == true) {\nall(#Light #LevelControl #Hallway).levelControl_moveToLevel(100.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * *\",\n  \"period\": 0,\n  \"script\": \"if ((#MotionSensor #Hallway).motionSensor_motion == true) {\nall(#Light #LevelControl #Hallway).levelControl_moveToLevel(100.0, 0.0)\n}\"\n}"
+}

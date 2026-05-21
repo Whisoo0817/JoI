@@ -68,7 +68,7 @@
       },
       {
         "op": "if",
-        "cond": "TemperatureSensor.Temperature >= 30 && Switch.Switch == false",
+        "cond": "TemperatureSensor.Temperature >= 30 and Switch.Switch == false",
         "then": [
           {
             "op": "call",
@@ -91,7 +91,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#ServerRoom #TemperatureSensor).temperatureSensor_temperature >= 30 and (#ServerRoom #AirConditioner).switch_switch == false) {\n(#ServerRoom #AirConditioner).switch_on()\n(#Main #Siren).siren_setSirenMode(\"emergency\")\n}"
+    "script": "if ((#TemperatureSensor #ServerRoom).temperatureSensor_temperature >= 30 and (#AirConditioner #Switch #ServerRoom).switch_switch == false) {\n(#AirConditioner #Switch #ServerRoom).switch_on()\n(#Siren #Main).siren_setSirenMode(\"emergency\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#ServerRoom #TemperatureSensor).temperatureSensor_temperature >= 30 and (#ServerRoom #AirConditioner).switch_switch == false) {\n(#ServerRoom #AirConditioner).switch_on()\n(#Main #Siren).siren_setSirenMode(\\\"emergency\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#TemperatureSensor #ServerRoom).temperatureSensor_temperature >= 30 and (#AirConditioner #Switch #ServerRoom).switch_switch == false) {\n(#AirConditioner #Switch #ServerRoom).switch_on()\n(#Siren #Main).siren_setSirenMode(\\\"emergency\\\")\\n}\"\n}"
 }

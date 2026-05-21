@@ -1,0 +1,98 @@
+{
+  "command_eng": "Every 10 PM, if the meeting room door lock is open, lock it and turn off the meeting room light.",
+  "connected_devices": {
+    "MR_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "DoorLock"
+      ]
+    },
+    "Office_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Office",
+        "DoorLock"
+      ]
+    },
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "MR_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Office_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 22 * * *"
+      },
+      {
+        "op": "if",
+        "cond": "DoorLock.DoorLockState == \"open\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 22 * * *",
+    "period": 0,
+    "script": "if (all(#DoorLock #MeetingRoom).doorLock_doorLockState ==| \"open\") {\nany(#DoorLock #MeetingRoom).doorLock_lock()\nany(#Light #Switch #MeetingRoom).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 0,\n  \"script\": \"if (all(#DoorLock #MeetingRoom).doorLock_doorLockState ==| \\\"open\\\") {\\nany(#DoorLock #MeetingRoom).doorLock_lock()\\nany(#Light #Switch #MeetingRoom).switch_off()\\n}\"\n}"
+}

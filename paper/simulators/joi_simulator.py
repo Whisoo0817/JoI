@@ -65,21 +65,67 @@ def run_joi_simulation(
     # Parse once
     stmts = jp.parse_script(script_src)
 
-    # Cron start
-    if cron:
-        first_fire = _next_cron_fire(cron, 0, scenario)
-        if first_fire is None:
-            return trace
-        world.advance_to(first_fire)
-
     # Persistent var slot — survives across ticks. World already has
     # `world.vars` for fresh `=` assignments, but `:=` vars need stable storage.
     # We use the same dict — `:=` only initializes if not present, `=` overwrites.
     persisted: set[str] = set()
 
     try:
-        if period == 0:
-            # One-shot: run script body once.
+        # Cron defines the firing schedule. Period (if any) is an additional
+        # sub-cadence inside each cron-anchored window. P4-symmetric (2026-05-20):
+        # when cron is set, iterate over EVERY cron occurrence in the 7-day
+        # window. period=0 with cron is NOT one-shot — it just means no inner
+        # sub-tick; the cron schedule itself is recurring.
+        if cron:
+            first_tick = True
+            while True:
+                _check_stop(world, trace)
+                next_fire = _next_cron_fire(cron, world.t_ms, scenario)
+                if next_fire is None or next_fire >= MAX_T_MS:
+                    break
+                world.advance_to(next_fire)
+                # Find the cron fire AFTER this one to bound the sub-period
+                # window. period (if > 0) sub-ticks inside [next_fire, cron_after).
+                cron_after = _next_cron_fire(cron, next_fire + 60_000, scenario)
+                window_end = cron_after if (cron_after is not None
+                                            and cron_after < MAX_T_MS) else MAX_T_MS
+                # `break` inside the script (e.g. `if (clock.time >= H) { break }`
+                # for cron+cycle.until composition) terminates THIS cron window
+                # only — not the entire simulation. IR sim handles this
+                # naturally because its outer cron loop is separate from inner
+                # cycle's break; we mirror that contract by catching
+                # _BreakException here, then advancing to window_end so the
+                # next iteration of the outer while finds the next cron fire.
+                try:
+                    try:
+                        _exec_script_once(stmts, world, trace, catalog, persisted, debug,
+                                          first_tick=first_tick, is_oneshot=False)
+                    except _AbortTick:
+                        pass
+                    first_tick = False
+                    # Sub-period ticking within this cron window.
+                    if period > 0:
+                        while world.t_ms + period < window_end:
+                            _check_stop(world, trace)
+                            world.advance_by(period)
+                            try:
+                                _exec_script_once(stmts, world, trace, catalog, persisted, debug,
+                                                  first_tick=False, is_oneshot=False)
+                            except _AbortTick:
+                                pass
+                except _BreakException:
+                    # Skip to the next cron window; preserve outer cron loop.
+                    if world.t_ms < window_end:
+                        world.advance_to(window_end)
+                    continue
+                # Step past the current minute (or up to window_end) so the next
+                # cron lookup advances rather than re-finding the same fire.
+                if world.t_ms < window_end:
+                    target = min(window_end, world.t_ms + 60_000)
+                    if target > world.t_ms:
+                        world.advance_to(target)
+        elif period == 0:
+            # One-shot: no cron, no period — run script body once.
             _exec_script_once(stmts, world, trace, catalog, persisted, debug,
                               first_tick=True, is_oneshot=True)
         else:
@@ -87,18 +133,27 @@ def run_joi_simulation(
             # new trace records AND no scenario events remain pending, the
             # script has reached a stable state with no further work. Same idea
             # as IR's "no pending" rule.
+            #
+            # "Progress" includes trace growth AND any var value change between
+            # ticks. The var check is critical for wait.for lowerings (D-10):
+            # sustain counters advance silently in vars before emitting a call,
+            # and we must not idle-exit during the accumulation window.
             first_tick = True
             idle_ticks_with_no_pending = 0
             while True:
                 _check_stop(world, trace)
                 trace_size_before = len(trace)
+                vars_before = dict(world.vars)
                 try:
                     _exec_script_once(stmts, world, trace, catalog, persisted, debug,
                                       first_tick=first_tick, is_oneshot=False)
                 except _AbortTick:
                     pass
                 first_tick = False
-                made_progress = len(trace) > trace_size_before
+                made_progress = (
+                    len(trace) > trace_size_before
+                    or dict(world.vars) != vars_before
+                )
                 if not world._pending and not made_progress:
                     idle_ticks_with_no_pending += 1
                     if idle_ticks_with_no_pending >= 2:
@@ -131,7 +186,7 @@ def _exec_stmt(stmt: Any, world: World, trace: Trace, catalog,
                persisted: set, debug: bool, first_tick: bool,
                is_oneshot: bool) -> None:
     if isinstance(stmt, jp.Assign):
-        _exec_assign(stmt, world, persisted, first_tick)
+        _exec_assign(stmt, world, trace, catalog, persisted, debug, first_tick)
     elif isinstance(stmt, jp.IfStmt):
         cond = _eval(stmt.cond, world)
         body = stmt.then_body if cond else stmt.else_body
@@ -184,15 +239,32 @@ def _cond_uses_clock(node: Any) -> bool:
     return False
 
 
-def _exec_assign(stmt: jp.Assign, world: World, persisted: set, first_tick: bool) -> None:
+def _exec_assign(stmt: jp.Assign, world: World, trace: Trace, catalog,
+                 persisted: set, debug: bool, first_tick: bool) -> None:
+    def _rhs_value():
+        # When the RHS is a method call (CallExpr with args), it's a real
+        # side-effecting invocation that must emit a trace record — symmetric
+        # with the IR sim's call-with-`var` handling. Previously this path
+        # only read world state without emitting, so `Var = (#X).Method(...)`
+        # lowering looked correct but produced no trace, causing L2 to fire
+        # `missing_call` against an actually-correct JoI.
+        if isinstance(stmt.rhs, jp.CallExpr) and stmt.rhs.args is not None:
+            _emit_call(stmt.rhs, world, trace, catalog, debug)
+            # Return the post-call world-state value as the "captured" return
+            # (matches the previous attribute-read fallback semantics).
+            from .expr import canonical_name
+            key = f"{(stmt.rhs.service or '').lower()}.{canonical_name(stmt.rhs.service, stmt.rhs.method)}"
+            return world.state.get(key)
+        return _eval(stmt.rhs, world, capture_call=True)
+
     if stmt.op == ":=":
         # Persist-init: only on first tick (or first time we see this var)
         if first_tick or stmt.name not in persisted:
-            world.vars[stmt.name] = _eval(stmt.rhs, world, capture_call=True)
+            world.vars[stmt.name] = _rhs_value()
             persisted.add(stmt.name)
         # else: skip — value persists
     else:  # "="
-        world.vars[stmt.name] = _eval(stmt.rhs, world, capture_call=True)
+        world.vars[stmt.name] = _rhs_value()
 
 
 def _eval(node: Any, world: World, capture_call: bool = False) -> Any:

@@ -32,8 +32,10 @@
       },
       {
         "op": "call",
-        "target": "Television.ChannelDown",
-        "args": {}
+        "target": "Television.SetChannel",
+        "args": {
+          "Channel": "$Television.Channel - 1"
+        }
       }
     ]
   },
@@ -41,7 +43,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "(#Television).television_channelDown()"
+    "script": "current = (#Television).television_channel\nnew_ch = current - 1\nif (new_ch < 0) {\nnew_ch = 0\n}\nif (new_ch > 10000) {\nnew_ch = 10000\n}\n(#Television).television_setChannel(new_ch)"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#Television).television_channelDown()\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"current = (#Television).television_channel\nnew_ch = current - 1\nif (new_ch < 0) {\nnew_ch = 0\n}\nif (new_ch > 10000) {\nnew_ch = 10000\n}\n(#Television).television_setChannel(new_ch)\"\n}"
 }

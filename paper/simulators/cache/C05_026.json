@@ -88,7 +88,7 @@
       },
       {
         "op": "if",
-        "cond": "TemperatureSensor.Temperature >= 15 && HumiditySensor.Humidity >= 60",
+        "cond": "TemperatureSensor.Temperature >= 15 and HumiditySensor.Humidity >= 60",
         "then": [
           {
             "op": "call",
@@ -109,7 +109,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#WineCellar #TemperatureSensor).temperatureSensor_temperature >= 15 and (#WineCellar #HumiditySensor).humiditySensor_humidity >= 60) {\n(#AirConditioner).switch_on()\n(#Humidifier).switch_off()\n}"
+    "script": "if ((#TemperatureSensor #WineCellar).temperatureSensor_temperature >= 15 and (#HumiditySensor #WineCellar).humiditySensor_humidity >= 60) {\n(#AirConditioner #Switch).switch_on()\n(#Humidifier #Switch).switch_off()\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#WineCellar #TemperatureSensor).temperatureSensor_temperature >= 15 and (#WineCellar #HumiditySensor).humiditySensor_humidity >= 60) {\n(#AirConditioner).switch_on()\n(#Humidifier).switch_off()\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#TemperatureSensor #WineCellar).temperatureSensor_temperature >= 15 and (#HumiditySensor #WineCellar).humiditySensor_humidity >= 60) {\n(#AirConditioner #Switch).switch_on()\n(#Humidifier #Switch).switch_off()\n}\"\n}"
 }

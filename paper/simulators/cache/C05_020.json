@@ -68,12 +68,15 @@
       },
       {
         "op": "if",
-        "cond": "HumiditySensor.Humidity >= 85 && Door.DoorState == \"closed\"",
+        "cond": "HumiditySensor.Humidity >= 85 and Door.DoorState == \"closed\"",
         "then": [
           {
             "op": "call",
-            "target": "Switch.On",
-            "args": {}
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
           },
           {
             "op": "call",
@@ -89,7 +92,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#Bathroom #HumiditySensor).humiditySensor_humidity >= 85 and (#Bathroom #Door).door_doorState == \"closed\") {\n(#Bathroom #Light).switch_on()\n(#Bathroom #Door).door_open()\n}"
+    "script": "if ((#HumiditySensor #Bathroom).humiditySensor_humidity >= 85 and (#Door #Bathroom).door_doorState == \"closed\") {\n(#Light #Bathroom).light_moveToBrightness(100.0, 0.0)\n(#Door #Bathroom).door_open()\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bathroom #HumiditySensor).humiditySensor_humidity >= 85 and (#Bathroom #Door).door_doorState == \\\"closed\\\") {\\n(#Bathroom #Light).switch_on()\\n(#Bathroom #Door).door_open()\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#HumiditySensor #Bathroom).humiditySensor_humidity >= 85 and (#Door #Bathroom).door_doorState == \\\"closed\\\") {\\n(#Light #Bathroom).light_moveToBrightness(100.0, 0.0)\\n(#Door #Bathroom).door_open()\\n}\"\n}"
 }

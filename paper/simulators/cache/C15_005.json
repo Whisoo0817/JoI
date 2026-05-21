@@ -1,0 +1,51 @@
+{
+  "command_eng": "On weekdays from 8 AM to midnight every hour, capture an image with the camera.",
+  "connected_devices": {
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * 1-5"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2400",
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 8 * * 1-5",
+    "period": 3600000,
+    "script": "if (clock.time >= 2400) {\nbreak\n}\n(#Camera).camera_captureImage()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * 1-5\",\n  \"period\": 3600000,\n  \"script\": \"if (clock.time >= 2400) {\nbreak\n}\n(#Camera).camera_captureImage()\"\n}"
+}

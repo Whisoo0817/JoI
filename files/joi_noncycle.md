@@ -3,7 +3,7 @@
 The IR has **no top-level `cycle`**. The script runs once and ends.
 
 ## Period rule
-**ALWAYS `period: 0`** for this bucket.
+**ALWAYS `period: 0`** for this bucket, EXCEPT D-10n (sustained-cond `wait.for` one-shot) which requires `period: 100` for polling.
 
 ## Patterns covered
 - **D-1** one-shot action: `start_at(now) + call`.
@@ -19,6 +19,20 @@ The IR has **no top-level `cycle`**. The script runs once and ends.
   if (diff >= K) { Y }
   ```
 - **B-1b** top-level `wait(edge:"rising", cond:C)` WITHOUT a cycle — collapse to **`wait until(C)`** (one-shot). **Do NOT use D-3** (the triggered idiom). D-3 requires a cycle; here there is none.
+- **D-10n** top-level `wait(cond:C, for:"N UNIT")` (sustained-cond, one-shot, no cycle). Cannot use plain `wait until` + `delay` — the duration is a SUSTAIN window, not a delay. Override the bucket period to `100` and use a polling-counter + `break`:
+  ```
+  hold_ticks := 0
+  if (C) {
+      hold_ticks = hold_ticks + 1
+      if (hold_ticks >= <for_ticks>) {
+          Y
+          break
+      }
+  } else {
+      hold_ticks = 0
+  }
+  ```
+  `<for_ticks>` = `for_ms / 100` (e.g., `"5 SEC"` → 50; `"1 MIN"` → 600). Set `period: 100` ONLY for this case; all other noncycle patterns keep `period: 0`.
 
 ## Script body
 Walk the timeline in order. For each IR op, apply rule C from common. Emit each statement on its own line with `\n`.
@@ -29,7 +43,7 @@ Walk the timeline in order. For each IR op, apply rule C from common. Emit each 
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
-             {"op":"call","target":"Light.On","args":{}}]}
+             {"op":"call","target":"Switch.On","args":{}}]}
 ```
 [Precision Selectors] `(#SectorA #Light)`
 <Reasoning>
@@ -58,7 +72,7 @@ One-shot nested if-else.
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"wait","cond":"Door.DoorState == \"open\"","edge":"none"},
- {"op":"call","target":"Light.On","args":{}}]}
+ {"op":"call","target":"Switch.On","args":{}}]}
 ```
 [Precision Selectors] `(#Door)` / `(#Light)`
 <Reasoning>
@@ -71,7 +85,7 @@ One-shot wait then action.
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"wait","cond":"MultiButton.Button1 == \"pushed\"","edge":"rising"},
- {"op":"call","target":"Light.On","args":{}}]}
+ {"op":"call","target":"Switch.On","args":{}}]}
 ```
 [Precision Selectors] `(#MultiButton)` / `(#Light)`
 <Reasoning>
@@ -101,7 +115,7 @@ Cron + snapshot branch.
  {"op":"delay","duration":"10 MIN"},
  {"op":"read","var":"t2","src":"TempSensor.Temperature"},
  {"op":"if","cond":"abs($t2 - $t1) >= 10",
-  "then":[{"op":"call","target":"Light.On","args":{}}],
+  "then":[{"op":"call","target":"Switch.On","args":{}}],
   "else":[]}]}
 ```
 [Precision Selectors] `(#TemperatureSensor)` / `(#Light)`

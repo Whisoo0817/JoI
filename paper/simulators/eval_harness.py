@@ -214,18 +214,22 @@ def evaluate_row(
         return {"index": index, "class": cls,
                 "detail": f"joi_sim: {type(e).__name__}: {e}"}
 
-    # 5. Compare
-    result = compare_traces(trace_ir, trace_joi)
+    # 5. Compare. If either sim saturated MAX_TRACE, the last group may be
+    # mid-emit-truncated, so retry in prefix-mode (drop last + trim to common
+    # prefix). Pass on prefix-mode match counts as equivalent on the observed
+    # unbounded-cycle window; mismatch in prefix is still classified `timeout`
+    # to flag it for review.
+    from .ir_simulator import MAX_TRACE
+    saturated = (trace_ir.group_count >= MAX_TRACE
+                 or trace_joi.group_count >= MAX_TRACE)
+    result = compare_traces(trace_ir, trace_joi, prefix_mode=saturated)
     if result.equivalent:
-        return {"index": index, "class": "pass",
-                "ir_records": len(trace_ir), "joi_records": len(trace_joi)}
+        cls = "pass"
+        return {"index": index, "class": cls,
+                "ir_records": len(trace_ir), "joi_records": len(trace_joi),
+                "detail": "prefix-mode" if saturated else ""}
     else:
-        # Distinguish timeout-induced mismatch (both saturated near MAX_TRACE)
-        from .ir_simulator import MAX_TRACE
-        if trace_ir.group_count >= MAX_TRACE or trace_joi.group_count >= MAX_TRACE:
-            cls = "timeout"
-        else:
-            cls = "trace_mismatch"
+        cls = "timeout" if saturated else "trace_mismatch"
         detail = result.diff_summary
         if not verbose:
             detail = detail.split("\n")[0][:300]

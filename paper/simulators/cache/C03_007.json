@@ -27,8 +27,13 @@
         "anchor": "now"
       },
       {
+        "op": "read",
+        "var": "currentMode",
+        "src": "Pump.PumpMode"
+      },
+      {
         "op": "if",
-        "cond": "Pump.PumpMode == \"normal\"",
+        "cond": "currentMode == \"normal\"",
         "then": [
           {
             "op": "call",
@@ -46,7 +51,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#Pump).pump_pumpMode == \"normal\") {\n(#Pump).pump_setPumpMode(\"maximum\")\n}"
+    "script": "currentMode = (#Pump).pump_pumpMode\nif (currentMode == \"normal\") {\n(#Pump).pump_setPumpMode(\"maximum\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Pump).pump_pumpMode == \\\"normal\\\") {\\n(#Pump).pump_setPumpMode(\\\"maximum\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"currentMode = (#Pump).pump_pumpMode\nif (currentMode == \\\"normal\\\") {\\n(#Pump).pump_setPumpMode(\\\"maximum\\\")\\n}\"\n}"
 }

@@ -82,7 +82,7 @@
       },
       {
         "op": "if",
-        "cond": "PresenceSensor.Presence == true && SmokeDetector.Smoke == true",
+        "cond": "PresenceSensor.Presence == true and SmokeDetector.Smoke == true",
         "then": [
           {
             "op": "call",
@@ -107,7 +107,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if (all(#SmokeDetector).smokeDetector_smoke ==| true && any(#PresenceSensor).presenceSensor_presence == true) {\n(#Siren).siren_setSirenMode(\"fire\")\n(#Speaker).speaker_speak(\"Evacuate\")\n}"
+    "script": "if (all(#PresenceSensor).presenceSensor_presence ==| true and all(#SmokeDetector).smokeDetector_smoke ==| true) {\n(#Siren).siren_setSirenMode(\"fire\")\n(#Speaker).speaker_speak(\"Evacuate\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#SmokeDetector).smokeDetector_smoke ==| true && any(#PresenceSensor).presenceSensor_presence == true) {\n(#Siren).siren_setSirenMode(\\\"fire\\\")\\n(#Speaker).speaker_speak(\\\"Evacuate\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#PresenceSensor).presenceSensor_presence ==| true and all(#SmokeDetector).smokeDetector_smoke ==| true) {\n(#Siren).siren_setSirenMode(\\\"fire\\\")\\n(#Speaker).speaker_speak(\\\"Evacuate\\\")\\n}\"\n}"
 }

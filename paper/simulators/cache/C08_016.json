@@ -1,0 +1,79 @@
+{
+  "command_eng": "When button 3 of the multi-button is pressed, change all meeting room lights to blue.",
+  "connected_devices": {
+    "MR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "MR_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Light"
+      ]
+    },
+    "MR_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button3 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToColor",
+        "args": {
+          "ColorX": 0.167,
+          "ColorY": 0.04,
+          "TransitionTime": 0.0
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#MultiButton #MeetingRoom).multiButton_button3 == \"pushed\")\nall(#Light #MeetingRoom).light_moveToColor(0.167, 0.04, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#MultiButton #MeetingRoom).multiButton_button3 == \\\"pushed\\\")\\nall(#Light #MeetingRoom).light_moveToColor(0.167, 0.04, 0.0)\"\n}"
+}

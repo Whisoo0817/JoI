@@ -1,0 +1,46 @@
+{
+  "command_eng": "Every hour, increase the speaker volume by 10.",
+  "connected_devices": {
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 * * * *"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.SetVolume",
+        "args": {
+          "Volume": "$Speaker.Volume + 10"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 * * * *",
+    "period": 0,
+    "script": "(#Speaker).speaker_setVolume((#Speaker).speaker_volume + 10)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 * * * *\",\n  \"period\": 0,\n  \"script\": \"(#Speaker).speaker_setVolume((#Speaker).speaker_volume + 10)\"\n}"
+}

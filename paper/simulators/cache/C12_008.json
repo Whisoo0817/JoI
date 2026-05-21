@@ -1,0 +1,75 @@
+{
+  "command_eng": "When the drying is finished, say 'Please take out the laundry' through the speaker every 10 minutes thereafter.",
+  "connected_devices": {
+    "Main_LaundryDryer": {
+      "category": [
+        "LaundryDryer"
+      ],
+      "tags": [
+        "Main",
+        "LaundryDryer"
+      ]
+    },
+    "Garage_LaundryDryer": {
+      "category": [
+        "LaundryDryer"
+      ],
+      "tags": [
+        "Garage",
+        "LaundryDryer"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "LaundryDryer.LaundryDryerMode == \"finished\"",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "10 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Please take out the laundry"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((#LaundryDryer).laundryDryer_laundryDryerMode == \"finished\")\n    phase = 1\n    (#Speaker).speaker_speak(\"Please take out the laundry\")\n}\nelse {\n(#Speaker).speaker_speak(\"Please take out the laundry\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#LaundryDryer).laundryDryer_laundryDryerMode == \\\"finished\\\")\\n    phase = 1\\n    (#Speaker).speaker_speak(\\\"Please take out the laundry\\\")\\n}\\nelse {\\n(#Speaker).speaker_speak(\\\"Please take out the laundry\\\")\\n}\"\n}"
+}

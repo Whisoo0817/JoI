@@ -1,0 +1,46 @@
+{
+  "command_eng": "Record for 10 seconds with the meeting room recorder and save it as test.wav.",
+  "connected_devices": {
+    "MeetingRoom_Recorder": {
+      "category": [
+        "AudioRecorder"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "AudioRecorder"
+      ]
+    },
+    "Lab_Recorder": {
+      "category": [
+        "AudioRecorder"
+      ],
+      "tags": [
+        "Lab",
+        "AudioRecorder"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AudioRecorder.RecordWithDuration",
+        "args": {
+          "File": "test.wav",
+          "Duration": 10
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#MeetingRoom #AudioRecorder).audioRecorder_recordWithDuration(\"test.wav\", 10)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#MeetingRoom #AudioRecorder).audioRecorder_recordWithDuration(\\\"test.wav\\\", 10)\"\n}"
+}

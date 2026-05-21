@@ -82,7 +82,7 @@
       },
       {
         "op": "if",
-        "cond": "RainSensor.Rain == true && HumiditySensor.Humidity >= 80",
+        "cond": "RainSensor.Rain == true and HumiditySensor.Humidity >= 80",
         "then": [
           {
             "op": "call",
@@ -107,7 +107,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if (all(#RainSensor).rainSensor_rain ==| true && any(#HumiditySensor).humiditySensor_humidity >= 80) {\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n(#Speaker).speaker_speak(\"It's raining and himidity is high\")\n}"
+    "script": "if ((#RainSensor).rainSensor_rain == true and (#HumiditySensor).humiditySensor_humidity >= 80) {\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n(#Speaker).speaker_speak(\"It's raining and himidity is high\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#RainSensor).rainSensor_rain ==| true && any(#HumiditySensor).humiditySensor_humidity >= 80) {\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n(#Speaker).speaker_speak(\\\"It's raining and himidity is high\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#RainSensor).rainSensor_rain == true and (#HumiditySensor).humiditySensor_humidity >= 80) {\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n(#Speaker).speaker_speak(\\\"It's raining and himidity is high\\\")\\n}\"\n}"
 }

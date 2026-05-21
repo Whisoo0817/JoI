@@ -64,7 +64,7 @@
       },
       {
         "op": "if",
-        "cond": "AirQualitySensor.FineDustLevel >= 100 && AirPurifier.AirPurifierMode == \"auto\"",
+        "cond": "AirQualitySensor.FineDustLevel >= 100 and AirPurifier.AirPurifierMode == \"auto\"",
         "then": [
           {
             "op": "call",
@@ -89,7 +89,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#Warehouse #AirQualitySensor).airQualitySensor_fineDustLevel >= 100 and (#Warehouse #AirPurifier).airPurifier_airPurifierMode == \"auto\") {\n(#Warehouse #AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n(#Warehouse #Speaker).speaker_speak(\"Switching to high mode\")\n}"
+    "script": "if ((#AirQualitySensor #Warehouse).airQualitySensor_fineDustLevel >= 100 and (#AirPurifier #Warehouse).airPurifier_airPurifierMode == \"auto\") {\n(#AirPurifier #Warehouse).airPurifier_setAirPurifierMode(\"high\")\n(#Speaker #Warehouse).speaker_speak(\"Switching to high mode\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Warehouse #AirQualitySensor).airQualitySensor_fineDustLevel >= 100 and (#Warehouse #AirPurifier).airPurifier_airPurifierMode == \\\"auto\\\") {\\n(#Warehouse #AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n(#Warehouse #Speaker).speaker_speak(\\\"Switching to high mode\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirQualitySensor #Warehouse).airQualitySensor_fineDustLevel >= 100 and (#AirPurifier #Warehouse).airPurifier_airPurifierMode == \\\"auto\\\") {\\n(#AirPurifier #Warehouse).airPurifier_setAirPurifierMode(\\\"high\\\")\\n(#Speaker #Warehouse).speaker_speak(\\\"Switching to high mode\\\")\\n}\"\n}"
 }

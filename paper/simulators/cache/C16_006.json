@@ -1,0 +1,106 @@
+{
+  "command_eng": "At 6 PM on weekdays, if presence sensors in the office show no presence, turn off all air conditioners and humidifiers in the office.",
+  "connected_devices": {
+    "Off_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Office",
+        "PresenceSensor"
+      ]
+    },
+    "Home_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Home",
+        "PresenceSensor"
+      ]
+    },
+    "Off_AC_1": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Off_AC_2": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Off_Hum_1": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Humidifier",
+        "Switch"
+      ]
+    },
+    "Off_Hum_2": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Humidifier",
+        "Switch"
+      ]
+    },
+    "Home_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Home",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 18 * * 1-5"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 18 * * 1-5",
+    "period": 0,
+    "script": "if ((#PresenceSensor #Office).presenceSensor_presence == false) {\nall(#Switch #Office).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 18 * * 1-5\",\n  \"period\": 0,\n  \"script\": \"if ((#PresenceSensor #Office).presenceSensor_presence == false) {\nall(#Switch #Office).switch_off()\n}\"\n}"
+}

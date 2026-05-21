@@ -1,9 +1,8 @@
 """IR-based JoI generation pipeline (experimental).
 
-Diverges from run_local.py by replacing the filter/extractor/router stages with
+Replaces the legacy filter/extractor/router stages with
 Timeline IR extraction. The pipeline is:
 
-    [Stage 0] command_merge (if modification)
     [Stage 1] translation (KOR -> ENG)
     [Stage 2] service_plan: command -> ordered service list
     [Stage 3 // parallel]
@@ -13,8 +12,7 @@ Timeline IR extraction. The pipeline is:
         IR is selector-free, so branch A no longer depends on branch B.
     [Stage 4] joi_from_ir lowering: IR + precision -> JoI (bucket-routed)
 
-Service & post-processing helpers are imported from run_local.py to keep a
-single source of truth — DO NOT mutate run_local.py from here.
+Service & post-processing helpers live in pipeline_helpers.py.
 """
 
 from __future__ import annotations
@@ -36,7 +34,7 @@ from config import get_client, get_model_id
 from loader import SERVICE_DATA, PROMPTS, SUB_SKILL_TAGS, get_device_rules_section
 from parser.validator import validate_joi
 
-from run_local import (
+from pipeline_helpers import (
     JoiGenerationError,
     run_llm_inference,
     extract_service_details,
@@ -48,7 +46,22 @@ from run_local import (
     _strip_selector_extra_parens,
     _parse_dict_input,
 )
-from timeline_ir import extract_ir, ir_to_readable, validate_ir, IRValidationError, parse_duration_to_ms
+from timeline_ir import (
+    extract_ir, ir_to_readable, validate_ir, validate_ir_against_devices,
+    validate_ir_against_catalog, build_extract_retry_hint,
+    IRValidationError, parse_duration_to_ms,
+)
+
+# Verifier integration (Phase 2). Activated when env JOI_VERIFY=1 (default off
+# during transition so baselines stay reproducible). When on, the lowering
+# stage is wrapped by `retry_harness.run` with max_attempts=2; retry hints
+# are delivered as a follow-up user turn via `infer_followup`, not as a
+# template slot — first-attempt prompt distribution is unchanged.
+from paper.verifier.retry_harness import run as _verifier_run
+from paper.simulators.catalog import load_catalog as _load_catalog
+
+_VERIFY_ENABLED = os.environ.get("JOI_VERIFY", "0") == "1"
+_VERIFY_MAX_ATTEMPTS = int(os.environ.get("JOI_VERIFY_MAX_ATTEMPTS", "2"))
 
 # Bucket-specific lowering prompt is assembled at runtime as
 # joi_common.md + joi_<bucket>.md, both loaded from files/ via PROMPTS.
@@ -94,7 +107,6 @@ def generate_joi_code_ir(
     sentence,
     connected_devices,
     other_params,
-    modification=None,
     base_url=None,
 ):
     """IR-mediated JoI generation. Drop-in compatible return shape with run_local.generate_joi_code."""
@@ -130,17 +142,6 @@ def generate_joi_code_ir(
         ])
         log_buf.append(log_line)
         return content
-
-    # ❇️ Stage 0: Command Merge
-    merged_command = sentence
-    if modification:
-        merge_raw = infer("command_merge", f"Original: {sentence}\nModification: {modification}")
-        merged_command = (
-            merge_raw.split("</Reasoning>")[-1].strip()
-            if "</Reasoning>" in merge_raw
-            else merge_raw.strip()
-        )
-        sentence = merged_command
 
     # ❇️ Stage 1: Translation (KOR -> ENG)
     if re.search("[가-힣]", sentence):
@@ -777,32 +778,83 @@ def generate_joi_code_ir(
         # table.
 
         augmentations = "\n\n".join(aug_parts) if aug_parts else None
-        try:
-            ir, _prompt_tok, _comp_tok, _elapsed = extract_ir(
-                sentence,
-                devices=intent_services_block,
-                base_url=base_url,
-                debug=False,
-                auto_translate=False,
-                augmentations=augmentations,
+        # IR-extract with structural-validation retry loop. Each attempt:
+        # 1. Call the LLM (single-turn first, multi-turn on retry).
+        # 2. Run `validate_ir_against_devices` + `validate_ir_against_catalog`
+        #    against the produced IR.
+        # 3. On IRValidationError, derive a typed retry hint from the
+        #    structured violations and re-run with (prior_user, prior_assistant,
+        #    hint) — only the extract stage retries; upstream/downstream
+        #    stages remain single-call.
+        from paper.simulators.catalog import load_catalog as _load_cat
+        catalog_obj = _load_cat()
+        _IR_MAX_ATTEMPTS = int(os.environ.get("JOI_IR_EXTRACT_MAX_ATTEMPTS", "2"))
+
+        ir = None
+        retry_ctx: tuple[str, str, str] | None = None
+        last_violations: list = []
+        last_err: Exception | None = None
+        for _attempt in range(1, _IR_MAX_ATTEMPTS + 1):
+            try:
+                ir, _prompt_tok, _comp_tok, _elapsed, _user_msg, _assistant_msg = extract_ir(
+                    sentence,
+                    devices=intent_services_block,
+                    base_url=base_url,
+                    debug=False,
+                    auto_translate=False,
+                    augmentations=augmentations,
+                    retry_context=retry_ctx,
+                )
+            except IRValidationError as e:
+                raise JoiGenerationError(
+                    f"IR extraction failed: {e}",
+                    "\n".join(log_buf),
+                    error_code="ir_invalid",
+                )
+            _decode_tps = _comp_tok / _elapsed if _elapsed > 0 and _comp_tok else 0
+            log_buf.append(
+                f"➡️ timeline_ir_extract({_prompt_tok}) | attempt {_attempt} | "
+                f"Decode: {_decode_tps:.1f} t/s | Total: {_elapsed:.4f}s\n"
+                "===================================================\n"
+                f"{json.dumps(ir, ensure_ascii=False, indent=2)}"
             )
-        except IRValidationError as e:
+            if isinstance(ir, dict) and "error" in ir:
+                raise JoiGenerationError(
+                    f"IR extractor rejected the command: {ir.get('error')}",
+                    "\n".join(log_buf),
+                    error_code="ir_rejected",
+                )
+            try:
+                validate_ir_against_devices(ir, connected_devices)
+                validate_ir_against_catalog(ir, catalog_obj)
+                last_violations = []
+                break  # all validators passed
+            except IRValidationError as e:
+                last_err = e
+                last_violations = list(e.violations)
+                log_buf.append(
+                    f"⚠️ IR-extract attempt {_attempt} validator: "
+                    + "; ".join(v.code for v in last_violations)
+                )
+                if _attempt >= _IR_MAX_ATTEMPTS:
+                    break
+                hint = build_extract_retry_hint(last_violations)
+                retry_ctx = (_user_msg, _assistant_msg, hint)
+
+        if last_violations:
+            # All attempts exhausted while still failing validation. Surface
+            # the kind that failed last as the error_code so callers can
+            # branch on it.
+            kinds = sorted({v.code for v in last_violations})
+            primary = "ir_catalog_member_mismatch" if any(
+                v.code in ("member_not_in_service", "service_not_in_catalog",
+                           "arg_not_in_catalog") for v in last_violations
+            ) else "ir_catalog_mismatch"
             raise JoiGenerationError(
-                f"IR extraction failed: {e}",
+                f"IR catalog validation failed after {_IR_MAX_ATTEMPTS} attempts: "
+                f"codes={kinds}; {last_err}",
                 "\n".join(log_buf),
-                error_code="ir_invalid",
-            )
-        _decode_tps = _comp_tok / _elapsed if _elapsed > 0 and _comp_tok else 0
-        log_buf.append(
-            f"➡️ timeline_ir_extract({_prompt_tok}) | Decode: {_decode_tps:.1f} t/s | Total: {_elapsed:.4f}s\n"
-            "===================================================\n"
-            f"{json.dumps(ir, ensure_ascii=False, indent=2)}"
-        )
-        if isinstance(ir, dict) and "error" in ir:
-            raise JoiGenerationError(
-                f"IR extractor rejected the command: {ir.get('error')}",
-                "\n".join(log_buf),
-                error_code="ir_rejected",
+                error_code=primary,
             )
         return ir
 
@@ -981,39 +1033,6 @@ def generate_joi_code_ir(
         f"[Precision Selectors]\n{precision_output}\n\n"
         f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
     )
-    joi_code_raw = infer(prompt_key, joi_input, system=system_prompt)
-
-    script = re.sub(r'<Reasoning>.*?</Reasoning>', '', joi_code_raw, flags=re.DOTALL).strip()
-
-    joi_json = {}
-    try:
-        m = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
-        if m:
-            fixed_inner = m.group(1).replace('\n', '\\n')
-            script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
-        joi_json = json.loads(script)
-        if "script" in joi_json:
-            joi_json["script"] = _strip_selector_extra_parens(joi_json["script"])
-            joi_json["script"] = _apply_service_prefix(joi_json["script"])
-            joi_json["script"] = _normalize_script_newlines(joi_json["script"])
-        joi_json.setdefault("name", "Scenario")
-        joi_json = {"name": joi_json.pop("name"), **joi_json}
-        joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
-    except (json.JSONDecodeError, TypeError):
-        body = _apply_service_prefix(_strip_selector_extra_parens(script))
-        joi_json = {
-            "name": "Scenario",
-            "cron": "",
-            "period": 0,
-            "script": _normalize_script_newlines(body),
-        }
-        joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
-
-    try:
-        _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
-    except Exception as e:
-        log_buf.append(f"⚠️ validate_joi warning: {e}")
-
     # Deterministic wrapper.period override from IR.cycle.period.
     # LLM is unreliable at unit arithmetic ("30 SEC" → 1800000); compute it here.
     # D-3 (cycle body has wait edge="rising") is hardcoded to 100 regardless of cycle.period value.
@@ -1032,20 +1051,153 @@ def generate_joi_code_ir(
                         return None
                 return None
         return None  # no cycle → keep LLM's value (typically 0 for noncycle)
-    _override_ms = _wrapper_period_from_ir(ir)
-    if _override_ms is not None and joi_json.get("period") != _override_ms:
-        log_buf.append(f"🔧 wrapper.period override: {joi_json.get('period')} → {_override_ms} (from IR cycle.period)")
-        joi_json["period"] = _override_ms
-        joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
 
-    try:
-        joi_json_final = json.loads(joi_code_raw)
-        if "script" in joi_json_final:
-            joi_json_final["script"] = _post_process_joi_any_quantifiers(joi_json_final["script"])
-        joi_code_raw = json.dumps(joi_json_final, indent=2, ensure_ascii=False)
-    except (json.JSONDecodeError, TypeError):
-        joi_code_raw = _post_process_joi_any_quantifiers(joi_code_raw)
+    def _finalize(raw: str) -> dict:
+        """Parse + post-process raw LLM output into final joi_block dict.
+        Used by both the verifier-on path (per attempt) and verifier-off path."""
+        script = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
+        joi_json = {}
+        try:
+            m = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
+            if m:
+                fixed_inner = m.group(1).replace('\n', '\\n')
+                script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
+            joi_json = json.loads(script)
+            if "script" in joi_json:
+                joi_json["script"] = _strip_selector_extra_parens(joi_json["script"])
+                joi_json["script"] = _apply_service_prefix(joi_json["script"])
+                joi_json["script"] = _normalize_script_newlines(joi_json["script"])
+            joi_json.setdefault("name", "Scenario")
+            joi_json = {"name": joi_json.pop("name"), **joi_json}
+        except (json.JSONDecodeError, TypeError):
+            body = _apply_service_prefix(_strip_selector_extra_parens(script))
+            joi_json = {
+                "name": "Scenario",
+                "cron": "",
+                "period": 0,
+                "script": _normalize_script_newlines(body),
+            }
 
+        try:
+            _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
+        except Exception as e:
+            log_buf.append(f"⚠️ validate_joi warning: {e}")
+
+        _override_ms = _wrapper_period_from_ir(ir)
+        if _override_ms is not None and joi_json.get("period") != _override_ms:
+            log_buf.append(f"🔧 wrapper.period override: {joi_json.get('period')} → {_override_ms} (from IR cycle.period)")
+            joi_json["period"] = _override_ms
+
+        if "script" in joi_json:
+            joi_json["script"] = _post_process_joi_any_quantifiers(joi_json["script"])
+
+        return joi_json
+
+    if _VERIFY_ENABLED:
+        # Verifier-on: wrap the lowering call in retry_harness. Retry hints are
+        # delivered as a follow-up user turn (B-design): first attempt is a
+        # plain `infer(...)` so the prompt distribution is unchanged; only on
+        # retry does the prior (user, assistant) exchange get replayed and the
+        # retry message appear as the next user turn.
+        prev_raw = {"text": None}
+
+        def _lower_fn(ir_arg, hints):
+            if hints is None:
+                raw = infer(prompt_key, joi_input, system=system_prompt)
+            else:
+                raw = infer_followup(
+                    prompt_key, hints,
+                    system=system_prompt,
+                    prior_user=joi_input,
+                    prior_assistant=prev_raw["text"] or "",
+                )
+            prev_raw["text"] = raw
+            return _finalize(raw)
+
+        try:
+            catalog_obj = _load_catalog()
+        except Exception as e:
+            log_buf.append(f"⚠️ verifier disabled (catalog load failed): {e}")
+            catalog_obj = None
+
+        # Debug: show the synthesized scenarios the verifier will exercise
+        # (currently event_synth returns a single scenario; cap at 2 for future).
+        try:
+            from paper.simulators.event_synth import synthesize_scenarios as _synth
+            _scns = _synth(ir)[:2]
+            for _i, _scn in enumerate(_scns):
+                _evs = ", ".join(
+                    f"@{e.at_ms}ms {e.key}={e.value!r}" for e in _scn.events[:8]
+                ) or "(none)"
+                _suffix = f" (+{len(_scn.events) - 8} more)" if len(_scn.events) > 8 else ""
+                log_buf.append(f"🎬 Scenario {_i}: {_evs}{_suffix}")
+        except Exception as _e:
+            log_buf.append(f"⚠️ scenario synth (debug) failed: {_e}")
+
+        v_result = _verifier_run(
+            ir, _lower_fn,
+            connected_devices=connected_devices,
+            catalog=catalog_obj,
+            max_attempts=_VERIFY_MAX_ATTEMPTS,
+        )
+        for rec in v_result.attempts:
+            tag = rec.retry_message.summary if rec.retry_message else "clean"
+            log_buf.append(
+                f"🔁 Attempt {rec.attempt}: L1={len(rec.l1)} L2={len(rec.l2)} — {tag}"
+            )
+            # L1 detail — one bullet per violation (kind, where, message)
+            for v in rec.l1:
+                log_buf.append(f"     L1 {v.kind} @ {v.where}: {v.message}")
+            # L2 detail — kind, ir_path, target, expected/observed
+            for v in rec.l2:
+                bits = [f"L2 {v.kind} @ {v.ir_path} target={v.target}"]
+                if v.expected is not None:
+                    bits.append(f"exp={v.expected}")
+                if v.observed is not None:
+                    bits.append(f"obs={v.observed}")
+                if v.occurrences > 1:
+                    bits.append(f"×{v.occurrences}")
+                log_buf.append("     " + " ".join(bits))
+            # Retry hint (the prompt block actually injected on the next turn)
+            if rec.retry_message is not None and rec.attempt < len(v_result.attempts):
+                log_buf.append(
+                    f"     ↪ retry hint: {rec.retry_message.bullet_count} bullets — "
+                    f"{rec.retry_message.summary}"
+                )
+
+        # Trace-equivalence debug: re-run sims on the final accepted/rejected
+        # JoI under the synthesized scenario and dump the trace records so a
+        # human can eyeball IR vs JoI emit divergence. Capped to keep log
+        # readable; cycle-heavy rows will repeat many times.
+        try:
+            from paper.simulators.ir_simulator import run_ir_simulation
+            from paper.simulators.joi_simulator import run_joi_simulation
+            if _scns and v_result.final_joi:
+                _scn0 = _scns[0]
+                _t_ir = run_ir_simulation(ir, _scn0, catalog_obj).records[:6]
+                _t_joi = run_joi_simulation(v_result.final_joi, _scn0, catalog_obj).records[:6]
+                log_buf.append(
+                    f"📜 IR trace ({len(_t_ir)} shown): " + "; ".join(
+                        f"@{r.timestamp_ms} {r.service}.{r.method}{r.args}" for r in _t_ir
+                    ) if _t_ir else "📜 IR trace: (empty)"
+                )
+                log_buf.append(
+                    f"📜 JoI trace ({len(_t_joi)} shown): " + "; ".join(
+                        f"@{r.timestamp_ms} {r.service}.{r.method}{r.args}" for r in _t_joi
+                    ) if _t_joi else "📜 JoI trace: (empty)"
+                )
+        except Exception as _e:
+            log_buf.append(f"⚠️ trace dump (debug) failed: {_e}")
+
+        log_buf.append(
+            f"🏁 Verifier: {'accepted' if v_result.accepted else 'fail (kept last attempt)'}"
+        )
+        joi_json = v_result.final_joi or {}
+    else:
+        raw = infer(prompt_key, joi_input, system=system_prompt)
+        joi_json = _finalize(raw)
+
+    joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
     code_pretty = re.sub(
         r'("script"\s*:\s*")(.*?)(")',
         lambda m: m.group(1) + m.group(2).replace('\\n', '\n') + m.group(3),
@@ -1058,7 +1210,6 @@ def generate_joi_code_ir(
 
     return {
         "code": code_pretty,
-        "merged_command": merged_command,
         "ir": ir,
         "ir_readable": ir_readable,
         "precision": precision_output.get("selectors", {}) if isinstance(precision_output, dict) else {},

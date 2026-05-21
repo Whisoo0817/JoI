@@ -51,7 +51,7 @@
       },
       {
         "op": "if",
-        "cond": "TemperatureSensor.Temperature >= 26 && WindowCovering.CurrentPosition == 100",
+        "cond": "TemperatureSensor.Temperature >= 26 and WindowCovering.CurrentPosition > 0",
         "then": [
           {
             "op": "call",
@@ -72,7 +72,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#Bedroom #TemperatureSensor).temperatureSensor_temperature >= 26 and (#Bedroom #Window).windowCovering_currentPosition == 100) {\n(#Bedroom #Window).windowCovering_downOrClose()\n(#Bedroom #AirConditioner).switch_on()\n}"
+    "script": "if ((#TemperatureSensor #Bedroom).temperatureSensor_temperature >= 26 and (#WindowCovering #Bedroom #Window).windowCovering_currentPosition > 0) {\n(#WindowCovering #Bedroom #Window).windowCovering_downOrClose()\n(#AirConditioner #Switch #Bedroom).switch_on()\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bedroom #TemperatureSensor).temperatureSensor_temperature >= 26 and (#Bedroom #Window).windowCovering_currentPosition == 100) {\n(#Bedroom #Window).windowCovering_downOrClose()\n(#Bedroom #AirConditioner).switch_on()\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#TemperatureSensor #Bedroom).temperatureSensor_temperature >= 26 and (#WindowCovering #Bedroom #Window).windowCovering_currentPosition > 0) {\n(#WindowCovering #Bedroom #Window).windowCovering_downOrClose()\n(#AirConditioner #Switch #Bedroom).switch_on()\n}\"\n}"
 }

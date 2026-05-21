@@ -1,0 +1,100 @@
+{
+  "command_eng": "If the lab humidity is 50 or higher, turn on the dehumidifier, and if it's below 50, turn on the humidifier.",
+  "connected_devices": {
+    "Lab_Humidity": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Lab",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Humidity": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Lab_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Lab",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Bathroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Lab_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Lab",
+        "Humidifier",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Humidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "HumiditySensor.Humidity >= 50",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#HumiditySensor #Lab).humiditySensor_humidity >= 50) {\n(#Dehumidifier #Switch #Lab).switch_on()\n}\nelse {\n(#Humidifier #Switch #Lab).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#HumiditySensor #Lab).humiditySensor_humidity >= 50) {\n(#Dehumidifier #Switch #Lab).switch_on()\n}\nelse {\n(#Humidifier #Switch #Lab).switch_on()\n}\"\n}"
+}

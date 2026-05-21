@@ -64,7 +64,7 @@
       },
       {
         "op": "if",
-        "cond": "RainSensor.Rain == true && Door.DoorState == \"open\"",
+        "cond": "RainSensor.Rain == true and Door.DoorState == \"open\"",
         "then": [
           {
             "op": "call",
@@ -87,7 +87,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#RainSensor).rainSensor_rain == true and (#Door).door_doorState == \"open\") {\n(#Door).door_close()\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\"internalCare\")\n}"
+    "script": "if (all(#RainSensor).rainSensor_rain ==| true and all(#Door).door_doorState ==| \"open\") {\nany(#Door).door_close()\nany(#Dehumidifier).dehumidifier_setDehumidifierMode(\"internalCare\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#RainSensor).rainSensor_rain == true and (#Door).door_doorState == \\\"open\\\") {\\n(#Door).door_close()\\n(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"internalCare\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#RainSensor).rainSensor_rain ==| true and all(#Door).door_doorState ==| \\\"open\\\") {\\nany(#Door).door_close()\\nany(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"internalCare\\\")\\n}\"\n}"
 }

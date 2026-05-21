@@ -73,7 +73,7 @@
       },
       {
         "op": "if",
-        "cond": "LeakSensor.Leakage == true && Valve.ValveState == true",
+        "cond": "LeakSensor.Leakage == true and Valve.ValveState == true",
         "then": [
           {
             "op": "call",
@@ -96,7 +96,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#Basement #LeakSensor).leakSensor_leakage == true and all(#Main #Valve).valve_valveState == true) {\nall(#Main #Valve).valve_close()\n(#Main #Siren).siren_setSirenMode(\"police\")\n}"
+    "script": "if ((#LeakSensor #Basement).leakSensor_leakage == true and all(#Valve #Main).valve_valveState == true) {\nall(#Valve #Main).valve_close()\n(#Siren).siren_setSirenMode(\"police\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Basement #LeakSensor).leakSensor_leakage == true and all(#Main #Valve).valve_valveState == true) {\nall(#Main #Valve).valve_close()\n(#Main #Siren).siren_setSirenMode(\\\"police\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LeakSensor #Basement).leakSensor_leakage == true and all(#Valve #Main).valve_valveState == true) {\nall(#Valve #Main).valve_close()\n(#Siren).siren_setSirenMode(\\\"police\\\")\\n}\"\n}"
 }

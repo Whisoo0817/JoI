@@ -1,0 +1,84 @@
+{
+  "command_eng": "If someone is in the living room and smoke is being detected in the kitchen, play an announcement in the living room and close the kitchen valve.",
+  "connected_devices": {
+    "LivingRoom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Kitchen_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Kitchen",
+        "SmokeDetector"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == true && SmokeDetector.Smoke == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Smoke detected in the kitchen"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LivingRoom #PresenceSensor).presenceSensor_presence == true and (#Kitchen #SmokeDetector).smokeDetector_smoke == true) {\n(#LivingRoom #Speaker).speaker_speak(\"Smoke detected in the kitchen\")\n(#Kitchen #Valve).valve_close()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom #PresenceSensor).presenceSensor_presence == true and (#Kitchen #SmokeDetector).smokeDetector_smoke == true) {\n(#LivingRoom #Speaker).speaker_speak(\\\"Smoke detected in the kitchen\\\")\\n(#Kitchen #Valve).valve_close()\\n}\"\n}"
+}

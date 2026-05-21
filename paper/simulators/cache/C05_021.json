@@ -64,7 +64,7 @@
       },
       {
         "op": "if",
-        "cond": "FaceRecognizer.RecognizedResult == 'family' && DoorLock.DoorLockState == 'closed'",
+        "cond": "FaceRecognizer.RecognizedResult == 'family' and DoorLock.DoorLockState == 'closed'",
         "then": [
           {
             "op": "call",
@@ -85,7 +85,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#Entrance #FaceRecognizer).faceRecognizer_recognizedResult == \"family\" and (#Entrance #DoorLock).doorLock_doorLockState == \"closed\") {\n(#Entrance #DoorLock).doorLock_unlock()\n(#Entrance #Door).door_open()\n}"
+    "script": "if ((#FaceRecognizer #Entrance).faceRecognizer_recognizedResult == 'family' and (#DoorLock #Entrance).doorLock_doorLockState == 'closed') {\n(#DoorLock #Entrance).doorLock_unlock()\n(#Door #Entrance).door_open()\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Entrance #FaceRecognizer).faceRecognizer_recognizedResult == \\\"family\\\" and (#Entrance #DoorLock).doorLock_doorLockState == \\\"closed\\\") {\\n(#Entrance #DoorLock).doorLock_unlock()\\n(#Entrance #Door).door_open()\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#FaceRecognizer #Entrance).faceRecognizer_recognizedResult == 'family' and (#DoorLock #Entrance).doorLock_doorLockState == 'closed') {\n(#DoorLock #Entrance).doorLock_unlock()\n(#Door #Entrance).door_open()\n}\"\n}"
 }

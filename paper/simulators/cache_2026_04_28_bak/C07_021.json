@@ -1,0 +1,70 @@
+{
+  "command_eng": "When the temperature in the pantry reaches 25 degrees or higher, turn on the pantry air conditioner.",
+  "connected_devices": {
+    "Pantry_TemperatureSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Pantry",
+        "TemperatureSensor"
+      ]
+    },
+    "WineCellar_TemperatureSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "WineCellar",
+        "TemperatureSensor"
+      ]
+    },
+    "Pantry_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Pantry",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "LivingRoom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "TemperatureSensor.Temperature >= 25",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Pantry #TemperatureSensor).temperatureSensor_temperature >= 25)\n(#Pantry #AirConditioner).switch_on()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Pantry #TemperatureSensor).temperatureSensor_temperature >= 25)\n(#Pantry #AirConditioner).switch_on()\"\n}"
+}

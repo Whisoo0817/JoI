@@ -1,0 +1,78 @@
+{
+  "command_eng": "Every morning at 8 AM, make the speaker speak 'Get up'. Additionally, if the window is closed, open it.",
+  "connected_devices": {
+    "Main_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Main",
+        "Speaker"
+      ]
+    },
+    "Main_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Get up"
+        }
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition == 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 8 * * *",
+    "period": 0,
+    "script": "(#Speaker).speaker_speak(\"Get up\")\nif ((#WindowCovering #Window).windowCovering_currentPosition == 0) {\n(#WindowCovering #Window).windowCovering_upOrOpen()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * *\",\n  \"period\": 0,\n  \"script\": \"(#Speaker).speaker_speak(\\\"Get up\\\")\\nif ((#WindowCovering #Window).windowCovering_currentPosition == 0) {\\n(#WindowCovering #Window).windowCovering_upOrOpen()\\n}\"\n}"
+}

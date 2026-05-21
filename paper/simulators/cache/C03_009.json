@@ -27,6 +27,11 @@
         "anchor": "now"
       },
       {
+        "op": "read",
+        "var": "currentMode",
+        "src": "LaundryDryer.LaundryDryerMode"
+      },
+      {
         "op": "if",
         "cond": "LaundryDryer.LaundryDryerMode == \"lownoise\"",
         "then": [
@@ -46,7 +51,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#LaundryDryer).laundryDryer_laundryDryerMode == \"lownoise\") {\n(#LaundryDryer).laundryDryer_setLaundryDryerMode(\"quick\")\n}"
+    "script": "currentMode = (#LaundryDryer).laundryDryer_laundryDryerMode\nif ((#LaundryDryer).laundryDryer_laundryDryerMode == \"lownoise\") {\n(#LaundryDryer).laundryDryer_setLaundryDryerMode(\"quick\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LaundryDryer).laundryDryer_laundryDryerMode == \\\"lownoise\\\") {\\n(#LaundryDryer).laundryDryer_setLaundryDryerMode(\\\"quick\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"currentMode = (#LaundryDryer).laundryDryer_laundryDryerMode\nif ((#LaundryDryer).laundryDryer_laundryDryerMode == \\\"lownoise\\\") {\\n(#LaundryDryer).laundryDryer_setLaundryDryerMode(\\\"quick\\\")\\n}\"\n}"
 }

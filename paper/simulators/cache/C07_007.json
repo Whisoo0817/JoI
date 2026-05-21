@@ -45,22 +45,29 @@
         "anchor": "now"
       },
       {
-        "op": "wait",
-        "cond": "Button.Button == \"pushed_3x\"",
-        "edge": "none"
-      },
-      {
-        "op": "call",
-        "target": "Valve.Open",
-        "args": {}
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Button.Button == \"pushed_3x\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Valve.Open",
+            "args": {}
+          }
+        ]
       }
     ]
   },
   "joi_block": {
     "name": "Scenario",
     "cron": "",
-    "period": 0,
-    "script": "wait until((#Button).button_button == \"pushed_3x\")\n(#Valve).valve_open()"
+    "period": 100,
+    "script": "triggered := false\nif ((#Button).button_button == \"pushed_3x\") {\nif (triggered == false) {\n(#Valve).valve_open()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Button).button_button == \\\"pushed_3x\\\")\\n(#Valve).valve_open()\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#Button).button_button == \\\"pushed_3x\\\") {\\nif (triggered == false) {\\n(#Valve).valve_open()\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
 }

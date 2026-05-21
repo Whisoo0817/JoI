@@ -44,22 +44,32 @@
         "anchor": "now"
       },
       {
-        "op": "wait",
-        "cond": "ContactSensor.Contact == true",
-        "edge": "none"
-      },
-      {
-        "op": "call",
-        "target": "Switch.On",
-        "args": {}
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "ContactSensor.Contact == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ]
       }
     ]
   },
   "joi_block": {
     "name": "Scenario",
     "cron": "",
-    "period": 0,
-    "script": "wait until((#ContactSensor).contactSensor_contact == true)\n(#Light).switch_on()"
+    "period": 100,
+    "script": "triggered := false\nif ((#ContactSensor #Entrance).contactSensor_contact == true) {\nif (triggered == false) {\n(#Light).light_moveToBrightness(100, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#ContactSensor).contactSensor_contact == true)\n(#Light).switch_on()\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#ContactSensor #Entrance).contactSensor_contact == true) {\nif (triggered == false) {\n(#Light).light_moveToBrightness(100, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
 }

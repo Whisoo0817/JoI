@@ -1,0 +1,58 @@
+{
+  "command_eng": "Set the study air purifier to high and turn it off after 2 hours.",
+  "connected_devices": {
+    "Study_AP": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Study",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AirPurifier.SetAirPurifierMode",
+        "args": {
+          "Mode": "high"
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "2 HOUR"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#AirPurifier #Study).airPurifier_setAirPurifierMode(\"high\")\ndelay(2 HOUR)\n(#AirPurifier #Switch #Study).switch_off()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#AirPurifier #Study).airPurifier_setAirPurifierMode(\\\"high\\\")\\ndelay(2 HOUR)\\n(#AirPurifier #Switch #Study).switch_off()\"\n}"
+}

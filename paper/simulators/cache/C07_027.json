@@ -83,9 +83,10 @@
         "then": [
           {
             "op": "call",
-            "target": "Switch.On",
+            "target": "Light.MoveToBrightness",
             "args": {
-              "Selector": "all(#Floor1 #Switch)"
+              "Brightness": 100.0,
+              "Rate": 0.0
             }
           }
         ],
@@ -97,7 +98,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if (any(#Floor1 #PresenceSensor).presenceSensor_presence == true) {\nall(#Floor1 #Light).switch_on()\n}"
+    "script": "if (all(#PresenceSensor #Floor1).presenceSensor_presence ==| true) {\nall(#Light #Floor1).light_moveToBrightness(100.0, 0.0)\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (any(#Floor1 #PresenceSensor).presenceSensor_presence == true) {\nall(#Floor1 #Light).switch_on()\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#PresenceSensor #Floor1).presenceSensor_presence ==| true) {\nall(#Light #Floor1).light_moveToBrightness(100.0, 0.0)\n}\"\n}"
 }

@@ -36,15 +36,16 @@
       },
       {
         "op": "read",
-        "var": "temp",
+        "var": "TemperatureWeather",
         "src": "WeatherProvider.TemperatureWeather"
       },
       {
         "op": "call",
         "target": "Speaker.Speak",
         "args": {
-          "Text": "The outdoor temperature is $temp"
-        }
+          "Text": "The outdoor temperature is $TemperatureWeather"
+        },
+        "var": "TemperatureWeather"
       }
     ]
   },
@@ -52,7 +53,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "temp = (#WeatherProvider).weatherProvider_temperatureWeather\n(#Speaker).speaker_speak(\"The outdoor temperature is \" + temp)"
+    "script": "TemperatureWeather = (#WeatherProvider).weatherProvider_temperatureWeather\n(#Speaker).speaker_speak(\"The outdoor temperature is \" + TemperatureWeather)"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"temp = (#WeatherProvider).weatherProvider_temperatureWeather\n(#Speaker).speaker_speak(\\\"The outdoor temperature is \\\" + temp)\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"TemperatureWeather = (#WeatherProvider).weatherProvider_temperatureWeather\n(#Speaker).speaker_speak(\\\"The outdoor temperature is \\\" + TemperatureWeather)\"\n}"
 }

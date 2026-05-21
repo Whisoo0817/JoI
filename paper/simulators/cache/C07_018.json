@@ -45,22 +45,29 @@
         "anchor": "now"
       },
       {
-        "op": "wait",
-        "cond": "Door.DoorState == \"open\"",
-        "edge": "none"
-      },
-      {
-        "op": "call",
-        "target": "Camera.CaptureImage",
-        "args": {}
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Door.DoorState == \"open\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ]
       }
     ]
   },
   "joi_block": {
     "name": "Scenario",
     "cron": "",
-    "period": 0,
-    "script": "wait until((#Garage #Door).door_doorState == \"open\")\nimg = (#Garage #Camera).camera_captureImage()"
+    "period": 100,
+    "script": "triggered := false\nif ((#Door #Garage).door_doorState == \"open\") {\nif (triggered == false) {\n(#Camera #Garage).camera_captureImage()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Garage #Door).door_doorState == \\\"open\\\")\\nimg = (#Garage #Camera).camera_captureImage()\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#Door #Garage).door_doorState == \\\"open\\\") {\\nif (triggered == false) {\\n(#Camera #Garage).camera_captureImage()\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
 }

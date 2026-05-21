@@ -64,7 +64,7 @@
       },
       {
         "op": "if",
-        "cond": "TemperatureSensor.Temperature >= 35",
+        "cond": "all(TemperatureSensor.Temperature >= 35)",
         "then": [
           {
             "op": "call",
@@ -82,7 +82,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if (all(#Sector1 #TemperatureSensor).temperatureSensor_temperature >= 35) {\nall(#Sector1 #AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}"
+    "script": "if (all(#TemperatureSensor #Sector1).temperatureSensor_temperature >= 35) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\"cool\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#Sector1 #TemperatureSensor).temperatureSensor_temperature >= 35) {\nall(#Sector1 #AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#TemperatureSensor #Sector1).temperatureSensor_temperature >= 35) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n}"
 }

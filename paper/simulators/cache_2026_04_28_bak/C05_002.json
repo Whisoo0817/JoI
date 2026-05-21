@@ -1,0 +1,78 @@
+{
+  "command_eng": "If the bedroom temperature is 26 degrees or higher and the bedroom window is open, close the window and turn on the air conditioner.",
+  "connected_devices": {
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "WindowCovering",
+        "Window"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 26 && WindowCovering.CurrentPosition == 100",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Bedroom #TemperatureSensor).temperatureSensor_temperature >= 26 and (#Bedroom #Window).windowCovering_currentPosition == 100) {\n(#Bedroom #Window).windowCovering_downOrClose()\n(#Bedroom #AirConditioner).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bedroom #TemperatureSensor).temperatureSensor_temperature >= 26 and (#Bedroom #Window).windowCovering_currentPosition == 100) {\n(#Bedroom #Window).windowCovering_downOrClose()\n(#Bedroom #AirConditioner).switch_on()\n}\"\n}"
+}

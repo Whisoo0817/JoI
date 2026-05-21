@@ -45,22 +45,29 @@
         "anchor": "now"
       },
       {
-        "op": "wait",
-        "cond": "SmokeDetector.Smoke == true",
-        "edge": "none"
-      },
-      {
-        "op": "call",
-        "target": "Valve.Close",
-        "args": {}
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "SmokeDetector.Smoke == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ]
       }
     ]
   },
   "joi_block": {
     "name": "Scenario",
     "cron": "",
-    "period": 0,
-    "script": "wait until((#Kitchen #SmokeDetector).smokeDetector_smoke == true)\n(#Kitchen #Valve).valve_close()"
+    "period": 100,
+    "script": "triggered := false\nif ((#SmokeDetector #Kitchen).smokeDetector_smoke == true) {\nif (triggered == false) {\n(#Valve #Kitchen).valve_close()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Kitchen #SmokeDetector).smokeDetector_smoke == true)\n(#Kitchen #Valve).valve_close()\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#SmokeDetector #Kitchen).smokeDetector_smoke == true) {\nif (triggered == false) {\n(#Valve #Kitchen).valve_close()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
 }

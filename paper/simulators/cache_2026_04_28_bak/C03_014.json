@@ -1,0 +1,54 @@
+{
+  "command_eng": "If the shade is 30% or less open, set it to 50%.",
+  "connected_devices": {
+    "LivingRoom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition <= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.SetLevel",
+            "args": {
+              "Level": 50
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Shade).windowCovering_currentPosition <= 30) {\n(#Shade).windowCovering_setLevel(50)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Shade).windowCovering_currentPosition <= 30) {\n(#Shade).windowCovering_setLevel(50)\n}\"\n}"
+}

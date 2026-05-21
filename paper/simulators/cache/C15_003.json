@@ -1,0 +1,44 @@
+{
+  "command_eng": "Lock the doorlock every day at midnight.",
+  "connected_devices": {
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * *"
+      },
+      {
+        "op": "call",
+        "target": "DoorLock.Lock",
+        "args": {}
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * *",
+    "period": 0,
+    "script": "(#DoorLock).doorLock_lock()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * *\",\n  \"period\": 0,\n  \"script\": \"(#DoorLock).doorLock_lock()\"\n}"
+}

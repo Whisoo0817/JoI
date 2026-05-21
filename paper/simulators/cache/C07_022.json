@@ -45,24 +45,31 @@
         "anchor": "now"
       },
       {
-        "op": "wait",
-        "cond": "HumiditySensor.Humidity > 70",
-        "edge": "none"
-      },
-      {
-        "op": "call",
-        "target": "Dehumidifier.SetDehumidifierMode",
-        "args": {
-          "Mode": "freezeProtection"
-        }
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "HumiditySensor.Humidity > 70",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "freezeProtection"
+            }
+          }
+        ]
       }
     ]
   },
   "joi_block": {
     "name": "Scenario",
     "cron": "",
-    "period": 0,
-    "script": "wait until((#Bathroom #HumiditySensor).humiditySensor_humidity > 70)\n(#Bathroom #Dehumidifier).dehumidifier_setDehumidifierMode(\"freezeProtection\")"
+    "period": 100,
+    "script": "triggered := false\nif ((#HumiditySensor #Bathroom).humiditySensor_humidity > 70) {\nif (triggered == false) {\n(#Dehumidifier #Bathroom).dehumidifier_setDehumidifierMode(\"freezeProtection\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bathroom #HumiditySensor).humiditySensor_humidity > 70)\n(#Bathroom #Dehumidifier).dehumidifier_setDehumidifierMode(\\\"freezeProtection\\\")\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#HumiditySensor #Bathroom).humiditySensor_humidity > 70) {\nif (triggered == false) {\n(#Dehumidifier #Bathroom).dehumidifier_setDehumidifierMode(\\\"freezeProtection\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
 }

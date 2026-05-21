@@ -46,13 +46,13 @@
       },
       {
         "op": "if",
-        "cond": "SoundSensor.Sound >= 50 && Speaker.PlaybackState == \"stopped\"",
+        "cond": "SoundSensor.Sound >= 50 and Speaker.PlaybackState == \"stopped\"",
         "then": [
           {
             "op": "call",
             "target": "Speaker.Speak",
             "args": {
-              "Text": "The baby is awake"
+              "Text": "the baby is awake"
             }
           },
           {
@@ -71,7 +71,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#BabyRoom #SoundSensor).soundSensor_sound >= 50 and (#LivingRoom #Speaker).speaker_playbackState == \"stopped\") {\n(#LivingRoom #Speaker).speaker_speak(\"The baby is awake\")\n(#LivingRoom #Speaker).speaker_play(\"lullaby.mp3\")\n}"
+    "script": "if ((#SoundSensor #BabyRoom).soundSensor_sound >= 50 and (#Speaker #LivingRoom).speaker_playbackState == \"stopped\") {\n(#Speaker #LivingRoom).speaker_speak(\"the baby is awake\")\n(#Speaker #LivingRoom).speaker_play(\"lullaby.mp3\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#BabyRoom #SoundSensor).soundSensor_sound >= 50 and (#LivingRoom #Speaker).speaker_playbackState == \\\"stopped\\\") {\\n(#LivingRoom #Speaker).speaker_speak(\\\"The baby is awake\\\")\\n(#LivingRoom #Speaker).speaker_play(\\\"lullaby.mp3\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#SoundSensor #BabyRoom).soundSensor_sound >= 50 and (#Speaker #LivingRoom).speaker_playbackState == \\\"stopped\\\") {\\n(#Speaker #LivingRoom).speaker_speak(\\\"the baby is awake\\\")\\n(#Speaker #LivingRoom).speaker_play(\\\"lullaby.mp3\\\")\\n}\"\n}"
 }

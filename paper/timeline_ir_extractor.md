@@ -26,7 +26,7 @@ If the command is not expressible, output `{"error":"<reason>"}` instead. Reject
 
 1. `{"op":"start_at","anchor":"now"}` — scenario starts immediately.
 2. `{"op":"start_at","anchor":"cron","cron":"<5-field cron>"}` — starts at each cron firing.
-3. `{"op":"wait","cond":"<expr>","edge":"none|rising"}` — block until `cond` true. `edge` is set by position (top-level→`"none"`, inside `cycle`→`"rising"`). For "stops / no longer holds", **negate the cond** (`cond:"Rain == false"`); never use `edge:"falling"`.
+3. `{"op":"wait","cond":"<expr>","edge":"none|rising","for":"<N> <UNIT>"?}` — block until `cond` true. `edge` is set by position (top-level→`"none"`, inside `cycle`→`"rising"`). For "stops / no longer holds", **negate the cond** (`cond:"Rain == false"`); never use `edge:"falling"`. **Optional `for`** field: cond must hold CONTINUOUSLY for that duration before wait completes (timer resets if cond flips). Use ONLY when the command names a sustained duration ("for 30 seconds", "30초 이상", "for at least N minutes", "if X stays Y for N"). Format identical to `delay.duration` ("N UNIT"). Do NOT use `wait.for` to encode plain delays — use the `delay` op.
 4. `{"op":"delay","duration":"<N> <UNIT>"}` — pause for N units. `UNIT` ∈ {`HOUR`, `MIN`, `SEC`, `MSEC`}. Exactly one space between N and UNIT. Examples: `"5 MIN"`, `"1 HOUR"`, `"100 MSEC"`. NEVER use ms-as-int (`"ms": 300000` is OBSOLETE).
 5. `{"op":"read","var":"<name>","src":"<Device.attr>"}` — snapshot a value to a local variable. Use ONLY when the same attribute is compared across different time points; otherwise reference `Device.attr` directly in expressions.
 6. `{"op":"call","target":"<Device.method>","args":{...},"var":"<Name>"?}` — perform an action. `var` declares the return value's binding. Add ONLY per R-var.
@@ -110,6 +110,27 @@ This is the most-confused rule. Apply it precisely:
 
 Heuristic: if `[Command Hints]` contains a `polling cycle:` line, use `if`. If it contains a `rising-edge trigger; repeats on each transition` line WITHOUT a `polling cycle:` line, use `wait`.
 
+## D5.5. Sustained-cond → `wait.for`
+When the command requires a condition to hold for a duration (NOT a fixed delay), use the `for` field on a `wait` op. The semantic difference vs `delay`:
+- `delay(30 SEC)` — pause 30s regardless of cond.
+- `wait(cond, for:"30 SEC")` — cond must remain true CONTINUOUSLY for 30s; timer resets if cond flips false midway.
+
+### Shape decision — one-shot vs re-arming
+Same sustain semantics; the shape is decided STRUCTURALLY by re-arm markers, mirroring D-3 vs D-2:
+
+- **Re-arm (cycle-wrapped)** — markers: `whenever`, `every time`, `each time`, `매번`, `~할 때마다`. Use `cycle(period="100 MSEC"){ wait(C, edge:"rising", for:"N UNIT"); Y }`.
+- **One-shot (top-level)** — DEFAULT when no re-arm marker. Use `wait(C, edge:"none", for:"N UNIT"); Y`. This includes plain `when X for N` / `if X for N` / `N초 이상 X면` / `N분 이상 X일 때` — none of these are re-arming unless an explicit re-arm marker is present.
+
+| English / Korean | IR |
+|---|---|
+| `when door is open for 5 sec, notify` / `문이 5초 이상 열려있으면` | `wait(Door.State == "Open", edge:"none", for:"5 SEC"); Notify.Send` |
+| `if no motion for 30 sec, turn off` / `30초 이상 동작 감지 안 되면` | `wait(Motion == false, edge:"none", for:"30 SEC"); Switch.Off` |
+| `whenever person stays for 1 min, do Y` / `1분 이상 머무를 때마다` | `cycle(period="100 MSEC"){ wait(Presence == true, edge:"rising", for:"1 MIN"); Y }` |
+
+Sustain markers (NL → use wait.for): `for N seconds/minutes`, `for at least N`, `stays/remains for N`, `N초 이상`, `N분 동안 계속`, `N분 이상 유지`, `N초 이상 ~안되면`.
+
+**Anti-pattern**: do NOT lower "for 30 seconds without motion" as `wait(Motion==false); delay(30 SEC); if(Motion==false){...}`. That checks endpoints only; a brief mid-window motion blip passes when it shouldn't. Use `wait.for`.
+
 ## D6. Phase lifecycle (D-4) — wait OUTSIDE cycle
 When the command says `when X (one-time event), thereafter / from then on / from that point every N, do Y`, the trigger is **one-shot**. The IR is:
 
@@ -139,14 +160,14 @@ Time-of-day blocks (when literal hours not given):
 ## D7b. `cycle.period` — REQUIRED for every cycle
 Pick the value by body shape:
 - **D-3 edge cycle** (body has `wait(edge:"rising")`): `period:"100 MSEC"` (10Hz polling default; lowering hardcodes 100ms).
-- **D-5 alternation** (body has 2+ inter-call `delay`s): `period:"N UNIT"` matching each inter-call delay (keep body delays — they signal alternation).
+- **D-5 alternation** (body has 2+ inter-call `delay`s): `period:"N UNIT"` matching each inter-call delay (keep body delays — they signal alternation). **The two (or more) call slots MUST take DIFFERENT values** drawn from the NL — never copy the first into the second. NL like `between A and B`, `alternate A and B`, `toggle X and Y` always names two distinct values; if you write the same value twice the alternation semantics is destroyed.
 - **All others** (NL says `every N <unit>`): `period:"N UNIT"`. Body describes ONE iteration; do NOT compute `N - K` rest-delays.
 
 | English | IR shape |
 |---|---|
 | `Every N min until H, sound siren for K sec then off` | `cycle(until="clock.time >= H00", period="N MIN", body=[call(Set...), delay(K SEC), call(Switch.Off)])` |
 | `Whenever X, do Y` (D-3) | `cycle(until=null, period="100 MSEC", body=[wait(...,rising), call(Y)])` |
-| `Every N, alternate A then B` (D-5) | `cycle(until=null, period="N UNIT", body=[A, delay(N), B, delay(N)])` |
+| `Every N, alternate A then B` (D-5) | `cycle(until=null, period="N UNIT", body=[A, delay(N), B, delay(N)])` — A and B carry DIFFERENT arg values from NL (e.g., A=`{Mode:"sleep"}`, B=`{Mode:"auto"}`); never the same value twice |
 
 ## D8. Snapshot need
 Same device attribute compared at two different moments → use `read` for each capture. Otherwise reference `Device.attr` directly.
@@ -162,7 +183,7 @@ Same device attribute compared at two different moments → use `read` for each 
 | `whenever X, do Y` / `every time X, Y` | `cycle(period="100 MSEC"){ wait(X, edge=rising); Y }` |
 | `when X, thereafter every N, Y` | `wait(X, edge=none); cycle(period="N UNIT"){ Y }` (D-4) |
 | `every N <unit>, check X and if/when …, Y` | `cycle(period="N UNIT"){ if(<state>){ Y } }` (polling) |
-| `alternate A and B every N` | `cycle(period="N UNIT"){ A; delay(N); B; delay(N) }` (D-5, body delays signal alternation) |
+| `alternate A and B every N` / `toggle X and Y every N` | `cycle(period="N UNIT"){ A; delay(N); B; delay(N) }` — A and B carry the TWO DISTINCT values named in the NL (e.g., for "between sleep mode and auto mode": A=`call(...,{Mode:"sleep"})`, B=`call(...,{Mode:"auto"})`). Never duplicate one value into both slots. |
 | `at HH` / `every day at HH` | `start_at(cron "M H * * *")` |
 | `every Monday at HH` | `start_at(cron "M H * * 1")` |
 | `on weekdays at HH` | `start_at(cron "M H * * 1-5")` |
@@ -190,6 +211,16 @@ These rules are authoritative; examples conform to them.
   - Hints are reference; `[Services]` and `[Resolved Args]` are catalog/value ground truth.
 
 - **R1. Category-only targets + verbatim attrs**: `target`/`src`/`cond` attrs MUST be `Category.Service` exactly as in `[Services]`. NEVER suffix device IDs. NEVER swap similar-looking attrs (`PressureSensor.Pressure` ≠ `PresenceSensor.Presence`).
+
+- **R1.1. Generic capabilities live on the sub-service, NEVER on the parent category**: capabilities `Switch` / `On` / `Off` / `Toggle` (Switch service), `LevelControl.MaxLevel` / `MinLevel` / `CurrentLevel` (LevelControl service), `ColorControl.MoveToColor` / `MoveToColorTemperature` (ColorControl service) belong to their respective sub-service. A device's `[Services]` block lists BOTH the parent category (e.g. `FaceRecognizer`, `Pump`, `Light`) AND the relevant sub-services. ALWAYS use the sub-service as the `Service` portion.
+  - ❌ FORBIDDEN: `FaceRecognizer.Switch`, `Pump.Switch`, `Light.Switch`, `Door.Switch`, `Light.On`, `Pump.Off`, `Light.MaxLevel`, `Speaker.Switch`. The parent category does NOT own these members.
+  - ✅ REQUIRED: `Switch.Switch` (the Switch-state attribute), `Switch.On` / `Switch.Off` / `Switch.Toggle` (Switch functions), `LevelControl.MaxLevel`, `ColorControl.MoveToColor`. Parent-category methods (e.g. `FaceRecognizer.Start`, `Pump.SetPumpMode`) stay on the parent.
+  - Heuristic: if the member name is `Switch` / `On` / `Off` / `Toggle` / `MaxLevel` / `MinLevel` / `CurrentLevel` / `MoveToColor` / `MoveToColorTemperature` / `CurrentBrightness` / `MoveToBrightness`, the Service portion is the matching sub-service, NOT the device's parent category — even though the parent is listed in `[Services]` for that device.
+
+- **R1.2. Enum values in `cond` MUST be string literals (quoted)**: when comparing an attribute against an enum member from the catalog (e.g. `"open"`, `"fullyCharged"`, `"emergency"`, `"auto"`, `"sleep"`, `"pushed"`), wrap the value in DOUBLE QUOTES. A bare identifier becomes a variable reference at evaluation time and silently resolves to `None`.
+  - ❌ FORBIDDEN: `Charger.ChargingState == fullyCharged`, `DoorLock.DoorLockState == open`, `Door.DoorState == open`.
+  - ✅ REQUIRED: `Charger.ChargingState == "fullyCharged"`, `DoorLock.DoorLockState == "open"`, `Door.DoorState == "open"`.
+  - This applies in `if.cond`, `wait.cond`, `cycle.until` — anywhere a value is compared against an enum member.
 
 - **R2. Single call for multi-device actions**: "turn on all bedroom lights" → ONE `call` op. The `all(#Bedroom #Light)` selector fans out downstream.
 

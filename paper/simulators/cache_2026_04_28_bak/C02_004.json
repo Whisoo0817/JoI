@@ -1,0 +1,54 @@
+{
+  "command_eng": "Set all robot vacuum cleaners with even tags to auto mode.",
+  "connected_devices": {
+    "Robot_Even_1": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Even",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Robot_Even_2": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Even",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Robot_Odd_1": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Odd",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "RobotVacuumCleaner.SetRobotVacuumCleanerRunMode",
+        "args": {
+          "Mode": "cleaning"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Even).robotVacuumCleaner_setRobotVacuumCleanerRunMode(\"cleaning\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Even).robotVacuumCleaner_setRobotVacuumCleanerRunMode(\\\"cleaning\\\")\"\n}"
+}

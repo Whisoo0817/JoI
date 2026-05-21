@@ -1,0 +1,1157 @@
+          GPIoT: Tailoring Small Language Models for IoT Program
+                         Synthesis and Development
+                          Leming Shen1 , Qiang Yang2 , Xinyu Huang1 , Zijing Ma1 , Yuanqing Zheng1
+                                          1 The
+                                  Hong Kong Polytechnic University, 2 University of Cambridge
+       {leming.shen,unixy-xinyu.huang,zijing.ma}@connect.polyu.hk,qy258@cam.ac.uk,csyqzheng@comp.polyu.edu.hk,
+
+ABSTRACT                                                                                                                   'W/Žd ;>ŽĐĂůͿ                          ^ƵďͲƚĂƐŬϭ
+Code Large Language Models (LLMs) enhance software develop-                                                                        /ŽdƚĂƐŬ                       ^ƵďͲƚĂƐŬϮ
+                                                                                                                                                                  ͙͙
+ment efficiency by automatically generating code and documen-                                         ǆŝƐƚŝŶŐŽĚĞ>>DƐ                             d^>D        ^ƵďͲƚĂƐŬŶ
+                                                                                                                                       ŽĚĞ
+tation based on user requirements. However, code LLMs cannot                                                                фͬх
+                                                                                                                             ͬ
+                                                                                                                                       ΘŽĐ͘
+synthesize specialized programs when tasked with IoT applications                                     hƐĞƌƌ        ŽĚĞ
+                                                                                                      ĂƚĂĂ                                dĂƐŬ^ƉĞĐŝĨŝĐĂƚŝŽŶϭ
+that require domain knowledge. While Retrieval-Augmented Gener-                                                                            dĂƐŬ^ƉĞĐŝĨŝĐĂƚŝŽŶϮ
+ation (RAG) offers a promising solution by fetching relevant domain                                                                        ͙͙
+                                                                                                                    фͬх
+                                                                                                                           '^>D           dĂƐŬ^ƉĞĐŝĨŝĐĂƚŝŽŶŶ    Zd^>D
+knowledge, it necessitates powerful cloud LLMs (e.g., GPT-4) to
+process user requirements and retrieved contents, which raises                                    Figure 1: Existing code LLMs need to transmit sensitive data
+significant privacy concerns. This approach also suffers from un-                                 to remote servers. In contrast, GPIoT features three local
+stable networks and prohibitive LLM query costs. Moreover, it is                                  SLMs to protect user privacy and reduce query costs.
+challenging to ensure the correctness and relevance of the fetched
+contents. To address these issues, we propose GPIoT, a code genera-
+                                                                                                  1    INTRODUCTION
+tion system for IoT applications by fine-tuning locally deployable
+                                                                                                  Large language models (LLMs) [65, 70] are revolutionizing various
+Small Language Models (SLMs) on IoT-specialized datasets. SLMs
+                                                                                                  aspects of embedded system development and mobile computing,
+have smaller model sizes, allowing efficient local deployment and
+                                                                                                  e.g., smartphone task automation [74], advanced virtual assistants
+execution to mitigate privacy concerns and network uncertainty.
+                                                                                                  [46], and even IoT data comprehension [4, 41, 48, 79]. Code LLMs
+Furthermore, by fine-tuning SLMs with our IoT-specialized datasets,
+                                                                                                  (e.g., WizardCoder [43] and CodeLlama [53]) stand out as promising
+the SLMs’ ability to synthesize IoT-related programs can be sub-
+                                                                                                  tools designed to synthesize programs based on user requirements
+stantially improved. To evaluate GPIoT ’s capability in synthesizing
+                                                                                                  described in natural language. As illustrated in Fig. 1, the integra-
+programs for IoT applications, we develop a benchmark, IoTBench.
+                                                                                                  tion of programming tools with code LLMs significantly enhances
+Extensive experiments and user trials demonstrate the effectiveness
+                                                                                                  software development by automating code completion, code gener-
+of GPIoT in generating IoT-specialized code, outperforming state-
+                                                                                                  ation, bug detection, documentation writing, etc.
+of-the-art code LLMs with an average task accuracy increment of
+                                                                                                      While powerful and promising, when confronted with IoT appli-
+64.7% and significant improvements in user satisfaction.
+                                                                                                  cations [6, 25, 26, 80–84] that require special domain knowledge,
+                                                                                                  existing code LLMs tend to simply provide general solutions with
+CCS CONCEPTS                                                                                      sub-optimal performance (§ 2.2). This is because they focus on
+• Computing methodologies → Artificial intelligence; • Com-                                       general-purpose programming tasks [34] rather than being tailored
+puter systems organization → Embedded and cyber-physical                                          to any particular domain. Moreover, IoT-related knowledge and
+systems.                                                                                          programs only occupy a small proportion of the datasets which
+                                                                                                  code LLMs were trained on [85]. Consequently, IoT terminologies
+KEYWORDS                                                                                          will be assigned a lower priority during inference with the gener-
+Small Language Model, IoT Program Synthesis, Fine-tuning                                          ated code less dedicated to the IoT domain (§ 2.2). This motivates
+ACM Reference Format:
+                                                                                                  the following research question: Can we build a code LLM specially
+Leming Shen1 , Qiang Yang2 , Xinyu Huang1 , Zijing Ma1 , Yuanqing Zheng1 .                        tailored for IoT application code generation tasks? If yes, we can
+2025. GPIoT: Tailoring Small Language Models for IoT Program Synthesis                            synthesize IoT-related programs with higher task accuracy and
+and Development. In The 23rd ACM Conference on Embedded Networked                                 efficiency, offering significant convenience for IoT developers.
+Sensor Systems (SenSys ’25), May 6–9, 2025, Irvine, CA, USA. ACM, New York,                           A potential approach can be Retrieval-Augmented Generation
+NY, USA, 14 pages. https://doi.org/10.1145/3715014.3722064                                        (RAG) [36], which provides LLMs with retrieved domain knowledge
+                                                                                                  to enhance their abilities in generating accurate and contextually
+                                                                                                  relevant solutions. Existing works [17, 28, 56] construct a sophisti-
+Permission to make digital or hard copies of all or part of this work for personal or             cated LLM+RAG agent to gradually generate code through multiple
+classroom use is granted without fee provided that copies are not made or distributed             intermediate steps via prompts. Nonetheless, they suffer from three
+for profit or commercial advantage and that copies bear this notice and the full citation
+on the first page. Copyrights for third-party components of this work must be honored.            main problems. 1) A powerful LLM with strong language compre-
+For all other uses, contact the owner/author(s).                                                  hension capability is needed to learn from the retrieved knowledge.
+SenSys ’25, Irvine, CA, USA
+                                                                                                  However, cloud LLMs (e.g., GPT-4 [2]) may suffer from bad network
+© 2025 Copyright held by the owner/author(s).
+ACM ISBN 979-8-4007-1479-5/25/05. . . $15.00                                                      conditions, high costs, and privacy concerns, while local LLMs (e.g.,
+https://doi.org/10.1145/3715014.3722064                                                           Llama2-70b [61]) have harsh requirements in system resources (e.g.,
+
+
+
+
+                                                                                            199
+SenSys ’25, May 6–9, 2025, Irvine, CA, USA                                                               Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, Yuanqing Zheng
+
+
+memory and network). 2) Complicated RAG designs (e.g., itera-                                co-tuning (PECT) paradigm featuring a multi-path Low-Rank Adap-
+tive retrieval [77]) are mandatory to ensure the correctness and                             tation (LoRA) pipeline. Unlike conventional LoRA tuning that tunes
+high relevance of the retrieved knowledge, with extended process-                            adapters separately, our designed PECT paradigm enables collabora-
+ing time. Otherwise, LLMs may fail to focus on the IoT context                               tive fine-tuning of multiple SLMs with a shared base model but with
+and still provide general solutions [75]. 3) Meticulously designed                           different adapters, thereby mitigating the inconsistency issues and
+prompts are required to ensure that outputs must strictly follow                             facilitating knowledge sharing between SLMs. 3) Format incom-
+pre-defined formats [38], which is extremely challenging due to the                          patibility. Decomposed tasks are typically described in natural
+hallucinations and unreliability of LLMs [62].                                               language, while the expected inputs of CGSLM should be well-
+   To tackle the above problems, we propose GPIoT, a code gen-                               structured. If we directly use the decomposed task descriptions as
+eration system tailored for IoT application development by fine-                             prompts to generate code, CGSLM can not provide programs strictly
+tuning local small language models1 (SLMs) on IoT-specialized                                following user requirements (§ 2.2). To address this, we leverage
+text-generation datasets. This approach has the following benefits:                          Chain-of-Thought (CoT) prompting [73] that instructs RTSLM to
+1) The system overhead, privacy leakage, and network instability                             transform the descriptions into well-structured specifications step
+can be mitigated, as SLMs have smaller sizes and can be locally de-                          by step. As such, CGSLM can better handle the specifications to
+ployed without incurring heavy resource burdens. 2) SLMs tuned on                            provide IoT-specialized solutions.
+IoT-specialized datasets can generate responses with significantly                              To evaluate GPIoT, we also propose IoTBench, a benchmark to
+enhanced quality and higher relevance to the IoT domain [58]. 3) As                          quantify LLMs’ capabilities in synthesizing IoT-related programs.
+our tuning datasets are well-structured text data, the tuned SLMs                            Extensive experiments and a user study demonstrate that GPIoT
+can produce intermediate outputs following the expected format                               can generate code adopting more IoT-specialized algorithms and
+with enhanced stability and avoid hallucinations.                                            outperform SOTA code LLMs in terms of task accuracy (more than
+   We implement GPIoT 2 with three tailored SLMs to handle differ-                           64.7% on average), memory usage (less than 310 MB on average), and
+ent stages of IoT application development: TDSLM for Task Decom-                             user satisfaction. In summary, we make the following contributions:
+position, RTSLM for Requirement Transformation, and CGSLM for                                • GPIoT presents the first code generation system tailored for
+Code Generation. Though tuning one SLM to handle all the tasks is                              IoT application development featuring privacy-preserving local
+possible, it is extremely challenging due to SLMs’ limited language                            SLMs tuned on IoT-specialized datasets.
+understanding and processing capabilities [35, 42]. As shown in                              • We create IoT domain text-generation datasets with a novel aug-
+Fig. 1, TDSLM first decomposes an IoT application into multiple                                mentation method tailored for the unique characteristics of IoT
+sub-tasks with detailed descriptions. Next, the descriptions are con-                          tasks, significantly enhancing the IoT knowledge comprehension
+verted into well-structured specifications following pre-defined                               ability of our tuned SLMs. We also construct IoTBench to evaluate
+formats by RTSLM. Accordingly, CGSLM further generates a list                                  the capability of LLMs in synthesizing IoT-specialized programs.
+of code snippets with detailed documentation. By sequentially exe-                           • We propose the PECT paradigm, a new LLM tuning method that
+cuting the code based on the documentation, the IoT task can be                                can collaboratively fine-tune multiple SLMs to mitigate their
+solved. Note that we only fine-tune TDSLM and CGSLM as these                                   domain misalignment with facilitated knowledge exchange.
+two stages require IoT domain knowledge during inference while
+RTSLM only needs basic language processing.                                                  2     BACKGROUND & MOTIVATION
+   In practice, we face three significant technical challenges. 1)                           We first revisit existing code LLMs to underscore the importance
+Lack of high-quality data. To the best of our knowledge, there                               of constructing tailored IoT-related LLMs. Then, we conduct some
+are no IoT-oriented user-requirement-to-sub-task and sub-task-to-                            preliminary experiments on existing LLM+RAG methods to further
+program text-generation datasets. Thus, we first construct two                               motivate our work with several challenges we need to address.
+datasets containing IoT knowledge retrieved from various public
+sources, aiming to enhance the task decomposition and code gen-                              2.1    Code LLM and LLM+RAG
+eration abilities of TDSLM and CGSLM, respectively. Moreover, we                             Existing code LLMs aim to synthesize programs and enhance soft-
+design an IoT-oriented text data augmentation method to enhance                              ware development efficiency and accuracy. While they perform well
+the datasets’ quality and diversity, considering the unique charac-                          on general and simple programming tasks (e.g., sorting algorithms),
+teristics (e.g., sensor modality and resource heterogeneity) of IoT                          they often struggle with complex problems in the IoT domain. For
+applications, thereby enhancing SLMs’ knowledge comprehension                                example, when prompted to design an R-peak detection method
+and code generation capabilities for IoT tasks. 2) Domain mis-                               for electrocardiogram (ECG) data, existing code LLMs can only use
+alignment between SLMs. The decomposed tasks generated by                                    the find_peaks() function, which adopts a general peak detection
+TDSLM may fall beyond the scope that CGSLM can handle due to                                 algorithm rather than a dedicated one tailored for ECG data (e.g.,
+domain misalignment. This is because the two SLMs focus on dif-                              Pan-Tompkins [50]). The underlying reason is that IoT knowledge
+ferent stages of IoT application development during tuning, which                            and programs only occupy a small proportion of the training dataset
+could lead to thematic inconsistencies in task interpretation and                            of code LLMs. As a result, despite being presented with abundant
+execution (§ 2.2). To tackle this, we propose a parameter-efficient                          IoT terminologies in the prompt, LLMs still tend to prioritize and
+                                                                                             respond with more general words, due to their higher similarity
+1We  consider SLMs as open-source language models that can be locally deployed and           (shorter distance in Fig. 2(a)) within the vector representation space.
+operated efficiently on commodity GPUs [29] (e.g., Llama2-13b with INT8 quantization
+requires around 16 GB of GPU memory).                                                           LLM+RAG methods address this by retrieving domain knowl-
+2 The models and datasets are available at https://github.com/lemingshen/GPIoT               edge for reference and establishing multiple cascaded agents to
+
+
+
+
+                                                                                       200
+GPIoT: Tailoring Small Language Models for IoT Program Synthesis and Development                                      SenSys ’25, May 6–9, 2025, Irvine, CA, USA
+
+                                               /ŶƉƵƚ             KƵƚƉƵƚ                                                   d^>DKƵƚƉƵƚ            '^>D/ŶƉƵƚ
+  Given an ECG data, implement a
+                                                                                                                         WƌĞƉƌŽĐĞƐƐƚŚĞ       ΎΎdĂƌŐĞƚΎΎ
+  R-peak detection algorithm.                                           z                                                ƌĂǁ'ĚĂƚĂ͕        WƌĞƉƌŽĐĞƐƐƚŚĞ
+              find_peaks()                >>DнZ'       E                                                             ƚŽĞŶŚĂŶĐĞƚŚĞ       'ĚĂƚĂ ͙͙
+                                                                ^ƵĐĐĞƐƐ͍                                                 YZ^ĐŽŵƉůĞǆ
+                                          DƵůƚŝĂŐĞŶƚ                                                                                           ΎΎ/ŶƉƵƚΎΎ
+                                                                                                                         ĂŶĚƐƵƉƉƌĞƐƐ
+                             R-peak                                                                                      ŶŽŝƐĞƐďǇĂƐĞƚ
+                                                                                                                                               Ͳ ƐŝŐŶĂů;ĂƌƌĂǇͿ
+  ECG                   Higher priority                                                                                  ŽĨĨŝůƚĞƌŝŶŐƐƚĞƉƐ
+                                                                                                                                          ΎΎKƵƚƉƵƚΎΎ
+                        Lower priority
+                                           ZĞƚƌŝĞǀĂů           ĞďƵŐ
+                                                                                                                         ͙͙dŚĞŽƵƚƉƵƚ   Ͳ ƉƌŽĐĞƐƐĞĚͺƐŝŐŶĂů
+                                           ŐĞŶƚ               ŐĞŶƚ
+                                                                                                                         ƐŚŽƵůĚďĞ͙      ;ĂƌƌĂǇͿ
+                                                                                               (a) BLEU scores            (b) Requirement-specification gap
+                Pan-Tompkins
+                                           WůĂŶŶŝŶŐ            ŽĚŝŶŐ                                               ‘ with simple augmentation
+                                           ŐĞŶƚ               ŐĞŶƚ                 Figure 3: (a) Directly tuning SLM
+        Word Vector Space
+                                                                                     only yields small improvements; (b) Gap between SLMs.
+   (a) Terminologies in vector space      (b) General workflow of LLM+RAG
+Figure 2: (a) Existing LLMs tend to prioritize general terms;                        similarity between the generated responses and the human-crafted
+(b) LLM+RAG systems require multiple cascaded agents.                                references as ground truth (decomposed tasks) using the BLEU score
+facilitate information transfer among modules. For example, in                       [51], where a larger value indicates higher semantic similarity. As
+Fig. 2(b), multiple LLM-based agents are employed for different                      shown in Fig. 3(a), GPT-4o achieves the highest score with an ac-
+tasks during development (i.e., domain knowledge retrieval, task                     ceptable value for such a text-generation task. However, the scores
+planning, coding, and debugging). Sophisticated prompt design                        achieved by tuned SLMs increase slightly even with augmented
+and meticulously structured intermediate outputs are necessary to                    TDD. Further analysis reveals that the solutions provided by the
+ensure that one agent’s output can be accurately parsed and inter-                   SLMs are either irrelevant to the IoT domain or contain halluci-
+preted by another agent. We conduct a preliminary experiment by                      nations. This is because traditional augmentation methods (e.g.,
+prompting MapCoder [30], a multi-agent-based LLM+RAG frame-                          Evol-Instruct) focus on augmenting linguistic characteristics of the
+work, to synthesize programs for R-peak detection. We repeatedly                     original text data, which may fall short of effectively capturing
+generate 100 distinct versions of the programs and analyze them                      intricate relationships among IoT terminologies. This motivates us
+through code review and execution. Surprisingly, we find that only                   to design an IoT-tailored text augmentation method to enhance the
+28% of the programs adopt appropriate IoT-related algorithms to                      quantity, quality, and diversity of the original dataset.
+perform R-peak detection. This is because LLM+RAG requires so-                       Domain misalignment. Since TDSLM and CGSLM are tuned on
+phisticated RAG design and user prompts. Otherwise, the retrieved                    distinct datasets for different tasks, domain misalignment occurs
+knowledge is less accurate and relevant to the IoT context, and                      when used in tandem. Specifically, we feed the task descriptions
+LLMs may fail to focus on the IoT domain and still provide sim-                      generated by TDSLM into CGSLM to synthesize corresponding
+ple and general solutions [75]. Moreover, this cascading process                     programs for each sub-task. Surprisingly, we find that only 53.4%
+inevitably introduces noise and propagates errors [76], leading to a                 of the programs can be successfully executed without bugs and
+long self-recover time. More importantly, cloud LLMs suffer from                     only 10.6% of the programs adopt IoT-specialized algorithms for the
+bad network conditions, high costs, and privacy concerns.                            IoT tasks. The main reason is that the two SLMs develop expertise
+   To overcome these challenges, GPIoT fine-tunes SLMs on IoT-                       in different domains with knowledge inconsistency during tuning,
+specialized text-generation datasets, as SLMs have smaller sizes and                 hindering the seamless integration of task decomposition and code
+can be locally deployed. Additionally, by steering the parameter                     generation. As a result, the responses generated by TDSLM may
+distribution towards the IoT domain via tuning, SLMs can focus on                    fall outside the scope that CGSLM can handle. This motivates us to
+IoT-related semantic context, generating highly relevant responses                   develop a knowledge-sharing strategy between the two SLMs during
+that follow pre-defined formats with enhanced stability.                             tuning so that they can reach a consensus when handling IoT tasks.
+                                                                                     Format incompatibility. TDSLM’s outputs (decomposed tasks) are
+2.2     Preliminary Experiments & Findings                                           described in natural language while CGSLM’s inputs (task speci-
+We conduct some preliminary experiments by separately fine-                          fications) should be well structured (Fig. 3(b)). When we directly
+tuning two SLMs on our manually constructed datasets (§ 4.1),                        feed TDSLM’s output into CGSLM, only 23.6% of the synthesized
+i.e., the task decomposition dataset (TDD) and the code generation                   programs can be successfully executed. The rest exhibits higher
+dataset (CGD). TDD aims to enhance TDSLM’s capability to break                       uncertainty with a lack of confidence in mapping the input task
+a problem statement proposed by the user into multiple decomposed                    specification to the desired code [86]. The reason is that CGSLM is
+tasks described in natural language. CGD aims to enhance CGSLM’s                     more sensitive to well-formatted inputs as it has been tuned on our
+ability to generate code & documentation for the user based on the                   dataset with structured text. Though directly tuning TDSLM to gen-
+decomposed tasks. However, we find it extremely challenging to                       erate well-structured task specifications can be a solution, we find
+ensure the correctness of the generated code. Note that we use                       it challenging due to the limited language processing capabilities of
+Llama2-13b [61] as the default SLM for demonstration purpose.                        SLMs, which cannot be sufficiently enhanced through tuning alone.
+Lack of high-quality data. Directly fine-tuning SLMs incurs little                   This motivates us to develop a method to convert the task descriptions
+performance gain, even with data augmentation. We first deploy                       in natural language into well-organized specifications.
+four models: GPT-4o, the original SLM, the SLM tuned on TDD, and                         To address the above challenges, we propose three key technical
+the SLM tuned on augmented TDD via Evol-Instruct [78]. Then, we                      modules, i.e., an IoT-oriented text data augmentation method, a
+randomly select three IoT problems from TDD and input them into                      Parameter-Efficient Co-Tuning (PECT) paradigm with a multi-path
+the four models to obtain a set of responses. Next, we measure the                   LoRA pipeline, and a requirement transformation module.
+
+
+
+
+                                                                               201
+SenSys ’25, May 6–9, 2025, Irvine, CA, USA                                                                      Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, Yuanqing Zheng
+                                                Offline Tuning Stage                         Online Processing Stage
+                Research Papers                                                        Ś     Requirement for             Decomposed Task List
+                                                                                                                         Decomp                      Ŝ
+                                                      LoRA Adapter                                                                                                  Prompt 1
+                                                                                             IoT Applications           Task 1: Load Data
+                                                           PECT                                                         TTask 2: Preprocessing
+                                      Task Decomposition SLM                                                            TTask n: Output Results                     Prompt 2
+                                                                                       ś    Task Decomposition
+                       IoT-Oriented                                                                                                                  CoT-based             ……
+                      Augmentation                                                     Ş    Code Generation                                        ŝ      p g
+                                                                                                                                                     Prompting
+     RAG Agent                        Code Generation SLM                                                                 T
+                                                                                                                          Task Specification List
+                                                                                                                                               stt
+                                                                                                                                                                    Prompt n
+                                                      LoRA Adapter                                                       TTask Specification 1: ……
+                                                                                            Code
+                                                                                            C d &D
+                                                                                                 Doc.                                                       Requirement
+                 Webpages &                                                                  A list of code   Š           Task Specification 2: ……
+          </>                                              PECT
+                  Programs                                                             ş     Related Doc.      Result    Task Specification n: ……        Transformation SLM
+
+            Figure 4: The system overview and workflow of GPIoT (All the local SLMs share the same foundation model).
+                               Implementation Detail Extraction Prompt + there are three SLMs working simultaneously, they share the same
+         +                                                               foundation model and differ only in some additional tunable parame-
+                                 Model 1: Load ECGCG
+                                                   G Data
+                                                     D + Description
+                                                     Da
+           RAG
+             G Agent
+                Age
+                Ag                                                       ters, which only occupy 1% of all the parameters. Such a low-cost
+       Technical Module
+                                                                         tuning and inference process stems from our PECT paradigm, avoid-
+       Extraction Prompt       Sub-Task List for Modu
+                                                 Module
+                                                   odu
+                                                    d l 1: Load ECG Data ing significant overhead when deploying GPIoT on local devices.
+                                      — Task 1 [Download the MIT-BIH Dataset]
+     Technical
+            al Module
+               Mo     List              — Access the network and download the data
+                                      — Task 2 [Load the ECG Data from Local Disk]
+                                                                                                 4 SYSTEM DESIGN
+    Module 1: Load ECG Data
+                                        — Write a script to load all the ECG data
+    Module 2: Signal Preprocess         — Implementation Workflow
+                                                                                                 4.1 Data Collection & Augmentation
+    Module n: Output Results               — Step 1: Import the `wfdb` package and …             Since there are no text-generation datasets in the IoT domain, we
+      Figure 5: Task decomposition dataset construction.                                         need to first construct a task decomposition dataset (TDD) and a
+                                                                                                 code generation dataset (CGD). Note that our datasets contain Q&A
+3     SYSTEM OVERVIEW                                                                            pairs in textual form, fundamentally differing from conventional
+Fig. 4 illustrates the overall architecture of GPIoT, consisting of an                           IoT datasets that typically contain pairs of sensor data and labels.
+offline tuning stage and an online processing stage.
+                                                                                                 4.1.1 Task Decomposition Dataset. TDD contains pairs of
+Offline Stage. The offline tuning stage (the left part in Fig. 4) con-
+                                                                                                 "problem statement → decomposed tasks", aiming to enhance TD-
+structs two IoT-specialized datasets and fine-tunes TDSLM and
+                                                                                                 SLM’s task decomposition ability for IoT problems. The construc-
+CGSLM, which will be used for task decomposition and code gen-
+                                                                                                 tion process consists of three stages: raw IoT-related text data col-
+eration in the online stage, respectively. We first build a RAG agent
+                                                                                                 lection, data formatting, and IoT-oriented text data augmentation.
+to extract knowledge and programs from various IoT-related pub-
+                                                                                                 Raw Data Collection. IoT-related research papers contain a huge
+lic sources (e.g., websites and articles) to construct high-quality
+                                                                                                 quantity of high-quality SOTA applications and algorithms. More-
+datasets. Then, we augment the datasets by adopting our IoT-
+                                                                                                 over, the systems proposed are comprehensive and functional,
+oriented augmentation method (§ 4.1) to enhance their quantity,
+                                                                                                 which can be decomposed into multiple modules with clear moti-
+quality, and diversity. Note that the RAG agent is only used for
+                                                                                                 vation and implementation details. Therefore, we download IoT-
+high-quality dataset construction during the offline stage. With the
+                                                                                                 related papers from several public literature databases3 as our high-
+two augmented datasets, we fine-tune two SLMs via our PECT par-
+                                                                                                 quality data sources, covering a wide range of IoT topics, such as
+adigm, where certain model parameters are collaboratively tuned
+                                                                                                 communication, wireless sensing, edge computing, etc.
+through a multiple-path LoRA pipeline with two projection layers
+                                                                                                 Data Formatting. We need to extract IoT knowledge from the
+for task decomposition and code generation, respectively. Our PECT
+                                                                                                 papers and format it to pairs of "problem statement → decomposed
+paradigm mitigates the domain misalignment between TDSLM
+                                                                                                 tasks". Intuitively, we can regard the proposed system in each paper
+and CGSLM with facilitated knowledge transfer and sharing.
+                                                                                                 as an IoT problem, with its technical modules as the corresponding
+Online Stage. The online stage (the right part in Fig. 4) aims to
+                                                                                                 decomposed tasks. However, two challenges occur if we directly
+synthesize IoT-specific programs based on the user requirement for
+                                                                                                 use such "System → technical modules" pairs for tuning: 1) These
+an IoT application development. Specifically, GPIoT first leverages
+                                                                                                 module descriptions are typically lengthy, which exceed the context
+Task Decomposition SLM (TDSLM) to decompose the IoT appli-
+                                                                                                 length of SLMs [11]. 2) These modules are still sophisticated, often
+cation into multiple manageable sub-tasks with detailed descrip-
+                                                                                                 containing multiple sub-systems. TDSLM may struggle to extract
+tions (x∼y). Next, through CoT-based prompting techniques, the
+                                                                                                 IoT-specialized technical concepts and accurately generate manage-
+sub-task descriptions will be gradually transformed into well-
+                                                                                                 able components. To tackle this, our insight is that we regard each
+structured specifications by Requirement Transformation SLM
+                                                                                                 module as an individual problem, which can be further decomposed
+(RTSLM) (z∼{). Next, for each sub-task, Code Generation SLM
+                                                                                                 into several manageable sub-tasks. The disintegrated sub-tasks can
+(CGSLM) accordingly generates a code snippet with documentation
+                                                                                                 be easily handled by TDSLM with reduced context length.
+(|∼}). Users can execute the code sequentially to realize the IoT
+                                                                                                    Fig. 5 shows the entire process of how we extract pairs of "prob-
+application based on the instructions from the documentation (~).
+                                                                                                 lem statement → decomposed tasks" from the papers. Specifically,
+SLM Considerations. We consider SLMs as open-source models
+                                                                                                 we first build a RAG agent by combining the downloaded papers
+that can be locally deployed and operated efficiently on commodity
+                                                                                                 with an LLM (GPT-4o). Based on the provided context documents,
+GPUs (e.g., RTX 4070 Ti). This aligns with the practical constraints
+of normal users, where local models offer advantages in terms of                                 3We download papers from public databases via our institution’s certification. The
+cost, privacy, and independence from the cloud. Note that although                               papers are for research only, adhering to ethical standards.
+
+
+
+
+                                                                                           202
+GPIoT: Tailoring Small Language Models for IoT Program Synthesis and Development                                                                        SenSys ’25, May 6–9, 2025, Irvine, CA, USA
+     Technical Module Extraction Prompt         Implementation Detail Extraction Prompt                       dĂƐŬĞĐŽŵƉŽƐŝƚŝŽŶĂƚĂǆĂŵƉůĞ               Sensor Data Modality Augmentation Prompt
+  Context Document: PDF File                    Context Document: PDF File                                ^ǇƐƚĞŵDĞƐƐĂŐĞ                                    System Message
+  System Message                                System Message                                            zŽƵ ĂƌĞ ĂŶ /Žd ĂƉƉůŝĐĂƚŝŽŶ ĚĞǀĞůŽƉĞƌ͘           You are a professional prompt writer.
+  Based on the document, split the system       Based on the document, summarize a                        ĞĐŽŵƉŽƐĞ ƚŚĞ ƉƌŽďůĞŵ ƐƚĂƚĞŵĞŶƚ ŝŶƚŽ Ă            Rewrite the prompt into a diverse version
+  proposed in the paper into multiple           problem statement of the given technical                  ƚĂƐŬ ůŝƐƚ ǁŝƚŚ ŝŵƉůĞŵĞŶƚĂƚŝŽŶ ĚĞƚĂŝůƐ͘ dŚĞ        by replacing the sensor data modality
+  modules with detailed descriptions. You       module and split it into a sub-task list with             ŽƵƚƉƵƚ ŵƵƐƚ ďĞ ŝŶ ƚŚĞ ĨŽƌŵĂƚ ŽĨ͗                  with a different one (e.g., WIFI --> IMU).
+  must search through the document              implementation details. You must search                   Ͳ ^ƵďͲdĂƐŬϭ΀dĂƐŬEĂŵĞ΁                          Direct output three different versions of
+  repeatedly for detailed information.          through the entire document thoroughly.                          Ͳ /ŵƉůĞŵĞŶƚĂƚŝŽŶƐƚĞƉϭ͙͙͘                the rewritten prompt separated by a
+  The output must be in the following           The output must be in the format of:                      hƐĞƌDĞƐƐĂŐĞ;‫݌‬௜ೕ Ϳ                               blank line in the following format:
+  Markdown format:                              - Sub-Task 1 [Task Name]                                                                                    <rewritten prompt1>
+                                                                                                          фWƌŽďůĞŵ^ƚĂƚĞŵĞŶƚх
+  - Module 1: module name + description         - [Problem Statement]
+                                                                                                          ƐƐŝƐƚĂŶƚDĞƐƐĂŐĞ;‫ݐ‬௜ೕ Ϳ                          <rewritten prompt2>
+  - Module 2: module name + description         - Implementation step 1 ……
+                                                                                                          Ͳ ^ƵďͲdĂƐŬϭ΀dĂƐŬEĂŵĞ΁                          User Message (‫݌‬௜ೕ )
+    (a) Technical module extraction             (b) Implementation detail extraction
+                                                                                                                Ͳ /ŵƉůĞŵĞŶƚĂƚŝŽŶ ƐƚĞƉ ϭ͙͙                  <Problem Statement>
+    Figure 6: Prompts for paper information extraction.                                                   (a) Task decomposition data sample                     (b) Augment sensor modality
+      KƌŝŐŝŶĂů^ǇƐƚĞŵZĞƋƵŝƌĞŵĞŶƚ           ƵŐŵĞŶƚĂƚŝŽŶϭ;࢖࢏૚ Ϳ                                       Figure 8: (a) Tuning data sample for task decomposition. (b)
+      ^ǇƐƚĞŵDĞƐƐĂŐĞ                        /ŵƉůĞŵĞŶƚĂŶ/DhͲďĂƐĞĚ,ZƐǇƐƚĞŵ͘                          Prompt for sensor modality augmentation.
+      zŽƵ ĂƌĞ ĂŶ /Žd ƉƉ ĚĞǀĞůŽƉĞƌ
+                                                                                                                    API Reference - A Function from SciPy                    Example Gallery
+      hƐĞƌ DĞƐƐĂŐĞ ;࢖࢏ Ϳ                    ƵŐŵĞŶƚĂƚŝŽŶϮ;࢖࢏૛ Ϳ                                                                                                            A Usage Sample
+                                                                                                           find_peaks(x, height=None, threshold=None)
+      /ŵƉůĞŵĞŶƚĂtŝ&ŝ ^/ͲďĂƐĞĚ           ǆƚƌĂĐƚŽƉƉůĞƌĨĞĂƚƵƌĞƐĨƌŽŵƚŚĞ                                                                                          Universal Non-Uniform
+                                            tŝ&ŝͲ^/ĂŶĚŝŵƉůĞŵĞŶƚĂ,ZƐǇƐƚĞŵ͘                           This function takes a 1-D array and finds all local maxima   Random Number Sampling
+      ,ZƐǇƐƚĞŵ͘
+                                                                                                           by simple comparison of neighboring values.
+                                                                                                           Parameters                                                   Introduction
+                                            ƵŐŵĞŶƚĂƚŝŽŶϯ;࢖࢏૜ Ϳ                                          - x (array): A signal with peaks.                            Random variate generation
+      WƌŽŵƉƚĨŽƌƵŐŵĞŶƚĂƚŝŽŶ
+                   ƵŐŵ
+                    ƵŐŐ
+      ࡭૚ ͗ŝĨĨĞƌĞŶƚƐĞŶƐŽƌŵŽĚĂůŝƚǇǇ       /ŵƉůĞŵĞŶƚĂtŝ&ŝ ^/ͲďĂƐĞĚ,Z                                - height (int): required height of peaks.                    deals with algorithms to
+      ࡭૛ ͗ŝĨĨĞƌĞŶƚƌĞƉƌĞƐĞŶƚĂƚŝŽŶƐƐ       ƐƐǇƐƚĞŵĂŶĚĚĞƉůŽǇƚŚĞŵŽĚĞůŽŶĂ                             - threshold (int): required threshold of peaks               generate random variates
+                                             ::ĞƚƐŽŶEĂŶŽďŽĂƌĚ͘                                           Returns                                                      from various distributions ……
+      ࡭૜ ͗,ĞƚĞƌŽŐĞŶĞŽƵƐƌĞƐŽƵƌĐĞƐ                                                                                                                                      Workflow
+                                                                                                           - peaks (array): indices of peaks in x.
+Figure 7: Examples of IoT-oriented data augmentation with                                                  Examples                                                     First ……, Then ……, Finally ……
+                                                                                                                                                                        A Simple Example
+different modalities, representations, and resource budgets                                                   >>>    import numpy as np
+                                                                                                              >>>    from scipy.signal import find_peaks                 >>> import scipy
+                                 .                                                                            >>>    x = np.random.rand(2000)                            >>> x = ……
+we then prompt (Fig. 6(a)) the agent to split the proposed system                                             >>>    peaks, _ = find_peaks(x, height=0)                  >>> output = ……
+in the paper into multiple technical modules with detailed descrip-
+tions. Next, for each technical module, we prompt (Fig. 6(b)) the                                           Figure 9: An example of a Python package’s website.
+agent to further decompose it into several sub-tasks with detailed                                      prompt it to produce results. We then manually filter out incorrect
+implementation steps. As such, we encapsulate the problem state-                                        results and craft the formats (i.e., each sub-task is separated by a
+ment 𝑝𝑖 of each technical module and the corresponding sub-tasks                                        blank line as aforementioned). The augmented dataset D𝑡 is:
+                                                                                                                       
+                                                                                                                       3
+𝑡𝑖 into a Q&A pair 𝑄𝑖 to construct a raw dataset D𝑡 :                                                          D𝑡 =         { (𝑝𝑖 𝑗 , 𝑡𝑖 𝑗 ) | 𝑝𝑖 𝑗 = 𝐴 𝑗 (𝑝𝑖 ), 𝑡𝑖 𝑗 = 𝐺 (𝑝𝑖 𝑗 ) }, ∀𝑝𝑖 ∈ D𝑡          (2)
+                    D𝑡 = {𝑄 1 , 𝑄 2 , · · · , 𝑄𝑛𝑡 }, 𝑄𝑖 = (𝑝𝑖 , 𝑡𝑖 )                        (1)                          𝑗
+where 𝑛𝑡 is the total number of technical modules from all the                                          where 𝐴 𝑗 (·) is the 𝑗-th type of augmentation operation and 𝐺 (·) is
+papers. Fig. 8(a) shows a data sample from the dataset. Note that                                       the black-box function of GPT-4o.
+each sub-task is separated by a blank line, allowing us to parse                                        Remark. We take the diversity of both language expression and
+and split 𝑡𝑖 into multiple task description strings for further code                                    IoT characteristics into account, demonstrating significant perfor-
+generation in a divide-and-conquer way.                                                                 mance improvement in task decomposing (§ 6.5). Note that the data
+IoT-Oriented Data Augmentation. As revealed in § 2.2, existing                                          collection and augmentation processes are both performed offline.
+text augmentation methods are ineffective in the IoT domain as
+                                                                                                        4.1.2 Code Generation Dataset. CGD contains pairs of "task
+they focus on expanding language characteristics rather than IoT
+                                                                                                        specification → code & documentation", aiming to enhance CGSLM’s
+knowledge. As a result, IoT terminologies are still assigned lower
+                                                                                                        ability in generating IoT-related code for decomposed tasks. The
+priority during inference, preventing the tuned model from gener-
+                                                                                                        data construction includes two stages: raw data collection and target
+ating IoT-specialized solutions. To address this, we propose a novel
+                                                                                                        diversity-aware augmentation for different code generation tasks.
+IoT-oriented data augmentation method that considers unique prop-
+                                                                                                        Raw Data Collection. Open-source IoT-related Python4 packages
+erties of IoT applications, i.e., sensor modality, data representation,
+                                                                                                        (e.g., SciPy [64]) contain abundant hand-crafted IoT algorithms and
+and system resource heterogeneity, as shown in Fig. 7.
+                                                                                                        applications with high performance, which can serve as our data
+   Our augmentation considers three aspects: 1) Sensor modality.
+                                                                                                        sources. Thus, we first collect numerous public repositories from
+For the same IoT problem, we can use different sensor modali-
+                                                                                                        GitHub and extract Python packages they used, covering areas of
+ties. For instance, to implement human activity recognition (HAR),
+                                                                                                        signal processing, machine learning, and data processing (IoT data
+we can utilize IMU data, WiFi CSI, etc. 2) Data representation. For
+                                                                                                        I/O and visualization). We then build a web crawler to automatically
+the same modality, we can leverage distinct data representations
+                                                                                                        retrieve information from each package’s official website.
+to achieve the same task. For example, we can use WiFi CSI, 2D
+                                                                                                            A package’s website (Fig. 9) typically contains two parts: 1) API
+spectrograms, or extracted Doppler features to implement HAR.
+                                                                                                        reference includes a list of modules (i.e., functions and classes) with
+3) Resource heterogeneity. For the same task, various IoT devices
+                                                                                                        comprehensive guidance on how to use them effectively in code.
+require heterogeneous system resources. When deploying an AI
+                                                                                                        For example, find_peaks() is a function from the SciPy package,
+model, smartphones typically have less memory than PCs, requir-
+                                                                                                        which identifies the local maxima (peaks) in an input signal array
+ing model optimization methods. Based on the three aspects, we
+                                                                                                        and returns the indices of the peaks. We denote the detailed in-
+prompt (Fig. 8(b)) GPT-4o to rewrite and augment each problem
+                                                                                                        formation of each module as its metadata, 𝑚𝑖 . 2) Example gallery
+statement from D𝑡 . To generate reference decomposed tasks, we
+build a search agent to retrieve relevant IoT domain knowledge and                                      4We   focus on Python since it is a cross-platform programming language.
+
+
+
+
+                                                                                                  203
+SenSys ’25, May 6–9, 2025, Irvine, CA, USA                                                                        Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, Yuanqing Zheng
+                                                                                                                                                ĚĚΘ>ĂǇĞƌEŽƌŵ               WƌŽũĞĐƚŝŽŶ
+               DŽĚƵůĞĞƐĐƌŝƉƚŝŽŶĂƚĂ                   DŽĚƵůĞ/ŵƉůĞŵĞŶƚĂƚŝŽŶĂƚĂ              Well-Structured Task Specification (Prompt)                            t       ŵĂƚƌŝǆ
+      ^ǇƐƚĞŵDĞƐƐĂŐĞ                               ^ǇƐƚĞŵDĞƐƐĂŐĞ                                **Target**                                    KƵƚ       &&E                   >ŽZ
+      zŽƵ ĂƌĞ Ă WǇƚŚŽŶ ƉƌŽŐƌĂŵŵĞƌ ŝŶ ƐŝŐŶĂů        zŽƵ ĂƌĞ Ă WǇƚŚŽŶ ƉƌŽŐƌĂŵŵĞƌ ŝŶ ƐŝŐŶĂů         Write some code and documentation to                                         ĂĚĂƉƚĞƌƐ
+      ƉƌŽĐĞƐƐŝŶŐ ĂŶĚ ŵĂĐŚŝŶĞ ůĞĂƌŶŝŶŐ͘ ĂƐĞĚ       ƉƌŽĐĞƐƐŝŶŐ ĂŶĚ ŵĂĐŚŝŶĞ ůĞĂƌŶŝŶŐ͘ ĂƐĞĚ        create a universal non-uniform random          ĚĚΘ>ĂǇĞƌEŽƌŵ
+      ŽŶ ƚŚĞ ƵƐĞƌ ŝŶƐƚƌƵĐƚŝŽŶ͕ ŐĞŶĞƌĂƚĞ ĚĞƚĂŝůĞĚ   ŽŶ ƚŚĞ ƵƐĞƌ ŝŶƐƚƌƵĐƚŝŽŶ͕ ŐĞŶĞƌĂƚĞ WǇƚŚŽŶ      number generator to sample random                                      >ŽZ dƵŶŝŶŐ
+      ĚĞƐĐƌŝƉƚŝŽŶƐ ĨŽƌ ƚŚĞ ŵŽĚƵůĞ͘                 ĐŽĚĞ ǁŝƚŚ ĚĞƚĂŝůĞĚ ĐŽŵŵĞŶƚƐ ĂŶĚ ĚŽĐ͘          variates from a wide variety of univariate           ƚƚĞŶƚŝŽŶ               ܸᇱ
+                                                   hƐĞƌDĞƐƐĂŐĞ;‫ݐ‬௜మ Ϳ                           continuous and discrete distributions.
+      hƐĞƌDĞƐƐĂŐĞ;‫ݐ‬௜భ Ϳ
+                                                   tƌŝƚĞƐŽŵĞWǇƚŚŽŶĐŽĚĞǁŝƚŚĐŽŵŵĞŶƚƐ         **Input Specification**                         Y        <       s
+      WƌŽǀŝĚĞĂĚĞƚĂŝůĞĚĚĞƐĐƌŝƉƚŝŽŶŽĨƚŚĞ
+                                                   ĂŶĚĚŽĐƵŵĞŶƚĂƚŝŽŶƚŽƉĞƌĨŽƌŵ ƉĞĂŬ             - numbers (arr): a stream of uniform
+      find_peaks() ĨƌŽŵƚŚĞWǇƚŚŽŶ                                                                                                                                                ‫ܤ‬
+                                                   ĚĞƚĞĐƚŝŽŶ ďǇƵƐŝŶŐƚŚĞfind_peaks()               random numbers.                                                     ܹ௩
+      ƉĂĐŬĂŐĞŶĂŵĞĚSciPy͘                                                                                                                                                         ‫ܣ‬
+                                                   ĨƌŽŵĂWǇƚŚŽŶƉĂĐŬĂŐĞŶĂŵĞĚSciPy͘            **Output Specification**                       ܹ௤       ܹ௞       ܹ௩
+      ƐƐŝƐƚĂŶƚDĞƐƐĂŐĞ;݉௜భ Ϳ                     ƐƐŝƐƚĂŶƚDĞƐƐĂŐĞ;ܿ௜ Θ݀௜ Ϳ                  - output (arr): random variates sampled
+      dŚĞŵĞƚĂĚĂƚĂŽĨƚŚĞŵŽĚƵůĞ͘                  ŽƌƌĞƐƉŽŶĚŝŶŐĐŽĚĞĂŶĚĚŽĐƵŵĞŶƚĂƚŝŽŶ͘             from the specified distribution.          /ŶƉƵƚŵďĞĚĚŝŶŐࢄ          /ŶƉƵƚࢄ
+              (a) Module description                    (b) Module implementation                         (c) Task specification                     (d) Traditional LoRA tuning
+        Figure 10: (a) & (b) Two tuning data samples. (c) Well-structured task specification. d) Traditional LoRA tuning.
+provides practical usage samples of how to use various modules and                 metadata into well-structured documentation. This Q&A mapping
+features of the package to implement specific algorithms. For in-                  relation from a task specification 𝑡 𝑗 to the code 𝑐 𝑗 and documentation
+stance, a usage sample provides detailed documentation with code                   𝑑 𝑗 can be expressed as:
+about performing universal non-uniform random number sampling
+                                                                                                      D3 = {𝑡 𝑗 → (𝑐 𝑗 , 𝑑 𝑗 ) | 𝑑 𝑗 = 𝐺 (𝑢 𝑗 ) }               (6)
+using the SciPy package in an end-to-end manner. We denote the
+detailed information of each usage sample as its metadata, 𝑢 𝑗 . By                This aims to enhance CGSLM’s ability in generating IoT-related
+combing these two types of metadata, we form a raw dataset D𝑐 :                    code and detailed documentation following well-structured task
+                                                                                   specifications. Ultimately, by concatenating all three augmented
+    D𝑐 = {𝑚𝑖 | ∀𝑖 ∈ {1, 2, · · · , 𝑛𝑚 } } ∪ {𝑢 𝑗 | ∀ 𝑗 ∈ {1, 2, · · · , 𝑛𝑢 } } (3)
+                                                                                   datasets, the final CGD D𝑐 becomes:
+where 𝑛𝑚 and 𝑛𝑢 is the total number of modules and usage samples.                      D𝑐 = D1 {𝑡𝑖 → 𝑚𝑖 1 } ∪ D2 {𝑡𝑖 → (𝑐𝑖 , 𝑑𝑖 ) } ∪ D3 {𝑡 𝑗 → (𝑐 𝑗 , 𝑑 𝑗 ) } (7)
+Target Diversity-Aware Augmentation. This augmentation aims
+to enhance the diversity of the metadata in D𝑐 . We target each                    4.1.3 IoTBench. To evaluate LLMs’ abilities in task decomposi-
+module in the packages for two text-generation tasks: 1) Module                    tion and code generation for IoT applications, we create IoTBench, a
+Description: providing detailed descriptions of a module and 2) Mod-               benchmark of text-generation tasks in the IoT domain. Specifically,
+ule Implementation: writing code & documentation to demonstrate                    we choose 100 samples from TDD and CGD with manually created
+usage samples of the module. aSince the example gallery already                    test cases, covering various IoT topics (e.g., signal processing, edge
+contains abundant algorithms with sample code and detailed de-                     AI, etc.). All the selected data samples are first manually filtered
+scriptions, they can be directly used as code generation tasks.                    to ensure correctness and relevance to the IoT domain. Then, we
+1) Module Description. We format the task specification to "Pro-                   format the sub-tasks separated by a blank line in between. Note that
+vide detailed descriptions of <module> from <package>." The cor-                   although many SOTA benchmarks (e.g., HumanEval [10]) can also
+responding reply contains the module metadata in a pre-defined                     evaluate LLMs’ code generation abilities, they are not tailored to
+format. This Q&A mapping relation from a task specification 𝑡𝑖 to a                IoT tasks. Besides, the data in IoTBench is excluded from the tuning
+module description 𝑚𝑖 is expressed as:                                             processes (§ 4.2) to test the generalizability of the tuned SLMs.
+                                    D1 = {𝑡𝑖 → 𝑚𝑖 }                                  (4)
+Such a "task specification → module description" mapping can teach                                4.2      Parameter-Efficient Co-Tuning (PECT)
+CGSLM to be familiar with the module’s information, strengthen-                                  With the two augmented datasets (D𝑡 and D𝑐 ), our next step is
+ing the semantic correlation between the module’s name and the                                   to fine-tune TDSLM and CGSLM to enhance their ability in task
+detailed descriptions. Fig. 10(a) illustrates a data sample from D1 .                            decomposition and code generation, respectively. In the following,
+2) Module Implementation. We format the task specification to                                    we first introduce the traditional LoRA tuning method [27] for SLMs,
+"Write some Python code with comments and documentation to                                       and then explain our Parameter-Efficient Co-Tuning paradigm.
+perform <target> by using <module> from <package>." The cor-
+                                                                                                 4.2.1 LoRA Tuning. Fig. 10(d) shows the Low-Rank Adaptation
+responding reply contains the sample code and documentation that
+                                                                                                 (LoRA) tuning process of a Transformer block [63]. Specifically,
+provides the workflow and guidance on how to execute the code.
+                                                                                                 each Transformer block in an LLM contains two main components:
+To obtain well-structured documentation, we prompt GPT-4o to
+                                                                                                 a self-attention mechanism and a feed-forward network (FFN), both
+format the module’s metadata into Markdown. This Q&A mapping
+                                                                                                 of which are followed by residual connections and layer normaliza-
+relation from a task specification 𝑡𝑖 to the corresponding module
+                                                                                                 tion. The self-attention features three tunable weight matrices (𝑊𝑞 ,
+implementation (i.e., code 𝑐𝑖 and documentation 𝑑𝑖 ) is:
+                                                                                                 𝑊𝑘 , and 𝑊𝑣 ) to capture contextual relationships between input em-
+                       D2 = {𝑡𝑖 → (𝑐𝑖 , 𝑑𝑖 ) | 𝑑𝑖 = 𝐺 (𝑚𝑖 ) }                        (5)         beddings, while the FFN processes the outputs from the attention
+                                                                                                 mechanism to refine the feature representations. In conventional
+Such a "task specification → module implementation" mapping rela-
+                                                                                                 LLM full-tuning, the entire weight matrices are updated, leading to
+tionship aims to enhance CGSLM’s capability in generating code
+                                                                                                 extensive GPU memory requirements and high computational costs.
+and documentation according to the module specification. Fig. 10(b)
+                                                                                                 Instead of fully updating the weight matrices, LoRA reduces the
+shows a data sample from D2 .
+                                                                                                 number of tunable parameters [15, 18], where two low-rank matri-
+3) Example Implementation. We format the task specification to a
+                                                                                                 ces 𝑨 and 𝑩 (i.e., LoRA adapters) are inserted alongside the weight
+well-structured Markdown format as shown in Fig. 10(c), including
+                                                                                                 matrix. Given an input 𝑿 , the tuning process can be expressed as:
+the task target and the I/O specifications for the expected code.
+Correspondingly, we prompt GPT-4o to convert the usage sample’s                                                                     𝑽  = (𝑾𝑣 + 𝑩𝑨) · 𝑿                                    (8)
+
+
+
+
+                                                                                           204
+GPIoT: Tailoring Small Language Models for IoT Program Synthesis and Development                                                              SenSys ’25, May 6–9, 2025, Irvine, CA, USA
+   &ƵƌƚŚĞƌWƌŽĐĞƐƐ                                                                                   User Target Extraction Prompt                Input/Output Specification Extraction Prompt
+                                                                     ^ŬŝƉŽŶŶĞĐƚŝŽŶ
+                         ĚĚΘ>ĂǇĞƌEŽƌŵ                                                       System Message                                    System Message
+                                                                     >ŽZ WĂƌĂŵƐ               You are a skilled IoT application developer,      You are a skilled IoT application developer,
+             ‫ܮ‬ଶ ‫ڄ‬                                        ‫ܮ‬ଵ ‫ڄ‬        ^ŚĂƌĞĚWĂƚŚ               especially in writing well-structured task        especially in writing well-structured task
+                                                                                               specifications. Given the task description,       specifications. Given the task description,
+              WƌŽũĞĐƚŝŽŶϮ            &&E        WƌŽũĞĐƚŝŽŶϭ
+                                                       ƚŝŽŶ          dĂƐŬĞĐŽŵƉ͘              define and directly output the objective of       define the input/output specifications for
+                    ‫ݔ‬ଶ           ‫ݔ‬ଵ         ‫ݔ‬ଶ          ‫ݔ‬ଵ           WĂƚŚ                      the task. Example: develop a R-peak               the expected code. The output must be in
+                         ĚĚΘ>ĂǇĞƌEŽƌŵ                             ŽĚĞ'ĞŶ͘WĂƚŚ            detection algorithm for ECG data.                 the following format:
+                                                                                               User Message (‫ݐ‬௜ )                                - Param 1 (type): description ……
+                                 ƚƚĞŶƚŝŽŶ                           ŽͲdƵŶŝŶŐWĂƚŚ            Task 1 [Task Name]                                User Message (‫ݐ‬௜ )
+                                                                                               - Implementation step 1                           Task 1 [Task Name]
+      Y                      <                                  s                              - Implementation step 2 ……                        - Implementation step 1 ……
+                                                                                                     (a) User target extraction                     (b) I/O specification extraction
+                                                                                                       Figure 12: CoT-based prompts for RTSLM.
+     ܹ௤                      ܹ௞                                 ܹ௩                           collaboratively, depending on the path they occupy. Specifically,
+                                                                                             take the adapter alongside the projection matrix 𝑾𝑘 as an example,
+                                  /ŶƉƵƚŵďĞĚĚŝŶŐ;ࢄͿ
+                                                                                             the key vectors after projection in the two paths are calculated by:
+Figure 11: PECT in one Transformer block with both inde-                                                          𝑲1 = (𝑾𝑘 + 𝑩 1 𝑨1 + 𝜆 · 𝑩𝑐 𝑨𝑐 ) · 𝑿
+pendently and collaboratively tuned LoRA adapters.                                                                                                                                               (9)
+                                                                                                                  𝑲2 = (𝑾𝑘 + 𝑩 2 𝑨2 + (1 − 𝜆) · 𝑩𝑐 𝑨𝑐 ) · 𝑿
+This reduces the computational burden by only updating the smaller                           where 𝑿 is the input text embedding, 𝑲1 and 𝑲2 are the key vectors
+low-rank matrices 𝑨 and 𝑩, significantly cutting down resources.                             within TDP and CGP, respectively. 𝑩 1 𝑨1 and 𝑩 2 𝑨2 are the param-
+   However, as demonstrated in § 2.2, domain misalignment arises                             eters of LoRA adapters independently tuned within the two paths,
+when separately tuning TDSLM and CGSLM using this vanilla LoRa                               respectively. 𝑩𝑐 𝑨𝑐 are the LoRA adapters collaboratively tuned
+method. This is because they focus on two distinct text-generation                           by the two paths. 𝜆 is a hyper-parameter to balance the data flow
+tasks with different semantic attention, thereby hindering GPIoT                             between the two paths. During the co-tuning process, we first ran-
+from synthesizing IoT-related programs. To tackle this issue, we                             domly sample data from TDD and CGD. Next, if the data is sampled
+propose a parameter-efficient co-tuning (PECT) paradigm. Un-                                 from TDD, it will pass through TDP; otherwise, it will pass through
+like conventional LoRA tuning that tunes adapters separately,                                CGP. We then calculate the loss and update the corresponding LoRA
+PECT enables collaborative fine-tuning of several SLMs with                                  adapters based on the source of the data sample.
+a shared base model but with different LoRA adapters. PECT                                   Remarks. By orchestrating the independent and collaborative tun-
+features a Multi-Path LoRA Pipeline (MPLP) and two lightweight                               ing paths, MPLP dismantles the information barrier between TD-
+projection layers, which can promote information sharing between                             SLM and CGSLM, fostering their consensus during inference and
+TDSLM and CGSLM, thereby narrowing the semantic comprehen-                                   thereby alleviating the misalignment issue.
+sion gap between task decomposition and code generation.
+                                                                                             4.2.3 Projection Layers. To further enhance knowledge sharing
+4.2.2 Multi-Path LoRA Pipeline. MPLP selects a subset of                                     between the two SLMs during tuning, we create two projection
+shared LoRA adapters to be collaboratively tuned by TDSLM and                                layers for the two paths. We place the projection layers in parallel
+CGSLM, with another adapter set independently tuned.                                         with the FFN layers in the Transformer block. As such, they can
+Pipeline Construction. In the lower part of Fig. 11, we create                               serve as extra FFNs that apply non-linear transformations to the
+three pipelines of LoRA adapters in each Transformer block. Two                              attention representations, thereby enhancing token-level feature
+pipelines (the orange one and the green one) are independently                               extraction and increasing the complexity of the model’s learning
+tuned by TDSLM and CGSLM with respect to TDD and CGD. The                                    capabilities. By receiving representations from the other path with
+other pipeline (the gray one) is co-tuned on both TDD and CGD.                               enhanced non-linearity, the cross-domain IoT knowledge compre-
+For example, given a data sample from TDD, only the orange LoRA                              hension capabilities of the two SLMs will be further strengthened.
+adapters and gray LoRA adapters are updated, as shown in Fig. 11.                            Specifically, take TDP as an example, as shown in the upper part of
+Note that we only assign the shared adapters beside the key and                              Fig. 11, with the obtained value (denoted as 𝑥 1 ) from the LayerNorm
+value weight matrices (𝑾𝑘 , 𝑾𝑣 ). The insight behind this is that the                        in TDP, we feed it into a projection layer 𝐿1 (·). The output is then
+value vector provides the information to be activated based on the                           added with the FFN’s output 𝐹 (𝑥 2 ) and 𝑥 2 in CGP. The sum will be
+key vector [63]. In other words, the mapping from problem statement                          sent to the next Transformer block for further processing. Such a
+to decomposed tasks and the mapping from task specification to code                          knowledge transfer process can be expressed as:
+& documentation are determined by the key and value vectors in                                                        𝑥 1 = 𝑥 1 + 𝐹 (𝑥 1 ) + 𝛾 · 𝐿2 (𝑥 2 )
+                                                                                                                                                                                             (10)
+TDSLM and CGSLM, respectively. Domain misalignment is thus                                                            𝑥 2 = 𝑥 2 + 𝐹 (𝑥 2 ) + (1 − 𝛾 ) · 𝐿1 (𝑥 1 )
+caused by such different mapping relations during tuning on distinct                         where 𝑥 1   and 𝑥 2
+                                                                                                               are the final output of the two paths. 𝑥 1 and 𝑥 2 are
+datasets with disparate semantic focuses. Therefore, by co-tuning                            the input attention representations from TDP and CGP, respectively.
+the shared adapters integrated into the key and value vectors, the                           𝐹 (·) represents the FFN layer, 𝐿1 (·) and 𝐿2 (·) are the projection
+mapping relations will be shared between the two SLMs, allowing                              layers in the two paths, and 𝛾 is a hyper-parameter to balance
+TDSLM’s outputs to align with CGSLM’s scope.                                                 the knowledge-sharing between the two paths. Note that each
+Co-Tuning. In Fig. 11, we designate the orange line as the task                              projection layer has the same architecture as the FFN, consisting of
+decomposition path (TDP), through which only data from TDD will                              two fully connected layers and a non-linear SwiGLU function [54].
+pass. The green line is the code generation path (CGP), through                              Remarks. By combining independent and collaborative tuning
+which only data from CGD will pass. The grey line represents                                 of LoRA adapters with the projection layers, PECT optimizes the
+the co-tuning path, through which all data will pass. During co-                             task-specific performance of TDSLM and CGSLM while minimizing
+tuning, the LoRA adapters will be tuned either independently or                              domain conflicts. As a result, the decomposed tasks generated by
+
+
+
+
+                                                                                       205
+SenSys ’25, May 6–9, 2025, Irvine, CA, USA                                                   Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, Yuanqing Zheng
+
+
+TDSLM will have closer semantic alignment with CGSLM and thus                    of tuning epochs is 5, with an initial learning rate of 0.0001, varied
+can be better handled. Note that during both tuning and inference,               by a cosine learning rate scheduler. The 𝜆 in Eq. 9 and the 𝛾 in Eq. 10
+the SLMs share the same foundation model architecture, with the                  are both set to 0.5 by default. The tuning process takes around 80
+only difference being the LoRA parameters shown in Fig. 11. There-               GPU hours. Since TDSLM, RTSLM, and CGSLM share the same
+fore, our proposed PECT paradigm fundamentally differs from those                foundation model, only about 16 GB of GPU memory is needed for
+traditional PEFT approaches that tune SLMs separately.                           the whole system, which is affordable for a commodity GPU [52].
+4.3     Requirement Transformation                                               5.2    IoT Applications
+When cascading TDSLM and CGSLM together, a huge gap ex-
+                                                                                 Considering the different technologies required during develop-
+ists between TDSLM’s outputs (decomposed task descriptions) and
+                                                                                 ment, we select three IoT applications, focusing on healthcare and
+CGSLM’s inputs (task specifications). The task descriptions are
+                                                                                 edge computing. 1) Heartbeat Detection (HD) is essential for
+typically natural language while the task specifications are well-
+                                                                                 continuously monitoring patient vitals with enhanced healthcare
+structured. Directly feeding the task descriptions into CGSLM will
+                                                                                 and ensuring timely intervention in case of abnormalities [47]. We
+lead to sub-optimal performance of the generated code. To fill this
+                                                                                 instruct GPIoT to develop a heartbeat (R-peak) detection algorithm
+gap, we leverage RTSLM to transform the descriptions into well-
+                                                                                 and test it on the MIT-BIH dataset [44]. 2) Human Activity Recog-
+structured specifications. Considering that RTSLM has limited IoT
+                                                                                 nition (HAR) [3, 7, 31–33] deployed on edge devices is important
+knowledge comprehension ability, we enhance it with RAG and
+                                                                                 for real-time analysis of daily human activities. We instruct GPIoT
+several CoT-based prompts to perform requirement transformation.
+                                                                                 to develop a WiFi-based HAR model using the WiAR dataset [23]
+RAG Construction. To enhance RTSLM’s ability in understanding
+                                                                                 and deploy it on a Jetson Nano board that has limited resources [40].
+IoT domain knowledge during requirement transformation, we first
+                                                                                 3) Multimodal HAR leverages different sensors to capture comple-
+transform all the downloaded papers into a text embedding database.
+                                                                                 mentary information, thereby enhancing HAR systems’ robustness
+Then, armed with such an IoT knowledge database, we build a RAG
+                                                                                 and versatility [19]. We instruct GPIoT to construct a multimodal
+agent based on RTSLM to retrieve relevant context for reference. As
+                                                                                 HAR model based on the Harmony dataset [49], which contains
+such, RTSLM can better comprehend and handle IoT terminologies
+                                                                                 three sensor modalities: audio [68], depth camera, and radar [13].
+in the task descriptions during requirement transformation.
+                                                                                 Notes: HD requires signal processing methods, HAR demands
+CoT Prompting. Fig. 10(c) shows an example of a well-structured
+                                                                                 technologies in both signal processing and machine learning, and
+task specification for code generation, consisting of three parts:
+                                                                                 multimodal HAR necessitates advanced multimodal processing
+task target, input and output specifications of the expected code.
+                                                                                 algorithms. Though we use HD as an example for demonstration
+For each decomposed task 𝑡𝑖 generated by TDSLM, we prompt the
+                                                                                 throughout the paper, all the tasks are unseen to GPIoT.
+agent to generate such well-structured specifications step-by-step.
+Specifically, we first prompt (Fig. 12(a)) the agent to summarize a              6 EVALUATION
+target for the task. Next, we further instruct (Fig. 12(b)) the agent to
+generate a list of parameter descriptions for the input and output of            6.1 Metrics
+the expected code. Each single parameter description item contains               We compare the programs synthesized by GPIoT and several base-
+the parameter name, the parameter type, and a brief explanation of               lines by measuring the following evaluation metrics.
+its meaning. For example, "signal (numpy.ndarray): the raw ECG                   HD. 1) Precision: The fraction of correctly detected R-peaks out of
+                                                                                                       𝑇 𝑃 . 2) Recall rate: The proportion of correctly
+                                                                                 all detected peaks: 𝑇 𝑃+𝐹
+data collected from patients with noises." Finally, RTSLM reorga-                                          𝑃
+                                                                                                                                 𝑇 𝑃 . The larger these
+                                                                                 detected R-peaks out of all actual R-peaks: 𝑇 𝑃+𝐹
+nizes and formats the above information into a well-structured task                                                                 𝑁
+specification, which will be further handled by CGSLM to generate                two metrics are, the more accurate the heartbeat detection becomes.
+corresponding code snippets and documentation.                                   HAR. 1) Classification accuracy: The portion of the test data that is
+Remarks. Note that tuning is excluded in this process since it only              correctly classified based on the label. A higher accuracy implies a
+needs basic language comprehension and processing capabilities                   more robust and accurate HAR model. 2) GPU memory usage: The
+of RTSLM. Therefore, RTSLM shares the same base model without                    amount of GPU memory used during model inference. 3) Inference
+additional tunable LoRA parameters to perform the transformation.                time: The time it takes from feeding the data into the code to the
+                                                                                 generation of the recognition result. The less memory and inference
+5 EXPERIMENT SETUP                                                               time consumed, the more resource-efficient the HAR model is.
+5.1 Implementation
+System Configurations. We deploy GPIoT on an edge PC equipped                    6.2    Baselines
+with an RTX 4090 GPU (24 GB). We use selenium [45] to create a                   Given the same user problem, we input it into the following base-
+web crawler for data retrieving from public websites. To perform                 lines to compare their performance with GPIoT (GT). 1) GPT-4o
+data formatting and augmentation, we construct an agent based                    (G4) [2] is an advanced LLM from OpenAI, optimized for instruc-
+on GPT-4o and LangChain [8]. For SLM tuning, we use a high-                      tion following and code generation tasks. 2) DeepSeek-Coder
+performance cloud server with an NVIDIA A100 GPU (80 GB).                        (DC) [22] is a high-performance code LLM, particularly effective in
+Hyper-parameters. TDD contains 36,098 pairs of "problem state-                   understanding and generating programming code across various
+ment → decomposed tasks". CGD contains 35,419 pairs of "task                     domains. 3) CodeLlama-34b (CL) [53] is a specialized version of
+specification → code & documentation". Llama2-13b [61] with INT8                 the Llama designed to generate, understand, and assist with coding.
+quantization serves as the foundation model and is fine-tuned via                4) WizardCoder-33b (WC) [43] incorporates complex instruction
+LoRA [27], with a rank of 64 and a dropout rate of 0.1. The number               fine-tuning by adopting evolving instructions. 5) CodeQwen-7b
+
+
+
+
+                                                                           206
+GPIoT: Tailoring Small Language Models for IoT Program Synthesis and Development                                                            SenSys ’25, May 6–9, 2025, Irvine, CA, USA
+      Heartbeat Detection (User Input)           Human Activity Recognition (User Input)
+  Given the ‘MIT-BIH’ Arrhythmia Dataset,       Given the WiFi-based Activity Recognition
+  write Python code to perform R-peak           (WiAR) dataset, write some Python code
+  detection for all the signal records in the   to perform human activity recognition.
+  dataset. The code should also output the      First split the dataset into ‘train’ and ‘test’
+  detection accuracy for each data.             parts. Then, train an AI model to output
+  **Code Input**                                the recognition accuracy of the test data.
+  1. The local file path to the dataset         **Code Input**
+  **Code Output Format**                        1. The local file path to the dataset                               (a) Precision                         (b) Recall rate
+  Case {ECG data record name}                   **Code Output Format**
+  Detection accuracy: 91% ……                    The average recognition accuracy: 91%
+                                                                                                                  Figure 14: The overall performance of HD.
+  **Remarks**                                   **Remarks**
+  The dataset folder contains several data      The dataset is a NumPy array with a shape
+  samples, each of which contains four files,   of (450, 90, 250), containing 15 activities
+  i.e., ‘.atr’, ‘.dat’, ‘.hea’, and ‘.xws’.     with each repeated 30 times.
+      (a) Problem statement for HD                 (b) Problem statement for HAR
+Figure 13: Problem statements of the two applications (HAR
+and multimodal HAR share a similar prompt).
+                                                                                                              (a) Classification accuracy       (b) GPU memory & inference time
+(CQ) [5] is the Code-Specific version of Qwen1.5, which is a decoder-
+                                                                                                                 Figure 15: The overall performance of HAR.
+only LLM pre-trained on a large amount of data of programs. 6)
+GitHub Copilot (GC) [21] is an AI-powered code generation tool                                          a fair comparison. Besides, during our implementation, we find
+that assists developers by suggesting code snippets and functions.                                      that after around 15 training epochs, all the models gradually con-
+7) MapCoder (MC) [30] is an LLM+RAG-based code generation                                               verge. Therefore, we compare the model performance at the 10th
+framework that cascades multiple LLM-based agents to solve com-                                         epoch. As shown in Fig. 15(a), the program synthesized by GPIoT
+petitive problems, where GPT-4o is selected as the built-in LLM.                                        achieves a 17.2% higher accuracy with 47.8% less GPU memory and
+   We access GPT-4o and DeepSeek-Coder via API keys, interact                                           38.3% shorter inference time on average. By analyzing the generated
+with GitHub Copilot via Visual Studio Code’s chat window, and                                           code, we find GPIoT applies: 1) a data preprocessing method, But-
+deploy the rest on an edge server. Note that to our best, currently                                     terworth low-pass filtering, on the WiFi data, considering that the
+there is no LLM-based program synthesis system tailored for IoT                                         low-frequency components of WiFi CSI are primarily influenced by
+application development. Therefore, we choose some SOTA code                                            human activities [69]. 2) an augmentation method tailored for IoT
+generation LLMs and systems as our baselines.                                                           data (e.g., time-frequency masking [87]) on the WiFi signal to fur-
+6.3      Application Evaluation                                                                         ther enhance the diversity of the dataset. 3) a CUDA optimization
+With the designed two problem statements (Fig. 13) for the three                                        mechanism [12] to reduce GPU memory usage while enhancing
+IoT applications, we input them into GPIoT and the baselines to                                         runtime efficiency. In contrast, the baselines directly input raw
+synthesize 20 different programs for each task. We then evaluate                                        WiFi data into HAR models without GPU optimization, leading
+their performance based on the metrics described in § 6.1.                                              to diminished performance and heightened memory consumption.
+                                                                                                        Moreover, the error bar of GPIoT is smaller than that of the base-
+6.3.1 HD. As shown in Fig. 14, the code generated by GPIoT sig-                                         lines, indicating that GPIoT generates more stable responses with a
+nificantly outperforms all the baselines, with an average precision                                     more robust performance of the synthesized program. Note that MC
+gain of 64.7% and an average RR increase of 16.9%. It’s also worth                                      can synthesize programs with competitive performance since HAR
+noting that CodeLlama, WizardCoder, and CodeQwen achieve mod-                                           is a more complex application. Such advancements of GPIoT origi-
+erate RR (above 80%) but exhibit lower precision. With further                                          nate from our meticulously crafted IoT-specialized datasets and the
+analysis of the code, we find that they all adopt a simple peak detec-                                  PECT paradigm, which embeds abundant IoT domain knowledge
+tion function, scipy.signal.find_peaks(), which typically fails                                         from our datasets into the tuned SLMs for more consistent outputs.
+when handling abnormal ECG data from patients. As a result, the de-                                        Additionally, considering that our HAR model is deployed on
+tection results contain numerous false positives with low precision.                                    edge devices with various resource constraints [39, 55, 57, 66, 67],
+Additionally, after reviewing the code generated by MapCoder, we                                        we involve different resource requirements in the prompts for
+observe that it incorporates more advanced heartbeat signal process-                                    the generated code to facilitate a more comprehensive evaluation.
+ing algorithms (e.g., bandpass filtering and adaptative thresholding).                                  Specifically, we first design a base prompt: "I need to deploy the
+However, the final program exhibits a significant performance drop                                      HAR model on Jetson Nano" (P1) without any resource specifi-
+compared with other baselines. This is because heartbeat detection                                      cations. Based on P1, we then create three variations by adding
+is a relatively simple IoT application that does not require highly                                     different resource constraints: "Do not consider any resource con-
+sophisticated planning and iterative debugging. Integrating many                                        straints but only model accuracy" (P2), "The GPU memory usage
+advanced algorithms into a simple signal-processing program may                                         should not exceed 200 MB" (P3), and "The GPU memory should
+lead to inconsistency issues. In other words, the heartbeat signal                                      not exceed 50 MB" (P4). We then instruct GPIoT to synthesize 20
+may be over-processed by these algorithms, leading to degraded                                          different versions of programs using each of the prompts above.
+performance. [24, 60]. On the contrary, the code generated by GPIoT                                     After executing the programs with the same configurations, we
+utilizes dedicated algorithms (e.g., Pan-Tompkins) for R-peak de-                                       record the average classification accuracy and GPU memory usage,
+tection due to embedded IoT domain knowledge during tuning,                                             as shown in Fig 19(a). We find that: 1) Given P2, GPIoT can con-
+consistently achieving high precision and RR.                                                           struct an AI model with a large number of parameters to achieve
+6.3.2 HAR. In this evaluation, for all the generated HAR mod-                                           ultimate performance, with its classification accuracy approaching
+els, we set the training epochs to 10 and the batch size to 32 for                                      nearly 100%. 2) Given P3, GPIoT can adopt a smaller model within
+
+
+
+
+                                                                                                  207
+SenSys ’25, May 6–9, 2025, Irvine, CA, USA                                                        Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, Yuanqing Zheng
+
+
+
+
+       (a) Classification accuracy           (b) GPU memory & inference time              (a) The embedding similarity                (b) The pass@k
+  Figure 16: The overall performance of multimodal HAR                                        Figure 18: Breakdown evaluation on CGSLM
+
+
+
+
+          (a) The BLEU score                 (b) The Format Correctness Rate           (a) Specifying resource constraints       (b) Code quality evaluation
+          Figure 17: Breakdown evaluation on TDSLM.                                  Figure 19: (a) Evaluating GPIoT ’s performance using prompts
+                                                                                     with different resource constraints. (b) Evaluating the quality
+the resource budget (i.e., GPU memory usage not exceeding 200                        of the code generated by CGSLM using SonarQube.
+MB) with a slight performance drop. 3) Given P4, GPIoT employs
+a highly optimized model requiring only approximately 50 MB                          CGSLM. 1) Code embedding similarity: we use CodeT5+ [71] to
+of GPU memory, resulting in an acceptable accuracy drop of 5%.                       convert code snippets into embeddings and compute the cosine sim-
+These results demonstrate that GPIoT can generate code tailored to                   ilarity between embeddings of the generated and reference code. A
+different resource budgets, stemming from our IoT-Oriented Data                      higher similarity indicates a stronger ability to generate IoT-related
+Augmentation method, which augments data samples considering                         code. 2) Pass@k: we measure the pass@k value by calculating the
+resource heterogeneity of target devices in IoT applications.                        portion of programs that pass all the test cases. A higher value indi-
+                                                                                     cates better performance of the generated code. 3) User Requirement
+6.3.3 Multimodal HAR. We further instruct GPIoT to synthesize                        Coverage (URC): we first ask the users to execute the generated code
+programs for the multimodal HAR application, aiming to evalu-                        and review the documentation. Next, they are asked to evaluate
+ate its programming ability for more complex tasks. As shown in                      the extent to which the generated code and documentation fulfill
+Fig. 16, compared with the baselines, the program synthesized by                     all the user requirements. 4) Code quality: we assess the quality of
+GPIoT achieves an average accuracy improvement of 13.44% while                       the generated code by adopting a commercial-off-the-shelf (COTS)
+requiring moderate GPU memory and inference time. After review-                      code quality verification tool, SonarQube [59], detecting bug/logic
+ing the source code, we find that both GPIoT and the baselines                       errors, security issues, and code smells [1]. Code smells are not
+train three encoders to first extract useful features from different                 bugs but bad coding styles (e.g., variable name mismatching regular
+modalities, followed by a classifier to recognize the correspond-                    expression) or potential weaknesses (e.g., package version incom-
+ing activity. However, the program synthesized by GPIoT adopts                       patibility). Note that STC and URC are user-related metrics, which
+some model optimization methods (e.g., quantization or pruning)                      are rated on a scale from 1 (not at all) to 5 (completely).
+and data augmentation methods tailored for IoT sensor data (e.g.,
+time-frequency masking). As such, the synthesized program can                        6.4.2 TDSLM. We input each problem statement from IoTBench
+train a memory-optimized model while maintaining high classifica-                    into TDSLM and the baselines to generate 20 different decomposed
+tion accuracy. These results indicate that, benefiting from our SLM                  tasks and calculate the average BLEU score, FCR, and URC. From
+tuning, the program synthesized by GPIoT can incorporate more                        Fig. 17, we observe: 1) The decomposed tasks generated by TDSLM
+IoT-specific data processing and model optimization algorithms,                      achieve a 48% higher BLEU score than the baselines on average,
+thereby achieving high performance even for multimodal HAR.                          indicating a stronger decomposition ability for IoT tasks. 2) TDSLM
+                                                                                     achieves 99% FCR, indicating remarkable stability to generate in-
+6.4     Breakdown Evaluation                                                         termediate output (decomposed tasks) based on pre-defined formats.
+We separately evaluate TDSLM and CGSLM on IoTBench to explore                        3) TDSLM also achieves a 28% higher STC on average, showcasing
+the effectiveness of fine-tuning in the IoT domain.                                  strong abilities in understanding IoT knowledge and generating
+                                                                                     comprehensive decomposed tasks for IoT applications. Such su-
+6.4.1 Metrics. We adopt different metrics for the two SLMs.
+                                                                                     perior IoT task decomposition and data formatting performance
+TDSLM. 1) BLEU : we measure the BLEU score [51] between the
+                                                                                     of TDSLM originate from the tuning process on TDD with our
+generated decomposed tasks and the reference from IoTBench. A
+                                                                                     IoT-oriented text data augmentation method.
+larger BLEU score indicates higher semantic similarity and higher
+task decomposition quality. 2) Format Correctness Rate (FCR): the                    6.4.3 CGSLM. We input each task specification from IoTBench
+portion of TDSLM’s outputs that correctly separate each decom-                       into CGSLM and the baselines to generate 20 different code & docu-
+posed task with a blank line for the convenience of further pro-                     mentation. We then report the average code embedding similarity,
+cessing. This aims to quantify TDSLM’s instruction-following and                     pass@1, pass@5, URC, and the number of various issues detected by
+text-formatting abilities. 3) Sub-Task Completeness (STC): we invite                 SonarQube. by executing and reviewing the code. For comparison,
+10 IoT experts to assess the extent to which the decomposed tasks                    we also report the pass@1 achieved by CodeLlama on a general-
+cover all essential parts of the application based on the reference.                 purpose programming benchmark, HumanEval [10]. From Fig. 18,
+
+
+
+
+                                                                               208
+GPIoT: Tailoring Small Language Models for IoT Program Synthesis and Development                                                 SenSys ’25, May 6–9, 2025, Irvine, CA, USA
+
+
+
+
+         (a) Impact on TDSLM                      (b) Impact on HD                               (a) Impact on HD                            (b) Impact on HAR
+   Figure 20: Ablation of IoT-oriented augmentation (A.).                                  Figure 22: Ablation of requirement transformation.
+
+
+
+
+         (a) Impact on CGSLM                     (b) Impact on HAR
+         Figure 21: Ablation of PECT (P. in the figure).
+we observe that: 1) 1) CGSLM achieves an 18% higher code embed-                            (a) Signal processing-related tasks     (b) Machine learning-related tasks
+ding similarity than the baselines on average, implying stronger ca-                              Figure 23: User study on different tasks.
+pability and generalizability in generating IoT-related code snippets.               Fig. 21(a), without PECT, the code generated by CGSLM exhibits per-
+2) CGSLM achieves higher pass@1 and pass@5 than the baselines,                       formance degradation across all the metrics. This is because some
+with an average increase of 21.5% and 31%, respectively, showcasing                  IoT domain knowledge possessed by TDSLM cannot be shared with
+higher quality and accuracy of the generated code for solving IoT                    CGSLM. As a result, CGSLM cannot handle some programming
+tasks. 3) Nearly all the baselines achieve much lower pass@1 for IoT                 tasks that are out of the scope, providing simple programs with
+programming tasks than CodeLlama on HumanEval due to limited                         degraded performance. However, even such insufficiently tuned
+capabilities in the IoT domain. 4) Users show a stronger preference                  CGSLM still outperforms GPT-4o, highlighting the advantage of
+for CGSLM over the baselines, with an average increase of 23% in                     fine-tuning in enhancing IoT-related code generation ability. Fur-
+URC. 5) The program synthesized by CGSLM contains fewer bugs,                        thermore, without PECT in the HAR task, the final code neither
+security issues, and code-smell-related issues. This is primarily be-                adopts data pre-processing methods nor designs high-performance
+cause, CGSLM, fine-tuned on our manually crafted datasets, can                       neural networks, leading to decreased classification accuracy, as
+synthesize programs with enhanced code quality. Such superior                        shown in Fig. 21(b). The results confirm the importance of our PECT
+abilities of CGSLM in generating IoT-related code snippets with                      paradigm in mitigating the domain misalignment issue and facili-
+high URC stems from our co-tuning on CGD with well-structured                        tating the IoT knowledge sharing between TDSLM and CGSLM.
+data. Consequently, CGSLM can generate code adopting more IoT-                       6.5.3 RTSLM. We directly feed the natural-language-described
+specific algorithms following task specifications.                                   decomposed tasks from TDSLM into CGSLM. We then compare
+6.5     Ablation Study                                                               the performance of the generated code by GPIoT, GPIoT without
+We conduct an ablation study by removing some proposed technical                     RTSLM, and GPT-4o. As illustrated in Fig. 22, without RTSLM, we
+modules to investigate their importance to GPIoT.                                    find that: 1) In HD, GPIoT tends to generate code unrelated to the IoT
+6.5.1 IoT-Oriented Data Augmentation. We directly tune TD-                           domain with substantial precision degradation but a high recall rate.
+SLM on the raw dataset without our IoT-oriented data augmenta-                       This implies that the heartbeat detection results contain numerous
+tion, which contains only 273 data samples. We then evaluate the                     false positives. 2) In HAR, GPIoT designs a basic HAR model with
+tuned model on IoTBench and report the average BLUE score, FCR,                      only a few simple layers, leading to a notable accuracy drop. These
+and STC. As shown in Fig. 20(a), without our augmentation, the                       results highlight the importance of RTSLM in aiding CGSLM to
+tuned model exhibits a substantial performance decline across all                    understand the decomposed tasks generated by TDSLM, thereby
+metrics, much lower than GPT-4o. The main reason is that the raw                     improving its code generation ability for IoT applications.
+dataset lacks generalizability and diversity in the IoT domain, which                6.6     User Study
+limits the tuned SLM’s ability to decompose IoT problems into man-                   We conduct a user study to evaluate the functionality, generaliz-
+ageable sub-tasks, occasionally leading to incorrect results due to                  ability, and overall satisfaction of GPIoT for IoT application devel-
+hallucinations. As a result, if we use such an insufficiently tuned                  opment. Specifically, with GPIoT deployed on an edge server, we
+TDSLM for heartbeat detection, GPIoT still adopts a simple peak                      invite 5 experts and 15 non-experts in IoT and ask them to freely
+detection algorithm, leading to significant performance degradation                  express their requirements for any IoT application development
+of the generated code in both precision and recall rate (Fig. 20(b)).                that requires signal processing or AI technologies. By sequentially
+The results demonstrate the importance of our IoT-oriented text                      executing the generated code based on the instructions in the docu-
+data augmentation method in improving TDSLM’s capability in                          mentation, we ask the users to rate GPIoT based on five metrics: 1)
+task decomposition and IoT domain knowledge comprehension.                           Overall Code Performance (OCP) evaluates the overall performance
+6.5.2 PECT. We separately fine-tune TDSLM and CGSLM on their                         of the generated code on corresponding test data considering task
+own datasets without our PECT paradigm. We then evaluate the                         accuracy, runtime efficiency, and resource consumption; 2) Code &
+performance of the tuned CGSLM on IoTBench and measure the                           Documentation Readability (CDR) measures the clarity and struc-
+average code embedding similarity, pass@1, and URC. As shown in                      ture of the code and documentation; 3) Generation Efficiency (GE)
+
+
+
+
+                                                                               209
+SenSys ’25, May 6–9, 2025, Irvine, CA, USA                                                   Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, Yuanqing Zheng
+
+
+accesses how efficiently GPIoT operates in terms of speed and re-                due to fluctuating sensor data with noises and various resource con-
+source usage to produce the final results; 4) Code Modularity (CM)               straints. Therefore, GPIoT focuses on IoT data processing tasks by
+judges whether the code is properly modularized for easy reuse                   offering end-to-end solutions with executable programs. We believe
+and extension; 5) User Satisfaction (US) captures users’ feedback                that the general workflow (i.e., task decomposition → requirement
+regarding their overall personal experience. All the above metrics               transformation → code generation) of GPIoT can be applied to other
+are rated by the users on a scale from 1 (not at all) to 5 (completely).         programming tasks. In future work, we plan to comprehensively
+Github Copilot, DeepSeek-Coder (cloud), CodeLlama (local), and                   assess GPIoT in other complex programming tasks.
+MapCoder (agent) serve as representative baselines for comparison.
+                                                                                 8   RELATED WORK
+   As shown in Fig. 23, we observe: 1) GPIoT significantly outper-
+                                                                                 Code LLMs & Programming Copilot. Code LLMs have signifi-
+forms the baselines in terms of OCP and US. The main reason is
+                                                                                 cantly impacted the field of code generation, with prominent exam-
+that, tuned on our IoT-specialized datasets, GPIoT can generate code
+                                                                                 ples such as CodeLlama [53] and DeepSeek-Coder [88]. Trained on
+containing more dedicated algorithms with better performance.
+                                                                                 vast datasets comprising diverse code repositories, these models
+Therefore, the users provide a higher score for GPIoT regarding the
+                                                                                 are capable of synthesizing programs based on user requirements,
+overall code performance and user satisfaction. 2) GPIoT achieves
+                                                                                 effectively bridging the gap between natural language and code.
+similar scores to the baselines in terms of CDR and CM, because
+                                                                                 One notable application is GitHub Copilot, an LLM-powered assis-
+our datasets mainly focus on generating IoT-related code snippets.
+                                                                                 tant that provides real-time code suggestions and auto-completion.
+Therefore, the readability of the code and documentation are not
+                                                                                 Though powerful and promising, existing code LLMs and copilots
+explicitly enhanced via tuning. 3) GPIoT gets a lower GE score
+                                                                                 are primarily designed for general-purpose programming, lacking
+as it performs requirement transformation and code generation
+                                                                                 customization to the IoT domain when tasked with IoT applications.
+for each decomposed task. Nevertheless, we can enhance its effi-
+                                                                                 GPIoT addresses this by tuning local SLMs on IoT-specialized text-
+ciency by adopting various LLM inference and serving optimization
+                                                                                 generation datasets with scrupulous augmentation. Additionally, by
+methods [20]. Additionally, during our implementation, we find
+                                                                                 locally deploying GPIoT, it can potentially serve as a copilot for IoT
+that MapCoder costs around $20 to synthesize a program for a
+                                                                                 application developers, enhancing task accuracy and development
+single IoT application while GPIoT incurs no query costs. The infe-
+                                                                                 efficiency in a privacy-preserving manner.
+rior performance of MapCoder may be attributed to the fact that
+                                                                                 Data Augmentation for LLMs. Existing text augmentation meth-
+LLM+RAG-based agents typically incorporate multiple modules to
+                                                                                 ods [16, 72] for LLM tuning harness the advanced language process-
+generate intermediate results in a cascaded manner, making them
+                                                                                 ing capabilities of powerful LLMs (e.g., GPT-4) to synthesize diverse
+susceptible to unstable networks. This yields longer generation
+                                                                                 and high-quality text data. These methods have two categories: 1)
+time, prohibitive token costs, and degraded user experiences. The
+                                                                                 Depth-based augmentation [9, 78] aims to increase the complexity
+user study results demonstrate the superior performance of GIoT in
+                                                                                 of the original text data by adding constraints, concretizing the
+synthesizing IoT-related programs in an end-to-end manner, with
+                                                                                 problem, and increasing reasoning steps. 2) Breadth-based augmen-
+the ability to generalize to other unseen IoT applications.
+                                                                                 tation [37] directly uses powerful LLMs to rewrite the original text
+7    DISCUSSION                                                                  data and generate a completely new instruction. However, these
+                                                                                 augmentation methods focus on linguistic characteristics rather
+System Cost of GPIoT. In GPIoT, though there are three SLMs (i.e.,
+                                                                                 than the IoT domain knowledge. In GPIoT, we propose a novel
+TDSLM, RTSLM, and CGSLM) operating simultaneously in GPIoT,
+                                                                                 IoT-oriented text augmentation method tailored for the IoT do-
+they share the same foundation model architecture and only differ
+                                                                                 main, considering unique features of IoT applications, i.e., sensor
+in a small subset of tunable parameters (§ 4.2). Moreover, though
+                                                                                 modalities, data representations, and system resource constraints.
+LLM+RAG systems (e.g., MapCoder) require less memory (no more
+than 1 GB), GPIoT does not need sophisticated prompt design and                  9   CONCLUSION
+requires a shorter generation time for the final output (§ 6.6).                 We present GPIoT, a tailored local code generation system that syn-
+Applicability to Resource-Constrained IoT Devices. The main                      thesizes programs with documentation based on user requirements
+focus of GPIoT is generating domain-specific and high-quality code               for IoT application development. Armed with two IoT-specialized
+for IoT application development. Considering the resource hetero-                text-generation datasets, the IoT-oriented augmentation method,
+geneity of various IoT devices for data processing, our IoT-Oriented             and our PECT paradigm, GPIoT can generate more IoT-related code
+Data Augmentation method (§ 4.1) augments the original task de-                  in a privacy-preserving way, achieving enhanced task accuracy
+composition dataset by considering various resource requirements                 and user satisfaction for IoT application development. As IoT tech-
+of different target platforms for IoT application development. Fur-              nologies are emerging rapidly, it is also worthwhile to explore the
+ther experiments (Fig. 19(a)) demonstrate the effectiveness of GPIoT             construction of a dynamic IoT knowledge database and continuous
+in handling different resource requirements with optimized models.               fine-tuning of local SLMs in the future.
+Generalizability of GPIoT. Existing IoT applications can be cate-
+gorized into four types based on the functionality they deliver: data
+                                                                                 ACKNOWLEDGMENTS
+collection, data transmission, data processing, and decision-making.             We sincerely thank our anonymous shepherd and reviewers for
+Data collection, transmission, and decision-making have been ex-                 their constructive comments and invaluable suggestions that helped
+tensively studied using fixed programs. For instance, manufacturers              improve this paper. This work is supported by Hong Kong GRF
+typically provide COTS sample code for sensor data collection [14].              Grant No. 15211924 and 15206123. Yuanqing Zheng is the corre-
+In contrast, IoT data processing demands more complex algorithms                 sponding author.
+
+
+
+
+                                                                           210
+GPIoT: Tailoring Small Language Models for IoT Program Synthesis and Development                                                          SenSys ’25, May 6–9, 2025, Irvine, CA, USA
+
+
+REFERENCES                                                                                     [26] Ningning Hou, Xianjin Xia, and Yuanqing Zheng. 2023. Don’t miss weak packets:
+ [1] 2024. Python static code analysis. Unique rules to find Bugs, Vulnerabilities,                 Boosting LoRa reception with antenna diversities. ACM Transactions on Sensor
+     Security Hotspots, and Code Smells in your PYTHON code. https://rules.sona                     Networks (2023), 1–25.
+     rsource.com/python/RSPEC-2316/                                                            [27] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean
+ [2] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Floren-                  Wang, Lu Wang, and Weizhu Chen. 2021. Lora: Low-rank adaptation of large
+     cia Leoni Aleman, Diogo Almeida, Janko Altenschmidt, Sam Altman, Shyamal                       language models. arXiv preprint arXiv:2106.09685 (2021).
+     Anadkat, et al. 2023. Gpt-4 technical report. arXiv preprint arXiv:2303.08774             [28] Dong Huang, Qingwen Bu, Jie M Zhang, Michael Luck, and Heming Cui. 2023.
+     (2023).                                                                                        Agentcoder: Multi-agent-based code generation with iterative testing and opti-
+ [3] Aakriti Adhikari and Sanjib Sur. 2024. MiSleep: Human sleep posture identifi-                  misation. arXiv preprint arXiv:2312.13010 (2023).
+     cation from deep learning augmented millimeter-wave wireless systems. ACM                 [29] IBM. 2024. What are small language models? https://www.ibm.com/think/topi
+     Transactions on Internet of Things (2024), 1–33.                                               cs/small-language-models
+ [4] Tuo An, Yunjiao Zhou, Han Zou, and Jianfei Yang. 2024. IoT-LLM: Enhancing                 [30] Md Ashraful Islam, Mohammed Eunus Ali, and Md Rizwan Parvez. 2024. Map-
+     Real-World IoT Task Reasoning with Large Language Models. arXiv preprint                       Coder: Multi-Agent Code Generation for Competitive Problem Solving. arXiv
+     arXiv:2410.02429 (2024).                                                                       preprint arXiv:2405.11403 (2024).
+ [5] Jinze Bai, Shuai Bai, Yunfei Chu, Zeyu Cui, Kai Dang, Xiaodong Deng, Yang Fan,            [31] Sijie Ji, Yaxiong Xie, and Mo Li. 2022. SiFall: Practical online fall detection with
+     Wenbin Ge, Yu Han, Fei Huang, et al. 2023. Qwen technical report. arXiv preprint               RF sensing. In Proceedings of the 20th ACM Conference on Embedded Networked
+     arXiv:2309.16609 (2023).                                                                       Sensor Systems. 563–577.
+ [6] Jiani Cao, Jiesong Chen, Chengdong Lin, Yang Liu, Kun Wang, and Zhenjiang Li.             [32] Sijie Ji, Xuanye Zhang, Yuanqing Zheng, and Mo Li. 2023. Construct 3d hand
+     2024. Practical Gaze Tracking on Any Surface with Your Phone. IEEE Transactions                skeleton with commercial wifi. In Proceedings of the 21st ACM Conference on
+     on Mobile Computing (2024).                                                                    Embedded Networked Sensor Systems. 322–334.
+ [7] Jiani Cao, Yang Liu, Lixiang Han, and Zhenjiang Li. 2024. Finger Tracking Using           [33] Sijie Ji, Xinzhe Zheng, and Chenshu Wu. 2024. Hargpt: Are llms zero-shot human
+     Wrist-Worn EMG Sensors. IEEE Transactions on Mobile Computing (2024).                          activity recognizers?. In 2024 IEEE International Workshop on Foundation Models
+ [8] Harrison Chase. 2022. LangChain. https://github.com/langchain-ai/langchain                     for Cyber-Physical Systems & Internet of Things (FMSys). IEEE, 38–43.
+ [9] Liuqing Chen, Yiyan Tsang, Qianzhi Jing, and Lingyun Sun. 2024. A LLM-                    [34] Juyong Jiang, Fan Wang, Jiasi Shen, Sungju Kim, and Sunghun Kim. 2024.
+     augmented Morphological Analysis Approach for Conceptual Design. (2024).                       A Survey on Large Language Models for Code Generation. arXiv preprint
+[10] Mark Chen, Jerry Tworek, Heewoo Jun, Qiming Yuan, Henrique Ponde                               arXiv:2406.00515 (2024).
+     De Oliveira Pinto, Jared Kaplan, Harri Edwards, Yuri Burda, Nicholas Joseph,              [35] Jared Kaplan, Sam McCandlish, Tom Henighan, Tom B Brown, Benjamin Chess,
+     Greg Brockman, et al. 2021. Evaluating large language models trained on code.                  Rewon Child, Scott Gray, Alec Radford, Jeffrey Wu, and Dario Amodei. 2020.
+     arXiv preprint arXiv:2107.03374 (2021).                                                        Scaling laws for neural language models. arXiv preprint arXiv:2001.08361 (2020).
+[11] Shouyuan Chen, Sherman Wong, Liangjian Chen, and Yuandong Tian. 2023.                     [36] Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio Petroni, Vladimir Karpukhin,
+     Extending context window of large language models via positional interpolation.                Naman Goyal, Heinrich Küttler, Mike Lewis, Wen-tau Yih, Tim Rocktäschel,
+     arXiv preprint arXiv:2306.15595 (2023).                                                        et al. 2020. Retrieval-augmented generation for knowledge-intensive nlp tasks.
+[12] Jake Choi, Heon Young Yeom, and Yoonhee Kim. 2021. Implementing cuda unified                   Advances in Neural Information Processing Systems (2020).
+     memory in the pytorch framework. In IEEE ACSOS-C.                                         [37] Zheng Li, Lijia Si, Caili Guo, Yang Yang, and Qiushi Cao. 2024. Data Augmentation
+[13] Kaiyan Cui, Leming Shen, Yuanqing Zheng, Fu Xiao, and Jinsong Han. 2024.                       for Text-based Person Retrieval Using Large Language Models. arXiv preprint
+     Talk2Radar: Talking to mmWave Radars via Smartphone Speaker. In IEEE INFO-                     arXiv:2405.11971 (2024).
+     COM 2024-IEEE Conference on Computer Communications. IEEE, 2358–2367.                     [38] Chaofan Lin, Zhenhua Han, Chengruidong Zhang, Yuqing Yang, Fan Yang, Chen
+[14] Dejan. 2024. Arduino and MPU6050 Accelerometer and Gyroscope Tutorial.                         Chen, and Lili Qiu. 2024. Parrot: Efficient Serving of LLM-based Applications
+      https://howtomechatronics.com/tutorials/arduino/arduino-and-mpu6050-acce                      with Semantic Variable. In USENIX OSDI.
+     lerometer-and-gyroscope-tutorial/                                                         [39] Chengdong Lin, Kun Wang, Zhenjiang Li, and Yu Pu. 2023. A workload-aware
+[15] Tim Dettmers, Artidoro Pagnoni, Ari Holtzman, and Luke Zettlemoyer. 2024.                      dvfs robust to concurrent tasks for mobile devices. In Proceedings of the 29th
+     Qlora: Efficient finetuning of quantized llms. Advances in Neural Information                  Annual International Conference on Mobile Computing and Networking. 1–16.
+     Processing Systems (2024).                                                                [40] Neiwen Ling, Kai Wang, Yuze He, Guoliang Xing, and Daqi Xie. 2021. Rt-mdl:
+[16] Bosheng Ding, Chengwei Qin, Ruochen Zhao, Tianze Luo, Xinze Li, Guizhen                        Supporting real-time mixed deep learning tasks on edge platforms. In ACM
+     Chen, Wenhan Xia, Junjie Hu, Anh Tuan Luu, and Shafiq Joty. 2024. Data                         SenSys.
+     augmentation using llms: Data perspectives, learning paradigms and challenges.            [41] Kaiwei Liu, Bufang Yang, Lilin Xu, Yunqi Guo, Neiwen Ling, Zhihe Zhao, Guoliang
+     arXiv preprint arXiv:2403.02990 (2024).                                                        Xing, Xian Shuai, Xiaozhe Ren, Xin Jiang, et al. 2024. Tasking Heterogeneous
+[17] Hao Ding, Ziwei Fan, Ingo Guehring, Gaurav Gupta, Wooseok Ha, Jun Huan,                        Sensor Systems with LLMs. In ACM SenSys.
+     Linbo Liu, Behrooz Omidvar-Tehrani, Shiqi Wang, and Hao Zhou. 2024. Reasoning             [42] Zhenyan Lu, Xiang Li, Dongqi Cai, Rongjie Yi, Fangming Liu, Xiwen Zhang,
+     and Planning with Large Language Models in Code Development. In ACM KDD.                       Nicholas D Lane, and Mengwei Xu. 2024. Small Language Models: Survey,
+[18] Ning Ding, Xingtai Lv, Qiaosen Wang, Yulin Chen, Bowen Zhou, Zhiyuan Liu,                      Measurements, and Insights. arXiv preprint arXiv:2409.15790 (2024).
+     and Maosong Sun. 2023. Sparse low-rank adaptation of pre-trained language                 [43] Ziyang Luo, Can Xu, Pu Zhao, Qingfeng Sun, Xiubo Geng, Wenxiang Hu,
+     models. arXiv preprint arXiv:2311.11696 (2023).                                                Chongyang Tao, Jing Ma, Qingwei Lin, and Daxin Jiang. 2023. Wizardcoder:
+[19] Jinxiao Fan, Mengshi Qi, Liang Liu, and Huadong Ma. 2025. Diffusion-driven                     Empowering code large language models with evol-instruct. arXiv preprint
+     Incomplete Multimodal Learning for Air Quality Prediction. ACM Transactions                    arXiv:2306.08568 (2023).
+     on Internet of Things (2025), 1–24.                                                       [44] George B Moody and Roger G Mark. 2001. The impact of the MIT-BIH arrhythmia
+[20] Yao Fu, Leyang Xue, Yeqi Huang, Andrei-Octavian Brabete, Dmitrii Ustiugov,                     database. IEEE engineering in medicine and biology magazine (2001).
+     Yuvraj Patel, and Luo Mai. 2024. { ServerlessLLM } : { Low-Latency } Serverless           [45] Baiju Muthukadan et al. [n. d.]. Selenium with Python. https://github.com/baiju
+     Inference for Large Language Models. In 18th USENIX Symposium on Operating                     m/selenium-python
+     Systems Design and Implementation.                                                        [46] Jingping Nie, Hanya Shao, Yuang Fan, Qijia Shao, Haoxuan You, Matthias Preindl,
+[21] GitHub. 2024. GitHub Copilot - The world’s most widely adopted AI developer                    and Xiaofan Jiang. 2024. LLM-based Conversational AI Therapist for Daily
+     tool. https://github.com/features/copilot                                                      Functioning Screening and Psychotherapeutic Intervention via Everyday Smart
+[22] Daya Guo, Qihao Zhu, Dejian Yang, Zhenda Xie, Kai Dong, Wentao Zhang,                          Devices. arXiv preprint arXiv:2403.10779 (2024).
+     Guanting Chen, Xiao Bi, Yu Wu, YK Li, et al. 2024. DeepSeek-Coder: When the               [47] Xiaomin Ouyang, Xian Shuai, Yang Li, Li Pan, Xifan Zhang, Heming Fu, Sitong
+     Large Language Model Meets Programming–The Rise of Code Intelligence. arXiv                    Cheng, Xinyan Wang, Shihua Cao, Jiang Xin, et al. 2024. ADMarker: A
+     preprint arXiv:2401.14196 (2024).                                                              Multi-Modal Federated Learning System for Monitoring Digital Biomarkers
+[23] Linlin Guo, Lei Wang, Chuang Lin, Jialin Liu, Bingxian Lu, Jian Fang, Zhonghao                 of Alzheimer’s Disease. In ACM MobiCom.
+     Liu, Zeyang Shan, Jingwen Yang, and Silu Guo. 2019. Wiar: A public dataset for            [48] Xiaomin Ouyang and Mani Srivastava. 2024. LLMSense: Harnessing LLMs
+     wifi-based activity recognition. IEEE Access (2019).                                           for High-level Reasoning Over Spatiotemporal Sensor Traces. arXiv preprint
+[24] Dong Han, Syed Khairul Bashar, Jesús Lázaro, Fahimeh Mohagheghian, Andrew                      arXiv:2403.19857 (2024).
+     Peitzsch, Nishat Nishita, Eric Ding, Emily L Dickson, Danielle DiMezza, Jessica           [49] Xiaomin Ouyang, Zhiyuan Xie, Heming Fu, Sitong Cheng, Li Pan, Neiwen Ling,
+     Scott, et al. 2022. A real-time PPG peak detection method for accurate determina-              Guoliang Xing, Jiayu Zhou, and Jianwei Huang. 2023. Harmony: Heterogeneous
+     tion of heart rate during sinus rhythm and cardiac arrhythmia. Biosensors (2022),              multi-modal federated learning through disentangled model training. In ACM
+     82.                                                                                            MobiSys. 530–543.
+[25] Ningning Hou, Xianjin Xia, Yifeng Wang, and Yuanqing Zheng. 2024. One shot                [50] Jiapu Pan and Willis J Tompkins. 1985. A real-time QRS detection algorithm.
+     for all: Quick and accurate data aggregation for LPWANs. IEEE/ACM Transactions                 IEEE transactions on biomedical engineering (1985).
+     on Networking (2024), 2285–2298.                                                          [51] Kishore Papineni, Salim Roukos, Todd Ward, and Wei-Jing Zhu. 2002. Bleu: a
+                                                                                                    method for automatic evaluation of machine translation. In Proceedings of the
+                                                                                                    40th annual meeting of the Association for Computational Linguistics.
+
+
+
+
+                                                                                         211
+SenSys ’25, May 6–9, 2025, Irvine, CA, USA                                                                   Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, Yuanqing Zheng
+
+
+[52] Bharadwaj Pudipeddi, Maral Mesmakhosroshahi, Jinwen Xi, and Sujeeth Bharad-               [70] Xin Wang, Yu Zheng, Zhongwei Wan, and Mi Zhang. 2024. Svd-llm: Truncation-
+     waj. 2020. Training large neural networks with constant memory using a new                     aware singular value decomposition for large language model compression. arXiv
+     execution algorithm. arXiv preprint arXiv:2002.05645 (2020).                                   preprint arXiv:2403.07378 (2024).
+[53] Baptiste Roziere, Jonas Gehring, Fabian Gloeckle, Sten Sootla, Itai Gat, Xiao-            [71] Yue Wang, Hung Le, Akhilesh Deepak Gotmare, Nghi DQ Bui, Junnan Li, and
+     qing Ellen Tan, Yossi Adi, Jingyu Liu, Tal Remez, Jérémy Rapin, et al. 2023. Code              Steven CH Hoi. 2023. Codet5+: Open code large language models for code
+     llama: Open foundation models for code. arXiv preprint arXiv:2308.12950 (2023).                understanding and generation. arXiv preprint arXiv:2305.07922 (2023).
+[54] Noam Shazeer. 2020. Glu variants improve transformer. arXiv preprint                      [72] Zhenhua Wang, Guang Xu, and Ming Ren. 2024. LLM-Generated Natural Lan-
+     arXiv:2002.05202 (2020).                                                                       guage Meets Scaling Laws: New Explorations and Data Augmentation Methods.
+[55] Leming Shen, Qiang Yang, Kaiyan Cui, Yuanqing Zheng, Xiao-Yong Wei, Jian-                      arXiv preprint arXiv:2407.00322 (2024).
+     wei Liu, and Jinsong Han. 2024. Fedconv: A learning-on-model paradigm for                 [73] Jason Wei, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Fei Xia, Ed Chi,
+     heterogeneous federated clients. In Proceedings of the 22nd Annual International               Quoc V Le, Denny Zhou, et al. 2022. Chain-of-thought prompting elicits reasoning
+     Conference on Mobile Systems, Applications and Services. 398–411.                              in large language models. Advances in neural information processing systems
+[56] Leming Shen, Qiang Yang, Yuanqing Zheng, and Mo Li. 2025. AutoIOT: LLM-                        (2022).
+     Driven Automated Natural Language Programming for AIoT Applications. In                   [74] Hao Wen, Yuanchun Li, Guohong Liu, Shanhui Zhao, Tao Yu, Toby Jia-Jun Li,
+     Proceedings of the 31st Annual International Conference on Mobile Computing and                Shiqi Jiang, Yunhao Liu, Yaqin Zhang, and Yunxin Liu. 2024. Autodroid: Llm-
+     Networking.                                                                                    powered task automation in android. In ACM MobiCom.
+[57] Leming Shen and Yuanqing Zheng. 2023. FedDM: data and model heterogeneity-                [75] Kevin Wu, Eric Wu, and James Zou. 2024. How faithful are RAG models? Quan-
+     aware federated learning via dynamic weight sharing. In 2023 IEEE 43rd Interna-                tifying the tug-of-war between RAG and LLMs’ internal prior. arXiv:2404.10198
+     tional Conference on Distributed Computing Systems (ICDCS). IEEE, 975–976.                     (2024).
+[58] Leming Shen and Yuanqing Zheng. 2024. IoTCoder: A Copilot for IoT Application             [76] Shengqiong Wu, Hao Fei, Leigang Qu, Wei Ji, and Tat-Seng Chua. 2023. Next-gpt:
+     Development. In Proceedings of the 30th Annual International Conference on Mobile              Any-to-any multimodal llm. arXiv preprint arXiv:2309.05519 (2023).
+     Computing and Networking. 1647–1649.                                                      [77] Guangzhi Xiong, Qiao Jin, Xiao Wang, Minjia Zhang, Zhiyong Lu, and Aidong
+[59] Sonar Source. 2024. SonarQube. https://www.sonarsource.com/                                    Zhang. 2024. Improving Retrieval-Augmented Generation in Medicine with
+[60] Javier Tejedor, Constantino A García, David G Márquez, Rafael Raya, and Abra-                  Iterative Follow-up Questions. arXiv preprint arXiv:2408.00727 (2024).
+     ham Otero. 2019. Multiple physiological signals fusion techniques for improving           [78] Can Xu, Qingfeng Sun, Kai Zheng, Xiubo Geng, Pu Zhao, Jiazhan Feng,
+     heartbeat detection: A review. Sensors (2019), 4708.                                           Chongyang Tao, and Daxin Jiang. 2023. Wizardlm: Empowering large language
+[61] Hugo Touvron, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne                     models to follow complex instructions. arXiv preprint arXiv:2304.12244 (2023).
+     Lachaux, Timothée Lacroix, Baptiste Rozière, Naman Goyal, Eric Hambro, Faisal             [79] Huatao Xu, Liying Han, Qirui Yang, Mo Li, and Mani Srivastava. 2024. Penetrative
+     Azhar, et al. 2023. Llama: Open and efficient foundation language models. arXiv                ai: Making llms comprehend the physical world. In ACM HotMobile.
+     preprint arXiv:2302.13971 (2023).                                                         [80] Qiang Yang and Yuanqing Zheng. 2021. Model-based head orientation estimation
+[62] Shubham Ugare, Tarun Suresh, Hangoo Kang, Sasa Misailovic, and Gagandeep                       for smart devices. Proceedings of the ACM on Interactive, Mobile, Wearable and
+     Singh. 2024. Improving LLM code generation with grammar augmentation. arXiv                    Ubiquitous Technologies (2021), 1–24.
+     preprint arXiv:2403.01632 (2024).                                                         [81] Qiang Yang and Yuanqing Zheng. 2023. Aquahelper: Underwater sos transmission
+[63] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones,                       and detection in swimming pools. In Proceedings of the 21st ACM Conference on
+     Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017. Attention is all                     Embedded Networked Sensor Systems. 294–307.
+     you need. Advances in neural information processing systems (2017).                       [82] Qiang Yang and Yuanqing Zheng. 2024. Neural Enhanced Underwater SOS
+[64] Pauli Virtanen et al. 2020. SciPy 1.0: Fundamental Algorithms for Scientific                   Detection. In IEEE INFOCOM. 971–980.
+     Computing in Python. Nature Methods (2020).                                               [83] Shiming Yu, Xianjin Xia, Ningning Hou, Yuanqing Zheng, and Tao Gu. 2024.
+[65] Zhongwei Wan, Xin Wang, Che Liu, Samiul Alam, Yu Zheng, Jiachen Liu, Zhong-                    Revolutionizing lora gateway with xgate: Scalable concurrent transmission across
+     nan Qu, Shen Yan, Yi Zhu, Quanlu Zhang, et al. 2023. Efficient large language                  massive logical channels. In Proceedings of the 30th Annual International Confer-
+     models: A survey. arXiv preprint arXiv:2312.03863 (2023).                                      ence on Mobile Computing and Networking. 482–496.
+[66] Kun Wang, Jiani Cao, Zimu Zhou, and Zhenjiang Li. 2024. SwapNet: Efficient                [84] Shiming Yu, Xianjin Xia, Ziyue Zhang, Ningning Hou, and Yuanqing Zheng.
+     Swapping for DNN Inference on Edge AI Devices Beyond the Memory Budget.                        2024. FDLoRa: Tackling Downlink-Uplink Asymmetry with Full-duplex LoRa
+     IEEE Transactions on Mobile Computing (2024).                                                  Gateways. In Proceedings of the 22nd ACM Conference on Embedded Networked
+[67] Kun Wang, Zimu Zhou, and Zhenjiang Li. 2024. LATTE: Layer Algorithm-aware                      Sensor Systems. 281–294.
+     Training Time Estimation for Heterogeneous Federated Learning. In Proceedings             [85] Wayne Xin Zhao, Kun Zhou, Junyi Li, Tianyi Tang, Xiaolei Wang, Yupeng Hou,
+     of the 30th Annual International Conference on Mobile Computing and Networking.                Yingqian Min, Beichen Zhang, Junjie Zhang, Zican Dong, et al. 2023. A survey
+     1470–1484.                                                                                     of large language models. arXiv preprint arXiv:2303.18223 (2023).
+[68] Tianben Wang, Zhangben Li, Honghao Yan, Xiantao Liu, Boqin Liu, Shengjie Li,              [86] Zihao Zhao, Eric Wallace, Shi Feng, Dan Klein, and Sameer Singh. 2021. Calibrate
+     Zhongyu Ma, Jin Hu, Daqing Zhang, and Tao Gu. 2023. AudioGuard: Omnidi-                        before use: Improving few-shot performance of language models. In ICML. PMLR.
+     rectional Indoor Intrusion Detection Using Audio Device. ACM Transactions on              [87] Hao Zhou, Taiting Lu, Yilin Liu, Shijia Zhang, and Mahanth Gowda. 2022. Learn-
+     Internet of Things (2023), 1–22.                                                               ing on the Rings: Self-Supervised 3D Finger Motion Tracking Using Wearable
+[69] Wei Wang, Alex X Liu, Muhammad Shahzad, Kang Ling, and Sanglu Lu. 2015.                        Sensors. ACM IMWUT (2022).
+     Understanding and modeling of wifi signal based human activity recognition. In            [88] Qihao Zhu, Daya Guo, Zhihong Shao, Dejian Yang, Peiyi Wang, Runxin Xu,
+     ACM MobiCom.                                                                                   Y Wu, Yukun Li, Huazuo Gao, Shirong Ma, et al. 2024. DeepSeek-Coder-V2:
+                                                                                                    Breaking the Barrier of Closed-Source Models in Code Intelligence. arXiv preprint
+                                                                                                    arXiv:2406.11931 (2024).
+
+
+
+
+                                                                                         212
+

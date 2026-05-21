@@ -1,0 +1,85 @@
+{
+  "command_eng": "When button 1 of the multi-button is pressed, if the bedroom light brightness is 80 or higher, set it to 10; otherwise, set it to 80.",
+  "connected_devices": {
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button1 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "if",
+        "cond": "Light.CurrentBrightness >= 80",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 10.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 10.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#MultiButton #Bedroom).multiButton_button1 == \"pushed\")\nif ((#Light #Bedroom).light_currentBrightness >= 80) {\n(#Light #Bedroom).light_moveToBrightness(10.0, 0.0)\n}\nelse {\n(#Light #Bedroom).light_moveToBrightness(10.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#MultiButton #Bedroom).multiButton_button1 == \\\"pushed\\\")\\nif ((#Light #Bedroom).light_currentBrightness >= 80) {\\n(#Light #Bedroom).light_moveToBrightness(10.0, 0.0)\\n}\\nelse {\\n(#Light #Bedroom).light_moveToBrightness(10.0, 0.0)\\n}\"\n}"
+}

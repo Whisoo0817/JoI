@@ -47,22 +47,29 @@
         "anchor": "now"
       },
       {
-        "op": "wait",
-        "cond": "MotionSensor.Motion == true",
-        "edge": "none"
-      },
-      {
-        "op": "call",
-        "target": "Switch.On",
-        "args": {}
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ]
       }
     ]
   },
   "joi_block": {
     "name": "Scenario",
     "cron": "",
-    "period": 0,
-    "script": "wait until((#Bedroom #MotionSensor).motionSensor_motion == true)\n(#Bedroom #AirConditioner).switch_on()"
+    "period": 100,
+    "script": "triggered := false\nif ((#MotionSensor #Bedroom).motionSensor_motion == true) {\nif (triggered == false) {\n(#AirConditioner #Switch #Bedroom).switch_on()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bedroom #MotionSensor).motionSensor_motion == true)\n(#Bedroom #AirConditioner).switch_on()\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#MotionSensor #Bedroom).motionSensor_motion == true) {\nif (triggered == false) {\n(#AirConditioner #Switch #Bedroom).switch_on()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
 }

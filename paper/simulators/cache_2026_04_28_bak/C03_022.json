@@ -1,0 +1,68 @@
+{
+  "command_eng": "If the temperature on the airquality sensor is below 20 degrees, close the door.",
+  "connected_devices": {
+    "MeetingRoom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "AirQualitySensor"
+      ]
+    },
+    "Office_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Office",
+        "AirQualitySensor"
+      ]
+    },
+    "MeetingRoom_Door": {
+      "category": [
+        "Door"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Door"
+      ]
+    },
+    "Office_Door": {
+      "category": [
+        "Door"
+      ],
+      "tags": [
+        "Office",
+        "Door"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.Temperature < 20",
+        "then": [
+          {
+            "op": "call",
+            "target": "Door.Close",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#AirQualitySensor).airQualitySensor_temperature < 20) {\n(#Door).door_close()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirQualitySensor).airQualitySensor_temperature < 20) {\n(#Door).door_close()\n}\"\n}"
+}

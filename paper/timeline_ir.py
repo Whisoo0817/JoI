@@ -66,8 +66,39 @@ def parse_duration_to_ms(s: str) -> int:
 
 # ── Schema validation ────────────────────────────────────────────────────────
 
+from dataclasses import dataclass, field as _dc_field
+
+
+@dataclass
+class IRViolation:
+    """One structured IR-validation failure.
+
+    `code` is one of a small fixed set so callers can build typed retry hints
+    instead of regex-parsing free-text messages:
+      - schema_invalid          : structural failure (shape, required fields)
+      - service_not_in_catalog  : `Service.Member`'s Service is not a catalog id
+      - member_not_in_service   : Service is valid, Member is not its function or value
+      - service_not_in_devices  : Service valid but no connected device has it
+      - arg_not_in_catalog      : call.args key is not declared by the catalog function
+    `hint` is an optional structured suggestion ("did_you_mean":"Switch.Switch")
+    used by the retry-hint builder; `message` is the human-readable form.
+    """
+    code: str
+    path: str
+    message: str
+    hint: dict = _dc_field(default_factory=dict)
+
+
 class IRValidationError(ValueError):
-    """Raised when a Timeline IR object fails structural validation."""
+    """Raised when a Timeline IR object fails structural validation.
+
+    Carries a list of `IRViolation` so callers (e.g. the IR-extract retry
+    loop) can map error codes to typed retry instructions, instead of
+    parsing the joined message string.
+    """
+    def __init__(self, message: str, violations: list[IRViolation] | None = None):
+        super().__init__(message)
+        self.violations: list[IRViolation] = violations or []
 
 
 def validate_ir(ir: Any) -> None:
@@ -127,6 +158,17 @@ def _validate_step(step: Any) -> None:
             raise IRValidationError("wait requires 'cond' string")
         if step.get("edge", "none") not in _EDGE_VALUES:
             raise IRValidationError(f"wait.edge must be one of {_EDGE_VALUES}")
+        # Optional `for` field: cond must hold CONTINUOUSLY for this duration
+        # before wait completes. Timer resets if cond flips false during the
+        # window. Format identical to delay.duration ("N UNIT").
+        if "for" in step and step["for"] is not None:
+            fv = step["for"]
+            if not isinstance(fv, str):
+                raise IRValidationError("wait.for must be a 'N UNIT' string")
+            try:
+                parse_duration_to_ms(fv)
+            except ValueError as e:
+                raise IRValidationError(f"wait.for: {e}")
 
     elif op == "delay":
         dur = step.get("duration")
@@ -192,6 +234,301 @@ def _validate_step(step: Any) -> None:
 
     elif op == "break":
         pass  # no fields
+
+
+# ── Device-conformance validation ────────────────────────────────────────────
+# Verify that every Service.Attr / call.target / read.src in the IR refers to
+# a category present in `connected_devices`. Catches LLM hallucination of
+# services the user doesn't have (e.g., IR emits `Pump.Switch` when no device
+# has category "Pump"). Attribute-level conformance is NOT checked here — the
+# downstream L1 static analyzer + simulator catch that on the JoI side.
+
+# Matches a Service.Attr pair where Service starts with an uppercase letter
+# and is not preceded by `$` (variable) or another word char (dotted path).
+_SERVICE_ATTR_RE = re.compile(
+    r"(?<![$\w.])([A-Z][A-Za-z0-9]*)\.([A-Za-z][A-Za-z0-9_]*)"
+)
+# Builtin function names (all/any/avg/abs/max/min) and reserved literals are
+# capitalized in some legacy forms; exclude these from service detection.
+_NON_SERVICE_PREFIXES = {"True", "False", "None", "Null"}
+
+
+def validate_ir_against_devices(ir: Any, connected_devices: dict) -> None:
+    """Raise IRValidationError if the IR references a service that no device in
+    `connected_devices` has as a category.
+
+    Implements the catalog-conformance contract at the IR layer (pipeline P1).
+    Walks every step recursively. For each Service.Attr reference (in
+    call.target, wait/if cond, read.src), checks that `Service` appears in at
+    least one device's `category` list.
+    """
+    if not isinstance(ir, dict) or "timeline" not in ir or "error" in ir:
+        return  # reject path or malformed — nothing to check here
+
+    # Collect the set of category strings actually present.
+    valid_categories: set[str] = set()
+    if isinstance(connected_devices, dict):
+        for spec in connected_devices.values():
+            if isinstance(spec, dict):
+                cats = spec.get("category", [])
+                if isinstance(cats, list):
+                    for c in cats:
+                        if isinstance(c, str):
+                            valid_categories.add(c)
+                elif isinstance(cats, str):
+                    valid_categories.add(cats)
+
+    if not valid_categories:
+        return  # no device info — nothing to validate against
+
+    violations: list[str] = []
+    _check_steps(ir["timeline"], valid_categories, violations, path="timeline")
+    if violations:
+        # `violations` here is a flat list of strings (path: 'service') built
+        # by _check_steps below; reshape into IRViolation list with code.
+        structured: list[IRViolation] = []
+        for line in sorted(set(violations)):
+            head, _, svc_repr = line.partition(": ")
+            svc = svc_repr.strip("'\"")
+            structured.append(IRViolation(
+                code="service_not_in_devices",
+                path=head,
+                message=f"{head}: {svc!r} is not a category of any connected device "
+                        f"(valid: {sorted(valid_categories)})",
+                hint={"service": svc, "valid_categories": sorted(valid_categories)},
+            ))
+        raise IRValidationError(
+            "IR references services not present in connected_devices: "
+            + ", ".join(sorted(set(violations))),
+            violations=structured,
+        )
+
+
+def _check_steps(steps: list, valid: set, out: list, path: str) -> None:
+    for i, s in enumerate(steps):
+        if not isinstance(s, dict):
+            continue
+        sp = f"{path}[{i}]"
+        op = s.get("op")
+        if op == "call":
+            target = s.get("target", "")
+            if isinstance(target, str) and "." in target:
+                svc = target.split(".", 1)[0]
+                if svc and svc not in valid:
+                    out.append(f"{sp}.target: {svc!r}")
+        elif op == "read":
+            src = s.get("src", "")
+            _scan_expr(src, valid, out, f"{sp}.src")
+        elif op == "wait":
+            _scan_expr(s.get("cond", ""), valid, out, f"{sp}.cond")
+        elif op == "if":
+            _scan_expr(s.get("cond", ""), valid, out, f"{sp}.cond")
+            _check_steps(s.get("then", []) or [], valid, out, f"{sp}.then")
+            _check_steps(s.get("else", []) or [], valid, out, f"{sp}.else")
+        elif op == "cycle":
+            _check_steps(s.get("body", []) or [], valid, out, f"{sp}.body")
+            if s.get("until"):
+                _scan_expr(s["until"], valid, out, f"{sp}.until")
+
+
+def _scan_expr(src: Any, valid: set, out: list, path: str) -> None:
+    if not isinstance(src, str):
+        return
+    for svc, _attr in _SERVICE_ATTR_RE.findall(src):
+        if svc == "clock" or svc in _NON_SERVICE_PREFIXES:
+            continue
+        if svc not in valid:
+            out.append(f"{path}: {svc!r}")
+
+
+# ── Catalog-membership validation ───────────────────────────────────────────
+# `validate_ir_against_devices` only checks Service-level presence in the
+# user's connected_devices categories. That accepts `FaceRecognizer.Switch`
+# whenever a device has both FaceRecognizer and Switch in its category list —
+# but the IR is still semantically wrong: `Switch` is a sibling subskill, not
+# a member of the FaceRecognizer service. The capability lives at
+# `Switch.Switch`. This validator catches that class of malformed reference
+# at the IR layer (Python-side, pre-lowering) so the extractor is held to a
+# catalog-grounded contract.
+
+def validate_ir_against_catalog(ir: Any, catalog: dict) -> None:
+    """Raise IRValidationError if any `Service.Member` in the IR is not a real
+    function/value of that catalog service, OR if any call.args key is not
+    declared by the catalog function's argument list.
+
+    Produces structured violations with codes:
+      - service_not_in_catalog
+      - member_not_in_service       (with did_you_mean hint when possible)
+      - arg_not_in_catalog          (with valid_args hint)
+    """
+    if not isinstance(ir, dict) or "timeline" not in ir or "error" in ir:
+        return
+    if not isinstance(catalog, dict) or not catalog:
+        return
+
+    # Reverse indexes for hint generation.
+    member_to_services: dict[str, list[str]] = {}
+    for svc, entry in catalog.items():
+        if not isinstance(entry, dict):
+            continue
+        for m in list(entry.get("functions", {}).keys()) + list(entry.get("values", {}).keys()):
+            member_to_services.setdefault(m, []).append(svc)
+
+    violations: list[IRViolation] = []
+    _check_steps_catalog(
+        ir["timeline"], catalog, member_to_services, violations, path="timeline",
+    )
+    if violations:
+        raise IRValidationError(
+            "IR references service.member pairs not in catalog: "
+            + "; ".join(v.message for v in violations),
+            violations=violations,
+        )
+
+
+def _check_steps_catalog(steps: list, catalog: dict,
+                         member_to_services: dict, out: list, path: str) -> None:
+    for i, s in enumerate(steps):
+        if not isinstance(s, dict):
+            continue
+        sp = f"{path}[{i}]"
+        op = s.get("op")
+        if op == "call":
+            target = s.get("target", "")
+            _check_pair(target, catalog, member_to_services, out, f"{sp}.target",
+                        expect_function=True, args=s.get("args"))
+        elif op == "read":
+            _scan_expr_catalog(s.get("src", ""), catalog, member_to_services, out, f"{sp}.src")
+        elif op == "wait":
+            _scan_expr_catalog(s.get("cond", ""), catalog, member_to_services, out, f"{sp}.cond")
+        elif op == "if":
+            _scan_expr_catalog(s.get("cond", ""), catalog, member_to_services, out, f"{sp}.cond")
+            _check_steps_catalog(s.get("then", []) or [], catalog, member_to_services, out, f"{sp}.then")
+            _check_steps_catalog(s.get("else", []) or [], catalog, member_to_services, out, f"{sp}.else")
+        elif op == "cycle":
+            _check_steps_catalog(s.get("body", []) or [], catalog, member_to_services, out, f"{sp}.body")
+            if s.get("until"):
+                _scan_expr_catalog(s["until"], catalog, member_to_services, out, f"{sp}.until")
+
+
+def _check_pair(target: Any, catalog: dict, member_to_services: dict,
+                out: list, path: str,
+                expect_function: bool = False, args: Any = None) -> None:
+    if not isinstance(target, str) or "." not in target:
+        return
+    svc, _, member = target.partition(".")
+    if not svc or not member:
+        return
+    if svc not in catalog:
+        out.append(IRViolation(
+            code="service_not_in_catalog",
+            path=path,
+            message=f"{path}: {target!r} — service {svc!r} not in catalog",
+            hint={"service": svc, "target": target},
+        ))
+        return
+    entry = catalog.get(svc) or {}
+    funcs = entry.get("functions", {}) or {}
+    vals = entry.get("values", {}) or {}
+    if member not in funcs and member not in vals:
+        candidates = sorted(member_to_services.get(member, []))
+        msg = f"{path}: {target!r} — member {member!r} not in {svc!r}"
+        hint = {"service": svc, "member": member, "target": target}
+        if candidates:
+            msg += f" — did you mean {candidates[0]}.{member}?"
+            hint["did_you_mean"] = f"{candidates[0]}.{member}"
+            hint["candidates"] = candidates
+        out.append(IRViolation(
+            code="member_not_in_service", path=path, message=msg, hint=hint,
+        ))
+        return
+    # Member valid. If this is a call.target with args, check arg keys too.
+    if expect_function and member in funcs and isinstance(args, dict):
+        fn_arg_order = funcs[member]  # list of declared arg ids
+        valid_keys = set(fn_arg_order) if isinstance(fn_arg_order, list) else set()
+        for k in args.keys():
+            if k not in valid_keys:
+                out.append(IRViolation(
+                    code="arg_not_in_catalog",
+                    path=path,
+                    message=f"{path}: arg {k!r} not declared for {target!r} "
+                            f"(valid: {sorted(valid_keys)})",
+                    hint={
+                        "target": target, "bad_arg": k,
+                        "valid_args": sorted(valid_keys),
+                    },
+                ))
+
+
+def _scan_expr_catalog(src: Any, catalog: dict, member_to_services: dict,
+                       out: list, path: str) -> None:
+    if not isinstance(src, str):
+        return
+    for svc, member in _SERVICE_ATTR_RE.findall(src):
+        if svc == "clock" or svc in _NON_SERVICE_PREFIXES:
+            continue
+        _check_pair(f"{svc}.{member}", catalog, member_to_services, out, path)
+    # Additionally detect `<Service>.<EnumAttr> == <bare_identifier>` — the
+    # bare identifier becomes a VarRef at evaluation time and silently
+    # resolves to None, so the comparison never matches the intended enum
+    # value. Walk the parsed AST instead of regex-matching so we recognize
+    # the comparison context (BinaryOp ==/!=) reliably.
+    try:
+        from paper.simulators import expr as _expr_mod
+        ast = _expr_mod.parse(src)
+    except Exception:
+        return
+    _walk_for_enum_unquoted(ast, catalog, out, path)
+
+
+def _walk_for_enum_unquoted(node: Any, catalog: dict, out: list, path: str) -> None:
+    """Recurse the expression AST; flag enum-typed device-attr comparisons
+    whose RHS is a bare identifier (parsed as VarRef)."""
+    from paper.simulators import expr as _expr_mod
+    if node is None:
+        return
+    if isinstance(node, _expr_mod.BinaryOp):
+        if node.op in ("==", "!="):
+            for side, other in ((node.left, node.right), (node.right, node.left)):
+                if isinstance(side, _expr_mod.DeviceRef) and isinstance(other, _expr_mod.VarRef):
+                    key = side.key  # canonical "service.attr"
+                    if "." not in key:
+                        continue
+                    svc, attr = key.split(".", 1)
+                    # The DeviceRef stored canonical (lowercase). Find the
+                    # catalog entry case-insensitively.
+                    cat_svc = next(
+                        (s for s in catalog if s.lower() == svc), None
+                    )
+                    if not cat_svc:
+                        continue
+                    vals = catalog[cat_svc].get("values", {}) or {}
+                    cat_attr = next(
+                        (a for a in vals if a.lower() == attr), None
+                    )
+                    if not cat_attr:
+                        continue
+                    if vals[cat_attr] == "ENUM":
+                        out.append(IRViolation(
+                            code="enum_value_unquoted",
+                            path=path,
+                            message=(f"{path}: comparison `{cat_svc}.{cat_attr} == "
+                                     f"{other.name}` uses a bare identifier on the RHS — "
+                                     f"`{other.name}` is silently treated as a "
+                                     f"variable and resolves to None. Wrap the enum "
+                                     f"value in double quotes."),
+                            hint={
+                                "service": cat_svc, "attr": cat_attr,
+                                "bare_ident": other.name,
+                                "did_you_mean": f"\"{other.name}\"",
+                            },
+                        ))
+        _walk_for_enum_unquoted(node.left, catalog, out, path)
+        _walk_for_enum_unquoted(node.right, catalog, out, path)
+        return
+    if isinstance(node, _expr_mod.UnaryOp):
+        _walk_for_enum_unquoted(node.operand, catalog, out, path)
+        return
 
 
 def _body_has_cadence(steps: list) -> bool:
@@ -313,6 +650,68 @@ def _strip_json_fences(text: str) -> str:
     return m.group(1) if m else s
 
 
+def build_extract_retry_hint(violations: list[IRViolation]) -> str:
+    """Map structured violations into a follow-up user message for the extractor.
+
+    The message instructs the LLM what *kind* of fix is required for each
+    violated reference, using catalog-grounded suggestions when available.
+    """
+    lines: list[str] = [
+        "## Previous IR failed catalog validation — fix and resubmit",
+        "",
+        "The IR you produced references services/members/args that are not in "
+        "the service catalog. Each bullet names one issue and the kind of fix.",
+        "",
+    ]
+    for v in violations:
+        if v.code == "service_not_in_catalog":
+            lines.append(
+                f"- {v.path}: service `{v.hint.get('service')}` is not a catalog "
+                f"service id. Use a real service id from the [Services] block."
+            )
+        elif v.code == "member_not_in_service":
+            dym = v.hint.get("did_you_mean")
+            svc = v.hint.get("service")
+            mem = v.hint.get("member")
+            if dym:
+                lines.append(
+                    f"- {v.path}: `{svc}.{mem}` is wrong — `{mem}` is a member of "
+                    f"`{v.hint['candidates'][0]}`, not `{svc}`. Use `{dym}`. "
+                    f"(`{svc}` is a parent device category; the capability lives "
+                    f"on its sibling sub-service.)"
+                )
+            else:
+                lines.append(
+                    f"- {v.path}: `{svc}.{mem}` — `{mem}` is not a function or "
+                    f"value of `{svc}`. Look up the right service in the catalog."
+                )
+        elif v.code == "service_not_in_devices":
+            lines.append(
+                f"- {v.path}: service `{v.hint.get('service')}` is not present in "
+                f"connected_devices. Pick a service whose category exists in "
+                f"the [Connected Devices] block."
+            )
+        elif v.code == "arg_not_in_catalog":
+            lines.append(
+                f"- {v.path}: arg `{v.hint.get('bad_arg')}` is not declared for "
+                f"`{v.hint.get('target')}`. Valid args: "
+                f"{v.hint.get('valid_args')}. Remove or rename."
+            )
+        elif v.code == "enum_value_unquoted":
+            lines.append(
+                f"- {v.path}: `{v.hint.get('service')}.{v.hint.get('attr')} == "
+                f"{v.hint.get('bare_ident')}` — the RHS is a bare identifier "
+                f"that would be parsed as a variable (which resolves to None). "
+                f"Wrap the enum value in double quotes: `== {v.hint.get('did_you_mean')}`."
+            )
+        else:
+            lines.append(f"- {v.path}: {v.message}")
+    lines.append("")
+    lines.append("Produce a corrected Timeline IR JSON. Do not repeat the same "
+                 "service/member/arg ids you just used.")
+    return "\n".join(lines)
+
+
 def extract_ir(
     command: str,
     devices: dict | str,
@@ -320,6 +719,7 @@ def extract_ir(
     debug: bool = False,
     auto_translate: bool = True,
     augmentations: str | None = None,
+    retry_context: tuple[str, str, str] | None = None,
 ) -> dict:
     """Call the local LLM to extract a Timeline IR from a command.
 
@@ -353,14 +753,33 @@ def extract_ir(
         print("[timeline_ir] model =", model)
         print("[timeline_ir] command =", english_command)
 
+    # Build chat history. On first attempt: single user turn. On retry, replay
+    # the original (user, assistant) and append the hint as the next user turn
+    # — same shape as the lowering retry path so KV cache hits on the shared
+    # prefix and the model sees its own prior output before the correction.
+    if retry_context is not None:
+        prior_user, prior_assistant, hint = retry_context
+        messages = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": prior_user},
+            {"role": "assistant", "content": prior_assistant},
+            {"role": "user", "content": hint},
+        ]
+        # Replayed user message is what the caller should pass back on the
+        # next retry — preserve the original prompt for traceability.
+        out_user = prior_user
+    else:
+        messages = [
+            {"role": "system", "content": system},
+            {"role": "user", "content": user},
+        ]
+        out_user = user
+
     import time as _time
     _t0 = _time.perf_counter()
     response = client.chat.completions.create(
         model=model,
-        messages=[
-            {"role": "system", "content": system},
-            {"role": "user", "content": user},
-        ],
+        messages=messages,
         temperature=0.0,
         max_tokens=2048,
         stream=False,
@@ -368,6 +787,7 @@ def extract_ir(
     )
     _elapsed = _time.perf_counter() - _t0
     raw = (response.choices[0].message.content or "").strip()
+    raw_assistant = raw  # preserve for retry replay BEFORE fence-strip mutates it
     raw = _strip_json_fences(raw)
 
     if debug:
@@ -383,13 +803,13 @@ def extract_ir(
         _usage = response.usage
         _prompt_tokens = _usage.prompt_tokens if _usage else 0
         _completion_tokens = _usage.completion_tokens if _usage else 0
-        return ir, _prompt_tokens, _completion_tokens, _elapsed
+        return ir, _prompt_tokens, _completion_tokens, _elapsed, out_user, raw_assistant
 
     validate_ir(ir)
     _usage = response.usage
     _prompt_tokens = _usage.prompt_tokens if _usage else 0
     _completion_tokens = _usage.completion_tokens if _usage else 0
-    return ir, _prompt_tokens, _completion_tokens, _elapsed
+    return ir, _prompt_tokens, _completion_tokens, _elapsed, out_user, raw_assistant
 
 
 # ── Readable rendering (IR → Korean) ─────────────────────────────────────────

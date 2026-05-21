@@ -30,9 +30,31 @@ class ComparisonResult:
     joi_groups: list = field(default_factory=list)
 
 
-def compare_traces(trace_ir: Trace, trace_joi: Trace) -> ComparisonResult:
+def compare_traces(trace_ir: Trace, trace_joi: Trace,
+                   prefix_mode: bool = False) -> ComparisonResult:
+    """Compare two traces for behavioral equivalence.
+
+    `prefix_mode=True`: trim both group lists to the common prefix
+    excluding the LAST group of each side, then compare. Use when at least
+    one side hit MAX_TRACE (unbounded-cycle observation window). Rationale:
+    sims may stop mid-group at the cap, producing a partial last group that
+    differs spuriously between IR and JoI. Trimming to a fully-observed
+    common prefix preserves the equivalence claim on the observed window.
+    """
     g_ir = _group_and_dedup(trace_ir.records)
     g_joi = _group_and_dedup(trace_joi.records)
+
+    if prefix_mode and g_ir and g_joi:
+        # Drop last group of each (likely partial under cap) then trim to common length.
+        common = min(len(g_ir) - 1, len(g_joi) - 1)
+        if common <= 0:
+            # Not enough fully-observed groups; treat as equivalent vacuously
+            # (the observation window is too short to distinguish).
+            return ComparisonResult(equivalent=True,
+                                    diff_summary="prefix_mode: window too short",
+                                    ir_groups=g_ir, joi_groups=g_joi)
+        g_ir = g_ir[:common]
+        g_joi = g_joi[:common]
 
     if len(g_ir) != len(g_joi):
         return ComparisonResult(

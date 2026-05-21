@@ -62,7 +62,6 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
     except JoiGenerationError as e:
         return {
             "code": "",
-            "merged_command": request.sentence,
             "log": {
                 "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
 
@@ -74,52 +73,6 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
     except Exception as e:
         return {
             "code": "",
-            "merged_command": request.sentence,
-            "log": {
-                "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
-
-                "logs": str(e)
-            },
-            "error": str(e)
-        }
-
-@app.post("/re_generate_joi_code")
-async def re_generate_joi_code_endpoint(request: GenerateJOICodeRequest):
-    # Extract modification feedback from other_params
-    modification_text = None
-    if request.other_params:
-        for param in request.other_params:
-            if "user_feedback" in param and param["user_feedback"]:
-                mod = param["user_feedback"][0]
-                if mod != "retry":
-                    modification_text = mod.replace("extra:", "").strip()
-                break
-                
-    try:
-        result = generate_joi_code(
-            sentence=request.sentence,
-            connected_devices={}, # Can be inferred or cached, but run_local logic handles dictionary missing
-            other_params=request.other_params,
-            modification=modification_text,
-            base_url=SLLM_LOCAL_BASE_URL
-        )
-        return result
-    except JoiGenerationError as e:
-        return {
-            "code": "",
-            "merged_command": request.sentence,
-            "log": {
-                "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
-
-                "logs": getattr(e, 'logs', '')
-            },
-            "error": str(e),
-            "error_code": getattr(e, 'error_code', 'unknown')
-        }
-    except Exception as e:
-        return {
-            "code": "",
-            "merged_command": request.sentence,
             "log": {
                 "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
 

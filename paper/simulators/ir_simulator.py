@@ -65,12 +65,27 @@ def run_ir_simulation(
     if head.get("op") == "start_at":
         anchor = head.get("anchor", "now")
         if anchor == "cron":
+            # P4 (2026-05-20): top-level start_at(cron) means "re-execute body
+            # on every cron firing within the 7-day window" — not just once at
+            # first fire. Matches NL semantics like "매 정각마다 X" → body fires
+            # at every cron occurrence. When body has its own cycle (D-9 cron+
+            # cycle composition), the cycle handles intra-fire iteration; the
+            # outer cron loop just re-enters body once per cron occurrence.
             cron = head.get("cron", "")
-            first_fire = _next_cron_fire(cron, world.t_ms, scenario)
-            if first_fire is None:
-                return trace  # cron never fires in window
-            world.advance_to(first_fire)
-        # "now" → leave t at 0
+            try:
+                while True:
+                    _check_stop(world, trace)
+                    next_fire = _next_cron_fire(cron, world.t_ms, scenario)
+                    if next_fire is None or next_fire >= MAX_T_MS:
+                        return trace
+                    world.advance_to(next_fire)
+                    _exec_steps(body, world, trace, catalog, debug)
+                    # Step past the current minute so the next cron lookup
+                    # advances rather than returning the same fire.
+                    world.advance_by(60_000)
+            except _StopException:
+                return trace
+        # "now" → leave t at 0, execute body once
     else:
         body = timeline
 
@@ -147,10 +162,16 @@ def _exec_call(step: dict, world: World, trace: Trace, catalog, debug: bool) -> 
     # Apply best-effort effects to the world (so later reads see new state)
     world.apply_effect(service, method, args_evaluated)
 
-    # Store synthetic return value (just the args dict for now — most
-    # tests don't actually depend on return semantics)
+    # Store synthetic return value. Use the post-effect world-state slot
+    # (`<svc>.<canonical-attr>`) so the captured return is symmetric with the
+    # JoI sim, which stores `world.state.get(<canonical key>)` on the
+    # `Var = (#X).Method(...)` path. For pure side-effect or stubbed calls
+    # (e.g., cloud GenerateImage) both sides end up storing None — making
+    # downstream `$Var` references compare equal across sims.
     if var_name:
-        world.vars[var_name] = args_evaluated
+        from .expr import canonical_name
+        key = f"{(service or '').lower()}.{canonical_name(service, method)}"
+        world.vars[var_name] = world.state.get(key)
 
     if debug:
         print(f"[IR t={world.t_ms}] call {target}({args_evaluated}) -> trace={canon_args}")
@@ -168,20 +189,46 @@ def _maybe_eval(v: Any, world: World) -> Any:
     """
     if not isinstance(v, str):
         return v
-    # First try full-expression evaluation (e.g., "Volume + 10")
-    markers = set(".+-*/()<>=!&|")
-    if any(c in markers for c in v):
+    # Try full-expression evaluation only when the string looks like one.
+    # `.` alone is NOT a marker — file paths ("cat.png"), URLs, qualified
+    # tokens like "Building 301" would otherwise eval to None silently and
+    # poison the trace. Real expressions always carry an arithmetic or
+    # comparison operator (or a `$`-prefixed var ref that the var-substitution
+    # path below also handles).
+    markers = set("+-*/<>=!&|")
+    if any(c in markers for c in v) or v.lstrip().startswith("$"):
         try:
-            return expr.eval_str(v, _ctx(world))
+            result = expr.eval_str(v, _ctx(world))
         except Exception:
-            pass  # fall through to var-substitution
+            result = None
+        # eval_str returns None on unresolved idents — only trust it when
+        # something meaningful came back, otherwise fall through.
+        if result is not None:
+            return result
     # Then $var / $Service.Attr substitution within plain strings
     if "$" in v:
         from .expr import canonical_key
+        # Standalone reference (`$VarName` or `$Service.Attr` and nothing
+        # else): preserve the raw value type — None stays None, ints stay
+        # ints. This keeps IR-side captured-return symmetry with the JoI
+        # sim, where `Var = (#X).Method(...)` stores `world.state.get(key)`
+        # raw. String-coercion is only done for embedded interpolation
+        # ("temp is $t"), where concatenation forces a string anyway.
+        stripped = v.strip()
+        m_whole = _VAR_SUBST_RE.fullmatch(stripped)
+        if m_whole:
+            name = m_whole.group(1)
+            if "." in name:
+                first, _, rest = name.partition(".")
+                if first[:1].isupper():
+                    svc, a = canonical_key(first, rest)
+                    return world.state.get(f"{svc}.{a}")
+                return world.vars.get(name)
+            return world.vars.get(name)
+
         def _sub(m):
             name = m.group(1)
             if "." in name:
-                # $Service.Attr → device-state lookup
                 first, _, rest = name.partition(".")
                 if first[:1].isupper():
                     svc, a = canonical_key(first, rest)
@@ -198,32 +245,72 @@ def _maybe_eval(v: Any, world: World) -> Any:
 def _exec_wait(step: dict, world: World) -> None:
     cond_src = step["cond"]
     edge = step.get("edge", "none")
+    for_str = step.get("for")
+    for_ms = parse_duration_to_ms(for_str) if for_str else 0
     cond_ast = expr.parse(cond_src)
     uses_clock = _cond_uses_clock(cond_ast)
 
     if edge == "none":
-        while True:
-            _check_stop_world(world)
-            if expr.evaluate(cond_ast, _ctx(world)):
-                return
-            # Early-stop: if no pending scenario events AND cond doesn't read
-            # clock, the world can't change in a way that satisfies cond.
-            if not world._pending and not uses_clock:
-                raise _StopException()
-            world.advance_by(TICK_MS)
+        if for_ms <= 0:
+            while True:
+                _check_stop_world(world)
+                if expr.evaluate(cond_ast, _ctx(world)):
+                    return
+                # Early-stop: if no pending scenario events AND cond doesn't read
+                # clock, the world can't change in a way that satisfies cond.
+                if not world._pending and not uses_clock:
+                    raise _StopException()
+                world.advance_by(TICK_MS)
+        else:
+            # Sustained-true: cond must remain true CONTINUOUSLY for for_ms.
+            # Flip to false → timer resets to 0.
+            hold_ms = 0
+            while True:
+                _check_stop_world(world)
+                if expr.evaluate(cond_ast, _ctx(world)):
+                    hold_ms += TICK_MS
+                    if hold_ms >= for_ms:
+                        return
+                else:
+                    hold_ms = 0
+                    if not world._pending and not uses_clock:
+                        raise _StopException()
+                world.advance_by(TICK_MS)
     elif edge in ("rising", "falling"):
+        target_state = (edge == "rising")
         prev = bool(expr.evaluate(cond_ast, _ctx(world)))
+        # Outer loop: each iteration is one "wait-for-edge + sustain" attempt.
+        # If cond flips back during the sustain phase, we restart from edge-wait.
         while True:
-            _check_stop_world(world)
-            if not world._pending and not uses_clock:
-                raise _StopException()
-            world.advance_by(TICK_MS)
-            cur = bool(expr.evaluate(cond_ast, _ctx(world)))
-            if edge == "rising" and (not prev) and cur:
+            # Phase 1: wait for the edge.
+            while True:
+                _check_stop_world(world)
+                if not world._pending and not uses_clock:
+                    raise _StopException()
+                world.advance_by(TICK_MS)
+                cur = bool(expr.evaluate(cond_ast, _ctx(world)))
+                edge_fired = (cur == target_state) and (prev != target_state)
+                prev = cur
+                if edge_fired:
+                    break
+            if for_ms <= 0:
                 return
-            if edge == "falling" and prev and (not cur):
+            # Phase 2: cond must remain in post-edge state for for_ms.
+            hold_ms = 0
+            flipped = False
+            while hold_ms < for_ms:
+                _check_stop_world(world)
+                world.advance_by(TICK_MS)
+                cur = bool(expr.evaluate(cond_ast, _ctx(world)))
+                if cur == target_state:
+                    hold_ms += TICK_MS
+                else:
+                    flipped = True
+                    prev = cur
+                    break
+            if not flipped:
                 return
-            prev = cur
+            # else: loop back to Phase 1 and wait for the next edge.
 
 
 def _cond_uses_clock(node) -> bool:

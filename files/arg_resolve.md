@@ -94,6 +94,60 @@ The optional `[Device-specific Arg Hints]` block (if present) carries category-s
 - "half" → `50` (or the midpoint if the arg's range differs).
 - Avoid string forms for numeric args (`"100"` ❌ → `100` ✅).
 
+## 7.1 Relative changes — emit expressions, NOT literals
+🛑 When the command describes a **relative** change on a stateful attribute
+("by one", "by 10", "by 10%", "increase by N", "decrease by N", "raise by N",
+"lower by N", "channel down", "channel up", "volume up by N", etc.), the arg
+value must be the **expression string** `"$<Service>.<Attr> +/- N"` — never a
+bare literal. The literal form `-1` would mean "set the absolute channel to
+−1", which is semantically wrong for the user's intent.
+
+- ✅ "Turn the TV channel down by one" + `Television.SetChannel(Channel)` →
+  `{"Channel": "$Television.Channel - 1"}`
+- ✅ "Increase the speaker volume by 10" + `Speaker.SetVolume(Volume)` →
+  `{"Volume": "$Speaker.Volume + 10"}`
+- ✅ "Decrease the light brightness by 10" + `Light.MoveToBrightness(Brightness, Rate)` →
+  `{"Brightness": "$Light.CurrentBrightness - 10"}` (Rate is omitted — only
+  arguments named by the command are produced; see §7.2 below).
+- ❌ "Turn the TV channel down by one" → `{"Channel": -1}` (loses the relative
+  semantics; would set channel to literal −1).
+- ❌ "Increase the volume by 10" → `{"Volume": 10}` (sets absolute, not delta).
+
+The expression uses the attribute that *reads* the current value (e.g.
+`Television.Channel`, `Speaker.Volume`, `Light.CurrentBrightness`), selected
+from the connected catalog. When the service_plan reasoning shows the value
+to read (e.g. `Read Television.Channel; Call Television.SetChannel(curr−1)`),
+use that same attribute id in the `$<Service>.<Attr>` reference.
+
+## 7.2 Ceiling / floor caps — wrap with min() / max()
+🛑 When the command describes a **ceiling or floor** on the change ("up to N",
+"at most N", "최대 N까지", "no more than N" for ceiling; "down to N", "at least N",
+"최소 N부터", "no less than N" for floor), wrap the relative expression with
+`min(...)` (ceiling) or `max(...)` (floor):
+
+- ✅ "Increase the volume by 10, up to a maximum of 100" →
+  `{"Volume": "min($Speaker.Volume + 10, 100)"}`
+- ✅ "Decrease the brightness by 10, down to a minimum of 0" →
+  `{"Brightness": "max($Light.CurrentBrightness - 10, 0)"}`
+- ❌ "Increase by 10, up to 100" → `{"Volume": "$Speaker.Volume + 10"}` (cap
+  silently dropped — the IR layer has no way to recover it later, and the
+  downstream JoI lowering MUST NOT speculatively add `if (v > 100) clamp`).
+
+If the command names a ceiling AND a floor on the same value, nest them:
+`"min(max($X - N, 0), 100)"`. Do not split into two args; the IR is one expr.
+
+## 7.3 Args NOT named by the command — omit them
+Only emit arg keys that the command actually constrains. If the catalog
+declares additional optional args (e.g. `Light.MoveToBrightness(Brightness, Rate)`
+with `Rate` being a transition duration) and the command does not say
+anything about that arg, **leave it out of the args dict**. Do NOT pad with
+`Rate: 0` or `Rate: 0.0`. The downstream JoI lowering trusts your args dict
+verbatim — any padded arg becomes a hallucinated runtime parameter.
+
+- ✅ "Increase brightness by 10" → `{"Brightness": "$Light.CurrentBrightness + 10"}`
+  (Rate not mentioned → omit).
+- ❌ "Increase brightness by 10" → `{"Brightness": "$Light.CurrentBrightness + 10", "Rate": 0}`
+
 ## 8. Compound conditions — values per action term only
 This stage does NOT build conditions; it only resolves call args. If the command says "if temperature ≥ 30, set AC to cooling", value reads (e.g. `TemperatureSensor.Temperature`) are filtered out upstream, so you only see `["AirConditioner.SetMode"]`. Output:
 ```json

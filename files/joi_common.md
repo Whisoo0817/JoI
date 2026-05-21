@@ -84,10 +84,33 @@ Example (bad — do not do this):
   - ❌ At top of script, `triggered = false` (without `:=`) is WRONG when `triggered` is a state flag — it would reset every tick and never persist. Use `triggered := false`.
   - Rule of thumb: declare each persistent state var with `:=` ONCE at the very top of the script; everything else is `=`.
 - **NO** `var`/`let`/`const`, `for`/`while`, `Math.*`, `abs()`, `min()`, `max()`, `.ToString()`. JoI has no built-in functions — the IR may use `abs`/`max`/`min` as a convenience, but lowering MUST rewrite each into the explicit workaround below.
-- **abs workaround**: IR `abs(a - b)` → `diff = a - b; if (diff < 0) { diff = b - a }` (then use `diff`).
-- **max workaround**: IR `max(a, b)` → `m = a; if (b > a) { m = b }` (then use `m`). For 3+ args, chain pairwise.
-- **min workaround**: IR `min(a, b)` → `m = a; if (b < a) { m = b }` (then use `m`).
-- When `abs`/`max`/`min` appears inside a `call.args` value (e.g. `SetVolume(min($v+10, 100))`), pre-compute the value into a temp variable on the line BEFORE the call, then pass the temp: `tmp = $v + 10; if (100 < tmp) { tmp = 100 }; (#Speaker).SetVolume(tmp)`.
+- 🛑 **Mirror the IR's surface form for arg values.** If the IR places an expression directly inside `call.args` (e.g. `"Channel": "$Television.Channel - 1"`), lower it inline inside the JoI call — do NOT introduce a fresh variable. Only when the IR has a preceding `read` op that binds a name should the JoI use that name. The IR's choice between "inline expression" and "read-then-use" is intentional and must be preserved.
+  - ✅ IR arg `"Channel": "$Television.Channel - 1"` (no `read` before it) → JoI `(#Television).SetChannel((#Television).Channel - 1)`. **Inline.**
+  - ✅ IR has `read{var:"current", src:"Television.Channel"}` THEN `call{args:{Channel:"$current - 1"}}` → JoI `current = (#Television).Channel; (#Television).SetChannel(current - 1)`. **Variable mirrors IR's read.**
+  - ❌ IR has inline expression `"$Television.Channel - 1"` → JoI introducing `c = (#Television).Channel; SetChannel(c - 1)` is a **violation** of surface mirroring. Use the inline form.
+- 🛑 **Apply abs/max/min workarounds ONLY when the IR literally contains `abs(...)`, `max(...)`, or `min(...)` in its args/cond.** Never speculatively add bounds checks because "the value might be negative" or "the channel might exceed max." The IR's service-catalog knowledge has already accounted for valid ranges; the lowering layer has no min/max info and must trust the IR.
+  - ✅ IR arg `"Volume": "$Speaker.Volume + 10"` (no min/max in IR) → JoI `(#Speaker).SetVolume((#Speaker).Volume + 10)`. **No ceiling at 100, no temp variable.**
+  - ❌ IR arg `"Volume": "$Speaker.Volume + 10"` → adding `if (v > 100) { v = 100 }` because "volume max is 100" is a **violation** — that limit was the IR-stage decision.
+  - ✅ IR arg `"Volume": "min($Speaker.Volume + 10, 100)"` (min literally present) → use the min workaround: `tmp = (#Speaker).Volume + 10; if (100 < tmp) { tmp = 100 }; (#Speaker).SetVolume(tmp)`. The temp variable is required ONLY because `min` cannot appear inside a call.
+- **abs workaround** (only when IR has `abs(...)`): IR `abs(a - b)` → `diff = a - b; if (diff < 0) { diff = b - a }` (then use `diff`).
+- **min workaround** (only when IR has `min(...)`): IR `min(a, b)` → result is the **SMALLER** of `a` and `b`. Form: `m = a; if (b < a) { m = b }` then use `m`.
+  - Memorize: `min` caps from **above** → guard fires when value would exceed limit → comparator is `>` against the limit. `tmp = expr; if (tmp > LIMIT) { tmp = LIMIT }`.
+- **max workaround** (only when IR has `max(...)`): IR `max(a, b)` → result is the **LARGER** of `a` and `b`. Form: `m = a; if (b > a) { m = b }` then use `m`.
+  - Memorize: `max` floors from **below** → guard fires when value would drop under limit → comparator is `<` against the limit. `tmp = expr; if (tmp < LIMIT) { tmp = LIMIT }`.
+- When `abs`/`max`/`min` literally appears inside a `call.args` value, pre-compute into a temp variable on the line BEFORE the call. Concrete patterns (memorize these two — they cover almost every clamp case):
+  - 🟢 **Ceiling (min)** — IR arg `"Volume": "min($Speaker.Volume + 10, 100)"` →
+    ```
+    tmp = (#Speaker).Volume + 10
+    if (tmp > 100) { tmp = 100 }
+    (#Speaker).SetVolume(tmp)
+    ```
+  - 🟢 **Floor (max)** — IR arg `"Brightness": "max($Light.CurrentBrightness - 10, 0)"` →
+    ```
+    tmp = (#Light).CurrentBrightness - 10
+    if (tmp < 0) { tmp = 0 }
+    (#Light).MoveToBrightness(tmp)
+    ```
+  - ❌ Common LLM mistake: writing `if (0 < tmp) { tmp = 0 }` for the floor case — this inverts the polarity (it becomes a ceiling at 0, clamping all positive values to 0). The comparator for a **floor** is `tmp < LIMIT`, NOT `LIMIT < tmp`.
 - **String concat**: `"text" + value` (auto-cast).
 
 ---

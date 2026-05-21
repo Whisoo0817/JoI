@@ -66,7 +66,7 @@
       },
       {
         "op": "if",
-        "cond": "AirQualitySensor.CarbonDioxide >= 1500 && WindowCovering.CurrentPosition == 100",
+        "cond": "AirQualitySensor.CarbonDioxide >= 1500 and WindowCovering.CurrentPosition == 0",
         "then": [
           {
             "op": "call",
@@ -89,7 +89,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#AirQualitySensor).airQualitySensor_carbonDioxide >= 1500 and (#WindowCovering).windowCovering_currentPosition == 100) {\n(#AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n(#WindowCovering).windowCovering_upOrOpen()\n}"
+    "script": "if ((#AirQualitySensor).airQualitySensor_carbonDioxide >= 1500 and (#WindowCovering #Blind).windowCovering_currentPosition == 0) {\n(#AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n(#WindowCovering #Blind).windowCovering_upOrOpen()\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirQualitySensor).airQualitySensor_carbonDioxide >= 1500 and (#WindowCovering).windowCovering_currentPosition == 100) {\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n(#WindowCovering).windowCovering_upOrOpen()\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirQualitySensor).airQualitySensor_carbonDioxide >= 1500 and (#WindowCovering #Blind).windowCovering_currentPosition == 0) {\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n(#WindowCovering #Blind).windowCovering_upOrOpen()\\n}\"\n}"
 }

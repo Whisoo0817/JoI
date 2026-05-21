@@ -1,0 +1,95 @@
+{
+  "command_eng": "When it rains, close the door and check again after 1 hour; if it's not raining then, open the door again.",
+  "connected_devices": {
+    "Garden_RainSensor": {
+      "category": [
+        "RainSensor"
+      ],
+      "tags": [
+        "Garden",
+        "RainSensor"
+      ]
+    },
+    "Roof_RainSensor": {
+      "category": [
+        "RainSensor"
+      ],
+      "tags": [
+        "Roof",
+        "RainSensor"
+      ]
+    },
+    "Front_Door": {
+      "category": [
+        "Door"
+      ],
+      "tags": [
+        "Front",
+        "Door"
+      ]
+    },
+    "Back_Door": {
+      "category": [
+        "Door"
+      ],
+      "tags": [
+        "Back",
+        "Door"
+      ]
+    },
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "RainSensor.Rain == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Door.Close",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "read",
+        "var": "current_rain",
+        "src": "RainSensor.Rain"
+      },
+      {
+        "op": "if",
+        "cond": "current_rain == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Door.Open",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#RainSensor).rainSensor_rain == true)\n(#Door).door_close()\ndelay(1 HOUR)\ncurrent_rain = (#RainSensor).rainSensor_rain\nif (current_rain == false) {\n(#Door).door_open()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#RainSensor).rainSensor_rain == true)\n(#Door).door_close()\ndelay(1 HOUR)\ncurrent_rain = (#RainSensor).rainSensor_rain\nif (current_rain == false) {\n(#Door).door_open()\n}\"\n}"
+}

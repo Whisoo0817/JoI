@@ -64,7 +64,7 @@
       },
       {
         "op": "if",
-        "cond": "AirQualitySensor.CarbonDioxide >= 1000 && AirPurifier.AirPurifierMode == \"sleep\"",
+        "cond": "AirQualitySensor.CarbonDioxide >= 1000 and AirPurifier.AirPurifierMode == \"sleep\"",
         "then": [
           {
             "op": "call",
@@ -89,7 +89,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#Study #AirQualitySensor).airQualitySensor_carbonDioxide >= 1000 and (#Study #AirPurifier).airPurifier_airPurifierMode == \"sleep\") {\n(#Study #AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n(#Speaker).speaker_speak(\"Switching the air purifier to auto mode\")\n}"
+    "script": "if ((#AirQualitySensor #Study).airQualitySensor_carbonDioxide >= 1000 and (#AirPurifier #Study).airPurifier_airPurifierMode == \"sleep\") {\n(#AirPurifier #Study).airPurifier_setAirPurifierMode(\"auto\")\n(#Speaker #Study).speaker_speak(\"Switching the air purifier to auto mode\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Study #AirQualitySensor).airQualitySensor_carbonDioxide >= 1000 and (#Study #AirPurifier).airPurifier_airPurifierMode == \\\"sleep\\\") {\\n(#Study #AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n(#Speaker).speaker_speak(\\\"Switching the air purifier to auto mode\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirQualitySensor #Study).airQualitySensor_carbonDioxide >= 1000 and (#AirPurifier #Study).airPurifier_airPurifierMode == \\\"sleep\\\") {\\n(#AirPurifier #Study).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n(#Speaker #Study).speaker_speak(\\\"Switching the air purifier to auto mode\\\")\\n}\"\n}"
 }

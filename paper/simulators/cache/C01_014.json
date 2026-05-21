@@ -35,11 +35,17 @@
         "anchor": "now"
       },
       {
+        "op": "read",
+        "var": "Pm10Weather",
+        "src": "WeatherProvider.Pm10Weather"
+      },
+      {
         "op": "call",
         "target": "Speaker.Speak",
         "args": {
-          "Text": "The outdoor fine dust level is $Pm25Weather"
-        }
+          "Text": "The outdoor fine dust level is $Pm10Weather"
+        },
+        "var": "Pm10Weather"
       }
     ]
   },
@@ -47,7 +53,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "pm25 = (#WeatherProvider).weatherProvider_pm25Weather\n(#Speaker).speaker_speak(\"The outdoor fine dust level is \" + pm25)"
+    "script": "Pm10Weather = (#WeatherProvider).weatherProvider_pm10Weather\n(#Speaker).speaker_speak(\"The outdoor fine dust level is \" + Pm10Weather)"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"pm25 = (#WeatherProvider).weatherProvider_pm25Weather\n(#Speaker).speaker_speak(\\\"The outdoor fine dust level is \\\" + pm25)\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"Pm10Weather = (#WeatherProvider).weatherProvider_pm10Weather\n(#Speaker).speaker_speak(\\\"The outdoor fine dust level is \\\" + Pm10Weather)\"\n}"
 }

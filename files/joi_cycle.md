@@ -63,10 +63,11 @@ if (phase == 0) {
     phase = 1
     Y
 }
-if (phase == 1) {
+else {
     Y
 }
 ```
+**Single `if/else` is mandatory** (NOT two separate `if (phase == 0)` and `if (phase == 1)` blocks). With two separate ifs, the first tick falls through into the second block after setting `phase = 1`, firing `Y` twice in the same tick. `if/else` is mutually exclusive within one tick — first tick takes the if branch, every subsequent tick takes the else branch.
 
 ## D-5 — alternation (every N, A then B)
 Cycle body has 2+ delays between alternating calls.
@@ -110,6 +111,58 @@ state := "A"
 if (state == "A") { A; state = "B" }
 else { B; state = "A" }
 ```
+
+## D-10 — sustained-cond polling (`wait.for`)
+Detection: a `wait` op carries a `for` field (e.g. `for:"30 SEC"`). The cond must remain CONTINUOUSLY true for that duration; a mid-window flip resets the timer.
+
+**Tick math**: `for_ticks = for_ms / wrapper.period_ms`. The wrapper period defaults to 100ms when the IR does not name a polling cadence; if the IR's `cycle.period` is something else (e.g. `"1 SEC"`), use that value as the wrapper period and recompute. Worked examples assuming the default 100ms tick:
+
+| `for` | duration in ms | `for_ticks` (period=100) |
+|---|---|---|
+| `"5 SEC"` | 5000 | **50** |
+| `"30 SEC"` | 30000 | **300** |
+| `"1 MIN"` | 60000 | **600** |
+| `"10 MIN"` | 600000 | **6000** |
+
+If the IR specifies `cycle.period="1 SEC"`, then `for:"30 SEC"` → `30000 / 1000` = **30** ticks. The formula is constant; the period is the only variable. Never multiply duration by 1000 — `for_ms` is already in ms.
+
+### Cycle-wrapped (re-arming): `cycle{ wait(C, rising, for:N); Y }`
+Emits `Y` each time `C` becomes true AND stays true for the full window.
+```
+hold_ticks := 0
+fired := false
+if (C) {
+    if (fired == false) {
+        hold_ticks = hold_ticks + 1
+        if (hold_ticks >= <for_ticks>) {
+            Y
+            fired = true
+        }
+    }
+} else {
+    hold_ticks = 0
+    fired = false
+}
+```
+- `hold_ticks` resets to 0 on cond-flip — this is the contract that distinguishes `wait.for` from `delay`.
+- `fired` ensures one emit per sustained episode; resets when cond flips false → re-arms.
+
+### One-shot: `wait(C, none, for:N); Y` (top-level, no enclosing cycle)
+Use `break` to exit polling after first emit.
+```
+hold_ticks := 0
+if (C) {
+    hold_ticks = hold_ticks + 1
+    if (hold_ticks >= <for_ticks>) {
+        Y
+        break
+    }
+} else {
+    hold_ticks = 0
+}
+```
+
+❌ **NEVER** lower `wait.for` as `wait until(C); delay(<for>); if(C){Y}` — endpoint-check only, fails the flap scenario. Always use the polling-counter template.
 
 ## B-2 — simple periodic (default)
 Cycle without edge/until/break/pre-wait/multi-delay markers. Just emit body's calls/reads/ifs as-is, after the wrapper.period has consumed the cadence delay.
@@ -178,13 +231,13 @@ D-3 with multi-step Y: ALL body ops AFTER `wait(rising)` (call, delay, call) go 
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"wait","cond":"Door.DoorState == \"open\"","edge":"none"},
  {"op":"cycle","until":null,"period":"3 MIN","body":[
-   {"op":"call","target":"Light.On","args":{}}]}]}
+   {"op":"call","target":"Switch.On","args":{}}]}]}
 ```
 [Precision Selectors] `(#Door)` / `(#Light)`
 <Reasoning>
 D-4: pre-cycle wait(none) + cycle. Phase 0→1 transition. cycle.period 3 MIN → wrapper.period = 180000.
 </Reasoning>
-{"cron":"","period":180000,"script":"phase := 0\nif (phase == 0) {\n    wait until((#Door).DoorState == \"open\")\n    phase = 1\n    (#Light).On()\n}\nif (phase == 1) {\n    (#Light).On()\n}"}
+{"cron":"","period":180000,"script":"phase := 0\nif (phase == 0) {\n    wait until((#Door).DoorState == \"open\")\n    phase = 1\n    (#Light).On()\n}\nelse {\n    (#Light).On()\n}"}
 
 ### Ex5 — D-5 alternation
 [Timeline IR]

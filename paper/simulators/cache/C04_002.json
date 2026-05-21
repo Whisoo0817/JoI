@@ -1,0 +1,65 @@
+{
+  "command_eng": "If the laundry dryer spin speed is greater than 3, decrease it by one; otherwise, increase it by one.",
+  "connected_devices": {
+    "Main_LaundryDryer": {
+      "category": [
+        "LaundryDryer"
+      ],
+      "tags": [
+        "Main",
+        "LaundryDryer"
+      ]
+    },
+    "Garage_LaundryDryer": {
+      "category": [
+        "LaundryDryer"
+      ],
+      "tags": [
+        "Garage",
+        "LaundryDryer"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "currentSpeed",
+        "src": "LaundryDryer.SpinSpeed"
+      },
+      {
+        "op": "if",
+        "cond": "currentSpeed > 3",
+        "then": [
+          {
+            "op": "call",
+            "target": "LaundryDryer.SetSpinSpeed",
+            "args": {
+              "Speed": "$currentSpeed - 1"
+            }
+          }
+        ],
+        "else": [
+          {
+            "op": "call",
+            "target": "LaundryDryer.SetSpinSpeed",
+            "args": {
+              "Speed": "$currentSpeed + 1"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "currentSpeed = (#LaundryDryer).laundryDryer_spinSpeed\nif (currentSpeed > 3) {\n(#LaundryDryer).laundryDryer_setSpinSpeed(currentSpeed - 1)\n}\nelse {\n(#LaundryDryer).laundryDryer_setSpinSpeed(currentSpeed + 1)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"currentSpeed = (#LaundryDryer).laundryDryer_spinSpeed\nif (currentSpeed > 3) {\n(#LaundryDryer).laundryDryer_setSpinSpeed(currentSpeed - 1)\n}\nelse {\n(#LaundryDryer).laundryDryer_setSpinSpeed(currentSpeed + 1)\n}\"\n}"
+}

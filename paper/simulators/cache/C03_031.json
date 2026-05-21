@@ -89,18 +89,16 @@
         "anchor": "now"
       },
       {
-        "op": "if",
+        "op": "wait",
         "cond": "HumiditySensor.Humidity >= 60",
-        "then": [
-          {
-            "op": "call",
-            "target": "Dehumidifier.SetDehumidifierMode",
-            "args": {
-              "Mode": "drying"
-            }
-          }
-        ],
-        "else": []
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "drying"
+        }
       }
     ]
   },
@@ -108,7 +106,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if (any(#Indoor #Group1 #HumiditySensor).humiditySensor_humidity >= 60) {\nall(#Indoor #Group1 #Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n}"
+    "script": "wait until(all(#HumiditySensor #Indoor #Group1).humiditySensor_humidity >=| 60)\nall(#Dehumidifier #Indoor #Group1).dehumidifier_setDehumidifierMode(\"drying\")"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (any(#Indoor #Group1 #HumiditySensor).humiditySensor_humidity >= 60) {\nall(#Indoor #Group1 #Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#HumiditySensor #Indoor #Group1).humiditySensor_humidity >=| 60)\nall(#Dehumidifier #Indoor #Group1).dehumidifier_setDehumidifierMode(\\\"drying\\\")\"\n}"
 }

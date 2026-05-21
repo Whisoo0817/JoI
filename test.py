@@ -18,13 +18,12 @@ import pandas as pd
 from config import get_client, get_model_id
 from loader import PROMPTS
 from paper.run_local_ir import generate_joi_code
-from run_local import run_llm_inference
+from pipeline_helpers import run_llm_inference
 
 # [MODE: target | pre] 테스트할 타겟 지정 (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    "C08": [36],    # D-3
-    "C12": [14],     # D-4
+    "C20": [1],  # wait.for verifier-retry smoke
 }
 
 
@@ -147,12 +146,12 @@ def run_pre_analysis_only(df):
                 print(f"Error at Idx {idx} after {elapsed:.2f}s: {e}")
 
 
-def run_custom_test(modification=None):
+def run_custom_test():
     print("\n🛠️ Running Custom Test...")
     print(f"Command: {CUSTOM_COMMAND}")
     print(f"[connected_devices]\n{CUSTOM_DEVICES}")
     try:
-        result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {}, modification=modification)
+        result = generate_joi_code(CUSTOM_COMMAND, CUSTOM_DEVICES, {})
         print_result(result)
     except Exception as e:
         import traceback

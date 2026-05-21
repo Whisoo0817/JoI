@@ -38,23 +38,32 @@ def synthesize_scenarios(ir: dict) -> list[Scenario]:
     """
     scenario = Scenario()
     cursor_ms_box = [0]  # mutable cursor advanced as we walk waits
-    _walk(ir.get("timeline", []), scenario, cursor_ms_box, in_cycle=False)
+    _walk(ir.get("timeline", []), scenario, cursor_ms_box,
+          period_stack=[])
     return [scenario]
 
 
-def _walk(steps: list, scn: Scenario, cursor: list[int], in_cycle: bool) -> None:
+def _walk(steps: list, scn: Scenario, cursor: list[int],
+          period_stack: list[int]) -> None:
     for step in steps:
         op = step.get("op")
         if op == "wait":
-            _synth_wait(step, scn, cursor)
+            period_ctx = period_stack[-1] if period_stack else 0
+            _synth_wait(step, scn, cursor, period_ms=period_ctx)
         elif op == "if":
             # Synthesize satisfying state for the if cond at the current cursor
             # time so the then-branch fires (paper-locked: happy-path coverage).
             _synth_if_cond(step, scn, cursor)
-            _walk(step.get("then", []) or [], scn, cursor, in_cycle)
+            _walk(step.get("then", []) or [], scn, cursor, period_stack)
         elif op == "cycle":
-            # Walk body once for synthesis (events for first iteration only)
-            _walk(step.get("body", []) or [], scn, cursor, in_cycle=True)
+            # Push cycle.period so nested waits can align prelude/fire to it.
+            cyc_period_ms = parse_duration_to_ms(step["period"]) \
+                if step.get("period") else 0
+            period_stack.append(cyc_period_ms)
+            try:
+                _walk(step.get("body", []) or [], scn, cursor, period_stack)
+            finally:
+                period_stack.pop()
         elif op == "delay":
             cursor[0] += parse_duration_to_ms(step.get("duration", "0 MSEC"))
         # call, read, start_at, break: no synthesis needed
@@ -71,9 +80,13 @@ def _synth_if_cond(step: dict, scn: Scenario, cursor: list[int]) -> None:
         scn.add(cursor[0], key, val)
 
 
-def _synth_wait(step: dict, scn: Scenario, cursor: list[int]) -> None:
+def _synth_wait(step: dict, scn: Scenario, cursor: list[int],
+                period_ms: int = 0) -> None:
+    from paper.timeline_ir import parse_duration_to_ms
     cond_src = step["cond"]
     edge = step.get("edge", "none")
+    for_str = step.get("for")
+    for_ms = parse_duration_to_ms(for_str) if for_str else 0
     ast = expr.parse(cond_src)
 
     # Find satisfying assignment(s). For compound conds, satisfy all leaves.
@@ -83,18 +96,28 @@ def _synth_wait(step: dict, scn: Scenario, cursor: list[int]) -> None:
     if not assignments:
         return  # purely clock-based or unrecognized — no synthesis needed
 
+    # Period-aware fire/prelude placement: when wait is inside a cycle with a
+    # known period, snap fire_ms to the next period-aligned tick boundary and
+    # place the prelude one full period earlier so the previous JoI tick
+    # observes prev=false. Without this, large periods (e.g. 60s) cause the
+    # prelude to land within the same tick window as the fire and the rising
+    # edge is missed. Falls back to ±1000/200 magic for top-level waits.
+    if edge in ("rising", "falling"):
+        if period_ms and period_ms > 200:
+            fire_ms = ((cursor[0] // period_ms) + 1) * period_ms
+            prelude_offset = period_ms
+        else:
+            fire_ms = cursor[0] + 1000
+            prelude_offset = 200
+        prelude_ms = max(cursor[0], fire_ms - prelude_offset)
+
     if edge == "rising":
-        # Prelude required for transition detection; fire after a short gap.
-        fire_ms = cursor[0] + 1000
-        prelude_ms = max(cursor[0], fire_ms - 200)
         for key, val in assignments:
             scn.add(prelude_ms, key, _opposite(val))
         for key, val in assignments:
             scn.add(fire_ms, key, val)
         cursor[0] = fire_ms
     elif edge == "falling":
-        fire_ms = cursor[0] + 1000
-        prelude_ms = max(cursor[0], fire_ms - 200)
         for key, val in assignments:
             scn.add(prelude_ms, key, val)
         for key, val in assignments:
@@ -108,6 +131,16 @@ def _synth_wait(step: dict, scn: Scenario, cursor: list[int]) -> None:
             scn.add(cursor[0], key, val)
         # cursor unchanged — wait satisfies "instantly" in this scenario
 
+    # Sustain (`wait.for`): after the cond-true point, cond must remain true
+    # CONTINUOUSLY for for_ms before wait completes. The happy-path scenario
+    # leaves cond pinned (no further events flip it), so the only adjustment
+    # needed here is to advance cursor by for_ms so downstream ops align with
+    # the post-sustain clock. NOTE: the flap-reset coverage scenario (Scenario
+    # B in §6.4 build-up) is a separate scenario whose synthesis is left for
+    # a future multi-scenario synthesizer pass.
+    if for_ms > 0:
+        cursor[0] += for_ms
+
 
 def _gather_assignments(node: Any, out: list[tuple[str, Any]]) -> None:
     """Walk an AST and produce (device.attr key, satisfying value) pairs."""
@@ -117,14 +150,35 @@ def _gather_assignments(node: Any, out: list[tuple[str, Any]]) -> None:
             _gather_assignments(node.right, out)
             return
         if node.op in ("==", "!=", "<", ">", "<=", ">="):
-            # Expect DeviceRef on one side, Lit on the other
-            dev, lit = _split_dev_lit(node.left, node.right)
+            # Expect DeviceRef on one side, Lit on the other.
+            # Unwrap quantifier wrappers like `avg(X) >= V` to extract inner DeviceRef.
+            left = _unwrap_quantifier(node.left)
+            right = _unwrap_quantifier(node.right)
+            dev, lit = _split_dev_lit(left, right)
             if dev is None or lit is None:
                 return  # involves clock or var — skip
-            val = _satisfying_value(node.op, lit.value, dev_swap=(dev is node.right))
+            val = _satisfying_value(node.op, lit.value, dev_swap=(dev is right))
             out.append((dev.key, val))
             return
+    if isinstance(node, expr.FuncCall) and node.name in ("all", "any"):
+        # Top-level quantifier wrapping a relational/boolean expression
+        # (e.g., `all(TemperatureSensor.Temperature >= 35)`). Recurse into the
+        # inner predicate so a single-device satisfying value is seeded.
+        for arg in node.args:
+            _gather_assignments(arg, out)
+        return
     # Other shapes (UnaryOp not, ClockRef alone, etc.) — skip
+
+
+def _unwrap_quantifier(node: Any) -> Any:
+    """If `node` is `avg(...)` / `all(...)` / `any(...)` over a single operand,
+    return that operand so callers can pattern-match it as a DeviceRef. Otherwise
+    return `node` unchanged. Single-device collapse fallback (framework 2026-05-08).
+    """
+    if isinstance(node, expr.FuncCall) and node.name in ("avg", "all", "any"):
+        if len(node.args) == 1:
+            return _unwrap_quantifier(node.args[0])
+    return node
 
 
 def _split_dev_lit(a: Any, b: Any) -> tuple[Any, Any]:

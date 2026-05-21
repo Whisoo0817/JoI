@@ -82,7 +82,7 @@
       },
       {
         "op": "if",
-        "cond": "MotionSensor.Motion == false && Door.DoorState == \"open\"",
+        "cond": "MotionSensor.Motion == false and Door.DoorState == \"open\"",
         "then": [
           {
             "op": "call",
@@ -105,7 +105,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if (not any(#MotionSensor).motionSensor_motion and (#Door).door_doorState == \"open\") {\n(#Camera).camera_captureImage()\n(#Speaker).speaker_speak(\"Warning\")\n}"
+    "script": "if (all(#MotionSensor).motionSensor_motion ==| false and all(#Door).door_doorState ==| \"open\") {\nany(#Camera).camera_captureImage()\nany(#Speaker).speaker_speak(\"Warning\")\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not any(#MotionSensor).motionSensor_motion and (#Door).door_doorState == \\\"open\\\") {\\n(#Camera).camera_captureImage()\\n(#Speaker).speaker_speak(\\\"Warning\\\")\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#MotionSensor).motionSensor_motion ==| false and all(#Door).door_doorState ==| \\\"open\\\") {\\nany(#Camera).camera_captureImage()\\nany(#Speaker).speaker_speak(\\\"Warning\\\")\\n}\"\n}"
 }

@@ -1,0 +1,58 @@
+{
+  "command_eng": "Sound the siren in emergency mode and change it to fire mode after 5 seconds.",
+  "connected_devices": {
+    "Main_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Back_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Back",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Siren.SetSirenMode",
+        "args": {
+          "Mode": "emergency"
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "5 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Siren.SetSirenMode",
+        "args": {
+          "Mode": "emergency"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#Siren).siren_setSirenMode(\"emergency\")\ndelay(5 SEC)\n(#Siren).siren_setSirenMode(\"emergency\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#Siren).siren_setSirenMode(\\\"emergency\\\")\\ndelay(5 SEC)\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\"\n}"
+}

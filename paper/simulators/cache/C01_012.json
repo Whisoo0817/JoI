@@ -35,11 +35,17 @@
         "anchor": "now"
       },
       {
+        "op": "read",
+        "var": "Weather",
+        "src": "WeatherProvider.Weather"
+      },
+      {
         "op": "call",
         "target": "Speaker.Speak",
         "args": {
-          "Text": "Today's weather is $WeatherProvider.Weather"
-        }
+          "Text": "Today's weather is $Weather"
+        },
+        "var": "Weather"
       }
     ]
   },
@@ -47,7 +53,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "weather = (#WeatherProvider).weatherProvider_weather\n(#Speaker).speaker_speak(\"Today's weather is \" + weather)"
+    "script": "Weather = (#WeatherProvider).weatherProvider_weather\n(#Speaker).speaker_speak(\"Today's weather is \" + Weather)"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"weather = (#WeatherProvider).weatherProvider_weather\n(#Speaker).speaker_speak(\\\"Today's weather is \\\" + weather)\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"Weather = (#WeatherProvider).weatherProvider_weather\n(#Speaker).speaker_speak(\\\"Today's weather is \\\" + Weather)\"\n}"
 }

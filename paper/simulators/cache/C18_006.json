@@ -1,0 +1,76 @@
+{
+  "command_eng": "If no motion is detected between 10 PM and 11 PM, lock all door locks.",
+  "connected_devices": {
+    "Main_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Main",
+        "MotionSensor"
+      ]
+    },
+    "Main_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Main",
+        "DoorLock"
+      ]
+    },
+    "Storage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Storage",
+        "DoorLock"
+      ]
+    },
+    "Garage_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 22 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2300",
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "MotionSensor.Motion == false",
+            "then": [
+              {
+                "op": "call",
+                "target": "DoorLock.Lock",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 22 * * *",
+    "period": 100,
+    "script": "if (clock.time >= 2300) {\nbreak\n}\nif ((#MotionSensor).motionSensor_motion == false) {\nall(#DoorLock).doorLock_lock()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 100,\n  \"script\": \"if (clock.time >= 2300) {\nbreak\n}\nif ((#MotionSensor).motionSensor_motion == false) {\nall(#DoorLock).doorLock_lock()\n}\"\n}"
+}

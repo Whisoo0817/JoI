@@ -1,0 +1,78 @@
+{
+  "command_eng": "When button 4 of the multi-button is pressed, turn off all lights on floor 1.",
+  "connected_devices": {
+    "F1_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Floor1",
+        "MultiButton"
+      ]
+    },
+    "F2_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Floor2",
+        "MultiButton"
+      ]
+    },
+    "F1_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor1",
+        "Light"
+      ]
+    },
+    "F1_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor1",
+        "Light"
+      ]
+    },
+    "F2_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor2",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button4 == \"pushed\"",
+        "edge": "rising"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#MultiButton #Floor1).multiButton_button4 == \"pushed\")\nall(#Light #Floor1).light_moveToBrightness(0, 0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#MultiButton #Floor1).multiButton_button4 == \\\"pushed\\\")\\nall(#Light #Floor1).light_moveToBrightness(0, 0)\"\n}"
+}

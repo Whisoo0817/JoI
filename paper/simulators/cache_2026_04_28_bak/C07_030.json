@@ -1,0 +1,86 @@
+{
+  "command_eng": "If a leak is detected in the basement, close the basement valve.",
+  "connected_devices": {
+    "Basement_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Basement",
+        "LeakSensor"
+      ]
+    },
+    "Kitchen_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "LeakSensor"
+      ]
+    },
+    "Garage_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Garage",
+        "LeakSensor"
+      ]
+    },
+    "Basement_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Basement",
+        "Valve"
+      ]
+    },
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LeakSensor.Leakage == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Basement #LeakSensor).leakSensor_leakage == true) {\n(#Basement #Valve).valve_close()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Basement #LeakSensor).leakSensor_leakage == true) {\n(#Basement #Valve).valve_close()\n}\"\n}"
+}

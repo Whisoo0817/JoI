@@ -143,7 +143,7 @@ if (phase == 0) {
     phase = 1
     (#Switch).On()
 }
-if (phase == 1) {
+else {
     (#Switch).On()
 }''',
         },
@@ -177,7 +177,12 @@ if (state == "red") {
         },
     },
     {
-        "name": "D-7: cron-anchored one-shot",
+        "name": "D-7: cron-anchored recurring",
+        # User convention (2026-05-20): top-level start_at(cron) without a
+        # surrounding cycle means "fire body at EVERY cron occurrence in the
+        # window" (e.g., "매일 9시에" → 7 fires over the week). JoI side
+        # encodes this with `cron + period = cron interval` so each tick
+        # aligns with a cron fire.
         "ir": {
             "timeline": [
                 {"op": "start_at", "anchor": "cron", "cron": "0 9 * * *"},
@@ -186,7 +191,7 @@ if (state == "red") {
         },
         "joi": {
             "cron": "0 9 * * *",
-            "period": 0,
+            "period": 86_400_000,   # 24 hours — daily at 9AM
             "script": "(#Switch).On()",
         },
     },

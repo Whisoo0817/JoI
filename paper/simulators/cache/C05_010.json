@@ -82,7 +82,7 @@
       },
       {
         "op": "if",
-        "cond": "WeatherProvider.Weather == \"rain\" && PresenceSensor.Presence == false",
+        "cond": "WeatherProvider.Weather == \"rain\" and PresenceSensor.Presence == false",
         "then": [
           {
             "op": "call",
@@ -103,7 +103,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#WeatherProvider).weatherProvider_weather == \"rain\" and all(#PresenceSensor).presenceSensor_presence ==| false) {\n(#DoorLock).doorLock_lock()\n(#Valve).valve_close()\n}"
+    "script": "if ((#WeatherProvider).weatherProvider_weather == \"rain\" and (#PresenceSensor).presenceSensor_presence == false) {\n(#DoorLock).doorLock_lock()\n(#Valve).valve_close()\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#WeatherProvider).weatherProvider_weather == \\\"rain\\\" and all(#PresenceSensor).presenceSensor_presence ==| false) {\\n(#DoorLock).doorLock_lock()\\n(#Valve).valve_close()\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#WeatherProvider).weatherProvider_weather == \\\"rain\\\" and (#PresenceSensor).presenceSensor_presence == false) {\\n(#DoorLock).doorLock_lock()\\n(#Valve).valve_close()\\n}\"\n}"
 }

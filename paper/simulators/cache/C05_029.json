@@ -50,7 +50,7 @@
       },
       {
         "op": "if",
-        "cond": "MotionSensor.Motion == true && AirConditioner.AirConditionerMode != \"auto\"",
+        "cond": "MotionSensor.Motion == true and Switch.Switch == false",
         "then": [
           {
             "op": "call",
@@ -63,7 +63,7 @@
             "op": "call",
             "target": "AirConditioner.SetTargetTemperature",
             "args": {
-              "Temperature": 24
+              "Temperature": 24.0
             }
           }
         ],
@@ -75,7 +75,7 @@
     "name": "Scenario",
     "cron": "",
     "period": 0,
-    "script": "if ((#GuestRoom #MotionSensor).motionSensor_motion == true and (#GuestRoom #AirConditioner).airConditioner_airConditionerMode != \"auto\") {\n(#GuestRoom #AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n(#GuestRoom #AirConditioner).airConditioner_setTargetTemperature(24)\n}"
+    "script": "if ((#MotionSensor #GuestRoom).motionSensor_motion == true and (#AirConditioner #Switch #GuestRoom).switch_switch == false) {\n(#AirConditioner #GuestRoom).airConditioner_setAirConditionerMode(\"auto\")\n(#AirConditioner #GuestRoom).airConditioner_setTargetTemperature(24.0)\n}"
   },
-  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#GuestRoom #MotionSensor).motionSensor_motion == true and (#GuestRoom #AirConditioner).airConditioner_airConditionerMode != \\\"auto\\\") {\\n(#GuestRoom #AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n(#GuestRoom #AirConditioner).airConditioner_setTargetTemperature(24)\\n}\"\n}"
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#MotionSensor #GuestRoom).motionSensor_motion == true and (#AirConditioner #Switch #GuestRoom).switch_switch == false) {\n(#AirConditioner #GuestRoom).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n(#AirConditioner #GuestRoom).airConditioner_setTargetTemperature(24.0)\\n}\"\n}"
 }
