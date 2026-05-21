@@ -61,7 +61,8 @@ Used in `cond`, `if.cond`, `wait.cond`, and read-derived `args` values.
 D-rules choose the IR SHAPE. Apply IN ORDER. Each `[Command Hints]` cue maps to the D-rule listed in parentheses below; consult D-rules first and treat hints as confirmation.
 
 ## D1. Anchor (`start_at`)
-- Absolute time / day-of-week / date in the command → `start_at("cron", "<5-field>")`.
+- Wall-clock anchor — absolute time-of-day (`at 8 AM`), day-of-week (`Mondays`, `weekends`), date (`on Jan 1`) → `start_at("cron", "<5-field>")`.
+- Pure periodicity without wall-clock anchor (`every minute`, `every 30 minutes`, `every hour`) → `start_at("now")` and put the cadence in `cycle.period`, NOT in cron.
 - Otherwise → `start_at("now")`.
 
 ## D2. Cron 5th field — day-of-week filter (HARD)
@@ -90,6 +91,7 @@ Cron has 5 fields: `minute hour day-of-month month day-of-week`. The 5th field e
 | `when X, do Y` (one-shot, block until X then act once) | `wait(X)` then `call` | top-level |
 | `whenever X, do Y` / `every time X, Y` / hint `rising-edge trigger; repeats on each transition` | `cycle{ wait(X); Y }` | wait inside cycle (D-3) |
 | `when X, thereafter every N, do Y` / hint `phase-lifecycle: trigger fires once, then perpetual cycle` | `wait(X)` then `cycle(period="N UNIT"){ Y }` | wait OUTSIDE cycle (D-4) — see D6 |
+| `every <duration>, do Y` / `every <duration>, if X, do Y` (pure periodic, no wall-clock anchor) | `start_at(now) + cycle(period="<duration>"){ Y or if-check }` | top-level cycle |
 
 `any` / `at least one` is a **selector quantifier only** — it never changes the IR shape. "When any sensor detects, do Y" is still ONE-SHOT `wait(...edge:"none"); call`.
 
@@ -102,7 +104,7 @@ Cron has 5 fields: `minute hour day-of-month month day-of-week`. The 5th field e
 NEVER decide edge from NL keywords. NEVER emit `edge:"falling"` — negate the cond instead (`cond:"X == false"`). D5/D5.5/D6 inherit this rule without restating it.
 
 ## D5. Inside a `cycle` body: `if` vs `wait`
-- **Polling cycle** (`every N <unit>, check X and if/whenever … do Y` / hint `polling cycle: each tick checks …`): cadence is `cycle.period="N UNIT"`. State checks at each tick MUST use `if`, NEVER `wait`. A `wait` inside a polling body would block indefinitely between ticks and defeat the polling cadence.
+- **Polling cycle** (`every N <unit>, do Y` — with or without an `if`-check at each tick / hint `polling cycle: each tick …`): cadence is `cycle.period="N UNIT"`. State checks at each tick MUST use `if`, NEVER `wait`. A `wait` inside a polling body would block indefinitely between ticks and defeat the polling cadence.
   - ✅ `cycle(period="N UNIT"){ if(<state>){ Y } }`
   - ❌ `cycle(period="N UNIT"){ wait(<state>, rising); Y }`
 - **Edge-cycle / re-arming trigger** (D-3, see D3): cadence is `cycle.period="100 MSEC"` (10Hz polling). The `wait` IS the trigger.
