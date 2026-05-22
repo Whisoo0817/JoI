@@ -72,6 +72,44 @@ _IR_ONLY = os.environ.get("JOI_IR_ONLY", "0") == "1"
 _IR_DUMP_DIR = os.environ.get("JOI_IR_DUMP_DIR", "/tmp/joi_ir_dump")
 _IR_DUMP_NAME = os.environ.get("JOI_IR_DUMP_NAME", "")
 
+# GT-IR injection (paper §7.3 Stage B: lowering correctness given gold IR).
+# When JOI_GT_IR_PATH points to a JSON file containing the GT IR, the
+# pipeline skips service_plan + arg_resolve + enum_resolve + extract_ir,
+# deriving `selected_services` directly from the GT IR's references and
+# using GT IR verbatim. Precision (device-match) still runs so selectors
+# align with the GT IR's services. Stage 4 lowering proceeds as usual.
+_GT_IR_PATH = os.environ.get("JOI_GT_IR_PATH", "")
+
+
+def _services_from_ir(ir_obj):
+    """Walk IR tree, collect every 'Cat.Method' reference (call.target,
+    read.src, and any Service.Member token inside cond/until/cron-free
+    string fields). Returns a deduped list in DFS order."""
+    seen, ordered = set(), []
+    _ref_rx = re.compile(r'\b([A-Z][A-Za-z0-9_]+\.[A-Za-z_][A-Za-z0-9_]+)\b')
+    def add(tok):
+        if tok and tok not in seen and tok in SERVICE_DATA \
+                or tok and tok.split('.', 1)[0] in SERVICE_DATA and tok not in seen:
+            seen.add(tok); ordered.append(tok)
+    def walk(steps):
+        for s in steps or []:
+            if not isinstance(s, dict): continue
+            op = s.get("op")
+            if op == "call":
+                tgt = s.get("target", "")
+                if "." in tgt: add(tgt)
+            elif op == "read":
+                src = s.get("src", "")
+                if "." in src: add(src)
+            for fld in ("cond", "until"):
+                v = s.get(fld) or ""
+                if isinstance(v, str):
+                    for m in _ref_rx.findall(v): add(m)
+            for k in ("body", "then", "else"):
+                if isinstance(s.get(k), list): walk(s[k])
+    walk(ir_obj.get("timeline") or [])
+    return ordered
+
 # Bucket-specific lowering prompt is assembled at runtime as
 # joi_common.md + joi_<bucket>.md, both loaded from files/ via PROMPTS.
 #
@@ -399,15 +437,29 @@ def _parse_list_of_strings_from_llm(raw: str, allowed_prefixes=None) -> list:
             except Exception:
                 pass
     if allowed_prefixes is not None:
-        items = [s for s in items if '.' in s and s.split('.')[0] in allowed_prefixes]
-    # Dedup while preserving order
-    seen = set()
-    out = []
-    for s in items:
-        if s not in seen:
-            seen.add(s)
-            out.append(s)
-    return out
+        # Drop tokens whose prefix is unknown OR whose method is not a value /
+        # function of that prefix in the catalog. service_plan hallucinations
+        # like Light.MaxLevel (NL "max" → invented service) are silently
+        # filtered so they never reach IR-extract. The descriptor-derived
+        # literal (e.g. 100 from "0~100%") becomes the natural fallback.
+        def _method_in_catalog(svc: str) -> bool:
+            if '.' not in svc:
+                return False
+            dev, method = svc.split('.', 1)
+            method = method.replace("()", "")
+            entry = SERVICE_DATA.get(dev)
+            if not isinstance(entry, dict):
+                return False
+            for kind in ("values", "functions"):
+                for item in entry.get(kind, []) or []:
+                    if isinstance(item, dict) and item.get("id") == method:
+                        return True
+            return False
+        items = [s for s in items if s.split('.')[0] in allowed_prefixes and _method_in_catalog(s)]
+    # Preserve duplicates: service_plan may legitimately list the same service
+    # multiple times (alternation, staged on/off, sequential multi-call). Dedup
+    # would collapse [X, X] → [X] and silently kill arg_resolve's list form.
+    return items
 
 
 def _build_intent_services_block(svcs, details: dict) -> str:
@@ -722,23 +774,41 @@ def generate_joi_code_ir(
     # Strip only the <Reasoning> wrapper tags; keep the caveman content for downstream.
     command_hints = re.sub(r'</?Reasoning>\s*', '', command_hints_raw).strip()
 
-    plan_sys_prompt = PROMPTS.get("service_plan", "")
-    plan_input = (
-        f"[Command]\n{sentence}\n\n"
-        f"[Command Hints]\n{command_hints}\n\n"
-        f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
-        f"[Device Rules]\n{device_rules_block}"
-    )
-    plan_output = infer("service_plan", plan_input, system=plan_sys_prompt)
+    # GT-IR mode: skip the service_plan LLM call and derive selected_services
+    # directly from the GT IR. arg_resolve / enum_resolve also become no-ops
+    # since the GT IR's args/enum-conds are authoritative. extract_ir is
+    # bypassed below — ir is overwritten with the GT IR before lowering.
+    _gt_ir_obj = None
+    if _GT_IR_PATH:
+        try:
+            with open(_GT_IR_PATH, encoding="utf-8") as _f:
+                _gt_ir_obj = json.load(_f)
+        except Exception as e:
+            raise JoiGenerationError(
+                f"JOI_GT_IR_PATH set but failed to load {_GT_IR_PATH}: {e}",
+                "\n".join(log_buf), error_code="gt_ir_load_failed",
+            )
+        selected_services = _services_from_ir(_gt_ir_obj)
+        log_buf.append(f"🧪 GT-IR mode: derived selected_services = {selected_services}")
+        plan_output = json.dumps(selected_services)
+    else:
+        plan_sys_prompt = PROMPTS.get("service_plan", "")
+        plan_input = (
+            f"[Command]\n{sentence}\n\n"
+            f"[Command Hints]\n{command_hints}\n\n"
+            f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
+            f"[Device Rules]\n{device_rules_block}"
+        )
+        plan_output = infer("service_plan", plan_input, system=plan_sys_prompt)
 
-    # Parse + dedup + filter to known categories in one step.
-    # NOTE: inject_value_service(selected_services) removed 2026-05-11.
-    # service_plan now decides companion-read inclusion semantically (see Rule 10
-    # in files/service_plan.md). Absolute setters get setter-only; relative
-    # adjustments get read + setter. No Python-level auto-injection.
-    selected_services = _parse_list_of_strings_from_llm(
-        plan_output, allowed_prefixes=valid_categories
-    )
+        # Parse + dedup + filter to known categories in one step.
+        # NOTE: inject_value_service(selected_services) removed 2026-05-11.
+        # service_plan now decides companion-read inclusion semantically (see Rule 10
+        # in files/service_plan.md). Absolute setters get setter-only; relative
+        # adjustments get read + setter. No Python-level auto-injection.
+        selected_services = _parse_list_of_strings_from_llm(
+            plan_output, allowed_prefixes=valid_categories
+        )
     local_service_details = extract_service_details(selected_services, SERVICE_DATA)
 
     intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
@@ -1072,11 +1142,17 @@ def generate_joi_code_ir(
 
     resolved_args = {}
     resolved_enum_conds = {}
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        f_branch_a = executor.submit(run_resolve_and_ir_branch)
-        f_precision = executor.submit(run_precision)
-        ir = f_branch_a.result()
-        precision_output = f_precision.result()
+    if _gt_ir_obj is not None:
+        # GT-IR mode: run precision only (we still need selectors for the
+        # services referenced by GT IR); skip resolve_branch + extract_ir.
+        precision_output = run_precision()
+        ir = _gt_ir_obj
+    else:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            f_branch_a = executor.submit(run_resolve_and_ir_branch)
+            f_precision = executor.submit(run_precision)
+            ir = f_branch_a.result()
+            precision_output = f_precision.result()
 
     service_details = local_service_details
 

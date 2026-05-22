@@ -341,6 +341,9 @@ def _exec_cycle(step: dict, world: World, trace: Trace, catalog, debug: bool) ->
     until_ast = expr.parse(until_src) if until_src else None
     period_str = step.get("period")
     period_ms = parse_duration_to_ms(period_str) if period_str else None
+    count_var = step.get("count")  # optional iteration-index variable name
+    if count_var:
+        world.vars[count_var] = 0
     while True:
         _check_stop(world, trace)
         if until_ast is not None and expr.evaluate(until_ast, _ctx(world)):
@@ -350,6 +353,8 @@ def _exec_cycle(step: dict, world: World, trace: Trace, catalog, debug: bool) ->
             _exec_steps(body, world, trace, catalog, debug)
         except _BreakException:
             return
+        if count_var:
+            world.vars[count_var] = (world.vars.get(count_var) or 0) + 1
         if period_ms is not None:
             elapsed = world.t_ms - iter_start_ms
             if elapsed < period_ms:

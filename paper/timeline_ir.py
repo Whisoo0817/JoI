@@ -212,13 +212,13 @@ def _validate_step(step: Any) -> None:
             raise IRValidationError("cycle.until must be string or null")
         # `period`: REQUIRED per-iteration cadence (e.g. "10 MIN"). Lowering uses
         # it as the wrapper.period. Defaults per convention: D-3 edge cycle (body
-        # has wait(rising)) → "100 MSEC"; D-5 alternation → equal to each inter-call
-        # delay; all others → NL's `every N <unit>`. Same grammar as delay.duration.
+        # has wait(rising)) → "100 MSEC"; otherwise the NL cadence `every N <unit>`.
+        # Same grammar as delay.duration.
         period = step.get("period")
         if period is None:
             raise IRValidationError(
                 "cycle.period is required (use '100 MSEC' for D-3 edge cycles, "
-                "the inter-call delay for D-5 alternation, or the NL cadence otherwise)"
+                "or the NL cadence otherwise)"
             )
         if not isinstance(period, str):
             raise IRValidationError("cycle.period must be a string like '10 MIN'")
@@ -226,6 +226,13 @@ def _validate_step(step: Any) -> None:
             parse_duration_to_ms(period)
         except ValueError as e:
             raise IRValidationError(f"cycle.period: {e}")
+        # Optional `count`: tick-index variable name (e.g. "n"). Used for
+        # alternation, rotation, or bounded-repeat patterns. Must be a valid
+        # identifier string when present.
+        count = step.get("count")
+        if count is not None:
+            if not isinstance(count, str) or not count:
+                raise IRValidationError("cycle.count must be a non-empty string identifier")
         for j, s in enumerate(body):
             try:
                 _validate_step(s)

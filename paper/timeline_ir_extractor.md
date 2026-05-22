@@ -26,12 +26,12 @@ If the command is not expressible, output `{"error":"<reason>"}` instead. Reject
 
 1. `{"op":"start_at","anchor":"now"}` — scenario starts immediately.
 2. `{"op":"start_at","anchor":"cron","cron":"<5-field cron>"}` — starts at each cron firing.
-3. `{"op":"wait","cond":"<expr>","edge":"none|rising","for":"<N> <UNIT>"?}` — block until `cond` true. `edge` is set by position (top-level→`"none"`, inside `cycle`→`"rising"`). For "stops / no longer holds", **negate the cond** (`cond:"Rain == false"`); never use `edge:"falling"`. **Optional `for`** field: cond must hold CONTINUOUSLY for that duration before wait completes (timer resets if cond flips). Use ONLY when the command names a sustained duration ("for 30 seconds", "30초 이상", "for at least N minutes", "if X stays Y for N"). Format identical to `delay.duration` ("N UNIT"). Do NOT use `wait.for` to encode plain delays — use the `delay` op.
+3. `{"op":"wait","cond":"<expr>","edge":"none|rising","for":"<N> <UNIT>"?}` — block until `cond` true. `edge` is set by position (top-level→`"none"`, inside `cycle`→`"rising"`). For "stops / no longer holds", **negate the cond** (`cond:"Rain == false"`); never use `edge:"falling"`. **Optional `for`** field: cond must hold CONTINUOUSLY for that duration before wait completes (timer resets if cond flips). Use ONLY when the command names a sustained duration ("for 30 seconds", "for at least N minutes", "if X stays Y for N"). Format identical to `delay.duration` ("N UNIT"). Do NOT use `wait.for` to encode plain delays — use the `delay` op.
 4. `{"op":"delay","duration":"<N> <UNIT>"}` — pause for N units. `UNIT` ∈ {`HOUR`, `MIN`, `SEC`, `MSEC`}. Exactly one space between N and UNIT. Examples: `"5 MIN"`, `"1 HOUR"`, `"100 MSEC"`. NEVER use ms-as-int (`"ms": 300000` is OBSOLETE).
 5. `{"op":"read","var":"<name>","src":"<Device.attr>"}` — snapshot a value to a local variable. Use ONLY when the same attribute is compared across different time points; otherwise reference `Device.attr` directly in expressions.
 6. `{"op":"call","target":"<Device.method>","args":{...},"var":"<Name>"?}` — perform an action. `var` declares the return value's binding. Add ONLY per R-var.
 7. `{"op":"if","cond":"<expr>","then":[...],"else":[...]}` — one-shot branch. **`cond` MUST be a complete boolean expression with an explicit comparator** (`==`, `!=`, `<`, `>`, `<=`, `>=`). Bare value references like `cond:"X.IsAvailable"` are forbidden — write `cond:"X.IsAvailable == true"`.
-8. `{"op":"cycle","until":"<expr>|null","period":"<N> <UNIT>","body":[...]}` — repeat body. `until` exits before each iteration when true. `period` is **REQUIRED** (see D7b for the value rule). Body describes ONE iteration; no manual rest-delay subtraction.
+8. `{"op":"cycle","until":"<expr>|null","period":"<N> <UNIT>","count":"<name>"?,"body":[...]}` — repeat body. `until` exits before each iteration when true. `period` is **REQUIRED** (see D7b for the value rule). Body describes ONE iteration; no manual rest-delay subtraction. **Optional `count`**: declares a tick-index variable bound to the iteration number (0, 1, 2, ...) and incremented after each iteration. Use ONLY for (a) alternation / rotation per tick (`count % 2`, `count % 3`) or (b) bounded repeat (`count >= K` in `until`). See D7c. Do NOT use `count` to count external events.
 9. `{"op":"break"}` — exit nearest `cycle`.
 
 ---
@@ -115,15 +115,15 @@ Cond must hold CONTINUOUSLY for a duration (NOT a fixed delay).
 - `delay(30 SEC)` — pause 30s regardless of cond.
 - `wait(cond, for:"30 SEC")` — cond must remain true CONTINUOUSLY for 30s; timer resets if cond flips false midway.
 
-**Shape**: re-arm markers (`whenever`, `every time`, `each time`, `매번`, `~할 때마다`) → cycle-wrapped. Otherwise → one-shot (DEFAULT, applies to plain `when X for N` / `if X for N` / `N초 이상 X면`).
+**Shape**: re-arm markers (`whenever`, `every time`, `each time`) → cycle-wrapped. Otherwise → one-shot (DEFAULT, applies to plain `when X for N` / `if X for N`).
 
-| English / Korean | IR |
+| English | IR |
 |---|---|
-| `when door is open for 5 sec, notify` / `문이 5초 이상 열려있으면` | `wait(Door.State == "Open", edge:"none", for:"5 SEC"); Notify.Send` |
-| `if no motion for 30 sec, turn off` / `30초 이상 동작 감지 안 되면` | `wait(Motion == false, edge:"none", for:"30 SEC"); Switch.Off` |
-| `whenever person stays for 1 min, do Y` / `1분 이상 머무를 때마다` | `cycle(period="100 MSEC"){ wait(Presence == true, edge:"rising", for:"1 MIN"); Y }` |
+| `when door is open for 5 sec, notify` | `wait(Door.State == "Open", edge:"none", for:"5 SEC"); Notify.Send` |
+| `if no motion for 30 sec, turn off` | `wait(Motion == false, edge:"none", for:"30 SEC"); Switch.Off` |
+| `whenever person stays for 1 min, do Y` | `cycle(period="100 MSEC"){ wait(Presence == true, edge:"rising", for:"1 MIN"); Y }` |
 
-Markers (NL → use `wait.for`): `for N seconds/minutes`, `for at least N`, `stays/remains for N`, `N초 이상`, `N분 동안 계속`, `N분 이상 유지`, `N초 이상 ~안되면`.
+Markers (NL → use `wait.for`): `for N seconds/minutes`, `for at least N`, `stays/remains for N`, `if X remains/persists for N`.
 
 **Anti-pattern**: do NOT lower as `wait(cond); delay(N); if(cond){…}`. Endpoint-check only; a mid-window flip silently passes. Always use `wait.for`.
 
@@ -153,13 +153,26 @@ Time-of-day blocks (when literal hours not given): morning ≈ 06:00–12:00 · 
 ## D7b. `cycle.period` — REQUIRED for every cycle
 Pick the value by body shape:
 - **D-3 edge cycle** (body has `wait(edge:"rising")` or `wait.for`): `period:"100 MSEC"`.
-- **D-5 alternation** (body has 2+ inter-call `delay`s): `period:"N UNIT"` matching each inter-call delay (keep body delays — they signal alternation). The two (or more) call slots MUST take DIFFERENT values from NL — never copy one value into both.
 - **All others** (NL `every N <unit>`): `period:"N UNIT"`. Body describes ONE iteration; do NOT compute `N - K` rest-delays.
 
 | English | IR shape |
 |---|---|
 | `Every N min until H, sound siren for K sec then off` | `cycle(until="clock.time >= H00", period="N MIN", body=[call(Set...), delay(K SEC), call(Switch.Off)])` |
-| `Every N, alternate A then B` (D-5) | `cycle(until=null, period="N UNIT", body=[A, delay(N), B, delay(N)])` — A and B with DIFFERENT NL values (`{Mode:"sleep"}` vs `{Mode:"auto"}`) |
+
+## D7c. `cycle.count` — alternation and bounded iteration
+Use the optional `count` field (a tick-index var, 0/1/2/...) ONLY for these two patterns:
+
+- **Alternation / rotation between distinct actions per tick.** NL markers: `alternate A and B`, `repeat A then B`, `A, B, A, B`, `cycle through A and B`. Use `count % K` in an `if` to dispatch among K actions.
+- **Bounded repeat (terminate after K iterations).** NL markers: `do X N times`, `repeat K times`, `total K times`, `stop after K runs`. Encode the cap in `cycle.until` as `count >= K`.
+
+| English | IR shape |
+|---|---|
+| `Every N, alternate A and B` | `cycle(until=null, period="N UNIT", count="n", body=[if(n%2==0){A} else {B}])` — A and B with DIFFERENT NL values |
+| `Every N, do A then B then C, repeat` (3-way) | `cycle(until=null, period="N UNIT", count="n", body=[if(n%3==0){A} else if(n%3==1){B} else {C}])` |
+| `Every N, do X. Stop after K times.` | `cycle(until="n >= K", period="N UNIT", count="n", body=[X])` |
+
+❌ Do NOT use `count` for plain "every N" without alternation or count limit (omit the `count` field).
+❌ Do NOT use `count` to count external events (`if door opens 3 times`); `count` indexes ticks, not events.
 
 ## D8. Snapshot need
 Same device attribute compared at two different moments → use `read` for each capture. Otherwise reference `Device.attr` directly.
@@ -359,6 +372,32 @@ The command pairs the on call with an explicit off call inside one iteration. `c
     {"op":"call","target":"Siren.SetSirenMode","args":{"Mode":"emergency"}},
     {"op":"delay","duration":"5 SEC"},
     {"op":"call","target":"Switch.Off","args":{}}
+  ]}
+]}
+```
+
+## Example 12 — alternation via `count` (binary)
+**Command**: `Every 3 seconds, alternate opening and closing the window.`
+The two actions differ; encode the toggle with `count % 2`. `period="3 SEC"` is the per-tick cadence, NOT the full alternation cycle.
+```json
+{"timeline":[
+  {"op":"start_at","anchor":"now"},
+  {"op":"cycle","until":null,"period":"3 SEC","count":"n","body":[
+    {"op":"if","cond":"n % 2 == 0",
+      "then":[{"op":"call","target":"WindowCovering.UpOrOpen","args":{}}],
+      "else":[{"op":"call","target":"WindowCovering.DownOrClose","args":{}}]}
+  ]}
+]}
+```
+
+## Example 13 — bounded cycle via `count` in `until`
+**Command**: `Every 5 minutes, take a photo. Stop after 10 photos.`
+The cap on iterations goes into `cycle.until` referencing the `count` var. Loop exits before the 11th iteration.
+```json
+{"timeline":[
+  {"op":"start_at","anchor":"now"},
+  {"op":"cycle","until":"n >= 10","period":"5 MIN","count":"n","body":[
+    {"op":"call","target":"Camera.Capture","args":{}}
   ]}
 ]}
 ```

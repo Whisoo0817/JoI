@@ -81,7 +81,7 @@ _TOK = re.compile(
     (?P<STRING>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')      |
     (?P<SELECTOR>(?:\b(?:all|any))?\s*\(\s*\#[^)]*\))    |
     (?P<ASSIGNINIT>:=)                                   |
-    (?P<OP>==\||!=\||<=\||>=\||<\||>\||==|!=|<=|>=|&&|\|\||[+\-*/<>!(){},.])    |
+    (?P<OP>==\||!=\||<=\||>=\||<\||>\||==|!=|<=|>=|&&|\|\||[+\-*/%<>!(){},.])   |
     (?P<EQ>=)                                            |
     (?P<IDENT>[A-Za-z_][A-Za-z0-9_]*)
     """,
@@ -258,7 +258,7 @@ class _P:
         left = self._parse_unary()
         while True:
             t = self.peek()
-            if t and t.kind == "OP" and t.value in ("*", "/"):
+            if t and t.kind == "OP" and t.value in ("*", "/", "%"):
                 op = self.eat().value
                 right = self._parse_unary()
                 left = expr_mod.BinaryOp(op, left, right)

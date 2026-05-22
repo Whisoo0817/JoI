@@ -29,7 +29,7 @@ _TOK_RE = re.compile(
     (?P<NUMBER>\d+\.\d+|\d+)             |  # numeric literal
     (?P<STRING>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')  |  # string literal
     (?P<SELECTOR>\b(?:all|any)?\s*\(\s*\#[^)]*\))    |  # JoI selector chunk: (#X), all(#X #Y), any(#X)
-    (?P<OP>==|!=|<=|>=|&&|\|\||[+\-*/<>!=(),])       |  # operators / parens / comma (func-call separator)
+    (?P<OP>==|!=|<=|>=|&&|\|\||[+\-*/%<>!=(),])      |  # operators / parens / comma (func-call separator)
     (?P<IDENT>\$?[A-Za-z_][A-Za-z0-9_.]*)               # ident with optional $ prefix and dots
     """,
     re.VERBOSE,
@@ -226,7 +226,7 @@ class _Parser:
         left = self._parse_unary()
         while True:
             tok = self.peek()
-            if tok and tok.kind == "OP" and tok.value in ("*", "/"):
+            if tok and tok.kind == "OP" and tok.value in ("*", "/", "%"):
                 op = self.consume().value
                 right = self._parse_unary()
                 left = BinaryOp(op, left, right)
@@ -358,7 +358,7 @@ def _tokenize_with_leading_dot(src: str) -> list[Token]:
         (?P<NUMBER>\d+\.\d+|\d+)             |
         (?P<STRING>"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')  |
         (?P<SELECTOR>\b(?:all|any)?\s*\(\s*\#[^)]*\))    |
-        (?P<OP>==|!=|<=|>=|&&|\|\||[+\-*/<>!=(),])       |
+        (?P<OP>==|!=|<=|>=|&&|\|\||[+\-*/%<>!=(),])      |
         (?P<DOTIDENT>\.[A-Za-z_][A-Za-z0-9_]*)           |
         (?P<IDENT>\$?[A-Za-z_][A-Za-z0-9_.]*)
         """,
@@ -470,12 +470,13 @@ def evaluate(node: Any, ctx: EvalContext) -> Any:
             if a is None: a = 0
             if b is None: b = 0
             return a + b
-        if op in ("-", "*", "/"):
+        if op in ("-", "*", "/", "%"):
             if a is None: a = 0
             if b is None: b = 0
             if op == "-": return a - b
             if op == "*": return a * b
             if op == "/": return a / b if b != 0 else 0
+            if op == "%": return a % b if b != 0 else 0
         raise ValueError(f"unknown binary op: {op}")
     raise TypeError(f"cannot evaluate {type(node).__name__}")
 

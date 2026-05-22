@@ -8,17 +8,27 @@ The IR timeline contains a top-level `{"op":"cycle",...}`. The hub re-runs the s
 
 | # | Trigger (IR signal) | Idiom | Wrapper.period |
 |---|---|---|---|
-| 1 | `cycle.until != null` AND body has ≥2 `delay` ops interleaving calls | D-9+D-5 hybrid | `parse_ms(cycle.period)` |
-| 2 | `cycle.until != null` | D-9 (until window) | `parse_ms(cycle.period)` |
-| 3 | body has `if{break}` step | D-6 (progressive update) | `parse_ms(cycle.period)` |
-| 4 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`) | D-3 / D-10 (edge / sustained) | **100 (fixed)** |
-| 5 | pre-cycle `wait(edge:"none"\|null)` at top level | D-4 (phase lifecycle) | `parse_ms(cycle.period)` |
-| 6 | body has ≥2 `delay` ops interleaving calls | D-5 (alternation) | `parse_ms(cycle.period)` |
-| 7 | else | B-2 (simple periodic) | `parse_ms(cycle.period)` |
+| 1 | `cycle.until != null` | D-9 (until window) | `parse_ms(cycle.period)` |
+| 2 | body has `if{break}` step | D-6 (progressive update) | `parse_ms(cycle.period)` |
+| 3 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`) | D-3 / D-10 (edge / sustained) | **100 (fixed)** |
+| 4 | pre-cycle `wait(edge:"none"\|null)` at top level | D-4 (phase lifecycle) | `parse_ms(cycle.period)` |
+| 5 | else | B-2 (simple periodic) | `parse_ms(cycle.period)` |
 
-**Cadence consumption**: when wrapper.period = `parse_ms(cycle.period)`, the body's cadence `delay(N UNIT)` (whose N matches cycle.period) is consumed by the wrapper and does NOT appear in script. **D-5 / D-9+D-5** additionally consume the inter-call `delay`s into the state-toggle template.
+**Cadence consumption**: when wrapper.period = `parse_ms(cycle.period)`, the body's cadence `delay(N UNIT)` (whose N matches cycle.period) is consumed by the wrapper and does NOT appear in script.
 
 **Iteration-internal sub-step delays** are KEPT in script: e.g. cycle.period = 1 MIN, body `delay(5 SEC)` between siren-on and switch-off — the 5 SEC has a different role (intra-iteration), distinguishable from cadence.
+
+# Step 1.5 — `cycle.count` handling (orthogonal to idiom)
+
+When the IR's `cycle` carries a `count` field (e.g. `count:"n"`), the cycle uses an iteration-index variable for alternation, rotation, or bounded-repeat patterns:
+
+1. **Prepend** `<count> := 0` as the FIRST statement of the script (a single persistent init).
+2. **Emit the idiom body** exactly as Step 3 dictates (the body references `<count>` in `if`/`until` expressions verbatim — no translation).
+3. **Append** `<count> = <count> + 1` as the LAST statement of the script (advances the counter every tick).
+
+`cycle.until` referencing `<count>` (e.g. `until:"n >= 10"`) is the D-9 idiom: emit `if (n >= 10) { break }` at the top of the body, same as any other `until` expression.
+
+This handling is composable with every Step-1 idiom row — it adds two lines around the existing template.
 
 ---
 
@@ -60,20 +70,6 @@ else {
 ```
 **Single `if/else` is mandatory** (NOT two separate `if (phase == 0)` and `if (phase == 1)` blocks). With two separate ifs, the first tick falls through into the second block after setting `phase = 1`, firing `Y` twice in the same tick. `if/else` is mutually exclusive within one tick — first tick takes the if branch, every subsequent tick takes the else branch.
 
-## D-5 — alternation (every N, A then B)
-Cycle body has 2+ delays between alternating calls.
-```
-state := "A"
-if (state == "A") {
-    A
-    state = "B"
-} else {
-    B
-    state = "A"
-}
-```
-For 3-way (A/B/C), extend the toggle: `state := "A" → "B" → "C" → "A"`.
-
 ## D-6 — progressive update with break
 Cycle body has explicit `if{break}` step.
 ```
@@ -92,15 +88,6 @@ if (new_val >= max) {
 ```
 if (φ) { break }
 ... body without the cadence delay ...
-```
-
-## D-9 + D-5 hybrid — `cycle.until` WITH alternation
-Detection: `cycle.until != null` AND body has ≥2 delays.
-```
-if (φ) { break }
-state := "A"
-if (state == "A") { A; state = "B" }
-else { B; state = "A" }
 ```
 
 ## D-10 — sustained-cond polling (`wait.for`)
@@ -219,21 +206,20 @@ D-4: pre-cycle wait(none) + cycle. Phase 0→1 transition. cycle.period 3 MIN �
 </Reasoning>
 {"cron":"","period":180000,"script":"phase := 0\nif (phase == 0) {\n    wait until((#Door).DoorState == \"open\")\n    phase = 1\n    (#Light).On()\n}\nelse {\n    (#Light).On()\n}"}
 
-### Ex5 — D-5 alternation
+### Ex5 — alternation via `cycle.count` (Step 1.5)
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"cycle","until":null,"period":"10 SEC","body":[
-   {"op":"call","target":"Light.MoveToColor","args":{"X":0.167,"Y":0.040,"TransitionTime":0.0}},
-   {"op":"delay","duration":"10 SEC"},
-   {"op":"call","target":"Light.MoveToColor","args":{"X":0.675,"Y":0.322,"TransitionTime":0.0}},
-   {"op":"delay","duration":"10 SEC"}]}]}
+ {"op":"cycle","until":null,"period":"3 SEC","count":"n","body":[
+   {"op":"if","cond":"n % 2 == 0",
+    "then":[{"op":"call","target":"WindowCovering.UpOrOpen","args":{}}],
+    "else":[{"op":"call","target":"WindowCovering.DownOrClose","args":{}}]}]}]}
 ```
-[Precision Selectors] `(#Light)`
+[Precision Selectors] `(#WindowCovering)`
 <Reasoning>
-D-5: 2 inter-call delays interleaving. cycle.period = 10 SEC matches each delay → wrapper.period = 10000. State toggle; both body delays consumed.
+B-2 base idiom (no until/edge/break). cycle.count present → prepend `n := 0`, append `n = n + 1`. Body is a single `if` that picks the call by `n % 2`. cycle.period = 3 SEC → wrapper.period = 3000.
 </Reasoning>
-{"cron":"","period":10000,"script":"color := \"red\"\nif (color == \"red\") {\n    (#Light).MoveToColor(0.167, 0.040, 0.0)\n    color = \"blue\"\n} else {\n    (#Light).MoveToColor(0.675, 0.322, 0.0)\n    color = \"red\"\n}"}
+{"cron":"","period":3000,"script":"n := 0\nif (n % 2 == 0) {\n    (#WindowCovering).UpOrOpen()\n} else {\n    (#WindowCovering).DownOrClose()\n}\nn = n + 1"}
 
 ### Ex6 — D-6 progressive update + break
 [Timeline IR]
@@ -264,21 +250,18 @@ D-9: cycle.until set, no alternation (body has no delays). Break-guard then body
 </Reasoning>
 {"cron":"","period":300000,"script":"if (clock.time >= 1500) {\n    break\n}\nt = (#TempSensor).Temperature\n(#Speaker).Speak(\"Current \" + t + \" degrees\")"}
 
-### Ex8 — D-9 + D-5 hybrid (cycle.until WITH alternation)
+### Ex8 — bounded cycle via `cycle.count` in `until` (D-9 + Step 1.5)
 [Timeline IR]
 ```
-{"timeline":[{"op":"start_at","anchor":"cron","cron":"0 13 * * *"},
- {"op":"cycle","until":"clock.time >= 1500","period":"5 MIN","body":[
-   {"op":"call","target":"Valve.Open","args":{}},
-   {"op":"delay","duration":"5 MIN"},
-   {"op":"call","target":"Valve.Close","args":{}},
-   {"op":"delay","duration":"5 MIN"}]}]}
+{"timeline":[{"op":"start_at","anchor":"now"},
+ {"op":"cycle","until":"n >= 5","period":"20 MIN","count":"n","body":[
+   {"op":"call","target":"Speaker.Speak","args":{"Text":"meeting reminder"}}]}]}
 ```
-[Precision Selectors] `(#Valve)`
+[Precision Selectors] `(#Speaker)`
 <Reasoning>
-D-9+D-5: cycle.until + 2 inter-call delays. cycle.period = 5 MIN → wrapper.period = 300000. Break-guard then state toggle; both body delays consumed.
+D-9 idiom (cycle.until set) with cycle.count: prepend `n := 0`, append `n = n + 1`. Until references `n` → break-guard at top of body. cycle.period = 20 MIN → wrapper.period = 1200000.
 </Reasoning>
-{"cron":"0 13 * * *","period":300000,"script":"if (clock.time >= 1500) {\n    break\n}\nstate := \"open\"\nif (state == \"open\") {\n    (#Valve).Open()\n    state = \"closed\"\n} else {\n    (#Valve).Close()\n    state = \"open\"\n}"}
+{"cron":"","period":1200000,"script":"n := 0\nif (n >= 5) {\n    break\n}\n(#Speaker).Speak(\"meeting reminder\")\nn = n + 1"}
 
 ### Ex9 — iteration-internal sub-step delay (NOT cadence)
 [Timeline IR]

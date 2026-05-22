@@ -1,9 +1,12 @@
 """Local test entry point for generate_joi_code.
 
 Modes:
-    python3 test.py target   # run full pipeline on test_targets indices
-    python3 test.py pre      # run translation + pre_analysis ONLY on test_targets
-    python3 test.py custom   # run a single CUSTOM_COMMAND interactively
+    python3 test.py target           # run full pipeline on test_targets indices
+    python3 test.py target confirm   # IR-only first, print readable, prompt
+                                     # user (yes → lowering; else → re-gen
+                                     # with feedback, NYI placeholder).
+    python3 test.py pre              # translation + pre_analysis ONLY
+    python3 test.py custom           # single CUSTOM_COMMAND interactively
 
 When run with `target` or `pre`, all stdout is mirrored to a timestamped log file in /tmp.
 The path is printed at start and end so the caller can grep / tail it.
@@ -18,23 +21,15 @@ import pandas as pd
 from config import get_client, get_model_id
 from loader import PROMPTS
 from paper.run_local_ir import generate_joi_code
+from paper.timeline_ir import extract_ir, ir_to_readable, _format_services_block
 from pipeline_helpers import run_llm_inference
+
+import json as _json
 
 # [MODE: target | pre] 테스트할 타겟 지정 (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    # IR-only batch failures (350-row run, 2026-05-21 evening). 22 cases.
-    # See /tmp/joi_ir_grade.json for full bug-type breakdown.
-    "C01": [9, 10, 14],          # 3× pipeline-error: timeline[0]!=start_at
-    "C03": [30],                  # 1× C03 "if" got cycle
-    "C06": [1, 5],                # 2× pipeline-error: service_not_in_devices
-    "C07": [15, 18, 24],          # 3× "when" NL got cycle / edge=rising
-    "C15": [15],                  # 1× pipeline-error: multi-cron rejected
-    "C16": [5],                   # 1× pipeline-error: multi-cron rejected
-    "C17": [2, 3, 8, 9],          # 4× "every <period>" got noncycle
-    "C18": [5],                   # 1× C18 missing cycle
-    "C19": [1, 2, 3, 6],          # 4× hysteresis collapsed to one-shot
-    "C21": [1, 3],                # 2× "either/or" / "both/and" lost in cond
+    "C22": [5]
 }
 
 
@@ -110,6 +105,95 @@ def run_targeted_test(df):
                     print(f"[logs]\n{logs}")
 
 
+def run_targeted_test_confirm(df):
+    """IR-confirm flow per test_targets row: produce IR (only), print
+    the human-readable summary, prompt the user, then either lower to
+    JoI (`yes`/`y`) or display the feedback the user wants applied. The
+    feedback → re-IR step is NYI (Step 6); for now we record the text
+    and skip lowering."""
+    print("\n🎯 Running Targeted Tests with IR-Confirm...")
+    for category, indices in test_targets.items():
+        print(f"--- Category {category} ---")
+        sub = df[df['category_v2'] == category]
+        if indices is None:
+            indices = sorted(sub['index'].tolist())
+        for idx in indices:
+            match = sub[sub['index'] == idx]
+            if match.empty:
+                print(f"(Idx {idx}) - Not Found")
+                continue
+            row = match.iloc[0]
+            kor, eng = row['command_kor'], row['command_eng']
+            print(f"\n({idx}) 🛑 {kor}\n 🛑 {eng}")
+            print(f"[connected_devices]\n{row['connected_devices']}")
+
+            os.environ["JOI_IR_ONLY"] = "1"
+            try:
+                ir_result = generate_joi_code(eng, row['connected_devices'], {})
+            except Exception as e:
+                print(f"IR Error at Idx {idx}: {e}")
+                logs = getattr(e, 'logs', '')
+                if logs:
+                    print(f"[logs]\n{logs}")
+                continue
+            finally:
+                os.environ["JOI_IR_ONLY"] = "0"
+
+            current_ir = ir_result.get('ir')
+            current_readable = ir_result.get('ir_readable', '')
+            print(f"\n[IR Readable]\n{current_readable}")
+
+            # Parse connected_devices once into a dict so extract_ir's retry
+            # path can re-render the services block (matches what the original
+            # IR-extract call saw — though the upstream intent filter is
+            # bypassed here; the LLM sees the full per-device service list).
+            try:
+                devs_dict = _json.loads(row['connected_devices']) if isinstance(row['connected_devices'], str) else row['connected_devices']
+            except Exception:
+                devs_dict = row['connected_devices']
+
+            while True:
+                try:
+                    ans = input("\nConfirm IR? (yes/y → lower; or type correction): ").strip()
+                except EOFError:
+                    ans = ""
+
+                if ans.lower() in ("yes", "y", ""):
+                    try:
+                        full = generate_joi_code(eng, row['connected_devices'], {})
+                        print_result(full)
+                    except Exception as e:
+                        print(f"Lowering Error at Idx {idx}: {e}")
+                        logs = getattr(e, 'logs', '')
+                        if logs:
+                            print(f"[logs]\n{logs}")
+                    break
+
+                # Feedback path — re-run IR-extract with multi-turn:
+                # prior_user replays what the model saw (Command + Services),
+                # prior_assistant = the IR it produced, hint = user's correction.
+                prior_user = (
+                    f"[Command]\n{eng}\n\n"
+                    f"[Services]\n{_format_services_block(devs_dict)}"
+                )
+                prior_assistant = _json.dumps(current_ir, ensure_ascii=False, indent=2)
+                try:
+                    new_ir, *_rest = extract_ir(
+                        eng,
+                        devs_dict,
+                        auto_translate=False,
+                        retry_context=(prior_user, prior_assistant, ans),
+                    )
+                except Exception as e:
+                    print(f"Re-IR Error: {e}")
+                    continue
+
+                current_ir = new_ir
+                current_readable = ir_to_readable(new_ir)
+                print(f"\n[IR Readable (after feedback)]\n{current_readable}")
+                # loop — allow further feedback or yes
+
+
 def run_pre_analysis_only(df):
     """Translation + pre_analysis only. No service_plan, no precision, no IR."""
     print("\n🔍 Running Pre-Analysis Only...")
@@ -175,17 +259,23 @@ def run_custom_test():
 
 if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "custom"
+    submode = sys.argv[2] if len(sys.argv) > 2 else ""
 
     if mode in ("target", "pre"):
-        log_path = f"/tmp/joi_{mode}_{time.strftime('%Y%m%d_%H%M%S')}.log"
+        suffix = f"_{submode}" if submode else ""
+        log_path = f"/tmp/joi_{mode}{suffix}_{time.strftime('%Y%m%d_%H%M%S')}.log"
         log_fh = open(log_path, "w", encoding="utf-8")
         original_stdout = sys.stdout
+        original_stdin = sys.stdin
         sys.stdout = _Tee(original_stdout, log_fh)
         try:
             print(f"📁 Log file: {log_path}")
             df = pd.read_csv(csv_file_path, encoding='utf-8-sig')
             if mode == "target":
-                run_targeted_test(df)
+                if submode == "confirm":
+                    run_targeted_test_confirm(df)
+                else:
+                    run_targeted_test(df)
             else:
                 run_pre_analysis_only(df)
             print(f"\n📁 Log file: {log_path}")
@@ -193,6 +283,7 @@ if __name__ == "__main__":
             print(f"CSV Load Error: {e}")
         finally:
             sys.stdout = original_stdout
+            sys.stdin = original_stdin
             log_fh.close()
             print(f"\n✅ Done. Log saved to: {log_path}")
     elif mode == "custom":

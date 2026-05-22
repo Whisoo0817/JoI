@@ -12,7 +12,7 @@
 
 - Python-like imperative syntax over a multi-brand device service abstraction.
 - Constructs: `if`, `wait until`, `cron`, `period`, device service calls.
-- **No compiler, no return values, no deterministic execution result.** Side effects on physical devices are the only observable outcome.
+- **No compiler and no return values.** Physical deployments expose side effects, not a replayable return value. For verification, we therefore define simulator-level operational semantics and validate representative cases on the real hub.
 
 Expressible scenario spectrum:
 
@@ -47,7 +47,7 @@ On current and projected edge hardware, this means roughly **9B-parameter models
 
 Joint accuracy collapses far below per-aspect accuracy. End-to-end generation at SLLM scale is not just suboptimal — it is **not deployable**.
 
-**Therefore the system must decompose the task.** The natural decomposition factors out the hardest aspect — idiom selection from idiom-encoded reactive semantics — into a structured intermediate representation the SLLM can extract reliably, and lowers the rest mechanically. **Timeline IR is that decomposition.** §1 will then argue that the *same* decomposition resolves two further problems (verification, user feedback) that look independent of the SLLM motivation. The SLLM constraint forces the architecture; the root-cause structure of the problem class makes that architecture sufficient.
+**Therefore the system must decompose the task.** The natural decomposition factors out the hardest aspect — idiom selection from idiom-encoded reactive semantics — into a structured intermediate representation the SLLM can extract reliably, then constrains and checks the remaining IR→JoI lowering step. **Timeline IR is that decomposition.** §1 will then argue that the *same* decomposition resolves two further problems (verification, user feedback) that look independent of the SLLM motivation. The SLLM constraint forces the architecture; the root-cause structure of the problem class makes that architecture sufficient.
 
 A note on scale: even at GPT-4 scale, end-to-end accuracy on the hardest reactive commands does not approach 100% (§1.1). The SLLM setting makes the failure mode practically acute and visible, but the underlying problem class is scale-independent. This work optimizes for the deployable setting; the framework's value at larger scale is a secondary observation rather than the primary motivation.
 
@@ -233,7 +233,7 @@ User-in-the-loop is the structural element that turns an unsolvable verification
     ▼
 [Timeline IR] ─► readable English ─► user confirm/edit ─► [IR']
     │
-    │  Stage 2: IR → JoI  (deterministic lowering, rule-based)
+    │  Stage 2: IR → JoI  (template-constrained lowering + deterministic checks)
     ▼
 [JoI code]
     │
@@ -251,11 +251,11 @@ trace(IR') ≟ trace(JoI)  ── on mismatch, retry Stage 2 with diff signal
 
 ### 3.2 Contributions
 
-**Hero contribution (the structural insight).** NL→JoI verification is unsolvable as a single problem because no spec exists. Decomposing it into NL→IR (LLM, human-confirmable) + IR→JoI (deterministic lowering), where the **user-confirmed IR plays the spec role**, transforms the problem into IR↔JoI behavioral equivalence — which is solvable by transition-obligation coverage on a deterministic verdict path (no LLM in verdict). This decomposition is what makes the rest of the framework possible. C1–C3 enable it as artifact + interface; C4 is the verification mechanism that realizes it; C5 closes the LLM-correction loop.
+**Hero contribution (the structural insight).** NL→JoI verification is unsolvable as a single problem because no spec exists. Decomposing it into NL→IR (LLM, human-confirmable) + IR→JoI (template-constrained lowering), where the **user-confirmed IR plays the spec role**, transforms the problem into IR↔JoI behavioral equivalence — which is solvable by transition-obligation coverage on a deterministic verdict path (no LLM in verdict). This decomposition is what makes the rest of the framework possible. C1–C3 enable it as artifact + interface; C4 is the verification mechanism that realizes it; C5 closes the LLM-correction loop.
 
 **C1 — Timeline IR.** A 9-op fixed-grammar executable IR that promotes reactive temporal semantics (rising/falling edges, time windows, phase transitions, periodic-after-event) to first-class primitives. Designed to be (a) extractable by a 9B LLM via left-to-right pattern matching, (b) renderable to Korean/English deterministically, (c) executable as a reference simulator AND derivable as a finite-state machine of transition obligations. **The artifact whose four properties together enable the hero decomposition.**
 
-**C2 — Two-stage generation (NL → IR → JoI).** The decomposition isolates idiom selection (Stage 1, semantic) from code syntax (Stage 2, mechanical). Nine deterministic lowering rules cover the expressible idiom set observed in our deployment regime. This is the mechanism by which the hero decomposition improves generation accuracy on reactive temporal commands.
+**C2 — Two-stage generation (NL → IR → JoI).** The decomposition isolates idiom selection (Stage 1, semantic) from code syntax and runtime obligations (Stage 2, constrained lowering + deterministic validation). The active lowerer is prompt/template-constrained and backed by deterministic post-processing plus L1/L2 checks; the verdict path itself remains LLM-free. This is the mechanism by which the hero decomposition improves generation accuracy on reactive temporal commands while making lowering failures diagnosable.
 
 **C3 — IR-mediated user feedback loop (spec grounding).** IR → readable Korean/English is deterministic *because* IR ops are first-class primitives. User confirmation of the rendered IR is the structural element that gives the verifier something to verify *against*. Without it, NL→JoI has no spec; with it, IR↔JoI has one. The closing link of the hero argument.
 
@@ -534,7 +534,6 @@ Appendix-bound in the paper; included here for completeness of the planning doc.
 ### 8.1 Top-level schema
 ```json
 {
-  "devices_referenced": ["<Device_id>", ...],
   "timeline": [ <step>, <step>, ... ]
 }
 ```
@@ -543,20 +542,20 @@ Appendix-bound in the paper; included here for completeness of the planning doc.
 | Op | Meaning | Key fields |
 |---|---|---|
 | `start_at` | scenario anchor | `anchor: "now"`, or `anchor:"cron", cron:"<5-field>"` |
-| `wait` | block until cond | `cond`, `edge: none\|rising\|falling` |
+| `wait` | block until cond | `cond`, `edge: none\|rising\|falling`, optional `for:"<N> <UNIT>"` for sustained conditions |
 | `delay` | pause for N units | `duration:"<N> <HOUR\|MIN\|SEC\|MSEC>"` |
 | `read` | snapshot a value to a local var | `var`, `src:"<Device.attr>"` |
 | `call` | device method call | `target:"<Device.method>"`, `args:{...}` |
 | `if` | one-shot branch | `cond`, `then:[...]`, `else:[...]` |
-| `cycle` | repeat body | `until:"<expr>\|null"`, `body:[...]` |
+| `cycle` | repeat body | `period:"<N> <UNIT>"`, `until:"<expr>\|null"`, `body:[...]` |
 | `break` | exit nearest cycle | — |
 
 ### 8.3 Expression grammar
 - **Literals**: numbers, strings, booleans.
 - **Device attribute reference**: `Device_id.attr` (e.g., `TempSensor_1.temperature`).
 - **Local variable reference**: `$varname` (from prior `read`).
-- **Clock**: `clock.time` (`"HH:MM"`), `clock.date` (`"MM-DD"` or `"YYYY-MM-DD"`), `clock.dayOfWeek` (`"MON".."SUN"`).
-- **Operators**: `+ - * / ( )`, `== != < > <= >=`, `&& || !`, `abs(x)`.
+- **Clock**: `clock.time` (4-digit `hhmm` int), `clock.date` (`YYYYMMdd` string), `clock.dayOfWeek` (`"MON".."SUN"`).
+- **Operators**: `+ - * / ( )`, `== != < > <= >=`, `and`, `or`, `not`.
 - **Convention β**: an `args` string is an expression iff it contains `.`, `$`, or any operator; otherwise it is a literal.
 
 ### 8.4 Trigger mapping (the disambiguation rule)
@@ -565,12 +564,16 @@ Appendix-bound in the paper; included here for completeness of the planning doc.
 | `if X, do Y` | `if` one-shot branch (no wait, no cycle) |
 | `when X, do Y` | `wait(edge:"none") + Y` — one-shot level wait, no cycle, no rising |
 | `whenever X, do Y` / `every time X, do Y` | `cycle { wait(edge:"rising"); Y }` |
+| `for at least N, X` / `X for N` | `wait(edge:"none", for:"N UNIT")` by default; cycle-wrapped only when re-arming markers appear |
+| `every N UNIT, do Y` | top-level `cycle(period:"N UNIT") { Y }`, not a cron anchor |
 
 ### 8.5 Validator rules
-- Top level: `devices_referenced` (list of str) + `timeline` (non-empty list).
+- Top level: `timeline` (non-empty list).
 - First step must be `start_at`.
+- `cycle.period` is required and is the authoritative polling cadence for lowering.
 - `cycle.body` must contain at least one `delay` or one edge-triggered `wait` (cadence guarantee).
 - `wait.edge` ∈ `{none, rising, falling}`.
+- `wait.for`, when present, uses the same duration grammar as `delay`.
 - Every `Device.attr` / `Device.method` must exist in the provided service catalog.
 - Nested cycles forbidden.
 
@@ -583,51 +586,81 @@ Appendix-bound in the paper; included here for completeness of the planning doc.
 
 ## 9. Roadmap
 
-### 9.1 Implementation (near-term)
+### 9.1 Current Implementation State (2026-05-22)
 
-- **Stage 2 (IR → JoI) lowering** — finalize the 9 idiom templates against the canonical example set; measure per-template extraction + lowering accuracy.
-- **IR simulator** — Python reference interpreter; the operational definition of IR semantics.
-- **JoI simulator** — tick-based AST interpreter modeling `:=`/`=` persistence, `wait until`, `period`, `cron`. Defines JoI's operational semantics for verification (§6.3).
-- **IR-guided event synthesizer** — walks the IR AST, emits a small set of event sequences covering each branch and edge transition.
-- **Self-correction loop** — diff trace mismatches → structured retry signal for Stage 2.
+The implementation has moved beyond the early roadmap. The active pipeline is `paper/run_local_ir.py`, with NL→IR extraction, deterministic readable rendering, precision mapping, IR→JoI lowering, simulator-based L1/L2 checking, and verifier-guided retry all wired behind environment toggles.
 
-### 9.2 Evaluation Plan
+Current headline measurements on the 350-row dataset:
 
-The evaluation is built around three experiments, each tied to one RQ.
+| Metric | Verifier OFF | Verifier ON | Interpretation |
+|---|---:|---:|---|
+| **E2E** (`NL → IR → JoI`, graded against `ir_gt`) | 80.9% (283/350) | 81.4% (285/350) | Full autonomous system; dominated by Stage A IR-extraction noise |
+| **Stage B** (`GT IR → JoI`) | 90.3% (316/350) | 93.1% (326/350) | Lowering correctness given a confirmed/gold IR |
+| **Stage B fail recovery** | — | 35.5% (11/31) | Verifier-guided retry recovery among originally failing lowerings |
 
-**E1 — Generation accuracy (RQ1).** Compare four systems on the dataset:
+The most important evaluation distinction is that the verifier internally checks "does this JoI realize the IR extracted in this run?", while external grading checks against `ir_gt`. When IR extraction drifts semantically, the verifier may correctly accept the lowering while the external E2E grade fails. For this reason, verifier effect should be reported primarily through Stage B recovery, not raw E2E delta.
 
-| System | Pipeline |
+Recovery by primary Stage-B violation type:
+
+| Violation type | Recovery |
+|---|---:|
+| `timing_drift` | 5/7 (71%) |
+| `missing_call` | 2/3 (67%) |
+| L2 parser exception | 2/3 (67%) |
+| `arg_mismatch` | 1/13 (8%) |
+| `extra_call` | 0/3 (0%) |
+
+The current weakness is therefore not the verifier architecture but the granularity of retry hints for argument mismatches. That should be framed as an explicit limitation/future extension unless fixed before submission.
+
+### 9.2 Dataset
+
+The current benchmark is `dataset_migration/local_dataset2.csv` with **350 commands** and an `ir_gt` column filled for every row. The category taxonomy now spans C01-C21, including sustained-condition and consensus patterns added after the original C01-C18 set:
+
+- C19: hysteresis / deadband
+- C20: dwell / debounce via `wait.for`
+- C21: group consensus with `all` / `any`
+
+The dataset is designed as coverage-by-construction over the Timeline IR grammar and JoI idiom families rather than as a claim about natural user distribution. For SenSys, this should be complemented by an OOD set with three sources: human-collected seed commands, LLM-expanded variants generated by a model not used as an evaluation baseline, and adversarial/invalid commands.
+
+### 9.3 Evaluation Plan for SenSys
+
+The paper should report stage-specific measurements rather than one blended accuracy number.
+
+**RQ1 — End-to-end generation against strong baselines.** Compare the 9B local pipeline against direct and repaired baselines:
+
+| Baseline | Purpose |
 |---|---|
-| **A: Direct few-shot** | NL → JoI, same example pool, no IR |
-| **B: CoT** | NL → step-by-step reasoning → JoI |
-| **C: Ours** | NL → IR → JoI |
-| **D: GPT-4 direct** | upper bound |
+| 9B direct few-shot / CoT | local direct-generation lower bound |
+| GPT-4o or Claude direct | large-model upper-bound direct generation |
+| GPT-4o + schema-constrained output | controls for structured output alone |
+| GPT-4o + simulator-feedback self-repair | strongest adversary baseline |
+| RAG over JoI examples | controls for example retrieval rather than IR decomposition |
 
-Stratify accuracy by command difficulty (cat 1–9). The central hypothesis: A/B/C tie on cat 1–3 (trivial/simple); C dominates on cat 4–9 (reactive temporal). The widening gap with difficulty visualizes the central thesis.
+The paper should not rely on a weak direct baseline. The claim is strongest if the 9B decomposed system is competitive with, or more deployable than, cloud-scale self-repair under edge constraints.
 
-**E2 — Verification adequacy (RQ2): mutation testing.** Inject mutations into ground-truth JoI:
-- *Semantics-preserving* (50): variable rename, equivalent expression rewrite, redundant-but-safe code insertion.
-- *Semantics-changing* (50): one-shot ↔ persistent flip, edge removal, delay reordering, missing reset, off-by-one threshold.
+**RQ2 — Ablation of decomposition.** Measure the contribution of pre-analysis grounding, stage decomposition, IR validator retry, argument expression rules, lowering prompt rules, Python post-processing, and verifier retry. Report accuracy, tokens, and latency.
 
-Compare detection rates of:
-- BLEU / exact-match (token baseline)
-- AST diff (structural baseline)
-- LLM-as-judge ("does this JoI match this NL?")
-- JoI → NL re-translation similarity (§4's failed approach — included as ablation)
-- **Ours**: IR-guided trace comparison
+**RQ3 — Verification coverage.** Report IR-FSM obligation coverage, L1/L2 violation distributions, scenario counts, and verification latency. The headline should be "conditional finite-trace monitor coverage", not raw trace-match.
 
-The empirical claim: ours catches semantics-changing mutations at high rate (target ≥95%) while keeping false positives on semantics-preserving mutations low (target ≤5%); baselines miss substantial fractions of semantics-changing mutations or flag preserving ones.
+**RQ4 — Self-correction lift.** Report Stage B recovery rate by violation type, hurt cases, retry count, token overhead, and latency overhead. The current 35.5% recovery-of-fails result is ready for this section.
 
-This experiment directly substantiates §4 and §5 (round-trip and model-checking inadequacy) and is the *adequacy argument for §6* in lieu of a formal coverage theorem.
+**RQ5 — Robustness.** Evaluate ID vs OOD vs adversarial commands. This is the main defense against a synthetic-dataset critique.
 
-**E3 — End-to-end pipeline (RQ3).** Full NL → IR → JoI run with simulator-driven self-correction. Measure: end-to-end trace-match against reference, retry count distribution, terminal failure cases.
+**RQ6 — Edge cost.** Report p50/p95 latency, token count, GPU memory, and, if available, energy per command on the target local model setup.
 
-### 9.3 Dataset
+**RQ7 — User confirmation.** Run a seeded-error study comparing IR-rendered text against raw JoI code. This is load-bearing: the paper's spec-grounding claim requires evidence that users can catch semantic errors in IR renderings substantially better than in DSL code.
 
-The current English benchmark is 310 commands stratified across cat 1–9 (`local_dataset2.csv`). Expansion to ~600 commands is planned before submission, weighted toward cat 4–9 (reactive temporal — where the central claim lives). For E1/E2 reporting, accuracy and detection rates are stratified by category.
+**RQ8 — Real deployment.** Run 20-50 scenarios across the idiom families on the actual hub/testbed. Report end-to-end correctness, simulator-vs-hub timing drift, sensor noise/debounce issues, and failure cases.
 
-### 9.4 Long-term (post-submission)
+### 9.4 Near-Term Work Before Submission
+
+1. Implement the strong GPT-4o/Claude schema + simulator-feedback baseline.
+2. Turn the Stage B verifier numbers into paper tables: recovery by violation type, latency, and hurt cases.
+3. Draft the user-study codebook and begin IRB/deployment preparation.
+4. Build the OOD set and adversarial subset.
+5. Run real-device deployment across representative D-1..D-10 idiom families.
+
+### 9.5 Long-term (post-submission)
 
 - **Generalization probe**: port the framework to a second reactive DSL (Home Assistant automations or a behavior-tree DSL) on a small sample, to test the §2 generalization claim.
 - **Boundary analysis**: characterize commands the IR cannot express (nested cycles, analog-time conditions, distributed triggers) and what extending the grammar would cost.
@@ -636,13 +669,16 @@ The current English benchmark is 310 commands stratified across cat 1–9 (`loca
 
 ## 10. Target Venues
 
-The paper's natural fit is now systems-leaning rather than theory-leaning (formal contribution dropped, empirical evaluation centralized). Ranked by current fit:
+The current target is **SenSys 2027 R1**. The paper should be written as a systems paper about reliable edge IoT automation synthesis, not as a prompt-engineering paper.
 
-- **ACM IMWUT / UbiComp** (primary). Directly competitive with ChatIoT'24, HomeGenii'25, Sasha'24. The systems-with-evaluation framing matches the venue. Adding even a small user study on IR-readable confirmation would strengthen this fit substantially.
-- **ICSE / FSE** (secondary). The DSL synthesis + behavioral verification angle fits, especially with mutation-testing as the adequacy argument. Requires sharper evaluation rigor and possibly the "compositional rule-by-rule verification" extension.
-- **IEEE IoT Journal** (fallback). Lower bar, slower turnaround.
-- **ACL / EMNLP**. Possible only with a substantially larger dataset (≥1000 commands) and an explicit linguistic analysis of trigger ambiguity.
-- **NeurIPS / ICLR**. Unlikely without restoring formal theory — out of scope under current constraints.
+Fit rationale:
+
+- **Systems motivation**: privacy, latency, and offline operation force a small on-device model.
+- **System artifact**: a deployed NL→IR→JoI pipeline with deterministic validation/retry, not a one-off prompt.
+- **Hero abstraction**: Timeline IR as user-confirmable spec and verifier target.
+- **Evaluation path**: strong baselines, verifier recovery, user-confirmation study, and real-hub deployment.
+
+The weakest version of the paper is simulator-only. The SenSys-ready version needs real deployment and user-confirmation evidence. Without those, IMWUT/UbiComp or an IoT journal may be safer; with those, SenSys is a plausible target.
 
 ---
 
@@ -655,18 +691,23 @@ The paper's natural fit is now systems-leaning rather than theory-leaning (forma
 | "Use model checking" | §5 — no spec; bisimulation gap; tooling barrier |
 | "Use NL round-trip" | §4 — JoI ↔ NL asymmetry; round-trip is relocated, not abandoned |
 | "Why this IR specifically" | §7 — alternatives rejected (phase-graph, AST-level); design choices justified |
-| "Sample-based verification is incomplete" | §5.3 + §9 (E2 mutation testing) — empirical adequacy in lieu of completeness |
-| "Simulator might not match real runtime" | §6.3 — simulator *is* the operational semantics for verification; soundness is w.r.t. that definition |
+| "Sample-based verification is incomplete" | §6.5 + §9.3 RQ3 — conditional finite-trace monitor coverage, not full equivalence |
+| "Simulator might not match real runtime" | §6.9 + §9.3 RQ8 — simulator semantics plus real-hub drift measurement |
+| "User confirmation is assumed, not shown" | §9.3 RQ7 — seeded-error user study comparing IR rendering vs JoI code |
+| "A strong cloud LLM with self-repair can do this" | §9.3 RQ1 — GPT-4o/Claude schema + simulator-feedback baseline |
 
 ---
 
 ## Appendix — Current Implementation Status
 
-- `joi/paper/timeline_ir_extractor.md` — NL → IR extraction prompt with 17 few-shot examples.
-- `joi/paper/joi_from_ir.md` — IR → JoI lowering prompt with 9 idiom templates (D-1..D-9).
-- `joi/paper/timeline_ir.py` — pipeline module (`extract_ir`, `validate_ir`, `ir_to_readable`, `DEFAULT_TEST_DEVICES`).
-- `joi/paper/ir_code_example.md` — 11 canonical NL/IR/JoI triples (lowering reference).
-- `joi/dataset_migration/local_dataset2.csv` — 310-command English benchmark, stratified cat 1–9, validated.
+- `paper/run_local_ir.py` — active NL→IR→precision→JoI pipeline; supports IR-only mode, GT-IR injection, and verifier toggles.
+- `paper/timeline_ir.py` — IR extraction wrapper, schema validation, catalog conformance checks, and readable rendering.
+- `paper/timeline_ir_extractor.md` — NL→IR extraction prompt, including `cycle.period` and `wait.for` conventions.
+- `files/joi_noncycle.md`, `files/joi_cycle.md`, `files/joi_common.md` — active IR→JoI lowering prompts.
+- `paper/simulators/` — IR simulator, JoI simulator, event synthesizer, trace comparator, and E2E sanity tests.
+- `paper/verifier/` — IR-FSM derivation, L1 static checks, L2 runtime checks, diagnostics, and retry harness.
+- `paper/run_ir_only_batch.py`, `paper/run_joi_eval_batch.py`, `paper/run_lower_gt_batch.py` — batch runners for Stage A/E2E/Stage B evaluation.
+- `dataset_migration/local_dataset2.csv` — 350-command benchmark with `ir_gt` filled for every row.
 
-**Verified**: NL → IR end-to-end on the canonical examples.
-**Pending**: IR → JoI lowering implementation, IR/JoI simulators, IR-guided event synthesizer, mutation-test harness, all baseline systems for E1.
+**Verified so far**: full pipeline runs on the 350-row dataset; Stage B verifier retry recovers 35.5% of originally failing lowerings.
+**Pending for SenSys evidence**: strong cloud/self-repair baselines, OOD/adversarial evaluation, user-confirmation study, and real-hub deployment.
