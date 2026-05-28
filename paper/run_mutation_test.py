@@ -304,6 +304,40 @@ def op_arith_op(script: str):
     return out
 
 
+# ── Construct-existence operators (close the construct x operator matrix) ─────
+# guard_polarity/comparator/cmp_direction mutate a guard's CONDITION, but no
+# operator removed the control constructs that GATE or TERMINATE a reactive idiom.
+# The dataset has no `&&`/`||` (compound conditions are nested `if`s, already
+# mutated per-guard) and edge/re-arm has no single-token surface form (it is the
+# period wrapper + else-reset), so the real gaps are the EXISTENCE of `break`
+# (one-shot termination of a sustain loop) and `wait until` (temporal gate). Both
+# are fire-count / precondition faults, NOT sub-tolerance timing shifts.
+def op_break_drop(script: str):
+    """Delete each standalone `break`. In the sustain idiom (`if (hold_ticks >= N)
+    { act; break }`) this turns a one-shot into a per-tick re-fire after the
+    threshold — a fire-COUNT change, distinct from the comparator off-by-one's
+    1-tick timing shift."""
+    lines = script.replace("\\n", "\n").split("\n")
+    out = []
+    for i, ln in enumerate(lines):
+        if ln.strip() == "break":
+            out.append(("\n".join(lines[:i] + lines[i + 1:]), "dropped `break`"))
+    return out
+
+
+def op_wait_drop(script: str):
+    """Delete each `wait ...` gate (`wait until(...)`). The gated action then fires
+    immediately, dropping its temporal precondition (-> the action emits at t=0
+    instead of when the awaited condition holds)."""
+    lines = script.replace("\\n", "\n").split("\n")
+    out = []
+    for i, ln in enumerate(lines):
+        if ln.strip().startswith("wait "):
+            out.append(("\n".join(lines[:i] + lines[i + 1:]),
+                        f"dropped `{ln.strip()[:48]}`"))
+    return out
+
+
 OPERATORS = {
     # output-affecting (original)
     "arg_numeric": op_arg_numeric,
@@ -318,6 +352,8 @@ OPERATORS = {
     # expression / arithmetic (codex Round 6 — closes the arithmetic fault class)
     "cmp_direction": op_cmp_direction,
     "arith_op": op_arith_op,
+    # construct-existence (closes the construct x operator matrix: break terminator)
+    "break_drop": op_break_drop,
 }
 
 # DELIBERATELY EXCLUDED from the L2 mutation suite: `op_quantifier` (all<->any) and
@@ -329,7 +365,19 @@ OPERATORS = {
 # So these two mutations are out of L2's scope by design: on our data every such
 # mutant is observationally equivalent (e.g. C03: 85/85 tag_swap, 8/8 quantifier all
 # equivalent). Reported here as a scoping/threat note rather than as a catch-rate.
-_OUT_OF_SCOPE_OPERATORS = {"quantifier": op_quantifier, "tag_swap": op_tag_swap}
+# DELIBERATELY EXCLUDED for a different reason: `op_wait_drop` (delete a
+# `wait until(...)` gate). It is IN L2's scope, but on our data every such mutant
+# is OBSERVATIONALLY EQUIVALENT: the synthesized happy scenario already satisfies
+# the gate condition at t=0 (event_synth seeds the precondition true at start), so
+# whether the action waits for it or fires immediately yields the same trace
+# (verified: C07+C20 smoke = 25/25 wait_drop mutants equivalent, 0 genuine). The
+# wait construct is still covered — its CONDITION is mutated by guard_polarity /
+# comparator / enum_flip acting inside the `wait until(...)` expression; only the
+# gate's EXISTENCE is indistinguishable without a pre-gate false phase in the
+# scenario (an event_synth change, out of scope here). Recorded as a coverage/
+# threat note, not a catch-rate.
+_OUT_OF_SCOPE_OPERATORS = {"quantifier": op_quantifier, "tag_swap": op_tag_swap,
+                           "wait_drop": op_wait_drop}
 
 
 # ── Trace equivalence (equivalent-mutant filter) ─────────────────────────────

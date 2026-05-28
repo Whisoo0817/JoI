@@ -32,6 +32,17 @@ from .ir_simulator import _next_cron_fire, MAX_TRACE, MAX_T_MS
 
 TICK_POLL_MS = 100  # tick granularity for in-tick polling (e.g., delay residue)
 
+# Runaway guards for the period tick loop. A sustain counter (`hold_ticks++`)
+# makes every tick register as progress, so the idle early-stop never fires; the
+# only natural terminator is the `break`. A malformed/mutated script that drops
+# the break (or never satisfies its threshold) would otherwise tick until
+# MAX_T_MS (7 days / 100 ms = 6M iterations). These caps bound that cost. Both
+# are far above any legitimate synthesized scenario (largest real threshold seen
+# ~18k ticks); when hit, the partial trace has already diverged from the IR's, so
+# the verdict (divergence) is unchanged — only the cost is bounded.
+MAX_TICKS = 300_000      # max period-loop iterations per simulation
+MAX_RAW = 20_000         # max raw trace records (emitting runaway)
+
 
 class _BreakException(Exception):
     pass
@@ -140,8 +151,12 @@ def run_joi_simulation(
             # and we must not idle-exit during the accumulation window.
             first_tick = True
             idle_ticks_with_no_pending = 0
+            tick_count = 0
             while True:
                 _check_stop(world, trace)
+                tick_count += 1
+                if tick_count > MAX_TICKS:
+                    break
                 trace_size_before = len(trace)
                 vars_before = dict(world.vars)
                 try:
@@ -170,7 +185,8 @@ def run_joi_simulation(
 
 
 def _check_stop(world: World, trace: Trace) -> None:
-    if trace.group_count >= MAX_TRACE or world.t_ms >= MAX_T_MS:
+    if (trace.group_count >= MAX_TRACE or world.t_ms >= MAX_T_MS
+            or len(trace) >= MAX_RAW):
         raise _StopException()
 
 
