@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Batch end-to-end JoI evaluation with/without self-correction.
 
-For each row in dataset_migration/local_dataset2.csv:
+For each row in dataset.csv:
   1. Run `generate_joi_code(NL, devices)` under both JOI_VERIFY=0 (off) and
      JOI_VERIFY=1 (on). Save the resulting (ir, joi_block, log) per row per
      mode in JOI_EVAL_DUMP_DIR/<mode>/<cat>_<idx>.json.
@@ -25,12 +25,13 @@ import os
 import subprocess
 import sys
 import time
+from collections import Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "paper"))
-CSV_PATH = os.path.join(ROOT, "dataset_migration/local_dataset2.csv")
+CSV_PATH = os.path.join(ROOT, "dataset.csv")
 OUT_DIR = os.environ.get("JOI_EVAL_DUMP_DIR", "/tmp/joi_eval_batch")
 WORKERS = int(os.environ.get("BATCH_WORKERS", "4"))
 CAT_FILTER = {c.strip() for c in os.environ.get("BATCH_CATEGORIES", "").split(",") if c.strip()}
@@ -64,6 +65,7 @@ try:
         'joi_block': joi_block,
         'code_raw': code,
         'precision': r.get('precision'),
+        'verifier_trace': r.get('verifier_trace'),
     }
 except JoiGenerationError as e:
     out = {'status':'error','error_code':getattr(e,'error_code','unknown'),
@@ -158,6 +160,129 @@ def grade_one(row, mode):
         return {"verdict": "fail", "msg": f"l2 exception: {type(e).__name__}: {str(e)[:200]}"}
 
 
+def _grade_block(ir_gt, joi_block):
+    """Grade a single joi_block dict against ir_gt → 'pass' | 'fail'.
+
+    Unlike grade_one (which scores the *dumped final* block), this scores an
+    arbitrary block — used to score attempt-1 vs final from verifier_trace so
+    the confusion matrix can separate detection from recovery.
+    """
+    if not isinstance(joi_block, dict):
+        return "fail"
+    try:
+        from paper.verifier.l2_runtime import check as l2_check
+        rep = l2_check(ir_gt, joi_block)
+        return "pass" if rep.equivalent else "fail"
+    except Exception:
+        return "fail"
+
+
+def build_confusion(rows, out_dir=None):
+    """Verifier-intrinsic confusion matrix + recovery breakdown, computed from
+    the on-mode dump's verifier_trace. All scoring is against ir_gt.
+    `out_dir` defaults to this module's OUT_DIR; the Stage-B runner passes its
+    own dump dir so the same aggregation serves both batches.
+
+    Detector matrix (prediction = internal verifier flagged attempt-1;
+    truth = attempt-1 block is actually wrong vs ir_gt):
+      TP flagged & wrong | FP flagged & correct | FN missed & wrong | TN clean & correct
+    Recovery (attempt-1 → final, on-mode internal retry):
+      helped wrong→correct | hurt correct→wrong | both_correct | both_wrong
+    """
+    cm = {"TP": 0, "FP": 0, "TN": 0, "FN": 0}
+    rec = {"helped": 0, "hurt": 0, "both_correct": 0, "both_wrong": 0}
+    kind_flagged = Counter()       # attempt-1 violation kinds, all rows
+    kind_helped = Counter()        # attempt-1 kinds on rows that recovered
+    kind_hurt = Counter()          # attempt-1 kinds on rows that regressed
+    # Wrong-but-unflagged (FN) split: the verifier judges the JoI against the
+    # *internal* (pipeline-extracted) IR, but grading is vs ir_gt. So a wrong
+    # row the verifier didn't flag is one of two very different things:
+    #   upstream_ir : JoI faithfully matches the internal IR, but the internal
+    #                 IR itself diverged from ir_gt → an IR-extraction error,
+    #                 NOT a verifier/lowering miss. The verifier is correct to
+    #                 stay silent (IR is its spec).
+    #   verifier_miss: JoI diverges even from its own internal IR yet L2 stayed
+    #                 silent → a true verifier insensitivity (the cell that LLM
+    #                 diagnose / L2 hardening should target).
+    fn_split = {"upstream_ir": 0, "verifier_miss": 0}
+    n_scored = 0
+    detail = []
+    base = out_dir or OUT_DIR
+    for r in rows:
+        name = f"{r['category']}_{r['index']}"
+        path = os.path.join(base, "on", f"{name}.json")
+        if not os.path.exists(path):
+            continue
+        try:
+            d = json.load(open(path, encoding="utf-8"))
+        except Exception:
+            continue
+        if d.get("status") != "ok" or not r["ir_gt"]:
+            continue
+        try:
+            ir_gt = json.loads(r["ir_gt"])
+        except Exception:
+            continue
+        vt = d.get("verifier_trace") or {}
+        atts = vt.get("attempts") or []
+        if not vt.get("enabled") or not atts:
+            continue
+        n_scored += 1
+
+        a1 = atts[0]
+        a1_kinds = list(a1.get("l1_kinds", [])) + list(a1.get("l2_kinds", []))
+        flagged = (a1.get("l1_count", 0) + a1.get("l2_count", 0)) > 0
+        a1_correct = _grade_block(ir_gt, a1.get("joi_block")) == "pass"
+        final_correct = _grade_block(ir_gt, atts[-1].get("joi_block")) == "pass"
+
+        for k in a1_kinds:
+            kind_flagged[k] += 1
+
+        fn_kind = None
+        if flagged and not a1_correct:
+            cm["TP"] += 1
+        elif flagged and a1_correct:
+            cm["FP"] += 1
+        elif not flagged and not a1_correct:
+            cm["FN"] += 1
+            # Split FN: did attempt-1 JoI match its OWN internal IR?
+            internal_ir = d.get("ir") or {}
+            a1_vs_internal = _grade_block(internal_ir, a1.get("joi_block")) == "pass"
+            fn_kind = "upstream_ir" if a1_vs_internal else "verifier_miss"
+            fn_split[fn_kind] += 1
+        else:
+            cm["TN"] += 1
+
+        if not a1_correct and final_correct:
+            rec["helped"] += 1
+            for k in a1_kinds:
+                kind_helped[k] += 1
+        elif a1_correct and not final_correct:
+            rec["hurt"] += 1
+            for k in a1_kinds:
+                kind_hurt[k] += 1
+        elif a1_correct and final_correct:
+            rec["both_correct"] += 1
+        else:
+            rec["both_wrong"] += 1
+
+        detail.append({
+            "name": name, "flagged": flagged, "a1_kinds": a1_kinds,
+            "a1_correct": a1_correct, "final_correct": final_correct,
+            "fn_kind": fn_kind, "n_attempts": len(atts),
+        })
+    return {
+        "n_scored": n_scored,
+        "matrix": cm,
+        "fn_split": fn_split,
+        "recovery": rec,
+        "kind_flagged": dict(kind_flagged),
+        "kind_helped": dict(kind_helped),
+        "kind_hurt": dict(kind_hurt),
+        "detail": detail,
+    }
+
+
 def main():
     os.makedirs(OUT_DIR, exist_ok=True)
     rows = load_rows()
@@ -220,12 +345,34 @@ def main():
         tot = sum(off_cat.get(c,{}).values())
         print(f"  {c:<5} {op:>9} {np_:>9} {np_-op:>+5}  /{tot}")
 
+    # Verifier-intrinsic confusion matrix + recovery (on-mode, vs ir_gt).
+    conf = build_confusion(rows)
+    cm, rc = conf["matrix"], conf["recovery"]
+    tp, fp, fn, tn = cm["TP"], cm["FP"], cm["FN"], cm["TN"]
+    prec = tp / (tp + fp) if (tp + fp) else 0.0
+    recall = tp / (tp + fn) if (tp + fn) else 0.0
+    print("\n" + "="*72)
+    print(f"Verifier detector matrix (on-mode, attempt-1 vs ir_gt; n={conf['n_scored']})")
+    print("="*72)
+    print(f"  TP={tp}  FP={fp}  FN={fn}  TN={tn}   precision={prec:.2f} recall={recall:.2f}")
+    fs = conf["fn_split"]
+    print(f"  FN split: upstream_ir(JoI matches a wrong internal IR)={fs['upstream_ir']}  "
+          f"verifier_miss(JoI diverges from own IR, L2 silent)={fs['verifier_miss']}")
+    print(f"  recovery: helped(wrong→correct)={rc['helped']}  hurt(correct→wrong)={rc['hurt']}  "
+          f"both_correct={rc['both_correct']}  both_wrong={rc['both_wrong']}")
+    if conf["kind_flagged"]:
+        print("  attempt-1 flagged kinds:", dict(sorted(conf["kind_flagged"].items(),
+                                                        key=lambda kv: -kv[1])))
+        print("    of which helped:", conf["kind_helped"] or "{}")
+        print("    of which hurt:  ", conf["kind_hurt"] or "{}")
+
     summary_path = os.path.join(OUT_DIR, "_summary.json")
     with open(summary_path, "w", encoding="utf-8") as f:
         json.dump({
             "n_rows": n,
             "off_totals": off_total, "off_per_cat": off_cat,
             "on_totals": on_total,   "on_per_cat": on_cat,
+            "confusion": conf,
             "grades": grades,
         }, f, ensure_ascii=False, indent=2)
     print(f"\n[joi-eval] summary -> {summary_path}")

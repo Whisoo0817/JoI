@@ -39,6 +39,11 @@ class Scenario:
     events: list[ScenarioEvent] = field(default_factory=list)
     start_clock: int = 0          # hhmm at t=0
     start_dow: str = "MON"
+    # Coverage-suite metadata (set by the synthesizer): a human label and the
+    # list of IR-FSM coverage obligations this scenario is meant to exercise
+    # (e.g. "if@timeline[1]:else", "wait@timeline[2]:flap_reset").
+    label: str = "happy"
+    covers: list = field(default_factory=list)
 
     def add(self, at_ms: int, key: str, value: object) -> None:
         self.events.append(ScenarioEvent(at_ms, key, value))

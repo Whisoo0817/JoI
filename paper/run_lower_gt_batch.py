@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT); sys.path.insert(0, os.path.join(ROOT, "paper"))
-CSV_PATH = os.path.join(ROOT, "dataset_migration/local_dataset2.csv")
+CSV_PATH = os.path.join(ROOT, "dataset.csv")
 OUT_DIR = os.environ.get("JOI_LOWER_GT_DUMP_DIR", "/tmp/joi_lower_gt_batch")
 WORKERS = int(os.environ.get("BATCH_WORKERS", "4"))
 CAT_FILTER = {c.strip() for c in os.environ.get("BATCH_CATEGORIES","").split(",") if c.strip()}
@@ -42,7 +42,7 @@ try:
     except Exception:
         joi_block = None
     out = {'status':'ok','ir':r.get('ir'),'joi_block':joi_block,'code_raw':code,
-           'precision':r.get('precision')}
+           'precision':r.get('precision'),'verifier_trace':r.get('verifier_trace')}
 except JoiGenerationError as e:
     out = {'status':'error','error_code':getattr(e,'error_code','unknown'),
            'error_msg':str(e)[:600]}
@@ -186,9 +186,32 @@ def main():
         tot=sum(oc.get(c,{}).values())
         print(f"  {c:<5} {op:>5} {np_:>5} {np_-op:>+4}  /{tot}")
 
+    # Verifier-intrinsic confusion matrix (on-mode). In Stage B the internal
+    # IR == GT IR, so the FN-split collapses to verifier_miss by construction
+    # (upstream_ir errors are removed) — this is the clean verifier measurement.
+    from paper.run_joi_eval_batch import build_confusion
+    conf = build_confusion(rows, out_dir=OUT_DIR)
+    cm, rc = conf["matrix"], conf["recovery"]
+    tp, fp, fn, tn = cm["TP"], cm["FP"], cm["FN"], cm["TN"]
+    prec = tp/(tp+fp) if (tp+fp) else 0.0
+    recall = tp/(tp+fn) if (tp+fn) else 0.0
+    print("\n"+"="*72)
+    print(f"Verifier detector matrix (Stage B, attempt-1 vs GT IR; n={conf['n_scored']})")
+    print("="*72)
+    print(f"  TP={tp}  FP={fp}  FN={fn}  TN={tn}   precision={prec:.2f} recall={recall:.2f}")
+    fs = conf["fn_split"]
+    print(f"  FN split: upstream_ir={fs['upstream_ir']}  verifier_miss={fs['verifier_miss']}")
+    print(f"  recovery: helped={rc['helped']}  hurt={rc['hurt']}  "
+          f"both_correct={rc['both_correct']}  both_wrong={rc['both_wrong']}")
+    if conf["kind_flagged"]:
+        print("  attempt-1 flagged kinds:", dict(sorted(conf["kind_flagged"].items(),
+                                                        key=lambda kv:-kv[1])))
+        print("    of which helped:", conf["kind_helped"] or "{}")
+        print("    of which hurt:  ", conf["kind_hurt"] or "{}")
+
     sp=os.path.join(OUT_DIR,"_summary.json")
     json.dump({"n_rows":n,"off":ot,"on":nt,"off_per_cat":oc,"on_per_cat":nc,
-              "grades":grades},open(sp,"w",encoding="utf-8"),ensure_ascii=False,indent=2)
+              "confusion":conf,"grades":grades},open(sp,"w",encoding="utf-8"),ensure_ascii=False,indent=2)
     print(f"\n[lower-gt] summary -> {sp}")
 
 if __name__=="__main__":

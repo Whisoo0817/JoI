@@ -405,6 +405,20 @@ def evaluate(node: Any, ctx: EvalContext) -> Any:
     if isinstance(node, ClockRef):
         return ctx.clock.get(node.field)
     if isinstance(node, VarRef):
+        if node.name in ctx.vars:
+            return ctx.vars.get(node.name)
+        # A dotted, Capitalized name (e.g. `$Light.CurrentBrightness`) with no bound
+        # register is a live device-attribute READ — resolve it against device state
+        # with the SAME canonical key a DeviceRef would use. Closes a latent gap where
+        # such reads silently evaluated to None (so e.g. brightness clamps were never
+        # exercised), and makes IR-side `$Service.Attr` reads symmetric with JoI's
+        # `(#...).attr` selector reads. Plain registers (no dot) keep None-if-unset.
+        nm = node.name
+        if "." in nm:
+            first, _, rest = nm.partition(".")
+            if first[:1].isupper():
+                svc, a = canonical_key(first, rest)
+                return ctx.world.get(f"{svc}.{a}")
         return ctx.vars.get(node.name)
     if isinstance(node, UnaryOp):
         v = evaluate(node.operand, ctx)

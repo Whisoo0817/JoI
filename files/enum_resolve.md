@@ -92,3 +92,36 @@ Output:
 {"WeatherProvider.Weather": null}
 ```
 
+## Example 3 — "stopped" on RunMode → nearest member `pause`
+Resolve to the member of the SELECTED service that clearly matches, even if the
+surface word differs. A stopped robot's run mode is `pause`.
+```
+[Command]
+... if it is stopped.
+[ENUM-Value Services]
+RobotVacuumCleaner.RobotVacuumCleanerRunMode: Current run mode.
+Members:
+  - idle: standing by
+  - pause: paused / not running
+  - cleaning: actively cleaning
+```
+Output:
+```json
+{"RobotVacuumCleaner.RobotVacuumCleanerRunMode": {"op": "==", "value": "pause"}}
+```
+
+## Example 4 — "stopped" on CleaningMode → member `stop`
+```
+[Command]
+... if it is stopped.
+[ENUM-Value Services]
+RobotVacuumCleaner.RobotVacuumCleanerCleaningMode: Current cleaning mode.
+Members:
+  - auto: cleaning in auto mode
+  - stop: cleaning stopped
+```
+Output:
+```json
+{"RobotVacuumCleaner.RobotVacuumCleanerCleaningMode": {"op": "==", "value": "stop"}}
+```
+

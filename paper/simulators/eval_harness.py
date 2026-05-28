@@ -1,6 +1,6 @@
 """Evaluation harness: dataset row → pipeline → simulators → compare.
 
-Reads `dataset_migration/local_dataset2.csv`, filters by category, calls
+Reads `dataset.csv`, filters by category, calls
 `generate_joi_code_ir` (cached to disk), runs both IR and JoI simulators,
 compares traces, classifies the result.
 
@@ -41,7 +41,7 @@ from typing import Optional
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _CACHE_DIR = os.path.join(_BASE_DIR, "cache")
 _DATASET_PATH = os.path.abspath(os.path.join(_BASE_DIR, "..", "..",
-                                             "dataset_migration", "local_dataset2.csv"))
+                                             "dataset.csv"))
 
 # Add paper/ to sys.path so `from run_local_ir import ...` works
 _PAPER_DIR = os.path.abspath(os.path.join(_BASE_DIR, ".."))

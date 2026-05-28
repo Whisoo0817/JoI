@@ -34,7 +34,7 @@ from typing import Optional
 from paper.simulators.catalog import load_catalog
 from paper.simulators.comparator import _group_and_dedup
 from paper.simulators.event_synth import synthesize_scenarios
-from paper.simulators.ir_simulator import run_ir_simulation
+from paper.simulators.ir_simulator import MAX_TRACE, run_ir_simulation
 from paper.simulators.joi_simulator import run_joi_simulation
 
 from paper.verifier.ir_fsm import (
@@ -75,36 +75,86 @@ def check(
     ir: dict,
     joi_block: dict,
     catalog: Optional[dict] = None,
-    scenario_index: int = 0,
+    scenario_index: Optional[int] = None,
 ) -> L2Report:
-    """Run both sims on synthesized scenario, produce obligation-attributed diff."""
+    """Run both sims and produce an obligation-attributed diff.
+
+    `synthesize_scenarios(ir)` now returns a COVERAGE SUITE (multiple scenarios
+    that exercise then/else branches, guard boundaries, and sustain/reset edges
+    of the IR-FSM). We run every scenario and the JoI fails equivalence if it
+    diverges on ANY of them — coverage of the spec's transitions, not just the
+    happy path. `scenario_index` (legacy) restricts to a single scenario.
+    """
     cat = catalog or load_catalog()
     scenarios = synthesize_scenarios(ir)
     if not scenarios:
         return L2Report(equivalent=True, violations=[],
                         ir_group_count=0, joi_group_count=0)
-    scn = scenarios[scenario_index if scenario_index < len(scenarios) else 0]
+    if scenario_index is not None:
+        i = scenario_index if scenario_index < len(scenarios) else 0
+        scenarios = [scenarios[i]]
 
+    fsm = derive_fsm(ir)
+    call_obs = _flatten_calls(fsm.top)
+
+    from collections import OrderedDict
+    merged: "OrderedDict[tuple, L2Violation]" = OrderedDict()
+    max_ir_groups = max_joi_groups = 0
+    for scn in scenarios:
+        acc, n_ir, n_joi = _check_one(ir, joi_block, scn, cat, call_obs)
+        max_ir_groups = max(max_ir_groups, n_ir)
+        max_joi_groups = max(max_joi_groups, n_joi)
+        for key, v in acc.items():
+            existing = merged.get(key)
+            if existing is None:
+                merged[key] = v
+            else:
+                existing.occurrences += v.occurrences
+    return L2Report(
+        equivalent=not merged,
+        violations=list(merged.values()),
+        ir_group_count=max_ir_groups,
+        joi_group_count=max_joi_groups,
+    )
+
+
+def _check_one(ir: dict, joi_block: dict, scn, cat,
+               call_obs: list["CallObligation"]):
+    """Compare IR-sim and JoI-sim traces on ONE scenario. Returns
+    (acc, n_ir_groups, n_joi_groups) where acc is an OrderedDict keyed by
+    (kind, ir_path, target)."""
+    from collections import OrderedDict
     t_ir = run_ir_simulation(ir, scn, cat, debug=False)
     t_joi = run_joi_simulation(joi_block, scn, cat, debug=False)
 
     g_ir = _group_and_dedup(t_ir.records)
     g_joi = _group_and_dedup(t_joi.records)
 
-    fsm = derive_fsm(ir)
-    call_obs = _flatten_calls(fsm.top)
+    # Trace-cap truncation guard. A non-terminating cycle (until=null) hits the
+    # MAX_TRACE cap; the cap can fall MID-iteration in one sim (e.g. after `on`
+    # but before `setMode`) and at the boundary in the other, leaving the final
+    # group a truncation artifact rather than a real divergence. We drop the
+    # shared boundary group from both ONLY when the signature is exactly that
+    # artifact: a trace is capped, BOTH sides are substantial, and their group
+    # counts are within one (i.e. they otherwise track each other). This must
+    # NOT fire when one side is empty/short — that is a real trace_empty /
+    # missing-call divergence, not a truncation edge.
+    if (t_ir.group_count >= MAX_TRACE or t_joi.group_count >= MAX_TRACE) \
+            and len(g_ir) > 1 and len(g_joi) > 1 \
+            and abs(len(g_ir) - len(g_joi)) <= 1:
+        k = min(len(g_ir), len(g_joi)) - 1
+        g_ir, g_joi = g_ir[:k], g_joi[:k]
 
-    violations: list[L2Violation] = []
+    acc: "OrderedDict[tuple, L2Violation]" = OrderedDict()
 
     if g_ir and not g_joi:
-        violations.append(L2Violation(
+        acc[("trace_empty", "timeline", "(any)")] = L2Violation(
             kind="trace_empty",
             ir_path="timeline",
             target="(any)",
             detail="IR emits but JoI emits nothing — script likely guarded out or unreachable",
-        ))
-        return L2Report(equivalent=False, violations=violations,
-                        ir_group_count=len(g_ir), joi_group_count=0)
+        )
+        return acc, len(g_ir), 0
 
     # Walk groups in order. The IR-FSM's flattened call list provides one
     # obligation per "expected emit" in DFS order; for cycles each obligation
@@ -112,14 +162,6 @@ def check(
     obs_by_target: dict[str, list[CallObligation]] = {}
     for ob in call_obs:
         obs_by_target.setdefault(_target_norm(ob.target), []).append(ob)
-
-    # Accumulate violations in an ordered dict keyed by (kind, ir_path, target).
-    # Cycles cause the same obligation to be violated once per iteration; we
-    # collapse those by incrementing `occurrences` and keep first-seen
-    # `expected` / `observed` so retry messages stay one bullet per obligation
-    # regardless of trace length.
-    from collections import OrderedDict
-    acc: "OrderedDict[tuple, L2Violation]" = OrderedDict()
 
     def _record(v: L2Violation) -> None:
         key = (v.kind, v.ir_path, v.target)
@@ -212,12 +254,7 @@ def check(
                     detail=f"first seen at group #{i}: args differ for {m}",
                 ))
 
-    return L2Report(
-        equivalent=not acc,
-        violations=list(acc.values()),
-        ir_group_count=len(g_ir),
-        joi_group_count=len(g_joi),
-    )
+    return acc, len(g_ir), len(g_joi)
 
 
 # ── Internals ───────────────────────────────────────────────────────────────

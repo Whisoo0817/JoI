@@ -33,30 +33,40 @@ from paper.simulators.expr import canonical_name, canonical_key
 def _resolve_service(call_service: str, call_method: str,
                      catalog: Optional[dict],
                      valid_svcs: Optional[set[str]]) -> str:
-    """Return the catalog/connected-devices service name for this call.
+    """Return the catalog service that OWNS this method.
 
-    The JoI parser uses the LAST `#tag` in the selector as the nominal service,
-    but the *actual* capability often lives in a different tag (e.g.
-    `(#Camera #MeetingRoom).camera_captureImage()` → service is Camera, not
-    MeetingRoom). Trace comparison uses `canonical_key` to re-derive the real
-    service from the method prefix; we mirror that here.
+    Selector tags only steer device_match (which physical device the call hits);
+    they do NOT determine which skill provides a method. The owning skill is
+    fixed by the method itself — `On`/`switch_on` always belong to Switch,
+    regardless of whether the selector reads `(#Dehumidifier)` or
+    `(#Plug #Switch #LivingRoom #Dehumidifier)` — exactly as the post-process
+    prefix logic assigns `<owner>_<method>` from the method, not the tag. L1
+    cannot (and must not) verify device_match, so we resolve the service from
+    the METHOD and ignore the selector tag, falling back to the nominal tag
+    service only as a last resort so an 'unknown service' / hallucinated method
+    can still surface. Assumes method names do not collide across skills.
 
-    Priority: (1) original service if it's a known service; otherwise
-    (2) the canonical_key-derived service if matching connected_devices /
-    catalog; otherwise (3) original (so the existing 'unknown service'
-    violation can still fire).
+    This mirrors L2 trace comparison, which also keys on `canonical_key`, so L1
+    catalog conformance stays symmetric with L2 trace conformance.
     """
     known_lower = {s.lower() for s in (valid_svcs or set())}
     if catalog:
         known_lower |= {s.lower() for s in catalog.keys()}
-    if call_service and call_service.lower() in known_lower:
-        return call_service
+
+    def _orig_cased(name_lower: str) -> Optional[str]:
+        for s in (valid_svcs or set()) | set((catalog or {}).keys()):
+            if s.lower() == name_lower:
+                return s
+        return None
+
+    # (1) Owning skill derived from the method prefix (e.g. `switch_on` → Switch,
+    #     `dehumidifier_setDehumidifierMode` → Dehumidifier). Tag-independent.
     sub_svc, _ = canonical_key(call_service, call_method)
     if sub_svc and sub_svc.lower() in known_lower:
-        # Recover the original-cased key
-        for s in (valid_svcs or set()) | set((catalog or {}).keys()):
-            if s.lower() == sub_svc.lower():
-                return s
+        return _orig_cased(sub_svc.lower()) or call_service
+
+    # (2) Last resort: the nominal (tag) service, so unknown-service / unknown-
+    #     method violations still fire when the method resolves to nothing.
     return call_service
 
 

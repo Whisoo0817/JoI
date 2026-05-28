@@ -174,6 +174,37 @@ def _check_stop(world: World, trace: Trace) -> None:
         raise _StopException()
 
 
+# Optional implementation-side branch-coverage sink (§8.6). When not None, each
+# executed `if` records (cond_key, "then"|"else"); a stable cond_key (the parsed
+# condition's repr) lets the same branch be identified across re-parses/scenarios.
+# Set/cleared by coverage.joi_branch_coverage; None in normal verification so the
+# verdict path is unaffected.
+_BRANCH_SINK = None
+
+
+def _cond_key(node: Any) -> str:
+    return repr(node)
+
+
+def set_branch_sink(sink) -> None:
+    global _BRANCH_SINK
+    _BRANCH_SINK = sink
+
+
+def enumerate_joi_branches(stmts: list) -> list:
+    """All (cond_key, side) branch obligations of a parsed JoI script — both
+    `then` and `else` of every `if`, recursing into branch bodies."""
+    out: list = []
+    for s in stmts:
+        if isinstance(s, jp.IfStmt):
+            k = _cond_key(s.cond)
+            out.append((k, "then"))
+            out.append((k, "else"))
+            out += enumerate_joi_branches(s.then_body)
+            out += enumerate_joi_branches(s.else_body or [])
+    return out
+
+
 def _exec_script_once(stmts: list, world: World, trace: Trace, catalog,
                       persisted: set, debug: bool, first_tick: bool,
                       is_oneshot: bool) -> None:
@@ -189,6 +220,8 @@ def _exec_stmt(stmt: Any, world: World, trace: Trace, catalog,
         _exec_assign(stmt, world, trace, catalog, persisted, debug, first_tick)
     elif isinstance(stmt, jp.IfStmt):
         cond = _eval(stmt.cond, world)
+        if _BRANCH_SINK is not None:
+            _BRANCH_SINK.add((_cond_key(stmt.cond), "then" if cond else "else"))
         body = stmt.then_body if cond else stmt.else_body
         for s in body:
             _exec_stmt(s, world, trace, catalog, persisted, debug, first_tick, is_oneshot)

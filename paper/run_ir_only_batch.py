@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Batch IR-only runner.
 
-Walks all rows in local_dataset2.csv and, for each row, spawns a subprocess
+Walks all rows in dataset.csv and, for each row, spawns a subprocess
 running the JoI pipeline with JOI_IR_ONLY=1. The subprocess writes a per-row
 dump JSON to JOI_IR_DUMP_DIR. After all rows finish, this script writes a
 master `_index.json` summarizing status per row + per category.
@@ -26,7 +26,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CSV_PATH = os.path.join(ROOT, "dataset_migration/local_dataset2.csv")
+CSV_PATH = os.path.join(ROOT, "dataset.csv")
 OUT_DIR = os.environ.get("JOI_IR_DUMP_DIR", "/tmp/joi_ir_dump_batch")
 WORKERS = int(os.environ.get("BATCH_WORKERS", "4"))
 CAT_FILTER = {c.strip() for c in os.environ.get("BATCH_CATEGORIES", "").split(",") if c.strip()}

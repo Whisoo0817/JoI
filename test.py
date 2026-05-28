@@ -29,7 +29,8 @@ import json as _json
 # [MODE: target | pre] 테스트할 타겟 지정 (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    "C22": [5]
+    #"C09": [2,3],
+    "C23": None
 }
 
 
@@ -59,7 +60,30 @@ CUSTOM_DEVICES = {
     "LR_Light": {"category": ["Light"], "tags": ["LivingRoom", "Light"]},
 }
 
-csv_file_path = 'dataset_migration/local_dataset2.csv'
+csv_file_path = 'dataset.csv'
+
+
+def _reindent_joi(script, tab="    "):
+    """Display-only: re-indent a JoI script by brace depth so nested blocks read
+    cleanly. Does NOT alter the actual script used by the pipeline/verifier."""
+    out, depth = [], 0
+    for raw in str(script).replace("\\n", "\n").split("\n"):
+        s = raw.strip()
+        if s == "":
+            continue
+        this = depth - (1 if s.startswith("}") else 0)
+        out.append(tab * max(0, this) + s)
+        depth = max(0, depth + s.count("{") - s.count("}"))
+    return "\n".join(out)
+
+
+def _pretty_code(code):
+    """Print the JoI block with its `script` field re-indented for readability."""
+    m = re.search(r'^(.*?"script"\s*:\s*")(.*)("\s*\}\s*)$', str(code), re.DOTALL)
+    if not m:
+        return code
+    head, script, tail = m.group(1), m.group(2), m.group(3)
+    return head.rstrip() + "\n" + _reindent_joi(script) + "\n" + tail.strip()
 
 
 def print_result(result):
@@ -74,7 +98,7 @@ def print_result(result):
             print(f"  {svc}: {sel_list}")
     # if result.get('ir_readable'):
     #     print(f"\n[IR Readable]\n{result['ir_readable']}")
-    print(f"\ncode           :\n{result.get('code', '')}")
+    print(f"\ncode           :\n{_pretty_code(result.get('code', ''))}")
     print(f"response_time  : {log.get('response_time', '')}")
 
 

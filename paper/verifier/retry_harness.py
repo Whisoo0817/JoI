@@ -47,8 +47,14 @@ def run(
     connected_devices: Optional[dict] = None,
     catalog: Optional[dict] = None,
     max_attempts: int = 3,
+    diagnose_fn: Optional[Callable] = None,
 ) -> HarnessResult:
-    """Run lowering with verification + retry up to `max_attempts` times."""
+    """Run lowering with verification + retry up to `max_attempts` times.
+
+    `diagnose_fn(ir, joi_block, l1, l2) -> Optional[str]` is the optional
+    LLM-aided diagnoser (paper §8.3). Its note is APPENDED to the deterministic
+    retry message (additive floor) — it never replaces it, and any failure inside
+    it is swallowed so the deterministic hint still applies."""
     attempts: list[AttemptRecord] = []
     hints: Optional[str] = None
     final_joi: Optional[dict] = None
@@ -66,6 +72,14 @@ def run(
             l2_list = report.violations
 
         msg = build_retry_message(l1=l1, l2=l2_list)
+
+        # LLM-aided diagnose (optional): append a targeted note onto the
+        # deterministic floor. Never fatal — diagnose_fn returns None on failure.
+        if msg is not None and diagnose_fn is not None:
+            note = diagnose_fn(ir, joi_block, l1, l2_list)
+            if note:
+                msg.prompt_block = msg.prompt_block.rstrip() + "\n\n" + note + "\n"
+
         attempts.append(AttemptRecord(
             attempt=n, joi_block=joi_block, l1=l1, l2=l2_list, retry_message=msg,
         ))

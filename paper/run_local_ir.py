@@ -58,10 +58,15 @@ from timeline_ir import (
 # are delivered as a follow-up user turn via `infer_followup`, not as a
 # template slot — first-attempt prompt distribution is unchanged.
 from paper.verifier.retry_harness import run as _verifier_run
+from paper.verifier.llm_diagnose import make_llm_diagnoser as _make_llm_diagnoser
 from paper.simulators.catalog import load_catalog as _load_catalog
 
 _VERIFY_ENABLED = os.environ.get("JOI_VERIFY", "0") == "1"
 _VERIFY_MAX_ATTEMPTS = int(os.environ.get("JOI_VERIFY_MAX_ATTEMPTS", "2"))
+# LLM-aided diagnose (paper §8.3): adds one reasoning call between violation
+# detection and retry. Off by default so the deterministic-diagnose baseline
+# stays reproducible; flip JOI_LLM_DIAGNOSE=1 for the ablation's LLM-aided arm.
+_LLM_DIAGNOSE_ENABLED = os.environ.get("JOI_LLM_DIAGNOSE", "0") == "1"
 
 # IR-only short-circuit. When JOI_IR_ONLY=1, the pipeline runs through
 # Stage 1-3 (translation → service_plan → resolve/precision → IR extract
@@ -1312,11 +1317,15 @@ def generate_joi_code_ir(
         except Exception as _e:
             log_buf.append(f"⚠️ scenario synth (debug) failed: {_e}")
 
+        _diagnoser = _make_llm_diagnoser(infer) if _LLM_DIAGNOSE_ENABLED else None
+        if _diagnoser is not None:
+            log_buf.append("🧠 LLM-aided diagnose: ON")
         v_result = _verifier_run(
             ir, _lower_fn,
             connected_devices=connected_devices,
             catalog=catalog_obj,
             max_attempts=_VERIFY_MAX_ATTEMPTS,
+            diagnose_fn=_diagnoser,
         )
         for rec in v_result.attempts:
             tag = rec.retry_message.summary if rec.retry_message else "clean"
@@ -1336,12 +1345,18 @@ def generate_joi_code_ir(
                 if v.occurrences > 1:
                     bits.append(f"×{v.occurrences}")
                 log_buf.append("     " + " ".join(bits))
-            # Retry hint (the prompt block actually injected on the next turn)
+            # Retry hint (the prompt block actually injected on the next turn).
+            # Dump the FULL block (deterministic floor + any LLM-aided note) so
+            # the exact message handed to the lowering LLM is auditable.
             if rec.retry_message is not None and rec.attempt < len(v_result.attempts):
                 log_buf.append(
                     f"     ↪ retry hint: {rec.retry_message.bullet_count} bullets — "
                     f"{rec.retry_message.summary}"
                 )
+                log_buf.append("     ┌─ FULL retry hint passed to next attempt ─")
+                for _ln in rec.retry_message.prompt_block.splitlines():
+                    log_buf.append(f"     │ {_ln}")
+                log_buf.append("     └────────────────────────────────────────")
 
         # Trace-equivalence debug: re-run sims on the final accepted/rejected
         # JoI under the synthesized scenario and dump the trace records so a
@@ -1371,9 +1386,33 @@ def generate_joi_code_ir(
             f"🏁 Verifier: {'accepted' if v_result.accepted else 'fail (kept last attempt)'}"
         )
         joi_json = v_result.final_joi or {}
+
+        # Structured verifier decision trace for post-hoc confusion-matrix
+        # aggregation (paper §7.5 / §8.5). We dump each attempt's parsed
+        # joi_block so the eval grader can score attempt-1 vs final against
+        # ir_gt without re-invoking the LLM — this is what separates the
+        # detector matrix (did the internal verifier flag a wrong attempt-1?)
+        # from the outcome matrix (did retry recover / regress?).
+        verifier_trace = {
+            "enabled": True,
+            "accepted": v_result.accepted,
+            "n_attempts": len(v_result.attempts),
+            "attempts": [
+                {
+                    "attempt": rec.attempt,
+                    "l1_count": len(rec.l1),
+                    "l1_kinds": [v.kind for v in rec.l1],
+                    "l2_count": len(rec.l2),
+                    "l2_kinds": [v.kind for v in rec.l2],
+                    "joi_block": rec.joi_block,
+                }
+                for rec in v_result.attempts
+            ],
+        }
     else:
         raw = infer(prompt_key, joi_input, system=system_prompt)
         joi_json = _finalize(raw)
+        verifier_trace = {"enabled": False}
 
     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
     code_pretty = re.sub(
@@ -1392,6 +1431,7 @@ def generate_joi_code_ir(
         "ir_readable": ir_readable,
         "precision": precision_output.get("selectors", {}) if isinstance(precision_output, dict) else {},
         "precision_reasoning": precision_output.get("reasoning", "") if isinstance(precision_output, dict) else "",
+        "verifier_trace": verifier_trace,
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "logs": "\n".join(log_buf),

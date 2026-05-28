@@ -55,6 +55,39 @@ def load_catalog(path: str = _DEFAULT_CATALOG_PATH) -> dict[str, dict]:
     return indexed
 
 
+@lru_cache(maxsize=4)
+def value_domains(path: str = _DEFAULT_CATALOG_PATH) -> dict[tuple[str, str], dict]:
+    """Map (service_id, value_id) -> declared value domain of that sensor reading:
+    {type: 'DOUBLE'|'INTEGER'|'ENUM'|'BOOLEAN'|..., bound: [lo,hi] or None,
+     members: [enum values] or None}.
+
+    This is the *sensor's own value domain* (type + numeric range + enum domain),
+    used to seed boundary scenarios with type- and range-valid values rather than
+    ad hoc defaults. Sourced from the catalog's per-skill `values` (+ `bound`) and
+    `enums` (member sets resolved via each value's `format`)."""
+    with open(path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+    skills = data.get("skills") if isinstance(data, dict) else data
+    out: dict[tuple[str, str], dict] = {}
+    for sk in skills or []:
+        sid = sk.get("id")
+        if not sid:
+            continue
+        enums = {e.get("id"): [m.get("value") for m in e.get("members", []) if m.get("value") is not None]
+                 for e in sk.get("enums", []) if e.get("id")}
+        for v in sk.get("values", []):
+            vid = v.get("id")
+            if not vid:
+                continue
+            members = enums.get(v.get("format")) if v.get("type") == "ENUM" else None
+            out[(sid, vid)] = {
+                "type": v.get("type", ""),
+                "bound": v.get("bound"),
+                "members": members,
+            }
+    return out
+
+
 def get_arg_order(catalog: dict[str, dict], service: str, method: str) -> list[str] | None:
     """Return the positional arg name list for `service.method`, or None if unknown."""
     sk = catalog.get(service)
