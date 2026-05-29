@@ -45,7 +45,12 @@ def enumerate_target_obligations(ir: dict) -> list[str]:
     obs: list[str] = []
     for _if, _reach, path in _collect_ifs(timeline, reach={}, path="timeline"):
         obs.append(f"if@{path}:then")
-        obs.append(f"if@{path}:else")
+        # Only count an :else obligation when the else branch actually has actions
+        # to verify. An empty else (no statements) emits nothing on the false path,
+        # so there is no behavioral obligation to cover — counting it would penalize
+        # coverage for a branch that, by construction, has nothing to observe.
+        if (_if.get("else") or []):
+            obs.append(f"if@{path}:else")
     for w, _reach, path in _collect_sustained_waits(timeline, reach={}, path="timeline"):
         obs.append(f"wait@{path}:sustain")
         obs.append(f"wait@{path}:flap_reset")

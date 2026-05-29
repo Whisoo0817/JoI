@@ -359,8 +359,15 @@ def _synth_plan(timeline: list, target_id, reach: dict,
             return reach[sid]
         return "then"
 
+    # Map each read variable to its source device key so a guard written over a
+    # read var (`temp >= 25`) seeds the underlying sensor. Skip self-referential
+    # accumulators (read-modify-write) where IR/JoI read semantics differ.
+    written = _written_keys(timeline)
+    var_src = {v: k for (v, k, _t) in _read_schedule(timeline)
+               if v and k and k not in written}
     _walk(timeline, scn, cursor, period_stack=[], branch_of=branch_of,
-          cov=cov, path="timeline", flap_wait_id=flap_wait_id, rearm_wait=rearm_wait)
+          cov=cov, path="timeline", flap_wait_id=flap_wait_id, rearm_wait=rearm_wait,
+          var_src=var_src)
     scn.covers = sorted(set(cov))
     return scn
 
@@ -397,7 +404,7 @@ def _repeat_edge(wait_step: dict, scn: Scenario, cursor: list[int], period_ms: i
 
 def _walk(steps: list, scn: Scenario, cursor: list[int],
           period_stack: list[int], branch_of, cov: list, path: str,
-          flap_wait_id=None, rearm_wait=None) -> None:
+          flap_wait_id=None, rearm_wait=None, var_src=None) -> None:
     for i, step in enumerate(steps):
         sp = f"{path}[{i}]"
         op = step.get("op")
@@ -411,11 +418,11 @@ def _walk(steps: list, scn: Scenario, cursor: list[int],
                 cov.append(f"wait@{sp}:edge_{step['edge']}")
         elif op == "if":
             take = branch_of(step)
-            _synth_if_cond(step, scn, cursor, satisfy=(take == "then"))
+            _synth_if_cond(step, scn, cursor, satisfy=(take == "then"), var_src=var_src)
             cov.append(f"if@{sp}:{take}")
             body = step.get("then") if take == "then" else step.get("else")
             _walk(body or [], scn, cursor, period_stack, branch_of, cov,
-                  f"{sp}.{take}", flap_wait_id, rearm_wait)
+                  f"{sp}.{take}", flap_wait_id, rearm_wait, var_src)
         elif op == "cycle":
             # Push cycle.period so nested waits can align prelude/fire to it.
             cyc_period_ms = parse_duration_to_ms(step["period"]) \
@@ -423,7 +430,7 @@ def _walk(steps: list, scn: Scenario, cursor: list[int],
             period_stack.append(cyc_period_ms)
             try:
                 _walk(step.get("body", []) or [], scn, cursor, period_stack,
-                      branch_of, cov, f"{sp}.body", flap_wait_id, rearm_wait)
+                      branch_of, cov, f"{sp}.body", flap_wait_id, rearm_wait, var_src)
                 # Re-arm: if this cycle holds the target re-arm wait, drive a 2nd
                 # edge after the first body iteration so the cycle fires again.
                 if rearm_wait is not None and _step_contains(step, rearm_wait):
@@ -436,10 +443,12 @@ def _walk(steps: list, scn: Scenario, cursor: list[int],
 
 
 def _synth_if_cond(step: dict, scn: Scenario, cursor: list[int],
-                   satisfy: bool = True) -> None:
+                   satisfy: bool = True, var_src: dict | None = None) -> None:
     """Seed device state at cursor time so the if cond evaluates TRUE (satisfy)
     or FALSE (negate). World drains events with at_ms <= t_ms before the cond is
-    evaluated, so this lands in time."""
+    evaluated, so this lands in time. `var_src` maps a read-variable name to its
+    source device key (`temp` -> `temperaturesensor.temperature`) so a guard over
+    a read variable (`temp >= 25`) is seeded on its sensor source."""
     ast = expr.parse(step["cond"])
     assignments: list[tuple[str, Any]] = []
     if satisfy:
@@ -447,7 +456,8 @@ def _synth_if_cond(step: dict, scn: Scenario, cursor: list[int],
     else:
         _gather_falsifying(ast, assignments)
     for key, val in assignments:
-        scn.add(cursor[0], key, val)
+        seed_key = (var_src or {}).get(key, key)
+        scn.add(cursor[0], seed_key, val)
 
 
 def _synth_wait(step: dict, scn: Scenario, cursor: list[int],
@@ -536,8 +546,8 @@ def _gather_assignments(node: Any, out: list[tuple[str, Any]]) -> None:
             right = _unwrap_quantifier(node.right)
             dev, lit = _split_dev_lit(left, right)
             if dev is None or lit is None:
-                return  # involves clock or var — skip
-            val = _satisfying_value(node.op, lit.value, dev_swap=(dev is right))
+                return  # involves clock or var-var — skip
+            val = _satisfying_value(node.op, lit.value, dev_swap=dev.on_right)
             out.append((dev.key, val))
             return
     if isinstance(node, expr.FuncCall) and node.name in ("all", "any"):
@@ -561,12 +571,34 @@ def _unwrap_quantifier(node: Any) -> Any:
     return node
 
 
+def _ref_key(node: Any) -> str | None:
+    """Comparable seeding key for a DeviceRef (`svc.attr`) or a VarRef (the var
+    name, later redirected to its read source via var_src). None otherwise."""
+    if isinstance(node, expr.DeviceRef):
+        return node.key
+    if isinstance(node, expr.VarRef):
+        return node.name
+    return None
+
+
+class _RefKey:
+    """Stand-in exposing `.key` (DeviceRef.key / VarRef.name unified) and an
+    `.on_right` flag (was the ref on the right of the operator?)."""
+    __slots__ = ("key", "on_right")
+    def __init__(self, key):
+        self.key = key
+        self.on_right = False
+
+
 def _split_dev_lit(a: Any, b: Any) -> tuple[Any, Any]:
-    """Return (device_ref, literal) regardless of operand order; (None, None) otherwise."""
-    if isinstance(a, expr.DeviceRef) and isinstance(b, expr.Lit):
-        return a, b
-    if isinstance(b, expr.DeviceRef) and isinstance(a, expr.Lit):
-        return b, a
+    """Return (ref, literal) regardless of operand order; (None, None) otherwise.
+    `ref` exposes `.key` (DeviceRef.key OR read VarRef.name) and `.on_right`."""
+    ka, kb = _ref_key(a), _ref_key(b)
+    if ka is not None and isinstance(b, expr.Lit):
+        return _RefKey(ka), b
+    if kb is not None and isinstance(a, expr.Lit):
+        r = _RefKey(kb); r.on_right = True
+        return r, a
     return (None, None)
 
 
@@ -616,7 +648,7 @@ def _gather_falsifying(node: Any, out: list[tuple[str, Any]]) -> None:
             dev, lit = _split_dev_lit(left, right)
             if dev is None or lit is None:
                 return
-            val = _falsifying_value(node.op, lit.value, dev_swap=(dev is right))
+            val = _falsifying_value(node.op, lit.value, dev_swap=dev.on_right)
             out.append((dev.key, val))
             return
     if isinstance(node, expr.FuncCall) and node.name in ("all", "any"):
