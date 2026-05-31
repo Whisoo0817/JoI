@@ -25,6 +25,11 @@ from typing import Any
 
 from config import get_client, get_model_id
 
+try:
+    from paper.ir_renderer import render_ir_readable
+except ModuleNotFoundError:  # Allows `python paper/timeline_ir.py ...`.
+    from ir_renderer import render_ir_readable
+
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _EXTRACTOR_PROMPT_PATH = os.path.join(_BASE_DIR, "timeline_ir_extractor.md")
@@ -863,180 +868,6 @@ def extract_ir(
     return ir, _prompt_tokens, _completion_tokens, _elapsed, out_user, raw_assistant
 
 
-# ── Readable rendering (IR → English) ────────────────────────────────────────
-
-_DOW_EN = {
-    "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday",
-    "5": "Friday", "6": "Saturday", "7": "Sunday",
-    "MON": "Monday", "TUE": "Tuesday", "WED": "Wednesday", "THU": "Thursday",
-    "FRI": "Friday", "SAT": "Saturday", "SUN": "Sunday",
-}
-
-_DURATION_UNIT_EN = {
-    "HOUR": ("hour", "hours"),
-    "MIN": ("minute", "minutes"),
-    "SEC": ("second", "seconds"),
-    "MSEC": ("millisecond", "milliseconds"),
-}
-
-
-def _duration_to_en(dur: str) -> str:
-    """Render '5 MIN' as '5 minutes'. Falls back to the raw string if malformed."""
-    if not isinstance(dur, str):
-        return str(dur)
-    m = _DURATION_RE.match(dur.strip())
-    if not m:
-        return dur
-    n = int(m.group(1))
-    singular, plural = _DURATION_UNIT_EN[m.group(2)]
-    return f"{n} {singular if n == 1 else plural}"
-
-
-def _format_time_en(hour: str, minute: str) -> str:
-    if not (str(hour).isdigit() and str(minute).isdigit()):
-        return f"{hour}:{minute}"
-    h24 = int(hour)
-    m = int(minute)
-    suffix = "AM" if h24 < 12 else "PM"
-    h12 = h24 % 12 or 12
-    return f"{h12}:{m:02d} {suffix}"
-
-
-def _format_dow_en(dow: str) -> str:
-    if dow == "*":
-        return "every day"
-    if dow == "1-5":
-        return "weekdays"
-    if dow == "6,7":
-        return "weekends"
-    names = [_DOW_EN.get(part.upper(), part) for part in dow.split(",")]
-    if len(names) == 1:
-        return names[0] + "s"
-    if len(names) == 2:
-        return f"{names[0]}s and {names[1]}s"
-    return ", ".join(name + "s" for name in names[:-1]) + f", and {names[-1]}s"
-
-
-def _cron_to_en(cron: str) -> str:
-    """Render a 5-field cron ('min hour day month dow') as an English phrase."""
-    parts = cron.split()
-    if len(parts) != 5:
-        return f"cron '{cron}'"
-    m, h, day, mon, dow = parts
-
-    if h.startswith("*/") and m == "0" and day == "*" and mon == "*":
-        return f"every {h[2:]} hours on {_format_dow_en(dow)}"
-    if m.startswith("*/") and h == "*" and day == "*" and mon == "*":
-        return f"every {m[2:]} minutes on {_format_dow_en(dow)}"
-
-    time = _format_time_en(h, m)
-    if dow != "*":
-        return f"at {time} on {_format_dow_en(dow)}"
-    if day != "*" and mon != "*":
-        return f"at {time} every year on {mon}/{day}"
-    if day != "*":
-        return f"at {time} on day {day} of every month"
-    return f"at {time} every day"
-
-
-def _render_cond_en(cond: str) -> str:
-    """Light-touch humanization of an expression string.
-
-    The expression stays mostly as-is for technical fidelity, with only common
-    logical symbols normalized for the confirmation surface.
-    """
-    s = cond
-    s = s.replace("&&", " and ").replace("||", " or ")
-    s = s.replace(">=", "≥").replace("<=", "≤")
-    s = s.replace("!=", "≠")
-    return s.strip()
-
-
-def _format_call_args(args: dict) -> str:
-    if not args:
-        return ""
-    return ", ".join(f"{k}={v}" for k, v in args.items())
-
-
-def _render_step_en(step: dict, indent: int = 0) -> list[str]:
-    pad = "  " * indent
-    op = step.get("op")
-    out: list[str] = []
-
-    if op == "start_at":
-        if step["anchor"] == "now":
-            out.append(f"{pad}- Start now.")
-        else:
-            out.append(f"{pad}- Start {_cron_to_en(step['cron'])}.")
-
-    elif op == "wait":
-        edge = step.get("edge", "none")
-        cond = _render_cond_en(step["cond"])
-        sustain = step.get("for")
-        sustain_text = ""
-        if sustain:
-            sustain_text = f" and stays that way for {_duration_to_en(sustain)}"
-        if edge == "rising":
-            out.append(f"{pad}- Wait until [{cond}] becomes true{sustain_text}.")
-        elif edge == "falling":
-            out.append(f"{pad}- Wait until [{cond}] becomes false{sustain_text}.")
-        else:
-            out.append(f"{pad}- Wait until [{cond}] is true{sustain_text}.")
-
-    elif op == "delay":
-        out.append(f"{pad}- Wait for {_duration_to_en(step.get('duration', '?'))}.")
-
-    elif op == "read":
-        out.append(f"{pad}- Read {step['src']} and store it as `${step['var']}`.")
-
-    elif op == "call":
-        args = step.get("args") or {}
-        var_name = step.get("var") or step.get("bind")
-        args_text = _format_call_args(args)
-        if args:
-            line = f"{pad}- Run {step['target']}({args_text})."
-        else:
-            line = f"{pad}- Run {step['target']}()."
-        if var_name:
-            line += f" Store the result as `${var_name}`."
-        out.append(line)
-
-    elif op == "if":
-        out.append(f"{pad}- If [{_render_cond_en(step['cond'])}] is true:")
-        for s in step.get("then", []):
-            out.extend(_render_step_en(s, indent + 1))
-        else_body = step.get("else", [])
-        if else_body:
-            out.append(f"{pad}- Otherwise:")
-            for s in else_body:
-                out.extend(_render_step_en(s, indent + 1))
-
-    elif op == "cycle":
-        until = step.get("until")
-        period = step.get("period")
-        count = step.get("count")
-        pieces = []
-        if period:
-            pieces.append(f"every {_duration_to_en(period)}")
-        else:
-            pieces.append("continuously")
-        if until:
-            pieces.append(f"until [{_render_cond_en(until)}] is true")
-        if count:
-            pieces.append(f"with counter `{count}` starting at 0")
-        out.append(f"{pad}- Repeat {'; '.join(pieces)}:")
-        for s in step.get("body", []):
-            out.extend(_render_step_en(s, indent + 1))
-
-    elif op == "break":
-        out.append(f"{pad}- Stop the current repeat loop.")
-
-    else:
-        out.append(f"{pad}- Unknown step: {op}.")
-
-    return out
-
-
 def ir_to_readable(ir: dict) -> str:
     """Render a Timeline IR as an English bullet-list outline for user feedback.
 
@@ -1053,11 +884,7 @@ def ir_to_readable(ir: dict) -> str:
     except IRValidationError as e:
         return f"IR schema error: {e}"
 
-    lines: list[str] = []
-    lines.append("Execution plan:")
-    for step in ir["timeline"]:
-        lines.extend(_render_step_en(step, indent=0))
-    return "\n".join(lines)
+    return render_ir_readable(ir)
 
 
 # ── Default test devices ─────────────────────────────────────────────────────
