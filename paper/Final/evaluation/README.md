@@ -40,26 +40,39 @@ PYTHONPATH=/home/gnltnwjstk/joi python3 paper/build_equiv_stress.py \
 {prevcurr, branch_swap, demorgan} + shallow {operand_swap, arith_commute,
 selector_reorder}.)
 
-Run the judges (per (base,variant) pair, flip = verdict differs; cap 25/type):
+Run the judges, BOTH methods (direct judge AND back-translation round-trip);
+per (base,variant) pair, flip = verdict differs; cap 25/type:
 ```
+# direct judge
 PYTHONPATH=/home/gnltnwjstk/joi python3 paper/run_instability.py \
-    --backend qwen   --equiv paper/Final/evaluation/data/equiv_stress.json --cap-per-type 25 --out /tmp/instab_qwen
+    --backend qwen   --method direct    --equiv paper/Final/evaluation/data/equiv_stress.json --cap-per-type 25 --out /tmp/instab_qwen
 PYTHONPATH=/home/gnltnwjstk/joi python3 paper/run_instability.py \
-    --backend openai --model gpt-5.1 --equiv paper/Final/evaluation/data/equiv_stress.json --cap-per-type 25 --out /tmp/instab_gpt51
+    --backend openai --model gpt-5.1 --method direct --equiv paper/Final/evaluation/data/equiv_stress.json --cap-per-type 25 --out /tmp/instab_gpt51
+# back-translation round-trip (joi -> NL via re_translate.md, then NL-vs-command match)
+PYTHONPATH=/home/gnltnwjstk/joi python3 paper/run_instability.py \
+    --backend qwen   --method roundtrip --equiv paper/Final/evaluation/data/equiv_stress.json --cap-per-type 25 --out /tmp/instab_qwen_rt
+PYTHONPATH=/home/gnltnwjstk/joi python3 paper/run_instability.py \
+    --backend openai --model gpt-5.1 --method roundtrip --equiv paper/Final/evaluation/data/equiv_stress.json --cap-per-type 25 --out /tmp/instab_gpt51_rt
 ```
 
-**Results** (temp=0, 150 pairs each):
+**Results** (temp=0, 150 pairs each). Overall verdict flip-rate on
+behaviorally-identical programs, by model x method:
 
-| judge | overall flip | structural | shallow | most dramatic |
-|---|---|---|---|---|
-| Qwen3.5-9B | **33%** (50/150) | 55% | 12% | deMorgan 92%, branch-swap 60% |
-| GPT-5.1    | **14%** (21/150) | 15% | 13% | deMorgan 28%, operand-swap 20% |
-| ours (deterministic trace check) | **0%** | 0 | 0 | accepts all 391 variants |
+| judge | direct | back-translation |
+|---|---|---|
+| Qwen3.5-9B | **33%** (struct 55% / shallow 12%; deMorgan 92%, branch-swap 60%) | **29%** (struct 43%; deMorgan 68%) |
+| GPT-5.1    | **14%** (struct 15% / shallow 13%; deMorgan 28%, operand-swap 20%) | **18%** (struct 27% / shallow 9%; prev/curr 32%) |
+| ours (deterministic trace check) | **0%** | **0%** |
 
-Figure: `figs/instability.png`. Per-run detail: `results/instability_{9B,gpt51}.json`.
-Honesty note: not all structural rewrites flip equally (prev/curr is low); deMorgan
-and branch-swap are the dramatic ones. GPT-5.1 flips even on the trivial boolean
-reorder `A and B`↔`B and A` (20%).
+Figures: `figs/instability_4cell.png` (model x method overall + struct/shallow),
+`figs/instability.png` (direct, per rewrite type). Detail:
+`results/instability_{9B,gpt51}{,_retrans}.json`.
+
+Takeaway: verdict flips 14-33% across BOTH models AND BOTH verification methods
+(direct judge or NL round-trip); ours = 0 in every condition. So LLM-based
+verification is unstable regardless of approach. Honesty notes: not all structural
+rewrites flip equally (prev/curr is low for some); deMorgan/branch-swap dominate;
+GPT-5.1 flips even on the trivial boolean reorder `A and B`↔`B and A`.
 
 ### 2. Injected-bug judge audit (supporting; shows LLM is competent → why we DON'T claim incompetence)
 Genuine trace-divergent mutants of clean seeds (277 wrong + 69 correct), tagged

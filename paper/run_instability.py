@@ -26,7 +26,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT); sys.path.insert(0, os.path.join(ROOT, "paper"))
 from paper.run_motivation_judge import (
     gen_qwen, gen_openai, judge_prompt, parse_correct, _fewshot_block,
-    load_commands)
+    load_commands, describe_prompt, match_prompt)
 from paper.run_mutation_test import load_meta, load_catalog
 
 
@@ -36,6 +36,8 @@ def main():
     ap.add_argument("--model", default="gpt-4o")
     ap.add_argument("--equiv", default="/tmp/equiv_stress.json")
     ap.add_argument("--cap-per-type", type=int, default=25)
+    ap.add_argument("--method", choices=["direct", "roundtrip"], default="direct",
+                    help="direct judge, or back-translation (joi->NL->match)")
     ap.add_argument("--out", default="/tmp/instab")
     ap.add_argument("--dump-dir", default="experiments/e2e_382/20260528_150445__d886015/intermediate/off")
     a = ap.parse_args()
@@ -48,6 +50,7 @@ def main():
         gen = lambda p: gen_openai(p, a.model); tag = a.model.replace(".", "").replace("-", "")
     else:
         gen = gen_qwen; tag = "qwen"
+    tag = f"{tag}_{a.method}"
 
     # flatten to (seed, command, base_joi, variant_joi, type, depth) with per-type cap
     pairs, per_type = [], Counter()
@@ -64,7 +67,11 @@ def main():
     def verdict(cmd, joi, key=None):
         if key and key in base_cache:
             return base_cache[key]
-        raw = gen(judge_prompt(cmd, joi, fewshot))
+        if a.method == "roundtrip":
+            desc = gen(describe_prompt(joi))          # step 1: joi -> NL
+            raw = gen(match_prompt(cmd, desc))        # step 2: NL vs command
+        else:
+            raw = gen(judge_prompt(cmd, joi, fewshot))
         v = parse_correct(raw)
         if key:
             base_cache[key] = v
