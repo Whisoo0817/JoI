@@ -248,6 +248,15 @@ def synthesize_scenarios(ir: dict) -> list[Scenario]:
                           label=f"wait@{path}:rearm", rearm_wait=wait_step)
         scn.covers = sorted(set(list(scn.covers) + [f"wait@{path}:rearm"]))
         scenarios.append(scn)
+    # GATE-CLOSED (omission): for each level-triggered `wait until(cond)` gate, a
+    # scenario that holds its cond FALSE throughout. A correct gate stays silent;
+    # a dropped-gate / wrong-side / strict-comparator-flip lowering fires anyway and
+    # diverges. (Falsifying value of strict `<V`/`>V` sits at the threshold V, so this
+    # also catches `<`<->`<=` / `>`<->`>=` flips on waits.) Enables wait_drop operator.
+    for wait_step, reach, path in _collect_plain_waits(timeline, reach={}, path="timeline"):
+        scenarios.append(_synth_plan(
+            timeline, target_id=None, reach=reach,
+            label=f"wait@{path}:gate_closed", false_wait_id=id(wait_step)))
     # EXPRESSION-BOUNDARY: seed arithmetic / min/max/abs inputs at their sensor
     # value-domain boundaries so clamps / sign-flips / crossovers are exercised.
     live_keys: set = set()
@@ -303,6 +312,26 @@ def _collect_sustained_waits(steps: list, reach: dict, path: str) -> list:
     return out
 
 
+def _collect_plain_waits(steps: list, reach: dict, path: str) -> list:
+    """Every level-triggered (`edge="none"`) `wait until(cond)` gate, with the reach
+    decisions needed to make it reachable. The gate-closed scenario holds its cond
+    false (omission + strict-comparator boundary coverage)."""
+    out: list = []
+    for i, s in enumerate(steps):
+        op = s.get("op")
+        sp = f"{path}[{i}]"
+        if op == "wait" and s.get("edge", "none") == "none":
+            out.append((s, dict(reach), sp))
+        elif op == "if":
+            then_reach = dict(reach); then_reach[id(s)] = "then"
+            out += _collect_plain_waits(s.get("then", []) or [], then_reach, f"{sp}.then")
+            else_reach = dict(reach); else_reach[id(s)] = "else"
+            out += _collect_plain_waits(s.get("else", []) or [], else_reach, f"{sp}.else")
+        elif op == "cycle":
+            out += _collect_plain_waits(s.get("body", []) or [], reach, f"{sp}.body")
+    return out
+
+
 def _collect_rearm_waits(steps: list, reach: dict, path: str, in_cycle: bool = False) -> list:
     """Every edge-triggered `wait` INSIDE a `cycle` (the re-arm pattern: the cycle
     re-waits for a fresh edge each iteration), with reach decisions and a path."""
@@ -340,7 +369,7 @@ def _step_contains(container: dict, target: dict) -> bool:
 
 
 def _synth_plan(timeline: list, target_id, reach: dict,
-                label: str, flap_wait_id=None, rearm_wait=None) -> Scenario:
+                label: str, flap_wait_id=None, rearm_wait=None, false_wait_id=None) -> Scenario:
     """Synthesize one scenario. For each `if`: take `else` if it is the negate
     target, the recorded branch if it is an ancestor on the reach path, else
     `then` (default happy). For the `wait` whose id == flap_wait_id, synthesize a
@@ -367,7 +396,7 @@ def _synth_plan(timeline: list, target_id, reach: dict,
                if v and k and k not in written}
     _walk(timeline, scn, cursor, period_stack=[], branch_of=branch_of,
           cov=cov, path="timeline", flap_wait_id=flap_wait_id, rearm_wait=rearm_wait,
-          var_src=var_src)
+          var_src=var_src, false_wait_id=false_wait_id)
     scn.covers = sorted(set(cov))
     return scn
 
@@ -404,14 +433,17 @@ def _repeat_edge(wait_step: dict, scn: Scenario, cursor: list[int], period_ms: i
 
 def _walk(steps: list, scn: Scenario, cursor: list[int],
           period_stack: list[int], branch_of, cov: list, path: str,
-          flap_wait_id=None, rearm_wait=None, var_src=None) -> None:
+          flap_wait_id=None, rearm_wait=None, var_src=None, false_wait_id=None) -> None:
     for i, step in enumerate(steps):
         sp = f"{path}[{i}]"
         op = step.get("op")
         if op == "wait":
             period_ctx = period_stack[-1] if period_stack else 0
             flap = (flap_wait_id is not None and id(step) == flap_wait_id)
-            _synth_wait(step, scn, cursor, period_ms=period_ctx, flap=flap)
+            false_this = (false_wait_id is not None and id(step) == false_wait_id)
+            _synth_wait(step, scn, cursor, period_ms=period_ctx, flap=flap, false_this=false_this)
+            if false_this:
+                cov.append(f"wait@{sp}:gate_closed")
             if step.get("for"):
                 cov.append(f"wait@{sp}:flap_reset" if flap else f"wait@{sp}:sustain")
             if step.get("edge", "none") != "none":
@@ -422,7 +454,7 @@ def _walk(steps: list, scn: Scenario, cursor: list[int],
             cov.append(f"if@{sp}:{take}")
             body = step.get("then") if take == "then" else step.get("else")
             _walk(body or [], scn, cursor, period_stack, branch_of, cov,
-                  f"{sp}.{take}", flap_wait_id, rearm_wait, var_src)
+                  f"{sp}.{take}", flap_wait_id, rearm_wait, var_src, false_wait_id)
         elif op == "cycle":
             # Push cycle.period so nested waits can align prelude/fire to it.
             cyc_period_ms = parse_duration_to_ms(step["period"]) \
@@ -430,7 +462,7 @@ def _walk(steps: list, scn: Scenario, cursor: list[int],
             period_stack.append(cyc_period_ms)
             try:
                 _walk(step.get("body", []) or [], scn, cursor, period_stack,
-                      branch_of, cov, f"{sp}.body", flap_wait_id, rearm_wait, var_src)
+                      branch_of, cov, f"{sp}.body", flap_wait_id, rearm_wait, var_src, false_wait_id)
                 # Re-arm: if this cycle holds the target re-arm wait, drive a 2nd
                 # edge after the first body iteration so the cycle fires again.
                 if rearm_wait is not None and _step_contains(step, rearm_wait):
@@ -461,13 +493,27 @@ def _synth_if_cond(step: dict, scn: Scenario, cursor: list[int],
 
 
 def _synth_wait(step: dict, scn: Scenario, cursor: list[int],
-                period_ms: int = 0, flap: bool = False) -> None:
+                period_ms: int = 0, flap: bool = False,
+                false_this: bool = False) -> None:
     from paper.timeline_ir import parse_duration_to_ms
     cond_src = step["cond"]
     edge = step.get("edge", "none")
     for_str = step.get("for")
     for_ms = parse_duration_to_ms(for_str) if for_str else 0
     ast = expr.parse(cond_src)
+
+    # GATE-CLOSED (omission) coverage: hold this wait's cond FALSE throughout so the
+    # gate never opens. A correct `wait until(cond)` lowering then does nothing
+    # (silence); a lowering that dropped the gate (or fires on the wrong side, or
+    # used `<=` where the spec said `<`) emits anyway and diverges. Because the
+    # FALSIFYING value of a strict `<V`/`>V` cond sits at the threshold V itself,
+    # this scenario also exposes strict-comparator off-by-one flips on waits.
+    if false_this:
+        fassign: list[tuple[str, Any]] = []
+        _gather_falsifying(ast, fassign)
+        for key, val in fassign:
+            scn.initial_world[key] = val  # held false from t=0 (no pending change)
+        return
 
     # Find satisfying assignment(s). For compound conds, satisfy all leaves.
     assignments: list[tuple[str, Any]] = []

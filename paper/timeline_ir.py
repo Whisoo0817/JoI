@@ -3,7 +3,7 @@
 This module defines the Timeline IR used by the new reactive-DSL pipeline.
 Pipeline stages:
     1. NL (English) → Timeline IR          [extract_ir]  — LLM call
-    2. Timeline IR → Korean readable text  [ir_to_readable] — deterministic
+    2. Timeline IR → English readable text [ir_to_readable] — deterministic
     3. Timeline IR → JoI code              [NOT YET]     — planned
 
 Timeline IR shape:
@@ -588,14 +588,15 @@ def _load_translation_prompt() -> str:
 
 
 def translate_to_english(
-    korean_command: str,
+    source_command: str,
     base_url: str | None = None,
     debug: bool = False,
 ) -> str:
-    """Translate a Korean IoT command to English using the K→EN prompt.
+    """Translate a Hangul IoT command to English using the translation prompt.
 
-    Uses files/translation.md which handles morphological cues (if/when/whenever,
-    마다 disambiguation, etc.) so the extractor receives clean English input.
+    Uses files/translation.md, which handles structural cues such as
+    if/when/whenever and recurring-event disambiguation so the extractor
+    receives clean English input.
     """
     system = _load_translation_prompt()
     client = get_client(base_url)
@@ -605,7 +606,7 @@ def translate_to_english(
         model=model,
         messages=[
             {"role": "system", "content": system},
-            {"role": "user", "content": korean_command},
+            {"role": "user", "content": source_command},
         ],
         temperature=0.0,
         max_tokens=512,
@@ -618,7 +619,7 @@ def translate_to_english(
     return en
 
 
-def _is_korean(text: str) -> bool:
+def _contains_hangul(text: str) -> bool:
     """Heuristic: any Hangul codepoint present?"""
     return any("\uac00" <= ch <= "\ud7a3" or "\u3130" <= ch <= "\u318f" for ch in text)
 
@@ -732,7 +733,7 @@ def extract_ir(
 ) -> dict:
     """Call the local LLM to extract a Timeline IR from a command.
 
-    If `command` contains Korean characters and `auto_translate` is True, the
+    If `command` contains Hangul characters and `auto_translate` is True, the
     command is first translated to English via the translation.md prompt, then
     extracted. Otherwise the command is passed straight to the extractor.
 
@@ -744,7 +745,7 @@ def extract_ir(
     ir_dict is either a valid IR or `{"error": "...", ...}` on rejection.
     Raises IRValidationError if the model returned structurally invalid IR.
     """
-    if auto_translate and _is_korean(command):
+    if auto_translate and _contains_hangul(command):
         english_command = translate_to_english(command, base_url=base_url, debug=debug)
     else:
         english_command = command
@@ -862,122 +863,182 @@ def extract_ir(
     return ir, _prompt_tokens, _completion_tokens, _elapsed, out_user, raw_assistant
 
 
-# ── Readable rendering (IR → Korean) ─────────────────────────────────────────
+# ── Readable rendering (IR → English) ────────────────────────────────────────
 
-_DOW_KR = {"MON": "월", "TUE": "화", "WED": "수", "THU": "목",
-           "FRI": "금", "SAT": "토", "SUN": "일"}
+_DOW_EN = {
+    "1": "Monday", "2": "Tuesday", "3": "Wednesday", "4": "Thursday",
+    "5": "Friday", "6": "Saturday", "7": "Sunday",
+    "MON": "Monday", "TUE": "Tuesday", "WED": "Wednesday", "THU": "Thursday",
+    "FRI": "Friday", "SAT": "Saturday", "SUN": "Sunday",
+}
 
-_DURATION_UNIT_KR = {"HOUR": "시간", "MIN": "분", "SEC": "초", "MSEC": "밀리초"}
+_DURATION_UNIT_EN = {
+    "HOUR": ("hour", "hours"),
+    "MIN": ("minute", "minutes"),
+    "SEC": ("second", "seconds"),
+    "MSEC": ("millisecond", "milliseconds"),
+}
 
 
-def _duration_to_kr(dur: str) -> str:
-    """Render '5 MIN' as '5분'. Falls back to the raw string if malformed."""
+def _duration_to_en(dur: str) -> str:
+    """Render '5 MIN' as '5 minutes'. Falls back to the raw string if malformed."""
     if not isinstance(dur, str):
         return str(dur)
     m = _DURATION_RE.match(dur.strip())
     if not m:
         return dur
-    return f"{m.group(1)}{_DURATION_UNIT_KR[m.group(2)]}"
+    n = int(m.group(1))
+    singular, plural = _DURATION_UNIT_EN[m.group(2)]
+    return f"{n} {singular if n == 1 else plural}"
 
 
-def _cron_to_kr(cron: str) -> str:
-    """Render a 5-field cron ('min hour day month dow') as a Korean phrase."""
+def _format_time_en(hour: str, minute: str) -> str:
+    if not (str(hour).isdigit() and str(minute).isdigit()):
+        return f"{hour}:{minute}"
+    h24 = int(hour)
+    m = int(minute)
+    suffix = "AM" if h24 < 12 else "PM"
+    h12 = h24 % 12 or 12
+    return f"{h12}:{m:02d} {suffix}"
+
+
+def _format_dow_en(dow: str) -> str:
+    if dow == "*":
+        return "every day"
+    if dow == "1-5":
+        return "weekdays"
+    if dow == "6,7":
+        return "weekends"
+    names = [_DOW_EN.get(part.upper(), part) for part in dow.split(",")]
+    if len(names) == 1:
+        return names[0] + "s"
+    if len(names) == 2:
+        return f"{names[0]}s and {names[1]}s"
+    return ", ".join(name + "s" for name in names[:-1]) + f", and {names[-1]}s"
+
+
+def _cron_to_en(cron: str) -> str:
+    """Render a 5-field cron ('min hour day month dow') as an English phrase."""
     parts = cron.split()
     if len(parts) != 5:
         return f"cron '{cron}'"
     m, h, day, mon, dow = parts
 
-    if dow != "*" and dow.upper() in _DOW_KR:
-        return f"매주 {_DOW_KR[dow.upper()]}요일 {h}시 {m}분"
+    if h.startswith("*/") and m == "0" and day == "*" and mon == "*":
+        return f"every {h[2:]} hours on {_format_dow_en(dow)}"
+    if m.startswith("*/") and h == "*" and day == "*" and mon == "*":
+        return f"every {m[2:]} minutes on {_format_dow_en(dow)}"
+
+    time = _format_time_en(h, m)
+    if dow != "*":
+        return f"at {time} on {_format_dow_en(dow)}"
     if day != "*" and mon != "*":
-        return f"매년 {mon}월 {day}일 {h}시 {m}분"
+        return f"at {time} every year on {mon}/{day}"
     if day != "*":
-        return f"매월 {day}일 {h}시 {m}분"
-    return f"매일 {h}시 {m}분"
+        return f"at {time} on day {day} of every month"
+    return f"at {time} every day"
 
 
-def _render_cond_kr(cond: str) -> str:
+def _render_cond_en(cond: str) -> str:
     """Light-touch humanization of an expression string.
 
-    We don't fully translate — just soften some operators so Korean readers
-    can skim it. The expression stays mostly as-is for technical fidelity.
+    The expression stays mostly as-is for technical fidelity, with only common
+    logical symbols normalized for the confirmation surface.
     """
     s = cond
-    s = s.replace("&&", " 그리고 ").replace("||", " 또는 ")
-    s = s.replace("==", "==").replace("!=", "≠")
+    s = s.replace("&&", " and ").replace("||", " or ")
     s = s.replace(">=", "≥").replace("<=", "≤")
+    s = s.replace("!=", "≠")
     return s.strip()
 
 
-def _render_step_kr(step: dict, indent: int = 0) -> list[str]:
+def _format_call_args(args: dict) -> str:
+    if not args:
+        return ""
+    return ", ".join(f"{k}={v}" for k, v in args.items())
+
+
+def _render_step_en(step: dict, indent: int = 0) -> list[str]:
     pad = "  " * indent
     op = step.get("op")
     out: list[str] = []
 
     if op == "start_at":
         if step["anchor"] == "now":
-            out.append(f"{pad}• 지금부터 시작")
+            out.append(f"{pad}- Start now.")
         else:
-            out.append(f"{pad}• {_cron_to_kr(step['cron'])}에 시작")
+            out.append(f"{pad}- Start {_cron_to_en(step['cron'])}.")
 
     elif op == "wait":
         edge = step.get("edge", "none")
-        cond = _render_cond_kr(step["cond"])
+        cond = _render_cond_en(step["cond"])
+        sustain = step.get("for")
+        sustain_text = ""
+        if sustain:
+            sustain_text = f" and stays that way for {_duration_to_en(sustain)}"
         if edge == "rising":
-            out.append(f"{pad}• [{cond}]이(가) 참으로 **바뀔 때까지** 대기 (상승 엣지)")
+            out.append(f"{pad}- Wait until [{cond}] becomes true{sustain_text}.")
         elif edge == "falling":
-            out.append(f"{pad}• [{cond}]이(가) 거짓으로 **바뀔 때까지** 대기 (하강 엣지)")
+            out.append(f"{pad}- Wait until [{cond}] becomes false{sustain_text}.")
         else:
-            out.append(f"{pad}• [{cond}]이(가) 참인 상태가 될 때까지 대기")
+            out.append(f"{pad}- Wait until [{cond}] is true{sustain_text}.")
 
     elif op == "delay":
-        out.append(f"{pad}• {_duration_to_kr(step.get('duration', '?'))} 대기")
+        out.append(f"{pad}- Wait for {_duration_to_en(step.get('duration', '?'))}.")
 
     elif op == "read":
-        out.append(f"{pad}• {step['src']} 값을 읽어 `${step['var']}`에 저장")
+        out.append(f"{pad}- Read {step['src']} and store it as `${step['var']}`.")
 
     elif op == "call":
         args = step.get("args") or {}
         var_name = step.get("var") or step.get("bind")
+        args_text = _format_call_args(args)
         if args:
-            arg_strs = [f"{k}={v}" for k, v in args.items()]
-            line = f"{pad}• 실행: {step['target']}({', '.join(arg_strs)})"
+            line = f"{pad}- Run {step['target']}({args_text})."
         else:
-            line = f"{pad}• 실행: {step['target']}()"
+            line = f"{pad}- Run {step['target']}()."
         if var_name:
-            line += f"  → `${var_name}`에 저장"
+            line += f" Store the result as `${var_name}`."
         out.append(line)
 
     elif op == "if":
-        out.append(f"{pad}• 만약 [{_render_cond_kr(step['cond'])}]이면:")
+        out.append(f"{pad}- If [{_render_cond_en(step['cond'])}] is true:")
         for s in step.get("then", []):
-            out.extend(_render_step_kr(s, indent + 1))
+            out.extend(_render_step_en(s, indent + 1))
         else_body = step.get("else", [])
         if else_body:
-            out.append(f"{pad}  그렇지 않으면:")
+            out.append(f"{pad}- Otherwise:")
             for s in else_body:
-                out.extend(_render_step_kr(s, indent + 2))
+                out.extend(_render_step_en(s, indent + 1))
 
     elif op == "cycle":
         until = step.get("until")
-        if until:
-            out.append(f"{pad}• 반복 (종료 조건: [{_render_cond_kr(until)}]):")
+        period = step.get("period")
+        count = step.get("count")
+        pieces = []
+        if period:
+            pieces.append(f"every {_duration_to_en(period)}")
         else:
-            out.append(f"{pad}• 반복:")
+            pieces.append("continuously")
+        if until:
+            pieces.append(f"until [{_render_cond_en(until)}] is true")
+        if count:
+            pieces.append(f"with counter `{count}` starting at 0")
+        out.append(f"{pad}- Repeat {'; '.join(pieces)}:")
         for s in step.get("body", []):
-            out.extend(_render_step_kr(s, indent + 1))
+            out.extend(_render_step_en(s, indent + 1))
 
     elif op == "break":
-        out.append(f"{pad}• 반복 중단")
+        out.append(f"{pad}- Stop the current repeat loop.")
 
     else:
-        out.append(f"{pad}• (알 수 없는 단계: {op})")
+        out.append(f"{pad}- Unknown step: {op}.")
 
     return out
 
 
 def ir_to_readable(ir: dict) -> str:
-    """Render a Timeline IR as a Korean bullet-list outline for user feedback.
+    """Render a Timeline IR as an English bullet-list outline for user feedback.
 
     Deterministic (no LLM). Designed so a non-developer can confirm or correct
     the system's understanding of their command.
@@ -985,17 +1046,17 @@ def ir_to_readable(ir: dict) -> str:
     if not isinstance(ir, dict):
         return "(invalid IR)"
     if "error" in ir:
-        return f"❌ 변환 실패: {ir['error']}"
+        return f"Conversion failed: {ir['error']}"
 
     try:
         validate_ir(ir)
     except IRValidationError as e:
-        return f"❌ IR 스키마 오류: {e}"
+        return f"IR schema error: {e}"
 
     lines: list[str] = []
-    lines.append("📋 실행 순서:")
+    lines.append("Execution plan:")
     for step in ir["timeline"]:
-        lines.extend(_render_step_kr(step, indent=0))
+        lines.extend(_render_step_en(step, indent=0))
     return "\n".join(lines)
 
 
@@ -1085,8 +1146,9 @@ if __name__ == "__main__":
         print("usage: python timeline_ir.py '<english command>'")
         sys.exit(1)
     cmd = sys.argv[1]
-    ir = extract_ir(cmd, devices=DEFAULT_TEST_DEVICES, debug=True)
+    ir_result = extract_ir(cmd, devices=DEFAULT_TEST_DEVICES, debug=True)
+    ir = ir_result[0] if isinstance(ir_result, tuple) else ir_result
     print("\n--- IR ---")
     print(json.dumps(ir, ensure_ascii=False, indent=2))
-    print("\n--- Readable (KR) ---")
+    print("\n--- Readable ---")
     print(ir_to_readable(ir))

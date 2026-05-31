@@ -122,19 +122,25 @@ Currently `any/all` selectors and the `==|` / `>=|` / etc. quantifier operators 
 ## D0. IR-to-NL deterministic rendering (paper §5)
 
 ### D0a. Domain lexicon + pattern matching — *small, paper-critical*
-- Current `ir_to_readable()` in `timeline_ir.py` produces template-y output:
-  `"• [Door.DoorState == \"open\"]이(가) 참인 상태가 될 때까지 대기"`
-- For user-confirmation step (paper §7), output must read like natural Korean.
+- Current `ir_to_readable()` in `timeline_ir.py` now emits deterministic English,
+  but it is still deliberately template-like:
+  `"Wait until [Door.DoorState == \"open\"] is true."`
+- For the user-confirmation step, the output should eventually read like natural
+  English while staying faithful to the IR, including newer fields such as
+  `wait.for`, `cycle.period`, and `cycle.count`.
 - **Constraint: must remain 100% deterministic** — the paper's thesis is "no LLM in
   the verification path." LLM polishing reintroduces the unsoundness re-translation
   had in the prior pipeline.
 - Approach:
-  1. Service/attribute lexicon: `Door` → "문", `MotionSensor.Detected` → "움직임이 감지", etc.
-  2. Cond pattern matchers: `X.DoorState == "open"` → "X이 열리", `X.Temperature >= V` → "X가 V도 이상이", etc.
-  3. Idiom recognizer: detect cycle+wait(rising) → "~할 때마다", wait+cycle → "~되면 N마다", etc.
-  4. Cron formatter: `0 12 * * SAT,SUN` → "주말 오후 12시"
-- Target: 90%+ of C01-C07 cases readable without LLM polish; remaining 5-10% (compound
-  conds, unknown services) fall back to current template.
+  1. Service/attribute lexicon: `Door` -> "the door", `MotionSensor.Detected` ->
+     "motion is detected", etc.
+  2. Cond pattern matchers: `X.DoorState == "open"` -> "the door is open",
+     `X.Temperature >= V` -> "the temperature is at least V", etc.
+  3. Idiom recognizer: detect `cycle + wait(rising)` -> "whenever ...",
+     `wait + cycle` -> "once ..., then every N ...", etc.
+  4. Cron formatter: `0 12 * * 6,7` -> "at noon on weekends".
+- Target: 90%+ of C01-C07 cases readable without LLM polish; remaining 5-10%
+  (compound conditions, unknown services) fall back to the current template.
 - ~30-50 lexicon entries + ~20 patterns. Half-day work.
 
 ## D. Comparator robustness

@@ -22,17 +22,16 @@ If the command is not expressible, output `{"error":"<reason>"}` instead. Reject
 
 ---
 
-# Step Grammar (9 ops)
+# Step Grammar (8 step types)
 
-1. `{"op":"start_at","anchor":"now"}` — scenario starts immediately.
-2. `{"op":"start_at","anchor":"cron","cron":"<5-field cron>"}` — starts at each cron firing.
-3. `{"op":"wait","cond":"<expr>","edge":"none|rising","for":"<N> <UNIT>"?}` — block until `cond` true. `edge` is set by position (top-level→`"none"`, inside `cycle`→`"rising"`). For "stops / no longer holds", **negate the cond** (`cond:"Rain == false"`); never use `edge:"falling"`. **Optional `for`** field: cond must hold CONTINUOUSLY for that duration before wait completes (timer resets if cond flips). Use ONLY when the command names a sustained duration ("for 30 seconds", "for at least N minutes", "if X stays Y for N"). Format identical to `delay.duration` ("N UNIT"). Do NOT use `wait.for` to encode plain delays — use the `delay` op.
-4. `{"op":"delay","duration":"<N> <UNIT>"}` — pause for N units. `UNIT` ∈ {`HOUR`, `MIN`, `SEC`, `MSEC`}. Exactly one space between N and UNIT. Examples: `"5 MIN"`, `"1 HOUR"`, `"100 MSEC"`. NEVER use ms-as-int (`"ms": 300000` is OBSOLETE).
-5. `{"op":"read","var":"<name>","src":"<Device.attr>"}` — snapshot a value to a local variable. Use ONLY when the same attribute is compared across different time points; otherwise reference `Device.attr` directly in expressions.
-6. `{"op":"call","target":"<Device.method>","args":{...},"var":"<Name>"?}` — perform an action. `var` declares the return value's binding. Add ONLY per R-var.
-7. `{"op":"if","cond":"<expr>","then":[...],"else":[...]}` — one-shot branch. **`cond` MUST be a complete boolean expression with an explicit comparator** (`==`, `!=`, `<`, `>`, `<=`, `>=`). Bare value references like `cond:"X.IsAvailable"` are forbidden — write `cond:"X.IsAvailable == true"`.
-8. `{"op":"cycle","until":"<expr>|null","period":"<N> <UNIT>","count":"<name>"?,"body":[...]}` — repeat body. `until` exits before each iteration when true. `period` is **REQUIRED** (see D7b for the value rule). Body describes ONE iteration; no manual rest-delay subtraction. **Optional `count`**: declares a tick-index variable bound to the iteration number (0, 1, 2, ...) and incremented after each iteration. Use ONLY for (a) alternation / rotation per tick (`count % 2`, `count % 3`) or (b) bounded repeat (`count >= K` in `until`). See D7c. Do NOT use `count` to count external events.
-9. `{"op":"break"}` — exit nearest `cycle`.
+1. `{"op":"start_at","anchor":"now|cron","cron":"<5-field cron>"?}` — scenario starts immediately (`now`) or at each cron firing (`cron`).
+2. `{"op":"wait","cond":"<expr>","edge":"none|rising","for":"<N> <UNIT>"?}` — block until `cond` true. `edge` is set by position (top-level→`"none"`, inside `cycle`→`"rising"`). For "stops / no longer holds", **negate the cond** (`cond:"Rain == false"`); never use `edge:"falling"`. **Optional `for`** field: cond must hold CONTINUOUSLY for that duration before wait completes (timer resets if cond flips). Use ONLY when the command names a sustained duration ("for 30 seconds", "for at least N minutes", "if X stays Y for N"). Format identical to `delay.duration` ("N UNIT"). Do NOT use `wait.for` to encode plain delays — use the `delay` op.
+3. `{"op":"delay","duration":"<N> <UNIT>"}` — pause for N units. `UNIT` ∈ {`HOUR`, `MIN`, `SEC`, `MSEC`}. Exactly one space between N and UNIT. Examples: `"5 MIN"`, `"1 HOUR"`, `"100 MSEC"`. NEVER use ms-as-int (`"ms": 300000` is OBSOLETE).
+4. `{"op":"read","var":"<name>","src":"<Device.attr>"}` — snapshot a value to a local variable. Use ONLY when the same attribute is compared across different time points; otherwise reference `Device.attr` directly in expressions.
+5. `{"op":"call","target":"<Device.method>","args":{...},"var":"<Name>"?}` — perform an action. `var` declares the return value's binding. Add ONLY per R-var.
+6. `{"op":"if","cond":"<expr>","then":[...],"else":[...]}` — one-shot branch. **`cond` MUST be a complete boolean expression with an explicit comparator** (`==`, `!=`, `<`, `>`, `<=`, `>=`). Bare value references like `cond:"X.IsAvailable"` are forbidden — write `cond:"X.IsAvailable == true"`.
+7. `{"op":"cycle","until":"<expr>|null","period":"<N> <UNIT>","count":"<name>"?,"body":[...]}` — repeat body. `until` exits before each iteration when true. `period` is **REQUIRED** (see D7b for the value rule). Body describes ONE iteration; no manual rest-delay subtraction. **Optional `count`**: declares a tick-index variable bound to the iteration number (0, 1, 2, ...) and incremented after each iteration. Use ONLY for (a) alternation / rotation per tick (`count % 2`, `count % 3`) or (b) bounded repeat (`count >= K` in `until`). See D7c. Do NOT use `count` to count external events.
+8. `{"op":"break"}` — exit nearest `cycle`.
 
 ---
 
@@ -248,7 +247,7 @@ Same device attribute compared at two different moments → use `read` for each 
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"if","cond":"TempSensor.Temperature < 20 && HumiditySensor.Humidity <= 50",
+  {"op":"if","cond":"TempSensor.Temperature < 20 and HumiditySensor.Humidity <= 50",
     "then":[
       {"op":"call","target":"Switch.Off","args":{}},
       {"op":"call","target":"Speaker.Speak","args":{"Text":"low temperature and low humidity"}}

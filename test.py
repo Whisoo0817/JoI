@@ -26,11 +26,14 @@ from pipeline_helpers import run_llm_inference
 
 import json as _json
 
-# [MODE: target | pre] 테스트할 타겟 지정 (python3 test.py target | pre)
+# [MODE: target | pre] Test targets (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 test_targets = {
-    #"C09": [2,3],
-    "C23": None
+    "C01": [1], "C02": [1], "C03": [2], "C05": [1], "C06": [1],
+    "C07": [1], "C08": [1], "C09": [1], "C10": [1], "C11": [1],
+    "C12": [1], "C13": [1], "C14": [1], "C15": [1], "C16": [1],
+    "C17": [1], "C18": [1], "C19": [1], "C20": [1], "C21": [1],
+    "C22": [1], "C23": [1], "C24": [1], "C25": [1],
 }
 
 
@@ -52,15 +55,21 @@ class _Tee:
             except Exception:
                 pass
 
-# [MODE: custom] 직접 입력 테스트 데이터 (python3 test.py custom)
-# Sector2에 WindowCovering(Window+Blind) + Door 함께 두고 "everything in Sector2" 시 답이 어떻게 갈리는지 검증
-CUSTOM_COMMAND = "거실 조명 색깔을 보라색으로 바꿔줘."
+# [MODE: custom] Direct-input test case (python3 test.py custom)
+CUSTOM_COMMAND = "Change the living room light color to purple."
 
 CUSTOM_DEVICES = {
     "LR_Light": {"category": ["Light"], "tags": ["LivingRoom", "Light"]},
 }
 
 csv_file_path = 'dataset.csv'
+
+
+def _idx_sort_key(x):
+    """Sort the (object-dtype) `index` column numerically when possible,
+    falling back to string order so mixed/non-numeric ids never crash."""
+    s = str(x)
+    return (0, int(s)) if s.lstrip('-').isdigit() else (1, s)
 
 
 def _reindent_joi(script, tab="    "):
@@ -96,8 +105,8 @@ def print_result(result):
         print("\n[Selectors]")
         for svc, sel_list in precision.items():
             print(f"  {svc}: {sel_list}")
-    # if result.get('ir_readable'):
-    #     print(f"\n[IR Readable]\n{result['ir_readable']}")
+    if result.get('ir_readable'):
+        print(f"\n[IR Readable]\n{result['ir_readable']}")
     print(f"\ncode           :\n{_pretty_code(result.get('code', ''))}")
     print(f"response_time  : {log.get('response_time', '')}")
 
@@ -108,16 +117,15 @@ def run_targeted_test(df):
         print(f"--- Category {category} ---")
         sub = df[df['category_v2'] == category]
         if indices is None:
-            indices = sorted(sub['index'].tolist())
+            indices = sorted(sub['index'].tolist(), key=lambda x: _idx_sort_key(x))
         for idx in indices:
-            match = sub[sub['index'] == idx]
+            match = sub[sub['index'].astype(str) == str(idx)]
             if match.empty:
                 print(f"(Idx {idx}) - Not Found")
                 continue
             row = match.iloc[0]
-            kor = row['command_kor']
             eng = row['command_eng']
-            print(f"({idx}) 🛑 {kor}\n 🛑 {eng}")
+            print(f"({idx}) Command: {eng}")
             print(f"[connected_devices]\n{row['connected_devices']}")
             try:
                 result = generate_joi_code(eng, row['connected_devices'], {})
@@ -129,28 +137,52 @@ def run_targeted_test(df):
                     print(f"[logs]\n{logs}")
 
 
+def _lower_confirmed_ir(eng, connected_devices, ir):
+    """Lower a user-confirmed IR to JoI. The confirmed IR is injected via
+    JOI_GT_IR_PATH so the pipeline skips re-extraction (service_plan / resolve /
+    extract_ir) and lowers EXACTLY what the user approved; precision (device
+    match) + Stage 4 lowering still run. Returns the generate_joi_code result."""
+    import tempfile
+    fd, path = tempfile.mkstemp(suffix=".json", prefix="confirmed_ir_")
+    with os.fdopen(fd, "w", encoding="utf-8") as f:
+        _json.dump(ir, f, ensure_ascii=False)
+    try:
+        os.environ["JOI_GT_IR_PATH"] = path
+        os.environ.pop("JOI_IR_ONLY", None)
+        return generate_joi_code(eng, connected_devices, {})
+    finally:
+        os.environ.pop("JOI_GT_IR_PATH", None)
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+
 def run_targeted_test_confirm(df):
-    """IR-confirm flow per test_targets row: produce IR (only), print
-    the human-readable summary, prompt the user, then either lower to
-    JoI (`yes`/`y`) or display the feedback the user wants applied. The
-    feedback → re-IR step is NYI (Step 6); for now we record the text
-    and skip lowering."""
+    """Interactive IR-confirm flow per test_targets row:
+      1. produce the Timeline IR only (no lowering) and print its readable form,
+      2. prompt the user — `yes`/`y`/Enter → lower the CONFIRMED IR; any other
+         text is treated as a correction and the IR is re-extracted with that
+         feedback, then re-rendered for another round.
+    Lowering injects the confirmed IR (JOI_GT_IR_PATH) so the emitted JoI
+    corresponds exactly to the IR the user approved — no silent re-extraction."""
     print("\n🎯 Running Targeted Tests with IR-Confirm...")
     for category, indices in test_targets.items():
         print(f"--- Category {category} ---")
         sub = df[df['category_v2'] == category]
         if indices is None:
-            indices = sorted(sub['index'].tolist())
+            indices = sorted(sub['index'].tolist(), key=lambda x: _idx_sort_key(x))
         for idx in indices:
-            match = sub[sub['index'] == idx]
+            match = sub[sub['index'].astype(str) == str(idx)]
             if match.empty:
                 print(f"(Idx {idx}) - Not Found")
                 continue
             row = match.iloc[0]
-            kor, eng = row['command_kor'], row['command_eng']
-            print(f"\n({idx}) 🛑 {kor}\n 🛑 {eng}")
+            eng = row['command_eng']
+            print(f"\n({idx}) Command: {eng}")
             print(f"[connected_devices]\n{row['connected_devices']}")
 
+            # ── Phase 1: IR only (short-circuit before Stage 4 lowering) ──
             os.environ["JOI_IR_ONLY"] = "1"
             try:
                 ir_result = generate_joi_code(eng, row['connected_devices'], {})
@@ -159,32 +191,32 @@ def run_targeted_test_confirm(df):
                 logs = getattr(e, 'logs', '')
                 if logs:
                     print(f"[logs]\n{logs}")
+                os.environ.pop("JOI_IR_ONLY", None)
                 continue
             finally:
-                os.environ["JOI_IR_ONLY"] = "0"
+                os.environ.pop("JOI_IR_ONLY", None)
 
             current_ir = ir_result.get('ir')
-            current_readable = ir_result.get('ir_readable', '')
+            current_readable = ir_result.get('ir_readable') or ir_to_readable(current_ir)
             print(f"\n[IR Readable]\n{current_readable}")
 
             # Parse connected_devices once into a dict so extract_ir's retry
-            # path can re-render the services block (matches what the original
-            # IR-extract call saw — though the upstream intent filter is
-            # bypassed here; the LLM sees the full per-device service list).
+            # path can re-render the services block on a correction.
             try:
                 devs_dict = _json.loads(row['connected_devices']) if isinstance(row['connected_devices'], str) else row['connected_devices']
             except Exception:
                 devs_dict = row['connected_devices']
 
+            # ── Phase 2: confirm / correct loop ──
             while True:
                 try:
-                    ans = input("\nConfirm IR? (yes/y → lower; or type correction): ").strip()
+                    ans = input("\nConfirm IR? (yes/y → lower; or type a correction): ").strip()
                 except EOFError:
                     ans = ""
 
                 if ans.lower() in ("yes", "y", ""):
                     try:
-                        full = generate_joi_code(eng, row['connected_devices'], {})
+                        full = _lower_confirmed_ir(eng, row['connected_devices'], current_ir)
                         print_result(full)
                     except Exception as e:
                         print(f"Lowering Error at Idx {idx}: {e}")
@@ -193,7 +225,7 @@ def run_targeted_test_confirm(df):
                             print(f"[logs]\n{logs}")
                     break
 
-                # Feedback path — re-run IR-extract with multi-turn:
+                # Correction path — re-run IR-extract multi-turn:
                 # prior_user replays what the model saw (Command + Services),
                 # prior_assistant = the IR it produced, hint = user's correction.
                 prior_user = (
@@ -236,17 +268,15 @@ def run_pre_analysis_only(df):
         print(f"--- Category {category} ---")
         sub = df[df['category_v2'] == category]
         if indices is None:
-            indices = sorted(sub['index'].tolist())
+            indices = sorted(sub['index'].tolist(), key=lambda x: _idx_sort_key(x))
         for idx in indices:
-            match = sub[sub['index'] == idx]
+            match = sub[sub['index'].astype(str) == str(idx)]
             if match.empty:
                 print(f"(Idx {idx}) - Not Found")
                 continue
             row = match.iloc[0]
-            kor = row['command_kor']
             eng = row['command_eng']
-            print(f"\n({idx}) 🛑 {kor}")
-            print(f"     ENG: {eng}")
+            print(f"\n({idx}) Command: {eng}")
             t0 = time.perf_counter()
             try:
                 sentence = eng

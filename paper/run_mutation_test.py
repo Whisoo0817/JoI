@@ -352,8 +352,12 @@ OPERATORS = {
     # expression / arithmetic (codex Round 6 — closes the arithmetic fault class)
     "cmp_direction": op_cmp_direction,
     "arith_op": op_arith_op,
-    # construct-existence (closes the construct x operator matrix: break terminator)
+    # construct-existence (closes the construct x operator matrix: break terminator,
+    # wait gate). wait_drop is now IN scope: event_synth emits a gate-closed scenario
+    # (cond held false) per level `wait until`, so dropping the gate diverges (fires
+    # when it must stay silent) instead of being observationally equivalent.
     "break_drop": op_break_drop,
+    "wait_drop": op_wait_drop,
 }
 
 # DELIBERATELY EXCLUDED from the L2 mutation suite: `op_quantifier` (all<->any) and
@@ -365,19 +369,12 @@ OPERATORS = {
 # So these two mutations are out of L2's scope by design: on our data every such
 # mutant is observationally equivalent (e.g. C03: 85/85 tag_swap, 8/8 quantifier all
 # equivalent). Reported here as a scoping/threat note rather than as a catch-rate.
-# DELIBERATELY EXCLUDED for a different reason: `op_wait_drop` (delete a
-# `wait until(...)` gate). It is IN L2's scope, but on our data every such mutant
-# is OBSERVATIONALLY EQUIVALENT: the synthesized happy scenario already satisfies
-# the gate condition at t=0 (event_synth seeds the precondition true at start), so
-# whether the action waits for it or fires immediately yields the same trace
-# (verified: C07+C20 smoke = 25/25 wait_drop mutants equivalent, 0 genuine). The
-# wait construct is still covered — its CONDITION is mutated by guard_polarity /
-# comparator / enum_flip acting inside the `wait until(...)` expression; only the
-# gate's EXISTENCE is indistinguishable without a pre-gate false phase in the
-# scenario (an event_synth change, out of scope here). Recorded as a coverage/
-# threat note, not a catch-rate.
-_OUT_OF_SCOPE_OPERATORS = {"quantifier": op_quantifier, "tag_swap": op_tag_swap,
-                           "wait_drop": op_wait_drop}
+# NOTE (2026-05-31): `op_wait_drop` was PREVIOUSLY excluded because the happy
+# scenario satisfied the gate at t=0, making gate-deletion observationally
+# equivalent. event_synth now emits a GATE-CLOSED scenario (cond held false) per
+# level `wait until`, so the gate's EXISTENCE is now testable — wait_drop moved
+# into OPERATORS above.
+_OUT_OF_SCOPE_OPERATORS = {"quantifier": op_quantifier, "tag_swap": op_tag_swap}
 
 
 # ── Trace equivalence (equivalent-mutant filter) ─────────────────────────────
@@ -391,10 +388,18 @@ def _trace_signature(joi_block, ir_gt, cat):
         scns = synthesize_scenarios(ir_gt)
         if not scns:
             return None
-        t = run_joi_simulation(joi_block, scns[0], cat)
-        g = _group_and_dedup(t.records)
-        return [(min(r.timestamp_ms for r in grp["records"]),
-                 sorted((r.method, r.args) for r in grp["records"])) for grp in g]
+        # Signature ACROSS ALL synthesized scenarios (not just happy). A mutant is
+        # an equivalent mutant only if it matches the seed under EVERY scenario; a
+        # mutation that is a no-op under the happy path but diverges under an
+        # else-branch / gate-closed / boundary scenario (e.g. wait_drop) is GENUINE
+        # and must reach detection, not be filtered out on the happy scenario alone.
+        sigs = []
+        for scn in scns:
+            t = run_joi_simulation(joi_block, scn, cat)
+            g = _group_and_dedup(t.records)
+            sigs.append([(min(r.timestamp_ms for r in grp["records"]),
+                          sorted((r.method, r.args) for r in grp["records"])) for grp in g])
+        return sigs
     except Exception:
         return None
 

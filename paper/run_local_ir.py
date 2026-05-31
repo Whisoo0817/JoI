@@ -3,7 +3,7 @@
 Replaces the legacy filter/extractor/router stages with
 Timeline IR extraction. The pipeline is:
 
-    [Stage 1] translation (KOR -> ENG)
+    [Stage 1] translation to English when needed
     [Stage 2] service_plan: command -> ordered service list
     [Stage 3 // parallel]
         - branch A (resolve + ir): enum_cond_check -> enum_resolve -> arg_resolve
@@ -73,9 +73,9 @@ _LLM_DIAGNOSE_ENABLED = os.environ.get("JOI_LLM_DIAGNOSE", "0") == "1"
 # → post-process trio) and then writes the IR + supporting state to
 # JOI_IR_DUMP_DIR/<JOI_IR_DUMP_NAME>.json, skipping Stage 4 lowering.
 # Used for offline IR-confirm validation prior to running lowering.
-_IR_ONLY = os.environ.get("JOI_IR_ONLY", "0") == "1"
-_IR_DUMP_DIR = os.environ.get("JOI_IR_DUMP_DIR", "/tmp/joi_ir_dump")
-_IR_DUMP_NAME = os.environ.get("JOI_IR_DUMP_NAME", "")
+# (read per-call inside generate_joi_code_ir so in-process callers — e.g. the
+#  test.py IR-confirm flow — can toggle them between successive calls; subprocess
+#  callers that export the env before launch are unaffected.)
 
 # GT-IR injection (paper §7.3 Stage B: lowering correctness given gold IR).
 # When JOI_GT_IR_PATH points to a JSON file containing the GT IR, the
@@ -83,7 +83,7 @@ _IR_DUMP_NAME = os.environ.get("JOI_IR_DUMP_NAME", "")
 # deriving `selected_services` directly from the GT IR's references and
 # using GT IR verbatim. Precision (device-match) still runs so selectors
 # align with the GT IR's services. Stage 4 lowering proceeds as usual.
-_GT_IR_PATH = os.environ.get("JOI_GT_IR_PATH", "")
+# (JOI_GT_IR_PATH also read per-call inside generate_joi_code_ir.)
 
 
 def _services_from_ir(ir_obj):
@@ -692,6 +692,13 @@ def generate_joi_code_ir(
     client = get_client(base_url)
     model = get_model_id(client)
 
+    # Env switches are read per-call (not at import) so in-process callers can
+    # toggle them between successive generate_joi_code() invocations.
+    _IR_ONLY = os.environ.get("JOI_IR_ONLY", "0") == "1"
+    _IR_DUMP_DIR = os.environ.get("JOI_IR_DUMP_DIR", "/tmp/joi_ir_dump")
+    _IR_DUMP_NAME = os.environ.get("JOI_IR_DUMP_NAME", "")
+    _GT_IR_PATH = os.environ.get("JOI_GT_IR_PATH", "")
+
     log_buf = []
 
     def infer(key, user_input, *, system=None, enable_thinking=False, max_tokens=512):
@@ -718,8 +725,8 @@ def generate_joi_code_ir(
         log_buf.append(log_line)
         return content
 
-    # ❇️ Stage 1: Translation (KOR -> ENG)
-    if re.search("[가-힣]", sentence):
+    # Stage 1: Translation to English when needed.
+    if re.search(r"[\uac00-\ud7a3]", sentence):
         sentence = infer("translation", sentence)
 
     # ── Stage 2 pre-work: build cd_simple + device categories early so pre_analysis
