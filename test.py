@@ -18,6 +18,21 @@ import sys
 import time
 import pandas as pd
 
+# ── Verifier / self-correction debug config (target mode) ────────────────────
+# `_VERIFY_ENABLED` / `_VERIFY_MAX_ATTEMPTS` / `_LLM_DIAGNOSE_ENABLED` in
+# paper.run_local_ir are read at IMPORT TIME (module constants), so these env
+# defaults MUST be set BEFORE that import below. Plain `python3 test.py target`
+# then reproduces the Stage-B run (verifier ON, deterministic diagnose,
+# max_attempts=2, GT IR injected) and prints the FULL self-correction trace:
+# which scenario/trace diverged, each attempt's L1/L2 violations, the exact
+# retry (diagnosis) message handed to the re-generation LLM, and IR-vs-JoI
+# traces. Override from the shell, e.g.
+#   JOI_LLM_DIAGNOSE=1 JOI_VERIFY_MAX_ATTEMPTS=4 python3 test.py target
+if (sys.argv[1] if len(sys.argv) > 1 else "") == "target":
+    os.environ.setdefault("JOI_VERIFY", "1")               # verifier + retry loop on
+    os.environ.setdefault("JOI_VERIFY_MAX_ATTEMPTS", "2")  # 2 attempts by default
+    os.environ.setdefault("JOI_LLM_DIAGNOSE", "1")         # LLM-aided diagnose on by default
+
 from config import get_client, get_model_id
 from loader import PROMPTS
 from paper.run_local_ir import generate_joi_code
@@ -28,12 +43,26 @@ import json as _json
 
 # [MODE: target | pre] Test targets (python3 test.py target | pre)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
+# The 26 fail-closed REJECT rows from the Stage-B run (experiments/stageB_382),
+# surfaced by paper/rq3_pipeline_effect.py. These are the cases the verifier
+# caught but self-correction could NOT repair within max_attempts. Dominated by:
+#   sustain-duration timing_drift  : C20/C23/C24  ("stays X for >= N min")
+#   repeated-check extra_call       : C11/C16     ("check now and again in T")
+#   arithmetic RMW arg_mismatch     : C14         (brightness cycle/decrease)
+#   L1 hard error (parse/catalog)   : C09/C03     (self-correct broke the JoI)
+#   multi-step sequence drop        : C12/C17/C18 (missing_call/trace_empty)
 test_targets = {
-    "C01": [1], "C02": [1], "C03": [2], "C05": [1], "C06": [1],
-    "C07": [1], "C08": [1], "C09": [1], "C10": [1], "C11": [1],
-    "C12": [1], "C13": [1], "C14": [1], "C15": [1], "C16": [1],
-    "C17": [1], "C18": [1], "C19": [1], "C20": [1], "C21": [1],
-    "C22": [1], "C23": [1], "C24": [1], "C25": [1],
+    "C03": [24],
+    "C09": [3, 16],
+    "C11": [2, 3, 6],
+    "C12": [12],
+    "C14": [3, 6],
+    "C16": [3, 5],
+    "C17": [9],
+    "C18": [10],
+    "C20": [4, 8, 12, 14],
+    "C23": [1, 2, 3, 4],
+    "C24": [1, 2, 3, 4, 5],
 }
 
 
@@ -112,7 +141,12 @@ def print_result(result):
 
 
 def run_targeted_test(df):
-    print("\n🎯 Running Targeted Tests...")
+    import tempfile
+    verify = os.environ.get("JOI_VERIFY") == "1"
+    print("\n🎯 Running Targeted Tests "
+          f"(GT IR injected; verifier={'ON' if verify else 'off'}, "
+          f"max_attempts={os.environ.get('JOI_VERIFY_MAX_ATTEMPTS', '?')}, "
+          f"LLM-diagnose={'ON' if os.environ.get('JOI_LLM_DIAGNOSE') == '1' else 'off'})...")
     for category, indices in test_targets.items():
         print(f"--- Category {category} ---")
         sub = df[df['category_v2'] == category]
@@ -125,8 +159,32 @@ def run_targeted_test(df):
                 continue
             row = match.iloc[0]
             eng = row['command_eng']
-            print(f"({idx}) Command: {eng}")
+            print(f"\n({idx}) Command: {eng}")
             print(f"[connected_devices]\n{row['connected_devices']}")
+            # Inject the dataset GT IR so the pipeline lowers EXACTLY that IR
+            # (skips extract_ir / service_plan / resolve) — isolates Stage-4
+            # lowering + verifier + self-correction, matching the Stage-B config.
+            gt_path = None
+            try:
+                ir_gt = _json.loads(row['ir_gt'])
+                # Surface the injected IR UP FRONT (both raw + readable) so the
+                # IR being lowered is visible before the verifier/JoI logs.
+                print("[GT IR injected — raw]")
+                print(_json.dumps(ir_gt, ensure_ascii=False, indent=2))
+                try:
+                    from paper.ir_renderer import render_ir_readable
+                    print("[GT IR — readable]")
+                    print(render_ir_readable(ir_gt))
+                except Exception as _re:
+                    print(f"  (readable render failed: {_re})")
+                fd, gt_path = tempfile.mkstemp(suffix=".json", prefix=f"gtir_{category}_{idx}_")
+                with os.fdopen(fd, "w", encoding="utf-8") as f:
+                    _json.dump(ir_gt, f, ensure_ascii=False)
+                os.environ["JOI_GT_IR_PATH"] = gt_path
+                os.environ.pop("JOI_IR_ONLY", None)
+            except Exception as e:
+                print(f"  ⚠️ GT IR load failed for {category}_{idx}: {e} (falling back to extraction)")
+                os.environ.pop("JOI_GT_IR_PATH", None)
             try:
                 result = generate_joi_code(eng, row['connected_devices'], {})
                 print_result(result)
@@ -135,6 +193,13 @@ def run_targeted_test(df):
                 logs = getattr(e, 'logs', '')
                 if logs:
                     print(f"[logs]\n{logs}")
+            finally:
+                os.environ.pop("JOI_GT_IR_PATH", None)
+                if gt_path:
+                    try:
+                        os.remove(gt_path)
+                    except OSError:
+                        pass
 
 
 def _lower_confirmed_ir(eng, connected_devices, ir):
@@ -200,54 +265,23 @@ def run_targeted_test_confirm(df):
             current_readable = ir_result.get('ir_readable') or ir_to_readable(current_ir)
             print(f"\n[IR Readable]\n{current_readable}")
 
-            # Parse connected_devices once into a dict so extract_ir's retry
-            # path can re-render the services block on a correction.
+            # ── Phase 2: confirm (yes → lower; no → terminate this row) ──
             try:
-                devs_dict = _json.loads(row['connected_devices']) if isinstance(row['connected_devices'], str) else row['connected_devices']
-            except Exception:
-                devs_dict = row['connected_devices']
+                ans = input("\nConfirm IR? (yes/y → lower; no/n → skip): ").strip().lower()
+            except EOFError:
+                ans = "no"
 
-            # ── Phase 2: confirm / correct loop ──
-            while True:
+            if ans in ("yes", "y", ""):
                 try:
-                    ans = input("\nConfirm IR? (yes/y → lower; or type a correction): ").strip()
-                except EOFError:
-                    ans = ""
-
-                if ans.lower() in ("yes", "y", ""):
-                    try:
-                        full = _lower_confirmed_ir(eng, row['connected_devices'], current_ir)
-                        print_result(full)
-                    except Exception as e:
-                        print(f"Lowering Error at Idx {idx}: {e}")
-                        logs = getattr(e, 'logs', '')
-                        if logs:
-                            print(f"[logs]\n{logs}")
-                    break
-
-                # Correction path — re-run IR-extract multi-turn:
-                # prior_user replays what the model saw (Command + Services),
-                # prior_assistant = the IR it produced, hint = user's correction.
-                prior_user = (
-                    f"[Command]\n{eng}\n\n"
-                    f"[Services]\n{_format_services_block(devs_dict)}"
-                )
-                prior_assistant = _json.dumps(current_ir, ensure_ascii=False, indent=2)
-                try:
-                    new_ir, *_rest = extract_ir(
-                        eng,
-                        devs_dict,
-                        auto_translate=False,
-                        retry_context=(prior_user, prior_assistant, ans),
-                    )
+                    full = _lower_confirmed_ir(eng, row['connected_devices'], current_ir)
+                    print_result(full)
                 except Exception as e:
-                    print(f"Re-IR Error: {e}")
-                    continue
-
-                current_ir = new_ir
-                current_readable = ir_to_readable(new_ir)
-                print(f"\n[IR Readable (after feedback)]\n{current_readable}")
-                # loop — allow further feedback or yes
+                    print(f"Lowering Error at Idx {idx}: {e}")
+                    logs = getattr(e, 'logs', '')
+                    if logs:
+                        print(f"[logs]\n{logs}")
+            else:
+                print("  → not confirmed; skipping (no lowering).")
 
 
 def run_pre_analysis_only(df):

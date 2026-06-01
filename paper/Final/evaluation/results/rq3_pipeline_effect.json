@@ -1,0 +1,6966 @@
+{
+ "summary": {
+  "config": "confirmed-IR (=gt_ir) -> JoI -> verifier(L1/L2) -> self-correct/reject; single clean config, no generated-IR mixing. RUN-TIME grades (d886015), no re-grading with current code.",
+  "n_rows_scored": 382,
+  "skipped": [],
+  "OFF": {
+   "deployed_correct": 347,
+   "deployed_correct_pct": 90.84,
+   "silent_wrong_deployed": 35,
+   "silent_wrong_pct": 9.16
+  },
+  "ON": {
+   "deployed_correct": 356,
+   "deployed_correct_pct": 93.19,
+   "repaired_from_off_wrong": 11,
+   "rejected_fail_closed": 26,
+   "over_rejected_correct": 2,
+   "silent_wrong_deployed": 0,
+   "silent_wrong_pct": 0.0
+  },
+  "headline": "silent-wrong deployed: OFF 35/382 (9.2%) -> ON 0/382 (0.0%). Deployed-correct 347->356 (+9). Of the 35 silent-wrong OFF candidates: 11 repaired, 24 rejected (fail-closed); cost 2 correct candidates over-rejected.",
+  "anomalies": [],
+  "silent_wrong_on_names": [],
+  "reject_analysis": {
+   "n_rejected": 26,
+   "by_category": {
+    "C24": 5,
+    "C20": 4,
+    "C23": 4,
+    "C11": 3,
+    "C09": 2,
+    "C14": 2,
+    "C16": 2,
+    "C03": 1,
+    "C12": 1,
+    "C17": 1,
+    "C18": 1
+   },
+   "by_final_violation_kind": {
+    "timing_drift": 16,
+    "extra_call": 6,
+    "missing_call": 4,
+    "parse": 2,
+    "arg_mismatch": 2,
+    "catalog_service": 1,
+    "trace_empty": 1
+   },
+   "by_n_attempts": {
+    "2": 26
+   },
+   "over_rejected_correct_candidates": [
+    "C09_16",
+    "C09_3"
+   ],
+   "detail": [
+    {
+     "name": "C03_24",
+     "cat": "C03",
+     "command": "If all temperature sensors in sector 1 read 35 degrees or higher, set all air conditioners in sector 1 to cool mode.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "parse"
+     ],
+     "persistent_kinds": [
+      "parse"
+     ],
+     "attempt_kinds": [
+      [
+       "parse"
+      ],
+      [
+       "parse"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C09_16",
+     "cat": "C09",
+     "command": "Set the study air purifier to high and turn it off after 2 hours.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "catalog_service"
+     ],
+     "persistent_kinds": [
+      "catalog_service"
+     ],
+     "attempt_kinds": [
+      [
+       "catalog_service"
+      ],
+      [
+       "catalog_service"
+      ]
+     ],
+     "off_was_wrong": false
+    },
+    {
+     "name": "C09_3",
+     "cat": "C09",
+     "command": "Set the air purifier to auto mode and switch to sleep mode after 2 hours.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "parse"
+     ],
+     "persistent_kinds": [
+      "parse"
+     ],
+     "attempt_kinds": [
+      [
+       "parse"
+      ],
+      [
+       "parse"
+      ]
+     ],
+     "off_was_wrong": false
+    },
+    {
+     "name": "C11_2",
+     "cat": "C11",
+     "command": "Check the living room temperature now and again in 1 hour. If it dropped by at least 2 degrees, turn on the living room heater plug.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "extra_call"
+     ],
+     "persistent_kinds": [
+      "extra_call"
+     ],
+     "attempt_kinds": [
+      [
+       "extra_call"
+      ],
+      [
+       "extra_call"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C11_3",
+     "cat": "C11",
+     "command": "Check the bedroom temperature now and again in 30 minutes. If it dropped by at least 3 degrees, turn on the bedroom heater plug.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "extra_call"
+     ],
+     "persistent_kinds": [
+      "extra_call"
+     ],
+     "attempt_kinds": [
+      [
+       "extra_call"
+      ],
+      [
+       "extra_call"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C11_6",
+     "cat": "C11",
+     "command": "Check the living room illuminance now and again in 1 hour. If it dropped by at least 200 lux, turn on the living room mood-light plug.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "extra_call"
+     ],
+     "persistent_kinds": [
+      "extra_call"
+     ],
+     "attempt_kinds": [
+      [
+       "extra_call"
+      ],
+      [
+       "extra_call"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C12_12",
+     "cat": "C12",
+     "command": "When smoke is detected in the living room, sound all fire alarms. Then, every 10 seconds, speak \"Please evacuate\" through the speaker.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "missing_call",
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "missing_call"
+     ],
+     "attempt_kinds": [
+      [
+       "extra_call",
+       "missing_call"
+      ],
+      [
+       "missing_call",
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C14_3",
+     "cat": "C14",
+     "command": "Each time button 4 of the multi-button is pressed, cycle the living room light brightness through 25→50→75 (repeating).",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "arg_mismatch",
+      "extra_call"
+     ],
+     "persistent_kinds": [
+      "arg_mismatch",
+      "extra_call"
+     ],
+     "attempt_kinds": [
+      [
+       "arg_mismatch",
+       "extra_call"
+      ],
+      [
+       "arg_mismatch",
+       "extra_call"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C14_6",
+     "cat": "C14",
+     "command": "Whenever button 4 of the multi-button is pressed, decrease the living room light brightness by 15, down to a minimum of 10.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "arg_mismatch"
+     ],
+     "persistent_kinds": [
+      "arg_mismatch"
+     ],
+     "attempt_kinds": [
+      [
+       "arg_mismatch"
+      ],
+      [
+       "arg_mismatch"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C16_3",
+     "cat": "C16",
+     "command": "Every 30 minutes from 7 PM to 10 PM, check the robot vacuum cleaner and start it in auto mode if it is stopped.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "extra_call"
+     ],
+     "persistent_kinds": [
+      "extra_call"
+     ],
+     "attempt_kinds": [
+      [
+       "extra_call"
+      ],
+      [
+       "extra_call"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C16_5",
+     "cat": "C16",
+     "command": "Every 7 PM, if no one is detected on the 1st floor, turn off all lights on floor 1; then 1 hour later, if no one is detected on the 2nd floor, turn off all lights on floor 2.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "missing_call",
+      "timing_drift"
+     ],
+     "persistent_kinds": [],
+     "attempt_kinds": [
+      [
+       "extra_call"
+      ],
+      [
+       "missing_call",
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C17_9",
+     "cat": "C17",
+     "command": "Check all door locks in Sector 1 every hour; if any one is open, change all lights in that sector to red.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "missing_call",
+      "trace_empty"
+     ],
+     "persistent_kinds": [
+      "missing_call",
+      "trace_empty"
+     ],
+     "attempt_kinds": [
+      [
+       "missing_call",
+       "trace_empty"
+      ],
+      [
+       "missing_call",
+       "trace_empty"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C18_10",
+     "cat": "C18",
+     "command": "At midnight, close the door and check the light every hour until 6 AM; if the brightness is greater than 30, lower it to 10.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "extra_call",
+      "timing_drift"
+     ],
+     "persistent_kinds": [],
+     "attempt_kinds": [
+      [
+       "use_before_init"
+      ],
+      [
+       "extra_call",
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C20_12",
+     "cat": "C20",
+     "command": "If the study door stays closed for at least 3 minutes, turn off the study light.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C20_14",
+     "cat": "C20",
+     "command": "If no one is present in the office for at least 10 minutes, turn off the office air conditioner.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C20_4",
+     "cat": "C20",
+     "command": "If the printer plug power consumption stays below 5W for at least 10 minutes, turn off the printer plug.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C20_8",
+     "cat": "C20",
+     "command": "If no motion is detected in the office for at least 5 minutes, turn off the office light.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C23_1",
+     "cat": "C23",
+     "command": "If no motion is detected in the living room for at least 10 minutes, dim the living room light to 30%, then turn it off 5 minutes later.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C23_2",
+     "cat": "C23",
+     "command": "If the porch door stays open for at least 1 minute, turn on the porch light, then turn it off 3 minutes later.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C23_3",
+     "cat": "C23",
+     "command": "If no one is present in the study for at least 15 minutes, dim the study light to 20%, then turn it off 10 minutes later.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C23_4",
+     "cat": "C23",
+     "command": "If the bedroom temperature stays above 28 degrees for at least 5 minutes, turn on the fan, then turn it off 20 minutes later.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C24_1",
+     "cat": "C24",
+     "command": "If the entrance door stays open for at least 1 minute, announce 'Please close the door' through the speaker every 30 seconds, up to 3 times.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C24_2",
+     "cat": "C24",
+     "command": "If a person stays in the meeting room for at least 2 minutes, announce 'The meeting starts soon' through the speaker every 1 minute, 3 times.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C24_3",
+     "cat": "C24",
+     "command": "If the office plug power stays below 5W for at least 10 minutes, announce 'Device is idle' through the speaker every 2 minutes, 3 times.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [],
+     "attempt_kinds": [
+      [
+       "use_before_init"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C24_4",
+     "cat": "C24",
+     "command": "If no one is present in the lobby for at least 1 minute, announce 'Is anyone there' through the speaker every 15 seconds, up to 4 times.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "missing_call",
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "missing_call",
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "missing_call",
+       "timing_drift"
+      ],
+      [
+       "missing_call",
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    },
+    {
+     "name": "C24_5",
+     "cat": "C24",
+     "command": "If the safe door stays closed for at least 30 seconds, capture an image with the camera every 30 seconds, up to 5 times.",
+     "n_attempts": 2,
+     "final_violation_kinds": [
+      "timing_drift"
+     ],
+     "persistent_kinds": [
+      "timing_drift"
+     ],
+     "attempt_kinds": [
+      [
+       "timing_drift"
+      ],
+      [
+       "timing_drift"
+      ]
+     ],
+     "off_was_wrong": true
+    }
+   ]
+  }
+ },
+ "rows": [
+  {
+   "name": "C01_1",
+   "cat": "C01",
+   "command": "Switch the dishwasher to dry mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_10",
+   "cat": "C01",
+   "command": "Tell me the current humidity through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_11",
+   "cat": "C01",
+   "command": "Tell me the outdoor humidity through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_12",
+   "cat": "C01",
+   "command": "Output today's weather through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_13",
+   "cat": "C01",
+   "command": "Announce the fine dust level through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_14",
+   "cat": "C01",
+   "command": "Announce the outdoor fine dust level using the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_15",
+   "cat": "C01",
+   "command": "Generate a cat image using cloud service and save it as \"cat.png\".",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_16",
+   "cat": "C01",
+   "command": "Output the charger's power consumption through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_17",
+   "cat": "C01",
+   "command": "Tell me today's menu using the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_18",
+   "cat": "C01",
+   "command": "Tell me the lunch menu for Building 301 today through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_19",
+   "cat": "C01",
+   "command": "Ask the cloud AI what an LLM is, and output its answer through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_2",
+   "cat": "C01",
+   "command": "Add 5 minutes to the oven.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_20",
+   "cat": "C01",
+   "command": "Lock the safe.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_21",
+   "cat": "C01",
+   "command": "Close the door.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_22",
+   "cat": "C01",
+   "command": "Set the pump to normal mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_23",
+   "cat": "C01",
+   "command": "Stop the robot vacuum cleaner.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_24",
+   "cat": "C01",
+   "command": "Play \"music.mp3\" through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_25",
+   "cat": "C01",
+   "command": "Set the speaker volume to maximum.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_26",
+   "cat": "C01",
+   "command": "Lower the speaker volume by one.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_27",
+   "cat": "C01",
+   "command": "Open the valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_28",
+   "cat": "C01",
+   "command": "Set the TV channel to 30.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_3",
+   "cat": "C01",
+   "command": "Start the rice cooker on cooking mode for 30 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_4",
+   "cat": "C01",
+   "command": "Set the siren to emergency mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_5",
+   "cat": "C01",
+   "command": "Set the speaker volume to 30.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_6",
+   "cat": "C01",
+   "command": "Turn the TV channel down by one.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_7",
+   "cat": "C01",
+   "command": "Switch the TV to channel 7.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_8",
+   "cat": "C01",
+   "command": "Announce the indoor temperature through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C01_9",
+   "cat": "C01",
+   "command": "Tell me the outdoor temperature through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_1",
+   "cat": "C02",
+   "command": "Capture an image of the meeting room with the camera.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_10",
+   "cat": "C02",
+   "command": "Record for 10 seconds with the meeting room recorder and save it as test.wav.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_11",
+   "cat": "C02",
+   "command": "Sound a fire siren on the farm.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_12",
+   "cat": "C02",
+   "command": "Play the \"Golden.mp3\" file through the speaker in the playroom.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_13",
+   "cat": "C02",
+   "command": "Close all windows in the living room.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_14",
+   "cat": "C02",
+   "command": "Open all blinds in Sector2.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_15",
+   "cat": "C02",
+   "command": "Lock all safes with odd tags in Sector B.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_16",
+   "cat": "C02",
+   "command": "Close everything in Sector2.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_17",
+   "cat": "C02",
+   "command": "Lower all even-tagged blinds in the bedroom.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_18",
+   "cat": "C02",
+   "command": "Stop all robot vacuum cleaners on the 3rd floor.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_19",
+   "cat": "C02",
+   "command": "Set all dehumidifiers in the office to dehumidify mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_2",
+   "cat": "C02",
+   "command": "Set all dehumidifiers in the lab to AI drying mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_20",
+   "cat": "C02",
+   "command": "Lock all door locks in the storage.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_21",
+   "cat": "C02",
+   "command": "Open all even-tagged valves in the kitchen.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_22",
+   "cat": "C02",
+   "command": "Turn off all lights in the bedroom.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_23",
+   "cat": "C02",
+   "command": "Set all air conditioners in the office to cool mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_24",
+   "cat": "C02",
+   "command": "Close all blinds in the living room.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_25",
+   "cat": "C02",
+   "command": "Open all windows on floor 1.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_26",
+   "cat": "C02",
+   "command": "Sound all sirens on floor 2 in emergency mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_27",
+   "cat": "C02",
+   "command": "Lock all door locks in sector 1.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_28",
+   "cat": "C02",
+   "command": "Set all air purifiers in the warehouse to high mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_29",
+   "cat": "C02",
+   "command": "Stop playback on all speakers in the meeting room.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_3",
+   "cat": "C02",
+   "command": "Set the hue of the living room light to 240 and the saturation to 80.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_30",
+   "cat": "C02",
+   "command": "Set all humidifiers in the bedroom to auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_31",
+   "cat": "C02",
+   "command": "Close all valves in the garage.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_32",
+   "cat": "C02",
+   "command": "Set all pumps in the factory to maximum mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_33",
+   "cat": "C02",
+   "command": "Turn on all lights in the hallway.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_4",
+   "cat": "C02",
+   "command": "Set all robot vacuum cleaners with even tags to auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_5",
+   "cat": "C02",
+   "command": "Lock all door locks.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_6",
+   "cat": "C02",
+   "command": "Set the target temperature of the air conditioner in Sector1 to 18 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_7",
+   "cat": "C02",
+   "command": "Change the air purifier in the bedroom to sleep mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_8",
+   "cat": "C02",
+   "command": "Close all valves in the kitchen.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C02_9",
+   "cat": "C02",
+   "command": "Open all safes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_10",
+   "cat": "C03",
+   "command": "If the charger is fully charged, turn off the charger.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_11",
+   "cat": "C03",
+   "command": "If the button is in the pushed state, raise the blind.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_12",
+   "cat": "C03",
+   "command": "If the speaker volume is 40 or higher, stop the playback.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_13",
+   "cat": "C03",
+   "command": "If face recognition at the entrance is off, start it.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_14",
+   "cat": "C03",
+   "command": "If the shade is 30% or less open, set it to 50%.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_15",
+   "cat": "C03",
+   "command": "If the sound sensor level in livingroom is over 50, stop the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_16",
+   "cat": "C03",
+   "command": "If the air conditioner in livingroom is in cool mode, switch it to auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_17",
+   "cat": "C03",
+   "command": "If any presence sensor in the house is currently in the detected state, set the siren to emergency mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_18",
+   "cat": "C03",
+   "command": "If the contact sensor at the entrance is in detected state, sound the emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_19",
+   "cat": "C03",
+   "command": "If it is raining, set all dehumidifiers in the house to drying mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_2",
+   "cat": "C03",
+   "command": "If the cloud service is activated, upload test.png file to the cloud.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_20",
+   "cat": "C03",
+   "command": "If the temperature in sector 1 is 36.5 degrees or higher, set the target temperature to 30.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_21",
+   "cat": "C03",
+   "command": "If the carbon dioxide concentration in the farm is 800ppm or higher, sound the emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_22",
+   "cat": "C03",
+   "command": "If the temperature on the airquality sensor is below 20 degrees, close the door.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_23",
+   "cat": "C03",
+   "command": "If the temperature in the bedroom is 36.5 degrees or higher, set the bedroom air conditioner to 30 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_24",
+   "cat": "C03",
+   "command": "If all temperature sensors in sector 1 read 35 degrees or higher, set all air conditioners in sector 1 to cool mode.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "parse"
+    ],
+    [
+     "parse"
+    ]
+   ],
+   "final_violation_kinds": [
+    "parse"
+   ],
+   "off_msg": "l2 exception: ValueError: expected OP ')', got Tok(kind='OP', value='(')"
+  },
+  {
+   "name": "C03_25",
+   "cat": "C03",
+   "command": "If the sector 1 temperature is 30 degrees or higher, set the sector 1 air conditioner target temperature to 22 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_26",
+   "cat": "C03",
+   "command": "If the living room illuminance is below 50 lux, turn on the living room light.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_27",
+   "cat": "C03",
+   "command": "If no one is present in the office, turn off the office air conditioner.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_28",
+   "cat": "C03",
+   "command": "If the baby room sound is 60dB or higher, say \"The baby is crying\" through the living room speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_29",
+   "cat": "C03",
+   "command": "If the face recognized at the entrance is 'visitor', start streaming from the entrance camera.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_3",
+   "cat": "C03",
+   "command": "If the oven is in grill mode, add 4 more minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_30",
+   "cat": "C03",
+   "command": "If any door lock in sector 1 is open, sound the sector 1 siren in police mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_31",
+   "cat": "C03",
+   "command": "If any indoor Group1 humidity sensor reads 60% or higher, set all indoor Group1 dehumidifiers to drying mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_32",
+   "cat": "C03",
+   "command": "If the living room temperature is at least 26C, turn on the living room AC plug; otherwise turn it off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_33",
+   "cat": "C03",
+   "command": "If the bedroom illuminance is at most 100 lux, turn on the bedroom floor lamp plug; otherwise turn it off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_34",
+   "cat": "C03",
+   "command": "If a person is detected in the living room, turn on the living room main light; otherwise turn it off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_35",
+   "cat": "C03",
+   "command": "If the bedroom door is open, turn off the bedroom air purifier plug; otherwise turn it on.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_4",
+   "cat": "C03",
+   "command": "If the rice cooker is on keep-warm mode, switch it to cooking mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_5",
+   "cat": "C03",
+   "command": "If the outdoor very fine dust level is 15 or higher, sound the emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_6",
+   "cat": "C03",
+   "command": "If the charger current is 10 amperes or above, sound the emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_7",
+   "cat": "C03",
+   "command": "If the pump is in normal mode, set it to maximum mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_8",
+   "cat": "C03",
+   "command": "If the speaker is playing, stop it.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C03_9",
+   "cat": "C03",
+   "command": "If the laundry dryer is in low noise mode, switch it to quick mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_1",
+   "cat": "C05",
+   "command": "If someone is in the living room and smoke is being detected in the kitchen, announce 'Smoke has been detected in the kitchen' through the living room speaker and close the kitchen valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_10",
+   "cat": "C05",
+   "command": "If the weather is rainy and no one is being detected, lock the door and close the valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_11",
+   "cat": "C05",
+   "command": "If the oven is heating and no one is being detected, change the oven mode to warming and notify that the oven mode has been changed to warming.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_12",
+   "cat": "C05",
+   "command": "If the noise level is 80 or higher and no person is being detected, stop speaker playbackand sound the emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_13",
+   "cat": "C05",
+   "command": "If the carbon dioxide is 1500ppm or higher and the blind is closed, set the air purifier to auto and raise the blind.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_14",
+   "cat": "C05",
+   "command": "If the temperature is 18 degrees or below and someone is detected, set the air conditioner to heat mode and 22 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_15",
+   "cat": "C05",
+   "command": "If it is raining and the door is open, close the door and set the dehumidifier to internal Care mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_16",
+   "cat": "C05",
+   "command": "If a person is detected and smoke is detected, sound the siren in fire mode and announce \"Evacuate\" through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_17",
+   "cat": "C05",
+   "command": "If the pressure is 100 or higher and no one is home, close the valve and sound emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_18",
+   "cat": "C05",
+   "command": "If no motion is detected but the door is open, take a photo and output \"Warning\" through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_19",
+   "cat": "C05",
+   "command": "If the study carbon dioxide is 1000ppm or higher and the air purifier is in sleep mode, switch to auto mode and say \"Switching the air purifier to auto mode\" through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_2",
+   "cat": "C05",
+   "command": "If the bedroom temperature is 26 degrees or higher and the bedroom window is open, close the window and turn on the air conditioner.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_20",
+   "cat": "C05",
+   "command": "If the bathroom humidity is 85% or higher and the bathroom door is closed, turn on the light and open the door.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_21",
+   "cat": "C05",
+   "command": "If the face ID 'family' is recognized at the entrance and the door lock is locked , unlock the door lock and open the door.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_22",
+   "cat": "C05",
+   "command": "If the garden illuminance is below 50 and the terrace light is off, turn on the light and play an announcement in the garden.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_23",
+   "cat": "C05",
+   "command": "If it is raining and the living room window is open, close the window and set the dehumidifier to dehumidifying mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_24",
+   "cat": "C05",
+   "command": "If the baby room sound is 50dB or higher and the living room speaker is stopped, say the baby is awake through the speaker and play \"lullaby.mp3\" file.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_25",
+   "cat": "C05",
+   "command": "If the server room temperature is 30 degrees or higher and the AC is off, turn it on and sound the main emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_26",
+   "cat": "C05",
+   "command": "If the wine cellar temperature is 15 degrees or higher and humidity is 60% or higher, turn on the air conditioner and turn off the humidifier.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_27",
+   "cat": "C05",
+   "command": "If a water leak is detected in the basement and the main valve is open, close all main valves and sound the police siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_28",
+   "cat": "C05",
+   "command": "If the warehouse fine dust level is 100 or higher and the air purifier is in auto mode, switch it to high mode and say through the warehouse speaker \"Switching to high mode\".",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_29",
+   "cat": "C05",
+   "command": "If the motion is detected in the guest room and the air conditioner is off, set the air conditioner to auto mode and set the target temperature to 24.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_3",
+   "cat": "C05",
+   "command": "If motion is detected in the garage and the main siren is off, sound the siren in emergency and take a picture.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_30",
+   "cat": "C05",
+   "command": "If the living room light is on and the illuminance is 50 lux or higher, close the living room blind and set the AC to auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_4",
+   "cat": "C05",
+   "command": "If the temperature is 28 degrees or higher and the humidity is 70% or higher, set the air conditioner to cool mode and 24 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_5",
+   "cat": "C05",
+   "command": "If the carbon dioxide concentration is 1200ppm or higher and person is being detected, set the air purifier to high mode and announce a warning using the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_6",
+   "cat": "C05",
+   "command": "If it is raining and the humidity is 80% or higher, set the dehumidifier to drying mode and output \"It's raining and himidity is high\" through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_7",
+   "cat": "C05",
+   "command": "If the noise level is 70 or higher and no one is home, take a photo with the camera and sound the police siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_8",
+   "cat": "C05",
+   "command": "If the illuminance is 100 lux or lower and a person is being detected, set the speaker volume to 30 and play relax.mp3 music.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C05_9",
+   "cat": "C05",
+   "command": "If the fine dust level is 150 or higher and the door is open, close the door and set the air purifier to high.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C06_1",
+   "cat": "C06",
+   "command": "If the living room temperature is at least 28C or the bedroom temperature is at least 30C, turn on the living room air conditioner.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C06_2",
+   "cat": "C06",
+   "command": "If living room illuminance is at most 200 lux, set the living room light to 100% brightness; if at least 500 lux, set it to 30%; otherwise set it to 60%.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C06_3",
+   "cat": "C06",
+   "command": "If the living room temperature is at most 18C or the bedroom temperature is at most 18C, turn on the living room heater plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C06_4",
+   "cat": "C06",
+   "command": "If the bedroom illuminance is at most 100 lux, set the bedroom light to 100% brightness; else if it is at most 300 lux, set it to 50%; otherwise set it to 20%.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C06_5",
+   "cat": "C06",
+   "command": "If the living room humidity is at most 30% or the bedroom humidity is at most 30%, turn on the living room humidifier plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C06_6",
+   "cat": "C06",
+   "command": "If the kitchen temperature is at least 35C or the living room temperature is at least 33C, turn on the kitchen ventilation fan plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C06_7",
+   "cat": "C06",
+   "command": "If motion is detected at the entrance or motion is detected on the balcony, announce through the living room speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_1",
+   "cat": "C07",
+   "command": "When the contact sensor is detected, turn on the light.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_10",
+   "cat": "C07",
+   "command": "When a leak is detected, close the valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_11",
+   "cat": "C07",
+   "command": "When the humidity exceeds 80%, start the dehumidifier in drying mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_12",
+   "cat": "C07",
+   "command": "When the indoor very fine dust level becomes 35 or higher, set the air purifier to high.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_13",
+   "cat": "C07",
+   "command": "When the charging voltage exceeds 250V, stop charging.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_14",
+   "cat": "C07",
+   "command": "When motion is detected in the bedroom, turn on the bedroom air conditioner.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_15",
+   "cat": "C07",
+   "command": "When a smoke is detected in the kitchen, close the kitchen valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_16",
+   "cat": "C07",
+   "command": "When the fine dust level in the study reaches 30 or higher, turn on the study air purifier.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_17",
+   "cat": "C07",
+   "command": "When a water leak is detected in the basement, sound the main siren in emergency mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_18",
+   "cat": "C07",
+   "command": "When the garage door is opened, take a picture with the garage camera.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_19",
+   "cat": "C07",
+   "command": "When the baby room sound exceeds 40 dB, output \"Noise detected in the baby room\" through the living room speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_2",
+   "cat": "C07",
+   "command": "When the presence sensor detects someone, turn on the TV.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_20",
+   "cat": "C07",
+   "command": "When the laundry room dryer's spin speed drops to 5 or below, announce through the living room speaker that the laundry is done.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_21",
+   "cat": "C07",
+   "command": "When the temperature in the pantry reaches 25 degrees or higher, turn on the pantry air conditioner.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_22",
+   "cat": "C07",
+   "command": "When the bathroom humidity exceeds 70%, set the bathroom dehumidifier to freeze protection mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_23",
+   "cat": "C07",
+   "command": "When the office button is pushed, turn on all humidifiers in office.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_24",
+   "cat": "C07",
+   "command": "When any presence sensor in the hallway detects presence, set all hallway lights to purple.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_25",
+   "cat": "C07",
+   "command": "When the carbon dioxide level in the server room becomes 5000 ppm or above, sound all sirens in emergency mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_26",
+   "cat": "C07",
+   "command": "When the bedroom shade button is pushed, lower the shade.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_27",
+   "cat": "C07",
+   "command": "If any presence sensor on floor 1 detects presence, turn on all lights on floor 1.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_28",
+   "cat": "C07",
+   "command": "If motion is detected at the entrance, capture an image with the entrance camera.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_29",
+   "cat": "C07",
+   "command": "If smoke is detected in the kitchen, sound the kitchen siren in fire mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_3",
+   "cat": "C07",
+   "command": "When the sound sensor value exceeds 50, stop speaker playback.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_30",
+   "cat": "C07",
+   "command": "If a leak is detected in the basement, close the basement valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_31",
+   "cat": "C07",
+   "command": "If the server room temperature exceeds 35 degrees, set the server room air conditioner to cool mode at 18 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_32",
+   "cat": "C07",
+   "command": "If the parking lot carbon dioxide level exceeds 900ppm, set the parking lot air purifier to high mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_4",
+   "cat": "C07",
+   "command": "When it rains, turn on the dehumidifier.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_5",
+   "cat": "C07",
+   "command": "When the carbon dioxide concentration reaches 1000ppm or higher, sound the emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_6",
+   "cat": "C07",
+   "command": "When smoke is detected, sound the fire alarm with the siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_7",
+   "cat": "C07",
+   "command": "When the button is pushed 3 times, open the valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_8",
+   "cat": "C07",
+   "command": "When the temperature reaches 35 degrees or higher, set the air conditioner to 30 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C07_9",
+   "cat": "C07",
+   "command": "When the safe is unlocked, sound the police siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_1",
+   "cat": "C08",
+   "command": "When button 1 of the multi-button is pressed, turn on all lights in the bedroom.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_10",
+   "cat": "C08",
+   "command": "When button 2 of the multi-button is pressed, turn on all living room lights and dim them to 30% after 30 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_11",
+   "cat": "C08",
+   "command": "When button 3 of the multi-button is pressed, turn off all lights after 1 hour.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_12",
+   "cat": "C08",
+   "command": "Each time button 3 of the multi-button is pressed, toggle the kitchen light on and off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_13",
+   "cat": "C08",
+   "command": "When button 1 of the multi-button is pressed, if the bedroom light brightness is 80 or higher, set it to 10; otherwise, set it to 80.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_14",
+   "cat": "C08",
+   "command": "If button 1 of the multi-button is pressed and motion is detected in the bedroom, turn on the bedroom light at maximum brightness.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_15",
+   "cat": "C08",
+   "command": "If button 2 of the multi-button is pressed and the living room brightness is below 50, turn on all living room lights.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_16",
+   "cat": "C08",
+   "command": "When button 3 of the multi-button is pressed, change all meeting room lights to blue.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_17",
+   "cat": "C08",
+   "command": "When button 4 of the multi-button is pressed, set all lights to night mode at 10% brightness.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_18",
+   "cat": "C08",
+   "command": "Whenever the humidity level drops to 30% or below, turn on the humidifier.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_19",
+   "cat": "C08",
+   "command": "Whenever the rain stops, open the window.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_2",
+   "cat": "C08",
+   "command": "When button 2 of the multi-button is pressed, turn off all lights in the bedroom.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_20",
+   "cat": "C08",
+   "command": "Every time the sound sensor value exceeds 30, set the air purifier to sleep mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_21",
+   "cat": "C08",
+   "command": "Each time the humidity drops below 50%, set the dehumidifier to drying mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_22",
+   "cat": "C08",
+   "command": "Whenever the window opens, make the speaker speak 'The window is open'.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_23",
+   "cat": "C08",
+   "command": "Each time the brightness level falls below 100 lux, turn on the light.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_24",
+   "cat": "C08",
+   "command": "Every time the fine dust level goes above 80, set the air purifier to high speed.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_25",
+   "cat": "C08",
+   "command": "Each time the carbon dioxide level reaches 900ppm or higher, close the valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_26",
+   "cat": "C08",
+   "command": "Whenever the temperature becomes 30 degrees or higher, close the blind.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_27",
+   "cat": "C08",
+   "command": "Whenever the humidity reaches 50% or higher, set all dehumidifiers with the Group 1 tag to drying mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_28",
+   "cat": "C08",
+   "command": "Whenever the brightness drops below 200 lux, turn on all lights.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_29",
+   "cat": "C08",
+   "command": "Whenever a light in the upper part is turned on, turn on a light in the lower part as well.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_3",
+   "cat": "C08",
+   "command": "When button 3 of the multi-button is pressed, set all living room lights to 30% brightness.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_30",
+   "cat": "C08",
+   "command": "Whenever the button with the 'Light' tag is pressed, set the brightness of all lights with 'Odd' tags to maximum.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_31",
+   "cat": "C08",
+   "command": "Every time the button with the 'Robot' tag is pressed, set all robot vacuum cleaners with 'Even' tags to auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_32",
+   "cat": "C08",
+   "command": "Each time the door is opened, turn on all lights in the hallway and living room.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "extra_call"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_33",
+   "cat": "C08",
+   "command": "Whenever the button with the 'Stop' tag is pressed, turn off all devices with 'Even' tags.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_34",
+   "cat": "C08",
+   "command": "Whenever it rains, close all windows and doors.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_35",
+   "cat": "C08",
+   "command": "Whenever the door lock is locked, turn on the entrance light at maximum brightness for 10 seconds and then turn it off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_36",
+   "cat": "C08",
+   "command": "Whenever motion is detected at the entrance, turn on the entrance light at maximum brightness and then turn it off after 3 seconds.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_37",
+   "cat": "C08",
+   "command": "Whenever the brightness drops below 50 lux, open all shades in the parking lot.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_38",
+   "cat": "C08",
+   "command": "Whenever the kitchen leak sensor detects a leak, start streaming with the kitchen camera.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_39",
+   "cat": "C08",
+   "command": "Whenever the motion sensor in the yard detects anything, sound the police siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_4",
+   "cat": "C08",
+   "command": "When button 4 of the multi-button is pressed, set all living room lights to 100% brightness.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_40",
+   "cat": "C08",
+   "command": "Whenever button 2 of the multi-button is pressed, open all windows in the living room.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_41",
+   "cat": "C08",
+   "command": "Whenever the meeting room door is opened, turn on the light at maximum brightness and then turn it off after 10 seconds.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_5",
+   "cat": "C08",
+   "command": "When button 1 of the multi-button is pressed, turn on the entrance light at maximum brightness.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_6",
+   "cat": "C08",
+   "command": "When button 2 of the multi-button is pressed, turn off all lights in the hallway.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_7",
+   "cat": "C08",
+   "command": "When button 3 of the multi-button is pressed, turn on all lights on floor 1.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_8",
+   "cat": "C08",
+   "command": "When button 4 of the multi-button is pressed, turn off all lights on floor 1.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C08_9",
+   "cat": "C08",
+   "command": "When button 1 of the multi-button is pressed, turn on the entrance light and turn it off after 5 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_1",
+   "cat": "C09",
+   "command": "Switch the TV to channel 7 and switch to channel 11 after 1 hour.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_10",
+   "cat": "C09",
+   "command": "Start the dehumidifier in drying mode and change to refreshing mode after 1 hour.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_11",
+   "cat": "C09",
+   "command": "Open all valves in the kitchen and close them again after 5 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_12",
+   "cat": "C09",
+   "command": "Close all blinds in the bedroom and open them again after 2 hours.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_13",
+   "cat": "C09",
+   "command": "Turn on all dehumidifiers in the lab and turn them off after 4 hours.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_14",
+   "cat": "C09",
+   "command": "Lock all warehouse door locks and sound the emergency siren 1 minute later.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_15",
+   "cat": "C09",
+   "command": "Turn on the kitchen light and turn on the kitchen dehumidifier 10 seconds later.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_16",
+   "cat": "C09",
+   "command": "Set the study air purifier to high and turn it off after 2 hours.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "catalog_service"
+    ],
+    [
+     "catalog_service"
+    ]
+   ],
+   "final_violation_kinds": [
+    "catalog_service"
+   ],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_17",
+   "cat": "C09",
+   "command": "Turn off the bathroom light and turn on after 5 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_18",
+   "cat": "C09",
+   "command": "Close the meeting room door. After 3 seconds take a picture with the meeting room camera.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_2",
+   "cat": "C09",
+   "command": "Set the air conditioner to cool mode and switch to auto mode after 30 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_3",
+   "cat": "C09",
+   "command": "Set the air purifier to auto mode and switch to sleep mode after 2 hours.",
+   "off_verdict": "pass",
+   "on_verdict": "fail",
+   "off_ok": true,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "parse"
+    ],
+    [
+     "parse"
+    ]
+   ],
+   "final_violation_kinds": [
+    "parse"
+   ],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_4",
+   "cat": "C09",
+   "command": "Set the air conditioner temperature to 24 degrees and change it to 26 degrees after 1 hour.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_5",
+   "cat": "C09",
+   "command": "Set the oven mode to Bake and change it to warming mode after 10 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_6",
+   "cat": "C09",
+   "command": "If the dust level concentration is 2000ppm or above, close the door and close the valve after 4 hours.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_7",
+   "cat": "C09",
+   "command": "Sound the siren in emergency mode and change it to fire mode after 5 seconds.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_8",
+   "cat": "C09",
+   "command": "Start the robot vacuum cleaner in auto mode and switch to manual mode after 30 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C09_9",
+   "cat": "C09",
+   "command": "Set the speaker volume to 20 and increase it to 40 after 10 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_1",
+   "cat": "C10",
+   "command": "When the presence sensor detects someone, take a picture after 1 minute.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_2",
+   "cat": "C10",
+   "command": "When the oven enters heating mode, switch it to microwave mode after 3 seconds.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_3",
+   "cat": "C10",
+   "command": "When the humidity falls below 30%, output \"Humidity is low\" through the speaker after 3 seconds.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_4",
+   "cat": "C10",
+   "command": "When it rains, close the door and check again after 1 hour; if it's not raining then, open the door again.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_5",
+   "cat": "C10",
+   "command": "When any presence sensor in the house detects presence, sound all emergency sirens after 10 seconds.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_6",
+   "cat": "C10",
+   "command": "When any light in the hallway is turned on, turn off all lights in the living room after 5 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_7",
+   "cat": "C10",
+   "command": "When any air purifier in the office switches to sleep mode, turn off the light after 10 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_8",
+   "cat": "C10",
+   "command": "When any illuminance sensor on the terrace reaches 100 lux or higher, raise all blinds after 5 seconds.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C10_9",
+   "cat": "C10",
+   "command": "When any temperature sensor in the data center reaches 30 degrees or higher, set all air conditioners to cool mode after 1 minute.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C11_1",
+   "cat": "C11",
+   "command": "Check the wine cellar temperature now and again in 10 minutes. If it has changed by 1 degree or higher, announce through the speaker that the wine cellar temperature has changed rapidly.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C11_2",
+   "cat": "C11",
+   "command": "Check the living room temperature now and again in 1 hour. If it dropped by at least 2 degrees, turn on the living room heater plug.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "extra_call"
+    ],
+    [
+     "extra_call"
+    ]
+   ],
+   "final_violation_kinds": [
+    "extra_call"
+   ],
+   "off_msg": "extra_call"
+  },
+  {
+   "name": "C11_3",
+   "cat": "C11",
+   "command": "Check the bedroom temperature now and again in 30 minutes. If it dropped by at least 3 degrees, turn on the bedroom heater plug.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "extra_call"
+    ],
+    [
+     "extra_call"
+    ]
+   ],
+   "final_violation_kinds": [
+    "extra_call"
+   ],
+   "off_msg": "extra_call"
+  },
+  {
+   "name": "C11_4",
+   "cat": "C11",
+   "command": "Check the living room humidity now and again in 20 minutes. If it dropped by at least 10%, turn on the living room humidifier plug.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "extra_call"
+  },
+  {
+   "name": "C11_5",
+   "cat": "C11",
+   "command": "Check the kitchen temperature now and again in 15 minutes. If it changed by at least 5 degrees, turn on the kitchen ventilation fan plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C11_6",
+   "cat": "C11",
+   "command": "Check the living room illuminance now and again in 1 hour. If it dropped by at least 200 lux, turn on the living room mood-light plug.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "extra_call"
+    ],
+    [
+     "extra_call"
+    ]
+   ],
+   "final_violation_kinds": [
+    "extra_call"
+   ],
+   "off_msg": "extra_call"
+  },
+  {
+   "name": "C11_7",
+   "cat": "C11",
+   "command": "Check the bedroom humidity now and again in 30 minutes. If it rose by at least 15, turn on the bedroom dehumidifier plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C11_8",
+   "cat": "C11",
+   "command": "Check the wine cellar temperature now and again in 1 hour. If it rose by at least 2 degrees, announce through the living room speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_1",
+   "cat": "C12",
+   "command": "When the door opens, make the speaker speak \"Welcome\" every minute thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_10",
+   "cat": "C12",
+   "command": "When the server rack humidity becomes higher than 70%, set the lab dehumidifier to dehumidifying mode and check the humidity every hour; turn it off if it's below 50%.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_11",
+   "cat": "C12",
+   "command": "When the carbon dioxide level in the parking lot exceeds 880 ppm, speak \"CO2 level danger\" through the parking lot speaker every 10 seconds thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_12",
+   "cat": "C12",
+   "command": "When smoke is detected in the living room, sound all fire alarms. Then, every 10 seconds, speak \"Please evacuate\" through the speaker.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "extra_call",
+     "missing_call"
+    ],
+    [
+     "missing_call",
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "missing_call",
+    "timing_drift"
+   ],
+   "off_msg": "missing_call; extra_call"
+  },
+  {
+   "name": "C12_13",
+   "cat": "C12",
+   "command": "When any presence sensor on the 1st floor detects presence, sound all emergency sirens for 3 seconds every minute thereafter and then turn them off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_14",
+   "cat": "C12",
+   "command": "When motion is detected in the lobby, capture an image of the lobby every 30 seconds thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_15",
+   "cat": "C12",
+   "command": "When smoke is detected by the kitchen smoke detector, speak \"Fire outbreak\" through the living room speaker every 10 seconds thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_2",
+   "cat": "C12",
+   "command": "When the contact sensor is closed, sound the police siren every 10 seconds thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_3",
+   "cat": "C12",
+   "command": "Once the entrance door is opened, check the safe every 5 minutes thereafter and announce \"The safe is open\" through the speaker if it's not locked.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_4",
+   "cat": "C12",
+   "command": "When a leak is detected, close the valve immediately and then speak \"Leak detected. Please evacuate.\" through the speaker every minute thereafter.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "missing_call"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "missing_call"
+  },
+  {
+   "name": "C12_5",
+   "cat": "C12",
+   "command": "When smoke is detected, sound the emergency siren for 5 seconds every minute thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_6",
+   "cat": "C12",
+   "command": "When the charger voltage drops to 4V or lower, speak \"The charging voltage is low\" through the speaker every 30 minutes thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_7",
+   "cat": "C12",
+   "command": "When smoke is detected, announce it through the speaker and then send an email every 5 minutes thereafter to \"test@example.com\" with the subject \"Fire Warning\" and the content \"A fire has occurred. Please evacuate.\".",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_8",
+   "cat": "C12",
+   "command": "When the spin speed becomes 0, say 'Please take out the laundry' through the speaker every 10 minutes thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C12_9",
+   "cat": "C12",
+   "command": "When motion is detected, capture an image every 10 seconds thereafter.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C13_1",
+   "cat": "C13",
+   "command": "Every hour, repeat opening and closing the door.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C13_2",
+   "cat": "C13",
+   "command": "Every 30 minutes, toggle the living room air purifier between sleep mode and auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C13_3",
+   "cat": "C13",
+   "command": "Repeat opening and closing the window every 10 minutes.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C13_4",
+   "cat": "C13",
+   "command": "Every 30 minutes, toggle the air purifier between sleep mode and high speed mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C13_5",
+   "cat": "C13",
+   "command": "Repeat opening and closing the living room blind every hour.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C13_6",
+   "cat": "C13",
+   "command": "Repeat opening and closing the bedroom window every 2 hours.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C13_7",
+   "cat": "C13",
+   "command": "Every hour, alternate the air conditioner's target temperature between 25 and 20 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C14_1",
+   "cat": "C14",
+   "command": "Each time button 1 of the multi-button is pressed, increase the hallway light brightness by 10, up to a maximum of 100.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C14_2",
+   "cat": "C14",
+   "command": "Each time button 2 of the multi-button is pressed, decrease the hallway light brightness by 10, down to a minimum of 0.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C14_3",
+   "cat": "C14",
+   "command": "Each time button 4 of the multi-button is pressed, cycle the living room light brightness through 25→50→75 (repeating).",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "arg_mismatch",
+     "extra_call"
+    ],
+    [
+     "arg_mismatch",
+     "extra_call"
+    ]
+   ],
+   "final_violation_kinds": [
+    "arg_mismatch",
+    "extra_call"
+   ],
+   "off_msg": "arg_mismatch"
+  },
+  {
+   "name": "C14_4",
+   "cat": "C14",
+   "command": "Whenever motion is detected, increase the light brightness by 10. If it reaches max, stop it.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C14_5",
+   "cat": "C14",
+   "command": "Whenever button 3 of the multi-button is pressed, increase the bedroom light brightness by 5, up to a maximum of 80.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C14_6",
+   "cat": "C14",
+   "command": "Whenever button 4 of the multi-button is pressed, decrease the living room light brightness by 15, down to a minimum of 10.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "arg_mismatch"
+    ],
+    [
+     "arg_mismatch"
+    ]
+   ],
+   "final_violation_kinds": [
+    "arg_mismatch"
+   ],
+   "off_msg": "arg_mismatch"
+  },
+  {
+   "name": "C14_7",
+   "cat": "C14",
+   "command": "Whenever motion is detected, increase the kitchen light brightness by 20, up to a maximum of 100.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_1",
+   "cat": "C15",
+   "command": "At 6 PM, set the level of all blinds with odd tags on the wall to 50%.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_10",
+   "cat": "C15",
+   "command": "At 6 PM every day, announce the dinner menu of the student cafeteria through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_11",
+   "cat": "C15",
+   "command": "When the Christmas arrives, change the light color to red.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_12",
+   "cat": "C15",
+   "command": "Every hour on Christmas, play 'Christmas.mp3' through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_13",
+   "cat": "C15",
+   "command": "Every 11 PM, close all doors with even tags.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_14",
+   "cat": "C15",
+   "command": "Every morning at 7 AM, open all blinds in Zone 1.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_15",
+   "cat": "C15",
+   "command": "Every 8 AM, open all blinds with odd tags, then 1 hour later open all blinds with even tags.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_16",
+   "cat": "C15",
+   "command": "At 9 AM, open all blinds with even tags on the 3rd floor.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_17",
+   "cat": "C15",
+   "command": "Turn on the light every morning at 8 AM.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_18",
+   "cat": "C15",
+   "command": "At 8 AM, turn on the high-efficiency tagged air purifier and set it to auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_19",
+   "cat": "C15",
+   "command": "At 1 PM, open all blinds.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_2",
+   "cat": "C15",
+   "command": "Every 2 hours on weekends, set all robot vacuum cleaners in the living room to repeat mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_20",
+   "cat": "C15",
+   "command": "Every day at midnight, capture an image with all cameras in the parking lot.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_21",
+   "cat": "C15",
+   "command": "Every day at 11 PM, turn off all floor 1 lights with odd tags.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_3",
+   "cat": "C15",
+   "command": "Lock the doorlock every day at midnight.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_4",
+   "cat": "C15",
+   "command": "Set the rice cooker to reheating mode every morning at 7 AM.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_5",
+   "cat": "C15",
+   "command": "On weekdays from 8 AM to midnight every hour, capture an image with the camera.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_6",
+   "cat": "C15",
+   "command": "When the new year begins, make the arm robot say hello.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_7",
+   "cat": "C15",
+   "command": "On weekdays at 7 AM, start the rice cooker in auto-cleaning mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_8",
+   "cat": "C15",
+   "command": "At 6 AM on Mondays and Wednesdays, announce the weather information through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C15_9",
+   "cat": "C15",
+   "command": "At noon every day, announce the lunch menu of the 301 building cafeteria through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_1",
+   "cat": "C16",
+   "command": "On weekends at 3 PM, check for leakage; if detected, set the siren to emergency mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_10",
+   "cat": "C16",
+   "command": "Every morning at 8 AM, make the speaker speak 'Get up'. Additionally, if the window is closed, open it.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_11",
+   "cat": "C16",
+   "command": "Check every 5 minutes from 10 PM to 11 PM and turn it off when charging is complete.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_12",
+   "cat": "C16",
+   "command": "At 6 PM, if any window is open, close all of them.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_13",
+   "cat": "C16",
+   "command": "Every 10 PM, if the meeting room door lock is open, lock it and turn off the meeting room light.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_2",
+   "cat": "C16",
+   "command": "Every Monday at 8 AM, if both the safe and the door lock are locked, say 'It is safe' through the speaker",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_3",
+   "cat": "C16",
+   "command": "Every 30 minutes from 7 PM to 10 PM, check the robot vacuum cleaner and start it in auto mode if it is stopped.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "extra_call"
+    ],
+    [
+     "extra_call"
+    ]
+   ],
+   "final_violation_kinds": [
+    "extra_call"
+   ],
+   "off_msg": "extra_call"
+  },
+  {
+   "name": "C16_4",
+   "cat": "C16",
+   "command": "At 11 PM, if safe is open or the door lock is open , speak 'Check the safe and door lock' through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_5",
+   "cat": "C16",
+   "command": "Every 7 PM, if no one is detected on the 1st floor, turn off all lights on floor 1; then 1 hour later, if no one is detected on the 2nd floor, turn off all lights on floor 2.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "extra_call"
+    ],
+    [
+     "missing_call",
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "missing_call",
+    "timing_drift"
+   ],
+   "off_msg": "extra_call"
+  },
+  {
+   "name": "C16_6",
+   "cat": "C16",
+   "command": "At 6 PM on weekdays, if presence sensors in the office show no presence, turn off all air conditioners and humidifiers in the office.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_7",
+   "cat": "C16",
+   "command": "Every 10 PM, if presence is detected in the living room, turn on all lights.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_8",
+   "cat": "C16",
+   "command": "At midnight, if motion is detected in the hallway, turn all hallway lights to 100% brightness.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C16_9",
+   "cat": "C16",
+   "command": "Every hour from midnight to 5 AM, if at least one door is open, turn all hallway lights to 50%.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "parse"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_1",
+   "cat": "C17",
+   "command": "Every 10 minutes, if the temperature is 30 degrees or higher, set the air conditioner to cool mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_10",
+   "cat": "C17",
+   "command": "Measure the temperature every 15 minutes; turn on the air conditioner in cool mode if it's 25 degrees or higher, and turn it off if it's below 25 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_11",
+   "cat": "C17",
+   "command": "Whenever the car charger in the parking lot is fully charged, speak \"Charging is complete\" through the speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_12",
+   "cat": "C17",
+   "command": "Every 30 minutes, if any hallway light brightness is 50% or higher, turn off all hallway lights.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_2",
+   "cat": "C17",
+   "command": "Every 30 minutes, if the temperature is 20 degrees or higher and below 30 degrees, set the air conditioner to auto mode; if it is 30 degrees or higher, set it to cool mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_3",
+   "cat": "C17",
+   "command": "Every hour, increase the speaker volume by 10.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_4",
+   "cat": "C17",
+   "command": "Check every 30 minutes; if the temperature is 30 degrees or higher, set the target temperature to 25 degrees; if it's below 23 degrees, set it to 26 degrees.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_5",
+   "cat": "C17",
+   "command": "Check humidity every 10 minutes; if it's 50 or higher, turn off the humidifier; if it's 20 or lower, turn on the humidifier and set it to auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_6",
+   "cat": "C17",
+   "command": "Check the fine dust level every hour; if it's 200 or higher, set the air purifier to high speed; if it's 100 or lower, set it to low speed.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_7",
+   "cat": "C17",
+   "command": "Check every 5 minutes; if the charger is fully charged, turn it off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_8",
+   "cat": "C17",
+   "command": "Every minute, if the humidity of all sensors in Group2 is 50% or higher, set all dehumidifiers to refresh mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C17_9",
+   "cat": "C17",
+   "command": "Check all door locks in Sector 1 every hour; if any one is open, change all lights in that sector to red.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "missing_call",
+     "trace_empty"
+    ],
+    [
+     "missing_call",
+     "trace_empty"
+    ]
+   ],
+   "final_violation_kinds": [
+    "missing_call",
+    "trace_empty"
+   ],
+   "off_msg": "l2 exception: ValueError: expression not allowed as statement: DeviceRef(key='doorlock.doorlockstate')"
+  },
+  {
+   "name": "C18_1",
+   "cat": "C18",
+   "command": "Every 5 minutes from 1 PM to 3 PM, repeat opening and closing the valve.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C18_10",
+   "cat": "C18",
+   "command": "At midnight, close the door and check the light every hour until 6 AM; if the brightness is greater than 30, lower it to 10.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "use_before_init"
+    ],
+    [
+     "extra_call",
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "extra_call",
+    "timing_drift"
+   ],
+   "off_msg": "l2 exception: ValueError: expression not allowed as statement: Lit(value=True)"
+  },
+  {
+   "name": "C18_2",
+   "cat": "C18",
+   "command": "Every 30 minutes on weekend afternoons, set the robot vacuum cleaner to auto mode.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C18_3",
+   "cat": "C18",
+   "command": "From 10 PM to midnight every 10 minutes, sound the emergency siren.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C18_4",
+   "cat": "C18",
+   "command": "Every 10 minutes from now until 3 PM, sound the emergency siren for 5 seconds and then turn it off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C18_5",
+   "cat": "C18",
+   "command": "Every 30 minutes during weekends, check all pumps in the factory; if any one is turned on, turn off all pumps and send an email to \"test@example.com\" with the subject 'Risk' and message 'A pump is turned on'.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "extra_call; extra_call"
+  },
+  {
+   "name": "C18_6",
+   "cat": "C18",
+   "command": "If no motion is detected between 10 PM and 11 PM, lock all door locks.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C18_7",
+   "cat": "C18",
+   "command": "Every 30 seconds from 10 PM to 11 PM, check for rain; if it rains, close the window.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C18_8",
+   "cat": "C18",
+   "command": "Every 5 seconds on weekends, if the pump is off, turn it on; if it is on, turn it off.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C18_9",
+   "cat": "C18",
+   "command": "Every hour from 6 PM to 8 PM, if someone is detected on the 1st floor, turn on all 1st floor lights.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "extra_call"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C19_1",
+   "cat": "C19",
+   "command": "Every 1 second, if the living room temperature is at least 28C, turn on the AC plug; otherwise if it is 25C or below, turn off the AC plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C19_2",
+   "cat": "C19",
+   "command": "Every 1 second, if the living room humidity is at least 70%, turn on the dehumidifier plug; otherwise if it is 50% or below, turn off the dehumidifier plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C19_3",
+   "cat": "C19",
+   "command": "Every 1 second, if the living room illuminance is at most 200 lux, turn on the floor lamp plug; otherwise if it is at least 500 lux, turn off the floor lamp plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C19_4",
+   "cat": "C19",
+   "command": "Every 1 second, if the living room temperature is at most 18C, turn on the heater plug; otherwise if it is at least 22C, turn off the heater plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C19_5",
+   "cat": "C19",
+   "command": "Every 1 second, if the living room humidity is at most 30%, turn on the humidifier plug; otherwise if it is at least 55%, turn off the humidifier plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C19_6",
+   "cat": "C19",
+   "command": "Every 1 second, if the bedroom temperature is at least 26C, turn on the bedroom fan plug; otherwise if it is 23C or below, turn off the bedroom fan plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C19_7",
+   "cat": "C19",
+   "command": "Every 1 second, if the kitchen temperature is at least 32C, turn on the kitchen ventilation fan plug; otherwise if it is 28C or below, turn off the kitchen ventilation fan plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C19_8",
+   "cat": "C19",
+   "command": "Every 1 second, if the bathroom humidity is at least 75%, turn on the bathroom ventilation fan plug; otherwise if it is 55% or below, turn off the bathroom ventilation fan plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C20_1",
+   "cat": "C20",
+   "command": "If no motion is detected in the living room for at least 30 seconds, turn off the living room power strip plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C20_10",
+   "cat": "C20",
+   "command": "If the garage door stays open for at least 30 seconds, turn on the garage light.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C20_11",
+   "cat": "C20",
+   "command": "If the TV plug power stays below 10W for at least 15 minutes, turn off the TV plug.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_12",
+   "cat": "C20",
+   "command": "If the study door stays closed for at least 3 minutes, turn off the study light.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_13",
+   "cat": "C20",
+   "command": "If no motion is detected in the bathroom for at least 20 seconds, turn off the bathroom fan.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C20_14",
+   "cat": "C20",
+   "command": "If no one is present in the office for at least 10 minutes, turn off the office air conditioner.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_15",
+   "cat": "C20",
+   "command": "If the pantry door stays open for at least 45 seconds, turn on the pantry light.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C20_16",
+   "cat": "C20",
+   "command": "If the charger plug power stays below 5W for at least 30 minutes, turn off the charger plug.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_17",
+   "cat": "C20",
+   "command": "If motion is detected in the backyard for at least 1 minute, turn on the backyard light.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_2",
+   "cat": "C20",
+   "command": "If the front door stays open for at least 5 seconds, turn on the ventilation fan plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C20_3",
+   "cat": "C20",
+   "command": "If a person is detected in the living room for at least 30 seconds, turn on the living room TV plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C20_4",
+   "cat": "C20",
+   "command": "If the printer plug power consumption stays below 5W for at least 10 minutes, turn off the printer plug.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_5",
+   "cat": "C20",
+   "command": "If the front door stays closed for at least 1 minute, turn on the living room air conditioner plug.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_6",
+   "cat": "C20",
+   "command": "If no motion is detected in the bedroom for at least 1 minute, turn off the bedroom floor lamp plug.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_7",
+   "cat": "C20",
+   "command": "If the kitchen door stays open for at least 10 minutes, turn on the kitchen ventilation fan plug.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_8",
+   "cat": "C20",
+   "command": "If no motion is detected in the office for at least 5 minutes, turn off the office light.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C20_9",
+   "cat": "C20",
+   "command": "If a person stays in the meeting room for at least 2 minutes, turn on the projector.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C21_1",
+   "cat": "C21",
+   "command": "If no person is detected in either the living room or the bedroom, turn off the living room power strip plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C21_2",
+   "cat": "C21",
+   "command": "If both the front door and the balcony door are closed, turn on the living room security camera plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C21_3",
+   "cat": "C21",
+   "command": "If motion is detected in either the living room or the bedroom, announce through the living room speaker.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C21_4",
+   "cat": "C21",
+   "command": "If both the living room and bedroom illuminance are at most 100 lux, turn on the living room mood-light plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C21_5",
+   "cat": "C21",
+   "command": "If both the living room and bedroom temperatures are at least 25C, turn on the living room fan plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C21_6",
+   "cat": "C21",
+   "command": "If both the living room and the kitchen illuminance are at most 50 lux, turn on the living room mood-light plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C21_7",
+   "cat": "C21",
+   "command": "If either the living room or the bedroom temperature is at least 30C, turn on the living room AC plug.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_1",
+   "cat": "C22",
+   "command": "Every 5 minutes, capture an image with the meeting room camera. Stop after 10 photos.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_10",
+   "cat": "C22",
+   "command": "Every 20 seconds, turn the kitchen light on. Stop after 8 runs.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_2",
+   "cat": "C22",
+   "command": "Every 30 seconds, turn on the living room light. Repeat 4 times and stop.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_3",
+   "cat": "C22",
+   "command": "Every 1 minute, announce \"lunch time\" through the speaker. Total 3 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_4",
+   "cat": "C22",
+   "command": "Every 2 minutes, turn on the heater plug. Stop after 6 runs.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_5",
+   "cat": "C22",
+   "command": "Every 20 minutes, announce \"meeting reminder\" through the speaker. Total 5 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_6",
+   "cat": "C22",
+   "command": "Every 10 seconds, sound the siren in emergency mode. Stop after 6 bursts.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_7",
+   "cat": "C22",
+   "command": "Every 1 hour, open the bedroom blind. Total 5 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_8",
+   "cat": "C22",
+   "command": "Every 15 minutes, set the air purifier to high mode. Stop after 4 runs.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C22_9",
+   "cat": "C22",
+   "command": "Every 3 minutes, open the garage door. Repeat 3 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C23_1",
+   "cat": "C23",
+   "command": "If no motion is detected in the living room for at least 10 minutes, dim the living room light to 30%, then turn it off 5 minutes later.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift; timing_drift"
+  },
+  {
+   "name": "C23_2",
+   "cat": "C23",
+   "command": "If the porch door stays open for at least 1 minute, turn on the porch light, then turn it off 3 minutes later.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift; timing_drift"
+  },
+  {
+   "name": "C23_3",
+   "cat": "C23",
+   "command": "If no one is present in the study for at least 15 minutes, dim the study light to 20%, then turn it off 10 minutes later.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift; timing_drift"
+  },
+  {
+   "name": "C23_4",
+   "cat": "C23",
+   "command": "If the bedroom temperature stays above 28 degrees for at least 5 minutes, turn on the fan, then turn it off 20 minutes later.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "missing_call; extra_call; timing_drift; extra_call"
+  },
+  {
+   "name": "C23_5",
+   "cat": "C23",
+   "command": "If no motion is detected in the hallway for at least 3 minutes, dim the hallway light to 50%, then turn it off 2 minutes later.",
+   "off_verdict": "fail",
+   "on_verdict": "pass",
+   "off_ok": false,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": "timing_drift; timing_drift"
+  },
+  {
+   "name": "C24_1",
+   "cat": "C24",
+   "command": "If the entrance door stays open for at least 1 minute, announce 'Please close the door' through the speaker every 30 seconds, up to 3 times.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C24_2",
+   "cat": "C24",
+   "command": "If a person stays in the meeting room for at least 2 minutes, announce 'The meeting starts soon' through the speaker every 1 minute, 3 times.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C24_3",
+   "cat": "C24",
+   "command": "If the office plug power stays below 5W for at least 10 minutes, announce 'Device is idle' through the speaker every 2 minutes, 3 times.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "use_before_init"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C24_4",
+   "cat": "C24",
+   "command": "If no one is present in the lobby for at least 1 minute, announce 'Is anyone there' through the speaker every 15 seconds, up to 4 times.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "missing_call",
+     "timing_drift"
+    ],
+    [
+     "missing_call",
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "missing_call",
+    "timing_drift"
+   ],
+   "off_msg": "timing_drift"
+  },
+  {
+   "name": "C24_5",
+   "cat": "C24",
+   "command": "If the safe door stays closed for at least 30 seconds, capture an image with the camera every 30 seconds, up to 5 times.",
+   "off_verdict": "fail",
+   "on_verdict": "fail",
+   "off_ok": false,
+   "on_ok": false,
+   "accepted": false,
+   "n_attempts": 2,
+   "attempt_kinds": [
+    [
+     "timing_drift"
+    ],
+    [
+     "timing_drift"
+    ]
+   ],
+   "final_violation_kinds": [
+    "timing_drift"
+   ],
+   "off_msg": "trace_empty"
+  },
+  {
+   "name": "C25_1",
+   "cat": "C25",
+   "command": "Every 5 minutes, check the living room temperature; if it is 28 degrees or higher set the air conditioner to cool, otherwise auto. Stop after 6 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C25_2",
+   "cat": "C25",
+   "command": "Every 10 minutes, check the bedroom temperature; if it is below 20 degrees set the air conditioner to heat, otherwise auto. Stop after 4 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C25_3",
+   "cat": "C25",
+   "command": "Every 1 minute, check the server room temperature; if it is 30 degrees or higher set the air conditioner to cool, otherwise auto. Stop after 10 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C25_4",
+   "cat": "C25",
+   "command": "Every 30 minutes, check the office temperature; if it is 26 degrees or higher set the air conditioner to cool, otherwise auto. Stop after 5 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  },
+  {
+   "name": "C25_5",
+   "cat": "C25",
+   "command": "Every 15 minutes, check the living room temperature; if it is below 18 degrees set the air conditioner to heat, otherwise auto. Stop after 3 times.",
+   "off_verdict": "pass",
+   "on_verdict": "pass",
+   "off_ok": true,
+   "on_ok": true,
+   "accepted": true,
+   "n_attempts": 1,
+   "attempt_kinds": [
+    []
+   ],
+   "final_violation_kinds": [],
+   "off_msg": ""
+  }
+ ]
+}
