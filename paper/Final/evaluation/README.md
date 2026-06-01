@@ -114,6 +114,38 @@ GPT-5.1 first rejected 30/30 (misreading `:=` persistence) but this DISSOLVED to
 a robust over-rejection result; kept only as the lesson that prompt
 under-specification, not multiplicity, drove it. `results/multigt_gpt51_explicit.json`.
 
+### 4. NL→IR error distribution + faithfulness-surfacing (RQ1 substitute, human-free)
+The RQ1 user study is deferred this round (no IRB). These two human-free analyses
+establish the IR rendering as a *confirmable, faithful surface* (necessary
+condition for confirmation; they do NOT claim humans detect faults well).
+
+```
+PYTHONPATH=/home/gnltnwjstk/joi python3 paper/extract_nl2ir_errors.py
+PYTHONPATH=/home/gnltnwjstk/joi python3 paper/run_faithfulness_surfacing.py
+```
+
+(a) **Real NL→IR error distribution** (`extract_nl2ir_errors.py`): for each row,
+behaviorally compare the generated IR vs `ir_gt` (synthesize scenarios from gt,
+run both IR sims, compare action traces). Behaviorally-equivalent = idiom variant
+(NOT a fault); divergent = real error, classified into fault classes. Result:
+of 382 rows, **323 (85%) behaviorally equivalent** (multiplicity / label-noise
+evidence) and **59 (15.4%) real errors** (arg-value 19 / device 12 / condition 12
+/ timing 9 / single-vs-cycle 8 / …). Reactive-mode confusions (oneshot↔waituntil,
+AND↔sequential) are genuinely rare in this pipeline (not filtered out — all the
+ones that occur are behaviorally divergent). → `results/nl2ir_error_distribution.json`.
+
+(b) **Faithfulness-surfacing** (`run_faithfulness_surfacing.py`): does the
+DETERMINISTIC renderer surface faults in plain text? Blind spot = two
+behaviorally-different IRs that render to identical text. **Part B** (synthetic
+injection over 8 fault classes incl. reactive-mode oneshot↔waituntil /
+single↔cycle / and-drop): **1504/1504 = 100% surfaced, 0 blind spots**. **Part A**
+(57 real errors): **56/57 = 98.2%**; the single blind spot (C16_5) is a
+device-scope *selector* difference (`all(#Floor2)` vs default) that the behavioral
+rendering abstracts away — device mapping is a separate precision/selector
+confirmation channel (reported as an honest limitation; renderer not modified).
+→ `results/faithfulness_surfacing.json` + `results/rendering_worked_examples.json`
+(command, render(correct), render(faulty) triples for worked-example figures).
+
 ## Files
 - `data/equiv_stress.json` — 235 groups / 391 trace-exact equivalence variants (instability input).
 - `data/mutant_stress.json` — 277 tagged genuine bugs + 69 correct controls (judge-audit input).
@@ -129,6 +161,8 @@ under-specification, not multiplicity, drove it. `results/multigt_gpt51_explicit
   back-translation describe prompt (extended with sustain/counter idioms).
 - `aggregate_motivation.py`, `plot_motivation.py` — tables + figures.
 - `run_repeat_control.py` — same-input repeat control (NOT needed once temp=0 confirmed; kept for record).
+- `extract_nl2ir_errors.py` — real NL→IR error distribution (trace-based; idiom-variant vs real-fault).
+- `run_faithfulness_surfacing.py` — blind-spot / fault-surfacing measurement over the deterministic renderer (RQ1 human-free substitute).
 
 ## Reproduction determinism notes
 - 9B: temp=0, `enable_thinking=False` ⇒ deterministic.
