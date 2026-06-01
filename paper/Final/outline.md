@@ -42,6 +42,12 @@
   * IR-FSM은 **test-generation projection**이지 model-checking 대상 아님. completeness 류 단어 금지 → **bounded-fragment** 설계 근거로(아래 guard).
 - **§5b Structural exemplar routing (SUB, IR's 3rd payoff, [PLANNED]/unbuilt)** — IR 구조로 exemplar 동적 retrieval; verifier-accepted exemplars accumulate → improve retrieval (NOT "self-learning"); generator prompt-construction only, verdict LLM-free.
   * routing은 **IR STRUCTURAL SIGNATURE 기반** (IR-linked가 핵심, generic text-RAG 아님). hero는 이것에 의존 X.
+  * **★ 구조 문법 G = feasibility + routing 통합 설계 (2026-06-01; TaskSense grammar-DAG 평행)**: IR을 typed tree로 보고 **의존성 문법 G** 정의 — `start_at` 정확히 1개(+top-level cron 1개) / `cycle.body`에 `cycle` 금지(**nesting 불가**) / `then`·`else`는 `if` 자식만 / `break`는 `cycle` 안만 / `cycle`은 period·until 필수 / edge∈{none,rising} 등.
+    - **Feasibility = `IR ∈ L(G)`** (결정론 문법 멤버십). **TaskSense 평행**: 그들 *plan-DAG ⊆ grammar-DAG* ↔ 우리 *IR ∈ L(G)* (related work에서 "구조 검사=수용된 기법"으로 방어).
+    - **계약(이게 결정론을 만듦)**: extract = 사용자 말대로 **literal transcription**(임의 평탄화·정정 금지, "거의 다 표현됨" 가정) → **`IR∈L(G)` 결정론 체크 → 위반 반려.** 거부 판단을 *생성 LLM 재량*에서 *문법 멤버십(결정론)*으로 이동 → nested loop/이중 cron이 정직히 옮겨지면 불법구조(`cycle⊂cycle`, start_at 2개)→**결정론 반려**.
+    - **★ caveat(정직)**: 결정론 보장은 **literal-transcription 가정 위에서만**; LLM이 불법구조를 *silent-flatten*하면 valid IR→G 통과→의미만 틀림→**confirmation 잔여**. ⇒ extractor를 "정정 말고 그대로 옮겨라"로 설계해야 게이트가 산다. (`validate_ir`이 op-set/start_at-first/then-else 등 **G의 일부 이미 강제** → **nested-cycle 금지·single-cron 규칙 추가 = G 완성**, 구현 TODO.)
+    - **Routing = 같은 G의 구조클래스 τ(IR)**(어떤 production/idiom 스키마를 instantiate) 공유 exemplar 검색·분류 → **feasibility(∈L(G))와 routing(τ)이 한 문법분석에서.**
+    - **수식 요약**: `feasibility = [IR ∈ L(G)]` (결정론) · `routing = exemplars sharing τ(IR)`. paper 톤: **강한 주장 = 구조적 infeasibility(nested loop/이중 cron/잘못된 then-else) 결정론 반려**(TaskSense 평행) / 부산물 = routing + novel-OOD(알려진 τ에서 멂) 가볍게 / 정직 = 의미적 inexpressible·silent-flatten은 confirmation 잔여.
   * **★ STRUCTURE LOCK (codex)**: unbuilt → **core section order(verifier↔impl 사이)에 두지 말 것** = scope-creep으로 읽힘. **§11 future work 또는 §7 말미 짧은 design-rationale로 강등**; system architecture로 제시 금지. *만약* generation 품질에 영향 주면 RQ3/E2E accuracy arm에 반드시 포함(아니면 빠짐).
 - **§6 Why existing verification doesn't transfer** — `why_not_fsm.md` 요약; vs MBT / monitor synthesis / formal verification (+ honest concession).
   * **★ ORDER LOCK (codex; §6 너무 늦음)**: "왜 기존 검증이 안 통하나"의 **핵심 gist는 §2(문제 직후)에 먼저** 나와야 함(시스템 다 설명한 뒤 §6은 늦음 → 독자가 이미 우리 구조를 수긍한 상태). §6은 **상세 비교만** 유지; 결정적 "new IR/verifier가 필요한 이유"는 §2 + §9(related)에 분산.
