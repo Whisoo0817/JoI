@@ -14,6 +14,8 @@
 > **★ verifier 가치 = safety(silent-wrong 0), NOT accuracy lift(+3.4%는 헤드라인 금지). minus-IR의 큰 generation gain = "Role 0" 부수효과로 정직히, hero(verified-deploy) 흐리지 말 것.**
 > **★ TONE LOCK (2026-06-01, no-IRB 재보정)**: hero = **LLM-free on-device VERIFICATION**(wedge), headline = **safety(silent-wrong→0, fail-closed, rejection-sound)**. non-expert empirics 제거로 빈 보조공간은 **on-device·no-cloud·LLM-free efficiency**(enabler/feasibility=RQ4 + "cloud LLM-judge는 edge 불가" motivation wedge)와 **IR confirmable·fault-surfacing 시연**(#70)으로 채운다 — efficiency/cost는 *enabler지 headline 아님*. "on-device E2E deploy" 단독을 hero로 X(=GPIoT 영역) → **"*verified* on-device deploy via LLM-free 검증"**. confirm 단계 동기 = **NL 모호성**(누구든 해당) + non-expert는 motivation/대상.
 >
+> **★★ SPINE (framing 권위) = `Final/outline2.md` §0으로 이전 (2026-06-02 수렴: 분석→codex r1→v2→codex r2).** 이 문서(outline.md)는 섹션별 ★LOCK rationale **archive**; 새 skeleton·framing 권위 = **outline2.md**(충돌 시 outline2 우선). 한 줄 요약: *LLM은 생성(IR 제안 + JoI lowering)에; feasibility·rendering(승인용)·verifier(L1/L2)는 결정론·LLM-free(lowering이 LLM이라 verifier가 필요); safety=headline, efficiency=같은 결정론의 배포-축 귀결.* (이 블록 아래 HERO/TONE/§-LOCK들은 보존하되, "verified" 등 표현은 outline2 WORDING SCRUB로 교정해 읽을 것.)
+>
 > **`* …` = 그 파트의 lock (위반 금지). 새 결정은 해당 파트에 `*`로 추가.**
 
 ---
@@ -71,7 +73,7 @@
   * "finite-state view / enumerable obligations — NOT a model-checking target"; never "timed automata".
   * NL→IR은 LLM, **IR→plain-language rendering은 결정론(LLM 없음)** → 사용자가 보는 게 IR을 정확히 반영(환각 없음).
 - **§6 Verifier (CORE)** — IR→FSM→construct-derived boundary events→trace-equivalence; LLM-free, on-device. **상세 흐름 = 아래 "§6 detail" 블록**(정당화 → ★기여 event synthesis → omission 검출 → claim ladder → adequacy 실험 → 한계).
-  * **+ feasibility = `IR∈L(G)` 결정론 구조 reject** (결정론 검증 스토리의 일부, L1 well-formedness↔L2 trace 사이/앞; TaskSense plan-DAG⊆grammar-DAG 평행=§2 방어). correctness=**by-construction(문법 멤버십)**이라 *실험 없이* 메커니즘으로 서술(이번 라운드 수치 X). **caveat**: 보장은 extractor *literal-transcription* 가정 위에서만 — silent-flatten 시 valid IR→G 통과→의미만 틀림→confirmation 잔여.
+  * **+ feasibility = `IR∈L(G)` 결정론 구조 reject** (결정론 검증 스토리의 일부; **위치 = IR extract 직후 IR 자체에 대한 구조 게이트 — lowering·L1 코드체크·L2 trace 모두 *이전***. ★ **L1과 구분 LOCK**: L1=생성 *JoI 코드*의 정적 well-formedness(파이프라인 뒤단, lowering 후) ↔ feasibility=*IR*을 typed tree로 보고 nested loop/이중 cron/then-else 구조 검사(IR extract 직후, 코드 나오기 전) = **다른 artifact·다른 시점이라 L1에 묶지 말 것**; TaskSense plan-DAG⊆grammar-DAG 평행=§2 방어). correctness=**by-construction(문법 멤버십)**이라 *실험 없이* 메커니즘으로 서술(이번 라운드 수치 X). **caveat**: 보장은 extractor *literal-transcription* 가정 위에서만 — silent-flatten 시 valid IR→G 통과→의미만 틀림→confirmation 잔여.
   * verdict 결정론·LLM-free. T1 determinism + T2 **rejection soundness** (flag ⇒ REAL divergence). **"pass ⇒ correct" 금지.**
   * IR-FSM은 **test-generation projection**이지 model-checking 대상 아님. completeness 류 단어 금지 → **bounded-fragment** 설계 근거로(아래 guard).
 - **§6b Structural exemplar routing — built, 단 이번 라운드 측정 X → §7 구현 디테일로 강등, *효과 주장 금지*** — IR 구조클래스 τ(IR) 공유 exemplar retrieval → lowering prompt 구성; generator-only, verdict LLM-free. **★ 측정(ablation) 안 하므로 "generation 개선" 정량 주장 금지**(ablation 없이 주장=리뷰어 즉사). = "어떻게 도는지"(메커니즘)까지만 서술, **contribution bullet 아님.** verifier-accepted exemplar 누적→retrieval 개선도 *주장 아닌 설계*로만.
@@ -112,6 +114,8 @@
 ## §6 detail — Verifier (flow + ★technique + adequacy)  〔구 §5; 아래 §5.x 하위라벨 = §6.x, prose-time renumber〕
 
 > 흐름: **reactive·temporal·behavioral IoT 특성**을 가져와서 → 왜 무거운 형식기법(MC/SMT) 없이 가벼운 온디바이스 검증으로 충분한지 정당화 → 그 정당화를 실현하는 ★핵심기술(IR-FSM→event synthesis) → commission+omission(이상행동) 검출 → 무엇을 주장/실험으로 입증하는지 → 정직한 한계. (codex 2-round vetted.)
+>
+> **★ STAGE LAYERING (도입 1~2줄; codex L1 혼동 방지)**: 검증은 파이프라인 위 *서로 다른 시점·artifact*의 계층으로 둔다 — **(i) feasibility = `IR∈L(G)`** (IR extract 직후, *IR* typed tree 구조 게이트: nested loop/이중 cron/then-else 결정론 reject) → [user confirm] → lowering → **(ii) L1 = 생성 *JoI 코드*의 정적 well-formedness/executability**(syntax·enum·type) → **(iii) L2 = behavioral trace-equivalence**(IR↔code, §6 코어). feasibility는 IR측·코드 이전, L1은 코드측·코어 이전 = **둘을 같은 단계로 묶지 말 것**. hero = (iii) L2 trace-equiv verifier; (i)(ii)는 받쳐주는 게이트.
 
 ### §5.0 왜 behavioral·왜 lightweight (정당화; §5.1을 forward-ref)
 * 출발: 생성 JoI엔 **정적 oracle 없음** + **non-canonical**(같은 행동 여러 표현) → 동등성은 구문 아닌 **behavioral(trace)** 로 봐야.
