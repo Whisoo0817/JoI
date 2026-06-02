@@ -92,7 +92,7 @@ Cron has 5 fields: `minute hour day-of-month month day-of-week`. The 5th field e
 | `when X, thereafter every N, do Y` / hint `phase-lifecycle: trigger fires once, then perpetual cycle` | `wait(X)` then `cycle(period="N UNIT"){ Y }` | wait OUTSIDE cycle (D-4) — see D6 |
 | `every <duration>, do Y` / `every <duration>, if X, do Y` (pure periodic, no wall-clock anchor) | `start_at(now) + cycle(period="<duration>"){ Y or if-check }` | top-level cycle |
 
-`any` / `at least one` is a **selector quantifier only** — it never changes the IR shape. "When any sensor detects, do Y" is still ONE-SHOT `wait(...edge:"none"); call`.
+`any` / `all` / `at least one` is a **downstream selector quantifier only** — it never changes the IR shape and is NEVER written into the IR (no `any(...)`/`all(...)` in `cond` or `args`). "When any sensor detects, do Y" is still ONE-SHOT `wait(...edge:"none"); call` with a bare `Category.Service` cond.
 
 ## D4. `wait.edge` decided STRUCTURALLY (single source of truth)
 | Position of `wait` | edge |
@@ -188,7 +188,7 @@ Same device attribute compared at two different moments → use `read` for each 
   - `read one X sensor; compare <op> <V>` ⇒ build the cond expression with that comparison verbatim.
   - Hints are reference; `[Services]` and `[Resolved Args]` are catalog/value ground truth.
 
-- **R1. Category-only targets + verbatim attrs**: `target`/`src`/`cond` attrs MUST be `Category.Service` exactly as in `[Services]`. NEVER suffix device IDs. NEVER swap similar-looking attrs (`PressureSensor.Pressure` ≠ `PresenceSensor.Presence`).
+- **R1. Category-only targets + verbatim attrs**: `target`/`src`/`cond` attrs MUST be `Category.Service` exactly as in `[Services]`. NEVER suffix device IDs. NEVER swap similar-looking attrs (`PressureSensor.Pressure` ≠ `PresenceSensor.Presence`). NEVER wrap an attr in a device selector or quantifier; device scope and `all`/`any` are resolved by a separate downstream stage and never appear in the IR. Write the bare attr: ✅ `cond:"TemperatureSensor.Temperature >= 35"`.
 
 - **R1.1. Generic capabilities live on the sub-service.** If the member name is `Switch` / `On` / `Off` / `Toggle` / `MaxLevel` / `MinLevel` / `CurrentLevel` / `MoveToColor` / `MoveToColorTemperature` / `CurrentBrightness` / `MoveToBrightness`, the Service portion is the matching sub-service (`Switch`, `LevelControl`, `ColorControl`) — NEVER the device's parent category, even though the parent is listed in `[Services]`. Parent-category methods (e.g. `FaceRecognizer.Start`, `Pump.SetPumpMode`) stay on the parent.
   - ❌ `FaceRecognizer.Switch`, `Pump.Switch`, `Light.On`, `Speaker.Switch`, `Light.MaxLevel`.
@@ -199,13 +199,13 @@ Same device attribute compared at two different moments → use `read` for each 
   - ✅ `Door.DoorState == "open"`, `Charger.ChargingState == "fullyCharged"`.
   - Applies in `if.cond`, `wait.cond`, `cycle.until`.
 
-- **R2. Single call for multi-device actions**: "turn on all bedroom lights" → ONE `call` op. The `all(#Bedroom #Light)` selector fans out downstream.
+- **R2. Single call for multi-device actions**: "turn on all bedroom lights" → ONE `call` op. Device scope/quantity ("all bedroom", "in sector 1", "any sensor") is resolved by a separate downstream stage and never appears in the IR; write the bare `Category.Service`.
 
 - **R-var**: a `call` has `var:"<X>"` iff `<X>` is in `[Bind Hints]`. Methods absent from `[Bind Hints]` MUST NOT carry `var`.
 
 - **R3. Trust `[Resolved Args]` verbatim**. Copy byte-for-byte into matching `call.args`. JSON types preserved (`300.0` stays number; booleans stay booleans; strings stay strings). Resolved `{}` → emit `args:{}`.
   - **No selector/scope/filter/target fields in args.** Tag-based device scoping (`Selector`, `Scope`, `Filter`, `Target`, `Devices`, `Tags`, `Category`) belongs to the downstream selector stage. Scope phrases in the command ("all safes with odd tags", "every bedroom light") do NOT add args fields; the call stays `args:{}` (or its real schema args).
-    - ❌ `{"target":"Safe.Lock","args":{"Selector":"all(#SectorB #Odd)"}}`
+    - ❌ `{"target":"Safe.Lock","args":{"Selector":"<device scope>"}}`
     - ✅ `{"target":"Safe.Lock","args":{}}`
   - **`args` keys come ONLY from `[Resolved Args]` for that service.** Never invent keys.
   - **Delta exception**: when NL implies "increase/decrease X by N" AND a `(value)` read for the matching attribute is in scope, derive setter arg from the read variable: `"<Arg>": "$<var> + N"` / `"$<var> - N"`.
@@ -247,7 +247,7 @@ Same device attribute compared at two different moments → use `read` for each 
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"if","cond":"TempSensor.Temperature < 20 and HumiditySensor.Humidity <= 50",
+  {"op":"if","cond":"TemperatureSensor.Temperature < 20 and HumiditySensor.Humidity <= 50",
     "then":[
       {"op":"call","target":"Switch.Off","args":{}},
       {"op":"call","target":"Speaker.Speak","args":{"Text":"low temperature and low humidity"}}
