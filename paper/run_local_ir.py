@@ -52,6 +52,7 @@ from timeline_ir import (
     IRValidationError, parse_duration_to_ms,
 )
 from feasibility import check_feasibility, FeasibilityError
+from ir_renderer import render_ir_with_devices
 
 # Verifier integration (Phase 2). Activated when env JOI_VERIFY=1 (default off
 # during transition so baselines stay reproducible). When on, the lowering
@@ -912,7 +913,7 @@ def generate_joi_code_ir(
         #   5. If mismatch, send mismatch info as follow-up user msg; retry up to 2 times.
         #   6. If still mismatch, fall back to deterministic minimum-tag-set selector.
         if not selected_services:
-            return {"selectors": {}, "reasoning": ""}
+            return {"selectors": {}, "resolved": {}, "reasoning": ""}
 
         # alias_of / real_of / cd_aliased computed upstream (see Stage 2 pre-work).
 
@@ -1007,12 +1008,25 @@ def generate_joi_code_ir(
         for svc in list(selectors.keys()):
             selectors[svc] = [_restore_alias_in_selector(s) for s in selectors[svc]]
 
+        # Resolved real devices per service (render-only): map device_match's
+        # d1/d2 aliases back to real device ids so the confirmation rendering can
+        # name the actual devices instead of guessing a noun from the IR service.
+        resolved_devices = {
+            svc: {
+                "q": entry.get("q", "one"),
+                "devices": [real_of.get(a, a)
+                            for g in entry.get("groups", []) for a in g],
+            }
+            for svc, entry in match_qids.items()
+        }
+
         combined_reasoning = (
             f"[Step1 device match]\n{step1_reasoning}\n\n"
             f"[Targets]\n{targets_block}\n\n"
             f"[Selectors generated deterministically by Python (intersection of target tags)]"
         )
-        return {"selectors": selectors, "reasoning": combined_reasoning}
+        return {"selectors": selectors, "resolved": resolved_devices,
+                "reasoning": combined_reasoning}
 
     # ── IR extract (sequential, after both branches finish) ──
     def run_ir_extract():
@@ -1189,6 +1203,19 @@ def generate_joi_code_ir(
         )
 
     ir_readable = ir_to_readable(ir)
+    # Device-scoped confirmation rendering: the selector-free IR plus the
+    # precision stage's resolved devices, naming the actual devices the rule
+    # acts on. Falls back to the plain readable when no devices were resolved.
+    _resolved_devs = (
+        precision_output.get("resolved", {})
+        if isinstance(precision_output, dict) else {}
+    )
+    try:
+        ir_readable_scoped = (
+            render_ir_with_devices(ir, _resolved_devs) if _resolved_devs else ir_readable
+        )
+    except Exception:
+        ir_readable_scoped = ir_readable
     ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
 
     bucket = classify_ir(ir)
@@ -1213,6 +1240,7 @@ def generate_joi_code_ir(
             "connected_devices": connected_devices,
             "ir": ir,
             "ir_readable": ir_readable,
+            "ir_readable_scoped": ir_readable_scoped,
             "bucket": bucket,
             "precision": precision_for_dump,
             "service_details": service_details,
@@ -1228,6 +1256,7 @@ def generate_joi_code_ir(
             "code": "",
             "ir": ir,
             "ir_readable": ir_readable,
+            "ir_readable_scoped": ir_readable_scoped,
             "precision": precision_for_dump.get("selectors", {}),
             "precision_reasoning": precision_for_dump.get("reasoning", ""),
             "ir_dump_path": dump_path,
@@ -1449,6 +1478,7 @@ def generate_joi_code_ir(
         "code": code_pretty,
         "ir": ir,
         "ir_readable": ir_readable,
+        "ir_readable_scoped": ir_readable_scoped,
         "precision": precision_output.get("selectors", {}) if isinstance(precision_output, dict) else {},
         "precision_reasoning": precision_output.get("reasoning", "") if isinstance(precision_output, dict) else "",
         "verifier_trace": verifier_trace,

@@ -136,6 +136,8 @@ def print_result(result):
             print(f"  {svc}: {sel_list}")
     if result.get('ir_readable'):
         print(f"\n[IR Readable]\n{result['ir_readable']}")
+    if result.get('ir_readable_scoped') and result.get('ir_readable_scoped') != result.get('ir_readable'):
+        print(f"\n[IR Readable — device-scoped]\n{result['ir_readable_scoped']}")
     print(f"\ncode           :\n{_pretty_code(result.get('code', ''))}")
     print(f"response_time  : {log.get('response_time', '')}")
 

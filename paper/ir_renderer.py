@@ -7,6 +7,7 @@ non-expert users to read as nested blocks.
 
 from __future__ import annotations
 
+import copy
 from dataclasses import dataclass, field
 import re
 from typing import Any
@@ -212,7 +213,7 @@ def _render_if_chain(step: dict[str, Any], ctx: RenderContext) -> list[str]:
     chain, final_else = _collect_if_chain(step)
     lines: list[str] = []
     for i, branch in enumerate(chain):
-        cond = _render_cond(branch.get("cond", ""), ctx)
+        cond = _render_cond(branch.get("cond", ""), ctx, branch.get("_cond_devs"))
         action = _render_branch_phrase(branch.get("then", []), ctx)
         if i == 0:
             lines.append(f"If {cond}, {action}.")
@@ -275,7 +276,7 @@ def _render_read(step: dict[str, Any], ctx: RenderContext) -> str:
 
 
 def _render_wait(step: dict[str, Any], ctx: RenderContext) -> list[str]:
-    cond = _render_cond(step.get("cond", ""), ctx)
+    cond = _render_cond(step.get("cond", ""), ctx, step.get("_cond_devs"))
     sustain = step.get("for")
     edge = step.get("edge", "none")
     if sustain:
@@ -289,7 +290,7 @@ def _render_wait(step: dict[str, Any], ctx: RenderContext) -> list[str]:
 
 
 def _wait_for_notes(step: dict[str, Any], ctx: RenderContext) -> list[str]:
-    cond = _render_cond(step.get("cond", ""), ctx)
+    cond = _render_cond(step.get("cond", ""), ctx, step.get("_cond_devs"))
     duration = _duration_to_en(step.get("for"))
     return [f"If {cond} becomes false before {duration}, the timer starts over."]
 
@@ -351,24 +352,25 @@ def _render_call_phrase(step: dict[str, Any], ctx: RenderContext) -> str:
     args = step.get("args") or {}
     service, method = _split_target(target)
     service_name = _service_name(service)
+    subj = _device_subject(step.get("_devs")) or f"the {service_name}"
 
     if method in {"On", "Off", "Toggle"}:
         verb = {"On": "turn on", "Off": "turn off", "Toggle": "toggle"}[method]
-        return f"{verb} the {service_name}"
+        return f"{verb} {subj}"
 
     if method == "MoveToBrightness":
         value = args.get("Brightness")
         if value is not None:
-            return f"set the {service_name} brightness to {_num(value)}%"
+            return f"set {subj} brightness to {_num(value)}%"
 
     if method == "SetTargetTemperature":
         value = args.get("Temperature")
         if value is not None:
-            return f"set the {service_name} target temperature to {_num(value)}"
+            return f"set {subj} target temperature to {_num(value)}"
 
     mode = args.get("Mode")
     if method.startswith("Set") and mode is not None:
-        return f"set the {service_name} mode to {mode}"
+        return f"set {subj} mode to {mode}"
 
     if args:
         arg_text = ", ".join(f"{k}={v}" for k, v in args.items())
@@ -376,7 +378,7 @@ def _render_call_phrase(step: dict[str, Any], ctx: RenderContext) -> str:
     return f"run {target}()"
 
 
-def _render_cond(expr: str, ctx: RenderContext) -> str:
+def _render_cond(expr: str, ctx: RenderContext, devmap: dict | None = None) -> str:
     s = str(expr).strip()
     s = s.replace("&&", " and ").replace("||", " or ")
     s = s.replace(">=", " >= ").replace("<=", " <= ")
@@ -390,19 +392,19 @@ def _render_cond(expr: str, ctx: RenderContext) -> str:
             s = re.sub(rf"\b{re.escape(var)}\b", label, s)
 
     if " or " in s:
-        return " or ".join(_render_comparison(part) for part in s.split(" or "))
+        return " or ".join(_render_comparison(part, devmap) for part in s.split(" or "))
     if " and " in s:
-        return " and ".join(_render_comparison(part) for part in s.split(" and "))
-    return _render_comparison(s)
+        return " and ".join(_render_comparison(part, devmap) for part in s.split(" and "))
+    return _render_comparison(s, devmap)
 
 
-def _render_comparison(part: str) -> str:
+def _render_comparison(part: str, devmap: dict | None = None) -> str:
     text = part.strip()
     m = re.fullmatch(r"(.+?)\s*(>=|<=|==|!=|>|<)\s*(.+)", text)
     if not m:
         return f"[{text}]"
     left, op, right = m.groups()
-    left = _humanize_operand(left.strip())
+    left = _humanize_operand(left.strip(), devmap)
     right = _clean_literal(right.strip())
     if op == ">=":
         return f"{left} is at least {right}"
@@ -417,9 +419,12 @@ def _render_comparison(part: str) -> str:
     return f"{left} is not {right}"
 
 
-def _humanize_operand(value: str) -> str:
+def _humanize_operand(value: str, devmap: dict | None = None) -> str:
     if "." in value and not value.startswith("clock."):
         service, attr = value.split(".", 1)
+        subj = _device_cond_subject((devmap or {}).get(value))
+        if subj:
+            return f"the {_attr_name(attr)} of {subj}"
         return f"the {_attr_name(attr)} of the {_service_name(service)}"
     if value.startswith("clock."):
         return value
@@ -608,3 +613,90 @@ def _join_phrases(phrases: list[str]) -> str:
 
 def _capitalize(text: str) -> str:
     return text[:1].upper() + text[1:] if text else text
+
+
+# ── Precision (resolved-device) attachment — render-only ──────────────────────
+# The Timeline IR is selector-free and names services, not devices. For the
+# user-facing confirmation rendering we attach the devices that the precision
+# stage resolved each service to (real device ids, recovered from device_match's
+# d1/d2 aliases) onto a COPY of the IR. The subject of each step then names the
+# actual devices; the IR method contributes only the action (turn on/off, set
+# mode, read), never a device noun. This sidesteps guessing the device type from
+# a sub-service like `Switch.Off`. The original IR (simulators, lowering) is
+# never modified. `resolved` shape: {"<Category.Service>": {"q": "one|all|any",
+# "devices": ["<real id>", ...]}}.
+
+_SERVICE_REF_RE = re.compile(r"\b[A-Z][A-Za-z0-9_]*\.[A-Za-z][A-Za-z0-9_]*\b")
+
+
+def _resolved_for(resolved: dict | None, ref: str) -> dict | None:
+    r = (resolved or {}).get(ref)
+    if isinstance(r, dict) and r.get("devices"):
+        return r
+    return None
+
+
+def attach_devices(ir: dict[str, Any], resolved: dict | None) -> dict[str, Any]:
+    """Return a render-only deep copy of `ir` with resolved devices attached:
+    `_devs` on each `call`/`read`, and `_cond_devs` (a {service_ref: resolved}
+    map) on each `if`/`wait`/`cycle` whose cond/until references a service."""
+    out = copy.deepcopy(ir)
+    _attach_dev_steps(out.get("timeline", []), resolved or {})
+    return out
+
+
+def _attach_dev_steps(steps: Any, resolved: dict) -> None:
+    for s in steps or []:
+        if not isinstance(s, dict):
+            continue
+        op = s.get("op")
+        if op == "call":
+            r = _resolved_for(resolved, s.get("target", ""))
+            if r:
+                s["_devs"] = r
+        elif op == "read":
+            r = _resolved_for(resolved, s.get("src", ""))
+            if r:
+                s["_devs"] = r
+        if op in ("if", "wait", "cycle"):
+            cond = s.get("cond") or s.get("until") or ""
+            cd: dict[str, dict] = {}
+            for ref in _SERVICE_REF_RE.findall(str(cond)):
+                r = _resolved_for(resolved, ref)
+                if r:
+                    cd[ref] = r
+            if cd:
+                s["_cond_devs"] = cd
+        _attach_dev_steps(s.get("then"), resolved)
+        _attach_dev_steps(s.get("else"), resolved)
+        _attach_dev_steps(s.get("body"), resolved)
+
+
+def render_ir_with_devices(ir: dict[str, Any], resolved: dict | None) -> str:
+    """Render the confirmation view from a selector-free IR plus the precision
+    stage's resolved devices. The IR itself stays unchanged."""
+    return render_ir_readable(attach_devices(ir, resolved))
+
+
+def _device_subject(devs: dict | None) -> str | None:
+    """Action subject: the resolved device list. The all/any quantifier carries
+    no truth for an action (it is applied to every resolved device)."""
+    if not devs:
+        return None
+    ids = [str(d) for d in (devs.get("devices") or [])]
+    return _join_phrases(ids) or None
+
+
+def _device_cond_subject(devs: dict | None) -> str | None:
+    """Condition-operand subject: the device list, carrying the all/any
+    quantifier so the truth condition is explicit (`all of A and B`)."""
+    if not devs:
+        return None
+    ids = [str(d) for d in (devs.get("devices") or [])]
+    if not ids:
+        return None
+    phrase = _join_phrases(ids)
+    q = devs.get("q", "one")
+    if len(ids) > 1 and q in ("all", "any"):
+        return f"{q} of {phrase}"
+    return phrase
