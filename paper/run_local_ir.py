@@ -51,6 +51,7 @@ from timeline_ir import (
     validate_ir_against_catalog, build_extract_retry_hint,
     IRValidationError, parse_duration_to_ms,
 )
+from feasibility import check_feasibility, FeasibilityError
 
 # Verifier integration (Phase 2). Activated when env JOI_VERIFY=1 (default off
 # during transition so baselines stay reproducible). When on, the lowering
@@ -1174,6 +1175,18 @@ def generate_joi_code_ir(
     _enforce_resolved_args(ir, resolved_args)
     _normalize_logical_ops(ir)
     _inject_implicit_vars(ir)
+
+    # Structural feasibility gate (grammar G membership): reject IRs that are
+    # malformed (break outside a cycle, mis-anchored start_at) or that JoI
+    # cannot express (nested / multiple top-level loops). Fail closed before
+    # lowering — no JoI is generated for an infeasible IR.
+    try:
+        check_feasibility(ir)
+    except FeasibilityError as e:
+        log_buf.append(f"⛔ feasibility: {e}")
+        raise JoiGenerationError(
+            f"IR infeasible: {e}", "\n".join(log_buf), error_code="ir_infeasible",
+        )
 
     ir_readable = ir_to_readable(ir)
     ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
