@@ -6,6 +6,40 @@
 
 ---
 
+## §2 WRITING PLAN + DECISIONS (2026-06-02, authoritative)
+
+> These OVERRIDE older scattered notes. In particular the old "near-collision = LACE/DS-IA/AutoIoT" line is RETIRED — see #2. Do not re-read papers; this is a handoff capture.
+
+**1. §2 STRUCTURE = 3-step verification funnel (codex ×2 vetted = keep).** Discriminator is NOT "deals with intent" (all systems take NL intent input); it is the **POST-GENERATION CHECK**. Opening 1-line bridge (recalls §1 target-artifact premise): outputs are non-canonical reactive-temporal programs (same behavior, many forms) → syntactic / given-oracle checks don't apply → behavioral verification needed.
+- **§2.1 — does it (behaviorally) verify the generated automation AT ALL?** Most don't (validity/satisfaction/none): EcoMate, IoTGPT (API-only), ChatIoT, Sasha, SAGE. ANCHOR "closest generator" = **AwareAuto**.
+- **§2.2 — for those that verify, AGAINST WHAT reference/oracle?** Not the intended reactive behavior:
+  - (a) fixed safety/conflict/feasibility properties: AutoTap (expert LTL), TAPFixer, TAPInspector, AutoIoT/Maude, HAWatcher, DS-IA, iRuler, Soteria.
+  - (b) a GIVEN oracle = **NON-IoT CONSTRUCTIVE ANALOGY only, short, not competing with IoT lit** (text-to-SQL, CodeT/Self-Debug, GPIoT) → "deterministic execution checking is the right shape but the oracle is domain-supplied; reactive automation lacks one → OVLA DERIVES it from the confirmed IR; trace-equivalence = reactive analogue of execution accuracy."
+- **§2.3 — for those checking intent itself, BY WHAT MECHANISM?** learned/probabilistic model judge. ANCHOR "closest verifier" = **LACE**; + ChatIoT Evaluator, IoTGPT/SAGE self-correction, SimuHome (self-correction recovery ≤18.5%). NOTE: Talk-Less is DELETED — do NOT cite/list it. Argument: same axis as us (checking against intent) but model-based → unstable + edge-infeasible → ASSERT here, SUBSTANTIATE in §3 (forward-ref, no proof in §2). OVLA differs = deterministic + user-confirmed + reactive-temporal-behavioral.
+- **ENDPOINT = OVLA:** check behavior / against a confirmed IR / deterministically.
+- **codex micro-rules:** straddlers get PRIMARY placement + explicit callback (IoTGPT primary in §2.1 for deployment-validity check, secondary mention in §2.3 for self-correction — never double-listed as a peer); §2.2(b) labeled non-IoT analogy; foreground AwareAuto & LACE with "closest-but" topic sentences; do NOT create a dedicated "closest work" subsection (dumping ground).
+
+**2. NEAR-COLLISION SET (CAREFUL differentiation) = LACE + AwareAuto ONLY** (supersedes old LACE/DS-IA/AutoIoT trio). Everyone else = one-line positioning cites: DS-IA (point-in-time feasibility / fail-closed posture sibling), AutoIoT/arXiv'24 (Maude rule-conflict ≠ intent), AutoIOT/MobiCom'25 (algorithmic AIoT codegen = GPIoT group, oracle exists), EcoMate (NL→HA, valid = platform accepted JSON), IoTGPT (cloud SmartThings agent), ChatIoT (LLM-judge Evaluator baseline), GPIoT (on-device algorithmic codegen, executable oracle), Sasha/SAGE (transient-action agents).
+
+**3. C1 (IR contribution) RE-SCOPE LOCK — forced by AwareAuto.** AwareAuto already produces a confirmable temporal IR from NL → do NOT claim "we have a confirmable temporal IR" as novelty. OVLA's IR claim = the COMBINATION: *confirmed*-IR used as a *behavioral oracle* + *deterministic LLM-free* verification against it + *deterministic* (no-LLM) rendering + *on-device*. AwareAuto has none of these (feasibility/grounding only; intent consistency = MANUAL annotation; user-facing rendering = LLM prose). RETIRE: "first NL→temporal automation IR", "first to capture event/state+delay+branch+sequencing from NL", "first to show a structured rule back to a non-expert for confirmation", "first IR-as-generation-template".
+
+**4. POSITIONING TABLE — WIP DRAFT (NOT finalized), codex-vetted.** Principle: NO feature/✓-only table (cherry-pick); use a COMBINATION MATRIX where every column has variation among non-OVLA rows and OVLA's uniqueness is the row combination.
+- Columns: `System | Spec source | Target | Reference checked | Det. verifier`.
+- Values: Spec source {expert / free NL / user-confirmed NL-derived}; Target {flat TAP / policy(static) / program / transient actions / reactive-temporal}; Reference checked {none / safety / feasibility / external-oracle / inferred-intent / confirmed-temporal-behavior}; Det. verifier {✓ / ✗ / – (no verifier)}.
+- Rows = group reps: AutoTap, EcoMate/IoTGPT, GPIoT, AwareAuto, LACE, OVLA.
+- EXCLUDED columns: self-correction (non-discriminating), silent-wrong (a result/RQ3 outcome → cherry-pick), on-device/no-cloud (→ RQ4). text-to-SQL/CodeT = prose analogy, not a row.
+- ★ "TAP is reactive too" PRE-EMPTION (legend/prose 1 line): flat TAP = stateless/instantaneous trigger→action (no persistent state/duration/timer/sequencing), behavior pointwise-checkable without a trace; reactive-temporal = adds those (superset, needs a trace). Axis = temporal/stateful expressiveness, NOT "reactive vs not" — ground in Brackenbury/Ur event-vs-state + Corno sustained-actions. Table form still being refined.
+
+**5. NOVELTY DISCIPLINE:** "combining generation + verification in one pipeline" is GENRE-STANDARD (AutoIoT, LACE, DS-IA all do it) → do NOT sell as novelty. Novelty is narrow = user-confirmed deterministic BEHAVIORAL verifier for REACTIVE-TEMPORAL automations, on-device; + IR's multi-role (confirm + verify + generate + route). Hero = SAFETY (silent-wrong → 0) / LLM-free on-device verification. All arXiv items (LACE, AwareAuto, DS-IA, AutoIoT, AutoIOT, EcoMate, IoTGPT) = cite as preprint, NOT quantitative head-to-head baselines.
+
+**6. MOTIVATION HOOKS for §1/§3 (not §2):** IoTGPT and EcoMate explicitly defer "verify before execution" and "on-device inference" to FUTURE WORK and surface silent-wrong faults their own metrics miss (IoTGPT: TV volume→100; EcoMate: immediate↔persistent collapse) = "the adjacent SOTA names exactly the gap OVLA fills." Survey (LLMs-and-IoT, IEEE OJ-COMS 2026): reusable peer-reviewed motivation language — "execution drift"; §VI frames validation of LLM-generated logic as OPEN but only imagines LLM-based validators (sets up our deterministic LLM-free wedge). SimuHome: self-correction recovery ≤18.5%, "agents cannot detect their own mistakes".
+
+**7. REMOVED FROM CORPUS (do not cite; data + PDFs deleted):** "On-Device LLMs for Home Assistant" (Birkmose, W-NUT'25) and "Talk Less, Verify More" (WITS'25, text-to-SQL). Their cards were deleted from this file.
+
+**8. STILL OPEN:** positioning table form not finalized; §2 prose not yet drafted. feasibility (IR∈L(G)) + structural exemplar routing are BUILT this round but NOT experimentally measured → feasibility = by-construction body mechanism (no numbers), routing = implementation detail with NO effect-claim.
+
+---
+
 ## Per-paper cards
 
 ### AutoTap (ICSE 2019) [full-text]
