@@ -141,10 +141,14 @@ def print_result(result):
 
 
 def run_targeted_test(df):
-    import tempfile
     verify = os.environ.get("JOI_VERIFY") == "1"
+    # Full end-to-end run: extract_ir + service_plan + resolve + precision +
+    # Stage-4 lowering all execute (no GT IR injection). The extracted Timeline
+    # IR is surfaced via the pipeline logs ([Timeline IR]) in print_result.
+    os.environ.pop("JOI_GT_IR_PATH", None)
+    os.environ.pop("JOI_IR_ONLY", None)
     print("\n🎯 Running Targeted Tests "
-          f"(GT IR injected; verifier={'ON' if verify else 'off'}, "
+          f"(E2E; verifier={'ON' if verify else 'off'}, "
           f"max_attempts={os.environ.get('JOI_VERIFY_MAX_ATTEMPTS', '?')}, "
           f"LLM-diagnose={'ON' if os.environ.get('JOI_LLM_DIAGNOSE') == '1' else 'off'})...")
     for category, indices in test_targets.items():
@@ -161,30 +165,6 @@ def run_targeted_test(df):
             eng = row['command_eng']
             print(f"\n({idx}) Command: {eng}")
             print(f"[connected_devices]\n{row['connected_devices']}")
-            # Inject the dataset GT IR so the pipeline lowers EXACTLY that IR
-            # (skips extract_ir / service_plan / resolve) — isolates Stage-4
-            # lowering + verifier + self-correction, matching the Stage-B config.
-            gt_path = None
-            try:
-                ir_gt = _json.loads(row['ir_gt'])
-                # Surface the injected IR UP FRONT (both raw + readable) so the
-                # IR being lowered is visible before the verifier/JoI logs.
-                print("[GT IR injected — raw]")
-                print(_json.dumps(ir_gt, ensure_ascii=False, indent=2))
-                try:
-                    from paper.ir_renderer import render_ir_readable
-                    print("[GT IR — readable]")
-                    print(render_ir_readable(ir_gt))
-                except Exception as _re:
-                    print(f"  (readable render failed: {_re})")
-                fd, gt_path = tempfile.mkstemp(suffix=".json", prefix=f"gtir_{category}_{idx}_")
-                with os.fdopen(fd, "w", encoding="utf-8") as f:
-                    _json.dump(ir_gt, f, ensure_ascii=False)
-                os.environ["JOI_GT_IR_PATH"] = gt_path
-                os.environ.pop("JOI_IR_ONLY", None)
-            except Exception as e:
-                print(f"  ⚠️ GT IR load failed for {category}_{idx}: {e} (falling back to extraction)")
-                os.environ.pop("JOI_GT_IR_PATH", None)
             try:
                 result = generate_joi_code(eng, row['connected_devices'], {})
                 print_result(result)
@@ -193,13 +173,6 @@ def run_targeted_test(df):
                 logs = getattr(e, 'logs', '')
                 if logs:
                     print(f"[logs]\n{logs}")
-            finally:
-                os.environ.pop("JOI_GT_IR_PATH", None)
-                if gt_path:
-                    try:
-                        os.remove(gt_path)
-                    except OSError:
-                        pass
 
 
 def _lower_confirmed_ir(eng, connected_devices, ir):

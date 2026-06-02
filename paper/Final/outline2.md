@@ -199,6 +199,7 @@
 - mutation 99.3%(§6.5) + coverage. **숫자 3개 분리**(Alive2/Test-Suite-Acc/Csmith 차용): (i) neighbor-mutant kill rate (ii) human-adjudicated 샘플 대비 FP/FN (iii) residual Good-Turing. soundness 진술 = rejection-sound·bounded-incomplete·auditable("pass⇒correct" 금지).
 - ★ **INDEPENDENT-ORACLE LOCK(circularity 방어):** 독립 human-adjudicated 실LLM-bug corpus(여러 모델 NL→JoI 100~300 → 사람이 기대행동 판정, gt_ir·verifier 무관) → {caught / IR-error / unsupported rejected / ambiguous / escaped}. mutation=메인 stress, corpus=독립 validation.
 - vs LLM judge(9B P=0.71): "LLM 못 가린다". "클라우드도 못 잡는다": 복잡도별(ours 평평 vs GPT-4o 급락) + multi-GT(over-reject vs idiom-invariant). ⚠️ 이 multi-GT = judge가 IR 받는 RQ2 세팅(≠ §3 NO-IR multi-GT).
+- ★ **COVERAGE-LIMIT LOCK(정직, §6.5/§9 공유):** boundary-event 합성은 비교 연산(threshold)을 앵커로 동작 → **threshold 없는 변수-변수 산술**(예: `notify($t1 - $t2)`, 비교 부재)은 노릴 경계가 없어 generic lo/hi seed만 가능 = 부호·구조 버그는 잡지만 **특정 값 관계에서만 터지는 value-specific 버그(clamp/min/max/crossover)는 놓칠 수 있음**. 또한 같은 서비스의 두 read는 selector-free IR에서 한 device-key로 붕괴 = entity 구분 없이 시간차 샘플로만 exercise(precision/tag는 본 논문 scope 밖, #71). 둘 다 **soundness(거짓 PASS) 아님 = coverage 한계**: 양쪽 sim이 동일 값을 공유하므로 거짓 통과를 만들지 않음.
 
 **RQ3 — 시스템 안전 = HEADLINE.**
 - ★ **headline 2층 분리(circularity 방어):**
@@ -222,7 +223,7 @@
 ## §9  Limitations
 - **NL→IR intent correctness 미해결**(user가 틀린 IR 승인 가능) = FATAL 선제(§1)와 동일 선 — 정직히. ethics="Not applicable: no human participants".
 - 사람 confirmation 행동 미연구(중립 1줄까지만; future-study foreground 금지).
-- coverage ceiling(n%2 counters) · Rung-1 not all-input · bounded 7일 지평 · 연속산술(SMT future) · generalization.
+- coverage ceiling(n%2 counters) · Rung-1 not all-input · bounded 7일 지평 · 연속산술(SMT future) · **threshold 없는 변수-변수 산술=boundary 앵커 부재→value-specific 버그 일부 놓침(coverage-limit, soundness 아님; §6.5)** · **same-service read의 device-key 붕괴=entity 구분 없음(precision scope 밖, #71)** · generalization.
 
 ---
 
