@@ -243,25 +243,37 @@ divergent lowerings, but none deploys silently (Table~\ref{tab:models})."
 주의: 8B/E4B arm은 "yields per backend" 문구와 정합; Setup에 세 모델 명시 필요.
 M4 배포 모델 = Qwen3-8B(MLX 4-bit) — Setup에 "AWQ on the GPU server, MLX on the M4" 한 줄.
 
-### C2. ★ Verifier latency 분포 (fig:rq4(a) 데이터) — M4에서 재측정 필요
-x86 예비측정(arm=on, 380행×3rep): **p50 1.7ms / p95 0.92s / worst ~21s / RSS 55MB**.
-- worst는 전부 C19(짧은 period × 7-day horizon → tick 폭발) = 비용 축은 구조가 아니라 horizon/period 비율.
-- 논문 영향: "milliseconds" 단독 주장 금지 → 분포로 보고 + C19 꼬리 설명. worst 21s도 judge 1회(M4 ~50s+)보다 싸다는 비교 유지.
-- 측정 도구: `paper/bench_verifier_m4.py` (커밋됨). M4에서:
-  `PYTHONPATH=. python3 paper/bench_verifier_m4.py --run-dir <stageB intermediate> --arm on --reps 10 --out ...`
+### C2. ★ Verifier latency 분포 — **M4 실측 완료** (`m4_verifier_latency.json`)
+M4, 378행×10rep: **p50 0.97ms / p95 0.70s / worst 8.4s / RSS 54MB / CPU 5.5W·GPU 0W**.
+- worst는 전부 C19(level-triggered 1초 polling × 7-day horizon → tick 캡 30만) = 비용 축은
+  구조 복잡도가 아니라 "명세가 매 tick 행동하는가". boundary 추상은 시나리오 수를 유한하게
+  하는 것이고, 한 시나리오 내 JoI 실행은 tick 충실도가 필요(상태 진화 + 발화율이 비교 대상).
+- §8.4 권장 문구: "median sub-millisecond; the worst case (8.4s) is the class whose
+  specification itself acts on every tick (1-second level-triggered polling), bounded by the
+  tick cap, and still cheaper than a single local judge call."
+- C3 "runs in milliseconds" → "completes in about a millisecond at the median" 권장 (A6 참조).
 
-### C3. ☆ E2E authoring latency (M4 실측, C09_3 1건 확보)
-cold 총 ~5.1분: pre_analysis 15.6s / service_plan 33.1s / arg_resolve 46.5s /
-device_match 54.1s / IR extract 71.3s / lowering 50.3s / diagnose+retry ~32s.
-**prefix cache 효과 실측: 동일 7k-tok prefill 35.3s → 0.4s (~85×).** → steady-state는 절반 이하.
-논문 서사: authoring 1회 비용(수 분, cold) vs deployed runtime LLM 0회 + gate ms.
-warm 분포는 M4에서 10~20건 추가 측정 예정.
+### C3. ★ Judge / E2E / 메모리 / 전력 — **M4 실측 완료**
+- **Judge per-check** (`m4_judge_latency.json`, 20건): p50 **5.1s** / p95 25.3s.
+  → fig:rq4(a) 3-bar 데이터 확정: verifier **0.97ms** vs local judge **5.1s** (측정) vs
+  cloud judge (인용: 초 단위 + 과금 + 네트워크 의존). 로그 스케일 권장. p50 기준 ~5,200×.
+- **E2E authoring** (`m4_e2e_stage_latency.json`, 1 cold + 9 warm): cold 150.6s,
+  warm 70~155s (행 복잡도 의존). prefix cache 효과는 확인됐으나 cache 3GB 한계로
+  thrashing 관찰 → "authoring is a one-time cost of a few minutes; the deployed
+  automation makes zero LLM calls" 서사로 보고.
+- **메모리** (`m4_memory.json`): vLLM Metal peak **11.6GB** (16GB 기기에 fit),
+  verifier 프로세스 54MB.
+- **전력** (`m4_power.json`): idle ~0.05W / 생성 중 GPU 10.2W mean (peak 11.3) /
+  verifier CPU 5.5W·GPU ~0W. "the gate never touches the GPU" 문장 가능.
+- 환경 명시: Mac mini M4 16GB, macOS 26.2, vllm-mlx, mlx-community/Qwen3-8B-4bit.
+  (정확도 arm은 AWQ 4-bit, M4는 MLX 4-bit — Setup에 1줄: "4-bit quantized Qwen3-8B on
+  both backends (AWQ on the GPU server, MLX on the M4)".)
 
-### C4. 남은 TODO (논문 반영 전 실측)
-- [ ] gemma-4-E4B Stage-B 382 완료 → C1 표 완성
-- [ ] M4: bench_verifier_m4.py (verifier 분포) + powermetrics(idle/생성/verifier) + peak memory + 모델 로드 시간 + judge per-check latency ~20건 + warm e2e 10~20건
+### C4. 남은 TODO
+- [x] gemma-4-E4B Stage-B 382 → C1 표 완성
+- [x] M4 측정 (verifier 분포/judge/warm e2e/memory/power) — 모델 로드 시간은 제외하기로 결정
 - [ ] 실배포: deployment_pool.json의 9케이스 + 통과 자동화로 12–15개 등록, fig:rq4(b) trace 캡처
-- [ ] fig:rq4(a)(b) 제작 → figtodo 교체, RQ4 시제 과거형 전환
+- [ ] fig:rq4(a)(b) 제작 → figtodo 교체, RQ4 시제 과거형 전환 + 위 실측 수치 본문 반영
 
 ---
 

@@ -66,16 +66,12 @@ sudo powermetrics --samplers cpu_power,gpu_power -i 1000 -n 120 > /tmp/verifier.
 - 3구간 각각 CPU/GPU power의 mean/peak (W) 요약 → `m4_power.json`
   (원본 txt도 `paper/Final/evaluation/results/m4_power_raw/`에 보관).
 
-### 6. 모델 로드 시간
-- vLLM 서버 재시작 1회 (사용자와 조율): 시작 명령 시점 → `/v1/models` 200 응답까지 초 측정.
-- `m4_memory.json`에 `model_load_s` 필드로 기록.
-
 ---
 
 ## 결과가 논문에 들어가는 자리 (참고)
 - 1번 → fig:rq4(a) "verifier (ms)" 바 + §8.4 latency 분포 문장 (p50/p95/worst)
 - 2번 → fig:rq4(a) "local judge (s)" 바
 - 3번 → §8.4 authoring-time(1회 비용) 보고: cold vs steady-state(warm)
-- 4·5·6번 → §8.4 "peak memory, power, model load time" 문장
+- 4·5번 → §8.4 "peak memory, power" 문장
 - 주의: 논문 본문 수정은 하지 말 것 (수정 가이드는 별도 파일 `overleaf_changes.md`에서 관리 중).
   이 기기에서는 측정 + 결과 JSON 커밋까지만.
