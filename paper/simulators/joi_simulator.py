@@ -339,11 +339,19 @@ def _eval(node: Any, world: World, capture_call: bool = False) -> Any:
 def _emit_call(call: jp.CallExpr, world: World, trace: Trace, catalog, debug: bool) -> None:
     # Evaluate args to concrete values
     arg_values = [_eval(a, world, capture_call=True) for a in (call.args or [])]
-    # Build named-arg dict using catalog order so we can apply effects
+    # Build named-arg dict using catalog order so we can apply effects.
+    # Resolve via the canonical (service, method) pair — the same namespace
+    # Trace.emit and DeviceRef reads use — so selector-derived raw services
+    # (e.g. 'Factory' from `all(#Pump #Switch #Factory)`) and prefix-form
+    # method names still hit the catalog entry and the world-state key.
+    from .expr import canonical_key
+    canon_service, canon_method = canonical_key(call.service, call.method)
     named: dict = {}
     if catalog is not None:
         from .catalog import get_arg_order
-        order = get_arg_order(catalog, call.service, call.method)
+        order = get_arg_order(catalog, canon_service, canon_method)
+        if order is None:
+            order = get_arg_order(catalog, call.service, call.method)
         if order is not None:
             for i, v in enumerate(arg_values):
                 if i < len(order):
@@ -351,7 +359,7 @@ def _emit_call(call: jp.CallExpr, world: World, trace: Trace, catalog, debug: bo
     # Trace: positional list (already in code order = catalog order from JoI source)
     canon = normalize_args(catalog, call.service, call.method, arg_values)
     trace.emit(world.t_ms, call.service, call.method, canon)
-    # World effect
-    world.apply_effect(call.service, call.method, named)
+    # World effect (canonical namespace = same keys DeviceRef reads)
+    world.apply_effect(canon_service, canon_method, named)
     if debug:
         print(f"[JoI t={world.t_ms}] call {call.service}.{call.method}({arg_values}) -> {canon}")

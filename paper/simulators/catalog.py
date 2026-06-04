@@ -89,11 +89,33 @@ def value_domains(path: str = _DEFAULT_CATALOG_PATH) -> dict[tuple[str, str], di
 
 
 def get_arg_order(catalog: dict[str, dict], service: str, method: str) -> list[str] | None:
-    """Return the positional arg name list for `service.method`, or None if unknown."""
+    """Return the positional arg name list for `service.method`, or None if unknown.
+
+    Accepts both catalog-form names ('RobotVacuumCleaner', 'SetRobotVacuumCleanerCleaningMode')
+    and JoI script-form names ('robotvacuumcleaner', 'robotVacuumCleaner_setRobotVacuumCleanerCleaningMode'):
+    falls back to case-insensitive service match and canonical (prefix-stripped,
+    lowercase) method match so the JoI-side effect path resolves the same entry
+    the IR-side path does.
+    """
     sk = catalog.get(service)
     if sk is None:
+        svc_low = (service or "").lower()
+        for k, v in catalog.items():
+            if k.lower() == svc_low:
+                sk = v
+                break
+    if sk is None:
         return None
-    return sk["functions"].get(method)
+    fns = sk["functions"]
+    hit = fns.get(method)
+    if hit is not None:
+        return hit
+    from .expr import canonical_name
+    cm = canonical_name(service, method)
+    for name, order in fns.items():
+        if canonical_name(service, name) == cm:
+            return order
+    return None
 
 
 def split_target(target: str) -> tuple[str, str]:

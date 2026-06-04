@@ -1,0 +1,173 @@
+{
+  "seed_dir": "/tmp/joi_stageB_full_llm_v2/on",
+  "valid_seeds": 68,
+  "skipped_flagged": 1,
+  "per_operator": {
+    "arg_numeric": {
+      "gen": 26,
+      "equiv": 0,
+      "genuine": 26,
+      "caught": 26,
+      "layer": {
+        "L2": 26
+      },
+      "kinds": {
+        "arg_mismatch": 26
+      }
+    },
+    "enum_flip": {
+      "gen": 32,
+      "equiv": 0,
+      "genuine": 32,
+      "caught": 32,
+      "layer": {
+        "L2": 32
+      },
+      "kinds": {
+        "arg_mismatch": 32
+      }
+    },
+    "call_drop": {
+      "gen": 102,
+      "equiv": 0,
+      "genuine": 102,
+      "caught": 102,
+      "layer": {
+        "L2": 102
+      },
+      "kinds": {
+        "missing_call": 60,
+        "trace_empty": 42
+      }
+    },
+    "call_add": {
+      "gen": 49,
+      "equiv": 0,
+      "genuine": 49,
+      "caught": 49,
+      "layer": {
+        "L2": 49
+      },
+      "kinds": {
+        "arg_mismatch": 49
+      }
+    },
+    "tick_scale": {
+      "gen": 1,
+      "equiv": 0,
+      "genuine": 1,
+      "caught": 1,
+      "layer": {
+        "L2": 1
+      },
+      "kinds": {
+        "timing_drift": 1
+      }
+    },
+    "guard_polarity": {
+      "gen": 52,
+      "equiv": 0,
+      "genuine": 52,
+      "caught": 52,
+      "layer": {
+        "L2": 52
+      },
+      "kinds": {
+        "trace_empty": 48,
+        "extra_call": 20,
+        "timing_drift": 1
+      }
+    },
+    "comparator": {
+      "gen": 49,
+      "equiv": 9,
+      "genuine": 40,
+      "caught": 39,
+      "layer": {
+        "L2": 39
+      },
+      "kinds": {
+        "trace_empty": 28,
+        "arg_mismatch": 4,
+        "extra_call": 8
+      }
+    },
+    "assign_init": {
+      "gen": 2,
+      "equiv": 1,
+      "genuine": 1,
+      "caught": 1,
+      "layer": {
+        "L2": 1
+      },
+      "kinds": {
+        "extra_call": 1
+      }
+    },
+    "cmp_direction": {
+      "gen": 49,
+      "equiv": 22,
+      "genuine": 27,
+      "caught": 27,
+      "layer": {
+        "L2": 27
+      },
+      "kinds": {
+        "trace_empty": 10,
+        "arg_mismatch": 4,
+        "extra_call": 13
+      }
+    },
+    "arith_op": {
+      "gen": 1,
+      "equiv": 0,
+      "genuine": 1,
+      "caught": 1,
+      "layer": {
+        "L2": 1
+      },
+      "kinds": {
+        "trace_empty": 1
+      }
+    },
+    "break_drop": {
+      "gen": 1,
+      "equiv": 0,
+      "genuine": 1,
+      "caught": 1,
+      "layer": {
+        "L2": 1
+      },
+      "kinds": {
+        "extra_call": 1
+      }
+    },
+    "wait_drop": {
+      "gen": 24,
+      "equiv": 0,
+      "genuine": 24,
+      "caught": 24,
+      "layer": {
+        "L2": 24
+      },
+      "kinds": {
+        "extra_call": 24
+      }
+    }
+  },
+  "total": {
+    "gen": 388,
+    "equiv": 32,
+    "genuine": 356,
+    "caught": 355,
+    "catch_rate": 99.71910112359551
+  },
+  "survivors": [
+    {
+      "name": "C07_21",
+      "op": "comparator",
+      "mutation": ">= -> >",
+      "script": "hold_ticks := 0\nif ((#TemperatureSensor #Pantry).temperatureSensor_temperature >= 25) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks > 1) {\n(#AirConditioner #Switch #Pantry).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    }
+  ]
+}

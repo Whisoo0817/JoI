@@ -1,0 +1,189 @@
+{
+  "seed_dir": "/tmp/joi_stageB_full_llm_v2/on",
+  "valid_seeds": 73,
+  "skipped_flagged": 12,
+  "per_operator": {
+    "arg_numeric": {
+      "gen": 27,
+      "equiv": 0,
+      "genuine": 27,
+      "caught": 27,
+      "layer": {
+        "L2": 27
+      },
+      "kinds": {
+        "arg_mismatch": 27
+      }
+    },
+    "enum_flip": {
+      "gen": 31,
+      "equiv": 1,
+      "genuine": 30,
+      "caught": 30,
+      "layer": {
+        "L2": 30
+      },
+      "kinds": {
+        "arg_mismatch": 30
+      }
+    },
+    "call_drop": {
+      "gen": 118,
+      "equiv": 2,
+      "genuine": 116,
+      "caught": 115,
+      "layer": {
+        "L2": 115
+      },
+      "kinds": {
+        "arg_mismatch": 16,
+        "missing_call": 94,
+        "extra_call": 27,
+        "timing_drift": 30,
+        "trace_empty": 32
+      }
+    },
+    "call_add": {
+      "gen": 53,
+      "equiv": 1,
+      "genuine": 52,
+      "caught": 52,
+      "layer": {
+        "L2": 52
+      },
+      "kinds": {
+        "arg_mismatch": 52
+      }
+    },
+    "tick_scale": {
+      "gen": 32,
+      "equiv": 0,
+      "genuine": 32,
+      "caught": 32,
+      "layer": {
+        "L2": 32
+      },
+      "kinds": {
+        "timing_drift": 36
+      }
+    },
+    "guard_polarity": {
+      "gen": 45,
+      "equiv": 0,
+      "genuine": 45,
+      "caught": 45,
+      "layer": {
+        "L2": 44,
+        "error": 1
+      },
+      "kinds": {
+        "trace_empty": 19,
+        "extra_call": 39,
+        "missing_call": 9,
+        "arg_mismatch": 3,
+        "timing_drift": 5,
+        "sim_error": 1
+      }
+    },
+    "comparator": {
+      "gen": 24,
+      "equiv": 17,
+      "genuine": 7,
+      "caught": 7,
+      "layer": {
+        "L2": 7
+      },
+      "kinds": {
+        "trace_empty": 4,
+        "extra_call": 3
+      }
+    },
+    "assign_init": {
+      "gen": 26,
+      "equiv": 12,
+      "genuine": 14,
+      "caught": 14,
+      "layer": {
+        "L2": 14
+      },
+      "kinds": {
+        "extra_call": 11,
+        "missing_call": 4,
+        "arg_mismatch": 3
+      }
+    },
+    "cmp_direction": {
+      "gen": 24,
+      "equiv": 1,
+      "genuine": 23,
+      "caught": 22,
+      "layer": {
+        "L2": 22
+      },
+      "kinds": {
+        "extra_call": 10,
+        "trace_empty": 11,
+        "arg_mismatch": 6
+      }
+    },
+    "arith_op": {
+      "gen": 22,
+      "equiv": 12,
+      "genuine": 10,
+      "caught": 10,
+      "layer": {
+        "L2": 10
+      },
+      "kinds": {
+        "trace_empty": 3,
+        "extra_call": 1,
+        "arg_mismatch": 6
+      }
+    },
+    "break_drop": {
+      "gen": 2,
+      "equiv": 1,
+      "genuine": 1,
+      "caught": 1,
+      "layer": {
+        "L2": 1
+      },
+      "kinds": {
+        "extra_call": 1
+      }
+    },
+    "wait_drop": {
+      "gen": 19,
+      "equiv": 0,
+      "genuine": 19,
+      "caught": 19,
+      "layer": {
+        "L2": 19
+      },
+      "kinds": {
+        "extra_call": 23
+      }
+    }
+  },
+  "total": {
+    "gen": 423,
+    "equiv": 47,
+    "genuine": 376,
+    "caught": 374,
+    "catch_rate": 99.46808510638297
+  },
+  "survivors": [
+    {
+      "name": "C14_4",
+      "op": "call_drop",
+      "mutation": "dropped `(#Light).light_moveToBrightness((#Light).light_currentBrightness, 0)`",
+      "script": "triggered := false\nif ((#MotionSensor).motionSensor_motion == true) {\nif (triggered == false) {\ntmp = (#Light).light_currentBrightness + 10\n        if (tmp > 100) {\ntmp = 100\n}\n(#Light).light_moveToBrightness(tmp, 0)\n        if ((#Light).light_currentBrightness >= 100) {\nbreak\n}\nelse {\n}\ntriggered = true\n}\n}\nelse {\ntriggered = false\n}"
+    },
+    {
+      "name": "C14_4",
+      "op": "cmp_direction",
+      "mutation": "direction >= -> <=",
+      "script": "triggered := false\nif ((#MotionSensor).motionSensor_motion == true) {\nif (triggered == false) {\ntmp = (#Light).light_currentBrightness + 10\n        if (tmp > 100) {\ntmp = 100\n}\n(#Light).light_moveToBrightness(tmp, 0)\n        if ((#Light).light_currentBrightness <= 100) {\nbreak\n}\nelse {\n(#Light).light_moveToBrightness((#Light).light_currentBrightness, 0)\n}\ntriggered = true\n}\n}\nelse {\ntriggered = false\n}"
+    }
+  ]
+}

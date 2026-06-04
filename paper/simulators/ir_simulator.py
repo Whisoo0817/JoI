@@ -170,7 +170,11 @@ def _exec_call(step: dict, world: World, trace: Trace, catalog, debug: bool) -> 
     # downstream `$Var` references compare equal across sims.
     if var_name:
         from .expr import canonical_name
-        key = f"{(service or '').lower()}.{canonical_name(service, method)}"
+        # Prefer the slot apply_effect just wrote (e.g. SetVolume → speaker.volume)
+        # so RMW ops ($X.Y read in the next iteration) see their own update;
+        # fall back to the method-derived key for non-setter calls.
+        key = world.effect_key(service, method) or \
+            f"{(service or '').lower()}.{canonical_name(service, method)}"
         world.vars[var_name] = world.state.get(key)
 
     if debug:

@@ -50,7 +50,7 @@
 \begin{document}
 
 \begin{abstract}
-Smart home automation increasingly relies on Large Language Models (LLMs) to translate natural language (NL) user intents into executable reactive rules. However, deploying these rules directly on edge hubs poses severe reliability and safety risks since reactive IoT automations are temporally complex, involving precise triggers, durations, and repetitions. Existing validation methods rely heavily on human code inspection, offline experts, or resource-heavy cloud LLM re-checks, failing edge privacy and latency constraints. To tackle this challenge, we present OVLA, an on-device pipeline for deterministic, LLM-free verification of IoT automations before deployment. OVLA bridges the gap between informal natural language and strict execution using Timeline IR, a compact, machine-checkable representation of temporal behavior. The pipeline first translates the user's NL intent into a typed Timeline IR; the user confirms a deterministic plain-language rendering of this IR, which then serves as the reference specification of the intended behavior. OVLA then automatically synthesizes reference event traces and boundary cases from this IR. An efficient verifier simulates the generated rule code against these traces to detect behavioral discrepancies and guide automated repairs via counterexamples. Evaluated with a local, quantized ≤9B model across 382 automations, OVLA caught every faulty program in our evaluation set, repairing 31\% of them and rejecting the rest fail-closed. Under 1,562 injected temporal bugs, it detected 99.3\%, while its synthesized scenarios exercised 97.4\% of specification-side obligations and 96.8\% of generated-code branches, raising the share of correctly deployed automations from 90.8\% to 93.7\%, all without any LLM in the verification loop.
+Smart home automation increasingly relies on Large Language Models (LLMs) to translate natural language (NL) user intents into executable reactive rules. However, deploying these rules directly on edge hubs poses severe reliability and safety risks since reactive IoT automations are temporally complex, involving precise triggers, durations, and repetitions. Existing validation methods rely heavily on human code inspection, offline experts, or resource-heavy cloud LLM re-checks, failing edge privacy and latency constraints. To tackle this challenge, we present OVLA, an on-device pipeline for deterministic, LLM-free verification of IoT automations before deployment. OVLA bridges the gap between informal natural language and strict execution using Timeline IR, a compact, machine-checkable representation of temporal behavior. The pipeline first translates the user's NL intent into a typed Timeline IR; the user confirms a deterministic plain-language rendering of this IR, which then serves as the reference specification of the intended behavior. OVLA then automatically synthesizes reference event traces and boundary cases from this IR. An efficient verifier simulates the generated rule code against these traces to detect behavioral discrepancies and guide automated repairs via counterexamples. Evaluated with a local, quantized ≤9B model across 382 automations, OVLA caught every faulty program in our evaluation set, repairing 33\% of them and rejecting the rest fail-closed. Under 1,567 injected temporal bugs, it detected 99.3\%, while its synthesized scenarios exercised 97.4\% of specification-side obligations and 96.8\% of generated-code branches, raising the share of correctly deployed automations from 91.4\% to 94.2\%, all without any LLM in the verification loop.
 \end{abstract}
 
 \keywords{IoT automation, LLM code generation, reactive-temporal code, deterministic verification, on-device, trace equivalence}
@@ -122,7 +122,7 @@ To the best of our knowledge, OVLA is the first system for LLM-generated reactiv
 \item \textbf{C2. Deterministic deployment gate:} We propose an end-to-end pipeline, spanning IR→FSM→boundary event→bounded trace-equivalence, that executes entirely without LLM intervention. The gate operates under a fail-closed policy where a pass triggers immediate deployment and a failure triggers automatic repair or rejection. % (pass=deploy / fail=repair or reject). 
 When the gate flags an anomaly, it guarantees a genuine behavioral divergence under the defined observation model, ensuring rejection-soundness.
 \item \textbf{C3. On-device realization:} The generation phase utilizes a 4-bit quantized model of at most 9 billion parameters without any fine-tuning, while the verification gate bypasses LLM execution entirely. Consequently, verification completes locally in about a millisecond at the median. OVLA's verification guarantee does not depend on the size or quality of the generation model.
-\item \textbf{C4. Evaluation:} We empirically demonstrate system safety by mitigating silent IR-to-code divergence from 9.2\% down to 0\% \S8.1). Furthermore, we evaluate verifier detection accuracy (\S8.2), rendering faithfulness (\S8.3), and on-device execution overheads and deployment feasibility (\S8.4) through rigorous component-by-component analysis.
+\item \textbf{C4. Evaluation:} We empirically demonstrate system safety by mitigating silent IR-to-code divergence from 8.6\% down to 0\% (\S8.1). Furthermore, we evaluate verifier detection accuracy (\S8.2), rendering faithfulness (\S8.3), and on-device execution overheads and deployment feasibility (\S8.4) through rigorous component-by-component analysis.
 \end{itemize}
 
 \textbf{Focus of the contribution.} OVLA removes a failure mode that survives user approval: even when the approved IR is acceptable, the subsequent reactive-temporal lowering phase can introduce subtle state, timer, and boundary errors that cause the deployed code to diverge. OVLA serves as the deterministic, on-device gate specifically engineered to intercept and remediate exactly these errors.
@@ -279,7 +279,7 @@ The goal of the evaluation is not an accuracy contest but to establish, componen
 
 \subsection{RQ1: System Safety}
 
-Does OVLA prevent deployed code from silently diverging from the \emph{displayed IR}? We measure the gate as a paired ablation: both arms share the same lowering candidates, and the gated arm verifies each candidate, deploys it if it passes, and otherwise enters the diagnose-and-repair loop (at most two attempts, then fail-closed rejection). Without the gate, 35 of 382 automations (9.2\%) would deploy while silently diverging from the IR displayed for approval. The gate reduces this to zero: of the 35, 11 are repaired and 24 are rejected fail-closed. The fraction of deployed automations that are correct rises from 90.84\% to 93.72\%. What counts as divergence here is the verifier's verdict; that this verdict tracks real behavioral faults is established independently in \S8.2 against injected mutations and naturally occurring logic faults. These numbers concern divergence from the \emph{displayed} IR (the confirmed-IR assumption), not whether the IR matched the user's true intent (Layer A; \S9).
+Does OVLA prevent deployed code from silently diverging from the \emph{displayed IR}? We measure the gate as a paired ablation: both arms share the same lowering candidates, and the gated arm verifies each candidate, deploys it if it passes, and otherwise enters the diagnose-and-repair loop (at most two attempts, then fail-closed rejection). Without the gate, 33 of 382 automations (8.6\%) would deploy while silently diverging from the IR displayed for approval. The gate reduces this to zero: of the 33, 11 are repaired and 22 are rejected fail-closed. The fraction of deployed automations that are correct rises from 91.36\% to 94.24\%. What counts as divergence here is the verifier's verdict; that this verdict tracks real behavioral faults is established independently in \S8.2 against injected mutations and naturally occurring logic faults. These numbers concern divergence from the \emph{displayed} IR (the confirmed-IR assumption), not whether the IR matched the user's true intent (Layer A; \S9).
 
 \emph{Repair is not the safety evidence.} The safety claim lies in fail-closed: divergent code is repaired or rejected, and never deployed. Because the gate is deterministic, this property does not depend on generation stochasticity: whichever candidates the model produces, a divergent one cannot deploy silently. We report the repair-loop accounting (attempts, success rate, added latency) alongside. The hard core of rejects concentrates in sustain timing, read-modify-write, and multi-step automations, showing that fail-closed is not ``rejecting everything hard.''
 
@@ -295,9 +295,9 @@ Does OVLA prevent deployed code from silently diverging from the \emph{displayed
 Generator (4-bit, no FT) & \multicolumn{1}{c}{Silent-wrong} & \multicolumn{1}{c}{Silent-wrong} & Rep. & Rej. & Deployed \\
  & \multicolumn{1}{c}{w/o gate} & \multicolumn{1}{c}{w/ gate} & & & correct \\
 \midrule
-Qwen3.5-9B  & 35 (9.2\%)  & \textbf{0} & 11 & 24 & 358 (93.7\%) \\
-Qwen3-8B    & 63 (16.5\%) & \textbf{0} & 11 & 52 & 330 (86.4\%) \\
-Gemma-4-E4B & 57 (14.9\%) & \textbf{0} & 16 & 41 & 341 (89.3\%) \\
+Qwen3.5-9B  & 33 (8.6\%)  & \textbf{0} & 11 & 22 & 360 (94.2\%) \\
+Qwen3-8B    & 61 (16.0\%) & \textbf{0} & 11 & 50 & 332 (86.9\%) \\
+Gemma-4-E4B & 55 (14.4\%) & \textbf{0} & 16 & 39 & 343 (89.8\%) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -306,7 +306,7 @@ Gemma-4-E4B & 57 (14.9\%) & \textbf{0} & 16 & 41 & 341 (89.3\%) \\
 
 Does the verifier catch wrong code? We look at two layers, real bugs and synthetic bugs. The real layer comes from the 382-automation pipeline of \S8.1: all 35 real LLM lowering outputs that diverged from the displayed IR were flagged, and none escaped silently (the same 35 cases as \S8.1, restated here as detection rather than additional evidence).
 
-\textbf{Mutation (stress coverage).} We then stress the mechanism with exhaustive construct-derived mutation (Table~\ref{tab:mutation}). Twelve operators generate every first-order mutant at every applicable site (331 seeds, 1,673 generated, 111 equivalents excluded against all scenarios), and 1,551 of 1,562 genuine mutants are caught (99.3\%). The adequacy of the synthesized scenario suite is measured as two-sided coverage (Table~\ref{tab:coverage}): the spec side exercises 97.4\% of IR-FSM obligations (342/351), with all 9 uncovered ones being unsynthesizable else-branch guards (7 variable-to-variable comparisons, 2 arithmetic); the implementation side exercises 96.8\% of generated-JoI branches (670/692). The 11 survivors are characterized exhaustively rather than bucketed: 8 are \texttt{>=}→\texttt{>} comparator mutants on sustain tick-counters whose 1-tick difference lies below the tolerance (max 500ms, 10\%; by design); 1 is a dropped duplicate call in a two-room fan-out (\texttt{call\_drop}); and 2 sit in a single arithmetic read-modify-write automation that boundary seeding cannot reach (one \texttt{call\_drop}, one \texttt{cmp\_direction}), the continuous-arithmetic limit of \S6.5. We separate three claims: ① it catches real lowering bugs (35/35, \S8.1); ② a one-construct perturbation of correct code is caught (the mutation kill rate); ③ silent mismatches in the 382 pipeline are zero (\S8.1). The mutation operators are not hand-picked: they are derived from the IR constructs, and every construct is reached by at least one operator. Mutation alone, being keyed to the same construct set the verifier checks, measures the reach of the mechanism rather than external validity; external validity rests on the real-fault layer above, and the implementation-side coverage shows the synthesized scenarios exercise the generated code, not only the spec. The soundness statement is rejection-sound, bounded-incomplete, and auditable (not ``pass ⇒ correct'').
+\textbf{Mutation (stress coverage).} We then stress the mechanism with exhaustive construct-derived mutation (Table~\ref{tab:mutation}). Twelve operators generate every first-order mutant at every applicable site (331 seeds, 1,675 generated, 108 equivalents excluded against all scenarios), and 1,556 of 1,567 genuine mutants are caught (99.3\%). The adequacy of the synthesized scenario suite is measured as two-sided coverage (Table~\ref{tab:coverage}): the spec side exercises 97.4\% of IR-FSM obligations (342/351), with all 9 uncovered ones being unsynthesizable else-branch guards (7 variable-to-variable comparisons, 2 arithmetic); the implementation side exercises 96.8\% of generated-JoI branches (670/692). The 11 survivors are characterized exhaustively rather than bucketed: 8 are \texttt{>=}→\texttt{>} comparator mutants on sustain tick-counters whose 1-tick difference lies below the tolerance (max 500ms, 10\%; by design); 1 is a dropped duplicate call in a two-room fan-out (\texttt{call\_drop}); and 2 sit in a single arithmetic read-modify-write automation that boundary seeding cannot reach (one \texttt{call\_drop}, one \texttt{cmp\_direction}), the continuous-arithmetic limit of \S6.5. We separate three claims: ① it catches real lowering bugs (33/33, \S8.1); ② a one-construct perturbation of correct code is caught (the mutation kill rate); ③ silent mismatches in the 382 pipeline are zero (\S8.1). The mutation operators are not hand-picked: they are derived from the IR constructs, and every construct is reached by at least one operator. Mutation alone, being keyed to the same construct set the verifier checks, measures the reach of the mechanism rather than external validity; external validity rests on the real-fault layer above, and the implementation-side coverage shows the synthesized scenarios exercise the generated code, not only the spec. The soundness statement is rejection-sound, bounded-incomplete, and auditable (not ``pass ⇒ correct'').
 
 \begin{table}[t]
 \centering
@@ -319,19 +319,19 @@ Does the verifier catch wrong code? We look at two layers, real bugs and synthet
 Operator & Gen. & Equiv. & Genuine & Caught (\%) \\
 \midrule
 arg\_numeric    & 146 & 1  & 145 & 145 (100) \\
-enum\_flip      & 111 & 3  & 108 & 108 (100) \\
-call\_drop      & 439 & 5  & 434 & 432 (99.5) \\
-call\_add       & 202 & 4  & 198 & 198 (100) \\
+enum\_flip      & 111 & 2  & 109 & 109 (100) \\
+call\_drop      & 439 & 4  & 435 & 433 (99.5) \\
+call\_add       & 202 & 3  & 199 & 199 (100) \\
 tick\_scale     & 57  & 0  & 57  & 57 (100) \\
-guard\_polarity & 197 & 0  & 197 & 197 (100) \\
+guard\_polarity & 198 & 0  & 198 & 198 (100) \\
 comparator      & 163 & 38 & 125 & 117 (93.6) \\
 assign\_init    & 71  & 13 & 58  & 58 (100) \\
-cmp\_direction  & 163 & 31 & 132 & 131 (99.2) \\
+cmp\_direction  & 163 & 30 & 133 & 132 (99.2) \\
 arith\_op       & 42  & 12 & 30  & 30 (100) \\
-break\_drop     & 28  & 4  & 24  & 24 (100) \\
+break\_drop     & 29  & 5  & 24  & 24 (100) \\
 wait\_drop      & 54  & 0  & 54  & 54 (100) \\
 \midrule
-Total           & 1,673 & 111 & 1,562 & 1,551 (99.3) \\
+Total           & 1,675 & 108 & 1,567 & 1,556 (99.3) \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -411,7 +411,7 @@ Beyond that, the limits are: the coverage ceiling (unsynthesizable else-branch g
 
 \section{Conclusion}
 
-Reactive-temporal IoT automations have become easy to generate with LLMs, but the step that decides whether they are correct to deploy has been empty. OVLA confines the LLM to generation and makes the deployment gate deterministic and LLM-free: the user approves a plain-language Rendering of the IR, a deterministic checker tests the generated code against that approved IR by bounded trace-equivalence, and divergent code is repaired or rejected fail-closed. Across 382 automations, the 9.2\% that would have deployed while silently diverging from the displayed IR drops to zero, with no LLM in the verification loop, on an edge device. OVLA does not solve natural-language intent correctness, but it removes the separate silent failure mode that survives user approval.
+Reactive-temporal IoT automations have become easy to generate with LLMs, but the step that decides whether they are correct to deploy has been empty. OVLA confines the LLM to generation and makes the deployment gate deterministic and LLM-free: the user approves a plain-language Rendering of the IR, a deterministic checker tests the generated code against that approved IR by bounded trace-equivalence, and divergent code is repaired or rejected fail-closed. Across 382 automations, the 8.6\% that would have deployed while silently diverging from the displayed IR drops to zero, with no LLM in the verification loop, on an edge device. OVLA does not solve natural-language intent correctness, but it removes the separate silent failure mode that survives user approval.
 
 \balance
 \bibliographystyle{ACM-Reference-Format}

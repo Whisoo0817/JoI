@@ -86,6 +86,25 @@ class World:
 
     # ── Effect application ──────────────────────────────────────────────────
 
+    def effect_key(self, service: str, method: str) -> str | None:
+        """Canonical world-state key a call to `service.method` writes, or None.
+
+        Shared by apply_effect (the write) and the IR sim's `var` capture (the
+        read-back), so a read-modify-write op observes the slot its own call
+        just updated. Keys are canonical (lowercase, service-prefix stripped),
+        the same namespace DeviceRef reads use.
+        """
+        from .expr import canonical_name
+        svc = (service or "").lower()
+        m = canonical_name(service, method)
+        if m in ("on", "off", "toggle"):
+            return f"{svc}.switch"
+        if m.startswith("set") and m != "set":
+            return f"{svc}.{m[3:]}"  # "setbrightness" → "brightness"
+        if m.startswith("moveto") and m != "movecolor":
+            return f"{svc}.{m[6:]}"
+        return None
+
     def apply_effect(self, service: str, method: str, args_named: dict) -> None:
         """Best-effort: apply common setter effects to world state.
 
@@ -93,22 +112,16 @@ class World:
         DeviceRef reads and apply_effect writes use the same namespace.
         """
         from .expr import canonical_name
-        svc = (service or "").lower()
+        key = self.effect_key(service, method)
+        if key is None:
+            return
         m = canonical_name(service, method)
         if m == "on":
-            self.state[f"{svc}.switch"] = True
+            self.state[key] = True
         elif m == "off":
-            self.state[f"{svc}.switch"] = False
+            self.state[key] = False
         elif m == "toggle":
-            cur = self.state.get(f"{svc}.switch", False)
-            self.state[f"{svc}.switch"] = not bool(cur)
-        elif m.startswith("set") and len(args_named) == 1:
-            attr = m[3:]  # "setbrightness" → "brightness"
-            val = next(iter(args_named.values()))
-            self.state[f"{svc}.{attr}"] = val
-        elif m.startswith("moveto") and m != "movecolor":
-            attr = m[6:]
-            if args_named:
-                val = next(iter(args_named.values()))
-                self.state[f"{svc}.{attr}"] = val
-        # Else: leave state untouched
+            self.state[key] = not bool(self.state.get(key, False))
+        elif args_named and len(args_named) == 1:
+            self.state[key] = next(iter(args_named.values()))
+        # Else (setter without resolvable single arg): leave state untouched
