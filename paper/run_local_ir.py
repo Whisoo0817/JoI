@@ -1335,6 +1335,25 @@ def generate_joi_code_ir(
 
         def _lower_fn(ir_arg, hints):
             if hints is None:
+                # Paired-design support: when JOI_SEED_JOI_PATH is set, attempt 1
+                # returns the pre-generated candidate (e.g. the ungated arm's
+                # lowering) instead of calling the LLM, so the verifier+repair
+                # loop operates on the exact same candidate the ungated arm
+                # deployed. Behavior is unchanged when the env var is unset.
+                _seed_path = os.environ.get("JOI_SEED_JOI_PATH")
+                if _seed_path:
+                    try:
+                        with open(_seed_path, encoding="utf-8") as _sf:
+                            _seed = json.load(_sf)
+                        _seed_joi = _seed.get("joi_block")
+                        if isinstance(_seed_joi, dict):
+                            prev_raw["text"] = _seed.get("code_raw") or json.dumps(
+                                _seed_joi, ensure_ascii=False)
+                            log_buf.append(f"🌱 attempt-1 seeded from {_seed_path}")
+                            return _seed_joi
+                        log_buf.append("⚠️ seed has no joi_block; fresh generation")
+                    except Exception as _e:
+                        log_buf.append(f"⚠️ seed load failed ({_e}); fresh generation")
                 raw = infer(prompt_key, joi_input, system=system_prompt)
             else:
                 raw = infer_followup(
