@@ -68,12 +68,12 @@ def _judge_prompt(ir: dict, joi_block: dict) -> str:
     )
 
 
-def gen_qwen(prompt, max_tokens=2048):
+def gen_qwen(prompt, max_tokens=2048, temperature=0.0):
     client = get_client()
     model = get_model_id(client)
     r = client.chat.completions.create(
         model=model, messages=[{"role": "user", "content": prompt}],
-        temperature=0.0, max_tokens=max_tokens,
+        temperature=temperature, max_tokens=max_tokens,
         extra_body={"chat_template_kwargs": {"enable_thinking": False}},
     )
     return r.choices[0].message.content or ""

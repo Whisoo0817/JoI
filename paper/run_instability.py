@@ -38,6 +38,12 @@ def main():
     ap.add_argument("--cap-per-type", type=int, default=25)
     ap.add_argument("--method", choices=["direct", "roundtrip"], default="direct",
                     help="direct judge, or back-translation (joi->NL->match)")
+    ap.add_argument("--vote", type=int, default=1,
+                    help="majority-vote over K samples per verdict (1 = single judge)")
+    ap.add_argument("--vote-temp", type=float, default=0.7,
+                    help="sampling temperature when --vote>1 (single-judge uses temp=0)")
+    ap.add_argument("--single-temp", type=float, default=0.0,
+                    help="temperature for single judge (vote<=1); 0.7 = temperature control arm")
     ap.add_argument("--out", default="/tmp/instab")
     ap.add_argument("--dump-dir", default="experiments/e2e_382/20260528_150445__d886015/intermediate/off")
     a = ap.parse_args()
@@ -47,10 +53,12 @@ def main():
     meta = load_meta(); cat = load_catalog(); commands = load_commands()
     fewshot = _fewshot_block(meta, cat, commands, a.dump_dir)
     if a.backend == "openai":
-        gen = lambda p: gen_openai(p, a.model); tag = a.model.replace(".", "").replace("-", "")
+        gen_one = lambda p, t: gen_openai(p, a.model, temperature=t)
+        tag = a.model.replace(".", "").replace("-", "")
     else:
-        gen = gen_qwen; tag = "qwen"
-    tag = f"{tag}_{a.method}"
+        gen_one = lambda p, t: gen_qwen(p, temperature=t)
+        tag = "qwen"
+    tag = f"{tag}_{a.method}" + (f"_vote{a.vote}" if a.vote > 1 else "")
 
     # flatten to (seed, command, base_joi, variant_joi, type, depth) with per-type cap
     pairs, per_type = [], Counter()
@@ -63,16 +71,29 @@ def main():
 
     print(f"[instab] backend={a.backend} pairs={len(pairs)} per_type={dict(per_type)}")
 
+    def _verdict_once(cmd, joi, temp):
+        if a.method == "roundtrip":
+            desc = gen_one(describe_prompt(joi), 0.0)        # describe deterministically
+            return parse_correct(gen_one(match_prompt(cmd, desc), temp))
+        return parse_correct(gen_one(judge_prompt(cmd, joi, fewshot), temp))
+
+    def _majority(cmd, joi):
+        if a.vote <= 1:
+            return _verdict_once(cmd, joi, a.single_temp)             # single judge, deterministic
+        votes = [v for v in (_verdict_once(cmd, joi, a.vote_temp)
+                             for _ in range(a.vote)) if v is not None]
+        if not votes:
+            return None
+        t = sum(1 for v in votes if v); f = len(votes) - t
+        if t == f:
+            return None                                     # tie -> drop pair
+        return t > f
+
     base_cache = {}      # seed -> verdict(bool correct) for base
     def verdict(cmd, joi, key=None):
         if key and key in base_cache:
             return base_cache[key]
-        if a.method == "roundtrip":
-            desc = gen(describe_prompt(joi))          # step 1: joi -> NL
-            raw = gen(match_prompt(cmd, desc))        # step 2: NL vs command
-        else:
-            raw = gen(judge_prompt(cmd, joi, fewshot))
-        v = parse_correct(raw)
+        v = _majority(cmd, joi)
         if key:
             base_cache[key] = v
         return v
@@ -105,7 +126,10 @@ def main():
           f"{tot_f}/{tot_n} = {tot_f/max(1,tot_n):.1%}")
     print("by rewrite type:", rate(flips))
     print("by depth       :", rate(depth_flips))
-    summary = {"backend": a.backend, "model": a.model, "pairs": len(pairs),
+    # NOTE: a.model is only used by the openai backend; for qwen record the local model.
+    used_model = a.model if a.backend == "openai" else "Qwen3.5-9B-AWQ-4bit"
+    summary = {"backend": a.backend, "model": used_model, "pairs": len(pairs),
+               "vote": a.vote, "vote_temp": a.vote_temp,
                "overall_flip": f"{tot_f}/{tot_n}", "overall_rate": tot_f/max(1, tot_n),
                "by_type": {k: v for k, v in flips.items()},
                "by_depth": {k: v for k, v in depth_flips.items()}, "detail": detail}

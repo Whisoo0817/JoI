@@ -12,6 +12,8 @@ Rewrite types (tagged structural vs shallow):
     - branch_swap  : if(C){A}else{B} -> if(not(C)){B}else{A}
     - demorgan     : if(A and B) -> if(not(not A or not B))
   shallow (control; a stable oracle should never flip):
+    - var_rename   : alpha-rename a `:=`-declared local var everywhere (purest)
+    - double_neg   : if(C) -> if(not(not(C)))   (trivial logical identity)
     - operand_swap : `A and B` -> `B and A`   (top-level of first if-cond)
     - arith_commute: `x + n` -> `n + x`
     - selector_reorder : (#A #B) -> (#B #A)
@@ -31,7 +33,7 @@ sys.path.insert(0, ROOT); sys.path.insert(0, os.path.join(ROOT, "paper"))
 from paper.run_mutation_test import load_meta, load_catalog, _verify, _trace_signature
 
 STRUCTURAL = {"prevcurr", "branch_swap", "demorgan"}
-SHALLOW = {"operand_swap", "arith_commute", "selector_reorder"}
+SHALLOW = {"operand_swap", "arith_commute", "selector_reorder", "var_rename", "double_neg"}
 MAX_VARIANTS_PER_TYPE = 1     # one variant per (seed,type) keeps groups clean
 SEED_CAP = None               # use all clean seeds
 
@@ -156,6 +158,31 @@ def t_selector_reorder(s):
     return s[:m.start()] + newsel + s[m.end():]
 
 
+def t_var_rename(s):
+    # alpha-rename: rename the first `:=`-declared local variable everywhere.
+    # Purest behavior-preserving rewrite -- a stable oracle must never flip on it.
+    m = re.search(r'\b([a-z_][a-zA-Z0-9_]*)\s*:=', s)
+    if not m:
+        return None
+    old = m.group(1)
+    new = old + "_v"
+    if re.search(r'\b' + re.escape(new) + r'\b', s):
+        return None  # name collision -> skip
+    return re.sub(r'\b' + re.escape(old) + r'\b', new, s)
+
+
+def t_double_neg(s):
+    # double negation of the first if-cond: C -> not (not (C)). Truth-preserving.
+    r = _first_if(s)
+    if not r:
+        return None
+    cond, then_blk, else_blk, (a, b) = r
+    newcond = f"not (not ({cond.strip()}))"
+    tail = f" else {{{else_blk}}}" if else_blk is not None else ""
+    new = f"if ({newcond}) {{{then_blk}}}{tail}"
+    return s[:a] + new + s[b:]
+
+
 def _split_top(cond, sep):
     """Split cond on `sep` only at paren-depth 0."""
     out, depth, last = [], 0, 0
@@ -177,6 +204,7 @@ TRANSFORMS = {
     "prevcurr": t_prevcurr, "branch_swap": t_branch_swap, "demorgan": t_demorgan,
     "operand_swap": t_operand_swap, "arith_commute": t_arith_commute,
     "selector_reorder": t_selector_reorder,
+    "var_rename": t_var_rename, "double_neg": t_double_neg,
 }
 
 

@@ -4,7 +4,7 @@ import urllib.request
 
 from openai import OpenAI
 
-openai_api_key = "EMPTY"
+openai_api_key = os.environ.get("LLM_API_KEY", "EMPTY")
 openai_api_base = os.environ.get("LLM_BASE_URL",
                                 "http://localhost:8002/v1")  # 환경 변수 없을 시 기본값
 

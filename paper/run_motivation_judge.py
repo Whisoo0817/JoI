@@ -42,16 +42,19 @@ DATASET = os.path.join(ROOT, "dataset.csv")
 _OAI = None
 
 
-def gen_openai(prompt, model="gpt-4o", max_tokens=4096):
-    """Chat completion for both gpt-4* and gpt-5* (reasoning) families."""
+def gen_openai(prompt, model="gpt-4o", max_tokens=4096, temperature=0.0):
+    """Chat completion for both gpt-4* and gpt-5* (reasoning) families.
+    temperature>0 (for majority-vote sampling) drops the fixed seed so samples vary."""
     global _OAI
     if _OAI is None:
         from openai import OpenAI
         _OAI = OpenAI(api_key=open(os.path.join(ROOT, "paper", "openai.txt")).read().strip())
     kwargs = {"model": model, "messages": [{"role": "user", "content": prompt}],
-              "temperature": 0.0, "seed": 42}
+              "temperature": temperature}
+    if temperature == 0.0:
+        kwargs["seed"] = 42
     if model.startswith("gpt-5"):
-        kwargs["max_completion_tokens"] = max_tokens   # gpt-5* accepts temperature=0
+        kwargs["max_completion_tokens"] = max_tokens
     else:
         kwargs["max_tokens"] = max_tokens
     r = _OAI.chat.completions.create(**kwargs)
@@ -114,6 +117,11 @@ EQUIVALENT REALIZATIONS (do NOT flag these as errors -- they are CORRECT)
 - Omitting a default-valued argument (e.g. TransitionTime=0, Rate=0) is NOT an error.
 - Equivalent phrasings of an announced/spoken string, or a broader-but-correct form
   of the same trigger, are NOT errors.
+- Surface form is irrelevant: judge a condition by the truth value it computes and the
+  program by the device actions it produces over time, not by how it is written. Two
+  programs that yield the same actions at the same times are equally correct regardless
+  of variable names, logically equivalent Boolean or arithmetic expressions, or
+  equivalent branch/guard structure.
 A program is CORRECT if it achieves the commanded effect, even via a different but
 behaviorally-equivalent method, argument form, or wording.
 

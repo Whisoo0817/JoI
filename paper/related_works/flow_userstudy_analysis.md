@@ -479,3 +479,76 @@ OVLA's vulnerability: *"the verifier and the eval labels share the same simulato
 5. IoTCoder [180], ChatDL [185], IoT-Together [188], DELTA [189] — LOW; capability-matrix / lineage only.
 
 **Bottom line:** broad horizontal survey, shallow automation coverage. **No near-collision; confirms our four gaps.** Deliverable = (i) a peer-reviewed motivation citation, (ii) two minor generation baselines (LLM4TAP, IoTCoder), (iii) ONE title to verify: **[182] TechRxiv "on-device validation"** (currently looks like execution-feedback self-refine, not deterministic spec-conformance).
+
+---
+
+## TAP / IFTTT-class inventory (2026-06-03) — artifact form + verification target
+
+Built for OVLA §1/§2 to pin the **verification-axis** framing (NOT expressiveness). Three-agent sweep (corpus + web TAP-verification + web platform-expressiveness), all converging.
+
+### Artifact form (what a TAP rule looks like)
+Canonical form across the field = **`IF event (WHILE state) THEN action(s)`** (Ur CHI'14; AutoTap §II-A p.283, the "EVENT-STATE-CONDITION-ACTION variant ... used in SmartThings, Home Assistant, academic studies").
+- **WHILE = state guard (condition), NOT a loop. "for X / stays-for" = duration predicate, NOT a loop.**
+- **Absent across ALL TAP papers + consumer platforms: loops (for/while/repeat), persistent variables, counters, multi-step routines with maintained state.** TAP-Debug: experts who *tried to use loops* in Task 4 failed (loops not a TAP primitive). iRuler's "action loop" = cyclic rule-CHAIN, not in-rule loop. Corno IS-EUD'21: "sustained actions" needed but MISSING.
+- Platform expressiveness boundary (web-confirmed): the divide IFTTT/SmartThings → HA/openHAB is a CLUSTER = persistent vars + counters + general loops + timed multi-step sequencing. SmartThings **Rules-API JSON** is the straddler (has nested and/or/not, if/then/else, `sleep`, periodic `every`, ordered sequence — but NO persistent vars/counters/loops). IFTTT = 1 trigger + multi-action(Pro) + **stateless ES5 filter code** (no delay/loop/counter/memory). HA = `for:`/`repeat`/`while`/`counter`(persists restart)/Jinja2; openHAB = Xtend Rules DSL (Turing-complete).
+
+### Verification target (the wedge) — per paper
+| Paper | Venue | Verifies vs | Mechanism | single-rule INTENT? |
+|---|---|---|---|---|
+| AutoTap | ICSE'19 | user-picked **LTL safety** (co-occurrence) | LTL synth/repair | △ intent reduced to safety template |
+| TAPInspector | TDSC'22 | inter-rule safety+liveness (9 vuln, timers τ) | NuSMV | ✗ |
+| iRuler | CCS'19 | inter-rule vuln 6 types | SMT+MC+NLP | ✗ |
+| Soteria / IoTSan / SafeChain | ATC'18 / CoNEXT'18 / TIFS'19 | fixed safety / attack chains | NuSMV/SPIN/FSM | ✗ |
+| TAPFixer | USENIX Sec'24 | negated safety/liveness (repair) | model check | ✗ |
+| HAWatcher | USENIX Sec'21 | mined invariants (RUNTIME anomaly) | runtime monitor | ✗ |
+| ChatIoT | IMWUT'24 | format/value adequacy | **LLM judge (Evaluator)** | ✗ |
+| Brackenbury'19 / Huang&Cakmak'15 | CHI/UbiComp | (user study, no verifier) | — | motivates gap only |
+
+### Decisive conclusions (citation-ready)
+1. **TAP is flat/non-iterative** — `IF event (WHILE state) THEN action`; no loop/counter/persistent-var/multi-step anywhere. OVLA's reactive-temporal target (cycle/count, sustain-for-N, hysteresis, multi-step w/ persistent state) sits STRICTLY ABOVE the entire corpus.
+2. **Verification across the field = {fixed safety / inter-rule conflict / security / liveness / runtime anomaly}. Single-rule intent-conformance = EMPTY.** AutoTap = lone partial exception (intent → LTL safety template). = OVLA's wedge.
+3. **WHY prior work didn't check intent (paper claim):** classic TAP is *user-authored*, so rule = intent by construction; remaining risks are emergent (conflict) / adversarial (security), definable WITHOUT a per-task intent oracle. Intent-conformance gap appears ONLY once an LLM generates code from NL (user-said ≠ produced), and that intended behavior has no ready oracle. → not oversight; a new gap created by LLM generation.
+
+### §1/§2 framing LOCK (2026-06-03): drop expressiveness axis
+- §1 "Distinguishing" goes straight to **verification axis** (no platform expressiveness ranking, no "hard to read by eye" — that needs its own proof). Arc: deploy-decision-empty → no-oracle+temporal/multi-realization → running example → existing checks (safety/conflict only, + WHY) → judge unstable → OVLA.
+- TAP appears ONLY as a **verification-target contrast** (checks safety not intent), never as an expressiveness comparison. Consistent with opening "whether the generated code is safe to deploy remains empty."
+
+### Source URLs (verify before \cite)
+AutoTap https://people.cs.uchicago.edu/~shanlu/paper/autotap.pdf · TAPInspector https://arxiv.org/abs/2102.01468 · iRuler(CCS'19) https://people.cs.umass.edu/~pdatta/publication/iruler/iruler.pdf · Soteria https://www.usenix.org/conference/atc18/presentation/celik · SafeChain https://arxiv.org/abs/1903.03760 · IoTSan https://arxiv.org/abs/1810.09551 · Ur CHI'14 https://www.blaseur.com/papers/TriggerActionCHI14.pdf · Brackenbury CHI'19 https://www.blaseur.com/papers/chi19-ifttt-cameraready.pdf · Huang&Cakmak UbiComp'15 https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf · SmartThings Rules API https://developer.smartthings.com/docs/automations/rules · HA scripts https://www.home-assistant.io/docs/scripts/ · openHAB DSL https://www.openhab.org/docs/configuration/rules-dsl.html
+**Citation fixes:** iRuler = CCS 2019 (not NDSS/USENIX); Huang&Cakmak = UbiComp 2015 (not UIST); TAPInspector journal = IEEE TDSC 2022. `[catalogue]` rows (TAPInspector/TAPFixer/HAWatcher/iRuler/Soteria numbers) = re-verify metrics against PDFs before quoting.
+
+---
+
+## NL-input LLM-GENERATION inventory (2026-06-03) — how each "validates" + WHY no intent-conformance
+
+Companion to the TAP/IFTTT inventory above. Covers the line where NL IS input and an LLM/synthesizer produces the automation (= where the intent gap exists). Grounded in cards above + related_works.md. For OVLA §1 (compact) + §2 funnel.
+
+### Per-paper (verify? / against what / WHY-not-intent)
+| Paper | Generates | Verify? | Against what / how | WHY no behavioral intent-conformance |
+|---|---|---|---|---|
+| GPIoT (SenSys'25) | algorithmic Python (DSP/ML) | YES | pass@k exec tests + SonarQube | **(b) oracle EXISTS** (test I/O) → non-problem |
+| AutoIOT (MobiCom'25) | algorithmic Python | YES | ESR + labeled-accuracy + SonarQube | **(b) oracle EXISTS** |
+| ChatIoT (IMWUT'24) | flat HA TAP | WEAK | **LLM-judge** Evaluator = format/value | (c) no spec → judge proxy |
+| IoTGPT (arXiv'26 2601.04680) | flat TAP/control | WEAK | STR/ECR/ICR GT-match + SER syntax + exec self-correct | (c)+(e); authors name verify-before-execute as future work |
+| Giudici et al. 2025 (ex-"EcoMate", 2505.02802) | HA routine JSON | WEAK | **JSON validity = HA API accepts** | (a) generation = endpoint |
+| Sasha | transient device settings | NO | — | (d) transient + (a) |
+| SAGE | tool-call seq / poll loop | WEAK | runtime tool-feedback self-correct | (d)+(c) |
+| AutoIoT-Maude (2411.10665) | flat TAP JSON | YES (wrong target) | Maude MC of **4 inter-rule conflict** types | (c)/(a) verifies conflict not intent |
+| TaskSense (SenSys'25) | tool-call plan | WEAK | solvability + grammar/DAG-subgraph (≈L1) + result→NL answer | (d)/(a) feasibility not behavior |
+| DS-IA (2603.16207) | transient action seq | YES (structural) | deterministic 3-level cascade = **grounding feasibility**, fail-closed | (d) feasibility not behavior (shares fail-closed posture, L1 axis) |
+| LACE (2505.23835) | static access policy | YES (closest-intent) | back-translate + **NLI** intent-equiv + Z3 + OPA | (c) static policy / probabilistic / **no user** (100%=self-certified) |
+| AwareAuto (2408.12687) | reactive-temporal IR→JSON | WEAK | auto = **grounding feasibility** only; intent consistency = **manual annotation** | (e)+(f) shows raw-LLM rule to user, never machine-checks code vs it |
+| SimuHome (ICLR'26) | (eval env, not generator) | n/a | sim goal-assert + LLM-judge 3× majority | n/a (motivation: self-correct ≤18.5%/0%) |
+
+### THE WHY = oracle split (2-bucket, robust)
+- **(i) oracle EXISTS → didn't need to derive one:** GPIoT, AutoIOT (+ non-IoT: text-to-SQL denotation, CodeT/Self-Debug unit tests). Intent-conformance a non-problem.
+- **(ii) NO oracle (reactive automation) → fall back to format/feasibility/exec-feedback/GT-match/LLM-judge/conflict, or manual/user-prose-without-machine-check:** ChatIoT, IoTGPT, Giudici, DS-IA, TaskSense, Sasha, SAGE, AutoIoT, AwareAuto.
+- **Discriminator = the ORACLE, not the LLM.** LLM creates the gap (NL→code: user-said ≠ produced); reactive automation's missing behavioral oracle is why bucket-(ii) stays unfilled. **OVLA manufactures the oracle = user-confirmed Timeline IR** → deterministic behavioral check possible. = the wedge.
+
+### Closest neighbors (near-collision = LACE + AwareAuto only; consistent w/ §2 lock)
+- **AwareAuto** (representation/confirm axis): builds+shows confirmable reactive-temporal IR, lowers to JSON. STOPS: auto-check=grounding feasibility only; intent consistency=manual researcher annotation; shown text=raw LLM output (not deterministic projection of a pinned spec); no behavioral verifier.
+- **LACE** (intent-equivalence/back-translation axis): synthesize→back-translate→NLI intent-equiv. STOPS: static policy (no trace/time); probabilistic NLI; no user in loop; oracle machine-derived (circular).
+
+### §2 drop-in prose (citation-ready, in flow_userstudy_analysis top block style)
+See agent output 2026-06-03 / §2 funnel: "A growing line of work turns NL into automations with LLMs (Sasha, SAGE, ChatIoT, Giudici et al., IoTGPT; AwareAuto goes furthest = confirmable reactive-temporal). None checks the generated automation BEHAVES as intended: stops at schema validity / API-syntax + GT-match / grounding feasibility / runtime self-correction; formal check (AutoIoit Maude) targets conflict not intent. Structural, not oversight: algorithmic codegen (GPIoT, AutoIOT) has an executable oracle (cf. text-to-SQL); reactive automation has none → fallback. Closest: LACE (NLI back-trans, static/probabilistic/no-user), AwareAuto (confirm = manual annotation, shows raw LLM output). OVLA fills it = user-confirmed Timeline IR oracle + deterministic LLM-free behavioral check, on-device."
+**Body-unverified (do not cite specifics): LLMind 2.0 (abstract-only).**
