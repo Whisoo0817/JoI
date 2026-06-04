@@ -55,8 +55,12 @@ def ir_features(ir):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--run-dir", required=True,
+    ap.add_argument("--run-dir", default=None,
                     help="Stage-B intermediate dir containing off/ and on/")
+    ap.add_argument("--bundle", default=None,
+                    help="single-JSON bundle {name: joi_block} (use when the "
+                         "intermediate dir is unavailable, e.g. on the M4; "
+                         "see paper/Final/evaluation/results/m4_bench_input.json)")
     ap.add_argument("--arm", default="on", choices=["off", "on"],
                     help="which generated JoI set to check against gt_ir")
     ap.add_argument("--reps", type=int, default=10)
@@ -72,18 +76,28 @@ def main():
             if c and i:
                 rows.append((f"{c}_{i}", r))
 
+    bundle = json.load(open(a.bundle, encoding="utf-8")) if a.bundle else None
+    if not bundle and not a.run_dir:
+        ap.error("give --run-dir or --bundle")
+
     results, skipped = [], []
     t_all0 = time.perf_counter()
     for name, r in rows:
-        p = os.path.join(a.run_dir, a.arm, f"{name}.json")
-        if not os.path.exists(p):
-            skipped.append((name, "no joi file"))
-            continue
-        d = json.load(open(p, encoding="utf-8"))
-        joi = d.get("joi_block")
-        if d.get("status") != "ok" or not isinstance(joi, dict):
-            skipped.append((name, "no usable joi_block"))
-            continue
+        if bundle is not None:
+            joi = bundle.get(name)
+            if not isinstance(joi, dict):
+                skipped.append((name, "not in bundle"))
+                continue
+        else:
+            p = os.path.join(a.run_dir, a.arm, f"{name}.json")
+            if not os.path.exists(p):
+                skipped.append((name, "no joi file"))
+                continue
+            d = json.load(open(p, encoding="utf-8"))
+            joi = d.get("joi_block")
+            if d.get("status") != "ok" or not isinstance(joi, dict):
+                skipped.append((name, "no usable joi_block"))
+                continue
         try:
             ir = json.loads(r["ir_gt"])
         except Exception:
