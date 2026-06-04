@@ -78,12 +78,19 @@ because it textually mirrors the natural-language request. However, %reads like 
 it is the wrong one: under periodic execution it falsely re-fires on every tick as long as the temperature stays above the threshold. All three are syntactically valid and look plausible; they can only be differentiated by evaluating their execution traces over time; %only the action traces separate them, and 
 because repeated On() commands leave the AC in the same visible state, the user may see nothing wrong. This is a crucial failure mode our system eliminates: \textbf{deployed code that silently diverges from the user's intended behavioral specification}. (In the sketches, \texttt{cron} sets when the script starts, \texttt{period} is the tick interval in milliseconds, and \texttt{code} is the body executed on every tick; \texttt{:=} initializes a persistent variable once, while \texttt{=} performs per-tick update.) %updates it per tick.)
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figs/trace.pdf}
-\caption{Three lowering sketches of one intent (``whenever the temperature rises above 25°C, turn on the air conditioner'') and their action traces. A and B produce identical traces; C fires on every tick while the threshold is exceeded.}
+\includegraphics[width=\linewidth]{figs/figure1_a.pdf}\par
+{\small (a) Implementation $A$: previous/current comparison}\par\smallskip
+\includegraphics[width=\linewidth]{figs/figure1_b.pdf}\par
+{\small (b) Implementation $B$: triggered flag}\par\smallskip
+\includegraphics[width=\linewidth]{figs/figure1_c.pdf}\par
+{\small (c) Implementation $C$: re-fires while the level holds}\par\smallskip
+\includegraphics[width=\linewidth]{figs/figure1_trace.pdf}\par
+{\small (d) Action traces}
+\caption{Three lowering sketches of one intent (``whenever the temperature rises above 25°C, turn on the air conditioner'') and their action traces. $A$ and $B$ produce identical traces; $C$ fires on every tick while the threshold is exceeded.}
 \label{fig:idiom}
-\end{figure*}
+\end{figure}
 
 \textbf{Why existing checks fall short.} %do not close the gap.} 
 Prior verification frameworks of IoT automations target fixed, predefined criteria rather than the user's intent. A large body of work checks hand-authored trigger-action rules; for instance model checkers prove safety properties, inter-rule conflicts, or security policies (e.g., AutoTap~\cite{autotap}), while runtime monitors flag deviations from mined invariants~\cite{hawatcher}. This limitation is a consequence of design paradigm, not oversight. When a user writes the rule directly, the rule itself serves as %\emph{is} 
