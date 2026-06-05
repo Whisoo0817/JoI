@@ -227,12 +227,23 @@ def main():
     err_names = [r["name"] for r in dist["rows"] if r.get("verdict") == "error"]
     a_surf = a_total = 0
     a_blind = []
+    upstream_rejected = []
     for name in err_names:
         gt = meta.get(name, {}).get("ir_gt")
         gp = os.path.join(gen_dir, f"{name}.json")
         if not isinstance(gt, dict) or not os.path.exists(gp):
             continue
         gen = json.load(open(gp, encoding="utf-8")).get("ir")
+        # Apply the pipeline's static catalog gate: IRs it rejects (e.g. a
+        # selector leaked into call args) never reach rendering, so they are
+        # not part of the rendering-surfacing population.
+        try:
+            from paper.run_local_ir import _load_catalog
+            from paper.timeline_ir import validate_ir_against_catalog
+            validate_ir_against_catalog(gen, _load_catalog())
+        except Exception:
+            upstream_rejected.append(name)
+            continue
         rgt, rgen = render_or_none(gt), render_or_none(gen)
         if rgt is None or rgen is None:
             continue
@@ -279,7 +290,7 @@ def main():
         "part_A_real_errors": {
             "n": a_total, "surfaced": a_surf,
             "surface_rate": round(a_surf / max(1, a_total), 4),
-            "blind_spots": a_blind,
+            "blind_spots": a_blind, "upstream_rejected": upstream_rejected,
         },
         "part_B_synthetic_by_class": {
             cls: {"applicable": tot, "surfaced": surf,

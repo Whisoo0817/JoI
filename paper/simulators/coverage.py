@@ -73,9 +73,13 @@ def enumerate_target_obligations(ir: dict) -> list[str]:
     expr_obs: list = []
     for key in sorted(live):
         expr_obs += [f"expr@{key}:lo", f"expr@{key}:hi"]
-    reg_keys = {k for (v, k, _t) in _read_schedule(timeline) if v in regs and k and k not in written}
+    reg_reads = [(v, k, t) for (v, k, t) in _read_schedule(timeline)
+                 if v in regs and k and k not in written]
+    reg_keys = {k for (_v, k, _t) in reg_reads}
     for k in sorted(reg_keys):
         expr_obs += [f"expr@{k}:reg_lo", f"expr@{k}:reg_hi"]
+        if len(reg_reads) >= 2:
+            expr_obs += [f"expr@{k}:reg_fall"]
     obs += list(dict.fromkeys(expr_obs))
     return obs
 

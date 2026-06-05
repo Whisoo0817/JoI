@@ -185,21 +185,36 @@ def _synth_expr_boundary(timeline: list, live_keys: set, reg_names: set, written
     sched = _read_schedule(timeline)
     reg_reads = [(v, k, t) for (v, k, t) in sched if v in reg_names and k and k not in written]
     scns = []
-    for idx, variant in enumerate(("lo", "hi")):
+    # "fall" drives successive reads DOWNWARD (first read high, later reads
+    # lower), the mirror of "hi". Without it, a variable-to-variable comparison
+    # like `$t2 - $t1 >= 2` is only ever exercised on the equal (lo) and rising
+    # (hi) sides, so a lowering that drops the sign (|t2-t1|) behaves like the
+    # spec on every synthesized scenario and slips through. Only emitted when
+    # some register is read more than once (a single read has no direction).
+    multi_read = len(reg_reads) >= 2
+    variants = ("lo", "hi", "fall") if multi_read else ("lo", "hi")
+    for variant in variants:
         scn = _synth_plan(timeline, target_id=None, reach={}, label=f"expr:{variant}")
         covers = list(scn.covers)
+        live_idx = 0 if variant == "lo" else 1
         for key in sorted(live_keys):
             pair = _domain_pair(doms.get(key))
             if pair is None:
                 continue
-            scn.initial_world[key] = pair[idx]
+            scn.initial_world[key] = pair[live_idx]
             covers.append(f"expr@{key}:{variant}")
-        # registers: stepped (hi) so consecutive reads of the same src differ; equal (lo)
+        # registers: equal (lo), rising (hi), falling (fall) read sequences
+        n = len(reg_reads)
         for i, (var, src, t) in enumerate(reg_reads):
             pair = _domain_pair(doms.get(src)) or (10.0, 90.0)
             base = pair[0]
             step = (pair[1] - pair[0]) * 0.4
-            val = base + (i * step if variant == "hi" else 0)
+            if variant == "hi":
+                val = base + i * step
+            elif variant == "fall":
+                val = base + (n - 1 - i) * step
+            else:
+                val = base
             scn.add(t, src, val)
             covers.append(f"expr@{src}:reg_{variant}")
         scn.covers = sorted(set(covers))
