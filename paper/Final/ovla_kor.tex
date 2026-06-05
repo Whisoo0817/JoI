@@ -48,7 +48,7 @@
 \begin{document}
 
 \begin{abstract}
-스마트홈 사용자는 점점 자연어로 IoT 자동화를 작성하고, LLM이 엣지 허브에서 실행될 reactive 코드를 생성한다. 그러나 그 코드가 배포해도 되는 코드인지는 현재 검사되지 않는다: reactive-temporal 자동화는 정밀한 trigger, duration, 반복을 다루며, 한 tick이나 비교 연산 하나가 틀린 lowering이 조용히 배포된다. 우리는 이 배포 결정을 결정론적·LLM-free로 만드는 on-device 파이프라인 OVLA를 제시한다. OVLA는 사용자 요청에서 간결한 Timeline IR을 추출하고, 사용자는 그 결정론적 평문 rendering을 승인한다; 승인된 IR이 곧 그 자동화의 행동 specification이 된다. OVLA는 이 specification에서 reference 이벤트 trace와 boundary case를 자동 합성한다. 효율적인 verifier가 생성된 코드를 그 trace에 대해 시뮬레이션해 행동 불일치를 검출하고 counterexample로 자동 수리를 이끈다; 어긋난 코드는 수리되거나 fail-closed로 기각되며, 조용히 배포되는 일은 없다. 로컬 양자화 ≤9B 생성기로 382개 자동화에 걸쳐, 어긋난 후보는 하나도 배포에 도달하지 않았다; verifier는 주입된 temporal bug 1,552개의 99.3\%를 잡았고, 그 수락/기각 결정은 36,000회의 무작위 dense 재실행 재심을 통과했다 — 검증 루프에 LLM 없이.
+스마트홈 사용자는 점점 자연어로 IoT 자동화를 작성하고, LLM이 엣지 허브에서 실행될 reactive 코드를 생성한다. 그러나 그 코드가 배포해도 되는 코드인지는 현재 검사되지 않는다: reactive-temporal 자동화는 정밀한 trigger, duration, 반복을 다루며, 한 tick이나 비교 연산 하나가 틀린 lowering이 조용히 배포된다. 우리는 이 배포 결정을 결정론적·LLM-free로 만드는 on-device 파이프라인 OVLA를 제시한다. OVLA는 사용자 요청에서 간결한 Timeline IR을 추출하고, 사용자는 그 결정론적 평문 rendering을 승인한다; 승인된 IR이 곧 그 자동화의 행동 specification이 된다. OVLA는 이 specification에서 reference 이벤트 trace와 boundary case를 자동 합성한다. 효율적인 verifier가 생성된 코드를 그 trace에 대해 시뮬레이션해 행동 불일치를 검출하고 counterexample로 자동 수리를 이끈다; 어긋난 코드는 수리되거나 fail-closed로 기각되며, 조용히 배포되는 일은 없다. 로컬 양자화 ≤9B 생성기로 382개 자동화에 걸쳐, 어긋난 후보는 하나도 배포에 도달하지 않았다; verifier는 주입된 temporal bug 1,552개의 99.3\%를 잡았고, 36,000회의 무작위 dense 재실행이 그 수락/기각 결정을 독립적으로 확인했다.
 \end{abstract}
 
 \keywords{IoT automation, LLM code generation, reactive-temporal code, deterministic verification, on-device, trace equivalence}
