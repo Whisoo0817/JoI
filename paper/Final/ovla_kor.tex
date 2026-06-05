@@ -488,11 +488,11 @@ temp.\ rises above 28° → switch on & rising & pass & on crossing only \\
 
 가장 큰 한계는 NL→IR 의도 정확성이 열린 문제로 남는다는 것이다(Layer A). 사용자가 잘못 표시된 IR을 승인할 수 있고, 그 경우 verifier는 잘못된 spec에 충실히 검사한다. 이번에는 인간 확인 행동을 연구하지 않는다; rendering이 결정론적이고 충실한 평문 표면이라는 것까지만 확립한다. Ethics: 인간 참가자 데이터는 수집되지 않았다(``Not applicable: no human participants'').
 
-그 외의 한계는: coverage 상한(counter-modulo guard의 else쪽; \S8.2); 경계 집중 동치는 입력 공간 전체 보장이 아님; 유계 7일 horizon; 연속 산술(SMT는 future work); 임계 없는 변수 간 산술(soundness가 아닌 coverage 한계); selector-free IR에서 같은 service의 두 read가 하나의 기기 키로 합쳐지는 것(precision은 이 논문 scope 밖); 단일 플랫폼 너머의 일반화.
+그 외의 한계는: coverage 상한(counter-modulo guard의 else쪽; \S8.2); 경계 집중 동치는 입력 공간 전체 보장이 아님(다만 \S8.3의 dense 재심이 배포분에서 이 잔여를 측정한다); 유계 7일 horizon; 연속 산술(SMT는 future work); 값이 인자로 흘러가는 산술 — 값-특이 버그가 살아남을 수 있음(soundness가 아닌 coverage 한계; \S6.5); selector-free IR에서 같은 service의 두 read가 하나의 기기 키로 합쳐지는 것(precision은 이 논문 scope 밖); 단일 플랫폼 너머의 일반화.
 
 \section{Conclusion}
 
-reactive-temporal IoT 자동화는 LLM으로 생성하기 쉬워졌지만, 그것이 배포해도 되는 코드인지 결정하는 단계는 비어 있었다. OVLA는 LLM을 생성에 국한시키고 배포 게이트를 결정론적·LLM-free로 만든다: 사용자는 IR의 평문 rendering을 승인하고, 결정론적 검사기가 생성 코드를 그 승인된 IR에 대해 bounded trace-equivalence로 테스트하며, 어긋난 코드는 수리되거나 fail-closed로 기각된다. 382개 자동화에 걸쳐, 표시된 IR과 조용히 어긋난 채 배포됐을 9.2\%가 0으로 떨어진다 — 검증 루프에 LLM 없이, 엣지 기기 위에서. OVLA는 자연어 의도 정확성을 해결하지 않지만, 사용자 승인을 통과하고도 살아남는 별개의 silent failure mode를 제거한다.
+reactive-temporal IoT 자동화는 LLM으로 생성하기 쉬워졌지만, 그것이 배포해도 되는 코드인지 결정하는 단계는 비어 있었다. OVLA는 LLM을 생성에 국한시키고 배포 게이트를 결정론적·LLM-free로 만든다: 사용자는 IR의 평문 rendering을 승인하고, 결정론적 검사기가 생성 코드를 그 승인된 IR에 대해 bounded trace-equivalence로 테스트하며, 어긋난 코드는 수리되거나 fail-closed로 기각된다. 382개 자동화에 걸쳐, 생성기가 만든 모든 어긋난 후보(최강 모델 기준 9.2\%)는 배포되는 대신 수리되거나 기각되었고, 게이트의 분류는 양방향 독립 재심 — 기각 전수 audit과 배포분 36,000회 무작위 dense 재실행 — 을 통과했다. 검증 루프에 LLM 없이, 엣지 기기 위에서다. OVLA는 자연어 의도 정확성을 해결하지 않지만, 사용자 승인을 통과하고도 살아남는 별개의 silent failure mode를 제거한다.
 
 \balance
 \bibliographystyle{ACM-Reference-Format}
