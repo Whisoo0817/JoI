@@ -94,13 +94,13 @@ does a test oracle already exist? Generators designed for algorithmic IoT code c
 \textbf{Why not an LLM judge.} The remaining alternative that targets user intent directly is to ask another LLM whether the code matches the request. But an LLM judge is too unstable to act as a deployment gate. A deployment decision is binary: two behaviorally identical programs must receive the same deploy/reject verdict. Yet we find that on behavior-preserving programs that differ only in idiom, an LLM judge's verdict flips even at temperature 0 (\S3). Larger models still flip, and cloud models violate the privacy and latency constraints of the edge. A gate whose verdict tracks the surface form of the code is not fit to gate deployment.
 
 \textbf{OVLA.} To address these challenges, we present OVLA. Its key idea is to \emph{derive the missing reference specification} at authoring time and subsequently utilize it as a deterministic verification baseline.
-First, OVLA builds a candidate Timeline IR from a natural-language request. Then, the system generates a deterministic, plain-language Rendering of this IR for the user to review and confirm.
+First, OVLA builds a candidate Timeline IR from a natural-language request. Then, the system generates a deterministic, plain-language rendering of this IR for the user to review and confirm.
 This confirmed IR serves as a per-automation behavioral oracle. The generated JoI code is then verified against the oracle by bounded trace-equivalence over the finite set of transition points defined by the IR. Both components are run on events synthesized at those points (e.g., timer expirations, condition thresholds, and cycle restarts), and their resulting action traces are compared. While the LLM is confined to \emph{generation}, proposing the IR and lowering it to code, both the rendering step and the equivalence check are deterministic and LLM-free. This allows conformant automations to be safely deployed at the edge without cloud-side review. \emph{Precisely because} lowering relies on a probabilistic LLM,
 a deterministic checker is needed.
 
 \textbf{Scope and assumptions.} 
-OVLA targets natural-language commands specifying explicit reactive-temporal behaviors. Inferring intent from vague or affective goals (e.g., "make it cozy") is a separate intent-elicitation challenge addressed by orthogonal literature (e.g., Sasha~\cite{sasha}, SAGE~\cite{sage}) and is strictly out of scope. Any residual ambiguity within a specifiable command is intentionally surfaced by OVLA's deterministic Rendering phase and resolved during user confirmation, rather than by the verifier itself. 
-Confirming the IR is presented as a plain-language judgment rather than a programming task. The dimensions a user controls in reactive-temporal automation are limited and enumerable (start time, period, trigger and condition, action and its arguments, sustain and delay durations), Timeline IR expresses only these slots, and deterministic Rendering displays them verbatim as a readable timeline (\S8.3). Approving an IR is thus a closed judgment over finite control slots the command named, not the authoring of arbitrary formal properties.
+OVLA targets natural-language commands specifying explicit reactive-temporal behaviors. Inferring intent from vague or affective goals (e.g., "make it cozy") is a separate intent-elicitation challenge addressed by orthogonal literature (e.g., Sasha~\cite{sasha}, SAGE~\cite{sage}) and is strictly out of scope. Any residual ambiguity within a specifiable command is intentionally surfaced by OVLA's deterministic rendering phase and resolved during user confirmation, rather than by the verifier itself. 
+Confirming the IR is presented as a plain-language judgment rather than a programming task. The dimensions a user controls in reactive-temporal automation are limited and enumerable (start time, period, trigger and condition, action and its arguments, sustain and delay durations), Timeline IR expresses only these slots, and deterministic rendering displays them verbatim as a readable timeline (\S8.3). Approving an IR is thus a closed judgment over finite control slots the command named, not the authoring of arbitrary formal properties.
 
 \textbf{Two-layer guarantee.} We explicitly define the boundaries of our verification scope.
 In \textbf{Layer A (NL→IR)}, the system captures intent as IR and presents it in plain language, but we do not measure non-expert confirmation success \emph{itself} in this round via a human-subjects study (\S9). In \textbf{Layer B (IR→code)}, once the IR is approved, OVLA prevents the generated code from silently diverging from that displayed IR within a bounded behavior region. OVLA's technical guarantee lies firmly in Layer B.
@@ -117,7 +117,7 @@ To the best of our knowledge, OVLA is the first system for LLM-generated reactiv
 \item \textbf{C2. Deterministic deployment gate:} We propose an end-to-end pipeline, spanning IR→FSM→boundary event→bounded trace-equivalence, that executes entirely without LLM intervention. The gate operates under a fail-closed policy where a pass triggers immediate deployment and a failure triggers automatic repair or rejection.
 When the gate rejects a program, it guarantees a genuine behavioral divergence under the defined observation model, ensuring rejection-soundness.
 \item \textbf{C3. On-device realization:} The generation phase utilizes a 4-bit quantized model of at most 9 billion parameters without any fine-tuning, while the verification gate bypasses LLM execution entirely. Consequently, verification completes locally in about a millisecond at the median. OVLA's verification guarantee does not depend on the size or quality of the generation model.
-\item \textbf{C4. Evaluation:} We empirically demonstrate system safety by mitigating silent IR-to-code divergence from 8.6\% down to 0\% (\S8.1). Furthermore, we evaluate verifier detection accuracy (\S8.2), rendering faithfulness (\S8.3), and on-device execution overheads and deployment feasibility (\S8.4) through rigorous component-by-component analysis.
+\item \textbf{C4. Evaluation:} We evaluate verifier detection accuracy (\S8.1), empirically demonstrate system safety by mitigating silent IR-to-code divergence from 8.6\% down to 0\% (\S8.2), and measure rendering faithfulness (\S8.3) and on-device execution overheads and deployment feasibility (\S8.4) through rigorous component-by-component analysis.
 \end{itemize}
 
 \textbf{Focus of the contribution.} OVLA removes a failure mode that survives user approval: even when the approved IR is acceptable, the subsequent reactive-temporal lowering phase can introduce subtle state, timer, and boundary errors that cause the deployed code to diverge. OVLA serves as the deterministic, on-device gate specifically engineered to intercept and remediate exactly these errors.
@@ -157,7 +157,7 @@ Equivalence must be decided on execution behavior, not on syntax.
 
 \textbf{Candidate 2: self-checking by the generating model.} One could ask the model that produced the code to inspect and repair it. SimuHome~\cite{simuhome} evaluated this method with 18 models; the self-correction recovery rate was 8.0\% for time-based errors, 18.5\% for event-based errors, and 0.0\% for coordinated scheduling. Notably, the success rate remained at or below 67\% even when an oracle was provided. Based on these findings, the authors concluded that agents fail to detect flaws in their own plans. A post-hoc self-check entrusted to the same stochastic process that generated the code cannot serve as a reliable quality gate.
 
-\textbf{Candidate 3: human inspection of the code.} One could show the generated code to the user for approval. However, prior research in TAP-Debug~\cite{tapdebug} demonstrated that non-experts frequently misread even the basic IF (event) and WHILE (state) conditions of raw rules; specifically, misreadings occurred in 21 out of 50 control-condition sessions, all of which subsequently failed the task. Given that such errors occur even with a simple, two-slot TAP rule, it is untenable to expect users to successfully inspect complex reactive-temporal code, which realizes its mechanism through persistent variables and per-tick execution. What is shown to the user must be a readable representation rather than the raw code; this also motivates the deterministic Rendering detailed in \S5.
+\textbf{Candidate 3: human inspection of the code.} One could show the generated code to the user for approval. However, prior research in TAP-Debug~\cite{tapdebug} demonstrated that non-experts frequently misread even the basic IF (event) and WHILE (state) conditions of raw rules; specifically, misreadings occurred in 21 out of 50 control-condition sessions, all of which subsequently failed the task. Given that such errors occur even with a simple, two-slot TAP rule, it is untenable to expect users to successfully inspect complex reactive-temporal code, which realizes its mechanism through persistent variables and per-tick execution. What is shown to the user must be a readable representation rather than the raw code; this also motivates the deterministic rendering detailed in \S5.
 
 \textbf{The remaining candidate: an LLM judge.} What remains is to hand the request and the code to a separate LLM to verify whether they align. This approach appears plausible at first glance and is indeed used in practice (ChatIoT's Evaluator, \S2), and existing literature does not rule it out. We therefore evaluate whether this candidate meets R2 independent of OVLA's IR and verifier.
 
@@ -188,7 +188,7 @@ deterministic (temp=0) & 27.0\% & 10.6\% \\
 \end{tabular}
 \end{table}
 
-\textbf{The surviving design.} With every candidate eliminated, rereading the requirements reveals the shape of the answer. By R1, the reference must be \emph{derived} from intent the user has confirmed; by R2, the check must be deterministic over behavior (traces), not syntax; by R3, it must be lightweight on the edge, with no LLM call. The artifact that satisfies all three at once is the Timeline IR (\S5), and the deterministic trace-equivalence check over it is the verifier (\S6). The judge in this motivating experiment compares NL against code; it is a different experiment from the judge of \S8.2, which is given the IR and compares it against code.
+\textbf{The surviving design.} With every candidate eliminated, rereading the requirements reveals the shape of the answer. By R1, the reference must be \emph{derived} from intent the user has confirmed; by R2, the check must be deterministic over behavior (traces), not syntax; by R3, it must be lightweight on the edge, with no LLM call. The artifact that satisfies all three at once is the Timeline IR (\S5), and the deterministic trace-equivalence check over it is the verifier (\S6). The judge in this motivating experiment compares NL against code; it is a different experiment from the judge of \S8.1, which is given the IR and compares it against code.
 
 \begin{figure*}[t]
 \centering
@@ -211,7 +211,7 @@ Figure~\ref{fig:arch} shows the complete pipeline. The first phase is authoring:
 
 \textbf{Three checks, three places.} OVLA uses three deterministic checks, each on a different artifact. The \textbf{feasibility gate} checks the structure of the \emph{IR} as a typed tree, immediately after IR extraction and before lowering (\S5). The \textbf{static syntax check} checks the \emph{generated JoI code}, after lowering and before simulation. The \textbf{behavioral trace-equivalence check} compares the behavior of the confirmed IR and the generated JoI code (\S6). These checks are not interchangeable. The behavioral check is the core deployment gate, while the feasibility and syntax checks prevent malformed artifacts from reaching that gate.
 
-\textbf{Roles of the IR.} A single Timeline IR plays four roles in OVLA. First, it is the artifact exposed to the user through deterministic Rendering. Second, after confirmation, it is the behavioral reference used by the verifier. Third, it serves as the scaffold from which the system lowers JoI code. Fourth, its structural class is used to route lowering examples (\S7). OVLA uses semantic analysis and device/service mapping as upstream stages, but the contribution of this paper begins with how the confirmed IR is rendered, fixed as a reference, lowered, and verified.
+\textbf{Roles of the IR.} A single Timeline IR plays four roles in OVLA. First, it is the artifact exposed to the user through deterministic rendering. Second, after confirmation, it is the behavioral reference used by the verifier. Third, it serves as the scaffold from which the system lowers JoI code. Fourth, its structural class is used to route lowering examples (\S7). OVLA uses semantic analysis and device/service mapping as upstream stages, but the contribution of this paper begins with how the confirmed IR is rendered, fixed as a reference, lowered, and verified.
 
 \begin{figure*}[t]
 \centering
@@ -225,17 +225,17 @@ Figure~\ref{fig:arch} shows the complete pipeline. The first phase is authoring:
 \includegraphics[width=\linewidth]{figs/Rendering2.pdf}\par
 \small (b) Scheduled periodic check with branch and delay
 \end{minipage}
-\caption{Two Timeline IRs and their deterministic plain-language Renderings.}
+\caption{Two Timeline IRs and their deterministic plain-language renderings.}
 \label{fig:ir}
 \end{figure*}
 
 \section{Timeline IR}
 
-Timeline IR is the artifact that connects user confirmation to deterministic verification. It has two roles. First, it is the source of the deterministic Rendering shown to the user for approval. Second, once approved, it is the machine-checkable behavioral reference used by the verifier. NL→IR is an LLM stage, but IR→Rendering is not. It is a deterministic transformation, so the text shown to the user is a faithful view of the IR that will later be checked. The Rendering cannot introduce behavior that is absent from the IR, and it cannot hide behavior that the IR contains. In this sense, what is displayed is what is checked.
+Timeline IR is the artifact that connects user confirmation to deterministic verification. It has two roles. First, it is the source of the deterministic rendering shown to the user for approval. Second, once approved, it is the machine-checkable behavioral reference used by the verifier. NL→IR is an LLM stage, but IR→rendering is not. It is a deterministic transformation, so the text shown to the user is a faithful view of the IR that will later be checked. The rendering cannot introduce behavior that is absent from the IR, and it cannot hide behavior that the IR contains. In this sense, what is displayed is what is checked.
 
 \textbf{Closed control dimensions and primitive ops.} These two roles are possible because the control dimensions of a reactive-temporal automation are limited and enumerable. A user command may specify when the automation starts (\texttt{start\_at}), how often it repeats (\texttt{cycle.period}), what trigger or condition it waits for (\texttt{wait}'s condition and edge, or \texttt{if}'s condition), what action to perform and with what arguments (\texttt{call}), how long to wait or delay (\texttt{wait.for}, \texttt{delay}), and how to count or stop repeated behavior (\texttt{cycle.count}, \texttt{break}). Timeline IR assigns primitive operations to these dimensions and places the named slots directly on a timeline.
 
-This representation is intentionally small. It does not ask the user to approve arbitrary code or write formal properties. Instead, the deterministic Rendering exposes the finite control slots that the command named, in the order in which the behavior unfolds. User approval is therefore a closed judgment over those slots: whether the displayed start time, period, trigger, condition, action, duration, and repetition behavior match the intended automation. The same slots are also the ones the verifier consumes. Thus the IR is both an approval surface through its Rendering and a behavioral reference for checking generated code. The structural syntax G below ranges exactly over this closed set of operations.
+This representation is intentionally small. It does not ask the user to approve arbitrary code or write formal properties. Instead, the deterministic rendering exposes the finite control slots that the command named, in the order in which the behavior unfolds. User approval is therefore a closed judgment over those slots: whether the displayed start time, period, trigger, condition, action, duration, and repetition behavior match the intended automation. The same slots are also the ones the verifier consumes. Thus the IR is both an approval surface through its rendering and a behavioral reference for checking generated code. The structural syntax G below ranges exactly over this closed set of operations.
 
 \textbf{Finite-state view.} Timeline IR treats an automation as a finite set of obligations on a timeline. An obligation may be a scheduled check, a wait whose condition must become true, a branch whose guard selects a path, a call that must be issued, or a cycle body that must repeat at the next period. The IR admits no recursion and no unbounded loops. It uses bounded timers, counters, branches, and cycles, so the verifier can enumerate the relevant obligations within its checking horizon. Timeline IR is not intended to be a full timed-automaton model-checking language. It is an operational view that makes the behaviors to be checked finite and explicit.
 
@@ -245,11 +245,11 @@ Whether an IR satisfies these structural rules is deterministic to decide. The s
 
 \textbf{Feasibility gate.} The feasibility gate in \S4 checks the structural validity of the extracted IR against G. It runs immediately after IR extraction and before lowering. If the extracted IR contains a nested cycle, a second top-level cron, a misplaced \texttt{then}/\texttt{else}, or a \texttt{break} outside a cycle, the gate rejects it before any JoI code is generated. This decision is a structural decision, not an empirical result: the gate checks the IR against the rules of G by construction.
 
-This gate does not prove that the IR captures the user's true intent. It only establishes that the IR is structurally supported by OVLA's execution and verification pipeline. If the LLM extractor silently changes an unsupported request into a different but legal IR, the feasibility gate will accept the legal IR with the wrong meaning. That residual semantic mismatch is intentionally left to user confirmation through the Rendering. For this reason, the extractor is designed to transcribe the requested structure rather than to repair or simplify it silently.
+This gate does not prove that the IR captures the user's true intent. It only establishes that the IR is structurally supported by OVLA's execution and verification pipeline. If the LLM extractor silently changes an unsupported request into a different but legal IR, the feasibility gate will accept the legal IR with the wrong meaning. That residual semantic mismatch is intentionally left to user confirmation through the rendering. For this reason, the extractor is designed to transcribe the requested structure rather than to repair or simplify it silently.
 
-The primitive operators are \texttt{start\_at}, \texttt{wait} (condition, edge, and sustain duration), \texttt{delay}, \texttt{read}, \texttt{call}, \texttt{if} (then/else), \texttt{cycle} (period, count, until, and body), and \texttt{break}. Figure~\ref{fig:ir} illustrates this design with two Timeline IR examples and their deterministic Renderings. Each example shows how internal IR slots become the user-facing approval text.
+The primitive operators are \texttt{start\_at}, \texttt{wait} (condition, edge, and sustain duration), \texttt{delay}, \texttt{read}, \texttt{call}, \texttt{if} (then/else), \texttt{cycle} (period, count, until, and body), and \texttt{break}. Figure~\ref{fig:ir} illustrates this design with two Timeline IR examples and their deterministic renderings. Each example shows how internal IR slots become the user-facing approval text.
 
-Figure~\ref{fig:ir}(a) revisits the temperature example from \S1. The phrase ``whenever the temperature rises above 25°C'' becomes a \texttt{wait} whose condition is \texttt{Temperature > 25} and whose edge is rising, placed inside a \texttt{cycle}. The Rendering exposes that edge slot as ``each new occurrence'' and exposes the \texttt{call} as ``Turn on the air conditioner.'' Figure~\ref{fig:ir}(b) shows a schedule-driven automation. The \texttt{start\_at} cron is rendered as ``Start at 9:00 PM every day,'' the \texttt{cycle.period} slot is rendered as ``Every 10 minutes,'' and the \texttt{if}-\texttt{call}-\texttt{delay}-\texttt{call} sequence is rendered as one conditional behavior. Even an empty \texttt{else} branch is rendered as ``Otherwise, do nothing.'' This is deliberate: the Rendering neither drops nor adds behavior-relevant slots (\S8.3).
+Figure~\ref{fig:ir}(a) revisits the temperature example from \S1. The phrase ``whenever the temperature rises above 25°C'' becomes a \texttt{wait} whose condition is \texttt{Temperature > 25} and whose edge is rising, placed inside a \texttt{cycle}. The rendering exposes that edge slot as ``each new occurrence'' and exposes the \texttt{call} as ``Turn on the air conditioner.'' Figure~\ref{fig:ir}(b) shows a schedule-driven automation. The \texttt{start\_at} cron is rendered as ``Start at 9:00 PM every day,'' the \texttt{cycle.period} slot is rendered as ``Every 10 minutes,'' and the \texttt{if}-\texttt{call}-\texttt{delay}-\texttt{call} sequence is rendered as one conditional behavior. Even an empty \texttt{else} branch is rendered as ``Otherwise, do nothing.'' This is deliberate: the rendering neither drops nor adds behavior-relevant slots (\S8.3).
 
 \section{Verifier}
 
@@ -287,9 +287,9 @@ This is why OVLA compares the JoI trace against the expected action trace produc
 
 \subsection{What the Verdict Guarantees}
 
-The verdict is deterministic and LLM-free. \textbf{T1 (determinism)}: the same approved IR and generated JoI code always produce the same verifier verdict. \textbf{T2 (rejection-soundness)}: when the verifier rejects a program, it has found a real trace mismatch under the observation model defined above. In other words, rejection is tied to an executable counterexample, not to a probabilistic judgment.
+The verdict is deterministic and LLM-free. \textbf{T1 (determinism)}: the same approved IR and generated JoI code always produce the same verifier verdict. \textbf{T2 (semantic rejection-soundness)}: when the verifier rejects a simulatable program for trace mismatch, it has found a real mismatch under the observation model defined above. Programs outside the parser or simulator subset are rejected fail-closed and reported as subset failures, not as semantic counterexamples.
 
-We do not claim ``pass ⇒ correct.'' A pass means only that the generated code matched the approved IR on the synthesized boundary traces within the bounded horizon and tolerance. The trusted computing base is the deterministic verifier itself: the IR simulator, the JoI simulator, the tolerance policy, and the trace-equivalence relation. The verdict therefore does not rely on trusting the LLM that generated the code. The soundness of a rejection reduces to simulator fidelity rather than to a proof over all environments. We evaluate the check empirically in two ways: \S8.1 measures the deployment outcome of applying the gate to generated automations, and \S8.2 stress-tests the adequacy of the synthesized traces with construct-derived mutation tests and coverage measured on both the IR-FSM obligations and the generated JoI branches. Surviving mutants are characterized individually.
+We do not claim ``pass ⇒ correct.'' A pass means only that the generated code matched the approved IR on the synthesized boundary traces within the bounded horizon and tolerance. The trusted computing base is the deterministic verifier itself: the IR simulator, the JoI simulator, the tolerance policy, and the trace-equivalence relation. The verdict therefore does not rely on trusting the LLM that generated the code. The soundness of a semantic rejection reduces to simulator fidelity rather than to a proof over all environments. We evaluate the check empirically in two ways: \S8.1 stress-tests verifier detection and the adequacy of the synthesized traces with construct-derived mutation tests and coverage measured on both the IR-FSM obligations and the generated JoI branches, and \S8.2 measures the deployment outcome of applying the gate to generated automations. Surviving mutants are characterized individually.
 
 \subsection{Limits of the Check}
 
@@ -299,52 +299,31 @@ The second limit is arithmetic without a boundary. A variable-to-variable expres
 
 \section{Implementation}
 
-OVLA's deterministic core is implemented in pure Python with no external dependencies. This core contains the IR simulator, the JoI simulator, the verifier, the deterministic Rendering, and the feasibility gate. Together, the two simulators account for about 3.7K lines, the verifier for 1.1K, the Rendering for 0.7K, and the feasibility gate for 0.1K, for roughly 5.7K lines of deterministic code. These components make no model call and use no solver. They are the implementation basis for the verifier guarantee described in \S6.
+OVLA's deterministic core is implemented in pure Python with no external dependencies. This core contains the IR simulator, the JoI simulator, the verifier, the deterministic rendering, and the feasibility gate. Together, the two simulators account for about 3.7K lines, the verifier for 1.1K, the rendering for 0.7K, and the feasibility gate for 0.1K, for roughly 5.7K lines of deterministic code. These components make no model call and use no solver. They are the implementation basis for the verifier guarantee described in \S6.
 
 Generation is implemented separately from this deterministic core. It runs on off-the-shelf 4-bit-quantized models of at most 9B parameters, without fine-tuning (\S8 Setup). The generation workflow follows the stages of \S4: intent analysis, device/service mapping, IR extraction, and lowering. The verifier's guarantee is independent of which generator produced the JoI code, because the generated code is accepted only after the deterministic gate checks it against the approved IR.
 
-\textbf{Structure-based example routing.} The lowering prompt does not carry few-shot examples for every idiom family. Instead, OVLA reuses the structural class of the IR determined by the feasibility pass (\S5), and the prompt includes only the lowering examples for that class, which keeps the prompt small enough for a local model. After a generated pair passes the verifier, the corresponding (IR, JoI) pair can be stored under its structural signature; if a failed lowering is repaired and later passes, the repaired pair becomes an example for future requests of the same class. This routing affects only the generator's prompt. The accept/reject verdict remains the deterministic check of \S6. We do not ablate the effect of routing in this submission, so we describe it as an implementation mechanism rather than a measured source of generation improvement.
+\textbf{Structure-based example routing.} The lowering prompt does not carry few-shot examples for every idiom family. Instead, OVLA reuses the structural class of the IR determined by the feasibility pass (\S5), and the prompt includes only the lowering examples for that class, which keeps the prompt small enough for a local model. On our dataset, this routing reduces the lowering prompt by 33\% on average compared with carrying every class's examples (38\% for acyclic IRs, 19\% for cyclic ones). We use this number only as an implementation-cost measurement: routing reduces prompt length and therefore memory/context pressure on the local model. After a generated pair passes the verifier, the corresponding (IR, JoI) pair can be stored under its structural signature; if a failed lowering is repaired and later passes, the repaired pair becomes an example for future requests of the same class. This routing affects only the generator's prompt. The accept/reject verdict remains the deterministic check of \S6. We do not claim that routing improves lowering accuracy, and we do not ablate it as an accuracy factor in this submission.
 
 \section{Evaluation}
 
-The goal of the evaluation is not an accuracy contest but to establish, component by component, that each link of the workflow holds. The central result is system safety: silent IR-code divergence drops to zero (\S8.1).
+We evaluate OVLA component by component, asking one question for each. We first ask whether the verifier catches wrong code at all (\S8.1). Only then do we ask what happens when that verifier gates deployment (\S8.2). The remaining questions ask whether the rendering shown for approval faithfully reflects the IR (\S8.3), and what the pipeline costs on the edge device, including a live deployment on a physical testbed (\S8.4).
 
-\textbf{Setup.} \emph{Hardware}: the primary edge device is a Mac mini M4 (16GB); accuracy results are obtained on GPU servers. \emph{Models}: generation uses Qwen3.5-9B, with Qwen3-8B and Gemma-4-E4B as additional generators (Table~\ref{tab:models}); all are 4-bit quantized without fine-tuning (AWQ on the GPU servers, MLX on the M4). Safety results are backend-independent: on-device cost is measured on the M4, and zero silent divergence is invariant across backends and generators. \emph{Dataset}: 382 automations in 24 categories. The commands were written to cover the reactive idiom families (triggers, edges, sustains, periodics, sequences, branches, counting) over devices the platform's service catalog supports, not curated to fit OVLA's grammar, and the ground-truth IRs passed an independent value-level audit that fixed the set at 382. \emph{Baseline}: the main comparison is the verification alternative, an LLM judge; for every judge we state, with the result it accompanies, the input artifact (request, IR, or code), temperature, and voting configuration. \emph{Metrics}: safety (silently divergent code deployed), detection (detection/FP/FN), faithfulness (surface rate), and on-device cost (latency distribution, memory, power).
+\textbf{Setup.} \emph{Hardware and models}: the primary edge device is a Mac mini M4 (16GB). Experiments that require many model generations run on GPU servers, while all on-device cost measurements run on the M4. Generation uses Qwen3.5-9B, with Qwen3-8B and Gemma-4-E4B as additional generators (Table~\ref{tab:models}); all are 4-bit quantized without fine-tuning. The deterministic verifier runs identically across backends, and safety results are reported for all tested generators.
 
-\subsection{RQ1: System Safety}
+\emph{Dataset}: the benchmark contains 382 natural-language automation commands over 24 device/service categories supported by the target platform. We wrote the commands to cover representative reactive idiom families that commonly cause lowering errors in JoI: triggers, rising and falling edges, sustained conditions, periodic checks, delayed sequences, branches, and bounded counting. The commands were not curated to fit OVLA's IR schema; unsupported or ambiguous cases are handled by the same feasibility and confirmation path as ordinary inputs. Each command is paired with a manually authored reference Timeline IR, created from the source command under the OVLA IR schema and then independently audited at the value level: start times, periods, trigger edges, sustain and delay durations, branch conditions, target services, and action arguments were checked against the source command. The full category breakdown is reported in the appendix.
 
-Does OVLA prevent deployed code from silently diverging from the \emph{displayed IR}? We measure the gate as a paired ablation: both arms share the same lowering candidates, and the gated arm verifies each candidate, deploys it if it passes, and otherwise enters the diagnose-and-repair loop (at most two attempts, then fail-closed rejection). Without the gate, 33 of 382 automations (8.6\%) would deploy while silently diverging from the IR displayed for approval. The gate reduces this to zero: of the 33, 11 are repaired and 22 are rejected fail-closed. The fraction of requests that end deployed and correct rises from 91.36\% to 94.24\% (349→360 of 382). What counts as divergence here is the verifier's verdict; that this verdict tracks real behavioral faults is established independently in \S8.2 against injected mutations and naturally occurring logic faults. We additionally audited all 33 flagged lowerings by hand: 31 are genuine behavioral divergences (sustain mistimings, inverted logic, counter misuse, structural duplication), and 2 are fail-closed rejections of code outside the simulatable subset (unparseable statements); none is a misjudged correct program. These numbers concern divergence from the \emph{displayed} IR (the confirmed-IR assumption), not whether the IR matched the user's true intent (Layer A; \S9).
+\emph{Baselines and metrics}: the main verification baseline is an LLM judge. For every judge result, we state the input artifact given to the judge (request, IR, or code), temperature, and voting configuration. We report four metrics: verifier detection (recall, false positives, and false negatives), deployment safety (silently divergent code deployed), rendering faithfulness (whether behavior-relevant IR differences surface in text), and on-device cost (latency distribution, memory, and power).
 
-\emph{Repair is not the safety evidence.} The safety claim lies in fail-closed: divergent code is repaired or rejected, and never deployed. Because the gate is deterministic, this property does not depend on generation stochasticity: whichever candidates the model produces, a candidate divergent under the bounded observation model cannot deploy silently. The hard core of rejects concentrates in sustain timing, read-modify-write, and multi-step automations, showing that fail-closed is not ``rejecting everything hard.''
+\subsection{RQ1: Verifier Detection}
 
-\emph{Across generation models.} The gate's behavior is consistent across the three tested generators. Replacing the 9B generator with weaker models produces up to 1.8$\times$ more divergent lowerings, and the error rate is not monotone in model size, yet none deploys silently: silent-wrong is 0 for all three generators (Table~\ref{tab:models}).
+Does the verifier catch wrong code? We first isolate the verifier from the deployment pipeline and stress-test it with synthetic perturbations of correct JoI code. This keeps the detector measurement separate from the later system-safety measurement, where the same verifier is used as a deployment gate.
 
-\begin{table}[t]
-\centering
-\caption{The gate across generation models (382 automations, confirmed IR).}
-\label{tab:models}
-\small
-\begin{tabular}{lrrrrr}
-\toprule
-Generator (4-bit, no FT) & \multicolumn{1}{c}{Silent-wrong} & \multicolumn{1}{c}{Silent-wrong} & Rep. & Rej. & Deployed \\
- & \multicolumn{1}{c}{w/o gate} & \multicolumn{1}{c}{w/ gate} & & & correct \\
-\midrule
-Qwen3.5-9B  & 33 (8.6\%)  & \textbf{0} & 11 & 22 & 360 (94.2\%) \\
-Qwen3-8B    & 61 (16.0\%) & \textbf{0} & 11 & 50 & 332 (86.9\%) \\
-Gemma-4-E4B & 55 (14.4\%) & \textbf{0} & 16 & 39 & 343 (89.8\%) \\
-\bottomrule
-\end{tabular}
-\end{table}
+\textbf{Mutation (stress coverage).} We stress the mechanism with exhaustive construct-derived mutation (Table~\ref{tab:mutation}). Twelve operators generate every first-order mutant at every applicable site (331 seeds, 1,675 generated, 108 equivalents excluded against all scenarios), and 1,556 of 1,567 genuine mutants are caught (99.3\%). The adequacy of the synthesized scenario suite is measured as two-sided coverage (Table~\ref{tab:coverage}): the spec side exercises 97.4\% of IR-FSM obligations (342/351), with all 9 uncovered ones being unsynthesizable else-branch guards (7 variable-to-variable comparisons, 2 arithmetic); the implementation side exercises 96.8\% of generated-JoI branches (670/692).
 
-\subsection{RQ2: Verifier Detection}
+The 11 survivors are characterized exhaustively rather than bucketed: 8 are \texttt{>=}→\texttt{>} comparator mutants on sustain tick-counters whose 1-tick difference lies below the tolerance (max 500ms, 10\%; by design); 1 is a dropped duplicate call in a two-room fan-out (\texttt{call\_drop}); and 2 sit in a single arithmetic read-modify-write automation that boundary seeding cannot reach (one \texttt{call\_drop}, one \texttt{cmp\_direction}), due to the read-modify-write seeding exclusion of \S6.2.
 
-Does the verifier catch wrong code? We look at two layers, real bugs and synthetic bugs. The real layer comes from the 382-automation pipeline of \S8.1: all 33 real LLM lowering outputs that diverged from the displayed IR were flagged, and none escaped silently. RQ1 measured these cases as a deployment outcome; here the same 33 cases are restated as detector verdicts, not as additional evidence.
-
-\textbf{Mutation (stress coverage).} We then stress the mechanism with exhaustive construct-derived mutation (Table~\ref{tab:mutation}). Twelve operators generate every first-order mutant at every applicable site (331 seeds, 1,675 generated, 108 equivalents excluded against all scenarios), and 1,556 of 1,567 genuine mutants are caught (99.3\%). The adequacy of the synthesized scenario suite is measured as two-sided coverage (Table~\ref{tab:coverage}): the spec side exercises 97.4\% of IR-FSM obligations (342/351), with all 9 uncovered ones being unsynthesizable else-branch guards (7 variable-to-variable comparisons, 2 arithmetic); the implementation side exercises 96.8\% of generated-JoI branches (670/692).
-
-The 11 survivors are characterized exhaustively rather than bucketed: 8 are \texttt{>=}→\texttt{>} comparator mutants on sustain tick-counters whose 1-tick difference lies below the tolerance (max 500ms, 10\%; by design); 1 is a dropped duplicate call in a two-room fan-out (\texttt{call\_drop}); and 2 sit in a single arithmetic read-modify-write automation that boundary seeding cannot reach (one \texttt{call\_drop}, one \texttt{cmp\_direction}), the read-modify-write seeding exclusion of \S6.2.
-
-We separate three claims: ① it catches real lowering bugs (33/33, \S8.1); ② a one-construct perturbation of correct code is caught (the mutation kill rate); ③ silent mismatches in the 382 pipeline are zero (\S8.1). The mutation operators are not hand-picked: they are derived from the IR constructs, and every construct is reached by at least one operator. Mutation alone, being keyed to the same construct set the verifier checks, measures the reach of the mechanism rather than external validity; external validity rests on the real-fault layer above, and the implementation-side coverage shows the synthesized scenarios exercise the generated code, not only the spec. The soundness statement is rejection-sound, bounded-incomplete, and auditable (not ``pass ⇒ correct'').
+We separate detector evidence from system safety. This subsection establishes the detector claim under controlled perturbations: one-construct changes to otherwise correct code are usually caught. RQ2 separately asks what happens when this verifier is used as a deployment gate in the full 382-automation pipeline. The mutation operators are not hand-picked: they are derived from the IR constructs, and every construct is reached by at least one operator. Mutation alone, being keyed to the same construct set the verifier checks, measures the reach of the mechanism rather than external validity; the implementation-side coverage shows that the synthesized scenarios exercise the generated code, not only the spec. The soundness statement is semantic rejection-sound, bounded-incomplete, and auditable (not ``pass ⇒ correct'').
 
 \begin{table}[t]
 \centering
@@ -394,13 +373,39 @@ Impl: generated JoI branches        & 692 & 670 & 96.8 \\
 \end{tabular}
 \end{table}
 
-\textbf{vs.\ an LLM judge.} We compare the same IR↔code judgment against an LLM judge in the cloud-judge style of ChatIoT's Evaluator~\cite{chatiot}. The judge is given the IR, the JoI grammar, and the same equivalence definition including the timing tolerance, at temperature 0 with a single query; ground truth is objective (a verifier-clean lowering is correct, a non-trace-equivalent mutant of it is wrong). On 346 such programs (277 faulty, 69 correct), the 9B judge misses 36 of the faulty programs (recall 0.87) and falsely rejects 17 of the 69 correct ones; a strong cloud judge (GPT-5.1) still misses 16 (recall 0.94) and falsely rejects 14. On 30 behaviorally-correct idiom variants of the same intents (multi-GT), the 9B judge over-rejects 2 and the cloud judge 1, while the trace check passes all 30 idiom-invariantly. (This setting gives the judge the IR; it is a different experiment from the NO-IR motivating experiment of \S3.)
+\textbf{vs.\ an LLM judge.} We compare the same IR↔code judgment against an LLM judge in the cloud-judge style of ChatIoT's Evaluator~\cite{chatiot}. The judge is given the IR, the JoI syntax, and the same equivalence definition including the timing tolerance, at temperature 0 with a single query; ground truth is objective (a verifier-clean lowering is correct, a non-trace-equivalent mutant of it is wrong). On 346 such programs (277 faulty, 69 correct), the 9B judge misses 36 of the faulty programs (recall 0.87) and falsely rejects 17 of the 69 correct ones; a strong cloud judge (GPT-5.1) still misses 16 (recall 0.94) and falsely rejects 14. On 30 behaviorally-correct idiom variants of the same intents (multi-GT), the 9B judge over-rejects 2 and the cloud judge 1, while the trace check passes all 30 idiom-invariantly. (This setting gives the judge the IR; it is a different experiment from the NO-IR motivating experiment of \S3.)
+
+\subsection{RQ2: System Safety}
+
+Does OVLA prevent deployed code from silently diverging from the \emph{displayed IR}? We measure the gate as a paired ablation: both arms share the same lowering candidates, and the gated arm verifies each candidate, deploys it if it passes, and otherwise enters the diagnose-and-repair loop (at most two attempts, then fail-closed rejection). Without the gate, 33 of 382 automations (8.6\%) would deploy while silently diverging from the IR displayed for approval. We audited these 33 lowerings by hand: 31 are genuine behavioral divergences (sustain mistimings, inverted logic, counter misuse, structural duplication), and 2 are fail-closed rejections of code outside the simulatable subset (unparseable statements); none is a misjudged correct program. What counts as divergence is the verifier's verdict, whose detection quality \S8.1 established. The gate reduces silent divergence to zero: of the 33, 11 are repaired and 22 are rejected fail-closed. The fraction of requests that end deployed and correct rises from 91.36\% to 94.24\% (349→360 of 382). These numbers concern divergence from the \emph{displayed} IR (the confirmed-IR assumption), not whether the IR matched the user's true intent (Layer A; \S9).
+
+\emph{Repair is not the safety evidence.} The safety claim lies in fail-closed: divergent code is repaired or rejected, and never deployed. Because the gate is deterministic, this property does not depend on generation stochasticity: whichever candidates the model produces, a candidate divergent under the bounded observation model cannot deploy silently. The hard core of rejects concentrates in sustain timing, read-modify-write, and multi-step automations, showing that fail-closed is not merely rejecting all hard cases.
+
+\emph{Across generation models.} The gate's behavior is consistent across the three tested generators. Replacing the 9B generator with weaker models produces up to 1.8$\times$ more divergent lowerings, and the error rate is not monotone in model size, yet none deploys silently: silent-wrong is 0 for all three generators (Table~\ref{tab:models}).
+
+\begin{table}[t]
+\centering
+\caption{The gate across generation models (382 automations, confirmed IR).}
+\label{tab:models}
+\small
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{lrrrrr}
+\toprule
+Generator & \multicolumn{1}{c}{Silent-wrong} & \multicolumn{1}{c}{Silent-wrong} & Rep. & Rej. & Deployed \\
+(4-bit, no FT) & \multicolumn{1}{c}{w/o gate} & \multicolumn{1}{c}{w/ gate} & & & correct \\
+\midrule
+Qwen3.5-9B  & 33 (8.6\%)  & \textbf{0} & 11 & 22 & 360 (94.2\%) \\
+Qwen3-8B    & 61 (16.0\%) & \textbf{0} & 11 & 50 & 332 (86.9\%) \\
+Gemma-4-E4B & 55 (14.4\%) & \textbf{0} & 16 & 39 & 343 (89.8\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{RQ3: Rendering Faithfulness}
 
-RQ3 checks one narrow prerequisite: \emph{does the deterministic Rendering expose every behavior-relevant IR difference in plain language?} We do not evaluate whether users approve the right IR (no human-subjects study; Layer A is \S9). We evaluate whether the approval surface is faithful, that is, whether the IR fields the gate consumes show up in the displayed text.
+RQ3 checks one narrow prerequisite: \emph{does the deterministic rendering expose every behavior-relevant IR difference in plain language?} We do not evaluate whether users approve the right IR (no human-subjects study; Layer A is \S9). We evaluate whether the approval surface is faithful, that is, whether the IR fields the gate consumes show up in the displayed text.
 
-The claim is precise: the renderer exposes the IR fields that the checker and the lowerer consume, so faults in the IR-to-code relation are visible in the displayed text, and every behavioral difference in our test set produced a different Rendering. All 1,504 synthetic pairs across 8 fault classes surfaced as distinct text, with zero blind spots (Table~\ref{tab:faithful}). Of 57 real logic faults, 56 surfaced; the remaining one (C16\_5) is an upstream extraction defect in which the extractor leaked selector syntax into the IR, not a rendering blind spot. One pair suffices to show what surfacing looks like. In the oneshot↔wait-until class, the correct IR renders as ``If the charging state of the charger is fullyCharged, turn off the selected switch.'' while the faulty IR renders as ``Wait until the charging state of the charger is fullyCharged is true. Turn off the selected switch.'' A one-sentence difference exposes, in plain language, the same class of behavioral difference as the re-fire bug of \S1 (Figure~\ref{fig:idiom}(c)).
+The claim is precise: the renderer exposes the IR fields that the checker and the lowerer consume, so faults in the IR-to-code relation are visible in the displayed text, and every behavioral difference in our test set produced a different rendering. All 1,504 synthetic pairs across 8 fault classes surfaced as distinct text, with zero blind spots (Table~\ref{tab:faithful}). Of 57 real logic faults, 56 surfaced; the remaining one (C16\_5) is an upstream extraction defect in which the extractor leaked selector syntax into the IR, not a rendering blind spot. One pair suffices to show what surfacing looks like. In the oneshot↔wait-until class, the correct IR renders as ``If the charging state of the charger is fullyCharged, turn off the selected switch.'' while the faulty IR renders as ``Wait until the charging state of the charger is fullyCharged is true. Turn off the selected switch.'' A one-sentence difference exposes, in plain language, the same class of behavioral difference as the re-fire bug of \S1 (Figure~\ref{fig:idiom}(c)).
 
 \begin{table}[t]
 \centering
@@ -426,7 +431,7 @@ Real logic faults (Part A) & 57  & 56  & 1 \\
 \end{tabular}
 \end{table}
 
-\textbf{What does not surface.} This result does not mean every kind of error shows up in the text. (a) Device-name ambiguity: the same text can be interpreted onto different device bindings; binding is handled by the parallel precision channel. (b) Misread domain terms: a user may read the text differently, which is human behavior we do not evaluate. (c) Missing intent: what the user never said is absent from the IR and hence from the Rendering. (d) Unsupported constructs rejected before rendering. Our claim is that reactive-temporal \emph{logic} faults surface in plain language, something prior work shows is hard even to read off raw rules (TAP-Debug~\cite{tapdebug}: all 21 misreadings led to task failure).
+\textbf{What does not surface.} This result does not mean every kind of error shows up in the text. (a) Device-name ambiguity: the same text can be interpreted onto different device bindings; binding is handled by the parallel precision channel. (b) Misread domain terms: a user may read the text differently, which is human behavior we do not evaluate. (c) Missing intent: what the user never said is absent from the IR and hence from the rendering. (d) Unsupported constructs rejected before rendering. Our claim is that reactive-temporal \emph{logic} faults surface in plain language, something prior work shows is hard even to read off raw rules (TAP-Debug~\cite{tapdebug}: all 21 misreadings led to task failure).
 
 \subsection{RQ4: On-Device Cost and Deployment}
 
@@ -450,7 +455,7 @@ Authoring is a one-time cost of a few minutes per automation (cold 151s, warm 70
 \caption{Live-authored automations on the physical testbed: gate outcome and predicted-vs-observed behavior.}
 \label{tab:deploy}
 \small
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{llll}
 \toprule
 Automation & Idiom & Gate & Observed \\
@@ -476,13 +481,63 @@ temp.\ rises above 28° → switch on & rising & pass & on crossing only \\
 
 The largest limitation is that NL→IR intent correctness remains open (Layer A). A user can approve a mis-displayed IR, in which case the verifier faithfully checks against the wrong spec. We do not study human confirmation behavior in this round; we establish only that the rendering is a deterministic, faithful plain-language surface. Ethics: no human-participant data was collected (``Not applicable: no human participants'').
 
-Beyond that, the limits are: the coverage ceiling (unsynthesizable else-branch guards: variable-to-variable comparisons and arithmetic; \S8.2); boundary-focused equivalence is not a whole-input-space guarantee; the bounded 7-day horizon; continuous arithmetic (SMT as future work); thresholdless variable-to-variable arithmetic (a coverage limit, not a soundness issue); two reads of the same service collapsing onto one device key in the selector-free IR (precision is outside this paper's scope); and generalization beyond one platform.
+Beyond that, the limits are: the coverage ceiling (unsynthesizable else-branch guards: variable-to-variable comparisons and arithmetic; \S8.1); boundary-focused equivalence is not a whole-input-space guarantee; the bounded 7-day horizon; continuous arithmetic (SMT as future work); thresholdless variable-to-variable arithmetic (a coverage limit, not a soundness issue); two reads of the same service collapsing onto one device key in the selector-free IR (precision is outside this paper's scope); and generalization beyond one platform.
 
 \section{Conclusion}
 
-Reactive-temporal IoT automations have become easy to generate with LLMs, but the step that decides whether they are correct to deploy has been empty. OVLA confines the LLM to generation and makes the deployment gate deterministic and LLM-free: the user approves a plain-language Rendering of the IR, a deterministic checker tests the generated code against that approved IR by bounded trace-equivalence, and divergent code is repaired or rejected fail-closed. Across 382 automations, the 8.6\% that would have deployed while silently diverging from the displayed IR drops to zero, with no LLM in the verification loop, on an edge device. OVLA does not solve natural-language intent correctness, but it removes the separate silent failure mode that survives user approval.
+Reactive-temporal IoT automations have become easy to generate with LLMs, but the step that decides whether they are correct to deploy has been empty. OVLA confines the LLM to generation and makes the deployment gate deterministic and LLM-free: the user approves a plain-language rendering of the IR, a deterministic checker tests the generated code against that approved IR by bounded trace-equivalence, and divergent code is repaired or rejected fail-closed. Across 382 automations, the 8.6\% that would have deployed while silently diverging from the displayed IR drops to zero, with no LLM in the verification loop, on an edge device. OVLA does not solve natural-language intent correctness, but it removes the separate silent failure mode that survives user approval.
 
 \balance
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{refs}
+
+\appendix
+
+\section{Timeline IR Grammar}
+\label{app:grammar}
+
+A Timeline IR is serialized as a JSON object whose steps each carry an \texttt{op} tag; the grammar below gives the abstract syntax in EBNF. Terminals are quoted; \texttt{[\,x\,]} marks an optional part and \texttt{\{\,x\,\}} zero-or-more repetition.
+
+{\small
+\begin{flushleft}
+\texttt{ir \ \ \ \ \ \ ::= start\_at \{ step \}}\\
+\texttt{step \ \ \ \ ::= wait | delay | read | call}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | if | cycle | break}\\[3pt]
+\texttt{start\_at ::= "start\_at" "(" ("now" | "cron" cron) ")"}\\
+\texttt{wait \ \ \ \ ::= "wait" "(" expr ["," "edge:" edge]}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ ["," "for:" duration] ")"}\\
+\texttt{edge \ \ \ \ ::= "none" | "rising" | "falling"}\\
+\texttt{delay \ \ \ ::= "delay" "(" duration ")"}\\
+\texttt{read \ \ \ \ ::= "read" "(" ident "," service "." attr ")"}\\
+\texttt{call \ \ \ \ ::= "call" "(" service "." function}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ \{ "," name "=" (value | expr) \} ")"}\\
+\texttt{if \ \ \ \ \ \ ::= "if" "(" expr ")" "\{" \{ step \} "\}"}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ ["else" "\{" \{ step \} "\}"]}\\
+\texttt{cycle \ \ \ ::= "cycle" "(" "period:" duration}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ ["," "count:" ident]}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ ["," "until:" expr] ")"}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ "\{" step \{ step \} "\}"}\\
+\texttt{break \ \ \ ::= "break"}\\[3pt]
+\texttt{duration ::= int ("HOUR" | "MIN" | "SEC" | "MSEC")}\\[3pt]
+\texttt{expr \ \ \ \ ::= expr ("or" | "and") expr | "not" expr}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | arith [cmp arith]}\\
+\texttt{cmp \ \ \ \ \ ::= "==" | "!=" | "<" | "<=" | ">" | ">="}\\
+\texttt{arith \ \ \ ::= arith ("+" | "-" | "*" | "/") arith}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | "abs" "(" expr ")"}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | ("min" | "max") "(" expr "," expr ")"}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | service "." attr | "\$" ident | literal}
+\end{flushleft}
+}
+
+\noindent\texttt{service.attr} denotes a live sensor read and \texttt{\$}\texttt{ident} a persistent variable bound by \texttt{read} or \texttt{cycle.count}; \texttt{literal} ranges over numbers, booleans, and the enum values declared in the device catalog.
+
+\noindent\emph{Semantic conventions.} \texttt{wait.edge="rising"} completes once per upward crossing of \texttt{cond}; \texttt{wait.for} requires \texttt{cond} to hold continuously for the duration, resetting if it flips false. \texttt{cycle.period} is the per-iteration cadence; when \texttt{until} is absent, the cycle repeats within the verifier's bounded horizon (\S6).
+
+\noindent\emph{Context-sensitive rules (grammar G, \S5).} Beyond per-step shape, the feasibility gate enforces: (1) \texttt{timeline[0]} is the only \texttt{start\_at}; (2) \texttt{start\_at} may not appear inside a branch or loop body; (3) at most one top-level \texttt{cycle} and no nested \texttt{cycle}; (4) \texttt{break} only inside a \texttt{cycle} body; (5) \texttt{cycle.period} is required. Catalog conformance (every \texttt{Service.Attr} and \texttt{call.target} names a service, member, and argument that the connected-device catalog declares) is checked at the same point and rejects out-of-catalog targets fail-closed.
+
+\section{Dataset Category Breakdown}
+\label{app:categories}
+
+% TODO: 24-category × row-count table (promised in §8 Setup: "The full category breakdown is reported in the appendix").
+
 \end{document}

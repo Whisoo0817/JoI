@@ -51,7 +51,7 @@ from timeline_ir import (
     validate_ir_against_catalog, build_extract_retry_hint,
     IRValidationError, parse_duration_to_ms,
 )
-from feasibility import check_feasibility, FeasibilityError
+from feasibility import check_feasibility, FeasibilityError, lowering_bucket
 from ir_renderer import render_ir_with_devices
 
 # Verifier integration (Phase 2). Activated when env JOI_VERIFY=1 (default off
@@ -127,27 +127,35 @@ _BUCKET_KEYS = ("noncycle", "cycle")
 
 
 def classify_ir(ir):
-    """Return 'cycle' if any top-level cycle op exists, else 'noncycle'.
+    """Routing key for example routing: the coarsest projection of the IR's
+    structural class (feasibility.structural_class), i.e. 'cycle' if a
+    top-level cycle op exists, else 'noncycle'.
 
     Idiom discrimination (D-3/D-4/D-5/D-6/D-9/B-2) is delegated to the cycle
     prompt's switchboard, which reads explicit IR signals: cycle.until,
     body wait(edge:"rising"), pre-cycle wait(edge:"none"), if{break}, and
     body delay count. This keeps Python free of brittle heuristics.
     """
-    if not isinstance(ir, dict):
-        return "noncycle"
-    timeline = ir.get("timeline") or []
-    if not isinstance(timeline, list):
-        return "noncycle"
-    for s in timeline:
-        if isinstance(s, dict) and s.get("op") == "cycle":
-            return "cycle"
-    return "noncycle"
+    return lowering_bucket(ir)
 
 
-def _load_lowering_prompt(bucket: str) -> str:
+def _load_lowering_prompt(bucket: str, ir=None) -> str:
+    """joi_common.md + the example block routed by the IR's structural class.
+
+    The block comes from the example bank (paper/example_bank.py), seeded with
+    the shipped per-class file joi_<bucket>.md — byte-identical to loading the
+    file directly unless JOI_EXAMPLE_BANK adds accumulated verified pairs."""
     if bucket not in _BUCKET_KEYS:
         raise ValueError(f"unknown lowering bucket: {bucket!r}")
+    if ir is not None:
+        try:
+            from paper import example_bank
+            common = PROMPTS.get("joi_common")
+            if not common:
+                raise FileNotFoundError("joi_common.md not loaded by PROMPTS")
+            return common + "\n\n---\n\n" + example_bank.examples_for(ir, PROMPTS)
+        except ImportError:
+            pass
     common = PROMPTS.get("joi_common")
     bucket_md = PROMPTS.get(f"joi_{bucket}")
     if not common:
@@ -1270,7 +1278,7 @@ def generate_joi_code_ir(
     log_buf.append(f"📦 IR bucket: {bucket}")
     prompt_key = f"joi_from_ir_{bucket}"
     try:
-        system_prompt = _load_lowering_prompt(bucket)
+        system_prompt = _load_lowering_prompt(bucket, ir=ir)
     except FileNotFoundError as e:
         raise JoiGenerationError(
             f"Lowering prompt missing: {e}",

@@ -71,6 +71,58 @@ class L2Report:
     joi_group_count: int
 
 
+def _cron_calendar_fields(cron: str):
+    """Normalized (day-of-month, month) fields of a 5-field cron, or None.
+
+    The simulators give day/month no temporal semantics (they operate within a
+    one-week window), so calendar gating is checked STATICALLY: the IR's and
+    the JoI's day/month fields must denote the same set. Within any calendar
+    window they select, behavior recurs at week granularity, which the
+    simulated horizon covers (paper \u00a76.1).
+    """
+    from paper.simulators.ir_simulator import _expand_field
+    parts = (cron or "").strip().split()
+    if len(parts) != 5:
+        return None
+    day, month = parts[2], parts[3]
+    def norm(spec, lo, hi):
+        return "*" if spec.strip() == "*" else frozenset(_expand_field(spec, lo, hi))
+    return (norm(day, 1, 31), norm(month, 1, 12))
+
+
+def _ir_crons(node):
+    """All non-empty cron strings in the IR tree."""
+    out = []
+    if isinstance(node, dict):
+        c = node.get("cron")
+        if isinstance(c, str) and c.strip():
+            out.append(c)
+        for v in node.values():
+            out.extend(_ir_crons(v))
+    elif isinstance(node, list):
+        for v in node:
+            out.extend(_ir_crons(v))
+    return out
+
+
+def _calendar_gate_violation(ir: dict, joi_block: dict):
+    """Fail-closed static check of cron day/month calendar fields."""
+    ir_fields = [f for f in (_cron_calendar_fields(c) for c in _ir_crons(ir)) if f]
+    joi_fields = _cron_calendar_fields((joi_block or {}).get("cron", "") or "")
+    ir_cal = next((f for f in ir_fields if f != ("*", "*")), None)
+    joi_cal = joi_fields if (joi_fields and joi_fields != ("*", "*")) else None
+    if ir_cal == joi_cal:
+        return None
+    return L2Violation(
+        kind="calendar_mismatch",
+        ir_path="start_at",
+        target="cron",
+        expected=str(ir_cal or ("*", "*")),
+        observed=str(joi_cal or ("*", "*")),
+        detail="cron day/month calendar fields differ between IR and JoI",
+    )
+
+
 def check(
     ir: dict,
     joi_block: dict,
@@ -86,6 +138,10 @@ def check(
     happy path. `scenario_index` (legacy) restricts to a single scenario.
     """
     cat = catalog or load_catalog()
+    cal = _calendar_gate_violation(ir, joi_block)
+    if cal is not None:
+        return L2Report(equivalent=False, violations=[cal],
+                        ir_group_count=0, joi_group_count=0)
     scenarios = synthesize_scenarios(ir)
     if not scenarios:
         return L2Report(equivalent=True, violations=[],

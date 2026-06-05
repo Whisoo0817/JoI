@@ -86,6 +86,72 @@ def _walk(steps: list, cycle_depth: int, at_top: bool, path: str) -> None:
             _walk(s.get("else") or [], cycle_depth, at_top=False, path=f"{sp}.else")
 
 
+# ---------------------------------------------------------------------------
+# Structural class τ(IR) — computed by the same single pass over the typed
+# tree that decides grammar membership (paper §5). The class records which
+# grammar constructs the IR instantiates; the lowering stage routes its
+# few-shot examples on this class (paper §7). The class never affects the
+# verifier's accept/reject decision.
+# ---------------------------------------------------------------------------
+
+def structural_class(ir: Any) -> tuple:
+    """Return the IR's structural class: the sorted tuple of grammar
+    constructs the IR instantiates (e.g. ('call', 'cycle', 'cycle.until',
+    'if', 'wait.edge')). Deterministic, no LLM, single tree pass."""
+    feats: set[str] = set()
+    if not isinstance(ir, dict):
+        return ()
+    timeline = ir.get("timeline")
+    if not isinstance(timeline, list):
+        return ()
+
+    def walk(steps, in_cycle):
+        for s in steps:
+            if not isinstance(s, dict):
+                continue
+            op = s.get("op")
+            if not op:
+                continue
+            feats.add(op)
+            if op == "start_at":
+                if s.get("cron"):
+                    feats.add("start_at.cron")
+            elif op == "wait":
+                edge = s.get("edge")
+                if edge and edge != "none":
+                    feats.add("wait.edge")
+                if s.get("for"):
+                    feats.add("wait.for")
+            elif op == "cycle":
+                if s.get("until"):
+                    feats.add("cycle.until")
+                if s.get("count"):
+                    feats.add("cycle.count")
+                walk(s.get("body") or [], True)
+            elif op == "if":
+                if s.get("else"):
+                    feats.add("if.else")
+                walk(s.get("then") or [], in_cycle)
+                walk(s.get("else") or [], in_cycle)
+    walk(timeline, False)
+    return tuple(sorted(feats))
+
+
+def lowering_bucket(ir: Any) -> str:
+    """Coarsest projection of the structural class used by the current
+    example-routing implementation: 'cycle' if the IR instantiates the
+    cycle construct at the top level, else 'noncycle'."""
+    if not isinstance(ir, dict):
+        return "noncycle"
+    timeline = ir.get("timeline")
+    if not isinstance(timeline, list):
+        return "noncycle"
+    for s in timeline:
+        if isinstance(s, dict) and s.get("op") == "cycle":
+            return "cycle"
+    return "noncycle"
+
+
 if __name__ == "__main__":
     # Quick self-test: 2 feasible + 4 infeasible (A1, A2, B1, B2).
     _START = {"op": "start_at", "anchor": "boot"}
