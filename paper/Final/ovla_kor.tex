@@ -545,6 +545,46 @@ Timeline IR은 각 step이 \texttt{op} 태그를 갖는 JSON 객체로 직렬화
 \section{Dataset Category Breakdown}
 \label{app:categories}
 
-% TODO: 24-카테고리 × 행수 표 (§8 Setup이 약속함).
+표~\ref{tab:categories}는 382개 명령 벤치마크의 24개 카테고리 분포다. 각 카테고리는 구조적으로 구별되는 reactive 패턴과 그 lowering idiom에 대응한다.
+
+\begin{table}[h]
+\centering
+\caption{데이터셋 카테고리 (382 명령, 24 카테고리).}
+\label{tab:categories}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{llr}
+\toprule
+ID & Pattern & n \\
+\midrule
+C01 & Single device action & 28 \\
+C02 & Action with device selector & 33 \\
+C03 & Single-condition \texttt{if} (incl.\ if-else) & 34 \\
+C05 & AND-compound \texttt{if} & 30 \\
+C06 & OR-compound / chained \texttt{if-elif-else} & 7 \\
+C07 & Level-triggered wait (``when X, do Y'') & 32 \\
+C08 & Rising-edge trigger (``whenever'') & 41 \\
+C09 & Sequential delay & 18 \\
+C10 & Trigger + delayed action & 9 \\
+C11 & Snapshot, delay, and re-read comparison & 8 \\
+C12 & Phase lifecycle (``when X, every N thereafter'') & 15 \\
+C13 & Alternation / binary toggle & 7 \\
+C14 & Progressive update with counter and stop & 7 \\
+C15 & Cron-scheduled action & 21 \\
+C16 & Cron + branch & 13 \\
+C17 & Periodic polling + branch & 12 \\
+C18 & Bounded duration (time-window cycle) & 10 \\
+C19 & Hysteresis (double-threshold deadband) & 8 \\
+C20 & Sustained condition (``for at least N'') & 17 \\
+C21 & Group consensus (all/any quantifier) & 7 \\
+C22 & Counted repetition (``repeat N times, stop'') & 10 \\
+C23 & Sustained trigger + multi-step sequence & 5 \\
+C24 & Sustained trigger + repeating alert & 5 \\
+C25 & Periodic polling + if-else & 5 \\
+\midrule
+ & Total & 382 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \end{document}
