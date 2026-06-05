@@ -424,25 +424,7 @@ Gemma-4-E4B & 55 (14.4\%) & 16 & 39 & 343 \\
 
 남은 질문은 이 전부가 엣지 기기에서 감당 가능한 비용인가다. 검증 비용은 latency 분포, 메모리, 전력으로 보고하고, 마지막으로 실물 테스트베드 위의 라이브 배포를 보인다.
 
-\textbf{On-device 비용.} 표~\ref{tab:cost}가 M4에서 측정한 단계별 비용을 요약한다. verifier는 382개 자동화 전체에 대해(각 10회 반복) median 0.97ms에 한 자동화를 검사하며, GPU를 전혀 쓰지 않는다. latency 분포는 한쪽으로 길다(p95 700ms, 최악 8.4s): 이 꼬리는 구조가 복잡해서가 아니라 specification 자체가 매 tick 동작하는 한 class(검증 horizon에 걸친 1초 level-trigger 폴링) 때문이며 tick cap으로 유계다. LLM 비용은 authoring에만 든다: 자동화당 1회성 수 분이고, 일단 배포된 자동화는 LLM 호출이 0이다. 효율 수치는 그 자체가 기여가 아니라 on-device 배포의 전제조건으로 보고한다.
-
-\begin{table}[t]
-\centering
-\caption{단계별 on-device 비용 (Mac mini M4, 382 자동화 각 10회).}
-\label{tab:cost}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lccc}
-\toprule
-Stage & Latency & Peak mem. & Power \\
-\midrule
-Verification (per check) & 0.97ms / 700ms / 8.4s & 54MB & 5.5W (CPU) \\
- & \multicolumn{1}{c}{\scriptsize(median / p95 / worst)} & & \\
-Authoring (one-time, LLM) & 70--155s warm, 151s cold & — & 10.2W (GPU) \\
-Deployed automation & — & — & no LLM calls \\
-\bottomrule
-\end{tabular}
-\end{table}
+\textbf{On-device 비용.} M4에서 verifier는 382개 자동화 전체에 대해(각 10회 반복) median 0.97ms에 한 자동화를 검사하고, 메모리 피크 54MB이며, GPU를 전혀 쓰지 않는다(CPU 5.5W). latency 분포는 한쪽으로 길다(p95 0.7s, 최악 8.4s): 이 꼬리는 구조가 복잡해서가 아니라 specification 자체가 매 tick 동작하는 한 class(검증 horizon에 걸친 1초 level-trigger 폴링) 때문이며 tick cap으로 유계다. LLM 비용은 1회성 authoring 단계에만 들고(생성은 GPU 10.2W), 일단 배포된 자동화는 LLM 호출이 0이다. 효율 수치는 그 자체가 기여가 아니라 on-device 배포의 전제조건으로 보고한다.
 
 \begin{figure}[t]
 \centering

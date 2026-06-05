@@ -460,25 +460,7 @@ Gemma-4-E4B & 55 (14.4\%) & 16 & 39 & 343 \\
 
 The remaining question is whether all of this is affordable on an edge device. We report verification cost as a latency distribution with memory and power, and close with a live deployment on a physical testbed.
 
-\textbf{On-device cost.} Table~\ref{tab:cost} summarizes per-stage costs measured on the M4. The verifier checks one automation in 0.97ms at the median over all 382 automations (10 repetitions each) and never touches the GPU. The latency distribution is long-tailed (p95 700ms, worst 8.4s): the tail is not structural complexity but one class whose specification itself acts on every tick (1-second level-triggered polling over the verification horizon), bounded by the tick cap. LLM cost is confined to authoring—a one-time few minutes per automation—and a deployed automation makes zero LLM calls. Efficiency numbers are reported as the precondition for on-device deployment, not as a contribution in themselves.
-
-\begin{table}[t]
-\centering
-\caption{Per-stage on-device cost (Mac mini M4; 382 automations, 10 repetitions each).}
-\label{tab:cost}
-\small
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{lccc}
-\toprule
-Stage & Latency & Peak mem. & Power \\
-\midrule
-Verification (per check) & 0.97ms / 700ms / 8.4s & 54MB & 5.5W (CPU) \\
- & \multicolumn{1}{c}{\scriptsize(median / p95 / worst)} & & \\
-Authoring (one-time, LLM) & 70--155s warm, 151s cold & — & 10.2W (GPU) \\
-Deployed automation & — & — & no LLM calls \\
-\bottomrule
-\end{tabular}
-\end{table}
+\textbf{On-device cost.} On the M4, the verifier checks one automation in 0.97ms at the median over all 382 automations (10 repetitions each), peaks at 54MB of memory, and never touches the GPU (5.5W CPU). The latency distribution is long-tailed (p95 0.7s, worst 8.4s): the tail is not structural complexity but one class whose specification itself acts on every tick (1-second level-triggered polling over the verification horizon), bounded by the tick cap. LLM cost is confined to the one-time authoring step (generation runs at 10.2W on the GPU), and a deployed automation makes zero LLM calls. Efficiency numbers are reported as the precondition for on-device deployment, not as a contribution in themselves.
 
 \begin{figure}[t]
 \centering
