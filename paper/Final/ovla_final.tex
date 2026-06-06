@@ -459,7 +459,7 @@ Gemma-4-E4B & 55 (14.4\%) & 16 & 39 & 343 \\
 
 The remaining question is whether all of this is affordable on an edge device. We report verification cost as a latency distribution with memory and power, and close with a live deployment on a physical testbed.
 
-\textbf{On-device cost.} On the M4, the verifier checks one automation in 0.97ms at the median over all 382 automations (10 repetitions each), peaks at 54MB of memory, and never touches the GPU (5.5W CPU). The latency distribution is long-tailed (p95 0.7s, worst 8.4s): the tail is not structural complexity but one class whose specification itself acts on every tick (1-second level-triggered polling over the verification horizon), bounded by the tick cap. LLM cost is confined to the one-time authoring step (generation runs at 10.2W on the GPU), and a deployed automation makes zero LLM calls. Efficiency numbers are reported as the precondition for on-device deployment, not as a contribution in themselves.
+\textbf{On-device cost.} On the M4, the verifier checks one automation in 0.97ms at the median over all 382 automations (10 repetitions each), peaks at 54MB of memory, and draws 5.5W with no GPU use. The latency distribution is long-tailed (p95 0.7s, worst 8.4s): the tail comes from one class whose 1-second polling period must be stepped through tick by tick across the multi-day verification horizon — hundreds of thousands of simulated ticks — and is bounded by the simulator's tick cap. LLM cost is confined to the one-time authoring step, and a deployed automation makes zero LLM calls. Efficiency numbers are reported as the precondition for on-device deployment, not as a contribution in themselves.
 
 \begin{figure}[t]
 \centering
