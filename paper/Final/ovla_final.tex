@@ -471,7 +471,7 @@ The remaining question is whether all of this is affordable on an edge device. W
 
 \textbf{Deployment.} On a commercial home-automation platform (name withheld for review) with a Raspberry Pi based edge hub and physical devices (presence, contact, and air-quality sensors; plugs, lights, and a speaker; Figure~\ref{fig:testbed}), we authored six new commands live through the full pipeline (IR extraction, confirmation, lowering, gate) and registered the gate-approved lowerings. This is an existence proof, not statistics.
 
-Table~\ref{tab:deploy} summarizes the six registered automations: their idiom, gate outcome, and observed trace. Every observed action sequence matched the IR-predicted trace at the platform's logging resolution, including what must \emph{not} happen (a counted cycle stopping after exactly 3 announcements; no re-announcement while a crossed threshold stays high). Figure~\ref{fig:rq4} plots the observed trace of the first row, ``if no one is present in the meeting room for at least 5 minutes, turn off the TV plug.'' What is observed is the time at which the TV-plug-off action fires: the ungated lowering fires 30 seconds after the room is vacated—all four ungated generations carried this sustain fault—while the gate-repaired lowering fires at 5:00, the time the IR predicts. Authoring also exercised the upstream gates: two initial wordings produced a one-shot conditional IR whose rendering revealed the misreading at confirmation, and one out-of-catalog target was rejected fail-closed at extraction validation.
+Table~\ref{tab:deploy} summarizes the six registered automations: their behavior pattern, gate outcome, and observed trace. Every observed action sequence matched the IR-predicted trace at the platform's logging resolution, including what must \emph{not} happen (a counted cycle stopping after exactly 3 announcements; no re-announcement while a crossed threshold stays high). Figure~\ref{fig:rq4} plots the observed trace of the first row, ``if no one is present in the meeting room for at least 5 minutes, turn off the TV plug.'' What is observed is the time at which the TV-plug-off action fires: the ungated lowering fires 30 seconds after the room is vacated—all four ungated generations carried this sustain fault—while the gate-repaired lowering fires at 5:00, the time the IR predicts. Authoring also exercised the upstream gates: two initial wordings produced a one-shot conditional IR whose rendering revealed the misreading at confirmation, and one out-of-catalog target was rejected fail-closed at extraction validation.
 
 \begin{table}[t]
 \centering
@@ -481,7 +481,7 @@ Table~\ref{tab:deploy} summarizes the six registered automations: their idiom, g
 \setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{llll}
 \toprule
-Automation & Idiom & Gate & Observed \\
+Automation & Pattern & Gate & Observed \\
 \midrule
 presence absent 5min → TV plug off & sustain & repaired & off at 5:00 \\
 speak every 30s, 3 times only & count & pass & 3 only, stops \\
