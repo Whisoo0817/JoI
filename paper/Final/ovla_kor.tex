@@ -435,9 +435,7 @@ Gemma-4-E4B & 55 (14.4\%) & 16 & 39 & 343 \\
 
 \textbf{Deployment.} Raspberry Pi 기반 엣지 허브와 실물 기기(presence·contact·공기질 센서; 플러그·조명·스피커; 그림~\ref{fig:testbed})를 갖춘 상용 홈 자동화 플랫폼(리뷰를 위해 이름 비공개)에서, 전체 파이프라인(IR 추출, 확인, lowering, 게이트)을 통해 여섯 개의 새 명령을 라이브로 작성하고 게이트 승인된 lowering을 등록했다. 이는 통계가 아니라 존재 증명이다.
 
-대표 자동화 ``회의실에 5분 이상 아무도 없으면 TV 플러그를 꺼줘''는 sustain fault class를 자연 재현했다: ungated 생성 4개 전부가 어긋났고(5분 대신 30초 또는 3초 후 발화), gated authoring 세션 6개 중 5개가 fail-closed 기각으로 끝난 뒤 한 세션의 수리가 올바른 lowering을 만들었다. 그림~\ref{fig:rq4}는 관측된 기기 거동을 보여준다: 게이트 없이는 방이 빈 지 30초 만에 TV 플러그가 꺼지고, 게이트가 있으면 5분에 꺼져 IR 예측 trace와 일치한다.
-
-등록된 자동화 전반(edge trigger, counted cycle, delay 시퀀스, rising-threshold 둘)에서 모든 관측 action 시퀀스가 플랫폼의 로깅 해상도에서 IR 예측 trace와 일치했으며(표~\ref{tab:deploy}), negative obligation도 포함된다(counted cycle이 정확히 3회 안내 후 정지; 교차한 임계가 높게 유지되는 동안 재안내 없음). authoring은 상류 게이트들도 행사했다: 초기 워딩 둘이 one-shot 조건 IR을 만들었는데 그 rendering이 확인 단계에서 오독을 드러냈고, 하나는 카탈로그 밖 타깃을 만들어 추출 검증에서 fail-closed로 기각됐다.
+표~\ref{tab:deploy}가 등록된 6개 자동화의 idiom, gate 결과, 관측 trace를 요약한다. 모든 관측 action 시퀀스가 플랫폼의 로깅 해상도에서 IR 예측 trace와 일치했으며, 하지 \emph{않아야} 할 것의 관측까지 포함한다(counted cycle이 정확히 3회 안내 후 정지; 교차한 임계가 높게 유지되는 동안 재안내 없음). 그림~\ref{fig:rq4}는 첫 행 ``회의실에 5분 이상 아무도 없으면 TV 플러그를 꺼줘''의 관측 trace다. 관측 대상은 TV 플러그 off action이 발화하는 시각이다: ungated lowering은 방이 빈 지 30초에 발화하고 — ungated 생성 4개 전부가 이 sustain 결함을 가졌다 — gate-repaired lowering은 IR이 예측한 5:00에 발화한다. authoring은 상류 게이트들도 행사했다: 초기 워딩 둘이 one-shot 조건 IR을 만들었는데 그 rendering이 확인 단계에서 오독을 드러냈고, 카탈로그 밖 타깃 하나는 추출 검증에서 fail-closed로 기각됐다.
 
 \begin{table}[t]
 \centering
@@ -462,7 +460,7 @@ temp.\ rises above 28° → switch on & rising & pass & on crossing only \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=.92\linewidth]{figs/deployment.pdf}
-\caption{실물 테스트베드의 대표 자동화: 게이트 없이는 자연 생성된 버그 lowering이 방이 빈 지 30초 만에 TV 플러그를 끄고, 게이트로 수리된 lowering은 5분에 발화해 IR 예측 trace와 일치한다.}
+\caption{표~\ref{tab:deploy} 첫 자동화의 관측된 TV 플러그 off 시각: ungated lowering은 방이 빈 지 0:30에, gate-repaired lowering은 IR이 예측한 5:00에 발화한다.}
 \label{fig:rq4}
 \end{figure}
 

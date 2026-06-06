@@ -471,9 +471,7 @@ The remaining question is whether all of this is affordable on an edge device. W
 
 \textbf{Deployment.} On a commercial home-automation platform (name withheld for review) with a Raspberry Pi based edge hub and physical devices (presence, contact, and air-quality sensors; plugs, lights, and a speaker; Figure~\ref{fig:testbed}), we authored six new commands live through the full pipeline (IR extraction, confirmation, lowering, gate) and registered the gate-approved lowerings. This is an existence proof, not statistics.
 
-The representative automation, ``if no one is present in the meeting room for at least 5 minutes, turn off the TV plug,'' reproduced the sustain fault class naturally: all four ungated generations were divergent (firing after 30 or 3 seconds instead of 5 minutes), and five of six gated authoring sessions ended in fail-closed rejection before one session's repair produced a correct lowering. Figure~\ref{fig:rq4} shows the observed device behavior: without the gate the TV plug switches off 30 seconds after the room is vacated; with the gate, at 5 minutes, matching the IR-predicted trace.
-
-Across the registered automations (edge trigger, counted cycle, delay sequence, and two rising-threshold automations), every observed action sequence matched the IR-predicted trace at the platform's logging resolution (Table~\ref{tab:deploy}), including the negative obligations (a counted cycle stopping after exactly 3 announcements; no re-announcement while a crossed threshold stays high). Authoring also exercised the upstream gates: two initial wordings produced a one-shot conditional IR whose rendering revealed the misreading at confirmation, and one produced an out-of-catalog target that was rejected fail-closed at extraction validation.
+Table~\ref{tab:deploy} summarizes the six registered automations: their idiom, gate outcome, and observed trace. Every observed action sequence matched the IR-predicted trace at the platform's logging resolution, including what must \emph{not} happen (a counted cycle stopping after exactly 3 announcements; no re-announcement while a crossed threshold stays high). Figure~\ref{fig:rq4} plots the observed trace of the first row, ``if no one is present in the meeting room for at least 5 minutes, turn off the TV plug.'' What is observed is the time at which the TV-plug-off action fires: the ungated lowering fires 30 seconds after the room is vacated—all four ungated generations carried this sustain fault—while the gate-repaired lowering fires at 5:00, the time the IR predicts. Authoring also exercised the upstream gates: two initial wordings produced a one-shot conditional IR whose rendering revealed the misreading at confirmation, and one out-of-catalog target was rejected fail-closed at extraction validation.
 
 \begin{table}[t]
 \centering
@@ -498,7 +496,7 @@ temp.\ rises above 28° → switch on & rising & pass & on crossing only \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=.92\linewidth]{figs/deployment.pdf}
-\caption{The representative automation on the physical testbed: without the gate, the naturally generated buggy lowering turns the TV plug off 30 seconds after the room is vacated; the gate-repaired lowering fires at 5 minutes, matching the IR-predicted trace.}
+\caption{Observed TV-plug-off times for the first automation of Table~\ref{tab:deploy}: the ungated lowering fires at 0:30 after the room is vacated; the gate-repaired lowering at 5:00, as the IR predicts.}
 \label{fig:rq4}
 \end{figure}
 
