@@ -1,0 +1,65 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WindowCovering.CurrentPosition > 0",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The window is open"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#WindowCovering #Window).windowCovering_currentPosition > 0) {\nif (triggered == false) {\n(#Speaker).speaker_speak(\"The window is open\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#WindowCovering #Window).windowCovering_currentPosition > 0) {\nif (triggered == false) {\n(#Speaker).speaker_speak(\\\"The window is open\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "WindowCovering.CurrentPosition": [
+      "(#WindowCovering #Window)"
+    ],
+    "Speaker.Speak": [
+      "(#Speaker)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 100,
+          "script": "triggered := false\nif ((#WindowCovering #Window).windowCovering_currentPosition > 0) {\nif (triggered == false) {\n(#Speaker).speaker_speak(\"The window is open\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+        }
+      }
+    ]
+  }
+}

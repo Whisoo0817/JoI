@@ -1,0 +1,72 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "all($t >= 35)",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "cool"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#AirConditioner #Sector1).airQualitySensor_temperature >= 35) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\"cool\")\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#AirConditioner #Sector1).airQualitySensor_temperature >= 35) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n}",
+  "precision": {
+    "AirConditioner.SetAirConditionerMode": [
+      "all(#AirConditioner #Sector1)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 2,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 1,
+        "l1_kinds": [
+          "parse"
+        ],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "if (all(all(#AirConditioner #Sector1).airQualitySensor_temperature >= 35)) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\"cool\")\n}"
+        }
+      },
+      {
+        "attempt": 2,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "if (all(#AirConditioner #Sector1).airQualitySensor_temperature >= 35) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\"cool\")\n}"
+        }
+      }
+    ]
+  }
+}

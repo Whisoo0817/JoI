@@ -1,0 +1,173 @@
+{
+  "seed_dir": "/tmp/joi_stageB_full_llm_v2/on",
+  "valid_seeds": 38,
+  "skipped_flagged": 3,
+  "per_operator": {
+    "arg_numeric": {
+      "gen": 54,
+      "equiv": 0,
+      "genuine": 54,
+      "caught": 54,
+      "layer": {
+        "L2": 54
+      },
+      "kinds": {
+        "arg_mismatch": 54
+      }
+    },
+    "enum_flip": {
+      "gen": 6,
+      "equiv": 0,
+      "genuine": 6,
+      "caught": 6,
+      "layer": {
+        "L2": 6
+      },
+      "kinds": {
+        "arg_mismatch": 6
+      }
+    },
+    "call_drop": {
+      "gen": 46,
+      "equiv": 1,
+      "genuine": 45,
+      "caught": 44,
+      "layer": {
+        "L2": 44
+      },
+      "kinds": {
+        "trace_empty": 32,
+        "arg_mismatch": 6,
+        "missing_call": 14,
+        "timing_drift": 4,
+        "extra_call": 2
+      }
+    },
+    "call_add": {
+      "gen": 32,
+      "equiv": 0,
+      "genuine": 32,
+      "caught": 32,
+      "layer": {
+        "L2": 32
+      },
+      "kinds": {
+        "arg_mismatch": 32
+      }
+    },
+    "tick_scale": {
+      "gen": 6,
+      "equiv": 0,
+      "genuine": 6,
+      "caught": 6,
+      "layer": {
+        "L2": 6
+      },
+      "kinds": {
+        "timing_drift": 5,
+        "missing_call": 5,
+        "extra_call": 1
+      }
+    },
+    "guard_polarity": {
+      "gen": 53,
+      "equiv": 0,
+      "genuine": 53,
+      "caught": 53,
+      "layer": {
+        "L2": 53
+      },
+      "kinds": {
+        "trace_empty": 40,
+        "extra_call": 13,
+        "timing_drift": 14
+      }
+    },
+    "comparator": {
+      "gen": 13,
+      "equiv": 5,
+      "genuine": 8,
+      "caught": 8,
+      "layer": {
+        "L2": 8
+      },
+      "kinds": {
+        "arg_mismatch": 1,
+        "extra_call": 1,
+        "missing_call": 3,
+        "trace_empty": 3
+      }
+    },
+    "assign_init": {
+      "gen": 25,
+      "equiv": 0,
+      "genuine": 25,
+      "caught": 25,
+      "layer": {
+        "L2": 25
+      },
+      "kinds": {
+        "arg_mismatch": 3,
+        "extra_call": 27
+      }
+    },
+    "cmp_direction": {
+      "gen": 13,
+      "equiv": 0,
+      "genuine": 13,
+      "caught": 13,
+      "layer": {
+        "L2": 13
+      },
+      "kinds": {
+        "arg_mismatch": 1,
+        "trace_empty": 8,
+        "extra_call": 1,
+        "missing_call": 3
+      }
+    },
+    "arith_op": {
+      "gen": 0,
+      "equiv": 0,
+      "genuine": 0,
+      "caught": 0,
+      "layer": {},
+      "kinds": {}
+    },
+    "break_drop": {
+      "gen": 0,
+      "equiv": 0,
+      "genuine": 0,
+      "caught": 0,
+      "layer": {},
+      "kinds": {}
+    },
+    "wait_drop": {
+      "gen": 11,
+      "equiv": 0,
+      "genuine": 11,
+      "caught": 11,
+      "layer": {
+        "L2": 11
+      },
+      "kinds": {
+        "extra_call": 12
+      }
+    }
+  },
+  "total": {
+    "gen": 259,
+    "equiv": 6,
+    "genuine": 253,
+    "caught": 252,
+    "catch_rate": 99.60474308300395
+  },
+  "survivors": [
+    {
+      "name": "C08_32",
+      "op": "call_drop",
+      "mutation": "dropped `all(#Light #Switch #Hallway).switch_on()`",
+      "script": "triggered := false\nif ((#Door).door_doorState == \"open\") {\nif (triggered == false) {\n        delay(100 MSEC)\nall(#Light #Switch #LivingRoom).switch_on()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+    }
+  ]
+}

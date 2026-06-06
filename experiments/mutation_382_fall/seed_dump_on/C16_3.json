@@ -1,0 +1,85 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 19 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2200",
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"stop\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 19 * * *",
+    "period": 1800000,
+    "script": "if (clock.time >= 2200) {\nbreak\n}\nif ((#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \"stop\") {\n(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 19 * * *\",\n  \"period\": 1800000,\n  \"script\": \"if (clock.time >= 2200) {\nbreak\n}\nif ((#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \\\"stop\\\") {\\n(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\n}\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode": [
+      "(#RobotVacuumCleaner)"
+    ],
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "(#RobotVacuumCleaner)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": false,
+    "n_attempts": 2,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 1,
+        "l2_kinds": [
+          "extra_call"
+        ],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "0 19 * * *",
+          "period": 1800000,
+          "script": "if (clock.time >= 2200) {\nbreak\n}\nif ((#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \"stop\") {\n(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n}"
+        }
+      },
+      {
+        "attempt": 2,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 1,
+        "l2_kinds": [
+          "extra_call"
+        ],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "0 19 * * *",
+          "period": 1800000,
+          "script": "if (clock.time >= 2200) {\nbreak\n}\nif ((#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \"stop\") {\n(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n}"
+        }
+      }
+    ]
+  }
+}

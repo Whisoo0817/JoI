@@ -1,0 +1,71 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "SoundSensor.Sound >= 80 and PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Stop",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#SoundSensor).soundSensor_sound >= 80 and not (#PresenceSensor).presenceSensor_presence) {\n(#Speaker).speaker_stop()\n(#Siren).siren_setSirenMode(\"emergency\")\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#SoundSensor).soundSensor_sound >= 80 and not (#PresenceSensor).presenceSensor_presence) {\n(#Speaker).speaker_stop()\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n}\"\n}",
+  "precision": {
+    "SoundSensor.Sound": [
+      "(#SoundSensor)"
+    ],
+    "PresenceSensor.Presence": [
+      "(#PresenceSensor)"
+    ],
+    "Speaker.Stop": [
+      "(#Speaker)"
+    ],
+    "Siren.SetSirenMode": [
+      "(#Siren)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "if ((#SoundSensor).soundSensor_sound >= 80 and not (#PresenceSensor).presenceSensor_presence) {\n(#Speaker).speaker_stop()\n(#Siren).siren_setSirenMode(\"emergency\")\n}"
+        }
+      }
+    ]
+  }
+}

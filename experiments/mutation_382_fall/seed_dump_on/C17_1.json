@@ -1,0 +1,67 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "10 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature >= 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "cool"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "if ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature >= 30) {\n(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"if ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature >= 30) {\n(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#TemperatureSensor #LivingRoom)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "(#AirConditioner)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 600000,
+          "script": "if ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature >= 30) {\n(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}"
+        }
+      }
+    ]
+  }
+}

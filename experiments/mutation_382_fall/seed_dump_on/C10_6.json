@@ -1,0 +1,84 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Light.CurrentBrightness > 0",
+            "edge": "rising",
+            "for": "5 MIN"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 0.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nfired := false\nif ((#Light #Hallway).light_currentBrightness > 0) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 301) {\nall(#Light #LivingRoom).light_moveToBrightness(0, 0)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"hold_ticks := 0\nfired := false\nif ((#Light #Hallway).light_currentBrightness > 0) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 301) {\nall(#Light #LivingRoom).light_moveToBrightness(0, 0)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}\"\n}",
+  "precision": {
+    "Light.CurrentBrightness": [
+      "any(#Light #Hallway)"
+    ],
+    "Light.MoveToBrightness": [
+      "all(#Light #LivingRoom)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": false,
+    "n_attempts": 2,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 1,
+        "l2_kinds": [
+          "timing_drift"
+        ],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 100,
+          "script": "hold_ticks := 0\nfired := false\nif ((#Light #Hallway).light_currentBrightness > 0) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 300) {\nall(#Light #LivingRoom).light_moveToBrightness(0, 0)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+        }
+      },
+      {
+        "attempt": 2,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 1,
+        "l2_kinds": [
+          "timing_drift"
+        ],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 100,
+          "script": "hold_ticks := 0\nfired := false\nif ((#Light #Hallway).light_currentBrightness > 0) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 301) {\nall(#Light #LivingRoom).light_moveToBrightness(0, 0)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+        }
+      }
+    ]
+  }
+}

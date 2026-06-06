@@ -1,0 +1,58 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "1 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "lunch time"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "n := 0\nif (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\"lunch time\")\nn = n + 1"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"n := 0\nif (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\\\"lunch time\\\")\\nn = n + 1\"\n}",
+  "precision": {
+    "Speaker.Speak": [
+      "(#Speaker)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 60000,
+          "script": "n := 0\nif (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\"lunch time\")\nn = n + 1"
+        }
+      }
+    ]
+  }
+}

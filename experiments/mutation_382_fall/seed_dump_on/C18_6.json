@@ -1,0 +1,66 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 22 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2300",
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "not MotionSensor.Motion",
+            "then": [
+              {
+                "op": "call",
+                "target": "DoorLock.Lock",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 22 * * *",
+    "period": 100,
+    "script": "if (clock.time >= 2300) {\nbreak\n}\nif (not (#MotionSensor).motionSensor_motion) {\nall(#DoorLock).doorLock_lock()\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 100,\n  \"script\": \"if (clock.time >= 2300) {\nbreak\n}\nif (not (#MotionSensor).motionSensor_motion) {\nall(#DoorLock).doorLock_lock()\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#MotionSensor)"
+    ],
+    "DoorLock.Lock": [
+      "all(#DoorLock)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "0 22 * * *",
+          "period": 100,
+          "script": "if (clock.time >= 2300) {\nbreak\n}\nif (not (#MotionSensor).motionSensor_motion) {\nall(#DoorLock).doorLock_lock()\n}"
+        }
+      }
+    ]
+  }
+}

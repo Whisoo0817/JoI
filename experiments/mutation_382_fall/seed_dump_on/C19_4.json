@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature <= 18",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "TemperatureSensor.Temperature >= 22",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature <= 18) {\n(#Plug #Switch #LivingRoom #Heater).switch_on()\n}\nelse {\nif ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature >= 22) {\n(#Plug #Switch #LivingRoom #Heater).switch_off()\n}\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature <= 18) {\n(#Plug #Switch #LivingRoom #Heater).switch_on()\n}\nelse {\nif ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature >= 22) {\n(#Plug #Switch #LivingRoom #Heater).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#TemperatureSensor #LivingRoom)"
+    ],
+    "Switch.On": [
+      "(#Plug #Switch #LivingRoom #Heater)"
+    ],
+    "Switch.Off": [
+      "(#Plug #Switch #LivingRoom #Heater)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 1000,
+          "script": "if ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature <= 18) {\n(#Plug #Switch #LivingRoom #Heater).switch_on()\n}\nelse {\nif ((#TemperatureSensor #LivingRoom).temperatureSensor_temperature >= 22) {\n(#Plug #Switch #LivingRoom #Heater).switch_off()\n}\n}"
+        }
+      }
+    ]
+  }
+}

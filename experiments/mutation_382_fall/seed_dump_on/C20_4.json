@@ -1,0 +1,72 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#Plug #Office #Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n(#Plug #Switch #Office #Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"hold_ticks := 0\nif ((#Plug #Office #Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n(#Plug #Switch #Office #Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "Plug.Power": [
+      "(#Plug #Office #Printer)"
+    ],
+    "Switch.Off": [
+      "(#Plug #Switch #Office #Printer)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 2,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 1,
+        "l2_kinds": [
+          "timing_drift"
+        ],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 100,
+          "script": "hold_ticks := 0\nif ((#Plug #Office #Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Plug #Switch #Office #Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+        }
+      },
+      {
+        "attempt": 2,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 100,
+          "script": "hold_ticks := 0\nif ((#Plug #Office #Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n(#Plug #Switch #Office #Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+        }
+      }
+    ]
+  }
+}

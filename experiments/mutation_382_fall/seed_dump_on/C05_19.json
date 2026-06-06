@@ -1,0 +1,73 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.CarbonDioxide >= 1000 and AirPurifier.AirPurifierMode == \"sleep\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "auto"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Switching the air purifier to auto mode"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#AirQualitySensor #Study).airQualitySensor_carbonDioxide >= 1000 and (#AirPurifier #Study).airPurifier_airPurifierMode == \"sleep\") {\n(#AirPurifier #Study).airPurifier_setAirPurifierMode(\"auto\")\n(#Speaker #Study).speaker_speak(\"Switching the air purifier to auto mode\")\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirQualitySensor #Study).airQualitySensor_carbonDioxide >= 1000 and (#AirPurifier #Study).airPurifier_airPurifierMode == \\\"sleep\\\") {\\n(#AirPurifier #Study).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n(#Speaker #Study).speaker_speak(\\\"Switching the air purifier to auto mode\\\")\\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.CarbonDioxide": [
+      "(#AirQualitySensor #Study)"
+    ],
+    "AirPurifier.AirPurifierMode": [
+      "(#AirPurifier #Study)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "(#AirPurifier #Study)"
+    ],
+    "Speaker.Speak": [
+      "(#Speaker #Study)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "if ((#AirQualitySensor #Study).airQualitySensor_carbonDioxide >= 1000 and (#AirPurifier #Study).airPurifier_airPurifierMode == \"sleep\") {\n(#AirPurifier #Study).airPurifier_setAirPurifierMode(\"auto\")\n(#Speaker #Study).speaker_speak(\"Switching the air purifier to auto mode\")\n}"
+        }
+      }
+    ]
+  }
+}

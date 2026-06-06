@@ -1,0 +1,58 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.Temperature < 20",
+        "then": [
+          {
+            "op": "call",
+            "target": "Door.Close",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#AirQualitySensor).airQualitySensor_temperature < 20) {\n(#Door).door_close()\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirQualitySensor).airQualitySensor_temperature < 20) {\n(#Door).door_close()\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.Temperature": [
+      "(#AirQualitySensor)"
+    ],
+    "Door.Close": [
+      "(#Door)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "if ((#AirQualitySensor).airQualitySensor_temperature < 20) {\n(#Door).door_close()\n}"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * 6"
+      },
+      {
+        "op": "cycle",
+        "until": "Clock.Weekday == \"monday\"",
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Switch.Switch == true",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              },
+              {
+                "op": "call",
+                "target": "EmailProvider.SendMail",
+                "args": {
+                  "ToAddress": "test@example.com",
+                  "Title": "Risk",
+                  "Body": "A pump is turned on"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * 6",
+    "period": 1800000,
+    "script": "if (Clock.Weekday == \"monday\") {\nbreak\n}\nif ((#Switch).switch_switch == true) {\n(#Switch).switch_off()\n(#EmailProvider).emailProvider_sendMail(\"test@example.com\", \"Risk\", \"A pump is turned on\")\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * 6\",\n  \"period\": 1800000,\n  \"script\": \"if (Clock.Weekday == \\\"monday\\\") {\\nbreak\\n}\\nif ((#Switch).switch_switch == true) {\\n(#Switch).switch_off()\\n(#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"Risk\\\", \\\"A pump is turned on\\\")\\n}\"\n}",
+  "precision": {
+    "Clock.Weekday": [
+      "(#Clock)"
+    ],
+    "Switch.Switch": [
+      "(#Switch)"
+    ],
+    "Switch.Off": [
+      "(#Switch)"
+    ],
+    "EmailProvider.SendMail": [
+      "(#EmailProvider)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "0 0 * * 6",
+          "period": 1800000,
+          "script": "if (Clock.Weekday == \"monday\") {\nbreak\n}\nif ((#Switch).switch_switch == true) {\n(#Switch).switch_off()\n(#EmailProvider).emailProvider_sendMail(\"test@example.com\", \"Risk\", \"A pump is turned on\")\n}"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "LightSensor.Brightness < 50",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#LightSensor).lightSensor_brightness < 50) {\nif (triggered == false) {\nall(#WindowCovering #ParkingLot #Shade).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#LightSensor).lightSensor_brightness < 50) {\nif (triggered == false) {\nall(#WindowCovering #ParkingLot #Shade).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "(#LightSensor)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#WindowCovering #ParkingLot #Shade)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 100,
+          "script": "triggered := false\nif ((#LightSensor).lightSensor_brightness < 50) {\nif (triggered == false) {\nall(#WindowCovering #ParkingLot #Shade).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+        }
+      }
+    ]
+  }
+}

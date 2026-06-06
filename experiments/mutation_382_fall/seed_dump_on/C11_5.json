@@ -1,0 +1,72 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "15 MIN"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "abs($t2 - $t1) >= 5",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "t1 = (#TemperatureSensor #Kitchen).temperatureSensor_temperature\ndelay(15 MIN)\nt2 = (#TemperatureSensor #Kitchen).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 5) {\n(#Plug #Switch #Kitchen #Fan).switch_on()\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#TemperatureSensor #Kitchen).temperatureSensor_temperature\ndelay(15 MIN)\nt2 = (#TemperatureSensor #Kitchen).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 5) {\n(#Plug #Switch #Kitchen #Fan).switch_on()\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#TemperatureSensor #Kitchen)"
+    ],
+    "Switch.On": [
+      "(#Plug #Switch #Kitchen #Fan)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "t1 = (#TemperatureSensor #Kitchen).temperatureSensor_temperature\ndelay(15 MIN)\nt2 = (#TemperatureSensor #Kitchen).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 5) {\n(#Plug #Switch #Kitchen #Fan).switch_on()\n}"
+        }
+      }
+    ]
+  }
+}

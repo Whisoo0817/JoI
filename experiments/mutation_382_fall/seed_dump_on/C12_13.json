@@ -1,0 +1,77 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "3 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until(all(#PresenceSensor #Floor1).presenceSensor_presence ==| true)\n    phase = 1\n    all(#Siren #Floor1).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\nall(#Siren #Switch #Floor1).switch_off()\n}\nelse {\nall(#Siren #Floor1).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\nall(#Siren #Switch #Floor1).switch_off()\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until(all(#PresenceSensor #Floor1).presenceSensor_presence ==| true)\n    phase = 1\n    all(#Siren #Floor1).siren_setSirenMode(\\\"emergency\\\")\\n    delay(3 SEC)\\nall(#Siren #Switch #Floor1).switch_off()\\n}\\nelse {\\nall(#Siren #Floor1).siren_setSirenMode(\\\"emergency\\\")\\n    delay(3 SEC)\\nall(#Siren #Switch #Floor1).switch_off()\\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "any(#PresenceSensor #Floor1)"
+    ],
+    "Siren.SetSirenMode": [
+      "all(#Siren #Floor1)"
+    ],
+    "Switch.Off": [
+      "all(#Siren #Switch #Floor1)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 60000,
+          "script": "phase := 0\nif (phase == 0) {\nwait until(all(#PresenceSensor #Floor1).presenceSensor_presence ==| true)\n    phase = 1\n    all(#Siren #Floor1).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\nall(#Siren #Switch #Floor1).switch_off()\n}\nelse {\nall(#Siren #Floor1).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\nall(#Siren #Switch #Floor1).switch_off()\n}"
+        }
+      }
+    ]
+  }
+}

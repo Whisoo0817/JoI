@@ -1,0 +1,65 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "currentMode",
+        "src": "Pump.PumpMode"
+      },
+      {
+        "op": "if",
+        "cond": "currentMode == \"normal\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Pump.SetPumpMode",
+            "args": {
+              "PumpMode": "maximum"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "currentMode = (#Pump).pump_pumpMode\nif (currentMode == \"normal\") {\n(#Pump).pump_setPumpMode(\"maximum\")\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"currentMode = (#Pump).pump_pumpMode\nif (currentMode == \\\"normal\\\") {\\n(#Pump).pump_setPumpMode(\\\"maximum\\\")\\n}\"\n}",
+  "precision": {
+    "Pump.PumpMode": [
+      "(#Pump)"
+    ],
+    "Pump.SetPumpMode": [
+      "(#Pump)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "currentMode = (#Pump).pump_pumpMode\nif (currentMode == \"normal\") {\n(#Pump).pump_setPumpMode(\"maximum\")\n}"
+        }
+      }
+    ]
+  }
+}

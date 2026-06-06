@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "read",
+            "var": "temp",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "temp >= 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetTargetTemperature",
+                "args": {
+                  "Temperature": 25.0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "temp < 23",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "AirConditioner.SetTargetTemperature",
+                    "args": {
+                      "Temperature": 26.0
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "temp = (#TemperatureSensor).temperatureSensor_temperature\nif (temp >= 30) {\n(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}\nelse {\nif (temp < 23) {\n(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n}"
+  },
+  "code_raw": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"temp = (#TemperatureSensor).temperatureSensor_temperature\nif (temp >= 30) {\n(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}\nelse {\nif (temp < 23) {\n(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#TemperatureSensor)"
+    ],
+    "AirConditioner.SetTargetTemperature": [
+      "(#AirConditioner)"
+    ]
+  },
+  "verifier_trace": {
+    "enabled": true,
+    "accepted": true,
+    "n_attempts": 1,
+    "attempts": [
+      {
+        "attempt": 1,
+        "l1_count": 0,
+        "l1_kinds": [],
+        "l2_count": 0,
+        "l2_kinds": [],
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 1800000,
+          "script": "temp = (#TemperatureSensor).temperatureSensor_temperature\nif (temp >= 30) {\n(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}\nelse {\nif (temp < 23) {\n(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n}"
+        }
+      }
+    ]
+  }
+}
