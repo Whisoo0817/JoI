@@ -2,10 +2,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import os
+import json
 from pydantic import BaseModel
 from typing import Dict, Any, Optional, List
 
 from run_local import generate_joi_code, JoiGenerationError
+from schemas import (
+    JoiErrorCode, JoiLLMResponse, JoiLog, JoiCodeItem, map_error_code,
+)
 from warmup import warmup as sllm_warmup
 
 import uvicorn
@@ -49,7 +53,63 @@ async def warmup_endpoint():
 
 
 
-@app.post("/generate_joi_code")
+def _code_item(raw_code: Any) -> Optional[JoiCodeItem]:
+    """Parse the pipeline's `code` (a JSON string of {name,cron,period,script})
+    into a typed JoiCodeItem. Returns None if empty/unparseable."""
+    if not raw_code:
+        return None
+    if isinstance(raw_code, JoiCodeItem):
+        return raw_code
+    data = raw_code
+    if isinstance(raw_code, str):
+        try:
+            data = json.loads(raw_code)
+        except Exception:
+            return None
+    if isinstance(data, dict):
+        return JoiCodeItem(
+            name=str(data.get("name", "Scenario")),
+            cron=str(data.get("cron", "")),
+            period=int(data.get("period", -1)) if str(data.get("period", "")).lstrip("-").isdigit() else -1,
+            script=str(data.get("script", "")),
+        )
+    return None
+
+
+def _success_response(result: Dict[str, Any]) -> JoiLLMResponse:
+    log_dict = result.get("log") or {}
+    return JoiLLMResponse(
+        success=True,
+        error_code=JoiErrorCode.SUCCESS,
+        code=_code_item(result.get("code")),
+        log=JoiLog(**{k: log_dict[k] for k in ("response_time", "translated_sentence", "logs") if k in log_dict})
+            if isinstance(log_dict, dict) else None,
+    )
+
+
+def _error_response(sentence: str, error_code: int, error_message: str,
+                    details: str = "", logs: str = "") -> JoiLLMResponse:
+    return JoiLLMResponse(
+        success=False,
+        error_code=error_code,
+        error_message=error_message,
+        details=details,
+        command=sentence,
+        log=JoiLog(logs=logs),
+    )
+
+
+def _classify_exception(exc: Exception) -> int:
+    """Map an unexpected exception (network / vLLM) to a public code."""
+    name = type(exc).__name__.lower()
+    if "timeout" in name:
+        return JoiErrorCode.VLLM_TIMEOUT
+    if "connect" in name or "unavailable" in name:
+        return JoiErrorCode.VLLM_UNAVAILABLE
+    return JoiErrorCode.INTERNAL_ERROR
+
+
+@app.post("/generate_joi_code", response_model=JoiLLMResponse)
 async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
     try:
         result = generate_joi_code(
@@ -58,28 +118,24 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             other_params=request.other_params,
             base_url=SLLM_LOCAL_BASE_URL
         )
-        return result
+        return _success_response(result)
     except JoiGenerationError as e:
-        return {
-            "code": "",
-            "log": {
-                "translated_sentence": "입력된 JOI Lang 코드가 없습니다. " + str(e),
-
-                "logs": getattr(e, 'logs', '')
-            },
-            "error": str(e),
-            "error_code": getattr(e, 'error_code', 'unknown')
-        }
+        raw_code = getattr(e, "error_code", "")
+        return _error_response(
+            sentence=request.sentence,
+            error_code=int(map_error_code(raw_code)),
+            error_message=str(e),
+            details=f"stage_code={raw_code}" if raw_code else "",
+            logs=getattr(e, "logs", ""),
+        )
     except Exception as e:
-        return {
-            "code": "",
-            "log": {
-                "translated_sentence": "코드를 제공해 주시면 파싱해 드리겠습니다. (내부 에러 발생)",
-
-                "logs": str(e)
-            },
-            "error": str(e)
-        }
+        return _error_response(
+            sentence=request.sentence,
+            error_code=int(_classify_exception(e)),
+            error_message=str(e),
+            details=type(e).__name__,
+            logs=str(e),
+        )
 
 
 if __name__ == "__main__":

@@ -14,5 +14,6 @@ Read the smoke detection status
 ["SmokeDetector.Smoke"]
 
 [Command]
-When smoke is detected, do something
-["SmokeDetector.Smoke"]
+When smoke is detected, send a danger notification
+# why: condition reads the sensor (Smoke), then the action publishes the alert (ToastPublisher.Publish)
+["SmokeDetector.Smoke", "ToastPublisher.Publish"]

@@ -6,6 +6,10 @@
   <Service "Voltage" type="value">The voltage of the battery in millivolts</Service>
 </Device>
 
+# Rules
+
+All Charger services are **read-only measurements** — `Power` / `Current` / `Voltage` / `ChargingState` report metering, they are NOT switches. `Charger.Power` does NOT turn anything on. To power a charger on/off use the `Switch` family (`Switch.On` / `Switch.Off`), never `Charger.Power`. Use `Charger.*` only to READ power/current/voltage/charging state.
+
 # Charger Examples
 
 [Command]

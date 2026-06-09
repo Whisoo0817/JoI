@@ -14,5 +14,6 @@ Check the presence status
 ["PresenceSensor.Presence"]
 
 [Command]
-When someone enters the room, do something
-["PresenceSensor.Presence"]
+When someone enters the room, turn on the light
+# why: trigger reads presence (Presence), then acts (Switch.On)
+["PresenceSensor.Presence", "Switch.On"]

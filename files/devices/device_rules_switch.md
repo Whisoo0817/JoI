@@ -12,6 +12,7 @@ NOTE: A standalone Switch is rarely controlled in isolation. Most realistic comm
 
 [Command]
 When the light turns off, turn off the Switch
+# why: the condition ("when the light turns off") needs a switch-state read first → Switch.Switch, then act → Switch.Off
 ["Switch.Switch", "Switch.Off"]
 
 [Command]
@@ -19,8 +20,8 @@ If the AirConditioner is off, turn on the Switch
 ["Switch.Switch", "Switch.On"]
 
 [Command]
-When the Humidifier turns on, turn off it
-["Switch.Switch", "Switch.On"]
+When the Humidifier turns on, turn off the Switch
+["Switch.Switch", "Switch.Off"]
 
 [Command]
 If the light is on, toggle the Switch

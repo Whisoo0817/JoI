@@ -56,6 +56,7 @@ Check the current brightness of the light
 
 [Command]
 Turn off the light (Switch not available)
+# why: Light has no On/Off of its own; with no Switch, off = MoveToBrightness with value 0
 ["Light.MoveToBrightness"]
 
 [Command]

@@ -1,6 +1,6 @@
 [Device Summary]
 <Device "TemperatureSensor">
-  <Service "Temperature" type="value">Current temperature (DOUBLE)</Service>
+  <Service "Temperature" type="value">Current temperature, °C</Service>
 </Device>
 
 # TemperatureSensor Examples
@@ -14,5 +14,6 @@ What is the temperature reading?
 ["TemperatureSensor.Temperature"]
 
 [Command]
-When the temperature exceeds 30 degrees, do something
-["TemperatureSensor.Temperature"]
+When the temperature exceeds 30 degrees, turn on the air conditioner
+# why: the condition reads the value (Temperature), then the triggered action powers on (Switch.On)
+["TemperatureSensor.Temperature", "Switch.On"]

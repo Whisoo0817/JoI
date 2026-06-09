@@ -10,7 +10,17 @@
   <Service "StopStream" type="action">Stop the camera stream</Service>
 </Device>
 
+# Rules
+
+- `CameraState` is a **read-only** value (off/on/restarting/unavailable). There is NO `SetCameraState` action — you cannot write it.
+- **Power the camera on/off via the `Switch` family** (a Camera device carries `Switch`): "카메라 켜/꺼", "turn the camera on/off" → `Switch.On` / `Switch.Off`, NOT `CameraState`.
+- Capture/stream actions (`CaptureImage`, `CaptureVideo`, `StartStream`, `StopStream`) are the camera's own functions; use them for picture/video/streaming requests.
+
 # Camera Examples
+
+[Command]
+Turn off the camera
+["Switch.Off"]
 
 [Command]
 Take a picture with the Camera
@@ -33,5 +43,5 @@ Check the current CameraState
 ["Camera.CameraState"]
 
 [Command]
-When the camera becomes unavailable, do something
-["Camera.CameraState"]
+When the camera becomes unavailable, send a notification
+["Camera.CameraState", "ToastPublisher.Publish"]
