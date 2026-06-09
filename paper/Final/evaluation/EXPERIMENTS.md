@@ -126,7 +126,7 @@ fail 재현 19/20 (C20_4는 경계정밀 버그라 무작위로 불가).
 
 **Raw**: `results/deployment/live_raw/LIVE_*__gated.json` (hero retry 포함),
 `results/deployment/observations.json`, `results/deployment/registration_package*.json`
-그림: `paper/plot_rq4.py` → `figs/deployment.pdf`
+그림: `figs/deployment.pdf` (생성 스크립트 plot_rq4.py는 cleanup 시 삭제; git 히스토리에 보존)
 
 **최종**: hero(TV플러그) 30s vs 5:00 timeline trace, 자연 발생 버그 4/4 gate 검출, 세션 5/6 기각 사례. Layer A 에피소드 2건.
 
