@@ -143,12 +143,13 @@ fail 재현 19/20 (C20_4는 경계정밀 버그라 무작위로 불가).
 
 ---
 
-## 구버전/superseded 결과 (혼동 주의)
+## 정리 이력 (2026-06-09 paper 폴더 cleanup)
 
-| 파일/디렉토리 | 상태 |
-|---|---|
-| `results/mutation_v3.json` (1551/1562), `results/mutation_refix/` | fall 이전 → `results/mutation_fall/`이 대체 |
-| `results/coverage_v3.txt` (342/351, impl 670/692) | fall 이전 → `results/coverage_fall.txt`가 대체 |
-| `experiments/{e2e_382,mutation_382,mutation_382_v2,coverage_382,coverage_382_v2,judge_compare}` | 2026-05-28~29 구세대 (paper 수치 아님) |
-| paired_summary.json의 360/332 deployed | pre-fall → `paired_summary_fall.json`이 대체 |
-| `rq3_pipeline_effect.json`, `ovla_results.xlsx` | 중간 산출물 (논문 직접 인용 아님) |
+논문 작업 종료 후 구버전·중간 산출물·작업노트를 삭제. 전부 git 히스토리에 남아 복구 가능.
+
+- **삭제된 superseded 결과**: `results/mutation_v3.json`·`results/mutation_refix/`(→`mutation_fall/`이 대체), `results/coverage_v3.txt`(→`coverage_fall.txt`), `results/rq3_pipeline_effect.json`·`results/ovla_results.xlsx`(중간 산출물).
+- **삭제된 dead 실험 스크립트**: `aggregate_motivation.py` `plot_motivation.py` `build_equiv_stress.py` `build_mutant_stress.py` `build_results_xlsx.py` `rq3_pipeline_effect.py` `run_gt_ir_audit.py` `run_ir_only_batch.py` `run_repeat_control.py` `make_arch_fig.py` (canonical 실험의 의존성 아님).
+- **삭제된 작업노트/구버전 tex**: `HANDOFF.md` `sensys.md` `re_translate.md` `why_not_fsm.md` `timeline_ir_extractor.md` `energy.md`; `ovla.tex` `ovla_final.tex`.
+- **여전히 repo 루트에 보존(paper 수치의 raw)**: `experiments/mutation_382_fall/`, `experiments/stageB_382*/...__paired*/`. 구세대 `experiments/{e2e_382,mutation_382*,coverage_382*,judge_compare}`는 paper 수치 아님(필요시 별도 정리).
+
+**canonical 실험 스크립트는 `paper/` 루트에 그대로 두고, 이 문서가 RQ별 (코드 경로 / 방법 / 명령 / raw / 최종수치)의 단일 인덱스다.**
