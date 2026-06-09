@@ -12,7 +12,6 @@
   <Service "Timestamp" type="value">Current timestamp (return current unix time - unit: seconds with floating point)</Service>
   <Service "Weekday" type="value">Current weekday. Enum values: monday, tuesday, wednesday, thursday, friday, saturday, sunday.</Service>
   <Service "Year" type="value">Current year</Service>
-  <Service "Delay" type="action">delay for a given amount of time</Service>
 </Device>
 
 # Rules
@@ -39,7 +38,3 @@ What weekday is it today?
 [Command]
 Is today a holiday?
 ["Clock.IsHoliday"]
-
-[Command]
-Wait for 5 seconds
-["Clock.Delay"]

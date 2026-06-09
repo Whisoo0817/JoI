@@ -396,20 +396,88 @@ def _parse_device_match_qids(raw: str):
                         groups = [[]]
                 else:
                     groups = [_norm_ids(v.get("ids", []))]
-                out[k] = {"q": q, "groups": groups}
+                # `sel`: per-group selector tags chosen by the LLM (the narrowing
+                # signals — device-class / brand / location). Parallel to groups.
+                # Falls back to [] per group → Python uses tag-intersection.
+                sel_raw = v.get("sel", v.get("tags", []))
+                sel = []
+                if isinstance(sel_raw, list):
+                    for tg in sel_raw:
+                        sel.append([str(t) for t in tg] if isinstance(tg, list)
+                                   else ([str(tg)] if isinstance(tg, (str, int)) else []))
+                # Pad / trim sel to match groups length.
+                while len(sel) < len(groups):
+                    sel.append([])
+                sel = sel[:len(groups)]
+                out[k] = {"q": q, "groups": groups, "sel": sel}
             elif isinstance(v, list):
-                out[k] = {"q": "one", "groups": [_norm_ids(v)]}
+                out[k] = {"q": "one", "groups": [_norm_ids(v)], "sel": [[]]}
 
-    try:
-        _ingest(json.loads(cleaned))
-    except Exception:
+    def _try(text):
+        try:
+            _ingest(json.loads(text))
+            return bool(out)
+        except Exception:
+            return False
+
+    if not _try(cleaned):
         m = re.search(r'\{.*\}', cleaned, re.DOTALL)
         if m:
-            try:
-                _ingest(json.loads(m.group(0)))
-            except Exception:
-                pass
+            _try(m.group(0))
+    # Recovery: the nested `sel: [[...]]` lists make the model drop or add a
+    # closing bracket fairly often (e.g. `"sel": [["Speaker"]}}` — one `]`
+    # short), which kills the whole object. Re-balance trailing brackets and
+    # retry rather than losing every service's mapping.
+    if not out:
+        cand = _balance_brackets(cleaned)
+        if cand:
+            _try(cand)
     return out, reasoning_text
+
+
+def _balance_brackets(text: str) -> str:
+    """Best-effort repair of an unbalanced JSON object string. Scans for the
+    first `{`, walks the rest tracking `{}`/`[]` depth (ignoring brackets inside
+    strings), and appends the closing brackets still open at end-of-input in the
+    correct order. Drops any stray closers that would go negative. Returns "" if
+    no opening brace is found."""
+    start = text.find('{')
+    if start < 0:
+        return ""
+    s = text[start:]
+    stack = []
+    in_str = False
+    esc = False
+    out_chars = []
+    for ch in s:
+        if in_str:
+            out_chars.append(ch)
+            if esc:
+                esc = False
+            elif ch == '\\':
+                esc = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+            out_chars.append(ch)
+        elif ch in '{[':
+            stack.append(ch)
+            out_chars.append(ch)
+        elif ch in '}]':
+            want = '{' if ch == '}' else '['
+            if stack and stack[-1] == want:
+                stack.pop()
+                out_chars.append(ch)
+            # else: stray/mismatched closer → skip it
+        else:
+            out_chars.append(ch)
+    if in_str:
+        out_chars.append('"')
+    closers = {'{': '}', '[': ']'}
+    out_chars.extend(closers[b] for b in reversed(stack))
+    return "".join(out_chars)
 
 
 def _parse_dict_from_llm(raw: str) -> dict:
@@ -432,9 +500,20 @@ def _parse_dict_from_llm(raw: str) -> dict:
         return {}
 
 
-def _parse_list_of_strings_from_llm(raw: str, allowed_prefixes=None) -> list:
+def _parse_list_of_strings_from_llm(raw: str, allowed_prefixes=None):
     """Parse a JSON list-of-strings from LLM output. Optional filter:
     keep only entries that contain '.' AND whose prefix is in `allowed_prefixes`.
+
+    Returns (kept_items, unconnected_prefixes). Drop has TWO causes, kept
+    distinct so callers can error vs ignore:
+      - prefix NOT in `allowed_prefixes`  → the device category is simply not
+        connected (e.g. command asks for a curtain but no WindowCovering exists).
+        These prefixes are collected into `unconnected` so the caller can raise an
+        explicit "device not connected" error instead of silently proceeding.
+      - method not in the catalog          → a service_plan hallucination
+        (`Light.MaxLevel` from NL "max"). Silently dropped, as before — the
+        descriptor-derived literal is the natural fallback. NOT reported.
+    When `allowed_prefixes is None`, no filtering and `unconnected` is empty.
     """
     cleaned = _strip_llm_wrappers(raw)
     items = []
@@ -451,12 +530,8 @@ def _parse_list_of_strings_from_llm(raw: str, allowed_prefixes=None) -> list:
                     items = [s for s in parsed if isinstance(s, str)]
             except Exception:
                 pass
+    unconnected = []
     if allowed_prefixes is not None:
-        # Drop tokens whose prefix is unknown OR whose method is not a value /
-        # function of that prefix in the catalog. service_plan hallucinations
-        # like Light.MaxLevel (NL "max" → invented service) are silently
-        # filtered so they never reach IR-extract. The descriptor-derived
-        # literal (e.g. 100 from "0~100%") becomes the natural fallback.
         def _method_in_catalog(svc: str) -> bool:
             if '.' not in svc:
                 return False
@@ -470,11 +545,21 @@ def _parse_list_of_strings_from_llm(raw: str, allowed_prefixes=None) -> list:
                     if isinstance(item, dict) and item.get("id") == method:
                         return True
             return False
-        items = [s for s in items if s.split('.')[0] in allowed_prefixes and _method_in_catalog(s)]
+        kept = []
+        for s in items:
+            if '.' not in s:
+                continue
+            prefix = s.split('.')[0]
+            if prefix not in allowed_prefixes:
+                unconnected.append(prefix)   # category not connected → Gate A
+            elif _method_in_catalog(s):
+                kept.append(s)
+            # else: hallucinated method → silent drop (literal fallback)
+        items = kept
     # Preserve duplicates: service_plan may legitimately list the same service
     # multiple times (alternation, staged on/off, sequential multi-call). Dedup
     # would collapse [X, X] → [X] and silently kill arg_resolve's list form.
-    return items
+    return items, unconnected
 
 
 def _build_intent_services_block(svcs, details: dict) -> str:
@@ -736,7 +821,14 @@ def generate_joi_code_ir(
         return content
 
     # Stage 1: Translation to English when needed.
-    if re.search(r"[\uac00-\ud7a3]", sentence):
+    # Skip entirely when JOI_SKIP_TRANSLATION=1 to test the pipeline on raw Hangul.
+    # `original_sentence` keeps the user's verbatim input (before translation) so
+    # downstream arg_resolve can emit human-facing text (ToastPublisher/Menu/Speaker)
+    # in the SAME language and wording the user used. Equals `sentence` for English.
+    original_sentence = sentence
+    if os.environ.get("JOI_SKIP_TRANSLATION") == "1":
+        log_buf.append("\u27a1\ufe0f translation SKIPPED (JOI_SKIP_TRANSLATION=1) \u2014 raw input passed through")
+    elif re.search(r"[\uac00-\ud7a3]", sentence):
         sentence = infer("translation", sentence)
 
     # ── Stage 2 pre-work: build cd_simple + device categories early so pre_analysis
@@ -782,19 +874,14 @@ def generate_joi_code_ir(
     real_of = {a: r for r, a in alias_of.items()}
     cd_aliased = {alias_of[r]: cd_simple[r] for r in real_ids}
 
-    # ❇️ Stage 1.5: Pre-analysis — verbatim-grounded caveman dump.
-    # Sees [Command] + [Connected Devices] + [Device Summary] as REFERENCE for
-    # awareness (so it can recognize service/tag/quantifier/trigger dimensions),
-    # but must not pre-commit to specific d-ids / Cat.Method / enum values.
-    # Downstream stages may ignore or override.
-    pre_input = (
-        f"[Command]\n{sentence}\n\n"
-        f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
-        f"[Device Summary]\n{device_rules_block}"
-    )
-    command_hints_raw = infer("pre_analysis", pre_input, max_tokens=512)
-    # Strip only the <Reasoning> wrapper tags; keep the caveman content for downstream.
-    command_hints = re.sub(r'</?Reasoning>\s*', '', command_hints_raw).strip()
+    # ❇️ Stage 1.5: Pre-analysis — caveman intent / capability-action·read / quantifier dump.
+    # Command-only input: no [Connected Devices], no [Device Summary]. It does NOT
+    # name categories/services/devices (those rule-sheets leaked example commands and
+    # tempted Cat.Method picks); downstream stages own all category/device/service
+    # choices. Just the system prompt + the per-command [Command].
+    pre_input = f"[Command]\n{sentence}"
+    # pre_analysis now emits a plain caveman dump (no <Reasoning> wrapper), so no parsing.
+    command_hints = infer("pre_analysis", pre_input, max_tokens=512).strip()
 
     # GT-IR mode: skip the service_plan LLM call and derive selected_services
     # directly from the GT IR. arg_resolve / enum_resolve also become no-ops
@@ -815,22 +902,51 @@ def generate_joi_code_ir(
         plan_output = json.dumps(selected_services)
     else:
         plan_sys_prompt = PROMPTS.get("service_plan", "")
+        # Order: static [Connected Devices] + [Device Rules] FIRST (right after the
+        # system prompt) for prefix-cache reuse; per-command [Command] / [Command
+        # Hints] go last so only the small dynamic tail is re-prefilled.
         plan_input = (
-            f"[Command]\n{sentence}\n\n"
-            f"[Command Hints]\n{command_hints}\n\n"
             f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
-            f"[Device Rules]\n{device_rules_block}"
+            f"[Device Rules]\n{device_rules_block}\n\n"
+            f"[Command]\n{sentence}\n\n"
+            f"[Command Hints]\n{command_hints}"
         )
         plan_output = infer("service_plan", plan_input, system=plan_sys_prompt)
+
+        # Gate A (primary): service_plan only sees the connected categories in
+        # [Device Rules]. When the command needs a capability NO listed category
+        # provides (e.g. "close the curtain" with no covering device), it cannot
+        # pick a valid token — so instead of improvising onto an unrelated device,
+        # it declares `MISSING: <capability>`. Surface that as an explicit error.
+        _missing = re.search(r'(?im)^\s*MISSING:\s*(.+?)\s*$', plan_output)
+        if _missing:
+            log_buf.append(f"⛔ service_plan declared MISSING: {_missing.group(1)}")
+            raise JoiGenerationError(
+                f"Cannot fulfill command — no connected device for: {_missing.group(1)}",
+                "\n".join(log_buf),
+                error_code="device_not_connected",
+            )
 
         # Parse + dedup + filter to known categories in one step.
         # NOTE: inject_value_service(selected_services) removed 2026-05-11.
         # service_plan now decides companion-read inclusion semantically (see Rule 10
         # in files/service_plan.md). Absolute setters get setter-only; relative
         # adjustments get read + setter. No Python-level auto-injection.
-        selected_services = _parse_list_of_strings_from_llm(
+        selected_services, unconnected_prefixes = _parse_list_of_strings_from_llm(
             plan_output, allowed_prefixes=valid_categories
         )
+        # Gate A (safety net): if a token's prefix is an unconnected category yet
+        # service_plan did NOT declare MISSING (it should have), still fail rather
+        # than drop-and-mis-map. Hallucinated *methods* on connected categories are
+        # filtered silently inside the parser, so this only fires on real category
+        # absence.
+        if unconnected_prefixes:
+            missing = ", ".join(sorted(set(unconnected_prefixes)))
+            raise JoiGenerationError(
+                f"Required device category not connected: {missing}",
+                "\n".join(log_buf),
+                error_code="device_not_connected",
+            )
     local_service_details = extract_service_details(selected_services, SERVICE_DATA)
 
     intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
@@ -843,13 +959,29 @@ def generate_joi_code_ir(
 
     # ── Resolve / precision / ir-extract input prep ──
     enum_value_targets = [s for s in selected_services if _is_enum_value_service(s)]
-    arg_services = [s for s in selected_services if _is_function_service(s)]
+
+    def _has_arguments(s: str) -> bool:
+        """True only if this function takes at least one argument. VOID/no-arg
+        functions (e.g. Switch.Off, DoorLock.Lock) need nothing resolved, so we
+        skip the arg_resolve LLM call for them entirely."""
+        if '.' not in s:
+            return False
+        dev, method = s.split('.', 1)
+        method = method.replace("()", "")
+        info = (local_service_details.get(dev) or {}).get(method) or {}
+        return bool(isinstance(info, dict) and info.get("arguments"))
+
+    # Only functions that ACTUALLY take args go to arg_resolve. A no-arg function
+    # still needs to appear downstream (IR `call` op), but its args are just `{}`.
+    arg_services = [s for s in selected_services
+                    if _is_function_service(s) and _has_arguments(s)]
 
     # ── Resolve branch: enum_cond_check → enum_resolve → arg_resolve (sequential within branch) ──
     def run_resolve_branch():
         resolved_enum_conds_local = {}
         if enum_value_targets:
             yesno_user = (
+                f"[Command]\n{sentence}\n\n"
                 "[ENUM-Value Targets]\n"
                 f"{json.dumps(enum_value_targets, ensure_ascii=False)}\n\n"
                 "For any of these value services, does the command imply a "
@@ -857,12 +989,10 @@ def generate_joi_code_ir(
                 "enum member (e.g., `Service == \"someMember\"`)? Answer with one "
                 "lowercase word: yes or no."
             )
-            yesno_raw = infer_followup(
+            yesno_raw = infer(
                 "enum_cond_check",
-                user_input=yesno_user,
+                yesno_user,
                 system=PROMPTS.get("enum_cond_check", ""),
-                prior_user=plan_input,
-                prior_assistant=plan_output,
             )
             need_enum_resolve = yesno_raw.strip().lower().startswith("yes")
             log_buf.append(f"🔎 enum_cond_check → {yesno_raw.strip()}")
@@ -874,12 +1004,10 @@ def generate_joi_code_ir(
                 enum_hints = _build_device_specific_hints(enum_value_targets, "enum_resolve")
                 if enum_hints:
                     enum_input += f"\n\n[Device-specific Enum Hints]\n{enum_hints}"
-                enum_raw = infer_followup(
+                enum_raw = infer(
                     "enum_resolve",
                     enum_input,
                     system=PROMPTS.get("enum_resolve", ""),
-                    prior_user=plan_input,
-                    prior_assistant=plan_output,
                 )
                 parsed_er = _parse_dict_from_llm(enum_raw)
                 for k, v in parsed_er.items():
@@ -893,19 +1021,36 @@ def generate_joi_code_ir(
 
         resolved_args_local = {}
         if arg_services:
-            arg_hints = _build_device_specific_hints(arg_services, "arg_resolve")
+            # Language-routed device hints: Korean input pulls the `# @ArgResolveKo`
+            # section (Korean honorific examples), English pulls `# @ArgResolve`
+            # (English examples). Feeding the model ONE language of few-shot prevents
+            # English commands from drifting into Korean text (and vice versa). Falls
+            # back to the default section when a category has no Ko-specific block.
+            is_ko = original_sentence != sentence
+            arg_hints = _build_device_specific_hints(
+                arg_services, "arg_resolve_ko" if is_ko else "arg_resolve"
+            )
+            if is_ko and not arg_hints:
+                arg_hints = _build_device_specific_hints(arg_services, "arg_resolve")
+            # When the input was translated (Korean → English), also pass the
+            # verbatim original so human-facing text args (ToastPublisher Title/
+            # Message, Speaker Text, MenuProvider) can be written in the user's own
+            # language/wording. English-only input: omit (it would duplicate [Command]).
+            orig_block = (
+                f"[User Command (original, verbatim)]\n{original_sentence}\n\n"
+                if is_ko else ""
+            )
             arg_resolve_input = (
                 f"[Command]\n{sentence}\n\n"
-                f"[Selected Services]\n{json.dumps(arg_services, ensure_ascii=False)}\n\n"
+                + orig_block
+                + f"[Selected Services]\n{json.dumps(arg_services, ensure_ascii=False)}\n\n"
                 f"[Service Details]\n{_build_arg_resolve_input(arg_services, local_service_details)}"
                 + (f"\n\n[Device-specific Arg Hints]\n{arg_hints}" if arg_hints else "")
             )
-            arg_resolve_raw = infer_followup(
+            arg_resolve_raw = infer(
                 "arg_resolve",
                 arg_resolve_input,
                 system=PROMPTS.get("arg_resolve", ""),
-                prior_user=plan_input,
-                prior_assistant=plan_output,
             )
             resolved_args_local = _parse_dict_from_llm(arg_resolve_raw)
 
@@ -936,11 +1081,15 @@ def generate_joi_code_ir(
                     arr.append(t)
             alias_tags[a] = arr
 
+        # Order: static [Connected Devices] FIRST (right after the system prompt)
+        # so `system + devices` forms a stable token prefix that vLLM prefix
+        # caching can reuse across commands; the per-command dynamic sections go
+        # last so only the small tail is re-prefilled.
         step1_user = (
+            f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
             f"[Command]\n{sentence}\n\n"
             f"[Command Hints]\n{command_hints}\n\n"
-            f"[Selected Services]\n{json.dumps(selected_services, ensure_ascii=False)}\n\n"
-            f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}"
+            f"[Selected Services]\n{json.dumps(selected_services, ensure_ascii=False)}"
         )
         step1_raw = infer("mapping_device_match", step1_user).strip()
         match_qids, step1_reasoning = _parse_device_match_qids(step1_raw)
@@ -968,8 +1117,18 @@ def generate_joi_code_ir(
         # kept ONLY when the service's prefix matches the sub-skill (e.g. Switch.Off keeps
         # #Switch; Television.SetChannel drops #Switch even if device has Switch in its tags).
 
-        def _selector_for_group(group_ids, q, service_prefix):
+        def _selector_for_group(group_ids, q, service_prefix, sel_tags=None):
             wrap = "" if q == "one" else q
+            # Preferred path: the LLM named the narrowing tags (device-class /
+            # brand / location). Use them verbatim — they ARE the selector — so we
+            # don't over-constrain with incidental shared tags (location/brand/
+            # NoneNecessary) that creep in when a group has few devices.
+            if sel_tags:
+                filtered = [t for t in sel_tags
+                            if t not in SUB_SKILL_TAGS or t == service_prefix]
+                if filtered:
+                    return f"{wrap}(#{' #'.join(filtered)})"
+            # Fallback: intersection of the group's tags (legacy behavior).
             tag_lists = [alias_tags.get(a, []) for a in group_ids if a in alias_tags]
             if not tag_lists:
                 return None
@@ -987,20 +1146,32 @@ def generate_joi_code_ir(
 
         selectors = {}
         for svc in selected_services:
-            entry = match_qids.get(svc, {"q": "one", "groups": [[]]})
+            entry = match_qids.get(svc, {"q": "one", "groups": [[]], "sel": []})
             q = entry.get("q", "one")
             groups = entry.get("groups", [[]])
+            sel = entry.get("sel", [])
             service_prefix = svc.split(".", 1)[0]
             sel_list = []
-            for g in groups:
+            for gi, g in enumerate(groups):
                 if not g:
                     continue
-                s = _selector_for_group(g, q, service_prefix)
+                sel_tags = sel[gi] if gi < len(sel) else []
+                s = _selector_for_group(g, q, service_prefix, sel_tags)
                 if s:
                     sel_list.append(s)
             if not sel_list:
-                wrap = "" if q == "one" else q
-                sel_list = [f"{wrap}(#{service_prefix})"]
+                # Gate B: device_match found NO connected device for this service
+                # within the command's narrowing (every group empty). service_plan
+                # should have caught a fully-absent category (Gate A); reaching here
+                # means the category exists but not in the asked scope (e.g. a
+                # PresenceSensor exists, but none in the named room). Fail loudly
+                # instead of fabricating an all-category selector that fires on the
+                # wrong devices.
+                raise JoiGenerationError(
+                    f"No connected device matches '{svc}' within the requested scope.",
+                    "\n".join(log_buf),
+                    error_code="no_device_in_scope",
+                )
             selectors[svc] = sel_list
 
         # Restore real ids inside selectors when the alias represented an id-literal-in-tags case
