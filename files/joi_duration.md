@@ -39,7 +39,7 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 # Joi Syntax Reference
 
 ### JSON Structure vs. Script
-- **`cron`**: (JSON Field) Standard cron string for start time (`min hour day month dow`).
+- **`cron`**: (JSON Field) Standard cron string for start time. Exactly **5 fields** `min hour day month dow` — NO seconds field.
 - **`period`**: (JSON Field) Repetition interval in milliseconds.
 - **`script`**: (JSON Field) The Joi DSL code to execute.
 
@@ -77,7 +77,9 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 # Joi Control Strategy (DURATION-specific)
 
 ### 1. cron & period Calculation
-- **cron**: Extract the scheduled **START time**.
+- **cron**: Extract the scheduled **START time**. Exactly **5 fields** `min hour day month dow` (NO seconds field).
+    - **24-hour clock**: convert PM → 24h (6 PM/오후 6시 = 18, 8 PM/오후 8시 = 20). 12 AM/자정 = 0, 12 PM/정오 = 12; other AM hours stay as-is.
+    - **Minute → 1st field, hour → 2nd field.** e.g., "From 6:20 PM/오후 6시 20분" → start `20 18 * * *`.
     - "From 8 AM until midnight on weekdays" → `0 8 * * 1-5`
     - "On weekend afternoons" → `0 12 * * 0,6`
     - "On Christmas" → `0 0 25 12 *`

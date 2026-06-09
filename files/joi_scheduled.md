@@ -44,7 +44,7 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 # Joi Syntax Reference
 
 ### JSON Structure vs. Script
-- **`cron`**: (JSON Field) Standard cron string for start time.
+- **`cron`**: (JSON Field) Standard cron string for start time. Exactly **5 fields** `min hour day month dow` — NO seconds field.
 - **`period`**: (JSON Field) Interval in milliseconds for repetition.
 - **`script`**: (JSON Field) The Joi DSL code to execute.
 - **IMPORTANT**: `cron` and `period` are **declarative fields** in the JSON. They are NOT variables to be assigned within the `script` (e.g., NO `period := 60000` in script).
@@ -94,7 +94,9 @@ In `<Reasoning>`, write ONLY the code's control flow in one short sentence. Desc
 # Joi Control Strategy
 
 ### 1. cron & period Calculation
-- **cron**: Standard cron format. Use for specific clock times (e.g., "At 7 PM").
+- **cron**: Exactly **5 fields** `min hour day month dow` (NO seconds field). Use for specific clock times.
+    - **24-hour clock**: convert PM → 24h (6 PM/오후 6시 = 18, 8 PM/오후 8시 = 20). 12 AM/자정 = 0, 12 PM/정오 = 12; other AM hours stay as-is.
+    - **Minute → 1st field, hour → 2nd field.** e.g., "오후 6시 20분에 매일" → `20 18 * * *`. For an on-the-hour time the minute field is `0` (e.g., "At 7 PM" → `0 19 * * *`).
 - **period**: Repetition interval in milliseconds.
     - **GOLDEN RULE**: If the command implies ANY REPETITION (e.g., "every X minutes", "repeatedly"), the top-level `period` **MUST UNCONDITIONALLY** be set to that interval. NEVER try to simulate "every X" using a `delay()` loop.
     - **Sequential Loop (Wait -> Repeat)**: Even if the script starts with a `wait until`, if it repeats later, use the repetition interval for `period`. (e.g., "Wait for X, then sound every 1 min" → `period = 60000`).

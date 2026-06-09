@@ -1,12 +1,11 @@
-"""Interactive CLI for testing generate_joi_code without web frontend or joi-agent.
+"""Batch tester for generate_joi_code without web frontend or joi-agent.
 
-Usage:
-    python3 test.py                                  # interactive REPL
-    python3 test.py "오후 3시마다 조명을 켜줘"        # one-shot
+Runs every command in COMMANDS against the running app and always prints the
+log buffer for debugging.
+
+    python3 test.py
 """
 
-import json
-import sys
 from datetime import datetime
 
 import requests
@@ -56,8 +55,22 @@ DEVICES = {
     },
 }
 
+# 실행할 명령어 목록 — 여기에 추가하면 모두 순서대로 수행된다.
+COMMANDS = [
+    "오후 6시 20분에 모든 조명을 꺼줘",
+    "오전 11시 8분에 모든 조명을 꺼줘",
+]
+
+
+def _print_logs(data: dict) -> None:
+    logs = (data.get("log") or {}).get("logs", "")
+    print("\n----- log buffer -----")
+    print(logs or "(empty)")
+    print("----------------------")
+
 
 def call(sentence: str) -> None:
+    print(f"\n================ {sentence} ================")
     payload = {
         "sentence": sentence,
         "model": "joi",
@@ -74,6 +87,7 @@ def call(sentence: str) -> None:
 
     if not data.get("success"):
         print(f"[error {data.get('error_code')}] {data.get('error_message')}")
+        _print_logs(data)
         return
 
     print(f"\ntranslated : {data['log'].get('translated_sentence', '')}")
@@ -85,25 +99,9 @@ def call(sentence: str) -> None:
         print(f"period: {item.get('period', '')}")
         print(f"code  : {item.get('code', '')}")
         print()
-
-
-def repl() -> None:
-    print("joi code gen CLI — type a command, /quit to exit.")
-    while True:
-        try:
-            sentence = input("\n> ").strip()
-        except (EOFError, KeyboardInterrupt):
-            print()
-            return
-        if not sentence:
-            continue
-        if sentence in ("/quit", "/exit"):
-            return
-        call(sentence)
+    _print_logs(data)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        call(" ".join(sys.argv[1:]))
-    else:
-        repl()
+    for command in COMMANDS:
+        call(command)
