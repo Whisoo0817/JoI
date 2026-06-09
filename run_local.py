@@ -251,8 +251,8 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
         sentence = merged_command
 
     # ❇️ Stage 1: Translation (KOR -> ENG)
-    first_word = sentence.strip().split()[0] if sentence.strip() else ""
-    if re.search("[가-힣]", first_word):
+    is_korean = bool(re.search("[가-힣]", sentence))
+    if is_korean:
         sentence = infer("translation", sentence)
 
     def run_mapping():
@@ -493,9 +493,9 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
     except Exception as e:
         print(f"Re-translation failed: {e}")
 
-    # ❇️ ENG -> KOR
+    # ❇️ ENG -> KOR (한국어 입력일 때만)
     translated_sentence_kor = ""
-    if translated_sentence:
+    if is_korean and translated_sentence:
         try:
             translated_sentence_kor = infer("re_translate_kor", translated_sentence)
         except Exception as e:
@@ -510,8 +510,16 @@ def generate_joi_code(sentence, connected_devices, other_params, modification=No
     except (json.JSONDecodeError, TypeError):
         joi_code_raw = _post_process_joi_any_quantifiers(joi_code_raw)
 
-    scenario_name = re.sub(r'[^\w\s]', '', translated_sentence.strip())
-    scenario_name = re.sub(r'\s+', '_', scenario_name).strip('_').lower() or "scenario"
+    scenario_name = ""
+    try:
+        name_input = translated_sentence_kor if is_korean else (translated_sentence or merged_command)
+        raw_name = infer("scenario_name", name_input)
+        scenario_name = raw_name.strip()
+    except Exception as e:
+        print(f"Scenario name generation failed: {e}")
+    if not scenario_name:
+        scenario_name = re.sub(r'[^\w\s]', '', translated_sentence.strip())
+        scenario_name = re.sub(r'\s+', '_', scenario_name).strip('_').lower() or "scenario"
 
     def _to_hub_format(item: dict) -> dict:
         return {
