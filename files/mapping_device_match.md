@@ -38,13 +38,14 @@ A `<Reasoning>` block, then a JSON object. Each service carries three fields: `q
 
 ```
 <Reasoning>
-note: <≤20 tokens — target noun + narrowing signal + any d-id leak you reject>
+note: <≤20 tokens — target noun + narrowing signal only>
 X.Y: "<verbatim target phrase from command>" → cat X ∩ <narrow signal> → q=<one|all|any> → groups: [[d1, d2]] → sel: [[Tag, ...]]
 </Reasoning>
 {"X.Y": {"q": "all", "groups": [["d1", "d2"]], "sel": [["Light"]]}}
 ```
 
-- **One `<Reasoning>` line per service.** Mechanical, no prose/debate.
+- **`note:` is ONE short line (≤20 tokens): just the narrowing signal** (brand / location / device-type) and, if relevant, a rejected pre d-id leak. **NEVER enumerate device ids** — do NOT list which candidates passed or which were dropped (e.g. `d3, d5… are non-Tuya`). The kept ids already appear once in `groups`; listing the rejected ones is pure waste. `note: brand 'Tuya' → narrow Switch by tag Tuya` is complete — stop there.
+- **One `<Reasoning>` line per service** (the `X.Y:` line). Mechanical, no prose/debate. The only ids anywhere are inside `groups` — never in `note:`.
 - The quoted phrase MUST be a substring of `[Command]`.
 - `groups` is a list of device-id groups. **Single group** in most cases: `groups: [["d1","d2"]]`. **Multiple groups** when one service acts on distinct sets the command names separately:
   - **distinct device classes named together** — "turn on all lights **and** plugs" → `[[lights...],[plugs...]]` (NOT one merged group); "the dehumidifier; else the humidifier" → `[[d_dehum],[d_humid]]`.
@@ -106,7 +107,7 @@ intent: switch off every Tuya device. action: switch off. quantifier: "all" → 
 {"d1": {"category": ["Switch","Plug"], "tags": ["Tuya","Office"]}, "d2": {"category": ["Switch","Light"], "tags": ["Matter","Office"]}, "d3": {"category": ["Switch","Camera"], "tags": ["Tuya","MeetingRoom"]}, "d4": {"category": ["Switch","Plug"], "tags": ["Tuya","Office"]}}
 
 <Reasoning>
-note: brand 'Tuya' → narrow Switch candidates by tag Tuya (d2 is Matter, drop)
+note: brand 'Tuya' → narrow Switch candidates by tag Tuya
 Switch.Off: "all Tuya devices" → cat Switch ∩ tag Tuya → q=all (explicit "all", action over set) → groups: [[d1, d3, d4]] → sel: [[Tuya, Switch]]
 </Reasoning>
 {"Switch.Off": {"q": "all", "groups": [["d1", "d3", "d4"]], "sel": [["Tuya", "Switch"]]}}
@@ -137,7 +138,7 @@ intent: close all covers in Sector2. action: close. quantifier: "everything" →
 {"d1": {"category": ["WindowCovering"], "tags": ["Sector2","Window"]}, "d2": {"category": ["WindowCovering"], "tags": ["Sector2","Blind"]}, "d3": {"category": ["WindowCovering"], "tags": ["Sector1","Window"]}}
 
 <Reasoning>
-note: location 'Sector2' → covers tagged Sector2 (d3 is Sector1, drop)
+note: location 'Sector2' → covers tagged Sector2
 WindowCovering.DownOrClose: "everything in Sector2" → cat WindowCovering ∩ tag Sector2 → q=all (explicit "everything", action over set) → groups: [[d1, d2]] → sel: [[WindowCovering, Sector2]]
 </Reasoning>
 {"WindowCovering.DownOrClose": {"q": "all", "groups": [["d1", "d2"]], "sel": [["WindowCovering", "Sector2"]]}}
