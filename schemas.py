@@ -35,6 +35,7 @@ class JoiErrorCode(IntEnum):
     # 3xxx: code-generation reasoning (IR extract / validation / feasibility /
     # lowering are ALL folded here — external callers don't model the IR layer).
     REASONING_FAILED = 3001
+    REASONING_OVERFLOW = 3002  # a model stage hit its token budget mid-output (truncated)
 
     # 9xxx: catch-all
     INTERNAL_ERROR = 9999
@@ -54,6 +55,7 @@ ERROR_CODE_MAP = {
     "no_device_in_scope": JoiErrorCode.DEVICE_NOT_IN_SCOPE,
     "multiple_scenarios": JoiErrorCode.MULTIPLE_SCENARIOS,
     "ambiguous_condition": JoiErrorCode.AMBIGUOUS_CONDITION,
+    "reasoning_overflow": JoiErrorCode.REASONING_OVERFLOW,
 }
 
 # Internal codes that should collapse into REASONING_FAILED (IR + lowering +

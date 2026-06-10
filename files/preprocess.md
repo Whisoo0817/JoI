@@ -36,16 +36,20 @@ Do not paraphrase, reorder, soften, drop, or add words beyond rules 1–2. Same 
 - **ambiguous_condition** — a magnitude/sensation comparison with **no concrete threshold**: 더우면 / 추우면 / 높아지면 / 낮아지면 / 세지면 / 약해지면 / 많아지면 / 적어지면 / too hot / too cold / gets higher. These can't bind to a sensor value. A boolean condition ("사람이 있으면", "문이 열리면") is NOT ambiguous. A comparison WITH a number ("28도 이상이면", "습도 60% 넘으면") is NOT ambiguous — keep it.
 
 # Output Format
-First a ONE-line `think:` (caveman, **≤12 tokens**) — the single change you make, or "no change", or why you reject. Terse. Then EXACTLY ONE tag.
+A `<Reasoning>` block (ONE caveman line, **≤12 tokens** — the single change you make, or "no change", or why you reject), then EXACTLY ONE result tag.
 
 Normal (possibly unchanged) command:
 ```
-think: <what's preserved; the one change or "no change">
+<Reasoning>
+<what's preserved; the one change or "no change">
+</Reasoning>
 <out>오후 2시에 토스트와 스피커로 회의 시간이라고 안내해줘</out>
 ```
 Rejection:
 ```
-think: <why unautomatable>
+<Reasoning>
+<why unautomatable>
+</Reasoning>
 <error code="multiple_scenarios">3시·5시 두 독립 시각</error>
 ```
 The `code` must be exactly `multiple_scenarios` or `ambiguous_condition`.
@@ -54,55 +58,77 @@ The `code` must be exactly `multiple_scenarios` or `ambiguous_condition`.
 
 [Command]
 오후 2시에 회의 시간이라고 알려줘
-think: "알려줘" no channel → both
+<Reasoning>
+"알려줘" no channel → both
+</Reasoning>
 <out>오후 2시에 토스트와 스피커로 회의 시간이라고 안내해줘</out>
 
 [Command]
 환기하라고 스피커로 알려줘
-think: 스피커 named → no change
+<Reasoning>
+스피커 named → no change
+</Reasoning>
 <out>환기하라고 스피커로 알려줘</out>
 
 [Command]
 토스트 알림으로 재실 감지라고 보여줘
-think: 토스트 named → no change
+<Reasoning>
+토스트 named → no change
+</Reasoning>
 <out>토스트 알림으로 재실 감지라고 보여줘</out>
 
 [Command]
 저녁에 사람이 감지되면 불 켜줘
-think: 저녁 → 18~21시
+<Reasoning>
+저녁 → 18~21시
+</Reasoning>
 <out>오후 6시부터 9시까지 사람이 감지되면 불 켜줘</out>
 
 [Command]
 매일 오후 6시에 모든 조명을 꺼줘
-think: 오후 6시 concrete → no change
+<Reasoning>
+오후 6시 concrete → no change
+</Reasoning>
 <out>매일 오후 6시에 모든 조명을 꺼줘</out>
 
 [Command]
 아침에 모든 조명을 켜줘
-think: 아침 → 6~9시
+<Reasoning>
+아침 → 6~9시
+</Reasoning>
 <out>오전 6시부터 9시까지 모든 조명을 켜줘</out>
 
 [Command]
 모든 조명과 플러그를 켜줘
-think: one action, no fuzzy word → no change
+<Reasoning>
+one action, no fuzzy word → no change
+</Reasoning>
 <out>모든 조명과 플러그를 켜줘</out>
 
 [Command]
 불 켜줘
-think: actuator action, no notify verb → no change
+<Reasoning>
+actuator action, no notify verb → no change
+</Reasoning>
 <out>불 켜줘</out>
 
 [Command]
 28도 이상이면 에어컨을 냉방모드로 켜줘
-think: threshold 28도 concrete → no change
+<Reasoning>
+threshold 28도 concrete → no change
+</Reasoning>
 <out>28도 이상이면 에어컨을 냉방모드로 켜줘</out>
 
 [Command]
 오후 3시에 불을 켜줘. 오후 5시에 불을 꺼줘.
-think: 3시·5시 two scenarios
+<Reasoning>
+3시·5시 two scenarios
+</Reasoning>
 <error code="multiple_scenarios">3시·5시 두 독립 시각이 각각 동작</error>
 
 [Command]
 더우면 에어컨 켜줘
-think: "더우면" no threshold
+<Reasoning>
+"더우면" no threshold
+</Reasoning>
 <error code="ambiguous_condition">"더우면" — 구체 임계값 없음</error>

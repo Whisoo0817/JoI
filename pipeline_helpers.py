@@ -28,11 +28,15 @@ def run_llm_inference(model, client, inference_type, messages, *, enable_thinkin
     )
     chunks = []
     usage = None
+    finish_reason = None
     for chunk in stream:
         if chunk.usage:
             usage = chunk.usage
-        if chunk.choices and chunk.choices[0].delta.content:
-            chunks.append(chunk.choices[0].delta.content)
+        if chunk.choices:
+            if chunk.choices[0].delta.content:
+                chunks.append(chunk.choices[0].delta.content)
+            if chunk.choices[0].finish_reason:
+                finish_reason = chunk.choices[0].finish_reason
     elapsed = time.perf_counter() - start_inference
     content = "".join(chunks)
 
@@ -44,6 +48,18 @@ def run_llm_inference(model, client, inference_type, messages, *, enable_thinkin
         f"===================================================\n"
         f"{content}"
     )
+    # finish_reason == "length" → the model hit max_tokens mid-output (reasoning
+    # runaway), so the result is TRUNCATED, not a real answer. This is distinct
+    # from a clean finish that happens to be empty/unparseable: the latter is a
+    # stage-specific failure, this is a reasoning overflow. Raise stage-agnostically
+    # so it surfaces as a reasoning error, not (mis)attributed to the stage's
+    # normal failure mode.
+    if finish_reason == "length":
+        raise JoiGenerationError(
+            f"{inference_type}: generation truncated at token budget (reasoning overflow).",
+            log_line,
+            error_code="reasoning_overflow",
+        )
     return content.strip(), log_line
 
 
