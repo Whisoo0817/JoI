@@ -23,6 +23,7 @@ Device words: light, air conditioner, blind, camera, siren, window, curtain, dim
 - 밥솥 = **rice cooker**.
 - 청소기 / 로봇 청소기 = **(robot) vacuum (cleaner)**.
 - 아기방 = **baby room** (NOT nursery).
+- 토스트 / 토스트 알림 = **toast notification** (an on-screen pop-up card; NOT "toaster" the kitchen appliance). "토스트로 알려줘" → "through a toast notification".
 
 # Time Phrases (cron-like)
 Absolute start times go first as a prepositional phrase (NOT "if…"):
@@ -108,6 +109,9 @@ Set the TV channel to 7.
 
 "회의를 시작한다고 안내해줘"
 Announce "Start the meeting".
+
+"토스트와 스피커로 회의 시간이라고 안내해줘"
+Announce "Meeting time" through a toast notification and the speaker.
 
 "2초마다 조명 하나를 껐다 켰다 반복해줘"
 Every 2 seconds, alternate between turning one light off and on.

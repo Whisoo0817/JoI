@@ -238,3 +238,21 @@ ground: lunch menu by date+location+meal → MenuProvider.GetMenu (not TodayMenu
 flow: GetMenu (str query) → str menu → Speaker.Speak (announce menu)
 </Reasoning>
 ["MenuProvider.GetMenu", "Speaker.Speak"]
+
+[Command]
+Show "Presence detected" as a toast notification
+[Command Hints]
+on-screen toast notification; text "Presence detected"
+<Reasoning>
+ground: "toast notification / show" → on-screen channel → ToastPublisher.Publish; no speaker/voice word → NO Speaker; ToastPublisher connected ✓ → ToastPublisher.Publish
+</Reasoning>
+["ToastPublisher.Publish"]
+
+[Command]
+Announce the meeting time via toast and speaker
+[Command Hints]
+two channels named — toast + speaker; announce meeting time
+<Reasoning>
+ground: command names BOTH channels — "toast" → ToastPublisher.Publish, "speaker" → Speaker.Speak; emit one per named channel; both connected ✓ → Speaker.Speak, ToastPublisher.Publish
+</Reasoning>
+["Speaker.Speak", "ToastPublisher.Publish"]

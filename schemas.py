@@ -20,6 +20,8 @@ class JoiErrorCode(IntEnum):
     INVALID_REQUEST = 1001
     NO_DEVICES = 1002          # no connected devices supplied
     NO_SERVICES = 1004         # planner found no action for the command
+    MULTIPLE_SCENARIOS = 1005  # command bundles ≥2 independent trigger→action scenarios
+    AMBIGUOUS_CONDITION = 1006  # magnitude condition with no concrete threshold (더우면/높아지면…)
 
     # 12xx: device resolution
     DEVICE_NOT_CONNECTED = 1201  # required device category not connected at all
@@ -50,13 +52,16 @@ ERROR_CODE_MAP = {
     "no_services": JoiErrorCode.NO_SERVICES,
     "device_not_connected": JoiErrorCode.DEVICE_NOT_CONNECTED,
     "no_device_in_scope": JoiErrorCode.DEVICE_NOT_IN_SCOPE,
+    "multiple_scenarios": JoiErrorCode.MULTIPLE_SCENARIOS,
+    "ambiguous_condition": JoiErrorCode.AMBIGUOUS_CONDITION,
 }
 
-# Internal codes that should collapse into REASONING_FAILED (IR + lowering).
+# Internal codes that should collapse into REASONING_FAILED (IR + lowering +
+# device-match producing no parseable result — a model failure, not a scope miss).
 _REASONING_CODES = {
     "ir_invalid", "ir_rejected", "ir_infeasible", "missing_lowering_prompt",
     "service_not_in_catalog", "member_not_in_service",
-    "gt_ir_load_failed",
+    "gt_ir_load_failed", "device_match_failed",
 }
 
 

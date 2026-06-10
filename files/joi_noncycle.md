@@ -32,7 +32,17 @@ Default `period: 0` (script runs once and ends). The single exception is **D-10n
       hold_ticks = 0
   }
   ```
-  `<for_ticks>` = `for_ms / 100` (e.g., `"5 SEC"` → 50; `"1 MIN"` → 600). Set `period: 100` ONLY for this case; all other noncycle patterns keep `period: 0`.
+  `<for_ticks>` = `for_ms / 100`, where `for_ms` = the duration in **milliseconds** (1 SEC = 1000 ms, 1 MIN = 60000 ms, 1 HOUR = 3600000 ms). **Compute it explicitly in `<Reasoning>`** — write the `for_ms` and the division — never copy a number from an example. Conversion table (memorize, do NOT reuse `"1 MIN"`'s 600 for other durations):
+  | for | for_ms | for_ticks (÷100) |
+  |---|---|---|
+  | "5 SEC" | 5 000 | 50 |
+  | "30 SEC" | 30 000 | 300 |
+  | "1 MIN" | 60 000 | 600 |
+  | "5 MIN" | 300 000 | 3000 |
+  | "10 MIN" | 600 000 | 6000 |
+  | "1 HOUR" | 3 600 000 | 36000 |
+
+  So `"5 MIN"` → 3000 (NOT 300), `"10 MIN"` → 6000 (NOT 600). Set `period: 100` ONLY for this case; all other noncycle patterns keep `period: 0`.
 
 ## Script body
 Walk the timeline in order. For each IR op, apply rule C from common. Emit each statement on its own line with `\n`.
@@ -151,3 +161,16 @@ Bind sensor value; Speaker.Speak has 2 selectors → fan out to 2 calls with ide
 Capture function return, feed into next call.
 </Reasoning>
 {"cron":"","period":0,"script":"img = (#CloudServiceProvider).GenerateImage(\"cat\")\n(#CloudServiceProvider).SaveToFile(img, \"cat.png\")"}
+
+### Ex9 — sustained-cond one-shot (D-10n, period 100)
+[Timeline IR]
+```
+{"timeline":[{"op":"start_at","anchor":"now"},
+ {"op":"wait","cond":"PresenceSensor.Presence == true","edge":"none","for":"10 MIN"},
+ {"op":"call","target":"Speaker.Speak","args":{"Text":"환기해 주세요."}}]}
+```
+[Precision Selectors] `(any(#PresenceSensor))`, `(#Speaker)`
+<Reasoning>
+D-10n sustained-cond. for "10 MIN" → for_ms = 10 × 60000 = 600000 → for_ticks = 600000 / 100 = 6000. period = 100.
+</Reasoning>
+{"cron":"","period":100,"script":"hold_ticks := 0\nif (any(#PresenceSensor).Presence == true) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n        (#Speaker).Speak(\"환기해 주세요.\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"}

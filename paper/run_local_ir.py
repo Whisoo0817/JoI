@@ -43,6 +43,7 @@ from pipeline_helpers import (
     _apply_service_prefix,
     _normalize_script_newlines,
     _post_process_joi_any_quantifiers,
+    _reapply_precision_quantifiers,
     _strip_selector_extra_parens,
     _parse_dict_input,
 )
@@ -820,9 +821,31 @@ def generate_joi_code_ir(
         log_buf.append(log_line)
         return content
 
+    # Stage 0: Preprocess — runs on the RAW pre-translation input (usually Korean).
+    # Lightly normalizes the command (makes a channel-less notification explicit,
+    # turns a vague time-of-day like "저녁에" into a concrete "오후 6시부터 9시까지"
+    # range) or REJECTS inputs that can't be automated as-is:
+    #   - multiple_scenarios:  ≥2 independent trigger→action scenarios in one command
+    #   - ambiguous_condition: a threshold-less magnitude condition ("더우면" …)
+    # Everything else is kept verbatim. Skip with JOI_SKIP_PREPROCESS=1 (tests).
+    if os.environ.get("JOI_SKIP_PREPROCESS") == "1":
+        log_buf.append("➡️ preprocess SKIPPED (JOI_SKIP_PREPROCESS=1)")
+    else:
+        pre_raw = infer("preprocess", f"[Command]\n{sentence}", max_tokens=256).strip()
+        _err_m = re.search(r'<error\s+code="([^"]+)"\s*>(.*?)</error>', pre_raw, re.DOTALL)
+        if _err_m and _err_m.group(1).strip() in ("multiple_scenarios", "ambiguous_condition"):
+            raise JoiGenerationError(
+                _err_m.group(2).strip() or "Command cannot be automated as-is.",
+                "\n".join(log_buf),
+                error_code=_err_m.group(1).strip(),
+            )
+        _out_m = re.search(r'<out>(.*?)</out>', pre_raw, re.DOTALL)
+        if _out_m and _out_m.group(1).strip():
+            sentence = _out_m.group(1).strip()
+
     # Stage 1: Translation to English when needed.
     # Skip entirely when JOI_SKIP_TRANSLATION=1 to test the pipeline on raw Hangul.
-    # `original_sentence` keeps the user's verbatim input (before translation) so
+    # `original_sentence` keeps the (preprocessed) input before translation so
     # downstream arg_resolve can emit human-facing text (ToastPublisher/Menu/Speaker)
     # in the SAME language and wording the user used. Equals `sentence` for English.
     original_sentence = sentence
@@ -1093,6 +1116,18 @@ def generate_joi_code_ir(
         )
         step1_raw = infer("mapping_device_match", step1_user).strip()
         match_qids, step1_reasoning = _parse_device_match_qids(step1_raw)
+        # device_match produced NOTHING parseable (runaway reasoning truncated at
+        # max_tokens, pure-prose output, etc.) — even the 3-tier JSON recovery in
+        # _parse_device_match_qids salvaged zero services. This is a model/reasoning
+        # failure, NOT a "device absent from scope" situation, so surface it as
+        # REASONING_FAILED rather than letting every service default to an empty
+        # group and mis-report as no_device_in_scope (Gate B / 1202).
+        if not match_qids:
+            raise JoiGenerationError(
+                "Device matching produced no parseable result.",
+                "\n".join(log_buf),
+                error_code="device_match_failed",
+            )
         # Flatten groups for downstream consumers that still expect a flat id list per service
         matches = {
             svc: [a for g in entry.get("groups", []) for a in g]
@@ -1500,6 +1535,11 @@ def generate_joi_code_ir(
             joi_json["period"] = _override_ms
 
         if "script" in joi_json:
+            # Re-apply any/all the lowering LLM may have dropped from the precision
+            # selectors, THEN canonicalize `any(...) ==` → `all(...) ==|`.
+            _sel_map = (precision_output.get("selectors", {})
+                        if isinstance(precision_output, dict) else {})
+            joi_json["script"] = _reapply_precision_quantifiers(joi_json["script"], _sel_map)
             joi_json["script"] = _post_process_joi_any_quantifiers(joi_json["script"])
 
         return joi_json

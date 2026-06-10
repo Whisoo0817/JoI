@@ -204,6 +204,35 @@ def _strip_selector_extra_parens(script):
     return script
 
 
+def _reapply_precision_quantifiers(script, selectors):
+    """Re-apply any/all quantifiers the lowering LLM may have dropped.
+
+    `selectors` is the precision stage's {service: [selector_str, ...]} map, e.g.
+    {'PresenceSensor.Presence': ['any(#PresenceSensor)'], 'Switch.On': ['all(#Switch)']}.
+    The device-match stage already decided the quantifier; the lowering LLM is
+    only meant to copy the selector verbatim, but sometimes emits a bare
+    `(#PresenceSensor)` and drops the `any`/`all`. For each quantified selector
+    `Q(#tags)`, rewrite a bare `(#tags)` (not already prefixed by a quantifier)
+    back to `Q(#tags)` so the device-match decision is honored deterministically.
+    `q=one` selectors are bare by design and left untouched.
+    """
+    seen = set()
+    for sel_list in (selectors or {}).values():
+        for qsel in sel_list or []:
+            m = re.match(r'\s*(any|all)\((#[^)]*)\)\s*$', qsel or '')
+            if not m:
+                continue
+            q, inner = m.group(1), m.group(2)
+            if (q, inner) in seen:
+                continue
+            seen.add((q, inner))
+            bare = f'({inner})'
+            # `(` not preceded by a letter → skips an already-present any(/all(.
+            script = re.sub(r'(?<![A-Za-z])' + re.escape(bare),
+                            f'{q}({inner})', script)
+    return script
+
+
 # `any(#Tag1 [#Tag2 ...]).Prop op val` → canonical `all(...).Prop op| val` 변환.
 def _post_process_joi_any_quantifiers(script):
     pattern = r'any\((#\w+(?:\s+#\w+)*)\)\.(\w+)\s*([=!<>]=|[<>])\s*("[^"]*"|[^\s)]+)'
