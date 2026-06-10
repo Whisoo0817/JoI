@@ -32,17 +32,12 @@ Default `period: 0` (script runs once and ends). The single exception is **D-10n
       hold_ticks = 0
   }
   ```
-  `<for_ticks>` = `for_ms / 100`, where `for_ms` = the duration in **milliseconds** (1 SEC = 1000 ms, 1 MIN = 60000 ms, 1 HOUR = 3600000 ms). **Compute it explicitly in `<Reasoning>`** — write the `for_ms` and the division — never copy a number from an example. Conversion table (memorize, do NOT reuse `"1 MIN"`'s 600 for other durations):
-  | for | for_ms | for_ticks (÷100) |
-  |---|---|---|
-  | "5 SEC" | 5 000 | 50 |
-  | "30 SEC" | 30 000 | 300 |
-  | "1 MIN" | 60 000 | 600 |
-  | "5 MIN" | 300 000 | 3000 |
-  | "10 MIN" | 600 000 | 6000 |
-  | "1 HOUR" | 3 600 000 | 36000 |
+  `<for_ticks>` = `for_ms / period` = `for_ms / 100`. **You MUST write the full arithmetic in `<Reasoning>` for the actual duration — multiply out, then divide by 100. Never recall a number.** The pattern is `N × <unit-ms> / 100`:
+  - SEC → `N × 1000 / 100` = `N × 10`. e.g. `"5 SEC"` → 5 × 1000 / 100 = **50**.
+  - MIN → `N × 60000 / 100` = `N × 600`. e.g. `"5 MIN"` → 5 × 60000 / 100 = **3000** ; `"10 MIN"` → 10 × 60000 / 100 = **6000**.
+  - HOUR → `N × 3600000 / 100` = `N × 36000`. e.g. `"1 HOUR"` → 1 × 3600000 / 100 = **36000**.
 
-  So `"5 MIN"` → 3000 (NOT 300), `"10 MIN"` → 6000 (NOT 600). Set `period: 100` ONLY for this case; all other noncycle patterns keep `period: 0`.
+  So `"5 MIN"` → 3000 (NOT 300), `"10 MIN"` → 6000 (NOT 600) — minutes give thousands, not hundreds. Set `period: 100` ONLY for this case; all other noncycle patterns keep `period: 0`.
 
 ## Script body
 Walk the timeline in order. For each IR op, apply rule C from common. Emit each statement on its own line with `\n`.
@@ -171,6 +166,19 @@ Capture function return, feed into next call.
 ```
 [Precision Selectors] `(any(#PresenceSensor))`, `(#Speaker)`
 <Reasoning>
-D-10n sustained-cond. for "10 MIN" → for_ms = 10 × 60000 = 600000 → for_ticks = 600000 / 100 = 6000. period = 100.
+D-10n sustained-cond. for "10 MIN" → for_ticks = 10 × 60000 / 100 = 6000. period = 100.
 </Reasoning>
 {"cron":"","period":100,"script":"hold_ticks := 0\nif (any(#PresenceSensor).Presence == true) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n        (#Speaker).Speak(\"환기해 주세요.\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"}
+
+### Ex10 — sustained-cond one-shot, MINUTES (D-10n, period 100)
+[Timeline IR]
+```
+{"timeline":[{"op":"start_at","anchor":"now"},
+ {"op":"wait","cond":"ContactSensor.Contact == false","edge":"none","for":"5 MIN"},
+ {"op":"call","target":"Speaker.Speak","args":{"Text":"문이 5분 이상 열려 있습니다."}}]}
+```
+[Precision Selectors] `(any(#ContactSensor))`, `(#Speaker)`
+<Reasoning>
+D-10n sustained-cond. for "5 MIN" → for_ticks = 5 × 60000 / 100 = 3000 (minutes → thousands, NOT 300). period = 100.
+</Reasoning>
+{"cron":"","period":100,"script":"hold_ticks := 0\nif (any(#ContactSensor).Contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 3000) {\n        (#Speaker).Speak(\"문이 5분 이상 열려 있습니다.\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"}

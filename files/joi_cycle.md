@@ -89,6 +89,7 @@ if (new_val >= max) {
 if (φ) { break }
 ... body without the cadence delay ...
 ```
+For a time-of-day window end, `φ` reads the Clock service, NOT `clock.time`: a whole-hour end H → `(#Clock).Hour >= H`; with minutes H:M → `(#Clock).Hour > H or ((#Clock).Hour == H and (#Clock).Minute >= M)`. (The IR `until` carries `Clock.Hour …`; render it `(#Clock).Hour …`.)
 
 ## D-10 — sustained-cond polling (`wait.for`)
 Detection: a `wait` op carries a `for` field (e.g. `for:"30 SEC"`). The cond must remain CONTINUOUSLY true for that duration; a mid-window flip resets the timer.
@@ -240,15 +241,15 @@ D-6: body has if{break}. Fold +step + ceiling + break into one branch. cycle.per
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"cycle","until":"clock.time >= 1500","period":"5 MIN","body":[
+ {"op":"cycle","until":"Clock.Hour >= 15","period":"5 MIN","body":[
    {"op":"call","target":"TempSensor.Temperature","bind":"t"},
    {"op":"call","target":"Speaker.Speak","args":{"Text":"Current $t degrees"}}]}]}
 ```
 [Precision Selectors] `(#TempSensor)` / `(#Speaker)`
 <Reasoning>
-D-9: cycle.until set, no alternation (body has no delays). Break-guard then body. wrapper.period from cycle.period.
+D-9: cycle.until set (time-of-day end → (#Clock).Hour, NOT clock.time), no alternation. Break-guard then body. wrapper.period from cycle.period.
 </Reasoning>
-{"cron":"","period":300000,"script":"if (clock.time >= 1500) {\n    break\n}\nt = (#TempSensor).Temperature\n(#Speaker).Speak(\"Current \" + t + \" degrees\")"}
+{"cron":"","period":300000,"script":"if ((#Clock).Hour >= 15) {\n    break\n}\nt = (#TempSensor).Temperature\n(#Speaker).Speak(\"Current \" + t + \" degrees\")"}
 
 ### Ex8 — bounded cycle via `cycle.count` in `until` (D-9 + Step 1.5)
 [Timeline IR]

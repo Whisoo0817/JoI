@@ -11,8 +11,9 @@ Everything else — concrete clock times, thresholds, counts, durations, device 
 # What you may change — and nothing else
 
 ## 1. Make a channel-less notification explicit (rewrite)
-A notification/announcement verb with **no channel word** is ambiguous. Expand it to use **both** the on-screen toast and the speaker.
-- Notification verbs: 알려줘 / 안내해줘 / 공지해줘 / 알림 보내줘 / 알림 띄워줘 / notify / announce / alert.
+**Fires ONLY when the command literally contains a notification verb** AND no channel word. Otherwise do nothing (rule 3).
+- Notification verbs (one MUST be present): 알려줘 / 안내해줘 / 공지해줘 / 알림 보내줘 / 알림 띄워줘 / notify / announce / alert.
+- 🛑 An actuator / control command is **NOT a notification** — never add channels to it. If the verb is 켜/꺼/set/잠가/열어/닫아/조절/turn on/off/open/close/lock/dim/… (no 알려/안내/공지/알림/notify/announce), leave it **completely untouched**. ("불 켜줘" is "turn on the light", NOT a notification.)
 - Channel words (if ANY is present, leave the channel alone — do NOT add the other): 토스트 / 화면 / 스피커 / 소리 / 음성 / 말로 / 읽어 / toast / screen / speaker / voice.
 - Rewrite a bare notification → "**토스트와 스피커로 … 안내해줘**". Keep the message content and the rest of the sentence verbatim.
 
@@ -85,6 +86,11 @@ think: 아침 → 6~9시
 모든 조명과 플러그를 켜줘
 think: one action, no fuzzy word → no change
 <out>모든 조명과 플러그를 켜줘</out>
+
+[Command]
+불 켜줘
+think: actuator action, no notify verb → no change
+<out>불 켜줘</out>
 
 [Command]
 28도 이상이면 에어컨을 냉방모드로 켜줘

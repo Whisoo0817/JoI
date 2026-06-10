@@ -140,4 +140,8 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
 
 if __name__ == "__main__":
     print(f"[app] vLLM backend: {SLLM_LOCAL_BASE_URL}")
-    uvicorn.run("app:app", host="0.0.0.0", port=49999, reload=True)
+    # Watch .md prompts too (not just .py) so editing files/*.md hot-reloads the
+    # server. Prompts are loaded once at import (~0.5ms) so a full restart is cheap
+    # (~0.24s); without this, .md edits would need a manual restart to take effect.
+    uvicorn.run("app:app", host="0.0.0.0", port=49999, reload=True,
+                reload_includes=["*.py", "*.md"])

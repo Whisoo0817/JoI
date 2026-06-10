@@ -142,10 +142,12 @@ Example (bad — do not do this):
 ### Expression translation
 - `Device.attr` → `(#Selector).Attr` (PascalCase per Service Details).
 - `$var`        → `var`.
-- `clock.time`  → `clock.time` — **4-digit zero-padded `hhmm` integer** (e.g. midnight = `0000`, 09:05 AM = `0905`, 6 PM = `1800`, 11:59 PM = `2359`). Compare with bare 4-digit integer literals, never strings. ✅ `clock.time >= 1800`. ❌ `clock.time >= "18:00"`. ❌ `clock.time >= 0` for midnight (use `0000`).
+- **Time-of-day comparison → use `Clock.Hour` / `Clock.Minute` (INTEGER services), rendered `(#Clock).Hour` / `(#Clock).Minute`.** Do NOT use `clock.time` — it is an ambiguous string and unreliable for `>=`/`<` comparisons. `Clock.Hour` (0–24) and `Clock.Minute` (0–60) are clean integers.
+  - End-of-window on a whole hour `H` → `(#Clock).Hour >= H` (e.g. 9 PM → `(#Clock).Hour >= 21`).
+  - End-of-window with minutes `H:M` → `(#Clock).Hour > H or ((#Clock).Hour == H and (#Clock).Minute >= M)` (e.g. 21:30 → `(#Clock).Hour > 21 or ((#Clock).Hour == 21 and (#Clock).Minute >= 30)`).
+  - Compare with bare integer literals, never strings. ✅ `(#Clock).Hour >= 18`. ❌ `clock.time >= 1800`. ❌ `(#Clock).Hour >= "18"`.
 - `clock.date`  → `clock.date` — **8-digit zero-padded `YYYYMMdd` string** (e.g. Christmas 2026 = `"20261225"`). NO dashes. Compare with quoted 8-digit strings.
 - `clock.dayOfWeek` → `clock.dayOfWeek` — string `"MON".."SUN"`. Compare with quoted strings.
-- **Prefer `clock.time` (built-in IR expression) over `Clock.Hour` / `Clock.Minute` services** for time comparisons AND for reading current time into a variable to speak/display. The `Clock.*` value services exist but `clock.time` is always available without a service call.
 - `&&` `||` `!` → `and` `or` `not`.
 
 ---

@@ -42,8 +42,11 @@ Used in `cond`, `if.cond`, `wait.cond`, and read-derived `args` values.
 - **Literals**: numbers (`30`, `3.14`), strings (`"cool"`, `"open"`, `"MON"`), booleans (`true`, `false`).
 - **Device attr**: `Category.Attr` verbatim from `[Services]`. NEVER device IDs.
 - **Local var**: `$varname` (from a prior `read` or `call.var`).
-- **Clock built-ins** (IR-native; no service call needed):
-  - `clock.time` — 4-digit zero-padded `hhmm` integer (midnight `0000`, 09:05 `0905`, 18:00 `1800`, 23:59 `2359`). Compare with bare integer literals. ✅ `clock.time >= 1800`. ❌ `>= "18:00"`. ❌ `>= 0`.
+- **Time-of-day comparison** → use `Clock.Hour` / `Clock.Minute` (INTEGER services), NOT `clock.time` (that is an ambiguous string). `Clock.Hour` (0–24), `Clock.Minute` (0–60).
+  - whole-hour end `H` → `Clock.Hour >= H` (9 PM → `Clock.Hour >= 21`).
+  - with minutes `H:M` → `Clock.Hour > H || (Clock.Hour == H && Clock.Minute >= M)` (21:30 → `Clock.Hour > 21 || (Clock.Hour == 21 && Clock.Minute >= 30)`).
+  - Compare with bare integers. ✅ `Clock.Hour >= 18`. ❌ `clock.time >= 1800`.
+- **Date / weekday built-ins** (IR-native; no service call):
   - `clock.date` — 8-digit `YYYYMMdd` string (Christmas 2026 = `"20261225"`).
   - `clock.dayOfWeek` — `"MON".."SUN"` string.
 - **Operators**: `+ - * / ( )`, `== != < > <= >=`, **logical: `and` / `or` / `not`** (JoI keywords, NOT C-style `&& || !`), `abs(x)`.
@@ -140,10 +143,10 @@ NOT `cycle(period="100 MSEC"){ wait(X, rising); Y }` (that is D-3 re-arming; wro
 ## D7. Bounded windows (`cycle.until`)
 | English | Cron + until |
 |---|---|
-| `From H1 to H2, every N, ...` | `start_at(cron "0 H1 * * *")` + `cycle(until="clock.time >= H200", period="N UNIT")` |
+| `From H1 to H2, every N, ...` | `start_at(cron "0 H1 * * *")` + `cycle(until="Clock.Hour >= H2", period="N UNIT")` (whole hour; for H2:M2 use `Clock.Hour > H2 \|\| (Clock.Hour == H2 && Clock.Minute >= M2)`) |
 | `On <holiday>, every N, ...` | `start_at(cron)` for that date + `cycle(until="clock.date != \"YYYYMMdd\"", period="N UNIT")` |
 | `On weekend mornings`, etc. (2-D) | cron pins both day AND hour-of-day; until pins hour-of-day end; period=cadence |
-| `Until HH, every N, ...` (starts now) | `start_at("now")` + `cycle(until="clock.time >= HHmm", period="N UNIT")` |
+| `Until HH, every N, ...` (starts now) | `start_at("now")` + `cycle(until="Clock.Hour >= HH", period="N UNIT")` (whole hour; minutes → `Clock.Hour > HH \|\| (Clock.Hour == HH && Clock.Minute >= MM)`) |
 | `From HH to HH; if X happened (or didn't) during window, do Y` (window-end evaluation) | `cycle.until` cannot perform end-evaluation by itself. Use: `start_at(cron)` + a polling cycle that tracks a flag, then `if(flag){...}` after the loop. Partial-semantics fallback acceptable when no flag is natural. |
 | `Every N hours/minutes on <weekdays/weekends/Mondays/...>` (no explicit window) | Encode cadence in cron itself: `start_at(cron "0 */N * * <dow>")` + body call(s), NO `cycle`. Wrapping in cycle would spill into excluded days. |
 
@@ -156,7 +159,7 @@ Pick the value by body shape:
 
 | English | IR shape |
 |---|---|
-| `Every N min until H, sound siren for K sec then off` | `cycle(until="clock.time >= H00", period="N MIN", body=[call(Set...), delay(K SEC), call(Switch.Off)])` |
+| `Every N min until H, sound siren for K sec then off` | `cycle(until="Clock.Hour >= H", period="N MIN", body=[call(Set...), delay(K SEC), call(Switch.Off)])` |
 
 ## D7c. `cycle.count` — alternation and bounded iteration
 Use the optional `count` field (a tick-index var, 0/1/2/...) ONLY for these two patterns:
@@ -326,7 +329,7 @@ The cron is the trigger; the sensor check is an instantaneous `if` at the schedu
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"cron","cron":"0 12 * * 6,7"},
-  {"op":"cycle","until":"clock.time >= 1800","period":"2 HOUR","body":[
+  {"op":"cycle","until":"Clock.Hour >= 18","period":"2 HOUR","body":[
     {"op":"call","target":"RobotVacuumCleaner.SetMode","args":{"Mode":"auto"}}
   ]}
 ]}

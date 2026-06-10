@@ -24,16 +24,17 @@ For each service `X.Y`, walk three steps:
 
 A command may stack signals: "turn off all Tuya lights in the meeting room" → `Switch` (cat) ∩ `Light` (cat) ∩ `Tuya` (tag) ∩ `MeetingRoom` (tag).
 
-**Step 3 — Quantifier `q`.** Decide per group, from the **number of candidates in that group** first, then the command. **DERIVE `q` — do not guess, do not copy an example.**
+**Step 3 — Quantifier `q`.** Only three values: `one` (default), `all`, `any`. Decide per group with this short decision — do NOT deliberate, do NOT weigh interpretations, do NOT second-guess. Pick and move on.
 
-0. **HARD GATE — count the candidates in the group FIRST.** If a group has **exactly ONE candidate device**, `q` is **`one`. Always. No exceptions.** `all` and `any` are *plural* quantifiers — they are meaningless over a single device. A trigger/condition on a single device (one button, one sensor) is `q=one`, NEVER `any`. Only consider `all`/`any` when the group holds **2 or more** candidates.
-1. **Explicit quantifier word in the command (group has ≥2) → use it.** `all` / `every` / `모두` / `다` → `all`. `at least one` / `any` / `하나라도` → `any`.
-2. **No quantifier word, group has ≥2 → derive from role:**
-   - **CONDITION / TRIGGER read over ≥2 sensors** (value feeds a `when`/`if`/`wait-until`): existential by default — true the instant ONE of the several sensors satisfies it ("회의실에 사람이 있으면" over 3 presence sensors) → **`q=any`**. The justification is *"N≥2 candidates and one satisfying suffices"* — NOT merely "it is a condition". A condition over ONE device is `one` (gate 0).
-     - **Universal exception**: condition phrased over the WHOLE set ("if the room is empty", "if all windows are closed") needs every sensor → **`q=all`**.
-   - **ACTION on a set of ≥2** ("turn off", "lock") with no singular cue → entire narrowed set → **`q=all`**.
+- **`all`** — ONLY when the command literally contains a universal word: `all` / `every` / `모두` / `다` / `전부` (or, for a condition, "if **all** … / 모두 …"). No such word → never `all`.
+- **`any`** — ONLY for a **condition / trigger read** (a value that feeds a `when`/`if`/`wait-until`) over **≥2 candidate sensors** where one satisfying suffices ("사람이 있으면" over 3 presence sensors). `any` does **NOT exist for actions or plain reads** — never put `any` on a `Switch.On`, `Speaker.Speak`, etc.
+- **`one`** — **everything else, including any action or plain read with no universal word** — even when several candidate devices match. "불 켜줘 / turn on the light" has no `all` word → `one`. Do NOT upgrade a multi-candidate action to `all`; the absence of `all`/`every` means `one`.
 
-**State the reason inline in the `<Reasoning>` line, and the reason MUST cite the candidate count** (e.g. `q=one (single button)`, `q=any (3 sensors, one suffices)`, `q=all (action over 6 devices)`). If the group has one candidate, the only valid reason is "single device → one". If you cannot cite ≥2 candidates, it is `one`.
+So, mechanically:
+- action / plain read → `all` if the command says all/every, otherwise `one`. (Never `any`.)
+- condition / trigger read → `all` if "if all/every …"; `any` if ≥2 sensors and one suffices; otherwise `one`.
+
+`<Reasoning>` cites the trigger in ≤1 short clause, e.g. `q=one (no 'all' word)`, `q=all (command says 모두)`, `q=any (condition over ≥2 sensors)`. Never a multi-sentence justification.
 
 # Output
 A `<Reasoning>` block, then a JSON object. Each service carries three fields: `q`, `groups` (device ids), and `sel` (the **selector tags** — the narrowing signals you used).
@@ -43,7 +44,7 @@ A `<Reasoning>` block, then a JSON object. Each service carries three fields: `q
 note: <≤20 tokens — target noun + narrowing signal only>
 X.Y: "<verbatim target phrase from command>" → cat X ∩ <narrow signal> → q=<one|all|any> → groups: [[d1, d2]] → sel: [[Tag, ...]]
 </Reasoning>
-{"X.Y": {"q": "all", "groups": [["d1", "d2"]], "sel": [["Light"]]}}
+{"X.Y": {"q": "one", "groups": [["d1", "d2"]], "sel": [["Light"]]}}
 ```
 
 - **`note:` is ONE short line (≤20 tokens): just the narrowing signal** (brand / location / device-type) and, if relevant, a rejected pre d-id leak. **NEVER enumerate device ids** — do NOT list which candidates passed or which were dropped (e.g. `d3, d5… are non-Tuya`). The kept ids already appear once in `groups`; listing the rejected ones is pure waste. `note: brand 'Tuya' → narrow Switch by tag Tuya` is complete — stop there.
