@@ -44,8 +44,8 @@ When smoke is detected, send a danger alert notification
 - **Severity** (ENUM: `danger`, `warning`, `normal`, `announce`). Choose from the command's tone:
   - `danger` — emergencies / hazards (fire, smoke, gas leak, intrusion, "danger"). Sticky until dismissed.
   - `warning` — cautions ("warning", door left open too long, threshold exceeded).
-  - `announce` — billboard-style standing banner ("billboard", "banner").
-  - `normal` — **default** for ordinary notifications (reminders, status). Use when no danger/warning/announce cue is present.
+  - `announce` — **default** for ordinary notifications (reminders, status, announcements, "환기 알림" 등). Use when no danger/warning cue is present.
+  - `normal` — low-key passive notice. Only when the command explicitly downplays it ("그냥", "조용히", "quietly", "low priority").
 - **Title** — the headline, in **English**. Use the command's wording, trimmed to a short headline. A quoted literal is copied verbatim.
 - **Message** — optional body. Use `""` unless the command clearly has both a short headline AND a longer detail.
 
@@ -56,13 +56,13 @@ Examples:
 [Command] Send a ventilation notification.
 [Selected Services] ["ToastPublisher.Publish"]
 Output:
-{"ToastPublisher.Publish": {"Severity": "normal", "Title": "Please ventilate.", "Message": ""}}
+{"ToastPublisher.Publish": {"Severity": "announce", "Title": "Please ventilate.", "Message": ""}}
 ```
 ```
 [Command] Show a toast notification saying "Presence detected".
 [Selected Services] ["ToastPublisher.Publish"]
 Output:
-{"ToastPublisher.Publish": {"Severity": "normal", "Title": "Presence detected", "Message": ""}}
+{"ToastPublisher.Publish": {"Severity": "announce", "Title": "Presence detected", "Message": ""}}
 ```
 ```
 [Command] When smoke is detected, send a danger alert notification.
@@ -78,8 +78,8 @@ Output:
 - **Severity** (ENUM: `danger`, `warning`, `normal`, `announce`). 명령의 어조로 선택:
   - `danger` — 긴급/위험 (화재, 연기, 가스 누출, 침입, "위험", "긴급"). 수동 해제까지 유지.
   - `warning` — 주의/경고 ("경고", "주의", 문이 오래 열림, 임계 초과).
-  - `announce` — 상단 배너형 공지 ("공지", "배너로 띄워").
-  - `normal` — 일반 알림 **기본값** (리마인더, 상태, "환기 알림" 등). danger/warning/announce 단서 없으면 이걸로.
+  - `announce` — 일반 알림 **기본값** (리마인더, 상태, 공지, "환기 알림" 등). danger/warning 단서 없으면 이걸로.
+  - `normal` — 조용한 수동 알림. 명령이 명시적으로 낮춰 말할 때만 ("그냥", "조용히", "낮은 우선순위").
 - **Title** — 헤드라인을 **한글 존댓말 평서문**("~합니다" / "~하세요")으로. `[User Command (original, verbatim)]`의 표현·시각·대상을 살려 자연스러운 안내문 한 문장으로 작문. 명령을 그대로 복붙하지 말 것. 따옴표로 인용된 리터럴은 그대로 사용.
 - **Message** — 선택적 본문. 단일 문구면 `""`. 헤드라인+상세가 분명할 때만 채움.
 
@@ -89,21 +89,21 @@ Output:
 [User Command (original, verbatim)] 환기 알림을 보내줘
 [Selected Services] ["ToastPublisher.Publish"]
 Output:
-{"ToastPublisher.Publish": {"Severity": "normal", "Title": "환기해 주세요.", "Message": ""}}
+{"ToastPublisher.Publish": {"Severity": "announce", "Title": "환기해 주세요.", "Message": ""}}
 ```
 ```
 [Command] Notify that the meeting starts at 2 PM.
 [User Command (original, verbatim)] 오후 2시에 회의를 시작한다고 알려줘
 [Selected Services] ["ToastPublisher.Publish"]
 Output:
-{"ToastPublisher.Publish": {"Severity": "normal", "Title": "현재 시각 오후 2시. 회의를 시작합니다.", "Message": ""}}
+{"ToastPublisher.Publish": {"Severity": "announce", "Title": "현재 시각 오후 2시. 회의를 시작합니다.", "Message": ""}}
 ```
 ```
 [Command] Show a toast saying "Presence detected".
 [User Command (original, verbatim)] 토스트 알림으로 "재실 감지"라고 보여줘
 [Selected Services] ["ToastPublisher.Publish"]
 Output:
-{"ToastPublisher.Publish": {"Severity": "normal", "Title": "재실 감지", "Message": ""}}
+{"ToastPublisher.Publish": {"Severity": "announce", "Title": "재실 감지", "Message": ""}}
 ```
 ```
 [Command] When smoke is detected, send a danger alert.
