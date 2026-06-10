@@ -42,13 +42,11 @@ Used in `cond`, `if.cond`, `wait.cond`, and read-derived `args` values.
 - **Literals**: numbers (`30`, `3.14`), strings (`"cool"`, `"open"`, `"MON"`), booleans (`true`, `false`).
 - **Device attr**: `Category.Attr` verbatim from `[Services]`. NEVER device IDs.
 - **Local var**: `$varname` (from a prior `read` or `call.var`).
-- **Time-of-day comparison** → use `Clock.Hour` / `Clock.Minute` (INTEGER services), NOT `clock.time` (that is an ambiguous string). `Clock.Hour` (0–24), `Clock.Minute` (0–60).
-  - whole-hour end `H` → `Clock.Hour >= H` (9 PM → `Clock.Hour >= 21`).
-  - with minutes `H:M` → `Clock.Hour > H || (Clock.Hour == H && Clock.Minute >= M)` (21:30 → `Clock.Hour > 21 || (Clock.Hour == 21 && Clock.Minute >= 30)`).
-  - Compare with bare integers. ✅ `Clock.Hour >= 18`. ❌ `clock.time >= 1800`.
-- **Date / weekday built-ins** (IR-native; no service call):
-  - `clock.date` — 8-digit `YYYYMMdd` string (Christmas 2026 = `"20261225"`).
-  - `clock.dayOfWeek` — `"MON".."SUN"` string.
+- **Date/time conditions → read the `Clock` service, NOT the ambiguous `clock.time` string:**
+  - `Clock.Hour` (0–24) / `Clock.Minute` (0–60) / `Clock.Day` (1–31) / `Clock.Month` (1–12) / `Clock.Year` — INTEGER, compare bare: `Clock.Hour >= 21`.
+  - `Clock.Weekday` — ENUM `monday`…`sunday` (**lowercase**), quoted: `Clock.Weekday == "saturday"`.
+  - window end at a whole hour `H:00` → **`Clock.Hour >= H` ONLY** (single clause, NO `Minute` term — `9 PM` → `Clock.Hour >= 21`, nothing more). A `Minute` term appears ONLY when the end minutes are non-zero `H:M` (M≠0) → `Clock.Hour > H || (Clock.Hour == H && Clock.Minute >= M)`. ❌ never add a `Minute` clause for a whole hour, ❌ never invent an hour/minute.
+  - Weekend → `Clock.Weekday == "saturday" || Clock.Weekday == "sunday"`. Specific date → `Clock.Month` + `Clock.Day` (+`Clock.Year`). ❌ never `clock.time`/`clock.date` strings.
 - **Operators**: `+ - * / ( )`, `== != < > <= >=`, **logical: `and` / `or` / `not`** (JoI keywords, NOT C-style `&& || !`), `abs(x)`.
   - ❌ FORBIDDEN: `A == true && B > 5`, `X || Y`, `! flag`
   - ✅ REQUIRED: `A == true and B > 5`, `X or Y`, `not flag`
@@ -144,7 +142,7 @@ NOT `cycle(period="100 MSEC"){ wait(X, rising); Y }` (that is D-3 re-arming; wro
 | English | Cron + until |
 |---|---|
 | `From H1 to H2, every N, ...` | `start_at(cron "0 H1 * * *")` + `cycle(until="Clock.Hour >= H2", period="N UNIT")` (whole hour; for H2:M2 use `Clock.Hour > H2 \|\| (Clock.Hour == H2 && Clock.Minute >= M2)`) |
-| `On <holiday>, every N, ...` | `start_at(cron)` for that date + `cycle(until="clock.date != \"YYYYMMdd\"", period="N UNIT")` |
+| `On <holiday/date>, every N, ...` | `start_at(cron)` for that date + `cycle(until="Clock.Day != D", period="N UNIT")` (or `Clock.Month != M || Clock.Day != D` for a specific month-day) |
 | `On weekend mornings`, etc. (2-D) | cron pins both day AND hour-of-day; until pins hour-of-day end; period=cadence |
 | `Until HH, every N, ...` (starts now) | `start_at("now")` + `cycle(until="Clock.Hour >= HH", period="N UNIT")` (whole hour; minutes → `Clock.Hour > HH \|\| (Clock.Hour == HH && Clock.Minute >= MM)`) |
 | `From HH to HH; if X happened (or didn't) during window, do Y` (window-end evaluation) | `cycle.until` cannot perform end-evaluation by itself. Use: `start_at(cron)` + a polling cycle that tracks a flag, then `if(flag){...}` after the loop. Partial-semantics fallback acceptable when no flag is natural. |

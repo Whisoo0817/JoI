@@ -142,12 +142,15 @@ Example (bad — do not do this):
 ### Expression translation
 - `Device.attr` → `(#Selector).Attr` (PascalCase per Service Details).
 - `$var`        → `var`.
-- **Time-of-day comparison → use `Clock.Hour` / `Clock.Minute` (INTEGER services), rendered `(#Clock).Hour` / `(#Clock).Minute`.** Do NOT use `clock.time` — it is an ambiguous string and unreliable for `>=`/`<` comparisons. `Clock.Hour` (0–24) and `Clock.Minute` (0–60) are clean integers.
-  - End-of-window on a whole hour `H` → `(#Clock).Hour >= H` (e.g. 9 PM → `(#Clock).Hour >= 21`).
-  - End-of-window with minutes `H:M` → `(#Clock).Hour > H or ((#Clock).Hour == H and (#Clock).Minute >= M)` (e.g. 21:30 → `(#Clock).Hour > 21 or ((#Clock).Hour == 21 and (#Clock).Minute >= 30)`).
-  - Compare with bare integer literals, never strings. ✅ `(#Clock).Hour >= 18`. ❌ `clock.time >= 1800`. ❌ `(#Clock).Hour >= "18"`.
-- `clock.date`  → `clock.date` — **8-digit zero-padded `YYYYMMdd` string** (e.g. Christmas 2026 = `"20261225"`). NO dashes. Compare with quoted 8-digit strings.
-- `clock.dayOfWeek` → `clock.dayOfWeek` — string `"MON".."SUN"`. Compare with quoted strings.
+- **Date/time conditions → read the `Clock` service, NOT the ambiguous `clock.time` string.** Each renders `(#Clock).<member>`:
+  | member | type | compare |
+  |---|---|---|
+  | `Clock.Hour` (0–24), `Clock.Minute` (0–60), `Clock.Day` (1–31), `Clock.Month` (1–12), `Clock.Year` | INTEGER | bare int — `(#Clock).Hour >= 21` |
+  | `Clock.Weekday` | ENUM `monday`…`sunday` (**lowercase**) | quoted — `(#Clock).Weekday == "saturday"` |
+  - window end at a whole hour `H:00` → **`(#Clock).Hour >= H` ONLY** — a single clause, NO `Minute` term. (9 PM → `(#Clock).Hour >= 21`, nothing more.)
+  - a `Minute` term appears ONLY when the end has **non-zero minutes** `H:M` (M≠0) → `(#Clock).Hour > H or ((#Clock).Hour == H and (#Clock).Minute >= M)`. ❌ Never add a `Minute` clause for a whole hour; ❌ never invent an hour/minute not in the command.
+  - weekend → `(#Clock).Weekday == "saturday" or (#Clock).Weekday == "sunday"`; a specific date → combine `Clock.Month` + `Clock.Day` (+`Clock.Year`).
+  - Never strings for time. ✅ `(#Clock).Hour >= 18`. ❌ `clock.time >= 1800`. ❌ `(#Clock).Hour >= "18"`.
 - `&&` `||` `!` → `and` `or` `not`.
 
 ---

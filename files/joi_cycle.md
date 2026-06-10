@@ -89,7 +89,7 @@ if (new_val >= max) {
 if (φ) { break }
 ... body without the cadence delay ...
 ```
-For a time-of-day window end, `φ` reads the Clock service, NOT `clock.time`: a whole-hour end H → `(#Clock).Hour >= H`; with minutes H:M → `(#Clock).Hour > H or ((#Clock).Hour == H and (#Clock).Minute >= M)`. (The IR `until` carries `Clock.Hour …`; render it `(#Clock).Hour …`.)
+For a time-of-day window end, `φ` reads the Clock service, NOT `clock.time`: a whole-hour end H → `(#Clock).Hour >= H` **ONLY** (no Minute term). Add the Minute term `(#Clock).Hour > H or ((#Clock).Hour == H and (#Clock).Minute >= M)` ONLY when the end minutes M≠0. (The IR `until` carries `Clock.Hour …`; render it `(#Clock).Hour …`.) ❌ never invent an hour/minute.
 
 ## D-10 — sustained-cond polling (`wait.for`)
 Detection: a `wait` op carries a `for` field (e.g. `for:"30 SEC"`). The cond must remain CONTINUOUSLY true for that duration; a mid-window flip resets the timer.
