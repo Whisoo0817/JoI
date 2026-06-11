@@ -63,7 +63,11 @@ def _code_item(raw_code: Any) -> Optional[JoiCodeItem]:
     data = raw_code
     if isinstance(raw_code, str):
         try:
-            data = json.loads(raw_code)
+            # strict=False allows literal newlines inside string values — the
+            # pipeline pretty-prints `script` with real newlines, so a multi-line
+            # script (any condition/wait/cycle scenario) is otherwise invalid JSON
+            # and would parse-fail here → code came back null for those.
+            data = json.loads(raw_code, strict=False)
         except Exception:
             return None
     if isinstance(data, dict):
