@@ -90,9 +90,12 @@ When the catalog offers **multiple plausible candidates** for one capability, fo
 3. **Stepped vs setter for numeric delta**: for a numeric delta, prefer read+setter pair (or a direct delta-action), not a stepped single-action repeated.
 4. **Category-specific routing**: a rule sheet may route a generic-looking action through a category-local service — follow the rule sheet.
 5. **Lexically-related sibling**: a sibling whose name sounds related but matches a different intent — drop it.
+6. **Button vs MultiButton — decide by an explicit number.** A bare "button" with **no number** → `Button.Button` (the plain single-button device). Use `MultiButton.ButtonN` **ONLY when the command names a specific button index** — "button 1/2/3/4", "first/second/third/fourth button". No index in the command → never MultiButton; default to `Button.Button`.
 
 `ground:` examples:
 - `lights → Light devices; on/off → Switch family; Light devices carry Switch ✓ → Switch.On`
+- `button (no index) → Button.Button; press → trigger ✓ → Button.Button`
+- `button 2 → indexed → MultiButton.Button2; press → trigger ✓ → MultiButton.Button2`
 - `temp → TemperatureSensor read; announce → Speaker.Speak; both connected ✓ → TempSensor.Temperature, Speaker.Speak`
 - `volume +10 → numeric delta; no delta-action, so read+set; Speaker carries both ✓ → Speaker.Volume, Speaker.SetVolume (not VolumeUp, single-step)`
 
@@ -164,10 +167,20 @@ When button 1 is pressed, turn on the light and turn it off after 5 minutes
 [Command Hints]
 trigger button 1 pressed; light on, then 5min later light off
 <Reasoning>
-ground: button → MultiButton read; light on/off → Light rule routes to MoveToBrightness (not Switch.On) ✓ → MultiButton.Button1, Light.MoveToBrightness, Light.MoveToBrightness
+ground: button 1 → indexed button → MultiButton.Button1; light on/off → Light rule routes to MoveToBrightness (not Switch.On) ✓ → MultiButton.Button1, Light.MoveToBrightness, Light.MoveToBrightness
 flow: MultiButton.Button1 (pressed?) → trigger ; Light.MoveToBrightness (turn on) ; IR-stage 5min delay ; Light.MoveToBrightness (turn off)
 </Reasoning>
 ["MultiButton.Button1", "Light.MoveToBrightness", "Light.MoveToBrightness"]
+
+[Command]
+Every time the button is pressed, turn on all lights.
+[Command Hints]
+trigger button pressed (no index); turn on lights
+<Reasoning>
+ground: button (no index) → Button.Button (NOT MultiButton); turn on lights → Switch family; Light devices carry Switch ✓ → Button.Button, Switch.On
+flow: Button.Button (pressed?) → trigger ; Switch.On (turn on lights)
+</Reasoning>
+["Button.Button", "Switch.On"]
 
 [Command]
 Every hour, increase the speaker volume by 10

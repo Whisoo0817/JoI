@@ -17,7 +17,7 @@ For each service `X.Y`, walk three steps:
 - **Device-type noun** ("lights" / "light" / "조명" / "불" / "lamp", "speaker", "camera"): keep only candidates whose `category` includes that device class. `Switch.On` + noun "light(s)" → keep devices with `Light` in category; drop plugs/speakers/ACs/cameras that merely carry `Switch`. (The device-type noun maps to a category tag the target devices share — `Light`, `Speaker`, `Camera`, ….) **Singular counts too**: "the light" / "불 켜줘" is STILL the Light type → `sel: [["Light"]]`, never bare `[["Switch"]]`. **🛑 NEVER fall back to the bare capability class `[["Switch"]]` when a device-type noun is named** — `#Switch` lumps in plugs, cameras, ACs and humidifiers, so `all(#Switch)` would power on everything. If a type noun is present, the `sel` MUST carry that type tag (`Light`, …).
 - **Brand / tag group** ("Tuya devices", "Matter devices"): keep only candidates whose `tags` include that brand/tag word (`Tuya`, `Matter`). Combined with Step-1 category, e.g. "turn off all Tuya devices" → `Switch.Off` candidates that ALSO have `Tuya` in tags.
 - **Location group** ("in the meeting room", "회의실", "outdoor"): keep only candidates whose `tags` include that location (case-insensitive, compound-aware). Common synonyms: `conference room ↔ MeetingRoom`, `living room ↔ LivingRoom`, `Zone N ↔ Sector N`, `Floor N ↔ FloorN`.
-- **Device-id literal**: if the command literally contains a `device_id`, select exactly that device.
+- **Device handle literal (`d1`, `d2`, …)**: if the command literally contains a device handle, the user named **that exact device** — it is pre-resolved. Select **only** that device: `groups: [[d7]]`, `q=one`, and **`sel: [["d7"]]`** (the handle is also that device's own unique tag, so the selector narrows to it). Do **NOT** broaden to its category (`["Switch"]` / `["Light"]`) — that would fire every device of the type. Multiple handles named → one group each.
 - **No narrowing signal**: if the command names only the bare action with no type/tag/location word ("turn everything off", "불 다 꺼"), keep ALL Step-1 candidates.
 
 **🛑 NEVER infer a location.** Use a location tag ONLY when the command literally names a room/zone ("회의실", "in the meeting room", "outdoor"). Do NOT guess a room from where the sensors happen to live, from a "common default", or from which devices cluster together. "불 켜줘" / "turn on the light" with no room word → target ALL lights (`sel: [["Light"]]`), never `["Light","StudentRoom"]`. If you catch yourself writing "implied by context" / "common default" for a location, delete that tag.
@@ -83,6 +83,21 @@ note: noun 'lights' → narrow Switch candidates to Light category
 Switch.On: "all the lights" → cat Switch ∩ Light → q=all (explicit "all") → groups: [[d3]] → sel: [[Light]]
 </Reasoning>
 {"Switch.On": {"q": "all", "groups": [["d3"]], "sel": [["Light"]]}}
+
+[Command]
+Turn on d3.
+[Command Hints]
+intent: switch on a specific named device. action: switch on. quantifier: single.
+[Selected Services]
+["Switch.On"]
+[Connected Devices]
+{"d1": {"category": ["Switch","Speaker"], "tags": ["Office","d1"]}, "d2": {"category": ["Switch","Plug"], "tags": ["Office","d2"]}, "d3": {"category": ["Switch","Light"], "tags": ["MeetingRoom","d3"]}}
+
+<Reasoning>
+note: handle 'd3' literal → that exact device; sel = handle, not category
+Switch.On: "d3" → handle d3 → q=one (specific device) → groups: [[d3]] → sel: [[d3]]
+</Reasoning>
+{"Switch.On": {"q": "one", "groups": [["d3"]], "sel": [["d3"]]}}
 
 [Command]
 Every time the commute button is pressed, turn on all lights and plugs.

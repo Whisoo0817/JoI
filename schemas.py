@@ -26,6 +26,7 @@ class JoiErrorCode(IntEnum):
     # 12xx: device resolution
     DEVICE_NOT_CONNECTED = 1201  # required device category not connected at all
     DEVICE_NOT_IN_SCOPE = 1202   # category exists but none in the named location/scope
+    DEVICE_NOT_FOUND = 1203      # command named a SPECIFIC device that isn't connected
 
     # 2xxx: vLLM / infrastructure
     VLLM_TIMEOUT = 2001
@@ -53,6 +54,7 @@ ERROR_CODE_MAP = {
     "no_services": JoiErrorCode.NO_SERVICES,
     "device_not_connected": JoiErrorCode.DEVICE_NOT_CONNECTED,
     "no_device_in_scope": JoiErrorCode.DEVICE_NOT_IN_SCOPE,
+    "device_not_found": JoiErrorCode.DEVICE_NOT_FOUND,
     "multiple_scenarios": JoiErrorCode.MULTIPLE_SCENARIOS,
     "ambiguous_condition": JoiErrorCode.AMBIGUOUS_CONDITION,
     "reasoning_overflow": JoiErrorCode.REASONING_OVERFLOW,

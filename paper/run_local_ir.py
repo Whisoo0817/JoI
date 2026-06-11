@@ -422,9 +422,22 @@ def _parse_device_match_qids(raw: str):
             return False
 
     if not _try(cleaned):
-        m = re.search(r'\{.*\}', cleaned, re.DOTALL)
-        if m:
-            _try(m.group(0))
+        # device_match often returns ONE {Service: {...}} object PER service as
+        # separate concatenated blocks (especially without Command Hints) rather
+        # than a single merged object — `json.loads` of the whole blob then fails.
+        # Ingest EACH top-level {...} object (balancing per object) so we keep
+        # every service's mapping instead of losing them all.
+        objs = _iter_top_level_objects(cleaned)
+        if len(objs) > 1:
+            for obj_str in objs:
+                if not _try(obj_str):
+                    cand = _balance_brackets(obj_str)
+                    if cand:
+                        _try(cand)
+        if not out:
+            m = re.search(r'\{.*\}', cleaned, re.DOTALL)
+            if m:
+                _try(m.group(0))
     # Recovery: the nested `sel: [[...]]` lists make the model drop or add a
     # closing bracket fairly often (e.g. `"sel": [["Speaker"]}}` — one `]`
     # short), which kills the whole object. Re-balance trailing brackets and
@@ -479,6 +492,37 @@ def _balance_brackets(text: str) -> str:
     closers = {'{': '}', '[': ']'}
     out_chars.extend(closers[b] for b in reversed(stack))
     return "".join(out_chars)
+
+
+def _iter_top_level_objects(text: str):
+    """Return each balanced top-level `{...}` object substring in `text`.
+    Used when an LLM emits several JSON objects back-to-back (one per service)
+    instead of one merged object — we parse each rather than failing on the blob.
+    Brackets inside strings are ignored; unbalanced tails are simply not yielded.
+    """
+    objs, depth, start, in_str, esc = [], 0, -1, False, False
+    for i, ch in enumerate(text):
+        if in_str:
+            if esc:
+                esc = False
+            elif ch == '\\':
+                esc = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == '{':
+            if depth == 0:
+                start = i
+            depth += 1
+        elif ch == '}':
+            if depth > 0:
+                depth -= 1
+                if depth == 0 and start >= 0:
+                    objs.append(text[start:i + 1])
+                    start = -1
+    return objs
 
 
 def _parse_dict_from_llm(raw: str) -> dict:
@@ -821,42 +865,9 @@ def generate_joi_code_ir(
         log_buf.append(log_line)
         return content
 
-    # Stage 0: Preprocess — runs on the RAW pre-translation input (usually Korean).
-    # Lightly normalizes the command (makes a channel-less notification explicit,
-    # turns a vague time-of-day like "저녁에" into a concrete "오후 6시부터 9시까지"
-    # range) or REJECTS inputs that can't be automated as-is:
-    #   - multiple_scenarios:  ≥2 independent trigger→action scenarios in one command
-    #   - ambiguous_condition: a threshold-less magnitude condition ("더우면" …)
-    # Everything else is kept verbatim. Skip with JOI_SKIP_PREPROCESS=1 (tests).
-    if os.environ.get("JOI_SKIP_PREPROCESS") == "1":
-        log_buf.append("➡️ preprocess SKIPPED (JOI_SKIP_PREPROCESS=1)")
-    else:
-        pre_raw = infer("preprocess", f"[Command]\n{sentence}", max_tokens=256).strip()
-        _err_m = re.search(r'<error\s+code="([^"]+)"\s*>(.*?)</error>', pre_raw, re.DOTALL)
-        if _err_m and _err_m.group(1).strip() in ("multiple_scenarios", "ambiguous_condition"):
-            raise JoiGenerationError(
-                _err_m.group(2).strip() or "Command cannot be automated as-is.",
-                "\n".join(log_buf),
-                error_code=_err_m.group(1).strip(),
-            )
-        _out_m = re.search(r'<out>(.*?)</out>', pre_raw, re.DOTALL)
-        if _out_m and _out_m.group(1).strip():
-            sentence = _out_m.group(1).strip()
-
-    # Stage 1: Translation to English when needed.
-    # Skip entirely when JOI_SKIP_TRANSLATION=1 to test the pipeline on raw Hangul.
-    # `original_sentence` keeps the (preprocessed) input before translation so
-    # downstream arg_resolve can emit human-facing text (ToastPublisher/Menu/Speaker)
-    # in the SAME language and wording the user used. Equals `sentence` for English.
-    original_sentence = sentence
-    if os.environ.get("JOI_SKIP_TRANSLATION") == "1":
-        log_buf.append("\u27a1\ufe0f translation SKIPPED (JOI_SKIP_TRANSLATION=1) \u2014 raw input passed through")
-    elif re.search(r"[\uac00-\ud7a3]", sentence):
-        sentence = infer("translation", sentence)
-
-    # ── Stage 2 pre-work: build cd_simple + device categories early so pre_analysis
-    # can see them (pre_analysis is now kitchen-sink — full verbatim + device + service
-    # analysis in one caveman pass).
+    # ── Device prep — built BEFORE preprocess/translation so (a) the grounding
+    # stage can resolve a specific-device nickname to its dN alias before MT can
+    # mangle the name, and (b) every later stage reuses the SAME d1/d2… numbering.
     if not isinstance(connected_devices, dict) or not connected_devices:
         raise JoiGenerationError(
             "No connected devices provided.",
@@ -887,15 +898,105 @@ def generate_joi_code_ir(
     device_rules_block = _build_device_selection_rules(primary_categories)
 
     # ── ID aliasing: anonymize device ids as d1/d2/... once, share across every
-    # LLM stage that sees the device dict (pre_analysis, service_plan,
-    # mapping_device_match). Keeps reasoning consistent and prevents raw IDs
-    # from leaking into pre_analysis/service_plan reasoning that downstream
-    # stages would then have to undo. real_of / alias_of are also reused by
-    # the precision selector validator.
+    # LLM stage that sees the device dict (grounding, pre_analysis, service_plan,
+    # mapping_device_match). Keeps reasoning consistent and prevents raw IDs from
+    # leaking into reasoning that downstream stages would then have to undo.
+    # real_of / alias_of are also reused by the precision selector validator.
     real_ids = list(cd_simple.keys())
     alias_of = {real: f"d{i+1}" for i, real in enumerate(real_ids)}
     real_of = {a: r for r, a in alias_of.items()}
-    cd_aliased = {alias_of[r]: cd_simple[r] for r in real_ids}
+    # Alias device-id literals that appear INSIDE tags too (a device's own id, or
+    # a cross-reference to another device's id) → the SAME dN. So every device
+    # reference the LLM ever sees — dict key, command handle (from grounding), or
+    # id-in-tags — is one consistent dN. This lets device_match pin a specific
+    # device by simply putting its handle in `sel` (the handle is now also that
+    # device's own tag); the selector then narrows to exactly that device, and
+    # `_restore_alias_in_selector` maps the dN tag back to the real id.
+    cd_aliased = {
+        alias_of[r]: {
+            "category": cd_simple[r]["category"],
+            "tags": [alias_of.get(t, t) for t in cd_simple[r]["tags"]],
+        }
+        for r in real_ids
+    }
+
+    # Stage 0: Preprocess — runs on the RAW pre-translation input (usually Korean).
+    # Lightly normalizes the command (makes a channel-less notification explicit,
+    # turns a vague time-of-day like "저녁에" into a concrete "오후 6시부터 9시까지"
+    # range) or REJECTS inputs that can't be automated as-is:
+    #   - multiple_scenarios:  ≥2 independent trigger→action scenarios in one command
+    #   - ambiguous_condition: a threshold-less magnitude condition ("더우면" …)
+    # Everything else is kept verbatim. Skip with JOI_SKIP_PREPROCESS=1 (tests).
+    if os.environ.get("JOI_SKIP_PREPROCESS") == "1":
+        log_buf.append("➡️ preprocess SKIPPED (JOI_SKIP_PREPROCESS=1)")
+    else:
+        pre_raw = infer("preprocess", f"[Command]\n{sentence}", max_tokens=256).strip()
+        _err_m = re.search(r'<error\s+code="([^"]+)"\s*>(.*?)</error>', pre_raw, re.DOTALL)
+        if _err_m and _err_m.group(1).strip() in ("multiple_scenarios", "ambiguous_condition"):
+            raise JoiGenerationError(
+                _err_m.group(2).strip() or "Command cannot be automated as-is.",
+                "\n".join(log_buf),
+                error_code=_err_m.group(1).strip(),
+            )
+        _out_m = re.search(r'<out>(.*?)</out>', pre_raw, re.DOTALL)
+        if _out_m and _out_m.group(1).strip():
+            sentence = _out_m.group(1).strip()
+
+    # `original_sentence` snapshots the natural-language (preprocessed) command
+    # BEFORE device grounding, so arg_resolve can still author human-facing text
+    # (Speaker/Toast) from the real wording — not from the dN handles. It also
+    # feeds downstream stages that emit text in the user's language.
+    original_sentence = sentence
+
+    # Stage 0.5: Device grounding — resolve an explicit SPECIFIC-device reference
+    # (one named by its nickname) to that device's dN alias, BEFORE translation.
+    # This (a) stops MT from mangling a device name (e.g. "…스위치 6구 1" → "…6-way
+    # 1" → a phantom quantity that becomes all(#Light)), and (b) lets device_match
+    # pin the exact device instead of firing the whole category. Generic
+    # type/location/brand words are deliberately left alone by the prompt.
+    # Python guard: every dN the model emits must be a REAL alias — otherwise the
+    # whole grounding is discarded so no hallucinated handle reaches translation.
+    # Skip via JOI_SKIP_GROUNDING=1.
+    if os.environ.get("JOI_SKIP_GROUNDING") == "1":
+        log_buf.append("➡️ device_grounding SKIPPED (JOI_SKIP_GROUNDING=1)")
+    else:
+        names_table = "\n".join(
+            f"{a} = {connected_devices.get(real_of[a], {}).get('nickname', '')}"
+            for a in cd_aliased
+        )
+        g_raw = infer(
+            "device_grounding",
+            f"[Device Names]\n{names_table}\n\n[Command]\n{sentence}",
+            max_tokens=256,
+        ).strip()
+        # Error: the command singled out a SPECIFIC device by name, but no
+        # connected device matches it → fail fast with DEVICE_NOT_FOUND instead of
+        # letting device_match force-pin some unrelated device.
+        _g_err = re.search(r'<error\s+code="([^"]+)"\s*>(.*?)</error>', g_raw, re.DOTALL)
+        if _g_err and _g_err.group(1).strip() == "device_not_found":
+            raise JoiGenerationError(
+                _g_err.group(2).strip() or "Named device is not connected.",
+                "\n".join(log_buf),
+                error_code="device_not_found",
+            )
+        _g_out = re.search(r'<out>(.*?)</out>', g_raw, re.DOTALL)
+        if _g_out and _g_out.group(1).strip():
+            grounded = _g_out.group(1).strip()
+            unknown = [t for t in re.findall(r'(?<![A-Za-z0-9])d\d+\b', grounded)
+                       if t not in real_of]
+            if unknown:
+                log_buf.append(
+                    f"⚠️ device_grounding emitted unknown handles {unknown} — grounding discarded")
+            elif grounded != sentence:
+                log_buf.append(f"🔗 device_grounding: {sentence!r} → {grounded!r}")
+                sentence = grounded
+
+    # Stage 1: Translation to English when needed.
+    # Skip entirely when JOI_SKIP_TRANSLATION=1 to test the pipeline on raw Hangul.
+    if os.environ.get("JOI_SKIP_TRANSLATION") == "1":
+        log_buf.append("\u27a1\ufe0f translation SKIPPED (JOI_SKIP_TRANSLATION=1) \u2014 raw input passed through")
+    elif re.search(r"[\uac00-\ud7a3]", sentence):
+        sentence = infer("translation", sentence)
 
     # ❇️ Stage 1.5: Pre-analysis — caveman intent / capability-action·read / quantifier dump.
     # Command-only input: no [Connected Devices], no [Device Summary]. It does NOT
