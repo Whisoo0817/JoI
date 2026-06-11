@@ -525,26 +525,6 @@ def _iter_top_level_objects(text: str):
     return objs
 
 
-def _sanitize_scenario_name(raw: str, fallback: str = "Scenario") -> str:
-    """Turn the name-stage output into a safe snake_case scenario name: take the
-    `<name>…</name>` body (or the last non-empty line), replace whitespace with
-    `_`, drop anything outside [A-Za-z0-9_], trim stray underscores, cap length.
-    Falls back to `fallback` when nothing usable remains."""
-    if not raw:
-        return fallback
-    raw = raw.replace('`', '')  # drop code-fence backticks the model sometimes adds
-    # Prefer a closed <name>…</name>; tolerate an unclosed <name>… (truncation).
-    m = re.search(r'<name>(.*?)</name>', raw, re.DOTALL) or re.search(r'<name>(.*)', raw, re.DOTALL)
-    if m:
-        text = m.group(1)
-    else:
-        lines = [ln for ln in raw.splitlines() if ln.strip()]
-        text = lines[-1] if lines else ""
-    text = re.sub(r'\s+', '_', text.strip())
-    text = re.sub(r'[^A-Za-z0-9_]', '', text).strip('_')
-    return text[:60].strip('_') or fallback
-
-
 def _parse_dict_from_llm(raw: str) -> dict:
     """Generic LLM-output → dict parser. Strips wrappers, tries strict
     json.loads, falls back to regex-bracketed extraction. Returns empty dict
@@ -1615,18 +1595,6 @@ def generate_joi_code_ir(
             error_code="missing_lowering_prompt",
         )
 
-    # Final stage: name the scenario from its Timeline IR — a short snake_case
-    # English summary for the joi `name` field (e.g. wait_10min__then_set_AC_cool).
-    # Cheap, IR-only; skip via JOI_SKIP_NAME=1. Failures fall back to "Scenario".
-    scenario_name = "Scenario"
-    if os.environ.get("JOI_SKIP_NAME") != "1":
-        try:
-            _name_raw = infer("name_summary", f"[Timeline IR]\n{ir_json_str}", max_tokens=128)
-            scenario_name = _sanitize_scenario_name(_name_raw)
-            log_buf.append(f"🏷️ scenario name: {scenario_name}")
-        except Exception as _e:
-            log_buf.append(f"⚠️ name_summary failed ({_e}) — defaulting to 'Scenario'")
-
     joi_input = (
         f"[Command]\n{sentence}\n\n"
         f"[Timeline IR]\n{ir_json_str}\n\n"
@@ -1648,12 +1616,12 @@ def generate_joi_code_ir(
                 joi_json["script"] = _strip_selector_extra_parens(joi_json["script"])
                 joi_json["script"] = _apply_service_prefix(joi_json["script"])
                 joi_json["script"] = _normalize_script_newlines(joi_json["script"])
-            joi_json["name"] = scenario_name
+            joi_json.setdefault("name", "Scenario")  # overwritten by naming stage below
             joi_json = {"name": joi_json.pop("name"), **joi_json}
         except (json.JSONDecodeError, TypeError):
             body = _apply_service_prefix(_strip_selector_extra_parens(script))
             joi_json = {
-                "name": scenario_name,
+                "name": "Scenario",
                 "cron": "",
                 "period": 0,
                 "script": _normalize_script_newlines(body),
@@ -1831,19 +1799,69 @@ def generate_joi_code_ir(
                 for rec in v_result.attempts
             ],
         }
+        code_plan = ""
     else:
         raw = infer(prompt_key, joi_input, system=system_prompt)
         joi_json = _finalize(raw)
+        code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
         verifier_trace = {"enabled": False}
 
     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
-    code_pretty = re.sub(
-        r'("script"\s*:\s*")(.*?)(")',
-        lambda m: m.group(1) + m.group(2).replace('\\n', '\n') + m.group(3),
-        joi_code_raw,
-        count=1,
-        flags=re.DOTALL,
-    )
+
+    def _unescape_script(code_json: str) -> str:
+        return re.sub(
+            r'("script"\s*:\s*")(.*?)(")',
+            lambda m: m.group(1) + m.group(2).replace('\\n', '\n') + m.group(3),
+            code_json, count=1, flags=re.DOTALL,
+        )
+    code_pretty = _unescape_script(joi_code_raw)
+
+    # ── Final naming (main-branch flow): re-translate the generated code back to
+    # natural language, then derive the scenario `name` in the USER's language.
+    #   Code → English NL (re_translate) → [Korean input] Korean NL
+    #   (re_translate_kor) → short label (scenario_name).
+    # The label is the joi `name`; spaces are turned into `_` (hub disallows them)
+    # while Korean characters are preserved. Skip all of this with JOI_SKIP_NAME=1.
+    translated_sentence = ""
+    translated_sentence_kor = ""
+    if os.environ.get("JOI_SKIP_NAME") != "1":
+        is_korean = bool(re.search(r"[가-힣]", original_sentence))
+        try:
+            _eng_plan = f"\n\n[Code Plan]\n{code_plan}" if code_plan else ""
+            _re_in = (
+                f"[Code]\n{joi_code_raw}{_eng_plan}\n\n"
+                f"[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+            )
+            translated_sentence = infer("re_translate", _re_in).strip()
+            log_buf.append(f"📝 re_translate (EN): {translated_sentence}")
+        except Exception as _e:
+            log_buf.append(f"⚠️ re_translate failed ({_e})")
+        if is_korean and translated_sentence:
+            try:
+                translated_sentence_kor = infer("re_translate_kor", translated_sentence).strip()
+                log_buf.append(f"📝 re_translate (KO): {translated_sentence_kor}")
+            except Exception as _e:
+                log_buf.append(f"⚠️ re_translate_kor failed ({_e})")
+        scenario_name = ""
+        try:
+            _name_in = translated_sentence_kor if is_korean else (translated_sentence or original_sentence)
+            if _name_in:
+                scenario_name = infer("scenario_name", _name_in).strip()
+        except Exception as _e:
+            log_buf.append(f"⚠️ scenario_name failed ({_e})")
+        if not scenario_name:  # fallback: snake_case the English re-translation
+            scenario_name = re.sub(r'[^\w\s]', '', (translated_sentence or "").strip())
+        # spaces → `_`; keep unicode word chars (Korean survives), drop punctuation.
+        scenario_name = re.sub(r'\s+', '_', scenario_name.strip())
+        scenario_name = re.sub(r'[^\w]', '', scenario_name).strip('_') or "Scenario"
+        log_buf.append(f"🏷️ scenario name: {scenario_name}")
+        try:  # inject name into the final code dict and re-serialize
+            _cj = json.loads(joi_code_raw)
+            _cj = {"name": scenario_name, **{k: v for k, v in _cj.items() if k != "name"}}
+            joi_code_raw = json.dumps(_cj, indent=2, ensure_ascii=False)
+            code_pretty = _unescape_script(joi_code_raw)
+        except (json.JSONDecodeError, TypeError):
+            pass
 
     elapsed = time.perf_counter() - start
 
@@ -1857,6 +1875,7 @@ def generate_joi_code_ir(
         "verifier_trace": verifier_trace,
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
+            "translated_sentence": translated_sentence_kor or translated_sentence,
             "logs": "\n".join(log_buf),
         },
     }
