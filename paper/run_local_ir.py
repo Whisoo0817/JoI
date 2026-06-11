@@ -925,17 +925,18 @@ def generate_joi_code_ir(
     real_ids = list(cd_simple.keys())
     alias_of = {real: f"d{i+1}" for i, real in enumerate(real_ids)}
     real_of = {a: r for r, a in alias_of.items()}
-    # Alias device-id literals that appear INSIDE tags too (a device's own id, or
-    # a cross-reference to another device's id) → the SAME dN. So every device
-    # reference the LLM ever sees — dict key, command handle (from grounding), or
-    # id-in-tags — is one consistent dN. This lets device_match pin a specific
-    # device by simply putting its handle in `sel` (the handle is now also that
-    # device's own tag); the selector then narrows to exactly that device, and
-    # `_restore_alias_in_selector` maps the dN tag back to the real id.
+    # Device grounding (nickname → dN handle) is DISABLED by default: real
+    # deployment payloads don't carry nicknames, so there is nothing to ground.
+    # Enable with JOI_DEVICE_GROUNDING=1. When on, we also alias device-id
+    # literals that appear INSIDE tags to the SAME dN, so device_match can pin a
+    # specific device by putting its handle in `sel` (the handle is then also that
+    # device's own tag). When off, cd_aliased is exactly as before (raw id-in-tags).
+    _grounding_on = os.environ.get("JOI_DEVICE_GROUNDING") == "1"
     cd_aliased = {
         alias_of[r]: {
             "category": cd_simple[r]["category"],
-            "tags": [alias_of.get(t, t) for t in cd_simple[r]["tags"]],
+            "tags": ([alias_of.get(t, t) for t in cd_simple[r]["tags"]]
+                     if _grounding_on else list(cd_simple[r]["tags"])),
         }
         for r in real_ids
     }
@@ -976,9 +977,10 @@ def generate_joi_code_ir(
     # type/location/brand words are deliberately left alone by the prompt.
     # Python guard: every dN the model emits must be a REAL alias — otherwise the
     # whole grounding is discarded so no hallucinated handle reaches translation.
-    # Skip via JOI_SKIP_GROUNDING=1.
-    if os.environ.get("JOI_SKIP_GROUNDING") == "1":
-        log_buf.append("➡️ device_grounding SKIPPED (JOI_SKIP_GROUNDING=1)")
+    # DISABLED by default (deployment payloads have no nicknames); enable with
+    # JOI_DEVICE_GROUNDING=1. JOI_SKIP_GROUNDING=1 also forces it off.
+    if not _grounding_on or os.environ.get("JOI_SKIP_GROUNDING") == "1":
+        log_buf.append("➡️ device_grounding DISABLED (set JOI_DEVICE_GROUNDING=1 to enable)")
     else:
         names_table = "\n".join(
             f"{a} = {connected_devices.get(real_of[a], {}).get('nickname', '')}"

@@ -9,6 +9,10 @@ You name a smart-home automation scenario. You see its **Timeline IR** (the stru
   - condition/wait → `when_<cond>__…`, `wait_<dur>_<cond>__…`
   - edge trigger inside a cycle (button press, sensor turns true) → `whenever_<event>__…`
   - no trigger (one-shot) → just the action: `turn_on_AC`, `turn_off_all_lights`
+- **Name the action from the IR `target`'s category — do NOT guess "lights".** Map the category before the `.`:
+  - `AirConditioner.*` → `AC`, `Plug`/`Switch.*` on plugs → `plugs`, `Light.*` → `lights`, `Speaker.Speak` → `announce`/`speak`, `ToastPublisher.*` → `notify`, `Camera.*` → `camera`, `WindowCovering.*` → `close`/`open`, `Humidifier`/`Dehumidifier` → as named.
+  - **Bare `Switch.On` / `Switch.Off` with no device class in the target** → use `turn_on` / `turn_off` WITHOUT inventing a device type. Never default to "lights" unless the target is actually a `Light`.
+- **Times: keep the exact clock value, minutes included.** A cron `18 18 * * *` is **18:18** → `at_1818_…` (NOT `at_1800`). `8 11 * * *` → `at_1108`. Read both minute and hour fields.
 - Keep it **concise**: ~2–7 word-parts, under ~50 characters. Abbreviate naturally (`10min`, `5pm`, `AC`, `temp`). Lowercase except well-known acronyms (`AC`, `TV`).
 - Only `[A-Za-z0-9_]`. No quotes, punctuation, or device handles/ids.
 
