@@ -71,7 +71,7 @@ def _code_item(raw_code: Any) -> Optional[JoiCodeItem]:
             name=str(data.get("name", "Scenario")),
             cron=str(data.get("cron", "")),
             period=int(data.get("period", -1)) if str(data.get("period", "")).lstrip("-").isdigit() else -1,
-            script=str(data.get("script", "")),
+            code=str(data.get("script", "")),
         )
     return None
 
@@ -81,7 +81,8 @@ def _success_response(result: Dict[str, Any]) -> JoiLLMResponse:
     return JoiLLMResponse(
         success=True,
         error_code=JoiErrorCode.SUCCESS,
-        code=_code_item(result.get("code")),
+        # Emit as a list to match the joi-agent proxy schema (Union[List, str]).
+        code=([item] if (item := _code_item(result.get("code"))) is not None else None),
         log=JoiLog(**{k: log_dict[k] for k in ("response_time", "translated_sentence", "logs") if k in log_dict})
             if isinstance(log_dict, dict) else None,
     )
@@ -111,6 +112,20 @@ def _classify_exception(exc: Exception) -> int:
 
 @app.post("/generate_joi_code", response_model=JoiLLMResponse)
 async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
+    # 디버그: 실제로 받은 connected_devices를 파일로 덤프해 둔다. 서버 재시작
+    # 사이에도 마지막 요청을 확인할 수 있게 항상 같은 경로에 덮어쓴다.
+    try:
+        _dbg = {
+            "sentence": request.sentence,
+            "current_time": request.current_time,
+            "connected_devices": request.connected_devices,
+        }
+        with open("last_connected_devices.json", "w", encoding="utf-8") as _f:
+            json.dump(_dbg, _f, ensure_ascii=False, indent=2)
+        print(f"[app] /generate_joi_code  devices={len(request.connected_devices)}  "
+              f"sentence={request.sentence!r}  -> last_connected_devices.json")
+    except Exception as _e:
+        print(f"[app] connected_devices dump failed: {_e}")
     try:
         result = generate_joi_code(
             sentence=request.sentence,

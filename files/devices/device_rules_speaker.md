@@ -75,6 +75,8 @@ Output:
 
 `Speak.Text`는 사용자에게 들리는 음성이다. 한글 입력일 때는 **한글 존댓말 평서문**("~합니다" / "~하세요")으로, `[User Command (original, verbatim)]`의 표현·시각·대상을 살려 자연스러운 안내문 한 문장으로 작문한다. 명령을 그대로 복붙하지 말 것. 따옴표 인용 리터럴은 그대로 사용.
 
+**예약된 시각에 울리는 안내**는 그 알림이 **지금 그 순간 일어나는 일**이다 → `"현재 시각 X시 Y분, …합니다"`처럼 **현재 시제**로 말한다. 일정 자체를 읽는 투(`"매일 …시에 …합니다"`, `"…시에 …할 예정입니다"`)는 ❌ — 트리거 시점엔 이미 그 시각이므로 "매일/언제부터" 같은 스케줄 서술을 넣지 않는다.
+
 `$Var` 임베드 규칙(공통):
 - **센서/프로바이더 단일 값** (`$Weather`, `$Temp`, `$TodayMenu` 등): 명령 표현에서 끌어온 짧은 한글 lead-in으로 감싼다. 예: "오늘 날씨 말해줘" → `Speak.Text = "오늘의 날씨는 $Weather 입니다"`. "Hi!" 같은 군더더기 금지.
 - **이미 완성 문장인 함수 반환** (`$ChatWithAI` 등): 그대로 전달. `"$ChatWithAI"`.
@@ -88,6 +90,13 @@ Output:
 [Selected Services] ["Speaker.Speak"]
 Output:
 {"Speaker.Speak": {"Text": "현재 시각 오후 2시. 회의를 시작합니다."}}
+```
+```
+[Command] Notify that it's meeting time at 11:30 AM.
+[User Command (original, verbatim)] 오전 11시 30분에 회의시간이라고 알려줘
+[Selected Services] ["Speaker.Speak"]
+Output:
+{"Speaker.Speak": {"Text": "현재 시각 오전 11시 30분, 회의 시간입니다."}}
 ```
 ```
 [Command] Tell me to ventilate through the speaker.

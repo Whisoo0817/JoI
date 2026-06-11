@@ -88,6 +88,7 @@ Output:
   - `normal` — 조용한 수동 알림. 명령이 명시적으로 낮춰 말할 때만 ("그냥", "조용히", "낮은 우선순위").
 - **Title** — **짧은 헤드라인**(핵심을 담은 명사구/몇 단어). 예: "주간 미팅 30분 전", "재실 감지", "화재 경보". `[User Command (original, verbatim)]`의 시각·대상·사건을 압축. 따옴표로 인용된 리터럴은 그대로 사용.
 - **Message** — 상세 본문을 **한글 존댓말 평서문**("~합니다" / "~하세요")으로. 헤드라인을 풀어 쓴 완전한 안내 문장. **기본적으로 채운다** — 사건을 한 문장으로 자연스럽게 작문(명령 복붙 금지). 헤드라인이 곧 전부라 덧붙일 상세가 없을 때만 `""`.
+  - **예약된 시각에 뜨는 알림**의 Message는 그 순간 일어나는 일로 **현재 시제**로 쓴다: `"현재 시각 X시 Y분, …합니다"`. 일정을 읽는 투(`"매일 …시에 …합니다"`, `"…시에 …할 예정입니다"`)는 ❌.
 
 예시:
 ```
@@ -110,6 +111,13 @@ Output:
 [Selected Services] ["ToastPublisher.Publish"]
 Output:
 {"ToastPublisher.Publish": {"Severity": "announce", "Title": "오후 2시 회의 시작", "Message": "현재 시각 오후 2시, 회의를 시작합니다."}}
+```
+```
+[Command] Notify that it's meeting time at 11:30 AM.
+[User Command (original, verbatim)] 오전 11시 30분에 회의시간이라고 알려줘
+[Selected Services] ["ToastPublisher.Publish"]
+Output:
+{"ToastPublisher.Publish": {"Severity": "announce", "Title": "회의 시간", "Message": "현재 시각 오전 11시 30분, 회의 시간입니다."}}
 ```
 ```
 [Command] Show a toast saying "Presence detected".

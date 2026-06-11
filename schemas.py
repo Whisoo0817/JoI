@@ -92,7 +92,9 @@ class JoiCodeItem(BaseModel):
     name: str = "Scenario"
     cron: str = ""
     period: int = -1
-    script: str = ""
+    # Field name is `code` (the scenario body) to match the joi-agent proxy's
+    # JoiCodeItem. The pipeline's raw dict still uses key "script" (see _code_item).
+    code: str = ""
 
 
 class JoiLog(BaseModel):
@@ -109,8 +111,10 @@ class JoiLLMResponse(BaseModel):
     # External callers read `error_code`; `details` is for humans debugging.
     details: str = ""
 
-    # Structured generated code (None on failure). `JoiCodeItem` so callers get
-    # name/cron/period/script as typed fields instead of a raw JSON string.
-    code: Optional[JoiCodeItem] = None
+    # Structured generated code (None on failure). A list of `JoiCodeItem` so
+    # callers get name/cron/period/script as typed fields. Emitted as a list
+    # (not a single object) to match the joi-agent proxy's JoiLLMResponse,
+    # which validates `code` as Union[List[JoiCodeItem], str].
+    code: Optional[Union[List[JoiCodeItem], str]] = None
     command: Optional[str] = None
     log: Optional[JoiLog] = None
