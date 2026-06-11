@@ -65,6 +65,9 @@ D-rules choose the IR SHAPE. Apply IN ORDER. Each `[Command Hints]` cue maps to 
 - Pure periodicity without wall-clock anchor (`every minute`, `every 30 minutes`, `every hour`) → `start_at("now")` and put the cadence in `cycle.period`, NOT in cron.
 - Otherwise → `start_at("now")`.
 
+**Time-of-day → fields 1 (minute) & 2 (hour), 24-hour form.** `at H:MM AM/PM` → `"<MM> <HH> * * *"`. The MINUTE is the FIRST field, the HOUR (converted to 24h) the SECOND. **Copy the minutes EXACTLY from the command — never alter, round, or invent them** (`:18` stays `18`, not `38`/`08`). PM hours add 12 (12 PM = 12, 12 AM = 0).
+- `4:45 PM` → `"45 16 * * *"` · `6:18 PM` → `"18 18 * * *"` · `11:08 AM` → `"8 11 * * *"` · `8 AM` (no minutes) → `"0 8 * * *"` · midnight → `"0 0 * * *"`.
+
 ## D2. Cron 5th field — day-of-week filter (HARD)
 Cron has 5 fields: `minute hour day-of-month month day-of-week`. The 5th field encodes day-of-week.
 
