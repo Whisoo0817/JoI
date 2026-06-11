@@ -525,6 +525,26 @@ def _iter_top_level_objects(text: str):
     return objs
 
 
+def _sanitize_scenario_name(raw: str, fallback: str = "Scenario") -> str:
+    """Turn the name-stage output into a safe snake_case scenario name: take the
+    `<name>…</name>` body (or the last non-empty line), replace whitespace with
+    `_`, drop anything outside [A-Za-z0-9_], trim stray underscores, cap length.
+    Falls back to `fallback` when nothing usable remains."""
+    if not raw:
+        return fallback
+    raw = raw.replace('`', '')  # drop code-fence backticks the model sometimes adds
+    # Prefer a closed <name>…</name>; tolerate an unclosed <name>… (truncation).
+    m = re.search(r'<name>(.*?)</name>', raw, re.DOTALL) or re.search(r'<name>(.*)', raw, re.DOTALL)
+    if m:
+        text = m.group(1)
+    else:
+        lines = [ln for ln in raw.splitlines() if ln.strip()]
+        text = lines[-1] if lines else ""
+    text = re.sub(r'\s+', '_', text.strip())
+    text = re.sub(r'[^A-Za-z0-9_]', '', text).strip('_')
+    return text[:60].strip('_') or fallback
+
+
 def _parse_dict_from_llm(raw: str) -> dict:
     """Generic LLM-output → dict parser. Strips wrappers, tries strict
     json.loads, falls back to regex-bracketed extraction. Returns empty dict
@@ -1593,6 +1613,18 @@ def generate_joi_code_ir(
             error_code="missing_lowering_prompt",
         )
 
+    # Final stage: name the scenario from its Timeline IR — a short snake_case
+    # English summary for the joi `name` field (e.g. wait_10min__then_set_AC_cool).
+    # Cheap, IR-only; skip via JOI_SKIP_NAME=1. Failures fall back to "Scenario".
+    scenario_name = "Scenario"
+    if os.environ.get("JOI_SKIP_NAME") != "1":
+        try:
+            _name_raw = infer("name_summary", f"[Timeline IR]\n{ir_json_str}", max_tokens=128)
+            scenario_name = _sanitize_scenario_name(_name_raw)
+            log_buf.append(f"🏷️ scenario name: {scenario_name}")
+        except Exception as _e:
+            log_buf.append(f"⚠️ name_summary failed ({_e}) — defaulting to 'Scenario'")
+
     joi_input = (
         f"[Command]\n{sentence}\n\n"
         f"[Timeline IR]\n{ir_json_str}\n\n"
@@ -1614,12 +1646,12 @@ def generate_joi_code_ir(
                 joi_json["script"] = _strip_selector_extra_parens(joi_json["script"])
                 joi_json["script"] = _apply_service_prefix(joi_json["script"])
                 joi_json["script"] = _normalize_script_newlines(joi_json["script"])
-            joi_json.setdefault("name", "Scenario")
+            joi_json["name"] = scenario_name
             joi_json = {"name": joi_json.pop("name"), **joi_json}
         except (json.JSONDecodeError, TypeError):
             body = _apply_service_prefix(_strip_selector_extra_parens(script))
             joi_json = {
-                "name": "Scenario",
+                "name": scenario_name,
                 "cron": "",
                 "period": 0,
                 "script": _normalize_script_newlines(body),
