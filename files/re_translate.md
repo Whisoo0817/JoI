@@ -35,6 +35,16 @@ You are a code-to-English translator. Convert JOI automation code into ONE short
 - 3600000 ms = 1 hour
 - 7200000 ms = 2 hours
 
+### hold_ticks / sustained-state counters (SUSTAIN pattern) — DO NOT confuse the threshold with milliseconds
+A `hold_ticks` (or `n`) counter that increments once per tick and fires at `>= N` means the condition must hold for **N ticks**, and each tick is `period` ms. The real duration is `N × period / 1000` seconds — it is NOT `N` milliseconds.
+- e.g., `hold_ticks >= 3000` with `period: 100` → 3000 × 100 / 1000 = **300 seconds = 5 minutes** (NOT "3 seconds", NOT "3000 ms").
+- e.g., `hold_ticks >= 300` with `period: 100` → 30 seconds. `>= 6000` with `period: 100` → 10 minutes.
+- The `else: hold_ticks = 0` (or `n = 0`) branch is a RESET only — do NOT translate it as an action.
+- Phrase as "if ~ stays/holds for D, do ~" (e.g., "if no motion for 5 minutes, turn off the lights").
+
+### [Duration Hints] — authoritative, use verbatim
+If the input contains a `[Duration Hints]` block, those durations are **already computed in Python**. Use them EXACTLY as given for the matching threshold; do NOT recompute or second-guess the arithmetic.
+
 ### delay
 - `delay(N UNIT)` between two actions → "do A, then after N do B"
 

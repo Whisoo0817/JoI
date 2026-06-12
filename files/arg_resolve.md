@@ -258,6 +258,27 @@ Output:
 }
 ```
 
+## Example 5 — Speaking the current time (Clock value reads woven into the text)
+When the command announces the **current time** and `Clock.Hour` / `Clock.Minute` appear in `[Readable Values]`, weave BOTH into the spoken text via their `$<Method>` refs (`$Hour`, `$Minute`) — in the user's language. Never emit a static text that drops the actual numbers. The readable values are NOT output keys — only `Speaker.Speak` is.
+```
+[Command]
+매시간 정각마다 스피커로 시간을 알려줘
+[Selected Services]
+["Speaker.Speak"]
+[Service Details]
+Speaker.Speak - Speak the given text.
+  args:
+    - Text: STRING — text to speak
+[Readable Values]
+["Clock.Hour", "Clock.Minute"]
+```
+Output:
+```json
+{
+  "Speaker.Speak": {"Text": "$Hour시 $Minute분 입니다"}
+}
+```
+
 # Final Reminder
 - Output ONLY the JSON dict. Optionally a `<Reasoning>...</Reasoning>` block first.
 - Every selected service appears as a key, exactly as listed in `[Selected Services]`.

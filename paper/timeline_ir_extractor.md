@@ -62,7 +62,8 @@ D-rules choose the IR SHAPE. Apply IN ORDER. Each `[Command Hints]` cue maps to 
 
 ## D1. Anchor (`start_at`)
 - Wall-clock anchor — absolute time-of-day (`at 8 AM`), day-of-week (`Mondays`, `weekends`), date (`on Jan 1`) → `start_at("cron", "<5-field>")`.
-- Pure periodicity without wall-clock anchor (`every minute`, `every 30 minutes`, `every hour`) → `start_at("now")` and put the cadence in `cycle.period`, NOT in cron.
+- Pure periodicity without wall-clock anchor (`every minute`, `every 30 minutes`, `every hour`, `hourly`) → `start_at("now")` and put the cadence in `cycle.period`, NOT in cron. ⚠️ a bare "every hour / hourly" is HOURLY recurrence, NOT a one-time midnight event — do NOT emit `"0 0 * * *"` (that means once a day at midnight). Use `cycle.period="1 HOUR"`.
+- **On-the-hour wall-clock anchor** (`on the hour`, `at the top of every hour`, `every hour on the hour`) → fires at minute :00 of EVERY hour → `start_at("cron", "0 * * * *")` + the body call directly, **NO `cycle`** (cron itself provides the recurrence). ⚠️ this is `"0 * * * *"` — minute=`0`, hour=`*` (every hour at :00). It is NOT `"0 0 * * *"` (minute 0 AND hour 0 = once a day at midnight), and NOT a `cycle.period`. Example: `"every hour on the hour, announce the time"` → `start_at(cron "0 * * * *")` + `call(Speaker.Speak)`.
 - Otherwise → `start_at("now")`.
 
 **Time-of-day → fields 1 (minute) & 2 (hour), 24-hour form.** `at H:MM AM/PM` → `"<MM> <HH> * * *"`. The MINUTE is the FIRST field, the HOUR (converted to 24h) the SECOND. **Copy the minutes EXACTLY from the command — never alter, round, or invent them** (`:18` stays `18`, not `38`/`08`). PM hours add 12 (12 PM = 12, 12 AM = 0).
@@ -286,6 +287,21 @@ Same device attribute compared at two different moments → use `read` for each 
 ]}
 ```
 Contrast with Example 4 (no `thereafter` → D-3 with wait INSIDE cycle).
+
+## Example 5b — speaking the current time (Clock value reads woven into Speak text)
+**Command**: `Every hour on the hour, announce the time through the speaker.`
+**[Services]**: `Clock.Hour (value)`, `Clock.Minute (value)`, `Speaker.Speak (function)`
+**[Resolved Args]**: `Speaker.Speak: {"Text": "$Hour시 $Minute분 입니다"}`
+The resolved Text references `$Hour` and `$Minute`. Each `$<X>` that maps to a `(value)` service `Clock.<X>` in `[Services]` MUST get a `read` op (var name = the method, so the `$<X>` ref resolves) emitted BEFORE the call. (String args cannot inline a device read — bind first.)
+```json
+{"timeline":[
+  {"op":"start_at","anchor":"cron","cron":"0 * * * *"},
+  {"op":"read","var":"Hour","src":"Clock.Hour"},
+  {"op":"read","var":"Minute","src":"Clock.Minute"},
+  {"op":"call","target":"Speaker.Speak","args":{"Text":"$Hour시 $Minute분 입니다"}}
+]}
+```
+(Lowers to `Hour = (#Clock).Hour\nMinute = (#Clock).Minute\n(#Speaker).Speak(Hour + "시 " + Minute + "분 입니다")`.)
 
 ## Example 6 — polling cycle: inner `if` (NOT `wait`)
 **Command**: `Every 5 minutes, check the charger; if it is fully charged, turn it off.`

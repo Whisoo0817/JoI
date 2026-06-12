@@ -32,6 +32,10 @@ if _BASE_DIR not in sys.path:
 
 from config import get_client, get_model_id
 from loader import SERVICE_DATA, PROMPTS, SUB_SKILL_TAGS, get_device_rules_section
+from device_ontology import (
+    build_nickname_index, resolve_nicknames, select_categories_for_command,
+    parse_targets, resolve_targets,
+)
 from parser.validator import validate_joi
 
 from pipeline_helpers import (
@@ -894,8 +898,8 @@ def generate_joi_code_ir(
     # it can prefer Switch.On / Switch.Off for plain power-toggle commands even
     # when the parent device (e.g. Humidifier) also exposes a Set...Mode action.
     primary_categories = sorted(valid_categories)
-
-    device_rules_block = _build_device_selection_rules(primary_categories)
+    # [Device Rules] block is built LATER (after pre_analysis) from the
+    # embedding-narrowed category subset — see the JOI_DEVICE_NARROW block.
 
     # ── ID aliasing: anonymize device ids as d1/d2/... once, share across every
     # LLM stage that sees the device dict (grounding, pre_analysis, service_plan,
@@ -921,6 +925,20 @@ def generate_joi_code_ir(
         for r in real_ids
     }
 
+    # ── Deterministic nickname pinning (replaces the flaky device_grounding
+    # LLM). A command that names a device by its exact nickname is matched to
+    # that device's real id by normalized-substring lookup — no LLM, no
+    # hallucination. The hits feed (a) the category narrower's force-include set
+    # so a pinned device's category is never narrowed away, and (b) future
+    # exact-pin in device_match. Generic words match nothing and fall through.
+    # Gated on JOI_NICKNAME_PIN (default on); set to 0 to disable.
+    nickname_hits = []
+    if os.environ.get("JOI_NICKNAME_PIN", "1") == "1":
+        nickname_hits = resolve_nicknames(sentence, build_nickname_index(connected_devices))
+        if nickname_hits:
+            _hl = ", ".join(f"{alias_of.get(r, r)}({nn})" for r, nn in nickname_hits)
+            log_buf.append(f"📌 nickname pin: {_hl}")
+
     # Stage 0: Preprocess — runs on the RAW pre-translation input (usually Korean).
     # Lightly normalizes the command (makes a channel-less notification explicit,
     # turns a vague time-of-day like "저녁에" into a concrete "오후 6시부터 9시까지"
@@ -928,8 +946,15 @@ def generate_joi_code_ir(
     #   - multiple_scenarios:  ≥2 independent trigger→action scenarios in one command
     #   - ambiguous_condition: a threshold-less magnitude condition ("더우면" …)
     # Everything else is kept verbatim. Skip with JOI_SKIP_PREPROCESS=1 (tests).
-    if os.environ.get("JOI_SKIP_PREPROCESS") == "1":
-        log_buf.append("➡️ preprocess SKIPPED (JOI_SKIP_PREPROCESS=1)")
+    # device-first experiment: preprocess OFF. It was mangling commands (adding
+    # 토스트/스피커 channels to "메일 보내줘", etc.). retrieve/resolve handle the
+    # raw command directly.
+    # device-first is the DEFAULT (unset → on); JOI_DEVICE_FIRST=0 forces legacy.
+    # Computed HERE (before preprocess/translation) so all the skip gates below
+    # agree with it — checking `== "1"` would miss the unset-default case.
+    _device_first = os.environ.get("JOI_DEVICE_FIRST", "1") != "0"
+    if os.environ.get("JOI_SKIP_PREPROCESS") == "1" or _device_first:
+        log_buf.append("➡️ preprocess SKIPPED (device-first / JOI_SKIP_PREPROCESS)")
     else:
         pre_raw = infer("preprocess", f"[Command]\n{sentence}", max_tokens=256).strip()
         _err_m = re.search(r'<error\s+code="([^"]+)"\s*>(.*?)</error>', pre_raw, re.DOTALL)
@@ -997,7 +1022,8 @@ def generate_joi_code_ir(
     # Skip entirely when JOI_SKIP_TRANSLATION=1 to test the pipeline on raw Hangul.
     if os.environ.get("JOI_SKIP_TRANSLATION") == "1":
         log_buf.append("\u27a1\ufe0f translation SKIPPED (JOI_SKIP_TRANSLATION=1) \u2014 raw input passed through")
-    elif re.search(r"[\uac00-\ud7a3]", sentence):
+    elif re.search(r"[\uac00-\ud7a3]", sentence) and not _device_first:
+        # device-first: keep ORIGINAL Korean so nicknames match device.nickname.
         sentence = infer("translation", sentence)
 
     # ❇️ Stage 1.5: Pre-analysis — caveman intent / capability-action·read / quantifier dump.
@@ -1005,14 +1031,33 @@ def generate_joi_code_ir(
     # name categories/services/devices (those rule-sheets leaked example commands and
     # tempted Cat.Method picks); downstream stages own all category/device/service
     # choices. Just the system prompt + the per-command [Command].
-    pre_input = f"[Command]\n{sentence}"
-    # pre_analysis now emits a plain caveman dump (no <Reasoning> wrapper), so no parsing.
-    command_hints = infer("pre_analysis", pre_input, max_tokens=512).strip()
+    # device-first experiment runs WITHOUT pre_analysis — device_retrieve/resolve
+    # read the command directly. Skip the call and use empty hints.
+    if _device_first:
+        command_hints = ""
+    else:
+        pre_input = f"[Command]\n{sentence}"
+        # pre_analysis emits a plain caveman dump (no <Reasoning> wrapper), no parsing.
+        command_hints = infer("pre_analysis", pre_input, max_tokens=512).strip()
 
-    # GT-IR mode: skip the service_plan LLM call and derive selected_services
-    # directly from the GT IR. arg_resolve / enum_resolve also become no-ops
-    # since the GT IR's args/enum-conds are authoritative. extract_ir is
-    # bypassed below — ir is overwritten with the GT IR before lowering.
+    # Device-first (Stage 2 / device_resolve) injects the MATCH dict so
+    # run_precision can skip its own device_match LLM call. None in legacy mode.
+    injected_match_qids = None
+    # Device-first is now the DEFAULT path (retrieve → resolve_targets → resolve →
+    # quantifier → translation → IR → lowering → naming); `_device_first` is
+    # computed above (before preprocess). Set JOI_DEVICE_FIRST=0 for the legacy
+    # embedding-narrow → service_plan → device_match path.
+    # device-first builds its precision_output (selectors/resolved) directly from
+    # device_resolve, so run_precision returns this instead of doing its own LLM.
+    _df_precision = None
+
+    # Three ways to produce `selected_services`:
+    #   (1) GT-IR mode — derive from a ground-truth IR (eval only).
+    #   (2) JOI_DEVICE_FIRST — retrieve candidate device ids (Stage 1) then resolve
+    #       PLAN+MATCH over just those candidates (Stage 2). No embedding, nickname
+    #       and tag targeting unified, narrowing automatic.
+    #   (3) legacy — embedding category-narrow → service_plan, then a separate
+    #       device_match LLM inside run_precision.
     _gt_ir_obj = None
     if _GT_IR_PATH:
         try:
@@ -1025,12 +1070,158 @@ def generate_joi_code_ir(
             )
         selected_services = _services_from_ir(_gt_ir_obj)
         log_buf.append(f"🧪 GT-IR mode: derived selected_services = {selected_services}")
-        plan_output = json.dumps(selected_services)
+
+    elif _device_first:
+        # ── EXPERIMENT (stops after device_resolve; arg/enum/IR/lowering skipped). ──
+        # Stage 1 device_retrieve → semi-structured target groups (role + by-criterion).
+        # Python resolve_targets applies each criterion → matched ids + categories
+        # (free, exact narrowing). Stage 2 device_resolve sees only those targets +
+        # their category summaries → final selectors `<quant>(#Tag).Cat.Method`.
+        cd_named = {
+            a: {"category": cd_aliased[a]["category"],
+                "tags": cd_aliased[a]["tags"],
+                "nickname": connected_devices.get(real_of[a], {}).get("nickname", "")}
+            for a in cd_aliased
+        }
+        retrieve_user = (
+            f"[Connected Devices]\n{json.dumps(cd_named, indent=2, ensure_ascii=False)}\n\n"
+            f"[Command]\n{sentence}"
+        )
+        retr_raw = infer("device_retrieve", retrieve_user, max_tokens=512).strip()
+        # Missing device → retrieve emits a single `NONE:` line. Fail fast.
+        _none = re.search(r'(?im)^\s*NONE:\s*(.+?)\s*$', retr_raw)
+        if _none:
+            log_buf.append(f"⛔ device_retrieve NONE: {_none.group(1)}")
+            raise JoiGenerationError(
+                f"Cannot fulfill command — {_none.group(1)}",
+                "\n".join(log_buf), error_code="device_not_connected",
+            )
+        _tm = re.search(r'<targets>(.*?)</targets>', retr_raw, re.DOTALL)
+        targets_spec = (_tm.group(1).strip() if _tm else retr_raw).strip()
+
+        # Deterministic: apply each target's by-criterion over cd_named (dN ids,
+        # incl. nickname — cd_aliased has no nickname field so label/nickname
+        # matching must use cd_named).
+        groups = resolve_targets(parse_targets(targets_spec), cd_named)
+        if not groups:
+            raise JoiGenerationError(
+                "No target devices identified.",
+                "\n".join(log_buf), error_code="device_not_connected",
+            )
+        # ANY group that matched zero devices means the command named a device kind
+        # that isn't connected (e.g. retrieve emitted label:WindowCovering for 커튼
+        # but none exists). That target can't be fulfilled → fail, don't let
+        # device_resolve hallucinate a call on an empty selector.
+        empty = [f"{g['by_kind']}:{g['by_val']}" for g in groups if not g["ids"]]
+        if empty:
+            raise JoiGenerationError(
+                f"No connected device for: {', '.join(empty)}",
+                "\n".join(log_buf), error_code="device_not_connected",
+            )
+        # [Targets] block for device_resolve: role + criterion + match count + (nickname) tag.
+        target_lines = []
+        for g in groups:
+            crit = f"{g['by_kind']}:{g['by_val']}"
+            tagsfx = f" | tags={g['ids']}" if g["by_kind"] == "nickname" else ""
+            target_lines.append(
+                f"- role={g['role']} | {crit} | {len(g['ids'])} devices matched{tagsfx}")
+        resolve_cats = sorted({c for g in groups for c in g["categories"]})
+        resolve_user = (
+            f"[Command]\n{sentence}\n\n"
+            f"[Targets]\n" + "\n".join(target_lines) + "\n\n"
+            f"[Device Summary]\n{_build_device_selection_rules(resolve_cats)}"
+        )
+        resolve_raw = infer("device_resolve", resolve_user,
+                            system=PROMPTS.get("device_resolve", "")).strip()
+        _err = re.search(r'(?im)^\s*ERROR:\s*(.+?)\s*$', resolve_raw)
+        if _err:
+            log_buf.append(f"⛔ device_resolve ERROR: {_err.group(1)}")
+            raise JoiGenerationError(
+                f"Cannot fulfill command — {_err.group(1)}",
+                "\n".join(log_buf), error_code="device_not_connected",
+            )
+        result_block = resolve_raw.split("RESULT:", 1)[1].strip() if "RESULT:" in resolve_raw else ""
+        raw_selectors = [ln.strip() for ln in result_block.splitlines()
+                         if ln.strip() and "(" in ln and ")" in ln]
+
+        # ── Deterministic quantifier: resolve emits NO prefix; we add all/any/one
+        # from each group's scope + role + match count. Map a selector's first
+        # #Tag back to the group that owns it.
+        from device_ontology import quantifier_for as _qf, _CHANNEL_CATEGORY as _CHCAT
+        tag_to_group = {}
+        for g in groups:
+            owned = []
+            if g["by_kind"] == "label":
+                owned = [g["by_val"]]
+            elif g["by_kind"] == "nickname":
+                owned = list(g["ids"])  # the dN handle(s)
+            elif g["by_kind"] == "channel":
+                owned = [_CHCAT.get(c.strip().lower())
+                         for c in g["by_val"].split(",") if c.strip()]
+            for t in owned:
+                if t:
+                    tag_to_group[t] = g
+        selectors = []
+        for s in raw_selectors:
+            s = re.sub(r'^\s*(all|any|one)\s*\(', '(', s)  # drop any LLM-emitted prefix
+            first_tag = re.search(r'#([A-Za-z0-9_\-]+)', s)
+            g = tag_to_group.get(first_tag.group(1)) if first_tag else None
+            q = _qf(g["scope"], g["role"], len(g["ids"])) if g else ""
+            full = (q + s) if q else s
+            selectors.append((full, g))
+
+        # ── Adapt device-first selectors → the IR pipeline's contract ──
+        # Split `<quant>(#tags).Cat.Method` into selected_services (Cat.Method, in
+        # order) + precision_output ({selectors:{svc:[<quant>(#tags)]}, resolved}).
+        # Then translate the command to English (IR/lowering prompts are English;
+        # original_sentence stays Korean for arg_resolve's human-facing text), and
+        # fall through to the shared arg_resolve → IR → lowering → naming path.
+        selected_services = []
+        df_selectors, df_resolved = {}, {}
+        _sel_re = re.compile(r'^\s*(all|any)?\s*(\(#[^)]*\))\.([A-Za-z]\w*\.[A-Za-z]\w*)')
+        for full, g in selectors:
+            m = _sel_re.match(full)
+            if not m:
+                continue
+            quant, sel_tags, svc = (m.group(1) or ""), m.group(2), m.group(3)
+            selected_services.append(svc)
+            df_selectors.setdefault(svc, []).append(f"{quant}{sel_tags}")
+            if g:
+                df_resolved[svc] = {"q": (quant or "one"),
+                                    "devices": [real_of.get(a, a) for a in g["ids"]]}
+        if not selected_services:
+            raise JoiGenerationError(
+                "device_resolve produced no usable calls.",
+                "\n".join(log_buf), error_code="reasoning_failed",
+            )
+        _df_precision = {"selectors": df_selectors, "resolved": df_resolved,
+                         "reasoning": "[device-first] selectors from device_resolve"}
+        # Korean → English for the downstream IR/lowering stages. original_sentence
+        # (Korean) is already captured; keep it for arg_resolve language routing.
+        if re.search(r"[가-힣]", sentence):
+            sentence = infer("translation", sentence)
+        # (fall through — no early return; shared pipeline below builds the JoI code)
+
     else:
+        # ── Embedding category narrowing → service_plan (legacy 2-stage) ──
+        # Narrow [Device Rules] to the categories most relevant to the command so
+        # service_plan sees ~3 blocks not ~27 (-19k tokens). Gate A still validates
+        # against the FULL connected set (valid_categories). Falls back to the full
+        # set when the embedding server is down. Gated JOI_DEVICE_NARROW (default on).
+        plan_categories = primary_categories
+        if os.environ.get("JOI_DEVICE_NARROW", "1") == "1":
+            _pinned_cats = [c for r, _nn in nickname_hits
+                            for c in cd_simple.get(r, {}).get("category", [])]
+            _narrow_query = (sentence if os.environ.get("JOI_NARROW_NO_HINTS") == "1"
+                             else f"{sentence}\n{command_hints}")
+            plan_categories, _narrow_info = select_categories_for_command(
+                _narrow_query, primary_categories,
+                pinned_categories=_pinned_cats,
+                top_k=int(os.environ.get("JOI_NARROW_TOPK", "10")),
+            )
+            log_buf.append(f"🔍 {_narrow_info}")
+        device_rules_block = _build_device_selection_rules(plan_categories)
         plan_sys_prompt = PROMPTS.get("service_plan", "")
-        # Order: static [Connected Devices] + [Device Rules] FIRST (right after the
-        # system prompt) for prefix-cache reuse; per-command [Command] / [Command
-        # Hints] go last so only the small dynamic tail is re-prefilled.
         plan_input = (
             f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
             f"[Device Rules]\n{device_rules_block}\n\n"
@@ -1038,12 +1229,6 @@ def generate_joi_code_ir(
             f"[Command Hints]\n{command_hints}"
         )
         plan_output = infer("service_plan", plan_input, system=plan_sys_prompt)
-
-        # Gate A (primary): service_plan only sees the connected categories in
-        # [Device Rules]. When the command needs a capability NO listed category
-        # provides (e.g. "close the curtain" with no covering device), it cannot
-        # pick a valid token — so instead of improvising onto an unrelated device,
-        # it declares `MISSING: <capability>`. Surface that as an explicit error.
         _missing = re.search(r'(?im)^\s*MISSING:\s*(.+?)\s*$', plan_output)
         if _missing:
             log_buf.append(f"⛔ service_plan declared MISSING: {_missing.group(1)}")
@@ -1052,20 +1237,9 @@ def generate_joi_code_ir(
                 "\n".join(log_buf),
                 error_code="device_not_connected",
             )
-
-        # Parse + dedup + filter to known categories in one step.
-        # NOTE: inject_value_service(selected_services) removed 2026-05-11.
-        # service_plan now decides companion-read inclusion semantically (see Rule 10
-        # in files/service_plan.md). Absolute setters get setter-only; relative
-        # adjustments get read + setter. No Python-level auto-injection.
         selected_services, unconnected_prefixes = _parse_list_of_strings_from_llm(
             plan_output, allowed_prefixes=valid_categories
         )
-        # Gate A (safety net): if a token's prefix is an unconnected category yet
-        # service_plan did NOT declare MISSING (it should have), still fail rather
-        # than drop-and-mis-map. Hallucinated *methods* on connected categories are
-        # filtered silently inside the parser, so this only fires on real category
-        # absence.
         if unconnected_prefixes:
             missing = ", ".join(sorted(set(unconnected_prefixes)))
             raise JoiGenerationError(
@@ -1101,6 +1275,18 @@ def generate_joi_code_ir(
     # still needs to appear downstream (IR `call` op), but its args are just `{}`.
     arg_services = [s for s in selected_services
                     if _is_function_service(s) and _has_arguments(s)]
+    # Value-reads in scope (e.g. Clock.Hour, Clock.Minute) are NOT arg-taking
+    # functions, so they're excluded from arg_services — but a user-facing text arg
+    # (Speaker.Speak Text, ToastPublisher Message) may need to weave their live
+    # values in via `$<Method>`. Surface them to arg_resolve as readable values so
+    # it can reference them without inventing names.
+    value_reads_in_scope = [s for s in selected_services if not _is_function_service(s)]
+    # Value-reads in scope (e.g. Clock.Hour, Clock.Minute) are NOT arg-taking
+    # functions, so they're excluded from arg_services — but a user-facing text arg
+    # (Speaker.Speak Text, ToastPublisher Message) may need to weave their live
+    # values in via `$<Method>`. Surface them to arg_resolve as readable values so
+    # it can reference them without inventing names.
+    value_reads_in_scope = [s for s in selected_services if not _is_function_service(s)]
 
     # ── Resolve branch: enum_cond_check → enum_resolve → arg_resolve (sequential within branch) ──
     def run_resolve_branch():
@@ -1166,11 +1352,18 @@ def generate_joi_code_ir(
                 f"[User Command (original, verbatim)]\n{original_sentence}\n\n"
                 if is_ko else ""
             )
+            readable_block = (
+                "\n\n[Readable Values] (in scope — reference inside a text arg via "
+                "`$<Method>`, e.g. `$Hour`; do NOT add them as separate output keys)\n"
+                f"{json.dumps(value_reads_in_scope, ensure_ascii=False)}"
+                if value_reads_in_scope else ""
+            )
             arg_resolve_input = (
                 f"[Command]\n{sentence}\n\n"
                 + orig_block
                 + f"[Selected Services]\n{json.dumps(arg_services, ensure_ascii=False)}\n\n"
                 f"[Service Details]\n{_build_arg_resolve_input(arg_services, local_service_details)}"
+                + readable_block
                 + (f"\n\n[Device-specific Arg Hints]\n{arg_hints}" if arg_hints else "")
             )
             arg_resolve_raw = infer(
@@ -1191,6 +1384,10 @@ def generate_joi_code_ir(
         #   4. Python validator: apply each selector to cd_aliased, check it matches exactly target ids.
         #   5. If mismatch, send mismatch info as follow-up user msg; retry up to 2 times.
         #   6. If still mismatch, fall back to deterministic minimum-tag-set selector.
+        # device-first already produced the selectors via device_resolve — use them
+        # directly and skip the device_match LLM call + selector synthesis.
+        if _df_precision is not None:
+            return _df_precision
         if not selected_services:
             return {"selectors": {}, "resolved": {}, "reasoning": ""}
 
@@ -1211,14 +1408,20 @@ def generate_joi_code_ir(
         # so `system + devices` forms a stable token prefix that vLLM prefix
         # caching can reuse across commands; the per-command dynamic sections go
         # last so only the small tail is re-prefilled.
-        step1_user = (
-            f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
-            f"[Command]\n{sentence}\n\n"
-            f"[Command Hints]\n{command_hints}\n\n"
-            f"[Selected Services]\n{json.dumps(selected_services, ensure_ascii=False)}"
-        )
-        step1_raw = infer("mapping_device_match", step1_user).strip()
-        match_qids, step1_reasoning = _parse_device_match_qids(step1_raw)
+        # Device-first mode injects MATCH from Stage 2 (device_resolve) — skip the
+        # dedicated device_match LLM call and reuse the deterministic selector
+        # machinery below verbatim.
+        if injected_match_qids is not None:
+            match_qids, step1_reasoning = injected_match_qids, "(from device_resolve)"
+        else:
+            step1_user = (
+                f"[Connected Devices]\n{json.dumps(cd_aliased, indent=2, ensure_ascii=False)}\n\n"
+                f"[Command]\n{sentence}\n\n"
+                f"[Command Hints]\n{command_hints}\n\n"
+                f"[Selected Services]\n{json.dumps(selected_services, ensure_ascii=False)}"
+            )
+            step1_raw = infer("mapping_device_match", step1_user).strip()
+            match_qids, step1_reasoning = _parse_device_match_qids(step1_raw)
         # device_match produced NOTHING parseable (runaway reasoning truncated at
         # max_tokens, pure-prose output, etc.) — even the 3-tier JSON recovery in
         # _parse_device_match_qids salvaged zero services. This is a model/reasoning
@@ -1822,14 +2025,55 @@ def generate_joi_code_ir(
     #   (re_translate_kor) → short label (scenario_name).
     # The label is the joi `name`; spaces are turned into `_` (hub disallows them)
     # while Korean characters are preserved. Skip all of this with JOI_SKIP_NAME=1.
+    # Deterministic duration hints: the LLM is bad at multiplying tick thresholds
+    # by `period`. A sustained-state counter (`hold_ticks >= N` / `n >= N`) with
+    # period=P ms represents N×P/1000 real seconds. Compute every such threshold in
+    # Python and feed the result as a hint so re_translate never does the arithmetic.
+    def _duration_hints(code_obj) -> str:
+        try:
+            period = int(code_obj.get("period") or 0)
+            script = code_obj.get("script") or ""
+        except Exception:
+            return ""
+        if period <= 0:
+            return ""
+        def _fmt(sec: float) -> str:
+            if sec < 1:
+                return f"{sec:g} seconds"
+            sec = int(round(sec))
+            if sec % 3600 == 0:
+                h = sec // 3600
+                return f"{h} hour" + ("s" if h != 1 else "")
+            if sec % 60 == 0:
+                m = sec // 60
+                return f"{m} minute" + ("s" if m != 1 else "")
+            return f"{sec} second" + ("s" if sec != 1 else "")
+        # Only a SUSTAIN counter (variable name contains "ticks") is a DURATION:
+        # threshold × period = real time. A plain `n >= K` is a COUNT (repeat K
+        # times), NOT a duration — must NOT be converted, or "after 10 times"
+        # becomes a bogus "for 50 minutes".
+        seen = []
+        for m in re.finditer(r'\b(\w*ticks)\b\s*>=\s*(\d+)', script):
+            n = int(m.group(2))
+            if n <= 1:
+                continue
+            real = _fmt(n * period / 1000.0)
+            line = f"- threshold {n} at period {period}ms = {real}"
+            if line not in seen:
+                seen.append(line)
+        if not seen:
+            return ""
+        return "\n\n[Duration Hints] (already computed — use verbatim, do NOT recompute)\n" + "\n".join(seen)
+
     translated_sentence = ""
     translated_sentence_kor = ""
     if os.environ.get("JOI_SKIP_NAME") != "1":
         is_korean = bool(re.search(r"[가-힣]", original_sentence))
         try:
             _eng_plan = f"\n\n[Code Plan]\n{code_plan}" if code_plan else ""
+            _dur_hints = _duration_hints(joi_json)
             _re_in = (
-                f"[Code]\n{joi_code_raw}{_eng_plan}\n\n"
+                f"[Code]\n{joi_code_raw}{_eng_plan}{_dur_hints}\n\n"
                 f"[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
             )
             translated_sentence = infer("re_translate", _re_in).strip()

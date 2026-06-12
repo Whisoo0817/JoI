@@ -42,6 +42,8 @@ Do not move any other clauses around except this fronted time phrase.
 The word before "마다" determines the meaning:
 - If it refers to a **clock time** (시각): 오전/오후/N시/정오/자정/요일/날짜 → scheduled trigger → "Every day at …" / "Every Monday …"
 - If it refers to a **duration** (시간/분/초): N시간/N분/N초 → repeating interval → "Every N hours/minutes/seconds"
+- **Bare recurrence with NO number** — 매시간 / 시간마다 / 매분 → a periodic interval, NOT a fixed clock time. Translate as **"every hour" / "every minute"**. NEVER turn these into a single time like midnight ("at midnight"/"at the exact time") — it repeats every hour.
+  - **정각 (on-the-hour) qualifier** — 매시간 정각(마다) / 매 정각 means the recurrence is anchored to the TOP of each hour (:00), so it MUST surface as **"on the hour"** in the English (e.g. "every hour on the hour"), NOT a bare "every hour". This preserves the wall-clock :00 anchor for the downstream cron mapping. (Plain 매시간 with no 정각 stays "every hour".)
 
 Examples:
 - "8시마다" → clock time → "Every day at 8 AM, …"
@@ -49,6 +51,8 @@ Examples:
 - "오전 6시마다" → clock time → "Every day at 6 AM, …"
 - "8시간마다" → duration → "Every 8 hours, …"
 - "30분마다" → duration → "Every 30 minutes, …"
+- "매시간 정각마다 시간을 알려줘" → on-the-hour recurrence → "Every hour on the hour, announce the time." (정각 kept as "on the hour"; NOT "at the exact time"/"at midnight")
+- "매시간" → "every hour" · "매분" → "every minute" (no 정각 → no "on the hour")
 
 # Decision Checklist (think silently; do not print)
 1. Conditional: [IF] vs [WHEN]

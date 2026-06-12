@@ -16,12 +16,16 @@
 
 # Rules
 
-Prefer the IR built-in `clock.time` / `clock.date` / `clock.dayOfWeek` over Clock.* services.
-- For time comparisons / scheduling / duration (e.g. `clock.time >= 1800`, `clock.dayOfWeek == "MON"`) — NOT services. Do NOT include Clock in the plan; the IR stage uses these as built-in expressions.
-- For reading the current time to speak/display — `clock.time` (hhmm integer) is also available as a built-in; prefer it over chaining Hour + Minute.
-- Only include Clock.* services when a specific sub-component is needed (e.g., "say only the current minute" → `Clock.Minute`; "what year is it?" → `Clock.Year`).
+Read the Clock through its **`Clock.*` integer/enum value services** (`Clock.Hour`, `Clock.Minute`, `Clock.Weekday`, …). Do NOT use the deprecated `clock.time`/`clock.date` string built-ins.
+- **Speaking / announcing / displaying the current time** → read `Clock.Hour` AND `Clock.Minute` (two integer reads, spoken as "H시 M분"). 🛑 Do NOT pick `Clock.Time` / `Clock.Datetime` / `Clock.Timestamp` (raw string / unix forms — unnatural to speak, e.g. "1430"). Default to Hour+Minute for "시각/시간"; use `Clock.Hour` alone only for "몇 시"/정각.
+- **Time comparisons / scheduling / windows** ("오후 6시 이후", "until 3 PM") are handled by the IR/cron stage via `(#Clock).Hour`/`Minute` conditions — surface a Clock read here ONLY when the command speaks/uses the value.
+- Pick the specific sub-component the command names: "무슨 요일" → `Clock.Weekday`; "what year" → `Clock.Year`.
 
 # Clock Examples
+
+[Command]
+Announce the current time / 현재 시각을 말해줘
+["Clock.Hour", "Clock.Minute"]
 
 [Command]
 Say the current minute only
