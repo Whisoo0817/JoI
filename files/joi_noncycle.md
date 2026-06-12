@@ -3,7 +3,7 @@
 The IR has **no top-level `cycle`**. The script runs once and ends.
 
 ## Period rule
-Default `period: 0` (script runs once and ends). The single exception is **D-10n** (sustained-cond `wait.for` one-shot, see below) which uses `period: 100` because polling is required to detect the sustain window.
+Default `period: 0` (script runs once and ends). The single exception is **D-10n** (sustained-cond `wait.for` one-shot, see below) which uses `period: 1000` (1-second polling) because polling is required to detect the sustain window.
 
 ## Patterns covered
 - **D-1** one-shot action: `start_at(now) + call`.
@@ -19,7 +19,7 @@ Default `period: 0` (script runs once and ends). The single exception is **D-10n
   if (diff >= K) { Y }
   ```
 - **B-1b** top-level `wait(edge:"rising", cond:C)` WITHOUT a cycle — collapse to **`wait until(C)`** (one-shot). **Do NOT use D-3** (the triggered idiom). D-3 requires a cycle; here there is none.
-- **D-10n** top-level `wait(cond:C, for:"N UNIT")` (sustained-cond, one-shot, no cycle). Cannot use plain `wait until` + `delay` — the duration is a SUSTAIN window, not a delay. Override the bucket period to `100` and use a polling-counter + `break`:
+- **D-10n** top-level `wait(cond:C, for:"N UNIT")` (sustained-cond, one-shot, no cycle). Cannot use plain `wait until` + `delay` — the duration is a SUSTAIN window, not a delay. Override the bucket period to `1000` and use a polling-counter + `break`:
   ```
   hold_ticks := 0
   if (C) {
@@ -32,12 +32,12 @@ Default `period: 0` (script runs once and ends). The single exception is **D-10n
       hold_ticks = 0
   }
   ```
-  `<for_ticks>` = `for_ms / period` = `for_ms / 100`. **You MUST write the full arithmetic in `<Reasoning>` for the actual duration — multiply out, then divide by 100. Never recall a number.** The pattern is `N × <unit-ms> / 100`:
-  - SEC → `N × 1000 / 100` = `N × 10`. e.g. `"5 SEC"` → 5 × 1000 / 100 = **50**.
-  - MIN → `N × 60000 / 100` = `N × 600`. e.g. `"5 MIN"` → 5 × 60000 / 100 = **3000** ; `"10 MIN"` → 10 × 60000 / 100 = **6000**.
-  - HOUR → `N × 3600000 / 100` = `N × 36000`. e.g. `"1 HOUR"` → 1 × 3600000 / 100 = **36000**.
+  `<for_ticks>` = `for_ms / period` = `for_ms / 1000`. With period = 1000 (1 sec/tick), **ticks = seconds** — so just convert the duration to seconds. **Write the arithmetic in `<Reasoning>`; never recall a number.** The pattern is `N × <unit-ms> / 1000`:
+  - SEC → `N × 1000 / 1000` = `N`. e.g. `"5 SEC"` → **5**, `"30 SEC"` → **30**.
+  - MIN → `N × 60000 / 1000` = `N × 60`. e.g. `"1 MIN"` → **60** ; `"5 MIN"` → **300** ; `"10 MIN"` → **600**.
+  - HOUR → `N × 3600000 / 1000` = `N × 3600`. e.g. `"1 HOUR"` → **3600**.
 
-  So `"5 MIN"` → 3000 (NOT 300), `"10 MIN"` → 6000 (NOT 600) — minutes give thousands, not hundreds. Set `period: 100` ONLY for this case; all other noncycle patterns keep `period: 0`.
+  So `"1 MIN"` → 60, `"5 MIN"` → 300, `"10 MIN"` → 600 (minutes × 60). Set `period: 1000` ONLY for this case; all other noncycle patterns keep `period: 0`.
 
 ## Script body
 Walk the timeline in order. For each IR op, apply rule C from common. Emit each statement on its own line with `\n`.
@@ -157,7 +157,7 @@ Capture function return, feed into next call.
 </Reasoning>
 {"cron":"","period":0,"script":"img = (#CloudServiceProvider).GenerateImage(\"cat\")\n(#CloudServiceProvider).SaveToFile(img, \"cat.png\")"}
 
-### Ex9 — sustained-cond one-shot (D-10n, period 100)
+### Ex9 — sustained-cond one-shot (D-10n, period 1000)
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
@@ -166,11 +166,11 @@ Capture function return, feed into next call.
 ```
 [Precision Selectors] `(any(#PresenceSensor))`, `(#Speaker)`
 <Reasoning>
-D-10n sustained-cond. for "10 MIN" → for_ticks = 10 × 60000 / 100 = 6000. period = 100.
+D-10n sustained-cond. for "10 MIN" → for_ticks = 10 × 60000 / 1000 = 600. period = 1000.
 </Reasoning>
-{"cron":"","period":100,"script":"hold_ticks := 0\nif (any(#PresenceSensor).Presence == true) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n        (#Speaker).Speak(\"환기해 주세요.\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"}
+{"cron":"","period":1000,"script":"hold_ticks := 0\nif (any(#PresenceSensor).Presence == true) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n        (#Speaker).Speak(\"환기해 주세요.\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"}
 
-### Ex10 — sustained-cond one-shot, MINUTES (D-10n, period 100)
+### Ex10 — sustained-cond one-shot, MINUTES (D-10n, period 1000)
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
@@ -179,6 +179,6 @@ D-10n sustained-cond. for "10 MIN" → for_ticks = 10 × 60000 / 100 = 6000. per
 ```
 [Precision Selectors] `(any(#ContactSensor))`, `(#Speaker)`
 <Reasoning>
-D-10n sustained-cond. for "5 MIN" → for_ticks = 5 × 60000 / 100 = 3000 (minutes → thousands, NOT 300). period = 100.
+D-10n sustained-cond. for "5 MIN" → for_ticks = 5 × 60000 / 1000 = 300 (minutes × 60). period = 1000.
 </Reasoning>
-{"cron":"","period":100,"script":"hold_ticks := 0\nif (any(#ContactSensor).Contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 3000) {\n        (#Speaker).Speak(\"문이 5분 이상 열려 있습니다.\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"}
+{"cron":"","period":1000,"script":"hold_ticks := 0\nif (any(#ContactSensor).Contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 300) {\n        (#Speaker).Speak(\"문이 5분 이상 열려 있습니다.\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"}

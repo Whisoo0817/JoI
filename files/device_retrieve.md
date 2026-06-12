@@ -22,7 +22,8 @@ One line per target group, inside `<targets>`:
   - `auto` — **NO explicit quantity word** ("조명 꺼줘", "에어컨 켜줘", "사람이 감지되면", "재실되면 알려줘"). The next stage decides: 1 device → one; condition with ≥2 → any; action with ≥2 → all. ⚠️ A bare device with no quantity word (even "에어컨 꺼") is `auto`, NOT `one`.
   - ⚠️ Do NOT default a bare condition to `any` yourself — use `auto`. Only use `any` when the command literally says 하나라도/적어도 하나; only use `all` when it literally says 모두/전부/다/모든.
 - **by** — the criterion that picks the devices (ONE of):
-  - `label:X` — devices whose `tags` OR `category` contain `X`. Use the device-type or brand/feature word: `label:Light`, `label:AirConditioner`, `label:Tuya`, `label:ContactSensor`, `label:PresenceSensor`, `label:AirQualitySensor`, `label:Camera`, `label:EmailProvider`. (You don't distinguish tag vs category — both are matched.)
+  - `label:X` — devices whose `tags` OR `category` contain `X`. Use the device-type, brand, OR feature word: `label:Light`, `label:AirConditioner`, `label:Tuya`, `label:ContactSensor`, `label:PresenceSensor`, `label:Camera`, `label:EmailProvider`, and feature tags `label:Window`, `label:Entrance`. (You don't distinguish tag vs category — both are matched.)
+    - **When the command names a SPECIFIC feature, use that feature tag, NOT the broad category.** 창문 → `label:Window`, 현관/입구(문) → `label:Entrance` (these are `ContactSensor` feature tags). Use the broad `label:ContactSensor` ONLY for a generic 문/센서 with no feature word. (Same idea as brand: 투야 → `label:Tuya`, not `label:Light`.)
   - `nickname:<full nickname>` — one specific device named by its app nickname ("삼성 공기청정기 큰거").
   - `channel:speaker,toast` / `channel:speaker` / `channel:toast` — the notification channel(s) for a `notify` group (see channel rule).
 
@@ -136,6 +137,13 @@ Either a `<targets>` block (one line per group) OR a single `NONE:` line. Nothin
 <targets>
 - role=condition | by=label:ContactSensor | scope=any
 - role=notify | by=channel:speaker | scope=one
+</targets>
+
+[Command]
+창문 중 하나라도 닫혀 있으면 창문 열라고 알려줘
+<targets>
+- role=condition | by=label:Window | scope=any
+- role=notify | by=channel:speaker,toast | scope=one
 </targets>
 
 [Command]

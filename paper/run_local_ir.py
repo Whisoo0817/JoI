@@ -800,8 +800,8 @@ def _wrapper_period_from_ir(ir_obj):
     """Deterministic wrapper.period override from IR.cycle.period.
 
     LLM is unreliable at unit arithmetic ("30 SEC" → 1800000); we compute
-    here. D-3 (cycle body has wait edge="rising") is hardcoded to 100
-    regardless of cycle.period. Returns None if IR has no top-level cycle.
+    here. D-3 (cycle body has wait edge="rising") is hardcoded to 1000 (1 SEC
+    polling) regardless of cycle.period. Returns None if IR has no top-level cycle.
     """
     tl = (ir_obj or {}).get("timeline", [])
     for s in tl:
@@ -811,7 +811,7 @@ def _wrapper_period_from_ir(ir_obj):
                 isinstance(x, dict) and x.get("op") == "wait" and x.get("edge") == "rising"
                 for x in body
             ):
-                return 100
+                return 1000
             p = s.get("period")
             if isinstance(p, str):
                 try:

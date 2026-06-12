@@ -111,8 +111,8 @@ NEVER decide edge from NL keywords. NEVER emit `edge:"falling"` — negate the c
 - **Polling cycle** (`every N <unit>, do Y` — with or without an `if`-check at each tick / hint `polling cycle: each tick …`): cadence is `cycle.period="N UNIT"`. State checks at each tick MUST use `if`, NEVER `wait`. A `wait` inside a polling body would block indefinitely between ticks and defeat the polling cadence.
   - ✅ `cycle(period="N UNIT"){ if(<state>){ Y } }`
   - ❌ `cycle(period="N UNIT"){ wait(<state>, rising); Y }`
-- **Edge-cycle / re-arming trigger** (D-3, see D3): cadence is `cycle.period="100 MSEC"` (10Hz polling). The `wait` IS the trigger.
-  - ✅ `cycle(period="100 MSEC"){ wait(<state>, rising); Y }` — when iteration has internal sub-steps: `cycle(period="100 MSEC"){ wait(...); Y_part1; delay(N); Y_part2 }`.
+- **Edge-cycle / re-arming trigger** (D-3, see D3): cadence is `cycle.period="1 SEC"` (1 Hz polling). The `wait` IS the trigger.
+  - ✅ `cycle(period="1 SEC"){ wait(<state>, rising); Y }` — when iteration has internal sub-steps: `cycle(period="1 SEC"){ wait(...); Y_part1; delay(N); Y_part2 }`.
 
 ## D5.5. Sustained-cond → `wait.for`
 Cond must hold CONTINUOUSLY for a duration (NOT a fixed delay).
@@ -125,7 +125,7 @@ Cond must hold CONTINUOUSLY for a duration (NOT a fixed delay).
 |---|---|
 | `when door is open for 5 sec, notify` | `wait(Door.State == "Open", edge:"none", for:"5 SEC"); Notify.Send` |
 | `if no motion for 30 sec, turn off` | `wait(Motion == false, edge:"none", for:"30 SEC"); Switch.Off` |
-| `whenever person stays for 1 min, do Y` | `cycle(period="100 MSEC"){ wait(Presence == true, edge:"rising", for:"1 MIN"); Y }` |
+| `whenever person stays for 1 min, do Y` | `cycle(period="1 SEC"){ wait(Presence == true, edge:"rising", for:"1 MIN"); Y }` |
 
 Markers (NL → use `wait.for`): `for N seconds/minutes`, `for at least N`, `stays/remains for N`, `if X remains/persists for N`.
 
@@ -140,7 +140,7 @@ wait(X, edge:"none")               ← outside cycle (D4)
 cycle(period="N UNIT"){ Y }        ← body has NO wait; cadence in period
 ```
 
-NOT `cycle(period="100 MSEC"){ wait(X, rising); Y }` (that is D-3 re-arming; wrong for D-4). When no `thereafter`-class marker is present and the trigger is `whenever`/`every time`, it is D-3 (D3 row 3).
+NOT `cycle(period="1 SEC"){ wait(X, rising); Y }` (that is D-3 re-arming; wrong for D-4). When no `thereafter`-class marker is present and the trigger is `whenever`/`every time`, it is D-3 (D3 row 3).
 
 ## D7. Bounded windows (`cycle.until`)
 | English | Cron + until |
@@ -156,7 +156,7 @@ Time-of-day blocks (when literal hours not given): morning ≈ 06:00–12:00 · 
 
 ## D7b. `cycle.period` — REQUIRED for every cycle
 Pick the value by body shape:
-- **D-3 edge cycle** (body has `wait(edge:"rising")` or `wait.for`): `period:"100 MSEC"`.
+- **D-3 edge cycle** (body has `wait(edge:"rising")` or `wait.for`): `period:"1 SEC"`.
 - **All others** (NL `every N <unit>`): `period:"N UNIT"`. Body describes ONE iteration; do NOT compute `N - K` rest-delays.
 
 | English | IR shape |
@@ -266,7 +266,7 @@ Same device attribute compared at two different moments → use `read` for each 
 ```json
 {"timeline":[
   {"op":"start_at","anchor":"now"},
-  {"op":"cycle","until":null,"period":"100 MSEC","body":[
+  {"op":"cycle","until":null,"period":"1 SEC","body":[
     {"op":"wait","cond":"Door.DoorState == \"open\"","edge":"rising"},
     {"op":"call","target":"Switch.On","args":{}}
   ]}

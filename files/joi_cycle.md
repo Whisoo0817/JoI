@@ -10,7 +10,7 @@ The IR timeline contains a top-level `{"op":"cycle",...}`. The hub re-runs the s
 |---|---|---|---|
 | 1 | `cycle.until != null` | D-9 (until window) | `parse_ms(cycle.period)` |
 | 2 | body has `if{break}` step | D-6 (progressive update) | `parse_ms(cycle.period)` |
-| 3 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`) | D-3 / D-10 (edge / sustained) | **100 (fixed)** |
+| 3 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`) | D-3 / D-10 (edge / sustained) | **1000 (fixed, 1-sec polling)** |
 | 4 | pre-cycle `wait(edge:"none"\|null)` at top level | D-4 (phase lifecycle) | `parse_ms(cycle.period)` |
 | 5 | else | B-2 (simple periodic) | `parse_ms(cycle.period)` |
 
@@ -94,16 +94,16 @@ For a time-of-day window end, `φ` reads the Clock service, NOT `clock.time`: a 
 ## D-10 — sustained-cond polling (`wait.for`)
 Detection: a `wait` op carries a `for` field (e.g. `for:"30 SEC"`). The cond must remain CONTINUOUSLY true for that duration; a mid-window flip resets the timer.
 
-**Tick math**: `for_ticks = for_ms / wrapper.period_ms`. The wrapper period defaults to 100ms when the IR does not name a polling cadence; if the IR's `cycle.period` is something else (e.g. `"1 SEC"`), use that value as the wrapper period and recompute. Worked examples assuming the default 100ms tick:
+**Tick math**: `for_ticks = for_ms / wrapper.period_ms`. The wrapper period defaults to **1000ms (1-second polling)** when the IR does not name a polling cadence; if the IR's `cycle.period` is something else, use that value as the wrapper period and recompute. With the default 1000ms tick, **ticks = seconds** — just convert the duration to seconds:
 
-| `for` | duration in ms | `for_ticks` (period=100) |
+| `for` | duration in ms | `for_ticks` (period=1000) |
 |---|---|---|
-| `"5 SEC"` | 5000 | **50** |
-| `"30 SEC"` | 30000 | **300** |
-| `"1 MIN"` | 60000 | **600** |
-| `"10 MIN"` | 600000 | **6000** |
+| `"5 SEC"` | 5000 | **5** |
+| `"30 SEC"` | 30000 | **30** |
+| `"1 MIN"` | 60000 | **60** |
+| `"10 MIN"` | 600000 | **600** |
 
-If the IR specifies `cycle.period="1 SEC"`, then `for:"30 SEC"` → `30000 / 1000` = **30** ticks. The formula is constant; the period is the only variable. Never multiply duration by 1000 — `for_ms` is already in ms.
+If the IR specifies a different `cycle.period` (e.g. `"100 MSEC"`), then `for:"30 SEC"` → `30000 / 100` = **300** ticks. The formula is constant; the period is the only variable. Never multiply duration by 1000 — `for_ms` is already in ms.
 
 ### Cycle-wrapped (re-arming): `cycle{ wait(C, rising, for:N); Y }`
 Emits `Y` each time `C` becomes true AND stays true for the full window.
@@ -181,7 +181,7 @@ B-2: cycle.period = 10 MIN → wrapper.period = 600000; emit the `if` as body.
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"cycle","until":null,"period":"100 MSEC","body":[
+ {"op":"cycle","until":null,"period":"1 SEC","body":[
    {"op":"wait","cond":"MotionSensor.Motion == true","edge":"rising"},
    {"op":"call","target":"Light.MoveToBrightness","args":{"Brightness":100,"Rate":0}},
    {"op":"delay","duration":"3 SEC"},
@@ -191,7 +191,7 @@ B-2: cycle.period = 10 MIN → wrapper.period = 600000; emit the `if` as body.
 <Reasoning>
 D-3 with multi-step Y: ALL body ops AFTER `wait(rising)` (call, delay, call) go INSIDE the inner `if (triggered == false) { ... }` block in order, then `triggered = true` at the end. NEVER place any Y op outside the triggered block.
 </Reasoning>
-{"cron":"","period":100,"script":"triggered := false\nif ((#MotionSensor #Entrance).Motion == true) {\n    if (triggered == false) {\n        (#Light #Entrance).MoveToBrightness(100, 0)\n        delay(3 SEC)\n        (#Light #Entrance).MoveToBrightness(0, 0)\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}
+{"cron":"","period":1000,"script":"triggered := false\nif ((#MotionSensor #Entrance).Motion == true) {\n    if (triggered == false) {\n        (#Light #Entrance).MoveToBrightness(100, 0)\n        delay(3 SEC)\n        (#Light #Entrance).MoveToBrightness(0, 0)\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}
 
 ### Ex4 — D-4 phase lifecycle
 [Timeline IR]

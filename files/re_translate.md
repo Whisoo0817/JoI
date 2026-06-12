@@ -26,7 +26,8 @@ You are a code-to-English translator. Convert JOI automation code into ONE short
 - `cron: "0 9 * * *"` → "Every day at 9 AM" (NOT "Every Monday") — only add weekday if day-of-week field is set
 
 ### period (ms) — CRITICAL: calculate exactly
-- 100 ms → very short, use "triggered" pattern (NOT a time period phrase)
+- **`period: 1000` is ambiguous — disambiguate by the SCRIPT, not the number.** If the script contains a polling counter (`triggered`, `hold_ticks`, `phase`, or an edge `wait`), the 1000 ms is just the 1-second POLLING tick — do NOT translate it as "every 1 second"; use the triggered / sustained / phase phrasing below. ONLY a plain periodic body with `period: 1000` and no such counter means a genuine "every 1 second".
+- 1000 ms = 1 second (plain cycle only) · 2000 ms = 2 seconds
 - 10000 ms = 10 seconds
 - 60000 ms = 1 minute
 - 300000 ms = 5 minutes
@@ -36,9 +37,9 @@ You are a code-to-English translator. Convert JOI automation code into ONE short
 - 7200000 ms = 2 hours
 
 ### hold_ticks / sustained-state counters (SUSTAIN pattern) — DO NOT confuse the threshold with milliseconds
-A `hold_ticks` (or `n`) counter that increments once per tick and fires at `>= N` means the condition must hold for **N ticks**, and each tick is `period` ms. The real duration is `N × period / 1000` seconds — it is NOT `N` milliseconds.
-- e.g., `hold_ticks >= 3000` with `period: 100` → 3000 × 100 / 1000 = **300 seconds = 5 minutes** (NOT "3 seconds", NOT "3000 ms").
-- e.g., `hold_ticks >= 300` with `period: 100` → 30 seconds. `>= 6000` with `period: 100` → 10 minutes.
+A `hold_ticks` (or `n`) counter that increments once per tick and fires at `>= N` means the condition must hold for **N ticks**, and each tick is `period` ms. The real duration is `N × period / 1000` seconds — it is NOT `N` milliseconds. (Polling period is `1000`, so with period 1000 **ticks = seconds**.)
+- e.g., `hold_ticks >= 300` with `period: 1000` → 300 × 1000 / 1000 = **300 seconds = 5 minutes** (NOT "300 ms").
+- e.g., `hold_ticks >= 60` with `period: 1000` → 60 seconds = 1 minute. `>= 600` with `period: 1000` → 10 minutes.
 - The `else: hold_ticks = 0` (or `n = 0`) branch is a RESET only — do NOT translate it as an action.
 - Phrase as "if ~ stays/holds for D, do ~" (e.g., "if no motion for 5 minutes, turn off the lights").
 
@@ -116,7 +117,10 @@ Action `light_moveToColor(x, y, ...)` → "set the color to [Color Name]"
   - e.g., `wait until (#Door).contact == "open"` → "when the door opens"
 - `period` + `if` condition check → "every N, check ~ and if ~, do ~"
   - e.g., period=600000 + `if temp > 28` → "every 10 minutes, if temperature is above 28"
-- `triggered` variable → "whenever ~"
+  - ⚠️ EXCEPTION: if the script is a polling-counter pattern (`hold_ticks`/`triggered`/`phase`), the `period` is a 1-second polling TICK, NOT an interval — do NOT say "every second / every N". Use the dedicated phrasing below.
+- `hold_ticks` sustained counter (`hold_ticks >= N` … `else: hold_ticks = 0`, `period: 1000`) → **"if ~ stays/holds for D, do ~"** where D = N seconds (see SUSTAIN section). 🛑 NO "every second" prefix — the 1-second period is just the polling tick and is NOT spoken.
+  - e.g., `hold_ticks >= 60` @ period 1000, `if Contact==false {hold_ticks++; if >=60 {speak; break}} else {hold_ticks=0}` → "if the door stays open for 1 minute, say ~" (NOT "every second, …")
+- `triggered` variable → "whenever ~"  (period is the polling tick — do NOT say "every second")
   - The `else: triggered = false` branch is a reset only — do NOT translate it as an additional action
   - e.g., `triggered = false; if Rain==true: if triggered == false: open_window; triggered=true; else: triggered=false` → "whenever it rains, open the window"
 - `phase` variable → "when ~, then every N, do ~"
