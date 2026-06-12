@@ -813,12 +813,19 @@ def generate_joi_code_ir(
     selected_services = []
     df_selectors, df_resolved = {}, {}
     _df_read_services = set()
+    # A nickname target resolves to the device's internal dN handle; the FINAL
+    # selector must carry the device's REAL id (which is one of its own tags in
+    # the payload), not the alias, or it matches nothing on the hub. Label/channel
+    # tags (#Light, #Tuya, #Speaker) are already real tags and pass through.
+    def _restore_ids(sel: str) -> str:
+        return re.sub(r'#(d\d+)\b',
+                      lambda mm: '#' + real_of.get(mm.group(1), mm.group(1)), sel)
     _sel_re = re.compile(r'^\s*(all|any)?\s*(\(#[^)]*\))\.([A-Za-z]\w*\.[A-Za-z]\w*)')
     for full, g in selectors:
         m = _sel_re.match(full)
         if not m:
             continue
-        quant, sel_tags, svc = (m.group(1) or ""), m.group(2), m.group(3)
+        quant, sel_tags, svc = (m.group(1) or ""), _restore_ids(m.group(2)), m.group(3)
         selected_services.append(svc)
         df_selectors.setdefault(svc, []).append(f"{quant}{sel_tags}")
         if g:
