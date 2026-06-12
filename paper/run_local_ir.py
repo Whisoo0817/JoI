@@ -1509,9 +1509,10 @@ def generate_joi_code_ir(
             log_buf.append(f"⚠️ scenario_name failed ({_e})")
         if not scenario_name:  # fallback: snake_case the English re-translation
             scenario_name = re.sub(r'[^\w\s]', '', (translated_sentence or "").strip())
-        # spaces → `_`; keep unicode word chars (Korean survives), drop punctuation.
+        # spaces → `_`; keep unicode word chars (Korean survives) + `:` for HH:MM
+        # clock times, drop other punctuation.
         scenario_name = re.sub(r'\s+', '_', scenario_name.strip())
-        scenario_name = re.sub(r'[^\w]', '', scenario_name).strip('_') or "Scenario"
+        scenario_name = re.sub(r'[^\w:]', '', scenario_name).strip('_') or "Scenario"
         log_buf.append(f"🏷️ scenario name: {scenario_name}")
         try:  # inject name into the final code dict and re-serialize
             _cj = json.loads(joi_code_raw)
