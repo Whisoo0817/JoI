@@ -257,24 +257,33 @@ def parse_targets(block: str) -> list:
             "role": (role_m.group(1).strip().lower() if role_m else "action"),
             "by_kind": by_m.group(1).strip().lower(),     # label | nickname | channel
             "by_val": by_m.group(2).strip(),
-            "scope": (scope_m.group(1).strip().lower() if scope_m else "one"),  # all|one|cond
+            "scope": (scope_m.group(1).strip().lower() if scope_m else "auto"),  # all|any|one|auto
         })
     return out
 
 
 def quantifier_for(scope: str, role: str, n: int) -> str:
-    """Deterministic quantifier prefix from (scope, role, match count): '', 'all',
-    or 'any'. The LLM's `scope` already settled the ambiguous Korean 'all' part;
-    this just assembles the rule the resolver kept violating.
-      - n <= 1                  → '' (one)
-      - role==condition, n>=2   → 'any'
-      - scope==all              → 'all'
-      - else                    → '' (one)"""
+    """Deterministic quantifier prefix: '', 'all', or 'any'.
+
+    Rule: an EXPLICIT user quantity word wins verbatim; only `auto` (no quantity
+    word in the command) falls back to (count, role).
+      explicit `all`  (모두/전부/다/모든/전체) → 'all'  (condition → all-satisfy `==`)
+      explicit `any`  (하나라도/적어도 하나)    → 'any'  (condition → any-satisfy `==|`)
+      explicit `one`  (하나만/하나/한 개)       → ''     (no prefix → runtime picks 1)
+      auto: n<=1 → '' (one); role==condition → 'any'; else → 'all'
+    """
+    if scope == "all":
+        return "all"
+    if scope == "any":
+        return "any"
+    if scope == "one":
+        return ""
+    # auto / unspecified — decide from match count + role
     if n <= 1:
         return ""
     if role == "condition":
         return "any"
-    return "all" if scope == "all" else ""
+    return "all"
 
 
 def resolve_targets(targets: list, connected_devices: dict) -> list:

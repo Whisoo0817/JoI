@@ -1050,6 +1050,11 @@ def generate_joi_code_ir(
     # device-first builds its precision_output (selectors/resolved) directly from
     # device_resolve, so run_precision returns this instead of doing its own LLM.
     _df_precision = None
+    # Services from `read`-role targets (e.g. Clock.Hour/Minute) — the ONLY value
+    # reads arg_resolve may weave into text args. None in legacy mode. Keeping it
+    # scoped to read-role avoids exposing condition-gate reads (e.g. ContactSensor.
+    # Contact) that arg_resolve would otherwise mis-grab for a $<ref> argument.
+    _df_read_services = None
 
     # Three ways to produce `selected_services`:
     #   (1) GT-IR mode — derive from a ground-truth IR (eval only).
@@ -1178,6 +1183,7 @@ def generate_joi_code_ir(
         # fall through to the shared arg_resolve → IR → lowering → naming path.
         selected_services = []
         df_selectors, df_resolved = {}, {}
+        _df_read_services = set()
         _sel_re = re.compile(r'^\s*(all|any)?\s*(\(#[^)]*\))\.([A-Za-z]\w*\.[A-Za-z]\w*)')
         for full, g in selectors:
             m = _sel_re.match(full)
@@ -1189,6 +1195,8 @@ def generate_joi_code_ir(
             if g:
                 df_resolved[svc] = {"q": (quant or "one"),
                                     "devices": [real_of.get(a, a) for a in g["ids"]]}
+                if g.get("role") == "read":
+                    _df_read_services.add(svc)
         if not selected_services:
             raise JoiGenerationError(
                 "device_resolve produced no usable calls.",
@@ -1275,18 +1283,15 @@ def generate_joi_code_ir(
     # still needs to appear downstream (IR `call` op), but its args are just `{}`.
     arg_services = [s for s in selected_services
                     if _is_function_service(s) and _has_arguments(s)]
-    # Value-reads in scope (e.g. Clock.Hour, Clock.Minute) are NOT arg-taking
-    # functions, so they're excluded from arg_services — but a user-facing text arg
-    # (Speaker.Speak Text, ToastPublisher Message) may need to weave their live
-    # values in via `$<Method>`. Surface them to arg_resolve as readable values so
-    # it can reference them without inventing names.
-    value_reads_in_scope = [s for s in selected_services if not _is_function_service(s)]
-    # Value-reads in scope (e.g. Clock.Hour, Clock.Minute) are NOT arg-taking
-    # functions, so they're excluded from arg_services — but a user-facing text arg
-    # (Speaker.Speak Text, ToastPublisher Message) may need to weave their live
-    # values in via `$<Method>`. Surface them to arg_resolve as readable values so
-    # it can reference them without inventing names.
-    value_reads_in_scope = [s for s in selected_services if not _is_function_service(s)]
+    # Value-reads to surface to arg_resolve as `[Readable Values]` (referenced via
+    # `$<Method>` inside a text arg, e.g. $Hour). Scoped to `read`-role services
+    # (Clock.Hour/Minute) so condition-gate reads (ContactSensor.Contact, etc.) are
+    # NOT exposed — otherwise arg_resolve mis-grabs them for unrelated $<ref> args
+    # (e.g. a mail File arg). Legacy path (no role info) falls back to all reads.
+    if _df_read_services is not None:
+        value_reads_in_scope = [s for s in selected_services if s in _df_read_services]
+    else:
+        value_reads_in_scope = [s for s in selected_services if not _is_function_service(s)]
 
     # ── Resolve branch: enum_cond_check → enum_resolve → arg_resolve (sequential within branch) ──
     def run_resolve_branch():
