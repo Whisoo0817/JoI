@@ -100,6 +100,9 @@ Action `light_moveToColor(x, y, ...)` → "set the color to [Color Name]"
 ## Comparison Operators
 - `>` → "above" / `>=` → "or above" / `<` → "below" / `<=` → "or below"
 - `==|` / `>=|` / `>|` / `<=|` / `<|` → "any" operator: at least one device satisfies the condition (e.g., `>=| 0` → "if any is 0 or above")
+  - 🛑 The `|` makes it "ANY / at least one" — NEVER translate it as "all" or "모두". `all(#X).p ==| v` still means "if ANY X has p == v" (the `all(#X)` is just the device group; the `|` overrides it to any-satisfy). The plain `==` (no `|`) is the "all-satisfy" form. Do NOT flip them.
+    - e.g., `all(#ContactSensor).contact ==| true` → "if any contact sensor is closed" (NOT "if all are closed")
+    - e.g., `all(#ContactSensor).contact == true` → "if all contact sensors are closed"
 - Numeric thresholds MUST be preserved. Do NOT replace with vague expressions.
   - e.g., `Brightness < 100` → "brightness is below 100" (NOT "it gets dark")
   - e.g., `Sound > 30` → "sound is above 30" (NOT "30 or above")
@@ -193,6 +196,12 @@ Output: Turn on the kitchen light, then after 10 seconds turn on the kitchen deh
 
 Input: `wait until ((#LightSensor).Brightness < 100)\n(#Light).On()`
 Output: When brightness drops below 100, turn on the light.
+
+Input: `wait until(all(#Window).contactSensor_contact ==| true)\n(#Speaker).speaker_speak("창문을 열어주세요.")`
+Output: When any window is closed, say "창문을 열어주세요." through the speaker.
+
+Input: `if (all(#ContactSensor).contactSensor_contact == true) {\n  (#Speaker).speaker_speak("문들이 모두 닫혔습니다.")\n}`
+Output: If all contact sensors are closed, say "문들이 모두 닫혔습니다." through the speaker.
 
 Input: `wait until ((#MultiButton).Button1 == "pushed")\n(#Speaker).Speak("Heart rate: " + (#PresenceVitalSensor).HeartRate)`
 Output: When the first button of the multi-button switch is pushed, announce the heart rate through the speaker.

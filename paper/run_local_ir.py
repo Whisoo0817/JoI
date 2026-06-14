@@ -732,6 +732,18 @@ def generate_joi_code_ir(
         )
     _tm = re.search(r'<targets>(.*?)</targets>', retr_raw, re.DOTALL)
     targets_spec = (_tm.group(1).strip() if _tm else retr_raw).strip()
+    # A `NONE:` may also appear as ONE target line inside <targets> (e.g. a
+    # condition device exists but the action device — 커튼/도어락 — doesn't).
+    # That line isn't a `role=` target so resolve_targets drops it silently,
+    # leaving the IR stage to hallucinate a call on a wrong device. Fail fast
+    # on any inline NONE target instead.
+    _none_line = re.search(r'(?im)^\s*-?\s*NONE:\s*(.+?)\s*$', targets_spec)
+    if _none_line:
+        log_buf.append(f"⛔ device_retrieve NONE (target): {_none_line.group(1)}")
+        raise JoiGenerationError(
+            f"Cannot fulfill command — {_none_line.group(1)}",
+            "\n".join(log_buf), error_code="device_not_connected",
+        )
 
     # Deterministic: apply each target's by-criterion over cd_named (dN ids,
     # incl. nickname — cd_aliased has no nickname field so label/nickname

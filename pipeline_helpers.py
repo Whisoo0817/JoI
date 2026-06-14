@@ -167,7 +167,9 @@ _TAG_CATEGORY_HINT = {
 def _apply_service_prefix(script):
     def _fmt(service, selector=None):
         if selector:
-            tags = re.findall(r'#(\w+)', selector)
+            # Tags may be a device-first real id (nickname→id restore) which can
+            # contain hyphens (e.g. tc0_efb00b25-259e-…); [\w-] keeps them whole.
+            tags = re.findall(r'#([\w-]+)', selector)
             for tag in tags:
                 if tag in SERVICE_DATA:
                     item = SERVICE_DATA[tag]
@@ -194,11 +196,13 @@ def _apply_service_prefix(script):
 
     def replace_func(m):
         return f"{m.group(1)}.{_fmt(m.group(2), m.group(1))}({m.group(3)})"
-    script = re.sub(r'((?:all|any)?\((?:#\w+\s*)+\))\.([A-Z]\w+)\(([^)]*)\)', replace_func, script)
+    # `#[\w-]+`: a tag can be a hyphenated real device id (device-first
+    # nickname→id restore), not just a bare category like #Light.
+    script = re.sub(r'((?:all|any)?\((?:#[\w-]+\s*)+\))\.([A-Z]\w+)\(([^)]*)\)', replace_func, script)
 
     def replace_value(m):
         return f"{m.group(1)}.{_fmt(m.group(2), m.group(1))}"
-    script = re.sub(r'((?:all|any)?\((?:#\w+\s*)+\))\.([A-Z]\w+)(?!\w|\()', replace_value, script)
+    script = re.sub(r'((?:all|any)?\((?:#[\w-]+\s*)+\))\.([A-Z]\w+)(?!\w|\()', replace_value, script)
 
     return script
 

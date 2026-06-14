@@ -80,6 +80,9 @@ Output:
 
 **예약된 시각에 울리는 안내**는 그 알림이 **지금 그 순간 일어나는 일**이다 → `"현재 시각 X시 Y분, …합니다"`처럼 **현재 시제**로 말한다. 일정 자체를 읽는 투(`"매일 …시에 …합니다"`, `"…시에 …할 예정입니다"`)는 ❌ — 트리거 시점엔 이미 그 시각이므로 "매일/언제부터" 같은 스케줄 서술을 넣지 않는다.
 
+**🛑 트리거/조건문을 발화 내용으로 복사 금지.** `~이면`/`~하면`/`~이상이면`/`~동안` 같은 **조건(트리거)** 표현은 "언제 말할지"를 정할 뿐, 스피커가 말할 내용이 아니다. 발화 Text에는 그 조건이 충족됐을 때 사용자가 **들어야 할 행동 안내**만 넣는다. 조건 자체를 멘트로 옮기면 ❌.
+- 예: "10분 이상 사람이 있으면 환기하라고 스피커로 알려줘" → 조건("10분 이상 사람이 있으면")은 빼고, 들을 내용은 "환기" 뿐 → `"환기해 주세요."` (❌ `"10분 이상 사람이 있으면 환기해 주세요."`)
+
 `$Var` 임베드 규칙(공통):
 - **센서/프로바이더 단일 값** (`$Weather`, `$Temp`, `$TodayMenu` 등): 명령 표현에서 끌어온 짧은 한글 lead-in으로 감싼다. 예: "오늘 날씨 말해줘" → `Speak.Text = "오늘의 날씨는 $Weather 입니다"`. "Hi!" 같은 군더더기 금지.
 - **이미 완성 문장인 함수 반환** (`$ChatWithAI` 등): 그대로 전달. `"$ChatWithAI"`.
@@ -111,6 +114,13 @@ Output:
 ```
 [Command] Tell me to ventilate through the speaker.
 [User Command (original, verbatim)] 환기하라고 스피커로 알려줘
+[Selected Services] ["Speaker.Speak"]
+Output:
+{"Speaker.Speak": {"Text": "환기해 주세요."}}
+```
+```
+[Command] If a person is present for more than 10 minutes, tell me to ventilate through the speaker.
+[User Command (original, verbatim)] 10분 이상 사람이 있으면 환기하라고 스피커로 알려줘
 [Selected Services] ["Speaker.Speak"]
 Output:
 {"Speaker.Speak": {"Text": "환기해 주세요."}}
