@@ -837,7 +837,10 @@ def generate_joi_code_ir(
         m = _sel_re.match(full)
         if not m:
             continue
-        quant, sel_tags, svc = (m.group(1) or ""), _restore_ids(m.group(2)), m.group(3)
+        # Keep dN aliases in the selector through IR/lowering — the LLM only ever
+        # copies a short `#dN`, not a 36-char real id (transcription-safe). They are
+        # restored to real ids once, post-lowering, in _finalize.
+        quant, sel_tags, svc = (m.group(1) or ""), m.group(2), m.group(3)
         selected_services.append(svc)
         df_selectors.setdefault(svc, []).append(f"{quant}{sel_tags}")
         if g:
@@ -1280,6 +1283,9 @@ def generate_joi_code_ir(
                         if isinstance(precision_output, dict) else {})
             joi_json["script"] = _reapply_precision_quantifiers(joi_json["script"], _sel_map)
             joi_json["script"] = _post_process_joi_any_quantifiers(joi_json["script"])
+            # All prior steps ran in dN space (script + _sel_map consistent); now
+            # swap dN aliases → real device ids once, for the final deployed script.
+            joi_json["script"] = _restore_ids(joi_json["script"])
 
         return joi_json
 
