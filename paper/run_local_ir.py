@@ -1504,6 +1504,18 @@ def generate_joi_code_ir(
             return ""
         return "\n\n[Duration Hints] (already computed — use verbatim, do NOT recompute)\n" + "\n".join(seen)
 
+    # User-facing naming (re_translate → name) should read a device by its
+    # nickname, not the raw tc0_… id. Swap id→nickname in the re_translate INPUT
+    # only (spaces → _ so the selector isn't misparsed as multiple tags); the
+    # final code keeps real ids. Category/feature tags (#Light) aren't ids → left.
+    _id2nick = {rid: info["nickname"]
+                for rid, info in (connected_devices or {}).items()
+                if isinstance(info, dict) and info.get("nickname")}
+    def _ids_to_nick(text: str) -> str:
+        return re.sub(r'#([\w\-]+)',
+                      lambda m: ('#' + _id2nick[m.group(1)].replace(' ', '_'))
+                      if m.group(1) in _id2nick else m.group(0), text)
+
     translated_sentence = ""
     translated_sentence_kor = ""
     if os.environ.get("JOI_SKIP_NAME") != "1":
@@ -1512,7 +1524,7 @@ def generate_joi_code_ir(
             _eng_plan = f"\n\n[Code Plan]\n{code_plan}" if code_plan else ""
             _dur_hints = _duration_hints(joi_json)
             _re_in = (
-                f"[Code]\n{joi_code_raw}{_eng_plan}{_dur_hints}\n\n"
+                f"[Code]\n{_ids_to_nick(joi_code_raw)}{_eng_plan}{_dur_hints}\n\n"
                 f"[Service Descriptions]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
             )
             translated_sentence = infer("re_translate", _re_in).strip()
