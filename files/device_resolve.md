@@ -10,9 +10,9 @@ The command is the **original Korean**.
 # Input
 - `[Command]` — the original Korean command.
 - `[Targets]` — one line per target group, already resolved:
-  `- role=<condition|read|action|notify> | <tag/nickname/channel> | <N> devices matched | tags=[...]`
+  `- role=<condition|read|action|notify> | tags=#A [#B …] | <N> devices matched`
   - `role` tells you how it's used (condition gate-read / read value-for-output / action / user notification).
-  - the criterion (`label:Light`, `nickname:…`, `channel:speaker`) is the selector tag to use.
+  - **`tags=…` is the EXACT selector tag(s) to use** — already derived for you. Copy them verbatim into the call's `(#…)`, in the SAME order. If two tags are given (`tags=#PhilipsHue #Light`), the selector is `(#PhilipsHue #Light)` (an intersection). Do NOT add, drop, translate, or reorder tags.
 - `[Device Summary]` — for the targets' categories: each service, `type="value"` (reads) vs `type="action"` (calls), enum members. Pick services ONLY from here.
 
 # Step 1 — service per target (Category.Method)
@@ -26,13 +26,13 @@ The command is the **original Korean**.
 - **notify** → `Speaker.Speak` for a speaker target, `ToastPublisher.Publish` for a toast target.
 - Schedule/time (오후 5시/매일/매시간) is NOT a service — ignore it here.
 
-# Step 2 — selector tag (NO quantifier prefix)
-Use the target's own criterion as the `#Tag`, and emit the call with NO prefix:
-- `label:Light` → `(#Light)`, `label:AirConditioner` → `(#AirConditioner)`, `label:Tuya` → `(#Tuya)`.
-- `nickname:…` → that device's id tag (given in `[Targets]` as `tags=[dN]`) → `(#dN)`.
-- `channel:speaker` → `(#Speaker)`, `channel:toast` → `(#ToastPublisher)`.
-- For on/off on a typed group keep the TYPE tag (`#Light`), never bare `#Switch`.
-- 🛑 Do NOT write `all(`/`any(`/`one(` — just `(#Tag).Cat.Method`. The quantifier is added later.
+# Step 2 — selector tag (COPY the given tags, NO quantifier prefix)
+Emit the call's `(#…)` using the target's `tags=…` **exactly as given** — they are already the right selector:
+- `tags=#Light` → `(#Light)` · `tags=#AirConditioner` → `(#AirConditioner)` · `tags=#Speaker` → `(#Speaker)`.
+- `tags=#PhilipsHue #Light` → `(#PhilipsHue #Light)` (multi-tag intersection — keep BOTH, same order).
+- `tags=#d10` (a dN alias for one specific device) → `(#d10)`.
+- 🛑 Even for on/off keep the GIVEN tag(s) (e.g. `(#Light)`), never substitute `#Switch`.
+- 🛑 Do NOT write `all(`/`any(`/`one(` — just `(#…).Cat.Method`. The quantifier is added later.
 
 # Output — short reasoning, then result
 ```
@@ -48,10 +48,10 @@ ONE short clause per call line, ≤20 words. NO multi-sentence prose, NO "Howeve
 [Command]
 모든 조명을 꺼줘
 [Targets]
-- role=action | label:Light | 5 devices matched
+- role=action | tags=#Light | 7 devices matched
 [Device Summary]
 ### Light
-[Device Summary] MoveToBrightness (action) ...
+MoveToBrightness (action) ...
 ### Switch
 On (action), Off (action), Toggle (action)
 calls:
@@ -60,10 +60,22 @@ RESULT:
 (#Light).Switch.Off
 
 [Command]
+hue 조명 색을 빨강으로 바꿔줘
+[Targets]
+- role=action | tags=#PhilipsHue #Light | 3 devices matched
+[Device Summary]
+### Light
+MoveToColor (action), MoveToBrightness (action) ...
+calls:
+- 색 지정 → Light.MoveToColor, 주어진 두 태그 유지 → (#PhilipsHue #Light).Light.MoveToColor
+RESULT:
+(#PhilipsHue #Light).Light.MoveToColor
+
+[Command]
 오후 5시에 사람이 감지되면 에어컨을 켜줘
 [Targets]
-- role=condition | label:PresenceSensor | 8 devices matched
-- role=action | label:AirConditioner | 1 device matched
+- role=condition | tags=#PresenceSensor | 8 devices matched
+- role=action | tags=#AirConditioner | 1 device matched
 [Device Summary]
 ### PresenceSensor
 Presence (value)
@@ -81,7 +93,7 @@ RESULT:
 [Command]
 삼성 공기청정기 큰거 켜줘
 [Targets]
-- role=action | nickname:삼성 공기청정기 큰거 | 1 device matched | tags=[d10]
+- role=action | tags=#d10 | 1 device matched
 [Device Summary]
 ### AirPurifier
 SetAirPurifierMode (action) ...
@@ -95,8 +107,8 @@ RESULT:
 [Command]
 이산화탄소 농도가 1000ppm 이상이면 스피커로 환기하라고 말해줘
 [Targets]
-- role=condition | label:AirQualitySensor | 2 devices matched
-- role=notify | channel:speaker | 1 device matched
+- role=condition | tags=#AirQualitySensor | 2 devices matched
+- role=notify | tags=#Speaker | 1 device matched
 [Device Summary]
 ### AirQualitySensor
 CarbonDioxide (value), FineDustLevel (value) ...
@@ -112,8 +124,8 @@ RESULT:
 [Command]
 매시간 정각마다 스피커로 시간을 알려줘
 [Targets]
-- role=read | label:Clock | 1 device matched
-- role=notify | channel:speaker | 1 device matched
+- role=read | tags=#Clock | 1 device matched
+- role=notify | tags=#Speaker | 1 device matched
 [Device Summary]
 ### Clock
 Hour (value), Minute (value), Time (value), Weekday (value) ...
@@ -130,7 +142,7 @@ RESULT:
 [Command]
 조명 밝기 20 퍼센트로 설정해줘
 [Targets]
-- role=action | label:Light | 5 devices matched
+- role=action | tags=#Light | 7 devices matched
 [Device Summary]
 ### Light
 MoveToBrightness (action) ...

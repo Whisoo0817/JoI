@@ -2,9 +2,10 @@
 
 Turns a Korean smart-home command into JoI automation code:
 
-    [Stage 1] device_retrieve  -> target groups (role + by-criterion)
-              resolve_targets  -> matched device ids + categories (Python)
-              device_resolve   -> final selectors `<quant>(#Tag).Cat.Method`
+    [Stage 1] device_retrieve  -> target groups (role + verbatim label phrase), command-only
+              ground_targets   -> phrase -> matched device ids (LLM, sees devices)
+              minimal_tags_for -> tightest selector tags from matched devices (Python)
+              device_resolve   -> service per group, echoing the given tags `(#Tag).Cat.Method`
               quantifier_for   -> all/any/one prefix (Python)
     [Stage 2] translation to English (for the IR/lowering prompts)
     [Stage 3 // parallel]
@@ -35,7 +36,7 @@ if _BASE_DIR not in sys.path:
 
 from config import get_client, get_model_id
 from loader import SERVICE_DATA, PROMPTS, get_device_rules_section
-from device_ontology import parse_targets, resolve_targets
+from device_ontology import parse_targets
 from parser.validator import validate_joi
 
 from pipeline_helpers import (
@@ -685,8 +686,8 @@ def generate_joi_code_ir(
         cd_simple[k] = {"category": cats, "tags": [t for t in tags if t not in cats]}
 
     # ── ID aliasing: anonymize device ids as d1/d2/... once, shared across the
-    # device stages (device_retrieve sees the dN-keyed dict; resolve_targets maps
-    # criteria → dN ids; real_of maps them back to real ids for the selectors).
+    # device stages (grounding returns dN ids; minimal_tags derives selector tags
+    # from them; real_of maps any dN that survives into the selector back to real).
     real_ids = list(cd_simple.keys())
     alias_of = {real: f"d{i+1}" for i, real in enumerate(real_ids)}
     real_of = {a: r for r, a in alias_of.items()}
@@ -700,77 +701,95 @@ def generate_joi_code_ir(
     }
 
     # ── Device-first pipeline (the only path). Runs on the raw Korean command:
-    # device_retrieve → resolve_targets (Python) → device_resolve → quantifier
-    # (Python) → translation → arg_resolve/IR → lowering → naming. Produces
-    # `selected_services` + `_df_precision` (selectors) directly, so run_precision
-    # returns them instead of doing a device-match LLM call.
+    # device_retrieve (command-only) → ground_targets (LLM, devices) → minimal_tags
+    # (Python) → device_resolve → quantifier (Python) → translation → arg_resolve/IR
+    # → lowering → naming. Produces `selected_services` + `_df_precision` (selectors)
+    # directly, so run_precision returns them instead of a device-match LLM call.
     # `original_sentence` keeps the Korean wording for arg_resolve's human-facing
     # text (Speaker/Toast); the device stages read it directly (no preprocess/MT).
     original_sentence = sentence
 
-    # device_retrieve → semi-structured target groups (role + by-criterion).
-    # resolve_targets (Python) applies each criterion → matched ids + categories.
-    # device_resolve maps each target to its final selector `<quant>(#Tag).Cat.Method`.
+    # cd_named: dN-keyed device dict (nickname + real category/tags). Shared with
+    # the GROUNDING stage. device_retrieve itself no longer sees devices.
     cd_named = {
         a: {"category": cd_aliased[a]["category"],
             "tags": cd_aliased[a]["tags"],
             "nickname": connected_devices.get(real_of[a], {}).get("nickname", "")}
         for a in cd_aliased
     }
-    retrieve_user = (
-        f"[Connected Devices]\n{json.dumps(cd_named, indent=2, ensure_ascii=False)}\n\n"
-        f"[Command]\n{sentence}"
-    )
-    retr_raw = infer("device_retrieve", retrieve_user, max_tokens=512).strip()
-    # Missing device → retrieve emits a single `NONE:` line. Fail fast.
-    _none = re.search(r'(?im)^\s*NONE:\s*(.+?)\s*$', retr_raw)
-    if _none:
-        log_buf.append(f"⛔ device_retrieve NONE: {_none.group(1)}")
+
+    # ── Stage 1: device_retrieve (LLM, COMMAND ONLY) — parses the language into
+    # target groups: role | by=label:<verbatim phrase> / channel:… | scope. It does
+    # NOT see devices and never decides existence (no NONE here — that's grounding).
+    targets = []
+    for _attempt in range(2):  # retrieve occasionally emits an empty/malformed block
+        retr_raw = infer("device_retrieve", f"[Command]\n{sentence}", max_tokens=512).strip()
+        _tm = re.search(r'<targets>(.*?)</targets>', retr_raw, re.DOTALL)
+        targets_spec = (_tm.group(1).strip() if _tm else retr_raw).strip()
+        targets = parse_targets(targets_spec)
+        if targets:
+            break
+        log_buf.append("⚠️ device_retrieve produced no targets — retrying once")
+    if not targets:
         raise JoiGenerationError(
-            f"Cannot fulfill command — {_none.group(1)}",
-            "\n".join(log_buf), error_code="device_not_connected",
-        )
-    _tm = re.search(r'<targets>(.*?)</targets>', retr_raw, re.DOTALL)
-    targets_spec = (_tm.group(1).strip() if _tm else retr_raw).strip()
-    # A `NONE:` may also appear as ONE target line inside <targets> (e.g. a
-    # condition device exists but the action device — 커튼/도어락 — doesn't).
-    # That line isn't a `role=` target so resolve_targets drops it silently,
-    # leaving the IR stage to hallucinate a call on a wrong device. Fail fast
-    # on any inline NONE target instead.
-    _none_line = re.search(r'(?im)^\s*-?\s*NONE:\s*(.+?)\s*$', targets_spec)
-    if _none_line:
-        log_buf.append(f"⛔ device_retrieve NONE (target): {_none_line.group(1)}")
-        raise JoiGenerationError(
-            f"Cannot fulfill command — {_none_line.group(1)}",
-            "\n".join(log_buf), error_code="device_not_connected",
+            "No target groups parsed from device_retrieve.",
+            "\n".join(log_buf), error_code="reasoning_failed",
         )
 
-    # Deterministic: apply each target's by-criterion over cd_named (dN ids,
-    # incl. nickname — cd_aliased has no nickname field so label/nickname
-    # matching must use cd_named).
-    groups = resolve_targets(parse_targets(targets_spec), cd_named)
-    if not groups:
-        raise JoiGenerationError(
-            "No target devices identified.",
-            "\n".join(log_buf), error_code="device_not_connected",
+    # ── Stage 2: grounding. A `label:<phrase>` is resolved to device ids by the
+    # ground_targets LLM (it sees the devices); a `channel:` target is resolved by
+    # category in Python. Then minimal_tags_for derives each group's tightest
+    # selector tags from the matched devices (device-first, then tags).
+    from device_ontology import (quantifier_for as _qf, _CHANNEL_CATEGORY as _CHCAT,
+                                  minimal_tags_for as _min_tags)
+    label_targets = [t for t in targets if t["by_kind"] == "label"]
+    grounded = {}   # label-target-index → [dN…]
+    if label_targets:
+        _phrases = "\n".join(f"{i+1}. {t['by_val']}" for i, t in enumerate(label_targets))
+        ground_user = (
+            f"[Command]\n{sentence}\n\n"
+            f"[Devices]\n{json.dumps(cd_named, indent=2, ensure_ascii=False)}\n\n"
+            f"[Phrases]\n{_phrases}"
         )
-    # ANY group that matched zero devices means the command named a device kind
-    # that isn't connected (e.g. retrieve emitted label:WindowCovering for 커튼
-    # but none exists). That target can't be fulfilled → fail, don't let
-    # device_resolve hallucinate a call on an empty selector.
-    empty = [f"{g['by_kind']}:{g['by_val']}" for g in groups if not g["ids"]]
-    if empty:
-        raise JoiGenerationError(
-            f"No connected device for: {', '.join(empty)}",
-            "\n".join(log_buf), error_code="device_not_connected",
-        )
-    # [Targets] block for device_resolve: role + criterion + match count + (nickname) tag.
-    target_lines = []
-    for g in groups:
-        crit = f"{g['by_kind']}:{g['by_val']}"
-        tagsfx = f" | tags={g['ids']}" if g["by_kind"] == "nickname" else ""
-        target_lines.append(
-            f"- role={g['role']} | {crit} | {len(g['ids'])} devices matched{tagsfx}")
+        ground_raw = infer("ground_targets", ground_user, max_tokens=512).strip()
+        log_buf.append(f"🧭 grounding:\n{ground_raw}")
+        _gm = re.search(r'<grounded>(.*?)</grounded>', ground_raw, re.DOTALL)
+        for ln in (_gm.group(1) if _gm else ground_raw).splitlines():
+            m = re.match(r'\s*(\d+)\.\s*.*?\|\s*(.+?)\s*$', ln)
+            if not m:
+                continue
+            idx, rhs = int(m.group(1)) - 1, m.group(2).strip()
+            grounded[idx] = [] if rhs.upper() == "NONE" else re.findall(r'd\d+', rhs)
+
+    groups, li = [], 0
+    for t in targets:
+        if t["by_kind"] == "channel":
+            wanted = {_CHCAT.get(c.strip().lower())
+                      for c in t["by_val"].split(",") if c.strip()}
+            ids = [a for a in cd_named if set(cd_named[a]["category"]) & wanted]
+        else:  # label → grounded
+            ids = [a for a in grounded.get(li, []) if a in cd_named]
+            li += 1
+        if not ids:
+            raise JoiGenerationError(
+                f"Cannot fulfill command — no connected device for {t['by_val']!r}",
+                "\n".join(log_buf), error_code="device_not_connected",
+            )
+        # device-first, THEN tags: derive the minimal selector tags from the matched
+        # devices. Empty → not tag-expressible → select by the device id alias(es).
+        sel_tags, _exact = _min_tags(ids, cd_named)
+        if not sel_tags:
+            sel_tags = list(ids)
+        cats = sorted({c for a in ids for c in cd_named.get(a, {}).get("category", [])})
+        groups.append({**t, "ids": ids, "categories": cats, "sel_tags": sel_tags})
+    log_buf.append("🎯 targets: " + " ; ".join(
+        f"{g['role']}:{g['by_val']}→(#{' #'.join(g['sel_tags'])})×{len(g['ids'])}"
+        for g in groups))
+
+    # ── Stage 3: device_resolve — pick the SERVICE per group; echo the given tags.
+    target_lines = [
+        f"- role={g['role']} | tags={' '.join('#'+x for x in g['sel_tags'])} | "
+        f"{len(g['ids'])} devices matched" for g in groups]
     resolve_cats = sorted({c for g in groups for c in g["categories"]})
     resolve_user = (
         f"[Command]\n{sentence}\n\n"
@@ -790,23 +809,12 @@ def generate_joi_code_ir(
     raw_selectors = [ln.strip() for ln in result_block.splitlines()
                      if ln.strip() and "(" in ln and ")" in ln]
 
-    # ── Deterministic quantifier: resolve emits NO prefix; we add all/any/one
-    # from each group's scope + role + match count. Map a selector's first
-    # #Tag back to the group that owns it.
-    from device_ontology import quantifier_for as _qf, _CHANNEL_CATEGORY as _CHCAT
+    # ── Deterministic quantifier: resolve emits NO prefix; we add all/any/one from
+    # each group's scope + role + match count. Map a selector's tag → its group.
     tag_to_group = {}
     for g in groups:
-        owned = []
-        if g["by_kind"] == "label":
-            owned = [g["by_val"]]
-        elif g["by_kind"] == "nickname":
-            owned = list(g["ids"])  # the dN handle(s)
-        elif g["by_kind"] == "channel":
-            owned = [_CHCAT.get(c.strip().lower())
-                     for c in g["by_val"].split(",") if c.strip()]
-        for t in owned:
-            if t:
-                tag_to_group[t] = g
+        for t in g["sel_tags"]:
+            tag_to_group[t] = g
     selectors = []
     for s in raw_selectors:
         s = re.sub(r'^\s*(all|any|one)\s*\(', '(', s)  # drop any LLM-emitted prefix
