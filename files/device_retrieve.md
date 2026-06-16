@@ -17,13 +17,13 @@ One line per target group, inside `<targets>`:
   - `notify` — telling the user something (TTS / on-screen): "알려줘", "알림", "안내", "~라고 말해줘", "회의 시간이라고 알려줘".
 - **scope** — the user's quantity intent. **If the command has an EXPLICIT quantity word, copy it; otherwise use `auto`** and let the next stage decide from the device count. Applies to ALL roles (condition, action, notify) the same way.
   - `all` — an explicit universal word: 모두/다/전부/모든/전체 ("모든 조명 꺼", "모든 문이 닫혀 있으면", "투야 장치들 다 꺼"). For a CONDITION this means EVERY sensor must satisfy it.
-  - `any` — an explicit at-least-one word: 하나라도/하나라도/적어도 하나/아무거나 ("문 하나라도 닫혀있으면", "한 명이라도 감지되면"). For a CONDITION this means at least one sensor satisfies it.
+  - `any` — an explicit at-least-one word, and ONLY these: 하나라도/적어도 하나/아무거나/어느 하나 ("문 하나라도 닫혀있으면", "한 명이라도 감지되면"). The word "하나라도" (or a synonym above) must LITERALLY appear. For a CONDITION this means at least one sensor satisfies it.
   - `one` — an explicit single word (하나만/하나/한 개/한개 — "조명 하나만 켜"), or a specific device named by nickname. Runtime acts on one (random if several match).
-  - `auto` — **NO explicit quantity word** ("조명 꺼줘", "에어컨 켜줘", "사람이 감지되면", "재실되면 알려줘"). The next stage decides: 1 device → one; condition with ≥2 → any; action with ≥2 → all. ⚠️ A bare device with no quantity word (even "에어컨 꺼") is `auto`, NOT `one`.
-  - ⚠️ Do NOT default a bare condition to `any` yourself — use `auto`. Only use `any` when the command literally says 하나라도/적어도 하나; only use `all` when it literally says 모두/전부/다/모든.
+  - `auto` — **NO explicit quantity word** ("조명 꺼줘", "에어컨 켜줘", "사람이 감지되면", "재실되면 알려줘", "문이 열리면", "문이 열릴 때마다"). The next stage decides: 1 device → one; condition with ≥2 → any; action with ≥2 → all. ⚠️ A bare device with no quantity word (even "에어컨 꺼") is `auto`, NOT `one`.
+  - 🛑 **A plain trigger is NOT `any`.** `~이면`/`~되면`/`~열리면`/`~감지되면`/`~때마다`/`~할 때마다` ("every time", "when ~", "whenever ~") describe WHEN the condition fires — they are NOT quantity words and must NOT be read as `any`. Default EVERY bare condition (no 하나라도/모두) to `auto`; the next stage counts the real devices and decides (1 device → no quantifier at all). Use `any` ONLY when 하나라도/적어도 하나 literally appears, `all` ONLY when 모두/전부/다/모든 literally appears.
 - **by** — the criterion that picks the devices (ONE of):
-  - `label:X` — devices whose `tags` OR `category` contain `X`. Use the device-type, brand, OR feature word: `label:Light`, `label:AirConditioner`, `label:Tuya`, `label:ContactSensor`, `label:PresenceSensor`, `label:Camera`, `label:EmailProvider`, and feature tags `label:Window`, `label:Entrance`. (You don't distinguish tag vs category — both are matched.)
-    - **When the command names a SPECIFIC feature, use that feature tag, NOT the broad category.** 창문 → `label:Window`, 현관/입구(문) → `label:Entrance` (these are `ContactSensor` feature tags). Use the broad `label:ContactSensor` ONLY for a generic 문/센서 with no feature word. (Same idea as brand: 투야 → `label:Tuya`, not `label:Light`.)
+  - `label:X` — devices whose `tags` OR `category` contain `X`. Use the device-type, brand, OR feature word: `label:Light`, `label:AirConditioner`, `label:Tuya`, `label:ContactSensor`, `label:PresenceSensor`, `label:Camera`, `label:EmailProvider`, and feature tags `label:Door`, `label:Window`, `label:Entrance`. (You don't distinguish tag vs category — both are matched.)
+    - **When the command names a SPECIFIC feature, use that feature tag, NOT the broad category.** 문 → `label:Door`, 창문 → `label:Window`, 현관/입구 → `label:Entrance` (these are `ContactSensor` feature tags). 창문(window)과 문(door)은 다른 태그다 — 창문은 `Window`, 그냥 문은 `Door`. Use the broad `label:ContactSensor` ONLY for a generic 센서 with no feature word. (Same idea as brand: 투야 → `label:Tuya`, not `label:Light`.)
   - `nickname:<full nickname>` — one specific device named by its app nickname ("삼성 공기청정기 큰거").
   - `channel:speaker,toast` / `channel:speaker` / `channel:toast` — the notification channel(s) for a `notify` group (see channel rule).
 
@@ -58,7 +58,7 @@ Either a `<targets>` block (one line per group) OR a single `NONE:` line. Nothin
 [Command]
 삼성 공기청정기 큰거 켜줘
 <targets>
-- role=action | by=nickname:삼성 공기청정기 큰거 | scope=one
+- role=action | by=nickname:삼성 공기청정기 큰거 | scope=auto
 </targets>
 
 [Command]
@@ -78,10 +78,19 @@ Either a `<targets>` block (one line per group) OR a single `NONE:` line. Nothin
 [Command]
 문이 열리면 카메라로 촬영하고 이메일로 보내줘
 <targets>
-- role=condition | by=label:ContactSensor | scope=auto
+- role=condition | by=label:Door | scope=auto
 - role=action | by=label:Camera | scope=auto
 - role=action | by=label:EmailProvider | scope=auto
 </targets>
+
+[Command]
+문이 열릴때마다 조명을 하나 켜줘
+<targets>
+- role=condition | by=label:Door | scope=auto
+- role=action | by=label:Light | scope=one
+</targets>
+# "열릴때마다"는 트리거(언제)일 뿐 수량어가 아니므로 door condition은 any가 아니라 auto.
+# "하나"는 조명(action)에만 붙은 수량어라 Light=one — door로 번지지 않는다. 수량어는 그것이 수식하는 대상에만 적용.
 
 [Command]
 조명을 끄고 카메라 녹화하고 메일 보내줘
@@ -95,55 +104,55 @@ Either a `<targets>` block (one line per group) OR a single `NONE:` line. Nothin
 이산화탄소 농도가 1000ppm 이상이면 스피커로 환기해줘라고 말해줘
 <targets>
 - role=condition | by=label:AirQualitySensor | scope=auto
-- role=notify | by=channel:speaker | scope=one
+- role=notify | by=channel:speaker | scope=auto
 </targets>
 
 [Command]
 회의 시간이라고 알려줘
 <targets>
-- role=notify | by=channel:speaker,toast | scope=one
+- role=notify | by=channel:speaker,toast | scope=auto
 </targets>
 
 [Command]
 매시간 정각마다 스피커로 시간을 알려줘
 <targets>
-- role=read | by=label:Clock | scope=one
-- role=notify | by=channel:speaker | scope=one
+- role=read | by=label:Clock | scope=auto
+- role=notify | by=channel:speaker | scope=auto
 </targets>
 
 [Command]
 지금 몇 시인지 말해줘
 <targets>
-- role=read | by=label:Clock | scope=one
-- role=notify | by=channel:speaker | scope=one
+- role=read | by=label:Clock | scope=auto
+- role=notify | by=channel:speaker | scope=auto
 </targets>
 
 [Command]
 재실 감지되면 토스트로 보여줘
 <targets>
 - role=condition | by=label:PresenceSensor | scope=auto
-- role=notify | by=channel:toast | scope=one
+- role=notify | by=channel:toast | scope=auto
 </targets>
 
 [Command]
 모든 문이 닫혀 있으면 스피커로 알려줘
 <targets>
-- role=condition | by=label:ContactSensor | scope=all
-- role=notify | by=channel:speaker | scope=one
+- role=condition | by=label:Door | scope=all
+- role=notify | by=channel:speaker | scope=auto
 </targets>
 
 [Command]
 문 하나라도 닫혀있으면 스피커로 알려줘
 <targets>
-- role=condition | by=label:ContactSensor | scope=any
-- role=notify | by=channel:speaker | scope=one
+- role=condition | by=label:Door | scope=any
+- role=notify | by=channel:speaker | scope=auto
 </targets>
 
 [Command]
 창문 중 하나라도 닫혀 있으면 창문 열라고 알려줘
 <targets>
 - role=condition | by=label:Window | scope=any
-- role=notify | by=channel:speaker,toast | scope=one
+- role=notify | by=channel:speaker,toast | scope=auto
 </targets>
 
 [Command]

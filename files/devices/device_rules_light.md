@@ -33,9 +33,9 @@ We carefully distinguish between `MoveTo*` and `Move*`.
 - `MoveColor`/`MoveColorTemperature`/`MoveHue`: Continuously shifting WITHOUT a target.
 - Use `Light.MoveToColor` for specific color names like "Red" or "Blue".
 
-## On/Off Fallback
-- To turn OFF: prefer `Switch.Off` if available. If not, use `Light.MoveToBrightness` with value 0.
-- To turn ON: prefer `Switch.On` if available. If not, use `Light.MoveToBrightness` with value 100 (or a user-specified value).
+## On/Off — Switch FIRST
+- **Bare on/off (켜/꺼/켜기/끄기 with NO brightness value) → ALWAYS `Switch.On` / `Switch.Off` when the device has a Switch.** Most lights are tagged `["Light", "Switch"]`, so Switch IS available — use it. Do NOT use `MoveToBrightness` for a plain on/off.
+- `MoveToBrightness` is ONLY for: (a) a brightness value is given ("20%로", "밝기 10으로"), or (b) the device has NO Switch (fallback: ON → value 100, OFF → value 0).
 - Never return an empty list because Switch is unavailable — always fall back to `MoveToBrightness`.
 
 [Command]
@@ -53,6 +53,15 @@ Keep changing the color temperature
 [Command]
 Check the current brightness of the light
 ["Light.CurrentBrightness"]
+
+[Command]
+Turn on the light
+# why: device has a Switch → plain on uses Switch.On, NOT MoveToBrightness
+["Switch.On"]
+
+[Command]
+Turn off the light
+["Switch.Off"]
 
 [Command]
 Turn off the light (Switch not available)
