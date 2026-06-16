@@ -752,7 +752,6 @@ def generate_joi_code_ir(
             f"[Phrases]\n{_phrases}"
         )
         ground_raw = infer("ground_targets", ground_user, max_tokens=512).strip()
-        log_buf.append(f"🧭 grounding:\n{ground_raw}")
         _gm = re.search(r'<grounded>(.*?)</grounded>', ground_raw, re.DOTALL)
         for ln in (_gm.group(1) if _gm else ground_raw).splitlines():
             m = re.match(r'\s*(\d+)\.\s*.*?\|\s*(.+?)\s*$', ln)
@@ -761,30 +760,34 @@ def generate_joi_code_ir(
             idx, rhs = int(m.group(1)) - 1, m.group(2).strip()
             grounded[idx] = [] if rhs.upper() == "NONE" else re.findall(r'd\d+', rhs)
 
+    def _mk_group(t, ids):
+        # device-first, THEN tags: derive the minimal selector tags from the matched
+        # devices. Empty → not tag-expressible → select by the device id alias(es).
+        sel_tags, _exact = _min_tags(ids, cd_named)
+        cats = sorted({c for a in ids for c in cd_named.get(a, {}).get("category", [])})
+        return {**t, "ids": ids, "categories": cats, "sel_tags": sel_tags or list(ids)}
+
     groups, li = [], 0
     for t in targets:
         if t["by_kind"] == "channel":
-            wanted = {_CHCAT.get(c.strip().lower())
-                      for c in t["by_val"].split(",") if c.strip()}
-            ids = [a for a in cd_named if set(cd_named[a]["category"]) & wanted]
-        else:  # label → grounded
-            ids = [a for a in grounded.get(li, []) if a in cd_named]
-            li += 1
+            # ONE group PER channel (speaker,toast → a Speaker group AND a
+            # ToastPublisher group), each with its own single-category selector.
+            # Never one (#Speaker #Toast) group — that intersection selects nothing.
+            for ch in t["by_val"].split(","):
+                cat = _CHCAT.get(ch.strip().lower())
+                cids = [a for a in cd_named if cat and cat in cd_named[a]["category"]]
+                if cids:
+                    groups.append(_mk_group(t, cids))
+            continue
+        # label → grounded device ids
+        ids = [a for a in grounded.get(li, []) if a in cd_named]
+        li += 1
         if not ids:
             raise JoiGenerationError(
                 f"Cannot fulfill command — no connected device for {t['by_val']!r}",
                 "\n".join(log_buf), error_code="device_not_connected",
             )
-        # device-first, THEN tags: derive the minimal selector tags from the matched
-        # devices. Empty → not tag-expressible → select by the device id alias(es).
-        sel_tags, _exact = _min_tags(ids, cd_named)
-        if not sel_tags:
-            sel_tags = list(ids)
-        cats = sorted({c for a in ids for c in cd_named.get(a, {}).get("category", [])})
-        groups.append({**t, "ids": ids, "categories": cats, "sel_tags": sel_tags})
-    log_buf.append("🎯 targets: " + " ; ".join(
-        f"{g['role']}:{g['by_val']}→(#{' #'.join(g['sel_tags'])})×{len(g['ids'])}"
-        for g in groups))
+        groups.append(_mk_group(t, ids))
 
     # ── Stage 3: device_resolve — pick the SERVICE per group; echo the given tags.
     target_lines = [
