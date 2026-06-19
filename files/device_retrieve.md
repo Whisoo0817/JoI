@@ -26,6 +26,7 @@ One line per target group, inside `<targets>`:
   - `one` — an explicit single word (하나만/하나/한 개/한개 — "조명 하나만 켜"). Runtime acts on one (random if several match).
   - `auto` — **NO explicit quantity word** ("조명 꺼줘", "에어컨 켜줘", "사람이 감지되면", "문이 열리면", "문이 열릴 때마다"). A later stage counts the real devices and decides.
   - 🛑 **A plain trigger is NOT `any`.** `~이면`/`~되면`/`~열리면`/`~감지되면`/`~때마다`/`~할 때마다` describe WHEN the condition fires — they are NOT quantity words. Default EVERY bare condition (no 하나라도/모두) to `auto`. Use `any` ONLY when 하나라도/적어도 하나 literally appears, `all` ONLY when 모두/전부/다/모든 literally appears.
+  - ⚠️ **NARROW exception — presence/motion ABSENCE → `all`.** For a 사람/재실/움직임 (presence·motion) condition phrased as ABSENCE — "사람이 없으면", "아무도 없으면", "재실이 감지되지 않으면", "움직임이 없으면" — emit `scope=all` even with no quantity word: "nobody anywhere" requires EVERY sensor to agree (one occupied room must NOT trigger). This applies ONLY to presence/motion absence. The POSITIVE form ("사람이 감지되면", "사람이 있으면") stays `auto`. Do NOT extend this to other sensors (문/CO₂/미세먼지 stay `auto`).
 
 # Schedule is NOT a target
 Time / scheduling words are **NOT devices** — IGNORE them (a later stage turns them into cron/period): 매일, 평일, 주말, 매시간, 정각, 오전/오후 N시, N시 N분, "~시에", "~시마다", "매 N분/시간마다" (clock interval). Do **NOT** emit a target line for them.
@@ -85,7 +86,24 @@ hue 조명 색을 빨강으로 바꿔줘
 - role=condition | by=label:사람 | scope=auto
 - role=action | by=label:에어컨 | scope=auto
 </targets>
-# "오후 5시에"는 스케줄 → 타겟 아님 (무시). 감지/에어컨만 타겟.
+# "오후 5시에"는 스케줄 → 타겟 아님 (무시). "감지되면"(긍정)이라 사람 condition은 auto.
+
+[Command]
+10분 이상 사람이 없으면 불 다 꺼줘
+<targets>
+- role=condition | by=label:사람 | scope=all
+- role=action | by=label:불 | scope=all
+</targets>
+# "사람이 없으면"(부재) → 모든 재실 센서가 사람 없음이어야 함 → condition scope=all (auto/any 아님).
+# "10분 이상"은 지속시간(스케줄 아님)이고, "다"는 불(action)에 붙은 모두 → 불 scope=all.
+
+[Command]
+재실이 감지되지 않으면 조명을 꺼줘
+<targets>
+- role=condition | by=label:재실 | scope=all
+- role=action | by=label:조명 | scope=auto
+</targets>
+# "감지되지 않으면"(부재) → 모든 재실 센서 동의 필요 → condition scope=all.
 
 [Command]
 문이 열릴때마다 조명을 하나 켜줘
