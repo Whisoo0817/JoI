@@ -17,6 +17,7 @@ The command is the **original Korean**.
 
 # Step 1 — service per target (Category.Method)
 - **condition** → a value-read used as a trigger/gate: `PresenceSensor.Presence`, `ContactSensor.Contact`, `AirQualitySensor.CarbonDioxide`, `LightSensor.Brightness`.
+  - **A device's ON/OFF state (불/기기가 "켜져 있으면"/"꺼져 있으면") → `Switch.Switch`** (the boolean power state, which EVERY switchable device has) — NOT `Light.CurrentBrightness` or any level read. Use the same `Switch.Switch` for ALL clusters of the group (e.g. both a `#Light` and a `#LightSwitch` target), so each emits its own state read.
 - **read** → a value-read whose value is used in the OUTPUT (spoken/announced), same value members as condition:
   - **Clock target (announcing the current time)** → read BOTH `Clock.Hour` AND `Clock.Minute` (two integer value-reads, two RESULT lines). They get spoken as "H시 M분". ❌ Do NOT use `Clock.Time`/`Clock.Datetime`/`Clock.Timestamp` (string/number forms — unnatural to speak). If only the hour matters ("몇 시", 정각) you may read `Clock.Hour` alone, but default to Hour+Minute for "시각/시간".
 - **action**:

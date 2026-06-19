@@ -736,14 +736,16 @@ def generate_joi_code_ir(
             "\n".join(log_buf), error_code="reasoning_failed",
         )
 
-    # ── Stage 2: grounding. A `label:<phrase>` is resolved to device ids by the
-    # ground_targets LLM (it sees the devices); a `channel:` target is resolved by
-    # category in Python. Then minimal_tags_for derives each group's tightest
-    # selector tags from the matched devices (device-first, then tags).
+    # ── Stage 2: grounding. The ground_targets LLM maps each label phrase to a
+    # CRITERION (tag/category/nickname tokens, `+`=AND, `;`=OR-cluster) — NOT a raw
+    # device list. Python then resolves the criterion to device sets deterministically
+    # (exact, no LLM mis-pick), one selector CLUSTER per OR-group. A `channel:` target
+    # is resolved by category in Python.
     from device_ontology import (quantifier_for as _qf, _CHANNEL_CATEGORY as _CHCAT,
-                                  minimal_tags_for as _min_tags)
+                                  minimal_tags_for as _min_tags,
+                                  resolve_criterion as _resolve_crit)
     label_targets = [t for t in targets if t["by_kind"] == "label"]
-    grounded = {}   # label-target-index → [dN…]
+    grounded = {}   # label-target-index → criterion string
     if label_targets:
         _phrases = "\n".join(f"{i+1}. {t['by_val']}" for i, t in enumerate(label_targets))
         ground_user = (
@@ -755,15 +757,10 @@ def generate_joi_code_ir(
         _gm = re.search(r'<grounded>(.*?)</grounded>', ground_raw, re.DOTALL)
         for ln in (_gm.group(1) if _gm else ground_raw).splitlines():
             m = re.match(r'\s*(\d+)\.\s*.*?\|\s*(.+?)\s*$', ln)
-            if not m:
-                continue
-            idx, rhs = int(m.group(1)) - 1, m.group(2).strip()
-            grounded[idx] = [] if rhs.upper() == "NONE" else re.findall(r'd\d+', rhs)
+            if m:
+                grounded[int(m.group(1)) - 1] = m.group(2).strip()
 
-    def _mk_group(t, ids):
-        # device-first, THEN tags: derive the minimal selector tags from the matched
-        # devices. Empty → not tag-expressible → select by the device id alias(es).
-        sel_tags, _exact = _min_tags(ids, cd_named)
+    def _mk_group(t, ids, sel_tags):
         cats = sorted({c for a in ids for c in cd_named.get(a, {}).get("category", [])})
         return {**t, "ids": ids, "categories": cats, "sel_tags": sel_tags or list(ids)}
 
@@ -777,17 +774,21 @@ def generate_joi_code_ir(
                 cat = _CHCAT.get(ch.strip().lower())
                 cids = [a for a in cd_named if cat and cat in cd_named[a]["category"]]
                 if cids:
-                    groups.append(_mk_group(t, cids))
+                    st, _ = _min_tags(cids, cd_named)
+                    groups.append(_mk_group(t, cids, st))
             continue
-        # label → grounded device ids
-        ids = [a for a in grounded.get(li, []) if a in cd_named]
+        # label → criterion → OR-groups of device ids (one selector cluster each)
+        crit = grounded.get(li, "")
         li += 1
-        if not ids:
+        or_groups = _resolve_crit(crit, cd_named) if crit.upper() != "NONE" else []
+        if not or_groups:
             raise JoiGenerationError(
                 f"Cannot fulfill command — no connected device for {t['by_val']!r}",
                 "\n".join(log_buf), error_code="device_not_connected",
             )
-        groups.append(_mk_group(t, ids))
+        for grp_ids in or_groups:
+            sel_tags, _ = _min_tags(grp_ids, cd_named)
+            groups.append(_mk_group(t, grp_ids, sel_tags))
 
     # ── Stage 3: device_resolve — pick the SERVICE per group; echo the given tags.
     target_lines = [
@@ -823,6 +824,26 @@ def generate_joi_code_ir(
         s = re.sub(r'^\s*(all|any|one)\s*\(', '(', s)  # drop any LLM-emitted prefix
         first_tag = re.search(r'#([A-Za-z0-9_\-]+)', s)
         g = tag_to_group.get(first_tag.group(1)) if first_tag else None
+        # Skill filter (DEVICE-level): a call's `.Category.` is the capability it needs.
+        # Keep only the group's devices that ACTUALLY have that category, then rebuild
+        # the selector for that subset. A whole-group miss drops the call. e.g. a #Tuya
+        # group spans sensors+switches → `Switch.Off` narrows to `(#Tuya #Switch)` (the
+        # 8 switchable), not all 16; `Light.MoveToBrightness` onto a Switch-only cluster
+        # → empty → dropped. (Cluster-level checks missed partial-capability groups.)
+        _svc = re.search(r'\)\.([A-Za-z]\w*)\.', s)
+        if g and _svc:
+            cat = _svc.group(1)
+            capable = [a for a in g["ids"] if cat in cd_named[a]["category"]]
+            if not capable:
+                log_buf.append(f"🚫 drop call (no {cat} device in cluster): {s}")
+                continue
+            if len(capable) < len(g["ids"]):
+                new_tags, _ = _min_tags(capable, cd_named)
+                new_tags = new_tags or capable
+                s = re.sub(r'\(#[^)]*\)', "(#" + " #".join(new_tags) + ")", s, count=1)
+                g = {**g, "ids": capable, "sel_tags": new_tags,
+                     "categories": sorted({c for a in capable
+                                           for c in cd_named[a]["category"]})}
         q = _qf(g["scope"], g["role"], len(g["ids"])) if g else ""
         full = (q + s) if q else s
         selectors.append((full, g))

@@ -169,7 +169,17 @@ Example (bad — do not do this):
 - ✅ Precision `(#X)` → `(#X).Attr op V`. ❌ NOT `all(#X).Attr op V`.
 - ✅ Precision `any(#X)` → emit `any(#X).Attr op V` verbatim. A post-process step rewrites to canonical JoI form; you do NOT perform that rewrite.
 
-**Fan-out** — when a service in `[Precision Selectors]` has 2+ selector entries: emit ONE call statement per selector in list order, identical args. Never collapse into `all(...)`, never drop, never pick "the best".
+**Fan-out (a `call`)** — when a service used in an IR `call` has 2+ selector entries in `[Precision Selectors]`: emit ONE call statement **per selector, each on its OWN line**, identical args. Never collapse into `all(...)`, never drop, never pick "the best".
+- 🛑 A `call` is an ACTION, NOT a boolean. **NEVER join action calls with `or`/`and`**, and never wrap them in `( ... )`. Two lights on = two statements:
+  ✅ `all(#Light).switch_on()` ⏎ `all(#LightSwitch).switch_on()`
+  ❌ `(all(#Light).switch_on() or all(#LightSwitch).switch_on())`
+- `or`/`and` joining of multiple selectors applies ONLY inside a `cond` (see next), never to `call` statements.
+
+**Fan-out (a `cond`) → OR** — a condition is ONE boolean, not repeatable statements. When a service used in an IR `cond` has 2+ selector entries, **OR the operand across EVERY selector, parenthesized** (one read per selector, joined by `or`):
+- precision `Switch.Switch: [any(#Light), any(#LightSwitch)]`, IR cond `Switch.Switch == true` →
+  `(any(#Light).Switch == true or any(#LightSwitch).Switch == true)`
+- If the IR cond already repeats the service (`Switch.Switch == true or Switch.Switch == true`), still bind **each precision selector exactly once** — never emit the same selector twice, never drop one.
+- This applies ONLY to the condition's own operands. Other services (the notify/action calls in `then`) keep THEIR own selectors — never attach a `Speak`/`Publish` to a `#Light`/`#LightSwitch`.
 
 ---
 

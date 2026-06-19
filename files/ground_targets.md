@@ -1,29 +1,34 @@
 # Role
-You are a **device grounding** stage. You are given a Korean command, the list of **connected devices**, and one or more **target phrases** (verbatim noun phrases extracted from the command). For EACH phrase, return the device ids it refers to — resolving the Korean wording, brand/location/feature qualifiers, and nicknames against the actual devices. You only IDENTIFY which devices each phrase means; you do NOT pick services or tags.
+You are a **device grounding** stage. Given a Korean command, the connected devices, and target phrases, map EACH phrase to a **criterion** — the tag/category/nickname tokens that pick its devices. You do NOT list device ids; you name the *labels* that match. A deterministic step then selects the actual devices, so picking the right labels is all that matters.
 
 # Input
 - `[Command]` — the original Korean command (context).
-- `[Devices]` — JSON `{id: {nickname, category, tags}}`. Match against ALL three.
-- `[Phrases]` — a numbered list of target phrases to resolve.
+- `[Devices]` — JSON `{id: {nickname, category, tags}}`. Read the `category` and `tags` to learn which labels exist.
+- `[Phrases]` — a numbered list of target phrases.
 
-# How to match
-For each phrase, return EVERY device that the phrase refers to:
-- **Device-type word → category/tag.** 조명→Light, 문→ContactSensor(Door), 창문→ContactSensor(Window), 에어컨→AirConditioner, 카메라→Camera, 메일/이메일→EmailProvider, 스피커→Speaker, 사람/재실→PresenceSensor, 이산화탄소/미세먼지/공기질→AirQualitySensor, 조도→LightSensor, 공기청정기→AirPurifier, 가습기→Humidifier, 시계→Clock, 플러그→Plug, 버튼→Button.
-- **Qualifier narrows the set (intersection).** A phrase with a qualifier matches only devices satisfying BOTH the type AND the qualifier:
-  - brand: hue→PhilipsHue, 투야→Tuya, 삼성→Smartthings/삼성, 헤이홈→Hejhome, LG→LG, Aqara→Aqara.
-  - location/feature: 거실→LivingRoom, 현관/입구→Entrance, 안방/침실→Bedroom, 주방→Kitchen.
-  - e.g. "hue 조명" → only devices that are Light AND PhilipsHue. "거실 조명" → Light AND LivingRoom. "투야 장치" → all Tuya devices.
-- **A specific product name / nickname → that ONE device.** "삼성 공기청정기 큰거" → the single device whose nickname matches. "헤이홈 IR 에어컨" → that one device.
-- **Plain type word, no qualifier → ALL devices of that type.** "조명" → every Light. "문" → every door/ContactSensor.
-- Ignore battery/sub-sensor endpoints unless the phrase clearly wants them.
+# Criterion grammar
+A criterion is built from **labels** (a `category` or `tag` exactly as it appears in `[Devices]`) combined with:
+- `+`  → **AND / intersection**: a device must have BOTH labels. Use for a qualifier + type ("거실 조명" = LivingRoom AND Light).
+- `;`  → **OR / separate clusters**: each side is its own group (becomes its own selector). Use when one word spans devices with different tags ("불" = Light bulbs OR LightSwitch wall-switches).
+- `nickname:<full nickname>` → one specific device named by its app nickname.
+
+Pick labels that EXACTLY scope the phrase — no broader (don't grab non-matching devices), no narrower.
+
+# Mapping guide
+- Device type → category: 조명/불/전구→`Light`, 문→`Door`, 창문→`Window`, 에어컨→`AirConditioner`, 카메라→`Camera`, 메일/이메일→`EmailProvider`, 스피커→`Speaker`, 사람/재실→`PresenceSensor`, 이산화탄소/미세먼지/공기질→`AirQualitySensor`, 조도→`LightSensor`, 공기청정기→`AirPurifier`, 가습기→`Humidifier`, 시계→`Clock`, 플러그→`Plug`.
+- Brand qualifier → brand tag: 투야→`Tuya`, 삼성→`Smartthings`, 헤이홈→`Hejhome`, hue→`PhilipsHue`, LG/Aqara→`Matter`.
+- Location/feature → tag: 거실→`LivingRoom`, 현관/입구→`Entrance`.
+- **조명/불/전구 → `Light ; LightSwitch`** (bulbs OR light-switches) UNLESS a bulb-only feature (색/밝기) is named → then just `Light`. 🛑 Never include controllers (`MultiButton`, `Button`, `RotaryControl`).
+- **전등 스위치 / (조명) 스위치 (the device) → `LightSwitch`** only.
+- **A brand-only command** ("투야 장치", "삼성 기기") → just the brand tag (`Tuya`), which spans every category of that brand. Do NOT add a type.
+- **A specific product name** ("삼성 공기청정기 큰거", "헤이홈 IR 에어컨") → `nickname:<that nickname>`.
 
 # Output
 For each phrase, ONE line inside `<grounded>`, keyed by the phrase NUMBER:
 
-    <N>. <phrase> | <id1> <id2> ...
+    <N>. <phrase> | <criterion>
 
-- List the matched ids separated by spaces (use the ids exactly as given in `[Devices]`).
-- If NO connected device matches the phrase, write `NONE` instead of ids:
+If NO connected device could match the phrase, write `NONE`:
 
     <N>. <phrase> | NONE
 
@@ -32,11 +37,19 @@ Output ONLY the `<grounded>` block. Nothing else.
 # Examples
 
 [Command]
+투야 장치들 다 꺼줘
+[Phrases]
+1. 투야 장치
+<grounded>
+1. 투야 장치 | Tuya
+</grounded>
+
+[Command]
 hue 조명 색을 빨강으로 바꿔줘
 [Phrases]
 1. hue 조명
 <grounded>
-1. hue 조명 | d3 d4 d5
+1. hue 조명 | PhilipsHue + Light
 </grounded>
 
 [Command]
@@ -44,15 +57,15 @@ hue 조명 색을 빨강으로 바꿔줘
 [Phrases]
 1. 거실 조명
 <grounded>
-1. 거실 조명 | d6 d7
+1. 거실 조명 | LivingRoom + Light
 </grounded>
 
 [Command]
-조명 다 꺼
+불 다 꺼줘
 [Phrases]
-1. 조명
+1. 불
 <grounded>
-1. 조명 | d3 d4 d5 d6 d7
+1. 불 | Light ; LightSwitch
 </grounded>
 
 [Command]
@@ -60,7 +73,7 @@ hue 조명 색을 빨강으로 바꿔줘
 [Phrases]
 1. 삼성 공기청정기 큰거
 <grounded>
-1. 삼성 공기청정기 큰거 | d10
+1. 삼성 공기청정기 큰거 | nickname:삼성 공기청정기 큰거
 </grounded>
 
 [Command]
@@ -70,9 +83,9 @@ hue 조명 색을 빨강으로 바꿔줘
 2. 카메라
 3. 이메일
 <grounded>
-1. 문 | d20 d21
-2. 카메라 | d30
-3. 이메일 | d40
+1. 문 | Door
+2. 카메라 | Camera
+3. 이메일 | EmailProvider
 </grounded>
 
 [Command]
