@@ -29,11 +29,14 @@ def run_llm_inference(model, client, inference_type, messages, *, enable_thinkin
     chunks = []
     usage = None
     finish_reason = None
+    first_token_time = None
     for chunk in stream:
         if chunk.usage:
             usage = chunk.usage
         if chunk.choices:
             if chunk.choices[0].delta.content:
+                if first_token_time is None:
+                    first_token_time = time.perf_counter()
                 chunks.append(chunk.choices[0].delta.content)
             if chunk.choices[0].finish_reason:
                 finish_reason = chunk.choices[0].finish_reason
@@ -42,9 +45,15 @@ def run_llm_inference(model, client, inference_type, messages, *, enable_thinkin
 
     prompt_tokens = usage.prompt_tokens if usage else 0
     completion_tokens = usage.completion_tokens if usage else 0
-    decode_tps = completion_tokens / elapsed if elapsed > 0 and completion_tokens else 0
+    # TTFT = prefill latency (time to first generated token). tg = pure decode
+    # rate = generated tokens / (elapsed - TTFT), so the prefill of a large
+    # prompt no longer drags the reported generation speed down.
+    ttft = (first_token_time - start_inference) if first_token_time else elapsed
+    gen_elapsed = elapsed - ttft
+    tg_tps = completion_tokens / gen_elapsed if gen_elapsed > 0 and completion_tokens else 0
     log_line = (
-        f"➡️ {inference_type}({prompt_tokens}) | Decode: {decode_tps:.1f} t/s | Total: {elapsed:.4f}s\n"
+        f"➡️ {inference_type}({prompt_tokens}) | TTFT: {ttft:.4f}s | "
+        f"tg: {tg_tps:.1f} t/s | Total: {elapsed:.4f}s\n"
         f"===================================================\n"
         f"{content}"
     )

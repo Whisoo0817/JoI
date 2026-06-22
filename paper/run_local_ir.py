@@ -619,6 +619,22 @@ def _wrapper_period_from_ir(ir_obj):
     return None
 
 
+def _render_precision_block(precision_output) -> str:
+    """Render the precision stage's selectors into the documented
+    `[Precision Selectors]` format the lowering prompt expects — one line per
+    service, `Service.Method: (#sel) / (#sel2)` — instead of dumping the raw
+    `{selectors, resolved, reasoning}` dict via str(). ONLY `selectors` is fed:
+    `resolved` (which carries long real device ids) and `reasoning` are pipeline
+    bookkeeping the LLM must not see — the real ids are noise the model could
+    copy, and selectors already carry the #tags / #dN it needs.
+    """
+    sels = (precision_output.get("selectors", {})
+            if isinstance(precision_output, dict) else {}) or {}
+    lines = [f"{svc}: " + " / ".join(sel_list)
+             for svc, sel_list in sels.items() if sel_list]
+    return "\n".join(lines) if lines else "(none)"
+
+
 def generate_joi_code_ir(
     sentence,
     connected_devices,
@@ -748,9 +764,14 @@ def generate_joi_code_ir(
     grounded = {}   # label-target-index → criterion string
     if label_targets:
         _phrases = "\n".join(f"{i+1}. {t['by_val']}" for i, t in enumerate(label_targets))
+        # Prefix-cache layout: the (near-constant within a session) [Devices] dump
+        # goes FIRST so `system + [Devices]` forms a shared prefix that vLLM's
+        # prefix cache reuses across commands. The per-command [Command]/[Phrases]
+        # — the only parts that vary request-to-request — go LAST so they never
+        # invalidate the cached device-block prefix.
         ground_user = (
-            f"[Command]\n{sentence}\n\n"
             f"[Devices]\n{json.dumps(cd_named, indent=2, ensure_ascii=False)}\n\n"
+            f"[Command]\n{sentence}\n\n"
             f"[Phrases]\n{_phrases}"
         )
         ground_raw = infer("ground_targets", ground_user, max_tokens=512).strip()
@@ -1269,7 +1290,7 @@ def generate_joi_code_ir(
     joi_input = (
         f"[Command]\n{sentence}\n\n"
         f"[Timeline IR]\n{ir_json_str}\n\n"
-        f"[Precision Selectors]\n{precision_output}\n\n"
+        f"[Precision Selectors]\n{_render_precision_block(precision_output)}\n\n"
         f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
     )
     def _finalize(raw: str) -> dict:

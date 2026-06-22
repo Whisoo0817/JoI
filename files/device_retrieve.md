@@ -159,6 +159,16 @@ hue 조명 색을 빨강으로 바꿔줘
 </targets>
 
 [Command]
+창문이 열려 있는데 에어컨이 켜져 있으면 에어컨을 꺼줘
+<targets>
+- role=condition | by=label:창문 | scope=auto
+- role=condition | by=label:에어컨 | scope=auto
+- role=action | by=label:에어컨 | scope=auto
+</targets>
+# 두 조건 모두 bare(수량어 없음)다 — "열려 있는데"/"켜져 있으면"은 trigger지 수량어가 아니다 → 전부 scope=auto.
+# 🛑 절대 all로 올리지 마라. 디바이스가 여러 대인지/한 대인지는 grounding+count가 결정하고, count가 any/one을 정한다.
+
+[Command]
 커튼 닫아줘
 <targets>
 - role=action | by=label:커튼 | scope=auto

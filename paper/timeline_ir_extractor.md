@@ -177,6 +177,9 @@ Use the optional `count` field (a tick-index var, 0/1/2/...) ONLY for these two 
 
 ❌ Do NOT use `count` for plain "every N" without alternation or count limit (omit the `count` field).
 ❌ Do NOT use `count` to count external events (`if door opens 3 times`); `count` indexes ticks, not events.
+❌ **"Toggle" is a SINGLE action, NOT alternation.** `Switch.Toggle` already flips the device's state internally each call — emit ONE `call(Switch.Toggle)`, NEVER a `count`/`cycle`/`n%2` to "alternate". Alternation (rule above) requires TWO **distinct** actions (A≠B); `if(n%2==0){Toggle} else {Toggle}` is degenerate and forbidden. A scheduled or one-shot toggle is just `start_at(...) + call(Switch.Toggle)`.
+  - ✅ `"오후 3시에 토글" / "at 3pm, toggle it"` → `start_at(cron "0 15 * * *") + call(Switch.Toggle)`. NO cycle, NO count.
+  - ❌ `cycle(period=..., count="n", body=[if(n%2==0){Toggle} else {Toggle}])`.
 
 ## D8. Snapshot need
 Same device attribute compared at two different moments → use `read` for each capture. Otherwise reference `Device.attr` directly.
