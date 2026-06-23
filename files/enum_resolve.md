@@ -63,17 +63,17 @@ The optional `[Device-specific Enum Hints]` block (if present) carries category-
 ## Example 1 — Clear match (description picks the member)
 ```
 [Command]
-If the oven is in convection bake mode, ...
+If the robot vacuum is charging, ...
 [ENUM-Value Services]
-Oven.OvenMode: Current oven mode.
+RobotVacuumCleaner.RobotVacuumCleanerOperatingState: Current operational state.
 Members:
-  - heating: heating cycle
-  - ConvectionBake: Fan-assisted baking with even heat distribution
-  - Bake: Bottom element focused baking mode
+  - running: actively cleaning
+  - charging: docked and charging
+  - paused: paused mid-task
 ```
 Output:
 ```json
-{"Oven.OvenMode": {"op": "==", "value": "ConvectionBake"}}
+{"RobotVacuumCleaner.RobotVacuumCleanerOperatingState": {"op": "==", "value": "charging"}}
 ```
 
 ## Example 2 — Ambiguous (no comparison implied)

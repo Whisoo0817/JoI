@@ -76,9 +76,6 @@ When `cron` + `period` + `break` appear together (DURATION pattern):
 ## Device Names
 - `Humidifier` → "humidifier" (NOT "dehumidifier")
 - `Dehumidifier` → "dehumidifier"
-- `LaundryDryer` → "dryer" (NOT "washing machine")
-- `DishWasher` / `Dishwasher` → "dishwasher" (NOT "washing machine")
-- `Safe` → "safe"
 - `ContactSensor` → "contact sensor"
 - `PresenceSensor` / `Presence` → "presence sensor" / "presence detected"
 
@@ -137,9 +134,6 @@ Action `light_moveToColor(x, y, ...)` → "set the color to [Color Name]"
 
 # Examples
 
-Input: `[Code] {"cron": "0 18 * * *", "period": 0, "script": "(#Dishwasher).switch_off()"}`
-Output: Every day at 6 PM, turn off the dishwasher.
-
 Input: `[Code] {"cron": "18 18 * * *", "period": 0, "script": "all(#Light).switch_off()"}`
 Output: Every day at 6:18 PM, turn off all lights.
 
@@ -170,8 +164,6 @@ Output: Every 30 minutes, toggle the living room air purifier between sleep mode
 Input: `[Code] {"cron": "", "period": 60000, "script": "phase := 0\nif (phase == 0) {\n    wait until ((#Door).DoorState == \"open\")\n    phase = 1\n}\nif (phase == 1) {\n    (#Speaker).speaker_speak(\"Welcome\")\n}"}`
 Output: When the door opens, then every minute, say "Welcome" through the speaker.
 
-Input: `[Code] {"cron": "", "period": 100, "script": "triggered := false\nif ((#RainSensor).Rain == false) {\n    if (triggered == false) {\n        (#Window).upOrOpen()\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}`
-Output: Whenever it stops raining, open the window.
 
 Input: `[Code] {"cron": "", "period": 100, "script": "triggered := false\nif ((#TemperatureSensor).Temperature >= 30) {\n    if (triggered == false) {\n        (#Window).upOrOpen()\n        triggered = true\n    }\n} else {\n    triggered = false\n}"}`
 Output: Whenever temperature reaches 30 or above, open the window.
@@ -188,8 +180,6 @@ Output: Close all even-tagged blinds.
 Input: `(#MeetingRoom #AudioRecorder).RecordWithDuration("test.wav", 10)`
 Output: Record for 10 seconds in the meeting room and save as test.wav.
 
-Input: `if ((#RainSensor).Rain == true) {\n  all(#House #Dehumidifier).SetDehumidifierMode("drying")\n}`
-Output: If it is raining, set all house dehumidifiers to drying mode.
 
 Input: `(#Kitchen #Light).On()\ndelay(10 SEC)\n(#Kitchen #Dehumidifier).On()`
 Output: Turn on the kitchen light, then after 10 seconds turn on the kitchen dehumidifier.

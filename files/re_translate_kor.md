@@ -52,10 +52,6 @@ You are an English-to-Korean translator for IoT automation descriptions. Convert
 | Camera | 카메라 |
 | Siren | 사이렌 |
 | RobotVacuumCleaner | 로봇 청소기 |
-| Dishwasher | 식기세척기 |
-| LaundryDryer | 건조기 |
-| Oven | 오븐 |
-
 | Fan | 선풍기 |
 | RobotArm | 로봇팔 |
 | AudioRecorder | 녹음기 |
@@ -67,7 +63,6 @@ You are an English-to-Korean translator for IoT automation descriptions. Convert
 | ContactSensor | 접촉 센서 |
 | SmokeDetector | 연기 감지기 |
 | LeakSensor | 누수 센서 |
-| RainSensor | 비 센서 |
 | SoundSensor | 소리 센서 |
 | AirQualitySensor | 공기질 센서 |
 | WeatherProvider | 날씨 |

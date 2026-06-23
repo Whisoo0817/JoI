@@ -176,6 +176,29 @@ hue go 1 색을 빨강으로 바꿔줘
 # 🛑 절대 all로 올리지 마라. 디바이스가 여러 대인지/한 대인지는 grounding+count가 결정하고, count가 any/one을 정한다.
 
 [Command]
+#alerts 슬랙 채널로 알림 보내줘
+<targets>
+- role=action | by=label:슬랙 | scope=auto
+</targets>
+# 슬랙은 Slack 기기다 — 메일/스피커/토스트 채널이 아니다. "#alerts"는 채널 인자일 뿐, 타겟은 슬랙 기기.
+
+[Command]
+오늘 전력 사용량 알려줘
+<targets>
+- role=read | by=label:전력 사용량 | scope=auto
+- role=notify | by=channel:speaker,toast | scope=auto
+</targets>
+# "전력 사용량/전기요금"은 EnergyMeter read 대상. "알려줘"는 별도 notify 채널.
+
+[Command]
+지금 소비전력 알려줘
+<targets>
+- role=read | by=label:소비전력 | scope=auto
+- role=notify | by=channel:speaker,toast | scope=auto
+</targets>
+# 🛑 by=label은 사용자 문구 그대로. "소비전력"을 "전력 사용량"으로 바꾸지 마라 — 순간 전력(PowerMeter)과 누적 사용량(EnergyMeter)은 다른 기기다.
+
+[Command]
 커튼 닫아줘
 <targets>
 - role=action | by=label:커튼 | scope=auto

@@ -147,7 +147,7 @@ def _arg_type_map(catalog, service: str, method: str) -> dict[str, str]:
     # Simpler: extend catalog.py to store types too. For now, lazy-load raw JSON.
     import os, json
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..",
-                       "files", "service_list_ver2.0.4.json")
+                       "files", "service_list_ver2.0.5.json")
     try:
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)

@@ -5,7 +5,7 @@ import json
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ── Service List (1회 로딩) ───────────────────────────────
-_SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.4-beta.json")
+_SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.5.json")
 try:
     with open(_SERVICE_LIST_PATH, 'r', encoding='utf-8') as f:
         _raw = json.load(f)

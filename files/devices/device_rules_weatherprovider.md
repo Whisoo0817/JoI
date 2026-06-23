@@ -6,6 +6,7 @@
   <Service "Pm25Weather" type="value">Current PM25 level (DOUBLE)</Service>
   <Service "PressureWeather" type="value">Current atmospheric pressure (DOUBLE)</Service>
   <Service "Weather" type="value">Current weather condition (ENUM: thunderstorm, drizzle, rain, snow, mist, smoke, haze, dust, fog, sand, ash, squall, tornado, clear, clouds)</Service>
+  <Service "Forecast" type="action">Get the forecasted weather condition N hours from now, returned as a weather name string (rain/clouds/clear/...). Argument: Hour (INTEGER, hours from now; 0 = now). Use for "will it rain", "weather in N hours", forecast-before-it-happens.</Service>
   <Service "GetWeatherInfo" type="action">Get full weather info as a formatted string. ONLY use when latitude and longitude are explicitly given in the command. Arguments: Lat (DOUBLE), Lon (DOUBLE)</Service>
 </Device>
 

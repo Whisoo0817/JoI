@@ -2,6 +2,7 @@
 <Device "RobotVacuumCleaner">
   <Service "RobotVacuumCleanerCleaningMode" type="value">Cleaning mode. Enum values: auto, part, repeat, manual, stop, map.</Service>
   <Service "RobotVacuumCleanerRunMode" type="value">Run mode. Enum values: homing, idle, charging, alarm, powerOff, reserve, point, after, cleaning, pause, washingMop.</Service>
+  <Service "RobotVacuumCleanerOperatingState" type="value">Read-only operational state. Enum values: stopped, running, paused, seekingCharger, charging, docked, stuck, dustBinFull, waterTankEmpty, ... (use to CHECK status, e.g. "is it stuck / docked / cleaning"; there is NO setter for it).</Service>
   <Service "SetRobotVacuumCleanerCleaningMode" type="action">Set cleaning mode</Service>
   <Service "SetRobotVacuumCleanerRunMode" type="action">Set run mode</Service>
 </Device>

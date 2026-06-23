@@ -15,7 +15,7 @@ from typing import Any
 
 _DEFAULT_CATALOG_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "..", "..", "files", "service_list_ver2.0.4-beta.json",
+    "..", "..", "files", "service_list_ver2.0.5.json",
 )
 
 

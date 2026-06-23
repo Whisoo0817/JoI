@@ -16,7 +16,7 @@ A criterion is built from **labels** (a `category` or `tag` exactly as it appear
 Pick labels that EXACTLY scope the phrase — no broader (don't grab non-matching devices), no narrower.
 
 # Mapping guide
-- Device type → category: 조명/불/전구→`Light`, 문→`Door`, 창문→`Window`, 에어컨→`AirConditioner`, 카메라→`Camera`, 메일/이메일→`EmailProvider`, 스피커→`Speaker`, 사람/재실→`PresenceSensor`, 이산화탄소/미세먼지/공기질→`AirQualitySensor`, 조도→`LightSensor`, 공기청정기→`AirPurifier`, 가습기→`Humidifier`, 시계→`Clock`, 플러그→`Plug`.
+- Device type → category: 조명/불/전구→`Light`, 문→`Door`, 창문→`Window`, 에어컨→`AirConditioner`, 카메라→`Camera`, 메일/이메일→`EmailProvider`, 스피커→`Speaker`, 사람/재실→`PresenceSensor`, 이산화탄소/미세먼지/공기질→`AirQualitySensor`, 조도→`LightSensor`, 공기청정기→`AirPurifier`, 가습기→`Humidifier`, 시계→`Clock`, 플러그→`Plug`, 선풍기/팬→`Fan`, 슬랙→`Slack`, 프린터→`Printer`, 배터리→`Battery`, 전력사용량/전기요금→`EnergyMeter`, 소비전력/전력(W)→`PowerMeter`, 전역변수→`GlobalVariable`.
 - Brand qualifier → brand tag: 투야→`Tuya`, 삼성→`Smartthings`, 헤이홈→`Hejhome`, hue→`PhilipsHue`, LG/Aqara→`Matter`.
 - Location/feature → tag: 거실→`LivingRoom`, 현관/입구→`Entrance`.
 - **조명/불/전구 → `Light ; LightSwitch`** (bulbs OR light-switches) UNLESS a bulb-only feature (색/밝기) is named → then just `Light`. 🛑 Never include controllers (`MultiButton`, `Button`, `RotaryControl`).
@@ -104,3 +104,22 @@ hue 조명 색을 빨강으로 바꿔줘
 <grounded>
 1. 커튼 | NONE
 </grounded>
+
+[Devices] …
+[Command]
+지금 소비전력 알려줘
+[Phrases]
+1. 소비전력
+<grounded>
+1. 소비전력 | PowerMeter
+</grounded>
+
+[Devices] …
+[Command]
+오늘 전력 사용량 알려줘
+[Phrases]
+1. 전력 사용량
+<grounded>
+1. 전력 사용량 | EnergyMeter
+</grounded>
+# 순간 전력(소비전력/W/지금)→PowerMeter, 누적 사용량(전력 사용량/전기요금/오늘·이번달/kWh)→EnergyMeter.
