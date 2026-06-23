@@ -31,7 +31,7 @@
 We carefully distinguish between `MoveTo*` and `Move*`.
 - `MoveToColor`/`MoveToColorTemperature`/`MoveToBrightness`: Reaching a target value.
 - `MoveColor`/`MoveColorTemperature`/`MoveHue`: Continuously shifting WITHOUT a target.
-- Use `Light.MoveToColor` for specific color names like "Red" or "Blue".
+- 🛑 ANY named color (빨강/초록/파랑/노랑/red/green/blue…) → **ALWAYS `Light.MoveToColor`** (it reads the xy table). NEVER `MoveToHue`/`MoveToSaturation`/`MoveToHueAndSaturation` — those need raw hue/sat numbers the user never gave. (e.g. "초록색으로 바꿔줘" → `Light.MoveToColor`.)
 
 ## On/Off — Switch FIRST
 - **Bare on/off (켜/꺼/켜기/끄기 with NO brightness value) → ALWAYS `Switch.On` / `Switch.Off` when the device has a Switch.** Most lights are tagged `["Light", "Switch"]`, so Switch IS available — use it. Do NOT use `MoveToBrightness` for a plain on/off.

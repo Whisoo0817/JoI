@@ -154,7 +154,7 @@ COMMANDS_3 = [
 ]
 
 # 돌릴 그룹만 여기서 선택 (COMMANDS_1 / COMMANDS_2 / COMMANDS_3)
-COMMANDS = ["오후 3시에 삼성 공기청정기 큰거를 토글해줘", "창문이 열려 있는데 에어컨이 켜져 있으면 에어컨을 꺼줘"]
+COMMANDS = ["Switch off the lights"]
 
 def _reindent(script: str, unit: str = "    ") -> str:
     """Re-indent a JoI script by { } nesting depth so blocks are readable."""

@@ -74,6 +74,13 @@ hue 조명 색을 빨강으로 바꿔줘
 </targets>
 
 [Command]
+hue go 1 색을 빨강으로 바꿔줘
+<targets>
+- role=action | by=label:hue go 1 | scope=auto
+</targets>
+# 특정 기기 1대만 지명 → 그 기기 타겟 하나만. "조명" 같은 일반 카테고리 타겟을 추가로 만들지 마라.
+
+[Command]
 모든 조명과 공기청정기를 꺼줘
 <targets>
 - role=action | by=label:조명 | scope=all

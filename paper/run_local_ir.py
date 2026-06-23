@@ -841,6 +841,12 @@ def generate_joi_code_ir(
         for t in g["sel_tags"]:
             tag_to_group[t] = g
     selectors = []
+    # Deterministic on/off fallback: when a Light cluster has NO `Switch`
+    # sub-category, `Switch.On/Off` is undeliverable. Instead of dropping (→
+    # "no usable calls" error), rewrite to `Light.MoveToBrightness` with forced
+    # args (ON→100, OFF→0, Rate 0.0) — collected here, merged into resolved_args
+    # after arg_resolve so `_enforce_resolved_args` writes them verbatim.
+    _fallback_args = {}
     for s in raw_selectors:
         s = re.sub(r'^\s*(all|any|one)\s*\(', '(', s)  # drop any LLM-emitted prefix
         first_tag = re.search(r'#([A-Za-z0-9_\-]+)', s)
@@ -856,9 +862,27 @@ def generate_joi_code_ir(
             cat = _svc.group(1)
             capable = [a for a in g["ids"] if cat in cd_named[a]["category"]]
             if not capable:
-                log_buf.append(f"🚫 drop call (no {cat} device in cluster): {s}")
-                continue
-            if len(capable) < len(g["ids"]):
+                # Light-only fallback: Switch.On/Off onto a Switch-less Light
+                # cluster → Light.MoveToBrightness(ON 100 / OFF 0, Rate 0.0).
+                method = s.rsplit(".", 1)[-1].strip("()")
+                light_ids = [a for a in g["ids"] if "Light" in cd_named[a]["category"]]
+                if cat == "Switch" and method in ("On", "Off") and light_ids:
+                    bright = 100.0 if method == "On" else 0.0
+                    nt, _ = _min_tags(light_ids, cd_named)
+                    nt = nt or light_ids
+                    s = re.sub(r'\(#[^)]*\)\.\w+\.\w+',
+                               "(#" + " #".join(nt) + ").Light.MoveToBrightness", s, count=1)
+                    g = {**g, "ids": light_ids, "sel_tags": nt,
+                         "categories": sorted({c for a in light_ids
+                                               for c in cd_named[a]["category"]})}
+                    _fallback_args.setdefault("Light.MoveToBrightness", []).append(
+                        {"Brightness": bright, "Rate": 0.0})
+                    log_buf.append(
+                        f"↩️ fallback Switch.{method} → Light.MoveToBrightness({bright}, 0.0): {s}")
+                else:
+                    log_buf.append(f"🚫 drop call (no {cat} device in cluster): {s}")
+                    continue
+            elif len(capable) < len(g["ids"]):
                 new_tags, _ = _min_tags(capable, cd_named)
                 new_tags = new_tags or capable
                 s = re.sub(r'\(#[^)]*\)', "(#" + " #".join(new_tags) + ")", s, count=1)
@@ -1176,6 +1200,10 @@ def generate_joi_code_ir(
     # Branches are fully parallel — IR no longer waits for precision.
     def run_resolve_and_ir_branch():
         resolved_args_local, resolved_enum_conds_local = run_resolve_branch()
+        # Deterministic on/off fallback args (Light.MoveToBrightness) win over
+        # anything arg_resolve produced for that service.
+        for _svc, _vals in _fallback_args.items():
+            resolved_args_local[_svc] = _vals[0] if len(_vals) == 1 else _vals
         # Stash on enclosing names so run_ir_extract picks them up.
         nonlocal resolved_args, resolved_enum_conds
         resolved_args = resolved_args_local
