@@ -42,6 +42,13 @@ def run_llm_inference(model, client, inference_type, messages, *, enable_thinkin
                 finish_reason = chunk.choices[0].finish_reason
     elapsed = time.perf_counter() - start_inference
     content = "".join(chunks)
+    # Some backends (e.g. Ornith) emit a <think>…</think> block even when
+    # enable_thinking=False is requested. Strip it unconditionally so it never
+    # leaks into a stage's parsed output (it polluted scenario names and could
+    # fill the token budget). A truncated/unclosed <think> (no </think>) means
+    # the answer never arrived → leave content for the length-truncation check
+    # below to surface as a reasoning overflow.
+    content = re.sub(r'<think>.*?</think>\s*', '', content, flags=re.DOTALL).strip()
 
     prompt_tokens = usage.prompt_tokens if usage else 0
     completion_tokens = usage.completion_tokens if usage else 0

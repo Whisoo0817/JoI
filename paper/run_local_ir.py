@@ -1614,7 +1614,10 @@ def generate_joi_code_ir(
             log_buf.append(f"⚠️ re_translate failed ({_e})")
         if is_korean and translated_sentence:
             try:
-                translated_sentence_kor = infer("re_translate_kor", translated_sentence).strip()
+                # Extra token headroom: if the backend still emits a <think>
+                # block (stripped post-hoc), 512 can truncate before the answer.
+                translated_sentence_kor = infer(
+                    "re_translate_kor", translated_sentence, max_tokens=1024).strip()
                 log_buf.append(f"📝 re_translate (KO): {translated_sentence_kor}")
             except Exception as _e:
                 log_buf.append(f"⚠️ re_translate_kor failed ({_e})")
