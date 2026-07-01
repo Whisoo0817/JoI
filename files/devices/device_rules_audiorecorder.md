@@ -7,24 +7,6 @@
   <Service "RecordWithDuration" type="action">Record audio with a specified duration</Service>
 </Device>
 
-# AudioRecorder Examples
+# Rules
 
-[Command]
-Start recording audio
-["AudioRecorder.RecordStart"]
-
-[Command]
-Stop recording and save the file
-["AudioRecorder.RecordStop"]
-
-[Command]
-Record audio for 30 seconds
-["AudioRecorder.RecordWithDuration"]
-
-[Command]
-Check the RecordStatus of the AudioRecorder
-["AudioRecorder.RecordStatus"]
-
-[Command]
-When the AudioRecorder starts recording, do something
-["AudioRecorder.RecordStatus"]
+- Start recording (녹음 시작) → `RecordStart`. Stop and save (녹음 중지) → `RecordStop`. Record a fixed duration ("10초 녹음") → `RecordWithDuration`. Read status → `RecordStatus` (idle/recording).

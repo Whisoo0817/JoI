@@ -9,29 +9,6 @@
 - **Power on/off is `Switch.On` / `Switch.Off`** (a Humidifier device carries the `Switch` family). For "turn on/off the humidifier", "가습기 켜/꺼" → `Switch.On` / `Switch.Off`, NOT a mode change.
 - **Mode/strength** (auto / low / medium / high, "약하게/세게") → `SetHumidifierMode`. The mode enum is for output strength, NOT power — it has no "off" member.
 
-# Humidifier Examples
-
-[Command]
-Turn on the humidifier
-["Switch.On"]
-
-[Command]
-Set the Humidifier to high mode
-["Humidifier.SetHumidifierMode"]
-
-[Command]
-Run the humidifier weaker
-["Humidifier.SetHumidifierMode"]
-
-[Command]
-Tell me the current HumidifierMode
-["Humidifier.HumidifierMode"]
-
-[Command]
-When the humidity drops below 40%, set the humidifier to high
-["HumiditySensor.Humidity", "Humidifier.SetHumidifierMode"]
-
-
 # @ArgResolve
 
 `SetHumidifierMode.Mode` (ENUM: auto, low, medium, high). Map the command's strength word:

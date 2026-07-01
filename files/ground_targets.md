@@ -123,3 +123,22 @@ hue 조명 색을 빨강으로 바꿔줘
 1. 전력 사용량 | EnergyMeter
 </grounded>
 # 순간 전력(소비전력/W/지금)→PowerMeter, 누적 사용량(전력 사용량/전기요금/오늘·이번달/kWh)→EnergyMeter.
+
+[Devices] …
+[Command]
+미세먼지 좋음이면 창문 닫으라고 알려줘
+[Phrases]
+1. 미세먼지
+<grounded>
+1. 미세먼지 | AirQualitySensor
+</grounded>
+
+[Devices] …
+[Command]
+이산화탄소 농도가 1000ppm 이상이면 알려줘
+[Phrases]
+1. 이산화탄소
+<grounded>
+1. 이산화탄소 | AirQualitySensor
+</grounded>
+# 🛑 미세먼지/초미세먼지/이산화탄소/CO2/공기질/TVOC → 전부 AirQualitySensor. NONE으로 흘리지 마라 — AirQualitySensor가 이 값들을 모두 제공한다.

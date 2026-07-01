@@ -9,25 +9,3 @@
 # Rules
 
 All Charger services are **read-only measurements** — `Power` / `Current` / `Voltage` / `ChargingState` report metering, they are NOT switches. `Charger.Power` does NOT turn anything on. To power a charger on/off use the `Switch` family (`Switch.On` / `Switch.Off`), never `Charger.Power`. Use `Charger.*` only to READ power/current/voltage/charging state.
-
-# Charger Examples
-
-[Command]
-What is the current ChargingState of the Charger?
-["Charger.ChargingState"]
-
-[Command]
-Check the voltage of the Charger
-["Charger.Voltage"]
-
-[Command]
-Read the current draw on the Charger
-["Charger.Current"]
-
-[Command]
-How much power is the Charger consuming?
-["Charger.Power"]
-
-[Command]
-When the battery is fully charged, do something
-["Charger.ChargingState"]

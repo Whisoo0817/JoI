@@ -14,29 +14,6 @@
 - A bare "알려줘" with no channel word is ambiguous; treat it as a notification → `ToastPublisher.Publish` (the default visual channel) unless a speaker/audio word is present.
 - One `Publish` per distinct toast. The Severity/Title/Message values are decided downstream (arg_resolve); you only pick the service.
 
-# ToastPublisher Examples
-
-[Command]
-Notify me to ventilate
-["ToastPublisher.Publish"]
-
-[Command]
-Send a ventilation notification
-["ToastPublisher.Publish"]
-
-[Command]
-Show a toast notification saying "Presence detected"
-["ToastPublisher.Publish"]
-
-[Command]
-Announce to ventilate through the speaker and also show a notification
-["Speaker.Speak", "ToastPublisher.Publish"]
-
-[Command]
-When smoke is detected, send a danger alert notification
-["SmokeDetector.Smoke", "ToastPublisher.Publish"]
-
-
 # @ArgResolve
 
 `ToastPublisher.Publish` takes three arguments — fill all three. (English-input variant. The Title/Message are written in **English**.)

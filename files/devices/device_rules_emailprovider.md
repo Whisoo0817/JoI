@@ -12,25 +12,6 @@
 - Attachment that is a **named file/path on disk** ("the report file", a path) → `SendMailWithFile` (File = the path).
 - A `$Var` (e.g. a sensor read) can also fill the Body via chaining.
 
-# EmailProvider Examples
-
-[Command]
-Send an email to John saying I'm late
-["EmailProvider.SendMail"]
-
-[Command]
-Email the report file to the team
-["EmailProvider.SendMailWithFile"]
-
-[Command]
-When smoke is detected, email an alert to admin@home.io
-["SmokeDetector.Smoke", "EmailProvider.SendMail"]
-
-[Command]
-Take a picture with the camera and email it to lindy@mysmax.kr
-["Camera.CaptureImage", "EmailProvider.SendMailWithBinaryFile"]
-
-
 # @ArgResolve
 
 `SendMail` / `SendMailWithFile` arguments:

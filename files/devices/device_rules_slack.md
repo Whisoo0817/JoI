@@ -9,20 +9,6 @@
 - A channel is named ("#alerts", "general 채널") or no target given → `SendMessage` (Channel = the named channel, or "" for the default).
 - A specific USER is named ("@john에게", "DM으로", "유저 …에게") → `SendDirectMessage`.
 
-# Slack Examples
-
-[Command]
-When smoke is detected, post an alert to the #safety Slack channel
-["SmokeDetector.Smoke", "Slack.SendMessage"]
-
-[Command]
-Send me a Slack message every morning at 8
-["Slack.SendMessage"]
-
-[Command]
-DM @john on Slack when the door opens
-["ContactSensor.Contact", "Slack.SendDirectMessage"]
-
 # @ArgResolve
 
 `SendMessage` / `SendDirectMessage` arguments:

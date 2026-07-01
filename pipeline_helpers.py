@@ -15,8 +15,21 @@ class JoiGenerationError(ValueError):
         self.error_code = error_code
 
 
-def run_llm_inference(model, client, inference_type, messages, *, enable_thinking=False, max_tokens=512):
+def run_llm_inference(model, client, inference_type, messages, *, enable_thinking=False,
+                      max_tokens=512, prefill=None):
     start_inference = time.perf_counter()
+    # `prefill`: force the response to START with this exact text (e.g.
+    # "<Reasoning>\n") by appending it as an unfinished assistant turn and asking
+    # vLLM to continue it. The model can no longer emit a rival format (a JSON
+    # array, a bare answer, a runaway <think>) — capable models otherwise imitate
+    # in-context examples and skip the required header. The prefill text is NOT
+    # returned by the server, so we prepend it below to hand callers the full,
+    # contract-shaped output.
+    extra_body = {"chat_template_kwargs": {"enable_thinking": enable_thinking}}
+    if prefill:
+        messages = list(messages) + [{"role": "assistant", "content": prefill}]
+        extra_body["add_generation_prompt"] = False
+        extra_body["continue_final_message"] = True
     stream = client.chat.completions.create(
         messages=messages,
         model=model,
@@ -24,7 +37,7 @@ def run_llm_inference(model, client, inference_type, messages, *, enable_thinkin
         max_tokens=max_tokens,
         stream=True,
         stream_options={"include_usage": True},
-        extra_body={"chat_template_kwargs": {"enable_thinking": enable_thinking}}
+        extra_body=extra_body,
     )
     chunks = []
     usage = None
@@ -49,6 +62,10 @@ def run_llm_inference(model, client, inference_type, messages, *, enable_thinkin
     # the answer never arrived → leave content for the length-truncation check
     # below to surface as a reasoning overflow.
     content = re.sub(r'<think>.*?</think>\s*', '', content, flags=re.DOTALL).strip()
+    # The server omits the prefill from its completion; prepend it so callers get
+    # the full contract-shaped text (e.g. the leading "<Reasoning>").
+    if prefill:
+        content = prefill + content
 
     prompt_tokens = usage.prompt_tokens if usage else 0
     completion_tokens = usage.completion_tokens if usage else 0

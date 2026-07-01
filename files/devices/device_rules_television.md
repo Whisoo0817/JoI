@@ -6,24 +6,7 @@
   <Service "SetChannel" type="action">Set specific channel number</Service>
 </Device>
 
-# Television Examples
+# Rules
 
-[Command]
-Change the TV channel to 7
-["Television.SetChannel"]
-
-[Command]
-Go to the next channel on the Television
-["Television.ChannelUp"]
-
-[Command]
-Go back one channel
-["Television.ChannelDown"]
-
-[Command]
-What channel is the TV currently on?
-["Television.Channel"]
-
-[Command]
-Raise the TV channel by 2
-["Television.Channel", "Television.SetChannel"]
+- A specific channel number ("7번으로") → `SetChannel`. Up/next (다음 채널) → `ChannelUp`; down/prev (이전 채널) → `ChannelDown`. Read current channel → `Channel`.
+- On/off → `Switch.On`/`Switch.Off` if the TV has a Switch.

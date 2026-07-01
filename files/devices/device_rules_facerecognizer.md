@@ -7,28 +7,6 @@
   <Service "Start" type="action">Start face recognition</Service>
 </Device>
 
-# FaceRecognizer Examples
+# Rules
 
-[Command]
-Start face recognition
-["FaceRecognizer.Start"]
-
-[Command]
-Stop the FaceRecognizer
-["FaceRecognizer.End"]
-
-[Command]
-Who is currently at the door?
-["FaceRecognizer.RecognizedResult"]
-
-[Command]
-Register a new face on the FaceRecognizer
-["FaceRecognizer.AddFace"]
-
-[Command]
-Delete the registered face from the FaceRecognizer
-["FaceRecognizer.DeleteFace"]
-
-[Command]
-When a face is recognized, do something
-["FaceRecognizer.RecognizedResult"]
+- Start / stop face recognition (얼굴 인식 시작/중지) → `Start` / `End`. Register a face → `AddFace`; remove one → `DeleteFace`. Read the recognized face id → `RecognizedResult`.

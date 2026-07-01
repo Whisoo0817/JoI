@@ -18,7 +18,4 @@ If the command names a specific dining location (e.g. `301동`, `학생식당`, 
 - Defaults if a slot is implicit: date→`오늘`, meal→`점심`, location→`학생식당`.
 - Building numbers map to closest token: `301동`→`301동식당`, `113동`→`동원관식당(113동)`, `220동`→`웰스토리(220동)`.
 
-# Examples
-[Command] Show me today's menu → `["MenuProvider.TodayMenu"]`
-[Command] What is the lunch menu for tomorrow? → `["MenuProvider.GetMenu"]`, `Command="내일 학생식당 점심"`
-[Command] Tell me the lunch menu for Building 301 today → `["MenuProvider.GetMenu"]`, `Command="오늘 301동식당 점심"`
+- e.g. bare "오늘 메뉴" → `TodayMenu`; "내일 점심 메뉴" → `GetMenu` (Command="내일 학생식당 점심"); "301동 오늘 점심" → `GetMenu` (Command="오늘 301동식당 점심").

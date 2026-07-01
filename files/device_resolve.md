@@ -1,9 +1,9 @@
 # Role
-The target device groups are already chosen and resolved to real devices (`[Targets]`). For each target, using its **role** and the service summaries, produce the final call's **service + selector tag**:
+The target device groups are already chosen and resolved to real devices (`[Targets]`). For each target, using its **role** and the service summaries, decide the **service** (skill + method) that realizes its intent, then emit one RESULT line per service:
 
-    (#Tag).Category.Method
+    Category.Method: (#tags), (#tags), …
 
-You decide ONLY: which service (skill + method) realizes that target's intent, and which tag selects the group. **You do NOT decide the quantifier (all/any/one) — leave NO `all`/`any` prefix; a deterministic later step adds it from scope+count.** You also do NOT re-pick the devices.
+You decide ONLY the service. The tag(s) after the colon are COPIED verbatim from `[Targets]` — you do NOT pick or invent them. **You do NOT decide the quantifier (all/any/one) — leave NO `all`/`any` prefix; a deterministic later step adds it from scope+count.** You also do NOT re-pick the devices.
 
 The command is the **original Korean**.
 
@@ -46,22 +46,22 @@ e.g. for "불이 켜져있으면 모두 꺼줘" you will see BOTH `role=conditio
 - **notify** → `Speaker.Speak` (speaker) / `ToastPublisher.Publish` (toast).
 - Schedule/time (오후 5시/매일/매시간) is NOT a service — ignore.
 
-**Step 2 — selector tag:** copy the target's `tags=…` verbatim into `(#…)`, same order. `tags=#PhilipsHue #Light` → `(#PhilipsHue #Light)`. `tags=#d10` → `(#d10)`. Even for on/off keep the GIVEN tag (never substitute `#Switch`). NO `all(`/`any(`/`one(` prefix.
+**Step 2 — the tags come FROM `[Targets]`, you only COPY them.** You do NOT invent, choose, or rename a tag. For each target you decided a service for, write that target's `tags=…` verbatim as `(#…)`. `tags=#PhilipsHue #Light` → `(#PhilipsHue #Light)`. `tags=#d10` → `(#d10)`. 🛑 NEVER substitute `#Switch` (or any tag not in `[Targets]`) — even for on/off, the tag stays the given one (`#Light`, `#LightSwitch`, …). NO `all(`/`any(`/`one(` prefix.
 
-**Step 3 — every target yields its OWN RESULT line, role-faithful, in the SAME order.** Never merge two lines, never drop one. If `[Targets]` has 4 lines, `RESULT:` has 4 lines — **the #1 failure is an `action` line collapsing into the preceding `condition` read; do not let it.** The ONLY 1→2 expansion: a Clock time `read` → `Clock.Hour` + `Clock.Minute`.
+**Step 3 — one RESULT line PER SERVICE: `Cat.Method: (#tags), (#tags), …`.** Group the targets that share the same service+role onto ONE line, listing each of their selectors after the colon (comma-separated). Never drop a target, never invent a tag. 🛑 **EVERY `[Targets]` line MUST appear in exactly one selector somewhere in RESULT — count them.** Two action lines with different tags (`tags=#Light` AND `tags=#LightSwitch`) are ONE phrase split across device kinds ("조명" = bulbs + wall switches): they take the SAME service and BOTH selectors go on that line → `Switch.Off: (#Light), (#LightSwitch)`. Dropping `(#LightSwitch)` silently leaves those devices uncontrolled — the #2 bug. **The #1 failure is an `action` service collapsing into a `condition` read — keep them as separate lines.** The ONLY service that yields two lines is a Clock time `read` → a `Clock.Hour:` line and a `Clock.Minute:` line.
 
 ---
 
 # Output
-A ONE-line `<Reasoning>` naming each clause (keep the Korean verb) and its service, then `RESULT:` with one selector per target.
+A ONE-line `<Reasoning>` naming each clause (keep the Korean verb) and its service, then `RESULT:` with one line per service.
 ```
 <Reasoning>
 condition <한국어 조각> → <read>; action <한국어 조각> → <action>
 </Reasoning>
 RESULT:
-<selector lines, one per target, in order — NO quantifier prefix>
+Cat.Method: (#tags), (#tags), …
 ```
-`<Reasoning>` ≤ 25 words, no prose/"However/Wait". If a target has no service for its intent → `ERROR: no service for <intent>`.
+Each RESULT line is `Category.Method: ` then the selector(s) that use it, comma-separated. **ALWAYS write the Category prefix** — `Valve.Open:` (NOT bare `Open:`), `Fan.SetFanMode:` (NOT `SetFanMode.SetFanMode:`). The Category is the device skill from `[Device Summary]`. `<Reasoning>` ≤ 25 words, no prose/"However/Wait". If a target has no service for its intent → `ERROR: no service for <intent>`.
 
 # Examples
 
@@ -81,10 +81,8 @@ Switch (value), On (action), Off (action), Toggle (action)
 condition "켜져있으면" → Switch.Switch; action "꺼줘" → Switch.Off.
 </Reasoning>
 RESULT:
-(#Light).Switch.Switch
-(#LightSwitch).Switch.Switch
-(#Light).Switch.Off
-(#LightSwitch).Switch.Off
+Switch.Switch: (#Light), (#LightSwitch)
+Switch.Off: (#Light), (#LightSwitch)
 
 [Command]
 hue 조명 색을 빨강으로 바꿔줘
@@ -97,7 +95,7 @@ MoveToColor (action), MoveToBrightness (action) ...
 action "색을 빨강으로" → Light.MoveToColor.
 </Reasoning>
 RESULT:
-(#PhilipsHue #Light).Light.MoveToColor
+Light.MoveToColor: (#PhilipsHue #Light)
 
 [Command]
 오후 5시에 사람이 감지되면 에어컨을 켜줘
@@ -115,8 +113,8 @@ Switch (value), On (action), Off (action)
 condition "사람이 감지되면" → PresenceSensor.Presence; action "켜줘" → Switch.On.
 </Reasoning>
 RESULT:
-(#PresenceSensor).PresenceSensor.Presence
-(#AirConditioner).Switch.On
+PresenceSensor.Presence: (#PresenceSensor)
+Switch.On: (#AirConditioner)
 
 [Command]
 이산화탄소 농도가 1000ppm 이상이면 스피커로 환기하라고 말해줘
@@ -132,8 +130,8 @@ Speak (action), SetVolume (action) ...
 condition "CO2 1000 이상" → AirQualitySensor.CarbonDioxide; notify "말해줘" → Speaker.Speak.
 </Reasoning>
 RESULT:
-(#AirQualitySensor).AirQualitySensor.CarbonDioxide
-(#Speaker).Speaker.Speak
+AirQualitySensor.CarbonDioxide: (#AirQualitySensor)
+Speaker.Speak: (#Speaker)
 
 [Command]
 매시간 정각마다 스피커로 시간을 알려줘
@@ -149,9 +147,9 @@ Speak (action), SetVolume (action) ...
 read "시간" → Clock.Hour + Clock.Minute (Time 아님); notify "알려줘" → Speaker.Speak.
 </Reasoning>
 RESULT:
-(#Clock).Clock.Hour
-(#Clock).Clock.Minute
-(#Speaker).Speaker.Speak
+Clock.Hour: (#Clock)
+Clock.Minute: (#Clock)
+Speaker.Speak: (#Speaker)
 
 [Command]
 조명 밝기 20 퍼센트로 설정해줘
@@ -166,7 +164,7 @@ Switch (value), On (action), Off (action)
 action "밝기 20%로" → Light.MoveToBrightness.
 </Reasoning>
 RESULT:
-(#Light).Light.MoveToBrightness
+Light.MoveToBrightness: (#Light)
 
 [Command]
 창문이 열려 있는데 에어컨이 켜져 있으면 에어컨을 꺼줘
@@ -185,6 +183,6 @@ Switch (value), On (action), Off (action)
 condition "창문이 열려 있는데" → ContactSensor.Contact; condition "에어컨이 켜져 있으면" → Switch.Switch (on/off state, NOT mode); action "꺼줘" → Switch.Off.
 </Reasoning>
 RESULT:
-(#Window).ContactSensor.Contact
-(#AirConditioner).Switch.Switch
-(#AirConditioner).Switch.Off
+ContactSensor.Contact: (#Window)
+Switch.Switch: (#AirConditioner)
+Switch.Off: (#AirConditioner)

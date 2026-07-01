@@ -6,17 +6,6 @@
   <Service "Button4" type="value">State of button 4. Enum values: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold.</Service>
 </Device>
 
-# MultiButton Examples
-
-[Command]
-If the first button of the MultiButton is pushed
-["MultiButton.Button1"]
-
-[Command]
-Check if MultiButton button 3 is held
-["MultiButton.Button3"]
-
-
 # @EnumResolve
 
 Verb-to-member mapping for `Button1` / `Button2` / `Button3` / `Button4`:

@@ -5,24 +5,6 @@
   <Service "Unlock" type="action">Unlock the door</Service>
 </Device>
 
-# DoorLock Examples
-
-[Command]
-Lock the front door
-["DoorLock.Lock"]
-
-[Command]
-Unlock the DoorLock
-["DoorLock.Unlock"]
-
-[Command]
-Is the DoorLock currently locked?
-["DoorLock.DoorLockState"]
-
-[Command]
-When the door is unlocked, do something
-["DoorLock.DoorLockState"]
-
 # @enum_resolve
 DoorLockState enum semantic mapping (catalog uses door-state vocabulary for lock-state):
 - "locked / is locked / 잠긴 / 잠겨있는 / shut / secured" → `closed`

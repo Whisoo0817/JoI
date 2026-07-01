@@ -7,20 +7,6 @@
   <Service "SetPosition" type="action">Send position to arm robot</Service>
 </Device>
 
-# ArmRobot Examples
+# Rules
 
-[Command]
-Set the ArmRobot to home position
-["ArmRobot.SetPosition"]
-
-[Command]
-Make the ArmRobot say hello
-["ArmRobot.Hello"]
-
-[Command]
-What is the ArmRobot's current position?
-["ArmRobot.CurrentPosition"]
-
-[Command]
-Check the ArmRobot type
-["ArmRobot.ArmRobotType"]
+- A named position (home/hello/refuse) → `SetPosition`. A hello gesture → `Hello`. A raw command string → `SendCommand`. Read current position/type → `CurrentPosition`/`ArmRobotType`.

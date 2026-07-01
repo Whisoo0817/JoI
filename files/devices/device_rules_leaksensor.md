@@ -4,13 +4,3 @@
 </Device>
 
 WARNING: "leak is detected / water leak" → ALWAYS use LeakSensor.Leakage for the cond read. NEVER put a leak/detected attribute on the action device (e.g., Valve, Siren).
-
-# LeakSensor Examples
-
-[Command]
-Check for water leaks
-["LeakSensor.Leakage"]
-
-[Command]
-When a leak is detected, do something
-["LeakSensor.Leakage"]

@@ -5,20 +5,6 @@
   <Service "Open" type="action">Open the valve</Service>
 </Device>
 
-# Valve Examples
+# Rules
 
-[Command]
-Open the water Valve
-["Valve.Open"]
-
-[Command]
-Close the Valve
-["Valve.Close"]
-
-[Command]
-Check if the Valve is open
-["Valve.ValveState"]
-
-[Command]
-When the valve opens, do something
-["Valve.ValveState"]
+- Open (열어/개방) → `Open`. Close (닫아/차단) → `Close`. Read state → `ValveState` (true=open).

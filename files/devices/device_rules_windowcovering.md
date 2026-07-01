@@ -7,29 +7,3 @@
   <Service "Stop" type="action">Stop moving</Service>
   <Service "UpOrOpen" type="action">Open or raise</Service>
 </Device>
-
-# WindowCovering Examples
-
-[Command]
-Open the WindowCovering
-["WindowCovering.UpOrOpen"]
-
-[Command]
-Close the WindowCovering
-["WindowCovering.DownOrClose"]
-
-[Command]
-Set the WindowCovering level to 50%
-["WindowCovering.SetLevel"]
-
-[Command]
-Check the current position of the WindowCovering
-["WindowCovering.CurrentPosition"]
-
-[Command]
-When the WindowCovering is fully closed, do something
-["WindowCovering.CurrentPosition"]
-
-[Command]
-Lower the WindowCovering by 20%
-["WindowCovering.CurrentPosition", "WindowCovering.SetLevel"]

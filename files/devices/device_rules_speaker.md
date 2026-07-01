@@ -13,41 +13,6 @@
   <Service "VolumeUp" type="action">Increase volume by one step</Service>
 </Device>
 
-# Speaker Examples
-
-[Command]
-Play the speaker
-["Speaker.Play"]
-
-[Command]
-Pause the speaker
-["Speaker.Pause"]
-
-[Command]
-Set the speaker volume to 80
-["Speaker.SetVolume"]
-
-[Command]
-Increase the speaker volume
-["Speaker.VolumeUp"]
-
-[Command]
-Announce that dinner is ready through the speaker
-["Speaker.Speak"]
-
-[Command]
-What is the current speaker volume?
-["Speaker.Volume"]
-
-[Command]
-When the speaker starts playing, do something
-["Speaker.PlaybackState"]
-
-[Command]
-Raise the speaker volume by 5
-["Speaker.Volume", "Speaker.SetVolume"]
-
-
 # @ArgResolve
 
 `Speak.Text` with embedded `$Var` — wrap or pass raw based on what produced the variable:

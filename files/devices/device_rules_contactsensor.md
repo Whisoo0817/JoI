@@ -9,17 +9,3 @@ The polarity is fixed and system-wide: **closed → `true`, open → `false`.** 
 - "문이 열리면 / when the door opens / if the window is open" → `Contact == false`
 - "문이 닫히면 / when closed" → `Contact == true`
 Do NOT invert this. There is no separate open/close service — `Contact` is the only read.
-
-# ContactSensor Examples
-
-[Command]
-Is the front door closed? (Ask ContactSensor)
-["ContactSensor.Contact"]
-
-[Command]
-Check if the window is open (Ask ContactSensor)
-["ContactSensor.Contact"]
-
-[Command]
-When the door is opened, do something
-["ContactSensor.Contact"]

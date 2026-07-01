@@ -176,16 +176,48 @@ def _format_return(svc_info: dict, is_value: bool) -> str:
     return "VOID"
 
 
+def _strip_legacy_examples(rule: str) -> str:
+    """Drop the LEGACY few-shot example blocks from a device_rules section.
+
+    device_rules_*.md still carry `[Command] … ["Skill.Method"]` examples in the
+    OLD mapping-stage output format (a JSON array of skill methods). device-first
+    device_resolve emits `RESULT:\\n(#Tag).Cat.Method` instead, so feeding those
+    arrays as context poisons the model into copying the array form (esp. capable
+    models that faithfully imitate in-context examples). We keep the `[Device
+    Summary]` XML and the prose rules (the actual service-selection knowledge) and
+    remove only the `[Command] … [".."]` blocks: a `[Command]` line, then lines up
+    to and including the first line containing a `["..."]` array literal.
+    """
+    lines = rule.split("\n")
+    out, i, n = [], 0, len(lines)
+    while i < n:
+        if lines[i].strip() == "[Command]":
+            j = i + 1
+            # scan forward to the array-literal line that ends this example block
+            while j < n and '["' not in lines[j] and lines[j].strip() != "[Command]":
+                j += 1
+            if j < n and '["' in lines[j]:
+                i = j + 1  # skip the whole [Command]…[".."] block
+                continue
+            # no array terminator (not a legacy block) — keep the line as-is
+        out.append(lines[i])
+        i += 1
+    # collapse the blank-line runs the removals leave behind
+    return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip()
+
+
 def _build_device_selection_rules(categories) -> str:
     """Concatenate the default ('service_plan') section of each connected
     device's device_rules_*.md. Stage-scoped sections (e.g. `# @ArgResolve`)
-    are stripped — those are pulled by their respective stages.
+    are stripped — those are pulled by their respective stages. Legacy
+    array-format `[Command] … ["..."]` few-shot blocks are also removed so they
+    don't override device_resolve's `RESULT:` output contract.
     """
     chunks = []
     for cat in categories:
         rule = get_device_rules_section(cat, "service_plan")
         if rule:
-            chunks.append(f"### {cat}\n{rule}")
+            chunks.append(f"### {cat}\n{_strip_legacy_examples(rule)}")
     return "\n\n".join(chunks) if chunks else "(no device-specific rules)"
 
 
@@ -657,12 +689,12 @@ def generate_joi_code_ir(
 
     log_buf = []
 
-    def infer(key, user_input, *, system=None, enable_thinking=False, max_tokens=512):
+    def infer(key, user_input, *, system=None, enable_thinking=False, max_tokens=512, prefill=None):
         sys_content = system or PROMPTS.get(key, "")
         content, log_line = run_llm_inference(model, client, key, [
             {"role": "system", "content": sys_content},
             {"role": "user", "content": user_input}
-        ], enable_thinking=enable_thinking, max_tokens=max_tokens)
+        ], enable_thinking=enable_thinking, max_tokens=max_tokens, prefill=prefill)
         log_buf.append(log_line)
         if enable_thinking:
             content = re.sub(r'<think>.*?</think>\s*', '', content, flags=re.DOTALL).strip()
@@ -821,8 +853,11 @@ def generate_joi_code_ir(
         f"[Targets]\n" + "\n".join(target_lines) + "\n\n"
         f"[Device Summary]\n{_build_device_selection_rules(resolve_cats)}"
     )
+    # Force the `<Reasoning>` header so the model can't slip into the legacy
+    # `["Skill.Method"]` array form or drop the RESULT: block.
     resolve_raw = infer("device_resolve", resolve_user,
-                        system=PROMPTS.get("device_resolve", "")).strip()
+                        system=PROMPTS.get("device_resolve", ""),
+                        prefill="<Reasoning>\n").strip()
     _err = re.search(r'(?im)^\s*ERROR:\s*(.+?)\s*$', resolve_raw)
     if _err:
         log_buf.append(f"⛔ device_resolve ERROR: {_err.group(1)}")
@@ -830,9 +865,54 @@ def generate_joi_code_ir(
             f"Cannot fulfill command — {_err.group(1)}",
             "\n".join(log_buf), error_code="device_not_connected",
         )
-    result_block = resolve_raw.split("RESULT:", 1)[1].strip() if "RESULT:" in resolve_raw else ""
-    raw_selectors = [ln.strip() for ln in result_block.splitlines()
-                     if ln.strip() and "(" in ln and ")" in ln]
+    # Split on the `RESULT` header tolerantly — the model sometimes drops the
+    # trailing colon (`RESULT` vs `RESULT:`), which otherwise zeroes the block
+    # and yields a spurious "no usable calls" (non-deterministic failure).
+    _rmatch = re.search(r"RESULT\s*:?\s*\n", resolve_raw)
+    result_block = resolve_raw[_rmatch.end():].strip() if _rmatch else ""
+    # New RESULT format: one line per service, `Cat.Method: (#a), (#b)` — the
+    # service is chosen by the model, the tag(s) are COPIED from [Targets] (given
+    # to it), so the model can no longer invent a wrong tag (e.g. `#Switch`). We
+    # expand each `service: tags` line back into per-tag `(#tag).Cat.Method`
+    # selector strings so the deterministic skill-filter / quantifier loop below
+    # is unchanged. Legacy `(#tag).Cat.Method` lines are still accepted verbatim.
+    # Normalize the `<service>:` key each RESULT line into a clean `Cat.Method`:
+    # the model sometimes drops the category (`Open:` → find its owner Valve) or
+    # duplicates the method (`SetFanMode.SetFanMode:` → `Fan.SetFanMode`). We
+    # resolve the owning category from the catalog (SERVICE_DATA) by method name.
+    def _method_owner(method):
+        for cat in resolve_cats:
+            d = SERVICE_DATA.get(cat, {})
+            if any(e.get("id") == method for e in d.get("values", [])) or \
+               any(e.get("id") == method for e in d.get("functions", [])):
+                return cat
+        return None
+
+    def _canonical_svc(raw_svc):
+        parts = raw_svc.split(".")
+        method = parts[-1]
+        owner = _method_owner(method)
+        if owner:
+            return f"{owner}.{method}"
+        # method not found under any target category — keep a 2-part form as-is
+        return raw_svc if "." in raw_svc else None
+
+    raw_selectors = []
+    for ln in result_block.splitlines():
+        ln = ln.strip()
+        if not ln or "(" not in ln:
+            continue
+        # `<service>: (#a), (#b)` — service may be `Cat.Method`, bare `Method`,
+        # or a duplicated `Method.Method`; all normalized to `Cat.Method`.
+        m = re.match(r'^([A-Za-z][\w.]*)\s*:\s*(.+)$', ln)
+        if m and "(" in m.group(2):
+            svc = _canonical_svc(m.group(1))
+            if svc:
+                for sel in re.findall(r'(?:all|any|one)?\s*\(#[^)]*\)', m.group(2)):
+                    raw_selectors.append(f"{sel.strip()}.{svc}")
+                continue
+        if ")" in ln:  # legacy `(#tag).Cat.Method`
+            raw_selectors.append(ln)
 
     # ── Deterministic quantifier: resolve emits NO prefix; we add all/any/one from
     # each group's scope + role + match count. Map a selector's tag → its group.

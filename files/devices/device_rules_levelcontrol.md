@@ -6,24 +6,8 @@
   <Service "MoveToLevel" type="action">Set specific level</Service>
 </Device>
 
-# LevelControl Examples
+# Rules
 
-[Command]
-Set the LevelControl level to 50
-["LevelControl.MoveToLevel"]
-
-[Command]
-Read the current level of the LevelControl
-["LevelControl.CurrentLevel"]
-
-[Command]
-What is the maximum level of the LevelControl?
-["LevelControl.MaxLevel"]
-
-[Command]
-When the level reaches the minimum, do something
-["LevelControl.CurrentLevel"]
-
-[Command]
-Raise the level by 5
-["LevelControl.CurrentLevel", "LevelControl.MoveToLevel"]
+- A level/dimming VALUE ("50으로", "밝기 30") → `MoveToLevel` (Level 0-100; Level 0 turns the device off if it supports on/off). Read current level → `CurrentLevel`.
+- Bare on/off → `Switch.On`/`Switch.Off` if the device has a Switch; otherwise `MoveToLevel` (ON→100, OFF→0).
+- A relative change ("10 올려") reads `CurrentLevel` then `MoveToLevel`.

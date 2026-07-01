@@ -19,29 +19,3 @@ The two `Set...Mode` services accept **different enum sets**:
 | "stop cleaning" | **CleaningMode** | `stop` |
 
 NOTE: `stop` is a **CleaningMode** value. `homing`, `pause`, `idle` are **RunMode** values.
-
-# RobotVacuumCleaner Examples
-
-[Command]
-Start automatic cleaning
-["RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode"]
-
-[Command]
-Stop the robot vacuum
-["RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode"]
-
-[Command]
-Send the robot vacuum home to charge
-["RobotVacuumCleaner.SetRobotVacuumCleanerRunMode"]
-
-[Command]
-Pause the robot vacuum
-["RobotVacuumCleaner.SetRobotVacuumCleanerRunMode"]
-
-[Command]
-What is the current run mode of the RobotVacuumCleaner?
-["RobotVacuumCleaner.RobotVacuumCleanerRunMode"]
-
-[Command]
-What is the current cleaning mode of the RobotVacuumCleaner?
-["RobotVacuumCleaner.RobotVacuumCleanerCleaningMode"]

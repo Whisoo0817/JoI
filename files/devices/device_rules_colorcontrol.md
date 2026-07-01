@@ -4,16 +4,7 @@
   <Service "SetColor" type="action">Set the color of the device</Service>
 </Device>
 
-# ColorControl Examples
+# Rules
 
-[Command]
-Set the ColorControl color to blue
-["ColorControl.SetColor"]
-
-[Command]
-What color is the ColorControl?
-["ColorControl.Color"]
-
-[Command]
-Change the ColorControl to red
-["ColorControl.SetColor"]
+- Set a color → `SetColor` (Color is an `r|g|b` RGB string). Read current color → `Color`.
+- ColorControl is the generic color sub-skill; on a `Light` a named color usually goes to `Light.MoveToColor` (xy) instead — prefer that when the device is a Light.

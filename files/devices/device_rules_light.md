@@ -34,48 +34,11 @@ We carefully distinguish between `MoveTo*` and `Move*`.
 - 🛑 ANY named color (빨강/초록/파랑/노랑/red/green/blue…) → **ALWAYS `Light.MoveToColor`** (it reads the xy table). NEVER `MoveToHue`/`MoveToSaturation`/`MoveToHueAndSaturation` — those need raw hue/sat numbers the user never gave. (e.g. "초록색으로 바꿔줘" → `Light.MoveToColor`.)
 
 ## On/Off — Switch FIRST
-- **Bare on/off (켜/꺼/켜기/끄기 with NO brightness value) → ALWAYS `Switch.On` / `Switch.Off` when the device has a Switch.** Most lights are tagged `["Light", "Switch"]`, so Switch IS available — use it. Do NOT use `MoveToBrightness` for a plain on/off.
+- **Bare on/off (켜/꺼/켜기/끄기 with NO brightness value) → ALWAYS `Switch.On` / `Switch.Off` when the device has a Switch.** Most lights are tagged `Light` + `Switch`, so Switch IS available — use it. Do NOT use `MoveToBrightness` for a plain on/off.
 - `MoveToBrightness` is ONLY for: (a) a brightness value is given ("20%로", "밝기 10으로"), or (b) the device has NO Switch (fallback: ON → value 100, OFF → value 0).
-- Never return an empty list because Switch is unavailable — always fall back to `MoveToBrightness`.
-
-[Command]
-Set the light color to red
-["Light.MoveToColor"]
-
-[Command]
-Bring down the brightness slowly to 10
-["Light.MoveToBrightness"]
-
-[Command]
-Keep changing the color temperature
-["Light.MoveColorTemperature"]
-
-[Command]
-Check the current brightness of the light
-["Light.CurrentBrightness"]
-
-[Command]
-Turn on the light
-# why: device has a Switch → plain on uses Switch.On, NOT MoveToBrightness
-["Switch.On"]
-
-[Command]
-Turn off the light
-["Switch.Off"]
-
-[Command]
-Turn off the light (Switch not available)
-# why: Light has no On/Off of its own; with no Switch, off = MoveToBrightness with value 0
-["Light.MoveToBrightness"]
-
-[Command]
-Turn on the light (Switch not available)
-["Light.MoveToBrightness"]
-
-[Command]
-Increase the brightness by 10
-["Light.CurrentBrightness", "Light.MoveToBrightness"]
-
+- A brightness value ("밝기 10으로") → `MoveToBrightness`. A relative change ("10 올려") reads `CurrentBrightness` then `MoveToBrightness`.
+- A named color → `MoveToColor` (see the color→xy rule above). Color temperature target → `MoveToColorTemperature`; continuous drift (no target) → `MoveColorTemperature`/`MoveHue`.
+- Reading current state → the matching value service (`CurrentBrightness`, etc.).
 
 # @ArgResolve
 

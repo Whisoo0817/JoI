@@ -8,21 +8,3 @@
   <Service "Presence" type="value">Human presence detection (true/false)</Service>
   <Service "RespiratoryRate" type="value">Respiratory rate measurement (DOUBLE)</Service>
 </Device>
-
-# PresenceVitalSensor Examples
-
-[Command]
-Check the HeartRate on the PresenceVitalSensor
-["PresenceVitalSensor.HeartRate"]
-
-[Command]
-Is anyone present?
-["PresenceVitalSensor.Presence"]
-
-[Command]
-Read the respiratory rate
-["PresenceVitalSensor.RespiratoryRate"]
-
-[Command]
-When someone is detected, do something
-["PresenceVitalSensor.Presence"]

@@ -26,45 +26,6 @@
 - TextToSpeech does NOT play audio. It only generates an audio binary file from text and returns it. Use it ONLY when the user explicitly wants an audio file produced (e.g., "generate a TTS audio file", "save speech as a wav") — typically chained with `SaveToFile`. If the user just wants something said out loud through a speaker, use `Speaker.Speak` directly with the text; do NOT route through `TextToSpeech`.
 - SpeechToText converts an audio file to text (file in → text out). Not a microphone listener.
 
-# CloudServiceProvider Examples
-
-[Command]
-Generate an image
-["CloudServiceProvider.GenerateImage"]
-
-[Command]
-Chat with AI
-["CloudServiceProvider.ChatWithAI"]
-
-[Command]
-Ask AI to explain quantum computing
-["CloudServiceProvider.ChatWithAI"]
-
-[Command]
-List the available LLM models
-["CloudServiceProvider.LLMModels"]
-
-[Command]
-Convert "hello" to a TTS audio file and save it as hello.wav
-["CloudServiceProvider.TextToSpeech", "CloudServiceProvider.SaveToFile"]
-
-[Command]
-Generate a cat image and save it as cat.png
-["CloudServiceProvider.GenerateImage", "CloudServiceProvider.SaveToFile"]
-
-[Command]
-Upload report.pdf to cloud storage
-["CloudServiceProvider.UploadToCloudStorage"]
-
-[Command]
-Describe what is in photo.jpg
-["CloudServiceProvider.ExplainImage"]
-
-[Command]
-Check if the cloud service is available
-["CloudServiceProvider.IsAvailable"]
-
-
 # @ArgResolve
 
 For query / prompt args (`ChatWithAI.Prompt`, `ExplainImage.*`, etc.), reformulate the NL phrase as a **complete, grammatical question or imperative**, not a fragment.

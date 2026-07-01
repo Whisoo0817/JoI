@@ -4,20 +4,7 @@
   <Service "SetPumpMode" type="action">Set pump mode</Service>
 </Device>
 
-# Pump Examples
+# Rules
 
-[Command]
-Set the pump to maximum mode
-["Pump.SetPumpMode"]
-
-[Command]
-Run the pump at minimum flow
-["Pump.SetPumpMode"]
-
-[Command]
-Check the current pump mode
-["Pump.PumpMode"]
-
-[Command]
-When the pump mode changes, do something
-["Pump.PumpMode"]
+- A pump mode named (normal/minimum/maximum/localSetting) → `SetPumpMode`. Read current mode → `PumpMode`.
+- On/off → `Switch.On`/`Switch.Off` if the pump has a Switch.
