@@ -68,7 +68,7 @@ Generation reads `connected_devices` to resolve phrases → tags/categories.
 ---
 
 ## 3. Joi Code Generation Pipeline (device-first, IR-mediated)
-The active pipeline lives in `paper/run_local_ir.py` (`generate_joi_code`; `run_local.py` is a re-export shim). It compiles a Korean/English command into a Joi block through a **Timeline IR**. LLM stages are interleaved with **deterministic Python** steps (grounding resolution, selector-tag minimization, quantifier choice) so small local models never decide what code can compute exactly.
+The active pipeline lives in `paper/run_local_ir.py` (`generate_joi_code`). It compiles a Korean/English command into a Joi block through a **Timeline IR**. LLM stages are interleaved with **deterministic Python** steps (grounding resolution, selector-tag minimization, quantifier choice) so small local models never decide what code can compute exactly.
 
 ### Stage 1 — Targeting
 1.  **`device_retrieve`** (LLM, command only — does NOT see devices): parses the command into target groups, one per line: `role=<condition|read|action|notify> | by=label:<verbatim phrase>|channel:<speaker,toast> | scope=<all|any|one|auto>`.

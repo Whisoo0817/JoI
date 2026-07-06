@@ -24,7 +24,7 @@ Python 3.9+ and a local OpenAI-compatible LLM server (vLLM).
 pip install -r requirements.txt
 
 # 2. Start the LLM server (vLLM)
-bash start_vllm.sh           # serves on http://localhost:8002/v1 by default
+bash start_qwen36_5090.sh    # serves on http://localhost:8002/v1 by default
 
 # 3. Start the generation API
 python app.py                # FastAPI on port 49999
@@ -40,7 +40,7 @@ The backend endpoint is configured via `LLM_BASE_URL` (default `http://localhost
 ## 🛠 Generation API
 
 ### `generate_joi_code(sentence, connected_devices, other_params)`
-The core engine (`paper/run_local_ir.py`; `run_local.py` is a re-export shim). Analyzes the command and returns the JoI block plus a per-stage reasoning log.
+The core engine (`paper/run_local_ir.py`). Analyzes the command and returns the JoI block plus a per-stage reasoning log.
 - `sentence` (str): the raw natural-language command.
 - `connected_devices` (dict): metadata of currently connected IoT devices (`category`, `tags`, optional `nickname`).
 - `other_params` (dict): optional generation parameters.

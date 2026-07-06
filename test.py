@@ -5,10 +5,9 @@ Modes:
     python3 test.py target confirm   # IR-only first, print readable, prompt
                                      # user (yes → lowering; else → re-gen
                                      # with feedback, NYI placeholder).
-    python3 test.py pre              # translation + pre_analysis ONLY
     python3 test.py custom           # single CUSTOM_COMMAND interactively
 
-When run with `target` or `pre`, all stdout is mirrored to a timestamped log file in /tmp.
+When run with `target`, all stdout is mirrored to a timestamped log file in /tmp.
 The path is printed at start and end so the caller can grep / tail it.
 """
 
@@ -41,7 +40,7 @@ from pipeline_helpers import run_llm_inference
 
 import json as _json
 
-# [MODE: target | pre] Test targets (python3 test.py target | pre)
+# [MODE: target] Test targets (python3 test.py target)
 # Keys are category_v2 (e.g., "C01"..."C18"). Values: list of indices, or None for all rows in that category.
 # The 26 fail-closed REJECT rows from the Stage-B run (experiments/stageB_382),
 # surfaced by paper/rq3_pipeline_effect.py. These are the cases the verifier
@@ -259,51 +258,6 @@ def run_targeted_test_confirm(df):
                 print("  → not confirmed; skipping (no lowering).")
 
 
-def run_pre_analysis_only(df):
-    """Translation + pre_analysis only. No service_plan, no precision, no IR."""
-    print("\n🔍 Running Pre-Analysis Only...")
-    client = get_client()
-    model = get_model_id(client)
-
-    def infer(key, user_input):
-        sys_content = PROMPTS.get(key, "")
-        content, log_line = run_llm_inference(model, client, key, [
-            {"role": "system", "content": sys_content},
-            {"role": "user", "content": user_input},
-        ])
-        return content, log_line
-
-    for category, indices in test_targets.items():
-        print(f"--- Category {category} ---")
-        sub = df[df['category_v2'] == category]
-        if indices is None:
-            indices = sorted(sub['index'].tolist(), key=lambda x: _idx_sort_key(x))
-        for idx in indices:
-            match = sub[sub['index'].astype(str) == str(idx)]
-            if match.empty:
-                print(f"(Idx {idx}) - Not Found")
-                continue
-            row = match.iloc[0]
-            eng = row['command_eng']
-            print(f"\n({idx}) Command: {eng}")
-            t0 = time.perf_counter()
-            try:
-                sentence = eng
-                logs = []
-                pre, log_line = infer("pre_analysis", f"[Command]\n{sentence}")
-                logs.append(log_line)
-                elapsed = time.perf_counter() - t0
-                print(f"\n[pre_analysis]\n{pre}")
-                print(f"\n[stage timings]")
-                for line in logs:
-                    head = line.split("\n", 1)[0]
-                    print(f"  {head}")
-                print(f"[total: {elapsed:.2f}s]")
-            except Exception as e:
-                elapsed = time.perf_counter() - t0
-                print(f"Error at Idx {idx} after {elapsed:.2f}s: {e}")
-
-
 def run_custom_test():
     print("\n🛠️ Running Custom Test...")
     print(f"Command: {CUSTOM_COMMAND}")
@@ -324,7 +278,7 @@ if __name__ == "__main__":
     mode = sys.argv[1] if len(sys.argv) > 1 else "custom"
     submode = sys.argv[2] if len(sys.argv) > 2 else ""
 
-    if mode in ("target", "pre"):
+    if mode == "target":
         suffix = f"_{submode}" if submode else ""
         log_path = f"/tmp/joi_{mode}{suffix}_{time.strftime('%Y%m%d_%H%M%S')}.log"
         log_fh = open(log_path, "w", encoding="utf-8")
@@ -334,13 +288,10 @@ if __name__ == "__main__":
         try:
             print(f"📁 Log file: {log_path}")
             df = pd.read_csv(csv_file_path, encoding='utf-8-sig')
-            if mode == "target":
-                if submode == "confirm":
-                    run_targeted_test_confirm(df)
-                else:
-                    run_targeted_test(df)
+            if submode == "confirm":
+                run_targeted_test_confirm(df)
             else:
-                run_pre_analysis_only(df)
+                run_targeted_test(df)
             print(f"\n📁 Log file: {log_path}")
         except Exception as e:
             print(f"CSV Load Error: {e}")
@@ -352,4 +303,4 @@ if __name__ == "__main__":
     elif mode == "custom":
         run_custom_test()
     else:
-        print("Usage: python3 test.py [target | pre | custom]")
+        print("Usage: python3 test.py [target | custom]")
