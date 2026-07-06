@@ -154,7 +154,11 @@ COMMANDS_3 = [
 ]
 
 # 돌릴 그룹만 여기서 선택 (COMMANDS_1 / COMMANDS_2 / COMMANDS_3)
-COMMANDS = ["Switch off the lights"]
+# qwen ↔ Ornith 결과가 갈렸거나 이슈가 있던 명령들 (직접 돌려 비교용)
+COMMANDS = [
+    "조명 다 꺼줘",
+    "오후 5시에 사람이 감지되면 불 꺼줘"
+]
 
 def _reindent(script: str, unit: str = "    ") -> str:
     """Re-indent a JoI script by { } nesting depth so blocks are readable."""
