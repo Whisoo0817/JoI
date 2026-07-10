@@ -14,24 +14,30 @@ from pydantic import BaseModel
 
 
 class JoiErrorCode(IntEnum):
+    """Mirrored in joi-agent's `agent/joi_llm_schemas.py` — change both together.
+
+    INVALID_REQUEST and EMPTY_GENERATION are never produced here: joi-agent's MCP
+    layer emits them for an HTTP 4xx from this service and for a 200 whose `code`
+    came back blank. Grep finds no local producer; they are still live.
+
+    1003 was MISSING_DESCRIPTOR, a pre-IR stage that no longer exists. The number
+    is retired, not free — joi-agent's copy still defines it.
+    """
+
     SUCCESS = 0
 
     # 1xxx: input / request
-    INVALID_REQUEST = 1001
-    NO_DEVICES = 1002          # no connected devices supplied
-    NO_SERVICES = 1004         # planner found no action for the command
-    MULTIPLE_SCENARIOS = 1005  # command bundles ≥2 independent trigger→action scenarios
-    AMBIGUOUS_CONDITION = 1006  # magnitude condition with no concrete threshold (더우면/높아지면…)
+    INVALID_REQUEST = 1001     # emitted by joi-agent (HTTP 4xx from this service)
+    NO_DEVICES = 1002          # request carried no connected devices at all
+    NO_SERVICES = 1004         # no usable service call for the command
 
     # 12xx: device resolution
-    DEVICE_NOT_CONNECTED = 1201  # required device category not connected at all
-    DEVICE_NOT_IN_SCOPE = 1202   # category exists but none in the named location/scope
-    DEVICE_NOT_FOUND = 1203      # command named a SPECIFIC device that isn't connected
+    DEVICE_NOT_CONNECTED = 1201  # devices were supplied, none satisfy the command
 
     # 2xxx: vLLM / infrastructure
     VLLM_TIMEOUT = 2001
     VLLM_UNAVAILABLE = 2002
-    EMPTY_GENERATION = 2003
+    EMPTY_GENERATION = 2003    # emitted by joi-agent (blank `code` in our 200)
 
     # 3xxx: code-generation reasoning (IR extract / validation / feasibility /
     # lowering are ALL folded here — external callers don't model the IR layer).
@@ -42,30 +48,22 @@ class JoiErrorCode(IntEnum):
     INTERNAL_ERROR = 9999
 
 
-# Pipeline's internal string error_code → public JoiErrorCode.
-# Anything not listed (the IR/lowering codes: ir_invalid, ir_rejected,
-# ir_infeasible, missing_lowering_prompt, catalog-validation codes, …) maps to
-# REASONING_FAILED via ERROR_CODE_MAP.get(code, REASONING_FAILED) — but ONLY for
-# codes that originate downstream of planning. Use `map_error_code()` so unknown
-# pre-planning codes still surface as INTERNAL_ERROR rather than silently
-# masquerading as a reasoning failure.
+# Pipeline's internal string error_code → public JoiErrorCode. Every key below is
+# raised somewhere in `joi/generate.py` or `pipeline_helpers.py`; keep it
+# that way, and reach for `map_error_code()` rather than indexing this directly.
 ERROR_CODE_MAP = {
     "no_devices": JoiErrorCode.NO_DEVICES,
     "no_services": JoiErrorCode.NO_SERVICES,
     "device_not_connected": JoiErrorCode.DEVICE_NOT_CONNECTED,
-    "no_device_in_scope": JoiErrorCode.DEVICE_NOT_IN_SCOPE,
-    "device_not_found": JoiErrorCode.DEVICE_NOT_FOUND,
-    "multiple_scenarios": JoiErrorCode.MULTIPLE_SCENARIOS,
-    "ambiguous_condition": JoiErrorCode.AMBIGUOUS_CONDITION,
     "reasoning_overflow": JoiErrorCode.REASONING_OVERFLOW,
 }
 
-# Internal codes that should collapse into REASONING_FAILED (IR + lowering +
-# device-match producing no parseable result — a model failure, not a scope miss).
+# Internal codes that collapse into REASONING_FAILED: the model produced nothing
+# usable. `ir_*` also matches the prefix rule in map_error_code(), but the
+# catalog-validation codes it emits are dynamic, so the prefix rule is load-bearing.
 _REASONING_CODES = {
-    "ir_invalid", "ir_rejected", "ir_infeasible", "missing_lowering_prompt",
-    "service_not_in_catalog", "member_not_in_service",
-    "gt_ir_load_failed", "device_match_failed",
+    "reasoning_failed", "ir_invalid", "ir_rejected", "ir_infeasible",
+    "missing_lowering_prompt",
 }
 
 
