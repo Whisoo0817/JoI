@@ -58,7 +58,7 @@ Request body:
 ```
 Response (`JoiLLMResponse`, see `schemas.py`): `outcome`, `error_code`/`error_message`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs`). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
 
-Other endpoints: `GET /health`, `POST /warmup` (vLLM prefix-cache warmup).
+Other endpoints: `GET /health`.
 
 ---
 

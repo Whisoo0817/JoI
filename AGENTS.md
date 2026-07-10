@@ -110,7 +110,7 @@ FastAPI service wrapping `generate_joi_code`. Prompts and the service catalog lo
 ```
 Response is a `JoiLLMResponse` (`schemas.py`): `outcome`, `error_code`/`error_message`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs` — the per-stage reasoning trace). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
 
-Other endpoints: **`GET /health`**, **`POST /warmup`** (vLLM prefix-cache warmup).
+Other endpoints: **`GET /health`**.
 
 **Backend LLM**: an OpenAI-compatible endpoint set by `LLM_BASE_URL` (default `http://localhost:8002/v1`); the model id is auto-discovered. Tuned for local 8–9B models (currently Ornith-1.0-9B / Qwen-9B class).
 

@@ -17,7 +17,6 @@ app.py      192.168.0.250:49999   JoI 코드 생성 API (FastAPI)
 |---|---|
 | `POST /generate_joi_code` | 핵심. 명령 → JoI 코드 |
 | `GET /health` | 헬스체크 |
-| `POST /warmup` | vLLM prefix-cache 웜업 |
 
 - **요청**: `{sentence, model, connected_devices, current_time, other_params?}`
 - **응답** (`schemas.JoiLLMResponse`): `{success, error_code, error_message, details, command,
@@ -48,7 +47,6 @@ joi_new/
   loader.py              service_list 로딩 (SERVICE_DATA, SUB_SKILL_TAGS)
   pipeline_helpers.py    LLM 추론 호출 + 서비스 상세 추출 + 코드 후처리
   device_ontology.py     결정적 디바이스 타게팅 헬퍼 (태그/수량자, LLM 없음)
-  warmup.py              vLLM prefix-cache 웜업
   test.py / run.py       로컬 테스트 / 실행
   request_log.jsonl      최근 요청 추적 로그
   files/                 파이프라인 프롬프트(*.md) + service_list(JSON) + devices/
