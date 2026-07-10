@@ -858,7 +858,7 @@ def generate_joi_code_ir(
         if not or_groups:
             raise JoiGenerationError(
                 f"Cannot fulfill command — no connected device for {t['by_val']!r}",
-                "\n".join(log_buf), error_code="device_not_connected",
+                "\n".join(log_buf), error_code="no_suitable_device",
             )
         for grp_ids in or_groups:
             sel_tags, _ = _min_tags(grp_ids, cd_named)
@@ -884,7 +884,7 @@ def generate_joi_code_ir(
         log_buf.append(f"⛔ device_resolve ERROR: {_err.group(1)}")
         raise JoiGenerationError(
             f"Cannot fulfill command — {_err.group(1)}",
-            "\n".join(log_buf), error_code="device_not_connected",
+            "\n".join(log_buf), error_code="no_suitable_device",
         )
     # Split on the `RESULT` header tolerantly — the model sometimes drops the
     # trailing colon (`RESULT` vs `RESULT:`), which otherwise zeroes the block
@@ -1042,13 +1042,9 @@ def generate_joi_code_ir(
 
     local_service_details = extract_service_details(selected_services, SERVICE_DATA)
 
-    intent_categories = list(set(s.split('.')[0] for s in selected_services if '.' in s))
-    if not intent_categories:
-        raise JoiGenerationError(
-            f"No services found for the command: '{sentence}'.",
-            "\n".join(log_buf),
-            error_code="no_services",
-        )
+    # Non-empty by construction: `_sel_re` only admits `Service.Method`, so every
+    # entry has exactly one dot, and the guard above already rejected an empty list.
+    intent_categories = list({s.split('.')[0] for s in selected_services})
 
     # ── Resolve / precision / ir-extract input prep ──
     enum_value_targets = [s for s in selected_services if _is_enum_value_service(s)]

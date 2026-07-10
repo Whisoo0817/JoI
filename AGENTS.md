@@ -111,7 +111,7 @@ FastAPI service wrapping `generate_joi_code`. Prompts and the service catalog lo
 ```
 `current_code` is optional. When it carries a previously generated JoI block,
 `sentence` is read as an edit request against that block instead of a fresh command.
-Response is a `JoiLLMResponse` (`schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs` — the per-stage reasoning trace). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
+Response is a `JoiLLMResponse` (`schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs` — the per-stage reasoning trace). Errors are typed (e.g. `no_suitable_device`, `reasoning_failed`, `ir_catalog_*`).
 
 Other endpoints: **`GET /health`**.
 

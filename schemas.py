@@ -1,7 +1,7 @@
 """API response schema for the JoI LLM pipeline.
 
 The pipeline raises `JoiGenerationError` with a *string* `error_code`
-(`"no_services"`, `"device_not_connected"`, …). For external consumers we expose
+(`"no_devices"`, `"no_suitable_device"`, …). For external consumers we expose
 a stable numeric `JoiErrorCode` enum and a typed `JoiLLMResponse`. The string →
 enum mapping lives in `ERROR_CODE_MAP`; IR/lowering internals are deliberately
 collapsed into a single `REASONING_FAILED` so callers never need to know about
@@ -20,8 +20,10 @@ class JoiErrorCode(IntEnum):
     layer emits them for an HTTP 4xx from this service and for a 200 whose `code`
     came back blank. Grep finds no local producer; they are still live.
 
-    1003 was MISSING_DESCRIPTOR, a pre-IR stage that no longer exists. The number
-    is retired, not free — joi-agent's copy still defines it.
+    1003 (MISSING_DESCRIPTOR) and 1004 (NO_SERVICES) named pre-IR stages that no
+    longer exist. Both numbers are retired, not free — joi-agent's copy still
+    defines them, and 1004 in particular must not be reused for something else
+    until that copy is updated.
     """
 
     SUCCESS = 0
@@ -29,10 +31,14 @@ class JoiErrorCode(IntEnum):
     # 1xxx: input / request
     INVALID_REQUEST = 1001     # emitted by joi-agent (HTTP 4xx from this service)
     NO_DEVICES = 1002          # request carried no connected devices at all
-    NO_SERVICES = 1004         # no usable service call for the command
 
     # 12xx: device resolution
-    DEVICE_NOT_CONNECTED = 1201  # devices were supplied, none satisfy the command
+    # Devices were supplied, but none of them can carry out the command — whether
+    # the category is absent, the named device isn't there, or device_resolve
+    # found no service on them that fits. One code: the caller's remedy is the
+    # same in every case. NOTE: joi-agent's mirror does not define 1201 yet, so a
+    # proxied caller still sees 9999 until it does.
+    NO_SUITABLE_DEVICE = 1201
 
     # 2xxx: vLLM / infrastructure
     VLLM_TIMEOUT = 2001
@@ -53,8 +59,7 @@ class JoiErrorCode(IntEnum):
 # that way, and reach for `map_error_code()` rather than indexing this directly.
 ERROR_CODE_MAP = {
     "no_devices": JoiErrorCode.NO_DEVICES,
-    "no_services": JoiErrorCode.NO_SERVICES,
-    "device_not_connected": JoiErrorCode.DEVICE_NOT_CONNECTED,
+    "no_suitable_device": JoiErrorCode.NO_SUITABLE_DEVICE,
     "reasoning_overflow": JoiErrorCode.REASONING_OVERFLOW,
 }
 

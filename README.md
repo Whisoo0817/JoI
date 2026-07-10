@@ -60,7 +60,7 @@ Request body:
 ```
 `current_code` is optional. When it carries a previously generated JoI block,
 `sentence` is read as an edit request against that block instead of a fresh command.
-Response (`JoiLLMResponse`, see `schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs`). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
+Response (`JoiLLMResponse`, see `schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs`). Errors are typed (e.g. `no_suitable_device`, `reasoning_failed`, `ir_catalog_*`).
 
 Other endpoints: `GET /health`.
 
