@@ -1,27 +1,7 @@
-"""IR/JoI simulators for trace-equivalence verification.
+"""Service catalog + expression helpers shared by the IR and lowering stages.
 
-Backs paper §6 (operational semantics) and §9 (evaluation).
-
-Public entry points:
-- run_ir_simulation(ir, scenario, catalog) -> Trace
-- run_joi_simulation(joi_block, scenario, catalog) -> Trace
-- synthesize_scenarios(ir) -> list[Scenario]
-- compare_traces(trace_ir, trace_joi) -> ComparisonResult
-
-Design decisions are locked in `project_simulator_design_decisions.md`.
+`catalog.load_catalog()` reads files/service_list_ver*.json and backs the
+`validate_ir_against_catalog` check in the IR-extract retry loop.
+`expr` provides the canonical service/method name normalization used by both
+the catalog and `paper.timeline_ir`.
 """
-
-from .traces import TraceRecord, Trace, normalize_args
-from .scenario import Scenario, ScenarioEvent
-from .comparator import compare_traces, ComparisonResult
-from .ir_simulator import run_ir_simulation
-from .joi_simulator import run_joi_simulation
-from .event_synth import synthesize_scenarios
-
-__all__ = [
-    "TraceRecord", "Trace", "normalize_args",
-    "Scenario", "ScenarioEvent",
-    "compare_traces", "ComparisonResult",
-    "run_ir_simulation", "run_joi_simulation",
-    "synthesize_scenarios",
-]

@@ -59,22 +59,6 @@ from timeline_ir import (
 from feasibility import check_feasibility, FeasibilityError, lowering_bucket
 from ir_renderer import render_ir_with_devices
 
-# Verifier integration (Phase 2). Activated when env JOI_VERIFY=1 (default off
-# during transition so baselines stay reproducible). When on, the lowering
-# stage is wrapped by `retry_harness.run` with max_attempts=2; retry hints
-# are delivered as a follow-up user turn via `infer_followup`, not as a
-# template slot — first-attempt prompt distribution is unchanged.
-from paper.verifier.retry_harness import run as _verifier_run
-from paper.verifier.llm_diagnose import make_llm_diagnoser as _make_llm_diagnoser
-from paper.simulators.catalog import load_catalog as _load_catalog
-
-_VERIFY_ENABLED = os.environ.get("JOI_VERIFY", "0") == "1"
-_VERIFY_MAX_ATTEMPTS = int(os.environ.get("JOI_VERIFY_MAX_ATTEMPTS", "2"))
-# LLM-aided diagnose (paper §8.3): adds one reasoning call between violation
-# detection and retry. Off by default so the deterministic-diagnose baseline
-# stays reproducible; flip JOI_LLM_DIAGNOSE=1 for the ablation's LLM-aided arm.
-_LLM_DIAGNOSE_ENABLED = os.environ.get("JOI_LLM_DIAGNOSE", "0") == "1"
-
 # IR-only short-circuit. When JOI_IR_ONLY=1, the pipeline runs through the
 # device + resolve + IR-extract stages (+ post-process trio) and then writes
 # the IR + supporting state to JOI_IR_DUMP_DIR/<JOI_IR_DUMP_NAME>.json, skipping
@@ -730,19 +714,6 @@ def generate_joi_code_ir(
         log_buf.append(log_line)
         if enable_thinking:
             content = re.sub(r'<think>.*?</think>\s*', '', content, flags=re.DOTALL).strip()
-        return content
-
-    def infer_followup(key, user_input, *, system, prior_user, prior_assistant):
-        """Multi-turn inference that reuses a prior (user, assistant) exchange so
-        the KV cache hits on the shared prefix. The follow-up question goes in as
-        the next user turn."""
-        content, log_line = run_llm_inference(model, client, key, [
-            {"role": "system", "content": system},
-            {"role": "user", "content": prior_user},
-            {"role": "assistant", "content": prior_assistant},
-            {"role": "user", "content": user_input},
-        ])
-        log_buf.append(log_line)
         return content
 
     # ── Device prep — the dN aliasing built here is reused by every device stage.
@@ -1472,8 +1443,7 @@ def generate_joi_code_ir(
         f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
     )
     def _finalize(raw: str) -> dict:
-        """Parse + post-process raw LLM output into final joi_block dict.
-        Used by both the verifier-on path (per attempt) and verifier-off path."""
+        """Parse + post-process raw LLM output into final joi_block dict."""
         script = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
         joi_json = {}
         try:
@@ -1520,164 +1490,9 @@ def generate_joi_code_ir(
 
         return joi_json
 
-    if _VERIFY_ENABLED:
-        # Verifier-on: wrap the lowering call in retry_harness. Retry hints are
-        # delivered as a follow-up user turn (B-design): first attempt is a
-        # plain `infer(...)` so the prompt distribution is unchanged; only on
-        # retry does the prior (user, assistant) exchange get replayed and the
-        # retry message appear as the next user turn.
-        prev_raw = {"text": None}
-
-        def _lower_fn(ir_arg, hints):
-            if hints is None:
-                # Paired-design support: when JOI_SEED_JOI_PATH is set, attempt 1
-                # returns the pre-generated candidate (e.g. the ungated arm's
-                # lowering) instead of calling the LLM, so the verifier+repair
-                # loop operates on the exact same candidate the ungated arm
-                # deployed. Behavior is unchanged when the env var is unset.
-                _seed_path = os.environ.get("JOI_SEED_JOI_PATH")
-                if _seed_path:
-                    try:
-                        with open(_seed_path, encoding="utf-8") as _sf:
-                            _seed = json.load(_sf)
-                        _seed_joi = _seed.get("joi_block")
-                        if isinstance(_seed_joi, dict):
-                            prev_raw["text"] = _seed.get("code_raw") or json.dumps(
-                                _seed_joi, ensure_ascii=False)
-                            log_buf.append(f"🌱 attempt-1 seeded from {_seed_path}")
-                            return _seed_joi
-                        log_buf.append("⚠️ seed has no joi_block; fresh generation")
-                    except Exception as _e:
-                        log_buf.append(f"⚠️ seed load failed ({_e}); fresh generation")
-                raw = infer(prompt_key, joi_input, system=system_prompt)
-            else:
-                raw = infer_followup(
-                    prompt_key, hints,
-                    system=system_prompt,
-                    prior_user=joi_input,
-                    prior_assistant=prev_raw["text"] or "",
-                )
-            prev_raw["text"] = raw
-            return _finalize(raw)
-
-        try:
-            catalog_obj = _load_catalog()
-        except Exception as e:
-            log_buf.append(f"⚠️ verifier disabled (catalog load failed): {e}")
-            catalog_obj = None
-
-        # Debug: show the synthesized scenarios the verifier will exercise
-        # (currently event_synth returns a single scenario; cap at 2 for future).
-        try:
-            from paper.simulators.event_synth import synthesize_scenarios as _synth
-            _scns = _synth(ir)[:2]
-            for _i, _scn in enumerate(_scns):
-                _evs = ", ".join(
-                    f"@{e.at_ms}ms {e.key}={e.value!r}" for e in _scn.events[:8]
-                ) or "(none)"
-                _suffix = f" (+{len(_scn.events) - 8} more)" if len(_scn.events) > 8 else ""
-                log_buf.append(f"🎬 Scenario {_i}: {_evs}{_suffix}")
-        except Exception as _e:
-            log_buf.append(f"⚠️ scenario synth (debug) failed: {_e}")
-
-        _diagnoser = _make_llm_diagnoser(infer) if _LLM_DIAGNOSE_ENABLED else None
-        if _diagnoser is not None:
-            log_buf.append("🧠 LLM-aided diagnose: ON")
-        v_result = _verifier_run(
-            ir, _lower_fn,
-            connected_devices=connected_devices,
-            catalog=catalog_obj,
-            max_attempts=_VERIFY_MAX_ATTEMPTS,
-            diagnose_fn=_diagnoser,
-        )
-        for rec in v_result.attempts:
-            tag = rec.retry_message.summary if rec.retry_message else "clean"
-            log_buf.append(
-                f"🔁 Attempt {rec.attempt}: L1={len(rec.l1)} L2={len(rec.l2)} — {tag}"
-            )
-            # L1 detail — one bullet per violation (kind, where, message)
-            for v in rec.l1:
-                log_buf.append(f"     L1 {v.kind} @ {v.where}: {v.message}")
-            # L2 detail — kind, ir_path, target, expected/observed
-            for v in rec.l2:
-                bits = [f"L2 {v.kind} @ {v.ir_path} target={v.target}"]
-                if v.expected is not None:
-                    bits.append(f"exp={v.expected}")
-                if v.observed is not None:
-                    bits.append(f"obs={v.observed}")
-                if v.occurrences > 1:
-                    bits.append(f"×{v.occurrences}")
-                log_buf.append("     " + " ".join(bits))
-            # Retry hint (the prompt block actually injected on the next turn).
-            # Dump the FULL block (deterministic floor + any LLM-aided note) so
-            # the exact message handed to the lowering LLM is auditable.
-            if rec.retry_message is not None and rec.attempt < len(v_result.attempts):
-                log_buf.append(
-                    f"     ↪ retry hint: {rec.retry_message.bullet_count} bullets — "
-                    f"{rec.retry_message.summary}"
-                )
-                log_buf.append("     ┌─ FULL retry hint passed to next attempt ─")
-                for _ln in rec.retry_message.prompt_block.splitlines():
-                    log_buf.append(f"     │ {_ln}")
-                log_buf.append("     └────────────────────────────────────────")
-
-        # Trace-equivalence debug: re-run sims on the final accepted/rejected
-        # JoI under the synthesized scenario and dump the trace records so a
-        # human can eyeball IR vs JoI emit divergence. Capped to keep log
-        # readable; cycle-heavy rows will repeat many times.
-        try:
-            from paper.simulators.ir_simulator import run_ir_simulation
-            from paper.simulators.joi_simulator import run_joi_simulation
-            if _scns and v_result.final_joi:
-                _scn0 = _scns[0]
-                _t_ir = run_ir_simulation(ir, _scn0, catalog_obj).records[:6]
-                _t_joi = run_joi_simulation(v_result.final_joi, _scn0, catalog_obj).records[:6]
-                log_buf.append(
-                    f"📜 IR trace ({len(_t_ir)} shown): " + "; ".join(
-                        f"@{r.timestamp_ms} {r.service}.{r.method}{r.args}" for r in _t_ir
-                    ) if _t_ir else "📜 IR trace: (empty)"
-                )
-                log_buf.append(
-                    f"📜 JoI trace ({len(_t_joi)} shown): " + "; ".join(
-                        f"@{r.timestamp_ms} {r.service}.{r.method}{r.args}" for r in _t_joi
-                    ) if _t_joi else "📜 JoI trace: (empty)"
-                )
-        except Exception as _e:
-            log_buf.append(f"⚠️ trace dump (debug) failed: {_e}")
-
-        log_buf.append(
-            f"🏁 Verifier: {'accepted' if v_result.accepted else 'fail (kept last attempt)'}"
-        )
-        joi_json = v_result.final_joi or {}
-
-        # Structured verifier decision trace for post-hoc confusion-matrix
-        # aggregation (paper §7.5 / §8.5). We dump each attempt's parsed
-        # joi_block so the eval grader can score attempt-1 vs final against
-        # ir_gt without re-invoking the LLM — this is what separates the
-        # detector matrix (did the internal verifier flag a wrong attempt-1?)
-        # from the outcome matrix (did retry recover / regress?).
-        verifier_trace = {
-            "enabled": True,
-            "accepted": v_result.accepted,
-            "n_attempts": len(v_result.attempts),
-            "attempts": [
-                {
-                    "attempt": rec.attempt,
-                    "l1_count": len(rec.l1),
-                    "l1_kinds": [v.kind for v in rec.l1],
-                    "l2_count": len(rec.l2),
-                    "l2_kinds": [v.kind for v in rec.l2],
-                    "joi_block": rec.joi_block,
-                }
-                for rec in v_result.attempts
-            ],
-        }
-        code_plan = ""
-    else:
-        raw = infer(prompt_key, joi_input, system=system_prompt)
-        joi_json = _finalize(raw)
-        code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
-        verifier_trace = {"enabled": False}
+    raw = infer(prompt_key, joi_input, system=system_prompt)
+    joi_json = _finalize(raw)
+    code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
 
     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
 
@@ -1802,7 +1617,6 @@ def generate_joi_code_ir(
         "ir_readable_scoped": ir_readable_scoped,
         "precision": precision_output.get("selectors", {}) if isinstance(precision_output, dict) else {},
         "precision_reasoning": precision_output.get("reasoning", "") if isinstance(precision_output, dict) else "",
-        "verifier_trace": verifier_trace,
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "translated_sentence": translated_sentence_kor or translated_sentence,
