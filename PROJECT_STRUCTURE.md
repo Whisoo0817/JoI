@@ -26,7 +26,7 @@ app.py      192.168.0.250:49999   JoI 코드 생성 API (FastAPI)
 
 ## 코드 생성 파이프라인 (IR 기반, device-first)
 
-진입점은 `paper.run_local_ir.generate_joi_code`. 단계:
+진입점은 `joi.generate_joi_code`. 단계:
 
 1. **디바이스 타게팅** — device_retrieve → ground_targets(LLM, 디바이스 매칭) → device_resolve(서비스 선택) + Python 헬퍼(태그/수량자)
 2. **영어 번역** — IR/lowering 프롬프트용
@@ -50,9 +50,13 @@ joi_new/
   request_log.jsonl      최근 요청 추적 로그
   files/                 파이프라인 프롬프트(*.md) + service_list(JSON) + devices/
   parser/                ANTLR JoI 문법(JOILang.g4) + validator (코드 검증)
-  paper/                 활성 IR 파이프라인 (run_local_ir.py, timeline_ir.py,
-                         feasibility.py, ir_renderer.py, example_bank.py,
-                         simulators/{catalog,expr}.py)
+  joi/                   코드 생성 엔진 패키지
+    generate.py          파이프라인 본체 (스테이지 순서 + 프롬프트 조립)
+    ir.py                Timeline IR 추출 / 스키마·디바이스·카탈로그 검증
+    feasibility.py       실행 가능성 판정 + lowering 버킷 선택
+    examples.py          lowering 프롬프트의 few-shot 예제 블록
+    catalog.py           service_list JSON 로더
+    expr.py              IR 조건식 파서
   start_qwen36_5090.sh   vLLM: Qwen3.6-35B-A3B-NVFP4 (2×5090, 기본)
   start_qwen35_9b_5090.sh vLLM: Qwen3.5-9B-fp8 (1 GPU, 빠른 테스트)
   AGENTS.md              JoI DSL 스펙 (:=, =, any/all 등)

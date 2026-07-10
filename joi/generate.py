@@ -25,14 +25,8 @@ import ast
 import json
 import os
 import re
-import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
-
-_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# paper/ is not on sys.path when imported as a package; add it so timeline_ir is found
-if _BASE_DIR not in sys.path:
-    sys.path.insert(0, _BASE_DIR)
 
 from config import get_client, get_model_id
 from loader import SERVICE_DATA, PROMPTS, get_device_rules_section
@@ -51,12 +45,12 @@ from pipeline_helpers import (
     _strip_selector_extra_parens,
     _parse_dict_input,
 )
-from timeline_ir import (
+from joi.ir import (
     extract_ir, validate_ir_against_devices,
     validate_ir_against_catalog, build_extract_retry_hint,
     IRValidationError, parse_duration_to_ms,
 )
-from feasibility import check_feasibility, FeasibilityError, lowering_bucket
+from joi.feasibility import check_feasibility, FeasibilityError, lowering_bucket
 
 
 # Bucket-specific lowering prompt is assembled at runtime as
@@ -84,18 +78,18 @@ def classify_ir(ir):
 def _load_lowering_prompt(bucket: str, ir=None) -> str:
     """joi_common.md + the example block routed by the IR's structural class.
 
-    The block comes from the example bank (paper/example_bank.py), seeded with
+    The block comes from the example bank (joi/examples.py), seeded with
     the shipped per-class file joi_<bucket>.md — byte-identical to loading the
     file directly unless JOI_EXAMPLE_BANK adds accumulated verified pairs."""
     if bucket not in _BUCKET_KEYS:
         raise ValueError(f"unknown lowering bucket: {bucket!r}")
     if ir is not None:
         try:
-            from paper import example_bank
+            from joi import examples
             common = PROMPTS.get("joi_common")
             if not common:
                 raise FileNotFoundError("joi_common.md not loaded by PROMPTS")
-            return common + "\n\n---\n\n" + example_bank.examples_for(ir, PROMPTS)
+            return common + "\n\n---\n\n" + examples.examples_for(ir, PROMPTS)
         except ImportError:
             pass
     common = PROMPTS.get("joi_common")
@@ -1228,7 +1222,7 @@ def generate_joi_code_ir(
         #    structured violations and re-run with (prior_user, prior_assistant,
         #    hint) — only the extract stage retries; upstream/downstream
         #    stages remain single-call.
-        from paper.simulators.catalog import load_catalog as _load_cat
+        from joi.catalog import load_catalog as _load_cat
         catalog_obj = _load_cat()
         _IR_MAX_ATTEMPTS = int(os.environ.get("JOI_IR_EXTRACT_MAX_ATTEMPTS", "2"))
 
@@ -1255,7 +1249,7 @@ def generate_joi_code_ir(
                 )
             _decode_tps = _comp_tok / _elapsed if _elapsed > 0 and _comp_tok else 0
             log_buf.append(
-                f"➡️ timeline_ir_extract({_prompt_tok}) | attempt {_attempt} | "
+                f"➡️ ir_extract({_prompt_tok}) | attempt {_attempt} | "
                 f"Decode: {_decode_tps:.1f} t/s | Total: {_elapsed:.4f}s\n"
                 "===================================================\n"
                 f"{json.dumps(ir, ensure_ascii=False, indent=2)}"

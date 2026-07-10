@@ -12,7 +12,7 @@ Timeline IR shape:
     }
 
 Step ops: start_at | wait | delay | read | call | if | cycle | break.
-See files/timeline_ir_extractor.md for the full grammar.
+See files/ir_extractor.md for the full grammar.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from typing import Any
 from config import get_client, get_model_id
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-_EXTRACTOR_PROMPT_PATH = os.path.join(_BASE_DIR, "timeline_ir_extractor.md")
+_EXTRACTOR_PROMPT_PATH = os.path.join(_BASE_DIR, "..", "files", "ir_extractor.md")
 _TRANSLATION_PROMPT_PATH = os.path.join(_BASE_DIR, "..", "files", "translation.md")
 
 _STEP_OPS = {"start_at", "wait", "delay", "read", "call", "if", "cycle", "break"}
@@ -48,8 +48,8 @@ _DURATION_RE = re.compile(r"^(\d+)\s+(HOUR|MIN|SEC|MSEC)$")
 def parse_duration_to_ms(s: str) -> int:
     """Parse an IR delay duration string like '5 MIN' or '100 MSEC' into ms.
 
-    Raises ValueError on malformed input. Use this everywhere the simulator /
-    validator / FSM derivation needs the millisecond value — never re-implement
+    Raises ValueError on malformed input. Use this everywhere the validator
+    needs the millisecond value — never re-implement
     the regex elsewhere.
     """
     if not isinstance(s, str):
@@ -245,8 +245,7 @@ def _validate_step(step: Any) -> None:
 # Verify that every Service.Attr / call.target / read.src in the IR refers to
 # a category present in `connected_devices`. Catches LLM hallucination of
 # services the user doesn't have (e.g., IR emits `Pump.Switch` when no device
-# has category "Pump"). Attribute-level conformance is NOT checked here — the
-# downstream L1 static analyzer + simulator catch that on the JoI side.
+# has category "Pump"). Attribute-level conformance is NOT checked here.
 
 # Matches a Service.Attr pair where Service starts with an uppercase letter
 # and is not preceded by `$` (variable) or another word char (dotted path).
@@ -479,7 +478,7 @@ def _scan_expr_catalog(src: Any, catalog: dict, member_to_services: dict,
     # value. Walk the parsed AST instead of regex-matching so we recognize
     # the comparison context (BinaryOp ==/!=) reliably.
     try:
-        from paper.simulators import expr as _expr_mod
+        from joi import expr as _expr_mod
         ast = _expr_mod.parse(src)
     except Exception:
         return
@@ -489,7 +488,7 @@ def _scan_expr_catalog(src: Any, catalog: dict, member_to_services: dict,
 def _walk_for_enum_unquoted(node: Any, catalog: dict, out: list, path: str) -> None:
     """Recurse the expression AST; flag enum-typed device-attr comparisons
     whose RHS is a bare identifier (parsed as VarRef)."""
-    from paper.simulators import expr as _expr_mod
+    from joi import expr as _expr_mod
     if node is None:
         return
     if isinstance(node, _expr_mod.BinaryOp):
@@ -613,7 +612,7 @@ def translate_to_english(
     )
     en = (response.choices[0].message.content or "").strip()
     if debug:
-        print(f"[timeline_ir] translated: {en}")
+        print(f"[joi.ir] translated: {en}")
     return en
 
 
@@ -758,8 +757,8 @@ def extract_ir(
     model = get_model_id(client)
 
     if debug:
-        print("[timeline_ir] model =", model)
-        print("[timeline_ir] command =", english_command)
+        print("[joi.ir] model =", model)
+        print("[joi.ir] command =", english_command)
 
     # Build chat history. On first attempt: single user turn. On retry, replay
     # the original (user, assistant) and append the hint as the next user turn
@@ -799,7 +798,7 @@ def extract_ir(
     raw = _strip_json_fences(raw)
 
     if debug:
-        print("[timeline_ir] raw =", raw)
+        print("[joi.ir] raw =", raw)
 
     try:
         ir = json.loads(raw)
@@ -944,7 +943,7 @@ DEFAULT_TEST_DEVICES = {
 if __name__ == "__main__":
     import sys
     if len(sys.argv) < 2:
-        print("usage: python timeline_ir.py '<english command>'")
+        print("usage: python -m joi.ir '<english command>'")
         sys.exit(1)
     cmd = sys.argv[1]
     ir_result = extract_ir(cmd, devices=DEFAULT_TEST_DEVICES, debug=True)

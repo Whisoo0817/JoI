@@ -7,7 +7,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from typing import Dict, Any, Optional, List
 
-from paper.run_local_ir import generate_joi_code
+from joi import generate_joi_code
 from pipeline_helpers import JoiGenerationError
 from schemas import (
     JoiErrorCode, JoiLLMResponse, JoiLog, JoiCodeItem, map_error_code,

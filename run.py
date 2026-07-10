@@ -1,4 +1,4 @@
-"""Minimal E2E runner for generate_joi_code (paper pipeline).
+"""Minimal E2E runner for generate_joi_code.
 
 Runs every command in COMMANDS through the full IR -> JoI pipeline and prints
 ONLY the final JoI code. No verifier, no IR/selector rendering.
@@ -13,7 +13,7 @@ ONLY the final JoI code. No verifier, no IR/selector rendering.
 import re
 import json
 
-from paper.run_local_ir import generate_joi_code
+from joi import generate_joi_code
 
 # 실제 연결 디바이스 — last_connected_devices.json(실서버 페이로드) 그대로.
 # 클라이언트가 보내는 그대로 category/tags를 유지하고, UI 카드에 보이는 nickname을

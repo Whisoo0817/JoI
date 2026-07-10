@@ -1,4 +1,4 @@
-"""API response schema for the JoI LLM pipeline (paper deployment).
+"""API response schema for the JoI LLM pipeline.
 
 The pipeline raises `JoiGenerationError` with a *string* `error_code`
 (`"no_services"`, `"device_not_connected"`, …). For external consumers we expose

@@ -15,7 +15,7 @@ CUSTOM_DEVICES = {
     'tc0_Light': {'category': ['Switch', 'Light'], 'tags': ['Office', 'LivingRoom']},
 }
 
-# 2. Extract Service Map (Similar to paper/run_local_ir.py)
+# 2. Extract Service Map (Similar to joi/generate.py)
 def _build_service_category_map(service_data):
     mapping = {}
     for cat, item in service_data.items():

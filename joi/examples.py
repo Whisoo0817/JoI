@@ -1,11 +1,11 @@
-"""Structure-routed lowering example bank (paper §7).
+"""Structure-routed lowering example bank.
 
 The lowering prompt is assembled as joi_common.md + the example block for the
-IR's structural class (paper §5, feasibility.structural_class). The bank maps
+IR's structural class (feasibility.structural_class). The bank maps
 class -> example block. It is SEEDED with the per-class blocks that ship in
 files/ (joi_noncycle.md / joi_cycle.md), so prompt assembly is byte-identical
-to loading those files directly. Pairs that pass the verifier can additionally
-be accumulated under their class with `add()`; accumulated pairs are persisted
+to loading those files directly. Verified pairs can additionally be
+accumulated under their class with `add()`; accumulated pairs are persisted
 to JOI_EXAMPLE_BANK (JSON) and injected only when that env var is set, so the
 default pipeline behavior is unchanged.
 
@@ -18,7 +18,7 @@ import json
 import os
 from typing import Any
 
-from paper.feasibility import lowering_bucket, structural_class
+from joi.feasibility import lowering_bucket, structural_class
 
 _BANK_ENV = "JOI_EXAMPLE_BANK"
 

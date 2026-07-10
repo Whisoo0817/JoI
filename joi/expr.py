@@ -11,7 +11,7 @@ Accepts both syntaxes (single grammar, alternative tokens):
 
 Canonicalization: a device ref like `(#Door).DoorState` resolves to a key
 "Door.DoorState" by taking the last `#tag` inside the selector. This lets
-both simulators read/write the same world-state dict regardless of source.
+IR conditions and JoI conditions share one evaluation model.
 """
 
 from __future__ import annotations

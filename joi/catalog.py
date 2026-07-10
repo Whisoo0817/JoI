@@ -1,6 +1,6 @@
 """Service catalog loader.
 
-Provides ordered argument lists per (service, method) so both simulators can
+Provides ordered argument lists per (service, method) so IR validation can
 canonicalize call args to a positional list before tracing — IR uses named
 arg dicts, JoI uses positional lists, and the trace comparison requires a
 single canonical form.
@@ -15,7 +15,7 @@ from typing import Any
 
 _DEFAULT_CATALOG_PATH = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    "..", "..", "files", "service_list_ver2.0.5.json",
+    "..", "files", "service_list_ver2.0.5.json",
 )
 
 
@@ -110,7 +110,7 @@ def get_arg_order(catalog: dict[str, dict], service: str, method: str) -> list[s
     hit = fns.get(method)
     if hit is not None:
         return hit
-    from .expr import canonical_name
+    from joi.expr import canonical_name
     cm = canonical_name(service, method)
     for name, order in fns.items():
         if canonical_name(service, name) == cm:

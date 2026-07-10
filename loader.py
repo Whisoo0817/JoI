@@ -44,7 +44,7 @@ PROMPTS = _load_all_prompts(os.path.join(_BASE_DIR, "files"))
 # to a parent device (e.g. Light has Switch + LevelControl + ColorControl).
 # Pipeline stages that need to special-case these tags MUST import this set
 # rather than re-defining it locally:
-#   - paper/run_local_ir.py precision builder (filters sub-skill tags from
+#   - joi/generate.py precision builder (filters sub-skill tags from
 #     selectors unless the service prefix matches)
 #   - pipeline_helpers.py _build_service_category_map (lets sub-skill categories
 #     overwrite primary mappings for shared service names)

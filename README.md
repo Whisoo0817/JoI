@@ -40,7 +40,7 @@ The backend endpoint is configured via `LLM_BASE_URL` (default `http://localhost
 ## 🛠 Generation API
 
 ### `generate_joi_code(sentence, connected_devices, other_params)`
-The core engine (`paper/run_local_ir.py`). Analyzes the command and returns the JoI block plus a per-stage reasoning log.
+The core engine (`joi/generate.py`). Analyzes the command and returns the JoI block plus a per-stage reasoning log.
 - `sentence` (str): the raw natural-language command.
 - `connected_devices` (dict): metadata of currently connected IoT devices (`category`, `tags`, optional `nickname`).
 - `other_params` (dict): optional generation parameters.

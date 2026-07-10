@@ -1,6 +1,6 @@
 """Structural feasibility check for the Timeline IR (grammar G membership).
 
-`validate_ir` (timeline_ir.py) checks per-step SHAPE. This module checks the
+`validate_ir` (joi/ir.py) checks per-step SHAPE. This module checks the
 context-sensitive STRUCTURAL rules that decide whether an IR can be lowered to
 executable JoI at all. Two families:
 
@@ -88,10 +88,9 @@ def _walk(steps: list, cycle_depth: int, at_top: bool, path: str) -> None:
 
 # ---------------------------------------------------------------------------
 # Structural class τ(IR) — computed by the same single pass over the typed
-# tree that decides grammar membership (paper §5). The class records which
-# grammar constructs the IR instantiates; the lowering stage routes its
-# few-shot examples on this class (paper §7). The class never affects the
-# verifier's accept/reject decision.
+# tree that decides grammar membership. The class records which grammar
+# constructs the IR instantiates; the lowering stage routes its few-shot
+# examples on this class.
 # ---------------------------------------------------------------------------
 
 def structural_class(ir: Any) -> tuple:
