@@ -3,7 +3,6 @@
 This module defines the Timeline IR used by the new reactive-DSL pipeline.
 Pipeline stages:
     1. NL (English) → Timeline IR          [extract_ir]  — LLM call
-    2. Timeline IR → English readable text [ir_to_readable] — deterministic
     3. Timeline IR → JoI code              [NOT YET]     — planned
 
 Timeline IR shape:
@@ -24,12 +23,6 @@ import re
 from typing import Any
 
 from config import get_client, get_model_id
-
-try:
-    from paper.ir_renderer import render_ir_readable
-except ModuleNotFoundError:  # Allows `python paper/timeline_ir.py ...`.
-    from ir_renderer import render_ir_readable
-
 
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 _EXTRACTOR_PROMPT_PATH = os.path.join(_BASE_DIR, "timeline_ir_extractor.md")
@@ -868,25 +861,6 @@ def extract_ir(
     return ir, _prompt_tokens, _completion_tokens, _elapsed, out_user, raw_assistant
 
 
-def ir_to_readable(ir: dict) -> str:
-    """Render a Timeline IR as an English bullet-list outline for user feedback.
-
-    Deterministic (no LLM). Designed so a non-developer can confirm or correct
-    the system's understanding of their command.
-    """
-    if not isinstance(ir, dict):
-        return "(invalid IR)"
-    if "error" in ir:
-        return f"Conversion failed: {ir['error']}"
-
-    try:
-        validate_ir(ir)
-    except IRValidationError as e:
-        return f"IR schema error: {e}"
-
-    return render_ir_readable(ir)
-
-
 # ── Default test devices ─────────────────────────────────────────────────────
 
 # Reasonable default device catalog for smoke testing and development when no
@@ -977,5 +951,3 @@ if __name__ == "__main__":
     ir = ir_result[0] if isinstance(ir_result, tuple) else ir_result
     print("\n--- IR ---")
     print(json.dumps(ir, ensure_ascii=False, indent=2))
-    print("\n--- Readable ---")
-    print(ir_to_readable(ir))

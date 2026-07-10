@@ -10,17 +10,8 @@ ONLY the final JoI code. No verifier, no IR/selector rendering.
 # Light, LightSensor, MotionSensor, Plug, PresenceSensor, 
 # SmokeDetector, Speaker, Switch, TemperatureSensor, Clock,
 # ToastPublisher, EmailProvider
-import os
 import re
 import json
-
-# E2E + verifier OFF. These constants are read at import time / per call, so
-# clear any shell overrides BEFORE importing the pipeline to guarantee:
-#   - no verifier / self-correction loop (JOI_VERIFY)
-#   - no IR-only short-circuit (JOI_IR_ONLY)
-#   - no ground-truth IR injection (JOI_GT_IR_PATH)
-for _k in ("JOI_VERIFY", "JOI_IR_ONLY", "JOI_GT_IR_PATH", "JOI_SKIP_TRANSLATION"):
-    os.environ.pop(_k, None)
 
 from paper.run_local_ir import generate_joi_code
 

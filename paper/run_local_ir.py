@@ -52,19 +52,11 @@ from pipeline_helpers import (
     _parse_dict_input,
 )
 from timeline_ir import (
-    extract_ir, ir_to_readable, validate_ir_against_devices,
+    extract_ir, validate_ir_against_devices,
     validate_ir_against_catalog, build_extract_retry_hint,
     IRValidationError, parse_duration_to_ms,
 )
 from feasibility import check_feasibility, FeasibilityError, lowering_bucket
-from ir_renderer import render_ir_with_devices
-
-# IR-only short-circuit. When JOI_IR_ONLY=1, the pipeline runs through the
-# device + resolve + IR-extract stages (+ post-process trio) and then writes
-# the IR + supporting state to JOI_IR_DUMP_DIR/<JOI_IR_DUMP_NAME>.json, skipping
-# Stage 4 lowering. Used for offline IR-confirm validation prior to lowering.
-# (read per-call inside generate_joi_code_ir so in-process callers can toggle
-#  them between successive calls.)
 
 
 # Bucket-specific lowering prompt is assembled at runtime as
@@ -696,12 +688,6 @@ def generate_joi_code_ir(
     start = time.perf_counter()
     client = get_client(base_url)
     model = get_model_id(client)
-
-    # Env switches are read per-call (not at import) so in-process callers can
-    # toggle them between successive generate_joi_code() invocations.
-    _IR_ONLY = os.environ.get("JOI_IR_ONLY", "0") == "1"
-    _IR_DUMP_DIR = os.environ.get("JOI_IR_DUMP_DIR", "/tmp/joi_ir_dump")
-    _IR_DUMP_NAME = os.environ.get("JOI_IR_DUMP_NAME", "")
 
     log_buf = []
 
@@ -1360,69 +1346,9 @@ def generate_joi_code_ir(
             f"IR infeasible: {e}", "\n".join(log_buf), error_code="ir_infeasible",
         )
 
-    ir_readable = ir_to_readable(ir)
-    # Device-scoped confirmation rendering: the selector-free IR plus the
-    # precision stage's resolved devices, naming the actual devices the rule
-    # acts on. Falls back to the plain readable when no devices were resolved.
-    _resolved_devs = (
-        precision_output.get("resolved", {})
-        if isinstance(precision_output, dict) else {}
-    )
-    try:
-        ir_readable_scoped = (
-            render_ir_with_devices(ir, _resolved_devs) if _resolved_devs else ir_readable
-        )
-    except Exception:
-        ir_readable_scoped = ir_readable
     ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
 
     bucket = classify_ir(ir)
-
-    # === IR-only short-circuit ===
-    # When JOI_IR_ONLY=1, persist all state needed to resume lowering later
-    # and return without running Stage 4. The dump captures the exact inputs
-    # that lowering would have consumed (sentence, ir, precision_output,
-    # service_details, connected_devices, bucket) plus IR provenance (the
-    # resolved_args / resolved_enum_conds that were folded into IR).
-    if _IR_ONLY:
-        os.makedirs(_IR_DUMP_DIR, exist_ok=True)
-        dump_name = _IR_DUMP_NAME or f"row_{int(time.time()*1000)}"
-        dump_path = os.path.join(_IR_DUMP_DIR, f"{dump_name}.json")
-        precision_for_dump = (
-            precision_output if isinstance(precision_output, dict)
-            else {"selectors": {}, "reasoning": str(precision_output)}
-        )
-        elapsed = time.perf_counter() - start
-        dump_obj = {
-            "sentence": sentence,
-            "connected_devices": connected_devices,
-            "ir": ir,
-            "ir_readable": ir_readable,
-            "ir_readable_scoped": ir_readable_scoped,
-            "bucket": bucket,
-            "precision": precision_for_dump,
-            "service_details": service_details,
-            "resolved_args": resolved_args,
-            "resolved_enum_conds": resolved_enum_conds,
-            "elapsed_seconds": elapsed,
-            "log": "\n".join(log_buf),
-        }
-        with open(dump_path, "w", encoding="utf-8") as _f:
-            json.dump(dump_obj, _f, ensure_ascii=False, indent=2)
-        log_buf.append(f"💾 IR-only dump: {dump_path}")
-        return {
-            "code": "",
-            "ir": ir,
-            "ir_readable": ir_readable,
-            "ir_readable_scoped": ir_readable_scoped,
-            "precision": precision_for_dump.get("selectors", {}),
-            "precision_reasoning": precision_for_dump.get("reasoning", ""),
-            "ir_dump_path": dump_path,
-            "log": {
-                "response_time": f"{elapsed:.4f} seconds",
-                "logs": "\n".join(log_buf),
-            },
-        }
 
     # === Stage 4 (joi_from_ir lowering) ===
     log_buf.append(f"📦 IR bucket: {bucket}")
@@ -1613,8 +1539,6 @@ def generate_joi_code_ir(
     return {
         "code": code_pretty,
         "ir": ir,
-        "ir_readable": ir_readable,
-        "ir_readable_scoped": ir_readable_scoped,
         "precision": precision_output.get("selectors", {}) if isinstance(precision_output, dict) else {},
         "precision_reasoning": precision_output.get("reasoning", "") if isinstance(precision_output, dict) else "",
         "log": {
