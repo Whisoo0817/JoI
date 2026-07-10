@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 import os
 import json
@@ -106,6 +108,31 @@ def _error_response(sentence: str, error_code: int, error_message: str,
         command=sentence,
         log=JoiLog(logs=logs),
     )
+
+
+@app.exception_handler(RequestValidationError)
+async def _invalid_request_handler(request: Request, exc: RequestValidationError):
+    """Answer a malformed request in the same envelope as every other failure.
+
+    FastAPI's stock 422 body is `{"detail":[...]}` — no `error_code`, so a client
+    reading `JoiLLMResponse` finds nothing it recognizes. Re-emit as
+    INVALID_REQUEST(1001). The 422 status stays: joi-agent branches on status
+    before it ever parses the body, and maps any 4xx to 1001 anyway, so both the
+    direct and the proxied caller land on the same code.
+    """
+    problems = [
+        f"{'.'.join(str(p) for p in e['loc'][1:]) or '<body>'}: {e['msg']}"
+        for e in exc.errors()
+    ]
+    body = exc.body if isinstance(exc.body, dict) else {}
+    response = _error_response(
+        sentence=str(body.get("sentence") or ""),
+        error_code=int(JoiErrorCode.INVALID_REQUEST),
+        error_message="Invalid request: " + "; ".join(problems),
+        details=f"{len(problems)} field error(s)",
+    )
+    print(f"[app] /generate_joi_code  outcome=invalid_request  code=1001  {problems}")
+    return JSONResponse(status_code=422, content=response.model_dump())
 
 
 # ── 요청 추적 로그 ──────────────────────────────────────────
