@@ -667,13 +667,45 @@ def _render_precision_block(precision_output) -> str:
     return "\n".join(lines) if lines else "(none)"
 
 
+def _normalize_edit_code(raw) -> str:
+    """Normalize a client-supplied JoI code block into the `{cron,period,script}`
+    JSON shape the re_translate prompt expects.
+
+    Accepts a dict, a JSON string, or a bare script string. The API RESPONSE uses
+    key `code` for the script body while the pipeline internally uses `script` —
+    accept either. Anything unparseable is treated as a bare script."""
+    obj = raw
+    if isinstance(raw, str):
+        try:
+            obj = json.loads(raw.strip(), strict=False)
+        except Exception:
+            obj = None
+        if not isinstance(obj, dict):
+            return json.dumps({"cron": "", "period": 0, "script": raw.strip()},
+                              ensure_ascii=False)
+    if isinstance(obj, dict):
+        return json.dumps({
+            "cron": str(obj.get("cron", "")),
+            "period": obj.get("period", 0),
+            "script": obj.get("script", obj.get("code", "")),
+        }, ensure_ascii=False)
+    return json.dumps({"cron": "", "period": 0, "script": str(raw)}, ensure_ascii=False)
+
+
 def generate_joi_code_ir(
     sentence,
     connected_devices,
     other_params,
     base_url=None,
+    current_code=None,
 ):
-    """IR-mediated JoI generation. Drop-in compatible return shape with run_local.generate_joi_code."""
+    """IR-mediated JoI generation. Drop-in compatible return shape with run_local.generate_joi_code.
+
+    `current_code` (optional): an already-generated JoI block the user wants to
+    EDIT. When supplied, `sentence` is treated as the edit request (feedback) and
+    a `feedback_fuse` pre-stage merges (current_code + feedback) into one complete
+    standalone command; the rest of the pipeline runs unchanged on that command.
+    When `current_code` is empty, behavior is identical to a fresh generation."""
     connected_devices = _parse_dict_input(connected_devices, None)
     other_params = _parse_dict_input(other_params, {})
 
@@ -755,6 +787,44 @@ def generate_joi_code_ir(
     # directly, so run_precision returns them instead of a device-match LLM call.
     # `original_sentence` keeps the Korean wording for arg_resolve's human-facing
     # text (Speaker/Toast); the device stages read it directly (no preprocess/MT).
+
+    # ── Stage 0 (optional): feedback edit. When the caller passes an existing
+    # `current_code` block, `sentence` is an EDIT request. Instead of blindly
+    # fusing code + feedback, we split it into two steps:
+    #   1. UNDERSTAND the code — re_translate (code → EN NL) → re_translate_kor
+    #      (→ KO NL). This recovers what the current automation does, in words.
+    #   2. PARTIAL EDIT — feedback_edit applies ONLY the requested change to that
+    #      NL command, keeping everything else.
+    # The resulting command flows through the normal pipeline unchanged. Empty
+    # current_code → skip entirely (fresh-generation path is byte-identical).
+    # (The edit-prompt still needs work for complex commands; re_translate is the
+    # interim code-understanding step.)
+    if current_code:
+        code_block = _normalize_edit_code(current_code)
+        current_nl = ""
+        try:
+            _cur_en = infer("re_translate", f"[Code]\n{code_block}", max_tokens=512).strip()
+            log_buf.append(f"📝 edit re_translate (EN): {_cur_en}")
+            _cur_ko = infer("re_translate_kor", _cur_en, max_tokens=1024).strip() if _cur_en else ""
+            if _cur_ko:
+                log_buf.append(f"📝 edit re_translate (KO): {_cur_ko}")
+            current_nl = _cur_ko or _cur_en
+        except Exception as _e:
+            log_buf.append(f"⚠️ edit code-understanding failed ({_e}) — editing raw feedback")
+        if current_nl:
+            edited = infer(
+                "feedback_edit",
+                f"[Current Command]\n{current_nl}\n\n[Edit Request]\n{sentence}",
+                max_tokens=512,
+            ).strip()
+            # Fail open: on empty output keep the raw feedback as the command.
+            if edited:
+                log_buf.append(
+                    f"✏️ feedback_edit: {sentence!r} on {current_nl!r} → {edited!r}")
+                sentence = edited
+            else:
+                log_buf.append("⚠️ feedback_edit produced empty output — using raw feedback")
+
     original_sentence = sentence
 
     # cd_named: dN-keyed device dict (nickname + real category/tags). Shared with

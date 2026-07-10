@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 import json
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Dict, Any, Optional, List
 
 from paper.run_local_ir import generate_joi_code
@@ -33,11 +33,23 @@ app.add_middleware(
 # ── 요청 모델 ──────────────────────────────────────────────
 
 class GenerateJOICodeRequest(BaseModel):
+    # We do NOT control the web layer's field names, and the field that carries the
+    # existing scenario code is not yet known — so accept ANY extra fields instead
+    # of rejecting them (422). Unknown fields land in `__pydantic_extra__`; they are
+    # logged (to discover the real name) and scanned for a code-like value.
+    model_config = ConfigDict(extra="allow")
+
     sentence: str
     model: str
     connected_devices: Dict[str, Any]
     current_time: str
     other_params: Optional[List[Dict[str, Any]]] = None
+    # Edit mode: when a previously-generated JoI code block is supplied, `sentence`
+    # is interpreted as the edit request. The pipeline first UNDERSTANDS the code
+    # (re_translate → NL), then applies only the requested change (feedback_edit),
+    # and generates from that command. Absent/empty → normal fresh generation.
+    # The code may also arrive under a DIFFERENT key — see `_pick_current_code`.
+    current_code: Optional[str] = None
 
 # ── 엔드포인트 ─────────────────────────────────────────────
 @app.get("/health")
@@ -117,10 +129,13 @@ _MAX_LOG_ENTRIES = 10
 def _trace_request(request: "GenerateJOICodeRequest", response: JoiLLMResponse) -> None:
     try:
         log = response.log
+        extras = _request_extras(request)         # 스키마에 없던 필드 전부 (필드명 관찰용)
         trace = {
             "timestamp": datetime.now().isoformat(timespec="seconds"),
             "command": request.sentence,          # 들어온 명령어
             "current_time": request.current_time,
+            "extra_fields": extras or None,       # 웹에서 보낸 미지의 필드 (코드 필드명 파악)
+            "other_params": request.other_params,  # 코드가 여기 실려오는 것으로 관측됨
             "outcome": "success" if response.success else "error",
             "error_code": int(response.error_code),
             "error_message": getattr(response, "error_message", None),
@@ -141,9 +156,65 @@ def _trace_request(request: "GenerateJOICodeRequest", response: JoiLLMResponse) 
             _f.write("\n".join(lines) + "\n")
         print(f"[app] /generate_joi_code  outcome={trace['outcome']}  "
               f"code={int(response.error_code)}  sentence={request.sentence!r}  "
-              f"-> {_REQUEST_LOG_PATH}")
+              f"extra_keys={list(extras.keys())}  -> {_REQUEST_LOG_PATH}")
     except Exception as _e:
         print(f"[app] request trace dump failed: {_e}")
+
+
+def _request_extras(request: "GenerateJOICodeRequest") -> Dict[str, Any]:
+    """Fields the web layer sent that aren't in our declared schema."""
+    return dict(getattr(request, "__pydantic_extra__", None) or {})
+
+
+def _looks_like_joi_code(s: str) -> bool:
+    return any(t in s for t in ("(#", "all(#", "any(#", ".On(", "\"script\"", "cron"))
+
+
+def _find_code_in(obj: Any) -> Optional[str]:
+    """Recursively search a value (dict / list / str) for the existing-scenario
+    code and return it as a string. A `{cron,period,code/script}` block is returned
+    whole (JSON-encoded); a bare code string is returned as-is. None if nothing
+    code-like is found. Used to dig the code out of wherever the web layer put it
+    (an extra field OR nested inside `other_params`)."""
+    if isinstance(obj, str):
+        return obj if _looks_like_joi_code(obj) else None
+    if isinstance(obj, dict):
+        # A whole {cron,period,code/script} block → hand it over intact.
+        if any(k in obj for k in ("script", "code", "cron", "period")):
+            return json.dumps(obj, ensure_ascii=False)
+        # A key whose NAME hints at code → take/serialize its value.
+        for k, v in obj.items():
+            if any(t in str(k).lower() for t in ("code", "script", "scenario")):
+                got = v if isinstance(v, str) else _find_code_in(v)
+                if got:
+                    return got if isinstance(got, str) else json.dumps(got, ensure_ascii=False)
+        for v in obj.values():
+            got = _find_code_in(v)
+            if got:
+                return got
+        return None
+    if isinstance(obj, list):
+        for v in obj:
+            got = _find_code_in(v)
+            if got:
+                return got
+    return None
+
+
+def _pick_current_code(request: "GenerateJOICodeRequest") -> Optional[str]:
+    """Find the existing-scenario code regardless of where/under-what-key it arrived.
+
+    The web layer's field name (and location) for it is not fixed, so: prefer an
+    explicit `current_code`; otherwise scan the extra fields AND `other_params`
+    (the web layer has been observed smuggling the code inside other_params).
+    Returns the code as a string (blocks JSON-encoded), or None for fresh gen."""
+    if request.current_code:
+        return request.current_code
+    for container in (_request_extras(request), request.other_params):
+        got = _find_code_in(container)
+        if got:
+            return got
+    return None
 
 
 def _classify_exception(exc: Exception) -> int:
@@ -163,7 +234,8 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             sentence=request.sentence,
             connected_devices=request.connected_devices,
             other_params=request.other_params,
-            base_url=SLLM_LOCAL_BASE_URL
+            base_url=SLLM_LOCAL_BASE_URL,
+            current_code=_pick_current_code(request),
         )
         response = _success_response(result)
     except JoiGenerationError as e:
