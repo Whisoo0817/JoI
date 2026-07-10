@@ -17,7 +17,6 @@ app.py      192.168.0.250:49999   JoI 코드 생성 API (FastAPI)
 |---|---|
 | `POST /generate_joi_code` | 핵심. 명령 → JoI 코드 |
 | `GET /health` | 헬스체크 |
-| `POST /warmup` | vLLM prefix-cache 웜업 |
 
 - **요청**: `{sentence, model, connected_devices, current_time, other_params?}`
 - **응답** (`schemas.JoiLLMResponse`): `{success, error_code, error_message, details, command,
@@ -27,7 +26,7 @@ app.py      192.168.0.250:49999   JoI 코드 생성 API (FastAPI)
 
 ## 코드 생성 파이프라인 (IR 기반, device-first)
 
-진입점은 `paper.run_local_ir.generate_joi_code` (`run_local.py`는 호환 shim). 단계:
+진입점은 `paper.run_local_ir.generate_joi_code`. 단계:
 
 1. **디바이스 타게팅** — device_retrieve → ground_targets(LLM, 디바이스 매칭) → device_resolve(서비스 선택) + Python 헬퍼(태그/수량자)
 2. **영어 번역** — IR/lowering 프롬프트용
@@ -42,14 +41,12 @@ app.py      192.168.0.250:49999   JoI 코드 생성 API (FastAPI)
 ```
 joi_new/
   app.py                 FastAPI 서버 (:49999) — 엔드포인트 + 응답 변환 + 요청 추적
-  run_local.py           shim → paper.run_local_ir.generate_joi_code
   schemas.py             JoiErrorCode(enum) + JoiLLMResponse + map_error_code
   config.py              vLLM 클라이언트 / model_id 캐시 / count_tokens
   loader.py              service_list 로딩 (SERVICE_DATA, SUB_SKILL_TAGS)
   pipeline_helpers.py    LLM 추론 호출 + 서비스 상세 추출 + 코드 후처리
   device_ontology.py     결정적 디바이스 타게팅 헬퍼 (태그/수량자, LLM 없음)
-  warmup.py              vLLM prefix-cache 웜업
-  test.py / run.py       로컬 테스트 / 실행
+  run.py                 로컬 배치 실행
   request_log.jsonl      최근 요청 추적 로그
   files/                 파이프라인 프롬프트(*.md) + service_list(JSON) + devices/
   parser/                ANTLR JoI 문법(JOILang.g4) + validator (코드 검증)

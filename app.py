@@ -12,7 +12,6 @@ from pipeline_helpers import JoiGenerationError
 from schemas import (
     JoiErrorCode, JoiLLMResponse, JoiLog, JoiCodeItem, map_error_code,
 )
-from warmup import warmup as sllm_warmup
 
 import uvicorn
 
@@ -55,15 +54,6 @@ class GenerateJOICodeRequest(BaseModel):
 @app.get("/health")
 async def health_check():
     return {"status": "active"}
-
-
-@app.post("/warmup")
-async def warmup_endpoint():
-    """vLLM prefix caching 웜업"""
-    import asyncio
-    loop = asyncio.get_event_loop()
-    await loop.run_in_executor(None, lambda: sllm_warmup(base_url=SLLM_LOCAL_BASE_URL))
-    return {"status": "done"}
 
 
 
