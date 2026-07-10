@@ -39,11 +39,12 @@ The backend endpoint is configured via `LLM_BASE_URL` (default `http://localhost
 
 ## 🛠 Generation API
 
-### `generate_joi_code(sentence, connected_devices, other_params)`
+### `generate_joi_code(sentence, connected_devices, other_params, base_url=None, current_code=None)`
 The core engine (`joi/generate.py`). Analyzes the command and returns the JoI block plus a per-stage reasoning log.
 - `sentence` (str): the raw natural-language command.
 - `connected_devices` (dict): metadata of currently connected IoT devices (`category`, `tags`, optional `nickname`).
 - `other_params` (dict): optional generation parameters.
+- `current_code` (str): an existing JoI block to edit; `sentence` then describes the change.
 
 ### `POST /generate_joi_code` (`app.py`, port 49999)
 Request body:
@@ -53,10 +54,13 @@ Request body:
   "model": "cyankiwi/Ornith-1.0-9B-AWQ-FP8",
   "connected_devices": { "...": { "category": [], "tags": [] } },
   "current_time": "2026-06-23T02:13:31",
-  "other_params": null
+  "other_params": null,
+  "current_code": null
 }
 ```
-Response (`JoiLLMResponse`, see `schemas.py`): `outcome`, `error_code`/`error_message`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs`). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
+`current_code` is optional. When it carries a previously generated JoI block,
+`sentence` is read as an edit request against that block instead of a fresh command.
+Response (`JoiLLMResponse`, see `schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs`). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
 
 Other endpoints: `GET /health`.
 

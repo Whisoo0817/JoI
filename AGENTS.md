@@ -105,10 +105,13 @@ FastAPI service wrapping `generate_joi_code`. Prompts and the service catalog lo
   "model": "cyankiwi/Ornith-1.0-9B-AWQ-FP8",
   "connected_devices": { "...": { "category": [], "tags": [] } },
   "current_time": "2026-06-23T02:13:31",
-  "other_params": null
+  "other_params": null,
+  "current_code": null
 }
 ```
-Response is a `JoiLLMResponse` (`schemas.py`): `outcome`, `error_code`/`error_message`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs` — the per-stage reasoning trace). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
+`current_code` is optional. When it carries a previously generated JoI block,
+`sentence` is read as an edit request against that block instead of a fresh command.
+Response is a `JoiLLMResponse` (`schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs` — the per-stage reasoning trace). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
 
 Other endpoints: **`GET /health`**.
 

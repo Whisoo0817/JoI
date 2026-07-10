@@ -18,7 +18,8 @@ app.py      192.168.0.250:49999   JoI 코드 생성 API (FastAPI)
 | `POST /generate_joi_code` | 핵심. 명령 → JoI 코드 |
 | `GET /health` | 헬스체크 |
 
-- **요청**: `{sentence, model, connected_devices, current_time, other_params?}`
+- **요청**: `{sentence, model, connected_devices, current_time, other_params?, current_code?}`
+  — `current_code`가 있으면 `sentence`를 그 코드에 대한 수정 요청으로 해석한다(edit 모드).
 - **응답** (`schemas.JoiLLMResponse`): `{success, error_code, error_message, details, command,
   code:[{name,cron,period,code}], log}` — `error_code`는 숫자 enum(`JoiErrorCode`).
 - 매 요청은 `request_log.jsonl`에 "명령→과정→결과/에러" 한 줄로 추적(최근 10개 유지).
@@ -82,6 +83,7 @@ python app.py
 ```
 LLM_BASE_URL=http://localhost:8002/v1   vLLM 엔드포인트 (config.py / app.py)
 LLM_API_KEY=EMPTY                        (기본값)
+JOI_EXAMPLE_BANK=<path.json>             누적 few-shot 예제 주입 (미설정 시 기본 예제만)
 ```
 
 ## 참고

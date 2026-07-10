@@ -669,7 +669,7 @@ def generate_joi_code_ir(
     base_url=None,
     current_code=None,
 ):
-    """IR-mediated JoI generation. Drop-in compatible return shape with run_local.generate_joi_code.
+    """IR-mediated JoI generation: a natural-language command → a JoI block.
 
     `current_code` (optional): an already-generated JoI block the user wants to
     EDIT. When supplied, `sentence` is treated as the edit request (feedback) and
