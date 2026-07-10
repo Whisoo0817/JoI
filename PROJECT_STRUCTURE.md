@@ -53,9 +53,9 @@ joi_new/
   request_log.jsonl      최근 요청 추적 로그
   files/                 파이프라인 프롬프트(*.md) + service_list(JSON) + devices/
   parser/                ANTLR JoI 문법(JOILang.g4) + validator (코드 검증)
-  paper/                 활성 IR 파이프라인(run_local_ir.py) + 논문용 평가 스크립트
-  experiments/           실험 결과 산출물
-  dataset_migration/     service_list 마이그레이션 규칙/검증
+  paper/                 활성 IR 파이프라인 (run_local_ir.py, timeline_ir.py,
+                         feasibility.py, ir_renderer.py, example_bank.py,
+                         simulators/{catalog,expr}.py)
   start_qwen36_5090.sh   vLLM: Qwen3.6-35B-A3B-NVFP4 (2×5090, 기본)
   start_qwen35_9b_5090.sh vLLM: Qwen3.5-9B-fp8 (1 GPU, 빠른 테스트)
   AGENTS.md              JoI DSL 스펙 (:=, =, any/all 등)
