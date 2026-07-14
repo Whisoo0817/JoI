@@ -7,6 +7,7 @@ This repo covers the **JoI language** and our **code-generation API** only.
 ---
 
 ## 📢 Latest Updates
+- **[2026/07/14]** Service catalog upgraded to `service_list_ver2.0.6` (added `ArmRobotDetail`: fine-grained arm-robot control — per-axis / absolute-angle moves, home, saved-motion add/get/list/play, speed, parameterized greet/refuse).
 - **[2026/06/23]** Backend switched to `Ornith-1.0-9B` (OpenAI-compatible vLLM endpoint); model id auto-discovered.
 - **[2026/06/23]** Service catalog upgraded to `service_list_ver2.0.5` (added Battery/EnergyMeter/PowerMeter/Fan/Printer/Slack/GlobalVariable; Camera stream→recording).
 - **[2026/06/14]** Device-first, IR-mediated pipeline is the only path (Timeline IR core; legacy category/precision mapping removed).
