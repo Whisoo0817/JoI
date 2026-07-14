@@ -204,3 +204,26 @@ hue go 1 색을 빨강으로 바꿔줘
 - role=action | by=label:커튼 | scope=auto
 </targets>
 # 커튼이 실제로 없으면 그건 grounding 단계가 판정한다 — 여기선 그냥 verbatim 타겟만 낸다.
+
+[Command]
+매일 오후 8시 에어컨 끄기
+<targets>
+- role=action | by=label:에어컨 | scope=auto
+</targets>
+# "끄기/켜기/닫기" 같은 명사형(~기)도 명령이다 — 씬 제목이 아니라 action으로 파싱하라. "매일 오후 8시"는 스케줄 → 무시.
+
+[Command]
+문이 열리면 조명 켜는 시나리오 만들어줘
+<targets>
+- role=condition | by=label:문 | scope=auto
+- role=action | by=label:조명 | scope=auto
+</targets>
+# "~하는 시나리오 만들어줘"도 명령이다 — "시나리오 만들어줘"는 껍데기일 뿐, 안의 condition/action을 그대로 파싱하라.
+
+[Command]
+사람이 없으면 전등 다 끄는 시나리오
+<targets>
+- role=condition | by=label:사람 | scope=all
+- role=action | by=label:전등 | scope=all
+</targets>
+# "~하는 시나리오"(만들어줘 없이 끝나도) 명령이다. "사람이 없으면"(부재) → condition scope=all, "다"는 전등에 붙은 모두 → 전등 scope=all.
