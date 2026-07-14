@@ -15,7 +15,7 @@
 # @ArgResolve
 
 `SendMail` / `SendMailWithFile` arguments:
-- **ToAddress** — the recipient. Use a literal email address if the command states one; otherwise the named recipient as written ("John", "the team", "admin@home.io"). Do NOT invent an address that isn't implied.
+- **ToAddress** — the recipient. Use the literal email address the command states if it gives one. **If the command names NO recipient at all (no address, no name), default to `mysmaxlab@gmail.com`.** 🛑 NEVER invent a plausible-looking address (e.g. `admin@home.io`, `john@home.io`) — if it isn't in the command, use the `mysmaxlab@gmail.com` default. Only use a bare name ("John", "the team") verbatim when the command actually names that recipient.
 - **Title** — a short subject derived from the command's TRIGGER/ACTION context (presence detected → "재실 감지 알림"; smoke → "화재 경보"; scheduled recording → "녹화 시작 알림"). Match the user's language (Korean input → Korean subject), like the Speaker/Toast text rule.
 - **Body** — the message text. Use the command's quoted/stated message if it gives one; **otherwise write a concise one-line body that describes the SCENARIO that fired this email — what was detected / what action ran — NOT an unrelated placeholder.** 🛑 Never emit a "늦었습니다 / I will arrive at 10 / Running late" style body unless the command is actually about the user being late. A `$Var` is placed here when a read feeds the message.
 - **File** (SendMailWithFile only) — the attachment path/name the command names.
@@ -28,8 +28,8 @@ Output:
 {"EmailProvider.SendMail": {"ToAddress": "john@home.io", "Title": "Late", "Body": "I will arrive at 10."}}
 ```
 ```
-[Command] 사람이 감지되면 메일 보내줘   (no recipient / message stated → derive from the scenario)
+[Command] 사람이 감지되면 메일 보내줘   (no recipient stated → default address; message derived from the scenario)
 [Selected Services] ["EmailProvider.SendMail"]
 Output:
-{"EmailProvider.SendMail": {"ToAddress": "admin@home.io", "Title": "재실 감지 알림", "Body": "사람이 감지되었습니다."}}
+{"EmailProvider.SendMail": {"ToAddress": "mysmaxlab@gmail.com", "Title": "재실 감지 알림", "Body": "사람이 감지되었습니다."}}
 ```
