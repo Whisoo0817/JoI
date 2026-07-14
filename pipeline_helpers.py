@@ -188,6 +188,14 @@ def _build_service_category_map(service_data):
 
 _SERVICE_CATEGORY_MAP = _build_service_category_map(SERVICE_DATA)
 
+# Service ids that are FUNCTIONS (callable actions) and never values — used to
+# restore a dropped "()" when the lowering LLM omits it on a 0-arg call (e.g.
+# `CaptureImage`), which would otherwise lower as a value read (invalid code).
+_FUNCTION_ONLY_IDS = (
+    {e["id"] for item in SERVICE_DATA.values() for e in item.get("functions", [])}
+    - {e["id"] for item in SERVICE_DATA.values() for e in item.get("values", [])}
+)
+
 # Sub-type tag → parent category hint. 같은 서비스명이 여러 카테고리에 존재할 때 사용.
 _TAG_CATEGORY_HINT = {
     "Shade": "WindowCovering",
@@ -234,7 +242,9 @@ def _apply_service_prefix(script):
     script = re.sub(r'((?:all|any)?\((?:#[\w-]+\s*)+\))\.([A-Z]\w+)\(([^)]*)\)', replace_func, script)
 
     def replace_value(m):
-        return f"{m.group(1)}.{_fmt(m.group(2), m.group(1))}"
+        # A function skill written without parens is still a call — restore the ().
+        suffix = "()" if m.group(2) in _FUNCTION_ONLY_IDS else ""
+        return f"{m.group(1)}.{_fmt(m.group(2), m.group(1))}{suffix}"
     script = re.sub(r'((?:all|any)?\((?:#[\w-]+\s*)+\))\.([A-Z]\w+)(?!\w|\()', replace_value, script)
 
     return script

@@ -68,6 +68,7 @@ Example (bad — do not do this):
 # Joi Syntax Cheat-sheet
 
 - **Selectors**: `(#Tag #Category).Service(args)` (use `[Precision Selectors]` verbatim).
+- **Every action call MUST keep its `()`, even with zero arguments** — `(#Camera).CaptureImage()`, NOT `(#Camera).CaptureImage`. Bare `.Method` (no parens) is a VALUE read; a function without `()` is invalid.
 - **Calls use POSITIONAL args ONLY** (this is critical):
   - ✅ `(#Light).MoveToBrightness(100, 0)` — values in `[Service Details]` declaration order, comma-separated.
   - ❌ `(#Light).MoveToBrightness(Brightness=100, Rate=0)` — NO Python-style `name=value`.
