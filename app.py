@@ -9,6 +9,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 from typing import Dict, Any, Optional, List
 
+import telemetry
 from joi import generate_joi_code
 from pipeline_helpers import JoiGenerationError
 from schemas import (
@@ -137,10 +138,8 @@ async def _invalid_request_handler(request: Request, exc: RequestValidationError
 
 # ── 요청 추적 로그 ──────────────────────────────────────────
 # connected_devices 덤프 대신, "어떤 명령이 들어와서 어떤 과정을 거쳐 어떤
-# 결과/에러를 최종 반환했는지"를 request_log.jsonl 에 한 줄씩 기록한다.
-# 최근 _MAX_LOG_ENTRIES 개만 유지한다 (오래된 줄은 버림).
-_REQUEST_LOG_PATH = "request_log.jsonl"
-_MAX_LOG_ENTRIES = 10
+# 결과/에러를 최종 반환했는지"를 data/requests.db (SQLite) 에 손실 없이 기록한다.
+# 조회: python -m telemetry.query --help
 
 
 def _trace_request(request: "GenerateJOICodeRequest", response: JoiLLMResponse) -> None:
@@ -162,18 +161,10 @@ def _trace_request(request: "GenerateJOICodeRequest", response: JoiLLMResponse) 
             "code": ([c.model_dump() for c in response.code]
                      if isinstance(response.code, list) else response.code),  # 최종 결과
         }
-        # 기존 줄을 읽어 뒤에 새 항목을 붙이고, 최근 N개만 다시 쓴다.
-        lines: List[str] = []
-        if os.path.exists(_REQUEST_LOG_PATH):
-            with open(_REQUEST_LOG_PATH, "r", encoding="utf-8") as _f:
-                lines = [ln for ln in _f.read().splitlines() if ln.strip()]
-        lines.append(json.dumps(trace, ensure_ascii=False))
-        lines = lines[-_MAX_LOG_ENTRIES:]
-        with open(_REQUEST_LOG_PATH, "w", encoding="utf-8") as _f:
-            _f.write("\n".join(lines) + "\n")
+        telemetry.record(trace)
         print(f"[app] /generate_joi_code  outcome={trace['outcome']}  "
               f"code={int(response.error_code)}  sentence={request.sentence!r}  "
-              f"extra_keys={list(extras.keys())}  -> {_REQUEST_LOG_PATH}")
+              f"extra_keys={list(extras.keys())}  -> {telemetry.DB_PATH}")
     except Exception as _e:
         print(f"[app] request trace dump failed: {_e}")
 
