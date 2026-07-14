@@ -9,4 +9,5 @@
 
 # Rules
 
-- A named position (home/hello/refuse) → `SetPosition`. A hello gesture → `Hello`. A raw command string → `SendCommand`. Read current position/type → `CurrentPosition`/`ArmRobotType`.
+- A named position (home/hello/refuse) → `SetPosition`. A raw command string → `SendCommand`. Read current position/type → `CurrentPosition`/`ArmRobotType`.
+- Gestures (greeting/waving, refusing/shaking) are handled by the `ArmRobotDetail` skill — use `ArmRobotDetail.GreetMotion` / `ArmRobotDetail.RefuseMotion`, NOT this device's `Hello`.
