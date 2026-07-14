@@ -41,6 +41,9 @@ Time / scheduling words are **NOT devices** — IGNORE them (a later stage turns
   - NO channel word AND no speak-aloud verb (plain 알려줘/알림/안내) → `channel:speaker,toast` (default).
   - **메일/이메일 is NOT notify** — it is an `action` on `label:이메일` (use the word 이메일/메일 as the label). Never make 메일 a `notify`/channel.
     - 🛑 The recipient **email address itself ('lindy@mysmax.kr', xxx@yyy) is an ARGUMENT, not a device** — NEVER emit `label:lindy@mysmax.kr`. The device label is always `이메일`. The address is consumed by a later stage.
+  - **문자/SMS/카톡/카카오톡 is NOT notify** — like 메일, it is an `action` on `label:문자` / `label:카톡` (the word the command uses, verbatim). The phone number and the message text are ARGUMENTS — never emit `label:010-...`.
+  - **A question addressed TO a chatbot/AI is NOT notify** — "챗봇에게/AI에게/chat-bot한테 ~라고 물어봐줘·질문해줘·해달라고 해줘" is an `action` on the chatbot (`label:챗봇`, `label:AI` — the addressing word, verbatim). The question text is an ARGUMENT — never make the question itself a label. Add a `notify` channel line ONLY when the command separately asks to hear/see the answer ("답(변)을 알려줘/말해줘").
+  - **뉴스 요약/뉴스 알려줘** — "뉴스" is a `read` target (`read | by=label:뉴스`, same pattern as 전력 사용량), plus the usual `notify` channel for 알려줘/말해줘.
 - **Announcing the CURRENT TIME → also read the Clock.** When the command asks to speak/announce the **actual current time** (현재 시각/지금 시각/지금 몇 시·시간을 말해줘·알려줘 — the live clock value itself), emit a `read | by=label:시계` target IN ADDITION to the notify channel. (Clock is read for OUTPUT, not as a trigger → role=`read`.) ⚠️ ONLY when the clock value itself is read aloud — a fixed message that merely contains a time word (회의 시간이라고 알려줘) does NOT read the clock and stays a plain `notify`.
 - **NEVER infer a place** not literally said.
 
@@ -227,3 +230,33 @@ hue go 1 색을 빨강으로 바꿔줘
 - role=action | by=label:전등 | scope=all
 </targets>
 # "~하는 시나리오"(만들어줘 없이 끝나도) 명령이다. "사람이 없으면"(부재) → condition scope=all, "다"는 전등에 붙은 모두 → 전등 scope=all.
+
+[Command]
+챗봇에게 '한국의 수도는 어디야?'라고 물어보고 답을 알려줘
+<targets>
+- role=action | by=label:챗봇 | scope=auto
+- role=notify | by=channel:speaker,toast | scope=auto
+</targets>
+# 챗봇/AI에게 묻는 질문은 notify가 아니라 챗봇 device에 대한 action이다. 질문 텍스트는 ARGUMENT — label로 만들지 마라. "답을 알려줘"만 notify.
+
+[Command]
+AI한테 오늘 저녁 메뉴 추천해달라고 해줘
+<targets>
+- role=action | by=label:AI | scope=auto
+</targets>
+# "~해달라고 해줘"도 AI에게 보내는 질문/부탁 → action. 답 출력 요구가 따로 없으면 notify도 없다.
+
+[Command]
+오늘 테크 뉴스 요약해서 알려줘
+<targets>
+- role=read | by=label:테크 뉴스 | scope=auto
+- role=notify | by=channel:speaker,toast | scope=auto
+</targets>
+# "뉴스"는 news device의 read 대상 (전력 사용량 패턴). "알려줘"는 별도 notify 채널.
+
+[Command]
+010-1234-5678로 회의 시작한다고 문자 보내줘
+<targets>
+- role=action | by=label:문자 | scope=auto
+</targets>
+# 문자/카톡은 이메일과 같다 — notify가 아니라 action. 전화번호/메시지는 ARGUMENT — label:010-...을 만들지 마라.
