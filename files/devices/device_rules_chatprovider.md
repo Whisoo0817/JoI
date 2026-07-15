@@ -8,6 +8,7 @@
 - 🛑 The ONLY ChatProvider service is `Chat` — there is NO Send / Ask / Message / Question service. 물어보다/질문하다/부탁하다/~해달라고 하다 → `Chat`.
 - A question/request addressed to the chatbot/AI → `Chat`. The question text goes into `Message` VERBATIM (Korean stays Korean).
 - `Chat` RETURNS the reply as a STRING — when the user wants to hear/see the answer, chain it: speak `$Chat` via the Speaker / show it via Toast.
+- 🛑 Tags stay per-device when chaining: `ChatProvider.Chat` runs on the chatbot's tag and `Speaker.Speak` on the Speaker's own tag (`Speaker.Speak: (#Speaker)`) — NEVER reuse the ChatProvider tag for the Speaker line.
 - The question needs live/current information (오늘 날씨, 최신 뉴스, 지금 환율, 경기 결과) → set Model to "gpt-5-search-api"; otherwise "".
 
 # @ArgResolve
