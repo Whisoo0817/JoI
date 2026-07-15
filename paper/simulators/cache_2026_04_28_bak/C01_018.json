@@ -1,0 +1,61 @@
+{
+  "command_eng": "Tell me the lunch menu for Building 301 today through the speaker.",
+  "connected_devices": {
+    "System_MenuProvider": {
+      "category": [
+        "MenuProvider"
+      ],
+      "tags": [
+        "MenuProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "MenuProvider.GetMenu",
+        "args": {
+          "Command": "301동식당 점심"
+        },
+        "bind": "GetMenu"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "$GetMenu"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "GetMenu = (#MenuProvider).menuProvider_getMenu(\"301동식당 점심\")\n(#Speaker).speaker_speak(GetMenu)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"GetMenu = (#MenuProvider).menuProvider_getMenu(\\\"301동식당 점심\\\")\\n(#Speaker).speaker_speak(GetMenu)\"\n}"
+}

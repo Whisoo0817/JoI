@@ -1,0 +1,73 @@
+{
+  "command_eng": "Every 5 seconds on weekends, if the pump is off, turn it on; if it is on, turn it off.",
+  "connected_devices": {
+    "Main_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Garden_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Garden",
+        "Pump",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 * * * 6,7"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "5 SEC",
+        "body": [
+          {
+            "op": "read",
+            "var": "pumpState",
+            "src": "Switch.Switch"
+          },
+          {
+            "op": "if",
+            "cond": "$pumpState == false",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 * * * 6,7",
+    "period": 5000,
+    "script": "pumpState = (#Pump #Switch).switch_switch\nif (pumpState == false) {\n(#Pump #Switch).switch_on()\n}\nelse {\n(#Pump #Switch).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 * * * 6,7\",\n  \"period\": 5000,\n  \"script\": \"pumpState = (#Pump #Switch).switch_switch\nif (pumpState == false) {\n(#Pump #Switch).switch_on()\n}\nelse {\n(#Pump #Switch).switch_off()\n}\"\n}"
+}

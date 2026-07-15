@@ -1,0 +1,78 @@
+{
+  "command_eng": "When button 2 of the multi-button is pressed, turn off all lights in the hallway.",
+  "connected_devices": {
+    "Hall_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Hallway",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Hall_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    },
+    "Hall_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button2 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#MultiButton #Hallway).multiButton_button2 == \"pushed\")\nall(#Light #Hallway).light_moveToBrightness(0, 0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#MultiButton #Hallway).multiButton_button2 == \\\"pushed\\\")\\nall(#Light #Hallway).light_moveToBrightness(0, 0)\"\n}"
+}

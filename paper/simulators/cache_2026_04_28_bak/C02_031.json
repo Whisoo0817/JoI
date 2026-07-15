@@ -1,0 +1,66 @@
+{
+  "command_eng": "Close all valves in the garage.",
+  "connected_devices": {
+    "Gar_Valve_1": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garage",
+        "Valve"
+      ]
+    },
+    "Gar_Valve_2": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garage",
+        "Valve"
+      ]
+    },
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Valve.Close",
+        "args": {
+          "all": [
+            "Garage",
+            "Valve"
+          ]
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Garage #Valve).valve_close()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Garage #Valve).valve_close()\"\n}"
+}

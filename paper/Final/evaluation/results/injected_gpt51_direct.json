@@ -1,0 +1,3149 @@
+{
+  "backend": "openai",
+  "n_items": 346,
+  "n_wrong": 277,
+  "n_correct": 69,
+  "judge": {
+    "TP": 261,
+    "FP": 14,
+    "TN": 55,
+    "FN": 16,
+    "unparsed": 0,
+    "recall": 0.9422382671480144,
+    "precision": 0.9490909090909091
+  },
+  "missed_buggy": [
+    "C09_15__arg_numeric",
+    "C07_9__enum_flip",
+    "C08_3__arg_numeric",
+    "C08_7__arg_numeric",
+    "C09_15__arg_numeric",
+    "C08_16__arg_numeric",
+    "C08_11__arg_numeric",
+    "C08_15__arg_numeric",
+    "C07_22__comparator",
+    "C22_10__arg_numeric",
+    "C08_28__arg_numeric",
+    "C08_28__arg_numeric",
+    "C11_1__cmp_direction",
+    "C09_15__call_add",
+    "C07_11__comparator",
+    "C07_19__comparator"
+  ],
+  "detail": [
+    {
+      "name": "C06_4__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "For illuminance > 300 lux, the script sets the light brightness twice in succession (first to 20%, then to 37%). The command requires it to be set to 20% only; the extra moveToBrightness(37.0, 0.0) is an unintended additional action.",
+      "fault_family": "WrongAction",
+      "construct": "Stateless",
+      "operator": "call_add"
+    },
+    {
+      "name": "C13_5__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never opens the blind and only closes it every other hour. On even cycles the if-branch is empty (no action), and on odd cycles it only calls downOrClose(), so there is no alternation between opening and closing as requested, and the closing also occurs only every two hours instead of every hour.",
+      "fault_family": "Omission",
+      "construct": "Counter",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C09_15__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The delay is 100 seconds instead of the requested 10 seconds before turning on the kitchen dehumidifier.",
+      "fault_family": "Timing",
+      "construct": "DelaySeq",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C22_9__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The repeat counter condition is wrong. It checks `if (n >= 30)` instead of `>= 3`, so the door will open 30 times (over 90 minutes) instead of 3 times (over 9 minutes).",
+      "fault_family": "Timing",
+      "construct": "Counter",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C19_5__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The else-branch for humidity >= 55% is empty, so the humidifier plug is never turned off. The program only turns the plug on when humidity <= 30% and does nothing otherwise, missing the required switch_off() action for humidity >= 55%.",
+      "fault_family": "Omission",
+      "construct": "PeriodicCond",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C01_12__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C11_5__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted: the fan is turned on when the absolute temperature change is 5 degrees or LESS (diff <= 5), but it should turn on only when the change is AT LEAST 5 degrees (diff >= 5).",
+      "fault_family": "Direction",
+      "construct": "DelaySeq",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C20_13__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The devices/tags do not match the command: the trigger uses (#MotionSensor #Motion) instead of a bathroom motion sensor, and the action targets (#Plug #Switch #Fan) instead of a bathroom fan plug. The timing logic (20 seconds with hold_ticks>=200 at period=100ms) is otherwise correct.",
+      "fault_family": "none",
+      "construct": "Sustain",
+      "operator": "none"
+    },
+    {
+      "name": "C19_7__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When the temperature is 28C or below, the script’s else-branch body is empty, so it does not turn off the kitchen ventilation fan plug as required. The off action is missing; only the >=32C turn-on behavior is implemented.",
+      "fault_family": "Omission",
+      "construct": "PeriodicCond",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C25_2__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The temperature comparison is reversed. The command says: if temperature is BELOW 20 set mode to heat, otherwise auto. The program does: if temp > 20 then set mode heat, else auto, which is the opposite of the required behavior. It should use temp < 20 (or <=) for heat. (2) The script sets mode based solely on temperature each run and stops after 4 runs correctly, but the logic for heat vs auto is inverted, so the actions do not match the command.",
+      "fault_family": "Direction",
+      "construct": "Composite",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C11_8__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command only wants an announcement if the temperature increased by at least 2 degrees; decreases or small changes should not trigger. The program takes the absolute difference: if the temperature drops by 2+ degrees it will still announce. Also, the spoken message content is incorrect (it says \\",
+      "fault_family": "Boundary",
+      "construct": "DelaySeq",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C12_5__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Multiple issues: (1) The trigger is inverted: it waits until smoke == false before starting; it should react when smoke is detected (smoke == true). (2) The siren starts only after the first 60s cycle where the wait unblocks, not immediately when smoke is detected. (3) After smoke is cleared, it continues to sound for 5 seconds every minute forever; it should be contingent on ongoing smoke or cease when smoke is no longer present, depending on intended reading. (4) Because ‘phase := 0’ is reinitialized each 60s cycle, the state is not persistent, and the first-branch logic never correctly transitions to a steady repeating mode. Overall, it does not implement “When smoke is detected, sound the emergency siren for 5 seconds every minute thereafter” correctly.",
+      "fault_family": "Direction",
+      "construct": "EdgeTrigger",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C19_5__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The else branch uses `<= 55` instead of `>= 55`. As written, whenever humidity is between 31% and 55%, the plug is turned off, and for humidity above 55% nothing happens. The command requires turning off the plug when humidity is at least 55%, and not specifying any action in the 31–54% range.",
+      "fault_family": "Direction",
+      "construct": "PeriodicCond",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C09_15__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "DelaySeq",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C14_7__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The brightness is decreased by 20 instead of increased (uses currentBrightness - 20). Also, the conditional uses tmp > 100 instead of capping values above 100, and thus never corrects over-brightness. The max-limit logic and arithmetic direction are both wrong.",
+      "fault_family": "WrongAction",
+      "construct": "EdgeTrigger",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C20_2__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After 5 seconds of the door staying open, the script only breaks the cycle and never turns on the ventilation fan plug. The required action (turn on the plug) is completely missing.",
+      "fault_family": "Omission",
+      "construct": "Sustain",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C22_6__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script counts 6 cycles of 10 seconds and then stops, but it never calls any siren action at all, so no bursts are sounded. It only increments n and breaks; missing the siren emergency-mode command on each cycle.",
+      "fault_family": "Omission",
+      "construct": "Counter",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C07_11__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "LevelWait",
+      "operator": "none"
+    },
+    {
+      "name": "C17_1__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script checks the temperature every 10 minutes but performs no action even when it is ≥ 30; it never sets the air conditioner to cool mode, so the required device action is missing.",
+      "fault_family": "Omission",
+      "construct": "PeriodicCond",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C10_5__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The command says when ANY presence sensor detects presence, but the program waits until ALL presence sensors in the house report presence (uses all(...) == true instead of any(...)). (2) The delay is 10 seconds in the command, but the program waits 100 seconds (delay(100 SEC)) before sounding the sirens.",
+      "fault_family": "Timing",
+      "construct": "EdgeTrigger",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C06_1__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is wrong: the command requires turning on the AC when living room temperature ≥ 28°C OR bedroom temperature ≥ 30°C. The program instead checks a single temperature sensor and turns on when temperature ≤ 28 OR ≥ 30 (missing the 28–30°C middle range and not distinguishing living room vs bedroom sensors).",
+      "fault_family": "Direction",
+      "construct": "Stateless",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C25_5__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong. The script should stop after 3 executions, but it checks `if (n >= 30)` instead of `if (n >= 3)`, so it will run up to 30 times instead of 3.",
+      "fault_family": "Timing",
+      "construct": "Composite",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C07_12__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "LevelWait",
+      "operator": "none"
+    },
+    {
+      "name": "C22_7__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is off by one. With n initialized to 0 and the check `if (n > 5)`, the script will execute the open action 6 times (for n = 0,1,2,3,4,5). It should stop after 5 executions, e.g. by using `if (n >= 5)` instead.",
+      "fault_family": "Boundary",
+      "construct": "Counter",
+      "operator": "comparator"
+    },
+    {
+      "name": "C21_5__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script only reads the bedroom temperature twice, never the living room temperature, and it performs no action at all (the body is empty). It should check both living room and bedroom temperatures and then turn on the living room fan plug when both are >= 25C.",
+      "fault_family": "Omission",
+      "construct": "Stateless",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C05_20__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The program only turns on the bathroom light when humidity ≥ 85% and the door is closed; it never issues any action to open the door, which the command explicitly requires.",
+      "fault_family": "Omission",
+      "construct": "Stateless",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C22_5__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script has the correct 20-minute period and stops after 5 cycles, but it never performs the required action: there is no announcement or speaker command to say \\",
+      "fault_family": "Omission",
+      "construct": "Counter",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C09_7__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The delay is 50 seconds instead of the requested 5 seconds, so the siren switches to fire mode too late.",
+      "fault_family": "Timing",
+      "construct": "DelaySeq",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C25_1__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop-after-6-times logic is incomplete: the if (n >= 6) block is empty and does not break or skip the rest of the script, so temperature is still checked and the AC mode is still set on every cycle forever. It should break or otherwise prevent actions once n >= 6.",
+      "fault_family": "Omission",
+      "construct": "Composite",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C25_4__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The AC mode string for cooling is incorrect. The command requests setting the AC to cool, but the program calls airConditioner_setAirConditionerMode(\\",
+      "fault_family": "WrongAction",
+      "construct": "Composite",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C09_10__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never starts the dehumidifier in drying mode; it only changes the mode to refreshing after 1 hour. It is missing the initial action to set drying mode at the start.",
+      "fault_family": "Omission",
+      "construct": "DelaySeq",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C22_6__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The counter limit is wrong. With period=10000ms, the script runs every 10 seconds. It stops when n>=60, so it will produce 60 siren bursts instead of the requested 6. The threshold should be 6, not 60.",
+      "fault_family": "Timing",
+      "construct": "Counter",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C10_9__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger condition is inverted and too strict. It waits until ALL data center temperature sensors are at or below 30 (<=| 30), then acts, instead of when ANY sensor reaches 30 or higher. Also, it never triggers on temperatures strictly above 30 unless they pass through exactly 30 while decreasing.",
+      "fault_family": "Direction",
+      "construct": "EdgeTrigger",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C14_1__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The variable 'triggered' is declared with ':=' so it initializes to false only on the first cycle and then persists as true after the first press, but the 'else { triggered = false }' branch is never reached if 'triggered' remains true while the button is still pushed. Because there's no explicit assignment of 'triggered' to false when the button is pushed and already triggered, the flag may never reset correctly on button release under persistent state semantics, breaking the intended once-per-press behavior over time.",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C17_3__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command says to increase the volume by 10, but the program subtracts 10 from the current volume each hour, thereby decreasing it instead of increasing it.",
+      "fault_family": "WrongAction",
+      "construct": "PeriodicCond",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C07_12__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted: it waits until veryFineDustLevel <= 35, but the command requires triggering when the level becomes 35 or higher (>= 35).",
+      "fault_family": "Direction",
+      "construct": "LevelWait",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C07_6__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger condition is inverted: it waits until all smoke detectors report no smoke (== false) instead of when smoke is detected (== true). It also omits a wait for smoke detection entirely, so the siren may never sound during smoke and only (incorrectly) after smoke clears.",
+      "fault_family": "Direction",
+      "construct": "LevelWait",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C05_15__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "With period=0 the script runs only once and never reacts to future changes. The command implies a standing rule that should trigger whenever it is raining and the door is open. It needs a nonzero period or a wait/until structure so the condition is monitored over time.",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C11_7__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The delay is 300 minutes instead of 30 minutes, so the second humidity check happens 5 hours later rather than after 30 minutes. Also, the code uses the absolute difference in humidity (treating decreases the same as increases), but the requirement is specifically to act only if the humidity rose by at least 15.",
+      "fault_family": "Timing",
+      "construct": "DelaySeq",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C07_9__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "WrongAction",
+      "construct": "LevelWait",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C18_7__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The cron starts the script at 22:00 and runs every 30s, and it stops after 23:00, which matches the time window and frequency. However, if it starts raining at some time, the script will detect rain and close the window at the next 30s tick, and then will continue to re-issue the close command every 30s as long as it keeps raining. The command implies a one-shot behavior per rain event (close when it rains), not repeated close commands while the rain condition stays true.",
+      "fault_family": "Boundary",
+      "construct": "Counter",
+      "operator": "comparator"
+    },
+    {
+      "name": "C12_2__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script only waits for the contact to close on the first cycle; in later cycles it immediately sounds the siren every 10 seconds regardless of the contact state. It should only sound every 10 seconds while/after the contact remains closed, and should not sound if the contact is open again. Additionally, it redundantly sets the siren mode twice on the first trigger, including an invalid/unintended mode \\",
+      "fault_family": "WrongAction",
+      "construct": "EdgeTrigger",
+      "operator": "call_add"
+    },
+    {
+      "name": "C13_7__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script alternates between 42°C and 20°C instead of 25°C and 20°C. Also, the first cycle sets 42°C (even index) rather than 25°C as required.",
+      "fault_family": "Boundary",
+      "construct": "Counter",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C22_10__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop-after-8-runs guard is empty and does not prevent further executions. After n >= 8, the script still turns on the light every 20 seconds indefinitely instead of stopping after 8 runs. It needs a break or to skip the action when n >= 8.",
+      "fault_family": "Omission",
+      "construct": "Counter",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C08_3__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "EdgeTrigger",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C17_6__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "PeriodicCond",
+      "operator": "none"
+    },
+    {
+      "name": "C08_10__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command says to turn on all living room lights immediately when button 2 is pressed, then dim them to 30% after 30 minutes. The program only performs a single action after 30 minutes (set brightness to 30) and never turns the lights on at the time of the button press, and it also waits the full 30 minutes before doing anything.",
+      "fault_family": "Omission",
+      "construct": "EdgeTrigger",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C17_1__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition uses > 30 instead of >= 30, so if the temperature is exactly 30 degrees the air conditioner will not be set to cool mode as requested.",
+      "fault_family": "Boundary",
+      "construct": "PeriodicCond",
+      "operator": "comparator"
+    },
+    {
+      "name": "C08_25__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C17_9__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script does not correctly implement the sector-wide logic. (1) It issues an unused call to doorLock_doorLockState() (harmless but pointless). (2) More importantly, it checks doorLock_doorLockState on a single aggregated (#DoorLock #Sector1) target rather than correctly using any(...) to see if any lock in Sector 1 is open; as written, its behavior depends on how the platform aggregates multiple locks and may fail when some but not all are open. (3) It changes Sector 1 lights to red twice with different parameters: light_moveToColor(0.675, 0.322, 0.0) is a plausible red, but light_moveToColor(17.7, 0.322, 0.0) uses an out-of-range x coordinate and is not a valid representation of the requested red color. These issues mean it may not reliably set all lights to red when any lock is open.",
+      "fault_family": "WrongAction",
+      "construct": "PeriodicCond",
+      "operator": "call_add"
+    },
+    {
+      "name": "C08_2__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After the button is pressed, the script first turns bedroom lights off (brightness 0) but then immediately sets them to brightness 37, effectively leaving them on at low brightness instead of off.",
+      "fault_family": "WrongAction",
+      "construct": "EdgeTrigger",
+      "operator": "call_add"
+    },
+    {
+      "name": "C08_7__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "EdgeTrigger",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C08_23__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger and one-shot logic are correct, but the script performs two consecutive brightness changes (to 100 then to 137) each time the brightness falls below 100 lux instead of a single turn-on action. This extra light_moveToBrightness call makes the behavior differ from the requested action.",
+      "fault_family": "WrongAction",
+      "construct": "EdgeTrigger",
+      "operator": "call_add"
+    },
+    {
+      "name": "C25_4__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop-after-5-times condition is not implemented. The script checks `if (n >= 5) {}` but does nothing (no break/return), so it continues executing and changing the AC mode indefinitely. It should stop performing the temperature check and mode changes after 5 executions.",
+      "fault_family": "Omission",
+      "construct": "Composite",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C02_2__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Per lab dehumidifier, the program issues two mode changes in sequence: first to \\",
+      "fault_family": "WrongAction",
+      "construct": "Stateless",
+      "operator": "call_add"
+    },
+    {
+      "name": "C12_2__wait_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script ignores the contact sensor entirely and always sounds the siren every 10 seconds from startup regardless of whether the contact is closed. It also starts sounding immediately at time 0 instead of only after the sensor closes, and cannot stop when the contact opens again.",
+      "fault_family": "Omission",
+      "construct": "EdgeTrigger",
+      "operator": "wait_drop"
+    },
+    {
+      "name": "C17_5__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The trigger for turning off uses > 50, but the command says '50 or higher', so humidity exactly 50% should also turn the humidifier off. (2) The off condition is in the if branch and the on/auto condition is in the else branch. If humidity > 50, it turns off and skips checking the <= 20 condition; the command implies both thresholds should be checked independently each time (e.g., a value <=20 should turn it on even if another sensor misread had previously triggered off). The off and on/auto checks should be separate, not mutually exclusive, and the off comparison should be >= 50.",
+      "fault_family": "Boundary",
+      "construct": "PeriodicCond",
+      "operator": "comparator"
+    },
+    {
+      "name": "C08_28__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C22_8__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Each run performs two mode changes: it sets the air purifier mode to both \\",
+      "fault_family": "WrongAction",
+      "construct": "Counter",
+      "operator": "call_add"
+    },
+    {
+      "name": "C19_6__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command says to turn the fan off when the temperature is 23°C or below, but the program only turns it off when the temperature is strictly below 23°C. At exactly 23°C it does nothing instead of switching off.",
+      "fault_family": "Boundary",
+      "construct": "PeriodicCond",
+      "operator": "comparator"
+    },
+    {
+      "name": "C25_1__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "In the cool branch the script sends two different mode commands: first \\",
+      "fault_family": "WrongAction",
+      "construct": "Composite",
+      "operator": "call_add"
+    },
+    {
+      "name": "C09_15__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "DelaySeq",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C08_33__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Edge detection is inverted: it turns off all #Even switches once when the Stop button is NOT pushed (transition to not-pushed), instead of when it IS pushed (transition to pushed). The condition should be on == \\",
+      "fault_family": "Direction",
+      "construct": "EdgeTrigger",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C25_3__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The air conditioner mode string is incorrect: it uses \\",
+      "fault_family": "WrongAction",
+      "construct": "Composite",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C06_4__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command specifies 100% brightness when lux ≤ 100, but the program sets brightness to 117.0 in that case. All other branches and conditions are correct.",
+      "fault_family": "Boundary",
+      "construct": "Stateless",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C07_30__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Logic is inverted: it closes the basement valve when no leak is detected (leakage == false), whereas it should close the valve when a leak is detected (leakage == true).",
+      "fault_family": "Direction",
+      "construct": "LevelWait",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C02_15__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Program is empty and performs no actions; it never locks any safes, let alone specifically those with odd tags in Sector B.",
+      "fault_family": "Omission",
+      "construct": "Stateless",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C03_9__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When the dryer is in low noise mode, it sets the mode twice: first to \\",
+      "fault_family": "WrongAction",
+      "construct": "Stateless",
+      "operator": "call_add"
+    },
+    {
+      "name": "C02_19__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C17_5__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The auto mode value is incorrect: the script sets humidifier_setHumidifierMode(\\",
+      "fault_family": "WrongAction",
+      "construct": "PeriodicCond",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C17_1__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When the temperature is >= 30, the script issues two different mode commands in immediate succession: \\",
+      "fault_family": "WrongAction",
+      "construct": "PeriodicCond",
+      "operator": "call_add"
+    },
+    {
+      "name": "C09_10__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script starts the dehumidifier in drying mode and waits 1 hour but never switches it to refreshing mode; the final mode change is missing.",
+      "fault_family": "Omission",
+      "construct": "DelaySeq",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C18_3__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The time condition is reversed: 'if (clock.time <= 2400) { break }' prevents the siren from running at or before midnight, so it never sounds between 22:00 and 24:00. It would need to restrict execution to 22:00–24:00, not skip it during that range.",
+      "fault_family": "Direction",
+      "construct": "Counter",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C20_10__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain counter logic is wrong: it decrements hold_ticks instead of incrementing it, so the threshold hold_ticks >= 300 is never reached. As a result, the light never turns on even if the door stays open for 30 seconds.",
+      "fault_family": "WrongAction",
+      "construct": "Sustain",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C09_15__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The program turns on the kitchen light and waits 10 seconds but never turns on the kitchen dehumidifier; the required dehumidifier action is missing.",
+      "fault_family": "Omission",
+      "construct": "DelaySeq",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C08_21__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C11_5__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The second temperature check is delayed by 150 minutes instead of 15 minutes; the delay duration is off by a factor of 10.",
+      "fault_family": "Timing",
+      "construct": "DelaySeq",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C15_15__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The program opens all blinds at 8 AM, waits 10 hours, then opens all blinds again. It does not distinguish between blinds with odd and even tags, and the delay is 10 hours instead of 1 hour. No separation of actions by tag parity is implemented.",
+      "fault_family": "Timing",
+      "construct": "Stateless",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C07_28__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "period=0 means the script runs only once at deployment time. It will only capture an image if motion happens to be detected exactly at that instant, instead of whenever motion is detected over time. It needs a polling period or a wait until(...) to respond to future motion events.",
+      "fault_family": "none",
+      "construct": "LevelWait",
+      "operator": "none"
+    },
+    {
+      "name": "C07_17__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The siren mode string does not match the requested 'emergency' mode; it uses \\",
+      "fault_family": "WrongAction",
+      "construct": "LevelWait",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C10_1__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C03_15__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script runs only once (period=0), so it only checks the sound level at startup. The command implies a continuous condition—whenever the sound level later rises above 50, the speaker should stop. With period=0, it will miss any such later events. It also uses >= 50 instead of strictly > 50, but the main error is the lack of periodic monitoring.",
+      "fault_family": "Boundary",
+      "construct": "Stateless",
+      "operator": "comparator"
+    },
+    {
+      "name": "C22_8__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is inverted and placed before the action. With n initialized to 0 and the check `if (n <= 4) { break }`, the script breaks every cycle before running, so the air purifier is never set to high. It should instead run the action when n < 4 (or n <= 3) and then increment n, breaking once n reaches 4.",
+      "fault_family": "Direction",
+      "construct": "Counter",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C20_1__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After 30 seconds without motion the plug is turned off, but because there is no break or one-shot guard, the script will keep turning it off again every 100ms as long as no motion is detected. The command implies a one-time action after 30 seconds of no motion, not continuous repeated actions.",
+      "fault_family": "Omission",
+      "construct": "Sustain",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C08_34__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "It uses a one-shot edge trigger, so it only closes the doors/windows once when rain starts. The command implies windows and doors should be closed whenever it is raining, even if they were opened after rain began. With this code, if a door or window is opened while it is still raining, it will not be re-closed because `triggered` stays true until rain stops.",
+      "fault_family": "Omission",
+      "construct": "EdgeTrigger",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C05_8__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script only runs once (period=0), so it doesn’t react when illuminance or presence later satisfy the condition; it should be periodically evaluated or use wait until. Also, the file name is relax.mp40 instead of relax.mp3, so it does not play the requested track.",
+      "fault_family": "Boundary",
+      "construct": "Stateless",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C20_1__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain counter is updated in the wrong direction: hold_ticks is decremented instead of incremented, so the threshold hold_ticks >= 300 is never reached. As a result, the plug is never turned off regardless of how long motion is absent.",
+      "fault_family": "WrongAction",
+      "construct": "Sustain",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C25_3__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The temperature condition is inverted and the modes are swapped. The command says: if temperature is 30 or higher, set mode to cool; otherwise set to auto. The program uses `if (temp <= 30)` then sets mode to cool, and else auto. It should be `if (temp >= 30)` for cool, else auto.",
+      "fault_family": "Direction",
+      "construct": "Composite",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C17_4__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The condition for high temperature uses > 30 instead of >= 30, so exactly 30 degrees will not trigger setting 25°C. (2) The logic is written as if/else-if, so when temperature >= 30 the second branch is skipped; the spec wants: if temp >= 30 set 25, and independently if temp < 23 set 26. As written, the program does not correctly implement the specified conditions.",
+      "fault_family": "Boundary",
+      "construct": "PeriodicCond",
+      "operator": "comparator"
+    },
+    {
+      "name": "C17_9__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The program never changes the lights to red; the if block is empty. It also only checks a single door lock instead of determining if any Sector 1 lock is open, and it never issues any light commands at all.",
+      "fault_family": "Omission",
+      "construct": "PeriodicCond",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C25_2__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong: it checks `if (n >= 40)` instead of stopping after 4 executions. This makes the script run 40 times (over ~400 minutes) instead of the requested 4 times (~40 minutes).",
+      "fault_family": "Timing",
+      "construct": "Composite",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C20_13__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The comparison is reversed. It uses `if (hold_ticks <= 200)` so it will turn off the fan immediately when no motion is detected and on every cycle up to 20s, instead of only after 20s. It should use `>= 200`. (2) The tags/devices are not scoped to the bathroom or clearly to the bathroom fan; the command is specifically for the bathroom motion sensor and bathroom fan, but the script uses generic `#MotionSensor #Motion` and `#Plug #Switch #Fan` without the bathroom context.",
+      "fault_family": "Direction",
+      "construct": "Sustain",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C25_4__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong: it checks `if (n >= 50)` instead of `>= 5`, so it will run 50 times instead of stopping after 5 checks.",
+      "fault_family": "Timing",
+      "construct": "Composite",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C05_6__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Humidity condition uses strict > 80 instead of >= 80, so the actions will not run when humidity is exactly 80% as requested.",
+      "fault_family": "Boundary",
+      "construct": "Stateless",
+      "operator": "comparator"
+    },
+    {
+      "name": "C02_32__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C22_3__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop-after-3-times condition is never enforced. Because `n := 0` runs only on the first cycle, `n` correctly increments each minute, but the `if (n >= 3) { }` block is empty and has no `break`, so the announcement continues every minute indefinitely instead of stopping after 3 times.",
+      "fault_family": "Omission",
+      "construct": "Counter",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C09_14__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The siren mode string does not match the requested mode; it uses \\",
+      "fault_family": "WrongAction",
+      "construct": "DelaySeq",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C21_1__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition logic is wrong. The code uses `not (all(#PresenceSensor).presenceSensor_presence ==| false) and not (all(#PresenceSensor).presenceSensor_presence ==| true)`, which is true only when presence is mixed across sensors (some true, some false). The requirement is to turn off the plug when no person is detected in either the living room or the bedroom (i.e., all relevant sensors false). It also ignores room scoping and does not restrict presence sensors to the living room and bedroom only.",
+      "fault_family": "Direction",
+      "construct": "Stateless",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C10_8__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger condition is wrong: it waits until all terrace illuminance sensors are at or below 100 lux (<=| 100), but the command requires triggering when any sensor reaches 100 lux or higher (>= 100). It should use an any(...) check with >= 100, not all(...) with <= 100.",
+      "fault_family": "Direction",
+      "construct": "EdgeTrigger",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C20_13__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never turns off the bathroom fan and also uses the wrong device tags (no #Bathroom #Fan). It only counts 20 seconds of no motion and then breaks out of the loop without performing any action, so the fan is never affected.",
+      "fault_family": "Omission",
+      "construct": "Sustain",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C17_8__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is reversed. The command requires action when all Group2 humidity readings are >= 50%, but the program triggers when all sensors are <= 50%, i.e., at or below 50% instead of at or above 50%.",
+      "fault_family": "Direction",
+      "construct": "PeriodicCond",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C05_27__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C05_6__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The rain condition is inverted. The command requires actions when it IS raining, but the program checks rainSensor_rain == false (not raining). It also runs only once (period=0), so it won’t react if the conditions become true later; the command implies a reactive condition-based behavior over time.",
+      "fault_family": "Direction",
+      "construct": "Stateless",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C01_2__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C05_25__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted for the AC state. The command requires action when the AC is off, but the program checks switch_switch == true (AC on). It will trigger when the AC is already on and do nothing when it is off.",
+      "fault_family": "Direction",
+      "construct": "Stateless",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C01_21__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C25_1__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The counter/loop condition is inverted and the break is misplaced. As written, on the very first cycle n is 0, the condition if (n <= 6) is true, so break executes immediately and the temperature is never checked and the AC mode is never changed. Also, the logic should stop after 6 runs, but this code stops before the first one. The if should be if (n >= 6) { break } placed before the break, with no unconditional break inside that block.",
+      "fault_family": "Direction",
+      "construct": "Composite",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C10_8__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The trigger uses all(#LightSensor #Terrace) >=| 100, which waits until every terrace illuminance sensor reaches at least 100 lux. The command says “any illuminance sensor,” so it should fire when at least one sensor reaches 100 lux, not all of them.",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C16_2__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When both the safe and door lock are locked (state == \\",
+      "fault_family": "Omission",
+      "construct": "Stateless",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C08_4__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C07_17__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After leak detection it sets the siren mode twice, first to \\",
+      "fault_family": "WrongAction",
+      "construct": "LevelWait",
+      "operator": "call_add"
+    },
+    {
+      "name": "C20_10__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timer is off by a factor of 10. With period=100ms, 30 seconds corresponds to 300 ticks, but the code uses hold_ticks >= 3000, which requires about 300 seconds (5 minutes) of the door staying open before turning on the light.",
+      "fault_family": "Timing",
+      "construct": "Sustain",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C20_15__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After the door has been open for 45 seconds, the script only breaks the loop and never turns on the pantry light; the required action (#Light #Pantry).switch_on() or equivalent is missing.",
+      "fault_family": "Omission",
+      "construct": "Sustain",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C22_8__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong: it uses n >= 40 instead of n >= 4, so the purifier is set to high 40 times instead of 4.",
+      "fault_family": "Timing",
+      "construct": "Counter",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C13_7__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script alternates between 25 and 37 degrees instead of 25 and 20 degrees. The odd cycles set the target temperature to 37.0, which does not match the requested 20 degrees.",
+      "fault_family": "Boundary",
+      "construct": "Counter",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C10_1__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The delay duration is wrong: the script waits 10 minutes after presence is detected before taking a picture, but the command requires a 1-minute delay. The edge-trigger logic is otherwise correct.",
+      "fault_family": "Timing",
+      "construct": "EdgeTrigger",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C17_3__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "PeriodicCond",
+      "operator": "none"
+    },
+    {
+      "name": "C10_3__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C08_40__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C20_10__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain condition is implemented incorrectly. The command requires the door to stay open for at least 30 seconds before turning on the light, i.e., action after hold_ticks >= 300 with a one-time trigger. The code instead triggers while hold_ticks <= 300, so it turns the light on immediately when the door opens and only up through 30 seconds, not after. Also, because of the break inside a periodic script, it will only ever fire once after startup, not whenever the door later stays open for 30 seconds.",
+      "fault_family": "Direction",
+      "construct": "Sustain",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C25_4__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When temperature is 26 or higher, the script does nothing instead of setting the air conditioner to cool. The cool-mode action is missing in the >=26 branch; only the else branch sets mode to auto.",
+      "fault_family": "Omission",
+      "construct": "Composite",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C25_5__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The counter is updated incorrectly. n is initialized to 0 and checked with if (n >= 3) { break }, but at the end of each cycle it does n = n - 1 instead of incrementing. This means n never reaches 3, so the script never stops and continues forever instead of stopping after 3 executions.",
+      "fault_family": "WrongAction",
+      "construct": "Composite",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C16_7__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The action targets all lights in the home (all(#Light)) instead of only the living room lights. It should restrict to living room lights, e.g., all(#Light #LivingRoom).",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C22_1__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The counter is updated in the wrong direction and the stop condition is never reached. n is initialized to 0 once; since the script checks if (n >= 10) and then does n = n - 1 each cycle, n becomes -1, -2, ... and will never reach 10. This causes the camera to keep capturing images every 5 minutes indefinitely instead of stopping after 10 photos.",
+      "fault_family": "WrongAction",
+      "construct": "Counter",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C08_1__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Trigger condition is inverted: it waits until the button is NOT pushed, then turns on the lights. It should fire when the button becomes pushed, not when it is released or idle.",
+      "fault_family": "Direction",
+      "construct": "EdgeTrigger",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C08_16__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "EdgeTrigger",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C09_18__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never closes the meeting room door; it only waits 3 seconds and takes a picture. It is missing the door-closing action before the delay.",
+      "fault_family": "Omission",
+      "construct": "DelaySeq",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C19_6__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The else-branch condition is wrong. The command says: if temp ≤23°C then turn OFF; but the program uses temp ≥23°C in the else, so for 23°C<temp<26°C it does nothing instead of turning off, and at exactly 23°C it will (incorrectly) turn the fan off even when the temperature is between 23°C and 26°C was intended to keep it on/off based on the correct thresholds. The correct condition in the else-branch should be temperature <= 23, not >= 23.",
+      "fault_family": "Direction",
+      "construct": "PeriodicCond",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C20_15__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain condition is implemented incorrectly. The light is turned on while the door has been open for *up to* 45 seconds (hold_ticks <= 450), instead of *after* it has stayed open for at least 45 seconds (hold_ticks >= 450). Also, the action fires once and then breaks, so it never turns on again if the door reopens later; the command implies this should work every time the door stays open for 45 seconds.",
+      "fault_family": "Direction",
+      "construct": "Sustain",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C14_4__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never stops increasing brightness on subsequent motion events once brightness has reached 100; it only caps to 100 on the first event where new_bright >= 100, but on later motion triggers it keeps adding 10 and repeatedly sending a moveToBrightness(>100) command (which will at least redundantly retrigger the light). The intent is to stop increasing once max is reached, i.e., do nothing further on future motion events. Also, the first time max is reached it uses a nonzero transition time (37) whereas earlier steps use 0, an unintended change in behavior. The loop-level break only exits the current cycle and does not prevent future cycles from running again when motion is detected.",
+      "fault_family": "Boundary",
+      "construct": "EdgeTrigger",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C08_11__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "EdgeTrigger",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C18_4__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The time condition is inverted: the script breaks (does nothing) when clock.time <= 1500, so the siren only runs after 3 PM instead of from now until 3 PM. Also, with period=600000 the first execution is delayed by 10 minutes instead of starting immediately; it should either run once now then schedule repeats, or be structured to include the initial action.",
+      "fault_family": "Direction",
+      "construct": "Counter",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C19_8__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The off-condition is wrong at the 55% boundary. The command says to turn off the fan when humidity is 55% or below, but the program uses < 55, so at exactly 55% the fan will neither be turned on nor turned off.",
+      "fault_family": "Boundary",
+      "construct": "PeriodicCond",
+      "operator": "comparator"
+    },
+    {
+      "name": "C25_5__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The AC mode string for heating is incorrect. The command requests setting the air conditioner to heat, but the program calls airConditioner_setAirConditionerMode(\\",
+      "fault_family": "WrongAction",
+      "construct": "Composite",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C22_2__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The loop counter is implemented correctly (4 cycles then stop), but the script never performs the required action: it does not turn on the living room light at all; it only increments n and breaks after 4 runs.",
+      "fault_family": "Omission",
+      "construct": "Counter",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C09_7__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The final mode is wrong: the command asks for siren fire mode, but the script sets sirenMode to \\",
+      "fault_family": "WrongAction",
+      "construct": "DelaySeq",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C12_5__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The first siren activation happens immediately when smoke is detected and lasts 5 seconds, but the command requires the 5-second sounding to occur every minute after detection (i.e., aligned to 60-second intervals after the event). Also, in subsequent cycles the siren is kept on for 50 seconds rather than 5 seconds (emergency mode for 50s, off 10s), so the siren is not sounding only for 5 seconds each minute as requested.",
+      "fault_family": "Timing",
+      "construct": "EdgeTrigger",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C22_6__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong: it uses 'if (n > 6)' so the siren runs 7 times (n from 0 to 6). It should stop after 6 bursts by checking 'n >= 6' before firing, or by adjusting the count logic.",
+      "fault_family": "Boundary",
+      "construct": "Counter",
+      "operator": "comparator"
+    },
+    {
+      "name": "C08_15__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "EdgeTrigger",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C07_32__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted and equality is mishandled: it sets the air purifier to high when CO₂ is below 900ppm instead of when it exceeds 900ppm, and it never triggers at exactly 900ppm. Also, with period=0 it only checks once instead of reacting when the level later exceeds 900ppm.",
+      "fault_family": "Direction",
+      "construct": "LevelWait",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C25_5__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop-after-3-times condition is not implemented: the if (n >= 3) block is empty and there is no break, so the script continues running every 15 minutes indefinitely instead of stopping after 3 checks. Also, n := 0 re-runs every cycle due to period-based re-execution semantics, so n never increments persistently and the count would not work even if the break were present.",
+      "fault_family": "Omission",
+      "construct": "Composite",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C05_2__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C25_4__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition uses temp > 26, but the command specifies 26 degrees or higher. It should be temp >= 26. All other aspects (30-minute period, 5 checks total, mode selection, and stop logic) are correct.",
+      "fault_family": "Boundary",
+      "construct": "Composite",
+      "operator": "comparator"
+    },
+    {
+      "name": "C11_8__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The program compares the absolute temperature change (it flips diff to t1 - t2 when t2 < t1), so it will announce even when the temperature has dropped by at least 2 degrees. It should only trigger when the temperature increased by at least 2 degrees (t2 - t1 >= 2).",
+      "fault_family": "Direction",
+      "construct": "DelaySeq",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C12_5__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The siren only runs for 5 seconds once, then never again. Because `phase := 0` is re-initialized every 60-second cycle, the program always goes into the `phase == 0` branch, and the assignment `phase = 1` does not persist across cycles. After the first smoke event, each subsequent 60-second cycle calls `wait until(smoke)` again; since smoke is already true, it passes immediately and runs a single 5-second siren, but the script then terminates that cycle. It does NOT implement a repeating 5-second siren every minute thereafter driven solely by the initial smoke detection; instead it depends on smoke staying true and still effectively behaves like a per-cycle level check, not a persistent \\",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C17_9__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command requires checking every hour whether ANY Sector 1 door lock is open, and if so, changing ALL Sector 1 lights to red. The program (1) calls doorLock_doorLockState() like a method without using its value, then (2) checks a single (#DoorLock #Sector1).doorLock_doorLockState attribute, which refers to one lock, not ‘any’ among multiple locks. It also sets only one (#Light #Sector1) instead of all lights in that sector. It should aggregate over all matching door locks (e.g., any(#DoorLock #Sector1)...) and all matching lights (e.g., all(#Light #Sector1)...).",
+      "fault_family": "Boundary",
+      "construct": "PeriodicCond",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C05_19__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script runs only once (period=0), but the command implies it should react whenever the CO2 level reaches 1000ppm or higher while the purifier is in sleep; with period=0 it won’t respond to future changes after startup. Also, it sets the purifier mode to \\",
+      "fault_family": "WrongAction",
+      "construct": "Stateless",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C20_3__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timer is 10× too long. With period=100ms, 30 seconds requires 300 ticks, but the code uses hold_ticks>=3000, which delays turning on the TV plug until about 300 seconds (5 minutes) of continuous presence instead of 30 seconds.",
+      "fault_family": "Timing",
+      "construct": "Sustain",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C11_8__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The condition is inverted. The script speaks when diff <= 2, but it should only speak when the temperature rose by at least 2 degrees (diff >= 2). (2) The code takes the absolute difference using if (diff < 0) { diff = t1 - t2 }, so it will also trigger when the temperature drops by at least 2 degrees, whereas the command only cares about a rise.",
+      "fault_family": "Direction",
+      "construct": "DelaySeq",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C20_1__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The comparison is reversed: it turns off the plug during the FIRST 300 ticks (~30s) of no motion rather than after at least 30s. With hold_ticks <= 300, the plug is turned off immediately when no motion starts and not specifically after 30 seconds; it should use hold_ticks >= 300 to enforce a 30s minimum duration.",
+      "fault_family": "Direction",
+      "construct": "Sustain",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C02_7__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C02_31__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script is empty and performs no actions, so it never closes any garage valves as requested.",
+      "fault_family": "Omission",
+      "construct": "Stateless",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C02_11__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script is empty and performs no device actions at all, so it never sounds any fire siren on the farm.",
+      "fault_family": "Omission",
+      "construct": "Stateless",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C07_27__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Uses all(...) ==| true so it requires every presence sensor on floor 1 to detect presence instead of any; also issues two consecutive brightness commands (100 then 137) which is an unintended extra action.",
+      "fault_family": "WrongAction",
+      "construct": "LevelWait",
+      "operator": "call_add"
+    },
+    {
+      "name": "C17_6__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Threshold logic is wrong. The command says: if fine dust >= 200 -> high speed; if fine dust <= 100 -> low speed. The program uses `if (dust <= 200)` for high, so it sets high for all values ≤200 (including ≤100), and the inner `else if (dust <= 100)` for low is unreachable. It also never specifies behavior for dust between 101 and 199 as requested (these should not trigger low, but should not incorrectly trigger high either). The hourly check timing is correct, but the conditions for high/low are mis-implemented.",
+      "fault_family": "Direction",
+      "construct": "PeriodicCond",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C07_19__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script only waits for the sound to exceed 40 dB and then does nothing; it never sends the message to the living room speaker. The required action (outputting the notification) is missing.",
+      "fault_family": "Omission",
+      "construct": "LevelWait",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C02_4__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C17_9__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command says: every hour, if ANY Sector 1 door lock is open, set ALL Sector 1 lights to red. The program instead reads from a single (#DoorLock #Sector1) instance and sets a single (#Light #Sector1) instance. It neither aggregates over all door locks (any(...)) nor broadcasts to all lights (all(...)), so multiple-lock and multiple-light scenarios are handled incorrectly.",
+      "fault_family": "Boundary",
+      "construct": "PeriodicCond",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C18_9__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The cron and time checks are wrong for the requested window. With cron=\\",
+      "fault_family": "none",
+      "construct": "Counter",
+      "operator": "none"
+    },
+    {
+      "name": "C09_10__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The initial mode is set to \\",
+      "fault_family": "WrongAction",
+      "construct": "DelaySeq",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C07_22__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "LevelWait",
+      "operator": "comparator"
+    },
+    {
+      "name": "C02_24__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C08_31__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "In addition to setting auto mode, the program also sets mode to \\",
+      "fault_family": "WrongAction",
+      "construct": "EdgeTrigger",
+      "operator": "call_add"
+    },
+    {
+      "name": "C17_8__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When the condition is met, the script sends two different mode commands to all dehumidifiers: \\",
+      "fault_family": "WrongAction",
+      "construct": "PeriodicCond",
+      "operator": "call_add"
+    },
+    {
+      "name": "C03_3__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C03_15__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The command describes a standing condition over time (whenever the sound level goes over 50, stop the speaker), but period=0 makes the script run only once. It will only check the sensor at startup and never again, so it misses later times when the sound level becomes >50.",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C14_4__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "Script has syntax/logic errors and stops further increments at max with break. The inner if lacks a closing brace before the else, so the else pairs with the motion check, not the brightness check. Also, when brightness first reaches or exceeds 100, the program breaks out of the entire periodic loop and will never respond to future motion events; the natural-language intent is to keep reacting to motion but clamp brightness at max (i.e., no further increases once at max), not to disable the automation permanently.",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C20_2__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Once the door has been open for 5 seconds, the script turns the fan plug on every 100ms as long as the door remains open. The intent is a one-time action after the door has stayed open for 5 seconds. It needs a one-shot guard or a break after switching on.",
+      "fault_family": "Omission",
+      "construct": "Sustain",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C08_11__wait_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script runs once immediately and waits 1 hour before turning off all lights, regardless of button 3 state. It never checks for or reacts to button 3 being pressed, and it also turns off all lights (not just conditioned on the press).",
+      "fault_family": "Omission",
+      "construct": "EdgeTrigger",
+      "operator": "wait_drop"
+    },
+    {
+      "name": "C09_14__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script locks the door locks and waits 1 minute but never triggers the emergency siren action; the required siren activation is missing.",
+      "fault_family": "Omission",
+      "construct": "DelaySeq",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C07_10__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "LevelWait",
+      "operator": "none"
+    },
+    {
+      "name": "C07_5__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The comparison is reversed. It waits until CO₂ is <= 1000ppm, but the command requires triggering when CO₂ reaches 1000ppm or higher (>= 1000).",
+      "fault_family": "Direction",
+      "construct": "LevelWait",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C02_6__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script is empty and never sets the air conditioner Sector1 target temperature to 18 degrees, so the requested action is not implemented at all.",
+      "fault_family": "Omission",
+      "construct": "Stateless",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C07_3__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "LevelWait",
+      "operator": "none"
+    },
+    {
+      "name": "C22_10__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "Counter",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C07_29__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The program sends two different siren mode commands when smoke is detected: first \\",
+      "fault_family": "WrongAction",
+      "construct": "LevelWait",
+      "operator": "call_add"
+    },
+    {
+      "name": "C12_13__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After the first trigger, the program does not sound the sirens for 3 seconds every minute. With period=60000 and the initial wait until, the first cycle that detects presence will run siren for 3 seconds then off, then end. In subsequent cycles phase==1 so the else branch runs immediately at the start of each 60s cycle, sounds siren for 30 seconds then off, i.e. 30s on every minute, not 3s. Also, because presence is required from all(#PresenceSensor #Floor1) rather than any, it may not trigger when only some presence sensors detect presence. The intent is to trigger when any presence sensor detects presence and then sound for 3 seconds every minute thereafter.",
+      "fault_family": "Timing",
+      "construct": "EdgeTrigger",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C20_15__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "hold_ticks is decremented instead of incremented, so it never reaches 450; the action will never fire. Also, even if the sign were fixed, the initialization to 0 means it would need to count up, not down, to detect 45 seconds.",
+      "fault_family": "WrongAction",
+      "construct": "Sustain",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C22_4__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is inverted. With n initialized to 0 and the check `if (n <= 6) { break }`, the script breaks on every cycle and never turns on the plug. It should run the action while n < 6 (or n <= 5) and break once n reaches 6, but currently it stops immediately and performs zero runs.",
+      "fault_family": "Direction",
+      "construct": "Counter",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C08_19__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C08_24__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C03_26__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The program runs only once (period=0), so it will not react if the living room illuminance later falls below 50 lux after the initial run. The intent requires ongoing monitoring and response over time, so period should be nonzero to keep checking the sensor.",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C16_8__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two brightness commands are issued in sequence at midnight: first 100%, then 137%. This results in lights ending at a brightness above 100%, which does not match the requested 100% brightness.",
+      "fault_family": "WrongAction",
+      "construct": "Stateless",
+      "operator": "call_add"
+    },
+    {
+      "name": "C05_20__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command describes a conditional event-style action ('if ... then ...'), which should trigger when the condition becomes true, but the script runs only once (period=0). If humidity reaches 85% and the door closes after this single execution, nothing will happen. It needs a recurring period or wait-until logic to respond whenever the condition first holds over time.",
+      "fault_family": "Boundary",
+      "construct": "Stateless",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C20_1__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted: the script counts time while motion is detected (motion == true) instead of while no motion is detected (motion == false). It therefore turns off the plug after 30 seconds of continuous motion, not 30 seconds without motion.",
+      "fault_family": "Direction",
+      "construct": "Sustain",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C07_23__wait_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script turns on all office humidifiers immediately once and has no trigger condition. It should wait for the office button to be pushed before acting, and respond to that event each time it occurs.",
+      "fault_family": "Omission",
+      "construct": "LevelWait",
+      "operator": "wait_drop"
+    },
+    {
+      "name": "C25_1__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition uses temp > 28 instead of temp >= 28. For exactly 28 degrees, it incorrectly sets the AC to auto instead of cool.",
+      "fault_family": "Boundary",
+      "construct": "Composite",
+      "operator": "comparator"
+    },
+    {
+      "name": "C13_7__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script alternates based on n correctly in structure, but in the even cycles it sets the temperature to 25 and then immediately to 42, so the effective result is 42 instead of 25. The command also specifies only 25 and 20 degrees, with no mention of 42, so there is an extra, incorrect action.",
+      "fault_family": "WrongAction",
+      "construct": "Counter",
+      "operator": "call_add"
+    },
+    {
+      "name": "C22_9__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never opens the garage door; it only increments a counter and breaks after 3 cycles. It’s missing the door-open action on each of the three runs.",
+      "fault_family": "Omission",
+      "construct": "Counter",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C25_4__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "In the else-branch it issues two mode changes: first to \\",
+      "fault_family": "WrongAction",
+      "construct": "Composite",
+      "operator": "call_add"
+    },
+    {
+      "name": "C14_2__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The brightness change direction is wrong and the amount is incorrect: the code adds 10 to the current brightness instead of subtracting 10, and clamps for values below 0 instead of above 0. It should decrease brightness by 10 each press, with a minimum of 0.",
+      "fault_family": "WrongAction",
+      "construct": "EdgeTrigger",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C13_1__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The persistent counter n is initialized to 0 only on the first cycle, so every hour n remains 0 (the := line is skipped and no later code updates it before use). As a result, the script always takes the else branch and always closes the door; it never alternates open/close each hour as intended.",
+      "fault_family": "Direction",
+      "construct": "Counter",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C25_3__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The else branch is empty, so when the temperature is below 30 the air conditioner is never set to auto as requested. It should call airConditioner_setAirConditionerMode(\\",
+      "fault_family": "Omission",
+      "construct": "Composite",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C07_20__wait_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The program speaks the announcement immediately once and does not monitor the dryer or its spin speed at all. It never checks for the condition 'spin speed drops to 5 or below' and does not tie the announcement to that trigger or timing.",
+      "fault_family": "Omission",
+      "construct": "LevelWait",
+      "operator": "wait_drop"
+    },
+    {
+      "name": "C25_4__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is off by one. With n initialized to 0 and the check `if (n > 5) { break }`, the script will run 6 times (for n = 0,1,2,3,4,5) instead of stopping after 5 checks. It should stop when n >= 5, not when n > 5.",
+      "fault_family": "Boundary",
+      "construct": "Composite",
+      "operator": "comparator"
+    },
+    {
+      "name": "C16_7__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The cron triggers correctly at 10 PM, and the presence condition is correct, but the action targets all lights globally (all(#Light)) instead of only the living room lights as requested.",
+      "fault_family": "Boundary",
+      "construct": "Stateless",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C12_8__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The first cycle blocks at wait until(spinSpeed == 0), so phase is never set to 1 and the script never reaches the else branch in later cycles. Because the period is 10 minutes, the wait should not be used; instead, the script must detect when spin speed becomes 0 within a single cycle and then have subsequent cycles (every 10 minutes) speak the message. As written, it never speaks at all.",
+      "fault_family": "Omission",
+      "construct": "EdgeTrigger",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C13_4__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The very first run sets the purifier to sleep mode regardless of its current state instead of toggling from its existing mode. The command requires toggling between sleep and high every 30 minutes, but this implementation imposes an initial value (sleep) rather than respecting and toggling from the current mode.",
+      "fault_family": "none",
+      "construct": "Counter",
+      "operator": "none"
+    },
+    {
+      "name": "C10_2__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C03_3__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted: it adds 4 minutes when the oven is NOT in grill mode (`!= \\",
+      "fault_family": "Direction",
+      "construct": "Stateless",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C08_7__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C20_2__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timer is too long. With period=100ms and threshold hold_ticks>=500, the door must stay open for 50 seconds, not the requested 5 seconds. For 5 seconds the threshold should be 50 ticks.",
+      "fault_family": "Timing",
+      "construct": "Sustain",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C18_4__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The siren is kept on for 50 seconds instead of 5 seconds. Also, the first 10‑minute interval delay is missing: the program starts immediately rather than after 10 minutes, and since the period is 600000ms it will only re-run exactly every 10 minutes from start, not necessarily aligning with the intended schedule 'from now every 10 minutes', but the major concrete error is the 50s vs 5s duration.",
+      "fault_family": "Timing",
+      "construct": "Counter",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C18_9__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Runs hourly starting 6 PM but only *before* 8 PM due to `if (clock.time >= 2000) break`. At 8 PM itself, the script breaks without acting, so the 8 PM execution is missing. Also, the condition is inverted: it turns lights on when presence is false, not when someone is detected (true).",
+      "fault_family": "Direction",
+      "construct": "Counter",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C22_3__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Counter",
+      "operator": "none"
+    },
+    {
+      "name": "C01_13__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C12_13__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "1) Wrong trigger condition: the command says when ANY presence sensor on the 1st floor detects presence, but the code uses all(#PresenceSensor #Floor1)...==| true, requiring ALL such sensors to report presence. 2) Extra action: on the first trigger it sets siren mode to both \\",
+      "fault_family": "WrongAction",
+      "construct": "EdgeTrigger",
+      "operator": "call_add"
+    },
+    {
+      "name": "C17_11__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted. The script speaks when the charger is NOT fully charged and stays silent when it is fully charged, and the edge detector is on the transition away from fully charged instead of when it becomes fully charged.",
+      "fault_family": "Direction",
+      "construct": "PeriodicCond",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C25_1__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never sets the air conditioner to cool when the temperature is >= 28; the if-branch for temp >= 28 is empty. It also uses the counter incorrectly: n is initialized to 0 every cycle because := is re-executed each run instead of persisting, so the break condition n >= 6 is never reached and the script never stops after 6 checks.",
+      "fault_family": "Omission",
+      "construct": "Composite",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C11_7__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command says to turn on the dehumidifier only if humidity rose by at least 15. The program computes the absolute difference and uses `<= 15` as the condition, so it turns on the plug when the change is 15 or less (including decreases) instead of when the increase is >= 15, and it also treats decreases as rises.",
+      "fault_family": "Direction",
+      "construct": "DelaySeq",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C20_2__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted: it counts time while the front door is NOT open instead of while it is open. Also, the timer resets when the door opens rather than when it closes. It should accumulate 5 seconds of the door being open, then turn on the fan. Currently it waits 5 seconds of the door being closed.",
+      "fault_family": "Direction",
+      "construct": "Sustain",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C25_3__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong: it checks `if (n >= 100)` instead of `>= 10`, so it runs 100 times instead of 10.",
+      "fault_family": "Timing",
+      "construct": "Composite",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C20_2__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain condition is implemented incorrectly: the plug is turned on while hold_ticks <= 50, i.e., at or before 5 seconds, instead of only after the door has stayed open for at least 5 seconds. Also, the break stops the script entirely after the first activation, preventing future triggers if the door opens again later.",
+      "fault_family": "Direction",
+      "construct": "Sustain",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C12_9__wait_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script captures an image every 10 seconds starting immediately when the program begins, regardless of whether any motion is detected. It also has no motion sensor condition at all. The command requires triggering on motion and then capturing every 10 seconds thereafter; here there is no trigger and the captures are unconditional periodic actions.",
+      "fault_family": "Omission",
+      "construct": "EdgeTrigger",
+      "operator": "wait_drop"
+    },
+    {
+      "name": "C09_15__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never turns on the kitchen light at all, and it also delays before starting the dehumidifier instead of turning the light on immediately and the dehumidifier 10 seconds later.",
+      "fault_family": "Omission",
+      "construct": "DelaySeq",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C08_28__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "EdgeTrigger",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C10_9__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The trigger uses all(#TemperatureSensor #DataCenter).temperatureSensor_temperature >=| 30, which waits until EVERY data center temperature sensor is at least 30°C. The command requires triggering when ANY sensor reaches 30°C or higher. (2) The delay is 10 MIN, but the requirement is to act after 1 minute.",
+      "fault_family": "Timing",
+      "construct": "EdgeTrigger",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C07_6__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script only waits for smoke detection and never issues an action to sound the fire alarm siren; the required siren/alarm command is missing.",
+      "fault_family": "Omission",
+      "construct": "LevelWait",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C15_18__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C09_7__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never starts the siren in emergency mode at all; it only waits 5 seconds and then sets the siren mode to \\",
+      "fault_family": "Omission",
+      "construct": "DelaySeq",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C07_31__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The intent is a standing condition: whenever the temperature exceeds 35°, the AC should be set accordingly. That requires continuous monitoring. With period=0 the script runs only once and does not react to future temperature changes, so it fails to respond if the temperature crosses 35° after startup.",
+      "fault_family": "Boundary",
+      "construct": "LevelWait",
+      "operator": "comparator"
+    },
+    {
+      "name": "C03_19__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C08_20__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C17_7__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "PeriodicCond",
+      "operator": "none"
+    },
+    {
+      "name": "C22_6__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The counter is updated in the wrong direction. n starts at 0, the break condition is n >= 6, but each cycle does n = n - 1, so n never reaches 6 and the script never stops. It should increment (n = n + 1) to stop after 6 bursts.",
+      "fault_family": "WrongAction",
+      "construct": "Counter",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C25_2__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is off by one. With n initialized to 0 and the guard `if (n > 4) { break }`, the script will execute the temperature check and AC mode setting 5 times (for n = 0,1,2,3,4) before breaking when n becomes 5. It should stop after 4 times, so the condition should be `n >= 4` (or initialization/logic adjusted) to ensure only 4 executions.",
+      "fault_family": "Boundary",
+      "construct": "Composite",
+      "operator": "comparator"
+    },
+    {
+      "name": "C18_4__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script runs every 10 minutes, but it does not start and end based on the user’s explicit time window relative to “now” and 3 PM. It simply stops once clock.time >= 1500, which may be before or after the desired final run depending on when the script starts. It also issues two different siren mode commands in succession (\\",
+      "fault_family": "WrongAction",
+      "construct": "Counter",
+      "operator": "call_add"
+    },
+    {
+      "name": "C07_2__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script only waits for the presence sensor to detect someone but never issues any action to turn on the TV; the required TV-on command is missing.",
+      "fault_family": "Omission",
+      "construct": "LevelWait",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C22_7__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Counter",
+      "operator": "none"
+    },
+    {
+      "name": "C25_5__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The mode string for the else-case is incorrect: it uses \\",
+      "fault_family": "WrongAction",
+      "construct": "Composite",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C05_4__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After correctly setting the target temperature to 24, the program immediately overwrites it with 41.0. The final temperature should remain at 24 degrees only; there is an extra incorrect action setting it to 41.",
+      "fault_family": "WrongAction",
+      "construct": "Stateless",
+      "operator": "call_add"
+    },
+    {
+      "name": "C05_14__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C05_12__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C02_27__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C20_15__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timing is correct (45s = 450 ticks at 100ms), but once the door has been open for 45s the light will be switched on every 100ms as long as the door remains open. The intent is a one-time action after the door has stayed open for 45 seconds; the code needs a break or a one-shot guard so it doesn’t re-issue switch_on continuously.",
+      "fault_family": "Omission",
+      "construct": "Sustain",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C25_1__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is off by one. With n initialized to 0, the script checks `if (n > 6)` and only breaks when n is 7, so it runs 7 times instead of the requested 6. The condition should be `n >= 6` to stop after 6 executions.",
+      "fault_family": "Boundary",
+      "construct": "Composite",
+      "operator": "comparator"
+    },
+    {
+      "name": "C20_1__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timer is too long: with period=100ms and threshold 3000, it waits 300 seconds (5 minutes) of no motion instead of the requested 30 seconds. Threshold should be 300, not 3000.",
+      "fault_family": "Timing",
+      "construct": "Sustain",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C09_3__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The delay is 20 hours instead of the requested 2 hours, so sleep mode is activated far too late.",
+      "fault_family": "Timing",
+      "construct": "DelaySeq",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C08_28__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "EdgeTrigger",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C17_6__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The high-speed mode string is incorrect. The command requires setting the air purifier to high speed, but the program calls airPurifier_setAirPurifierMode(\\",
+      "fault_family": "WrongAction",
+      "construct": "PeriodicCond",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C07_25__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "LevelWait",
+      "operator": "none"
+    },
+    {
+      "name": "C02_28__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C03_32__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The command describes a continuous condition over time (whenever temp ≥ 26C, AC plug on; otherwise off). With period=0 the script runs only once and never reacts to later temperature changes, so it fails to maintain the correct state over time. It needs a nonzero polling period or a wait/loop to track changes.",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C08_22__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C07_28__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted: it captures an image when motion is NOT detected (== false), instead of when motion IS detected. Also, with period=0 it only checks once at startup instead of reacting whenever motion is detected over time; it should use a periodic poll with edge or wait-until behavior.",
+      "fault_family": "Direction",
+      "construct": "LevelWait",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C07_11__wait_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script unconditionally starts the dehumidifier in drying mode once and does not depend on humidity exceeding 80%, nor does it wait for or monitor that condition over time.",
+      "fault_family": "Omission",
+      "construct": "LevelWait",
+      "operator": "wait_drop"
+    },
+    {
+      "name": "C18_9__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Runs only at 6 PM due to cron set to 18:00; it does not execute at 7 PM. Also, the time check uses clock.time > 2000, which stops the script after 20:00 regardless of the start time, but combined with the cron this yields only one evaluation at 18:00 instead of every hour from 18:00 to 20:00.",
+      "fault_family": "Boundary",
+      "construct": "Counter",
+      "operator": "comparator"
+    },
+    {
+      "name": "C09_13__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script turns on all lab dehumidifiers, but never issues a command to turn them off after 4 hours; it only waits 4 hours with no follow-up action.",
+      "fault_family": "Omission",
+      "construct": "DelaySeq",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C12_5__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Multiple issues: (1) The siren is first kept on for 50 seconds instead of 5 seconds, violating the requirement. (2) The script has period=60000 but uses long waits and delays, so a single cycle can run longer than 60 seconds; this prevents the intended once-per-minute repetition from aligning properly with the period. (3) The `phase := 0` line is re-executed every cycle because `:=` is a declaration, but it appears outside any guard only at top level; however, the `wait until` in the phase==0 branch blocks the cycle until smoke is detected, so the program never advances to phase 1 across cycles in a well-defined repeating way. Overall, the behavior does not implement a 5-second siren every minute after smoke is detected.",
+      "fault_family": "Timing",
+      "construct": "EdgeTrigger",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C20_15__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timer is off by a factor of 10. With period=100ms, 45 seconds corresponds to 450 ticks, but the code uses hold_ticks >= 4500, which requires about 450 seconds (7.5 minutes) of the door being open before turning on the light.",
+      "fault_family": "Timing",
+      "construct": "Sustain",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C07_22__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After humidity exceeds 70%, the program sets the dehumidifier mode twice: once to \\",
+      "fault_family": "WrongAction",
+      "construct": "LevelWait",
+      "operator": "call_add"
+    },
+    {
+      "name": "C07_25__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger condition uses > 5000, but the requirement is 5000 ppm or above, so it should fire when carbon dioxide >= 5000. As written, it fails to trigger at exactly 5000 ppm.",
+      "fault_family": "Boundary",
+      "construct": "LevelWait",
+      "operator": "comparator"
+    },
+    {
+      "name": "C22_3__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The counter stop condition is wrong: it uses n >= 30 instead of n >= 3, so the announcement will be made 30 times instead of 3 times.",
+      "fault_family": "Timing",
+      "construct": "Counter",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C11_7__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The program compares the absolute humidity change (it flips diff when h2 < h1), so it will also turn on the plug when humidity drops by at least 15, not only when it has risen by at least 15 as required.",
+      "fault_family": "Direction",
+      "construct": "DelaySeq",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C09_16__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The delay duration is incorrect: the program turns the air purifier off after 20 hours instead of the requested 2 hours.",
+      "fault_family": "Timing",
+      "construct": "DelaySeq",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C12_15__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "With period=10000 the script restarts every 10s but `phase := 0` is reinitialized each cycle, so the wait-until block runs again and `phase` never persists as 1. The speaker speaks only once, 10s after the first poll where smoke is already true (due to the wait), instead of repeating every 10 seconds thereafter. Needs persistent state and a periodic action after first detection.",
+      "fault_family": "Omission",
+      "construct": "EdgeTrigger",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C05_8__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C20_10__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted. The script counts time while the door is NOT open (`doorState != \\",
+      "fault_family": "Direction",
+      "construct": "Sustain",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C25_1__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition and actions are inverted. The command says: if temperature is 28 or higher, set mode to cool, otherwise auto. The program uses `if (temp <= 28)` then sets mode to cool, else auto. It should instead check `temp >= 28` for cool and auto otherwise.",
+      "fault_family": "Direction",
+      "construct": "Composite",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C20_13__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timer logic is broken: hold_ticks is decremented (hold_ticks = hold_ticks - 1) instead of incremented, so it will never reach the threshold 200 and the fan will never turn off. Also, the tags do not scope specifically to the bathroom devices, so it may not be limited to the bathroom motion sensor and bathroom fan.",
+      "fault_family": "WrongAction",
+      "construct": "Sustain",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C22_2__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition uses n >= 40 instead of >= 4, so the light is turned on 40 times (over 20 minutes) instead of 4 times (over 2 minutes).",
+      "fault_family": "Timing",
+      "construct": "Counter",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C19_8__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When humidity is >= 75%, the script does nothing instead of turning on the bathroom ventilation fan plug; the ON action is missing from that branch.",
+      "fault_family": "Omission",
+      "construct": "PeriodicCond",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C03_32__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script only runs once (period=0) and has no else action, so it never turns the plug off when the temperature is below 26°C or later drops below 26°C. It should run periodically and include an else branch that switches the plug off.",
+      "fault_family": "Omission",
+      "construct": "Stateless",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C05_17__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition for presence is inverted: the code triggers when presenceSensor_presence == true (someone is home), but the command requires actions only when no one is home. It should check for absence instead.",
+      "fault_family": "Direction",
+      "construct": "Stateless",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C22_4__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong. The variable n is compared to 60 instead of 6, so the plug will be turned on 60 times (over 120 minutes) instead of stopping after 6 runs (12 minutes).",
+      "fault_family": "Timing",
+      "construct": "Counter",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C11_1__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Direction",
+      "construct": "DelaySeq",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C19_2__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The humidity thresholds and branches are implemented incorrectly. The command says: if humidity is at least 70% (>=70) turn ON; otherwise, if it is 50% or below (<=50) turn OFF. The program instead turns ON when humidity is <=70 (so it wrongly turns on from 0–70 and fails to turn on above 70), and the OFF branch is an else with condition <=50, which is unreachable because any value <=50 also satisfies <=70 and already triggers the ON branch. As a result, OFF never runs and ON is triggered over the wrong range.",
+      "fault_family": "Direction",
+      "construct": "PeriodicCond",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C08_11__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command specifies turning off all lights 1 hour after button 3 is pressed, but the program waits 10 hours (delay(10 HOUR)) before turning the lights off.",
+      "fault_family": "Timing",
+      "construct": "EdgeTrigger",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C22_9__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The loop condition is inverted. With n initialized to 0, the script immediately hits `if (n <= 3) { break }` and exits every cycle, so the door never opens. It should open the door once per 3-minute cycle and stop after 3 openings, e.g. by breaking when n >= 3.",
+      "fault_family": "Direction",
+      "construct": "Counter",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C07_12__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger uses a strict greater-than comparison (> 35) instead of firing when the very fine dust level is 35 or higher (>= 35), so it fails to act when the level is exactly 35.",
+      "fault_family": "Boundary",
+      "construct": "LevelWait",
+      "operator": "comparator"
+    },
+    {
+      "name": "C01_5__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C19_4__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition logic is inverted and incomplete. The script turns ON the heater whenever temperature >= 18 instead of when temperature <= 18, and the OFF logic (>= 22) is placed in the else-branch that only runs when temperature < 18, so it can never execute. It also fails to turn OFF the heater for temperatures between 18 and 21.9°C, where the command specifies OFF (since they are not <= 18 and not >= 22).",
+      "fault_family": "Direction",
+      "construct": "PeriodicCond",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C09_16__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "An extra unintended action is present: the program sets the air purifier mode to \\",
+      "fault_family": "WrongAction",
+      "construct": "DelaySeq",
+      "operator": "call_add"
+    },
+    {
+      "name": "C22_8__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Counter",
+      "operator": "none"
+    },
+    {
+      "name": "C22_5__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Counter",
+      "operator": "none"
+    },
+    {
+      "name": "C03_28__clean",
+      "gt": "correct",
+      "judge_says_wrong": true,
+      "problem": "The intent is continuous monitoring and reacting whenever the sound reaches 60dB or higher, which requires periodic re-execution. With period=0 the script runs only once at startup, so it will miss later times when the baby gets loud. It should use a nonzero period to poll the sound sensor over time, or a wait until(...) construct.",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C22_1__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong: it checks n >= 100 instead of n >= 10, so it will take 100 photos (over ~500 minutes) instead of stopping after 10 photos as requested.",
+      "fault_family": "Timing",
+      "construct": "Counter",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C11_5__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The absolute temperature change is computed incorrectly. For cases where the second reading is higher than the first (t2 > t1), diff stays positive and is not converted to an absolute value. For example, if t1=20 and t2=27, diff becomes 7, so the fan turns on, even though the change is 7 degrees and should qualify; but if t1=20 and t2=23, diff becomes 3 and the fan should stay off. However, due to the faulty logic, in some ranges it miscalculates the magnitude. Correct absolute difference should be computed as: diff = t2 - t1; if (diff < 0) { diff = -diff }.",
+      "fault_family": "Direction",
+      "construct": "DelaySeq",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C01_4__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C17_6__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The low-speed condition is wrong. The command says: if fine dust is 100 or LOWER, set low speed. The script uses `if (dust >= 100)` in the else branch, which (given the prior `dust >= 200` check) applies low speed for 100–199 instead of for ≤100, and does nothing when dust < 100.",
+      "fault_family": "Direction",
+      "construct": "PeriodicCond",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C25_4__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The else branch is empty, so when the temperature is below 26 the air conditioner is never set to auto as requested; it only switches to cool for temp >= 26 and does nothing otherwise.",
+      "fault_family": "Omission",
+      "construct": "Composite",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C14_5__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The edge-trigger guard is inverted: the script increases brightness only when triggered==true, but triggered is initialized to false and only set true inside that same branch. As written, the action never runs on any button press. The condition should check triggered==false before acting and then set it true, so the brightness increases once per press.",
+      "fault_family": "Direction",
+      "construct": "EdgeTrigger",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C22_10__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Counter",
+      "operator": "none"
+    },
+    {
+      "name": "C07_8__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger is correct (waits until temperature >= 35), but the action sets the air conditioner target temperature to 47 instead of 30 degrees as requested.",
+      "fault_family": "Boundary",
+      "construct": "LevelWait",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C25_1__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "In the else branch, the program performs an extra action not requested: it sets the air conditioner mode to both \\",
+      "fault_family": "WrongAction",
+      "construct": "Composite",
+      "operator": "call_add"
+    },
+    {
+      "name": "C07_25__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After the CO₂ level reaches 5000 ppm, the script sets all sirens to two different modes in sequence: first \\",
+      "fault_family": "WrongAction",
+      "construct": "LevelWait",
+      "operator": "call_add"
+    },
+    {
+      "name": "C07_25__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted and boundary is wrong: it waits until CO2 is <= 5000 ppm, but should trigger when it becomes >= 5000 ppm. Also, with period=0 it only checks once instead of reacting when the level later rises to the threshold.",
+      "fault_family": "Direction",
+      "construct": "LevelWait",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C07_6__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After smoke is detected, the script sets the siren mode twice in succession: first to \\",
+      "fault_family": "WrongAction",
+      "construct": "LevelWait",
+      "operator": "call_add"
+    },
+    {
+      "name": "C25_1__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is wrong: it checks `if (n >= 60)` instead of `>= 6`, so it runs up to 60 times (5 hours) instead of stopping after 6 checks (30 minutes).",
+      "fault_family": "Timing",
+      "construct": "Composite",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C20_13__break_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger uses #MotionSensor #Motion instead of a bathroom-specific sensor tag, so it may not be limited to the bathroom. Also, once hold_ticks reaches 200, the fan is turned off on every subsequent cycle while no motion continues, instead of once when the 20 seconds threshold is first reached (missing a one-shot guard or break).",
+      "fault_family": "Omission",
+      "construct": "Sustain",
+      "operator": "break_drop"
+    },
+    {
+      "name": "C25_5__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The temperature condition and resulting modes are inverted. The command says: if temperature is below 18, set mode to heat, otherwise auto. The program uses `if (temp > 18) { ... heat ... } else { ... auto ... }`, so at exactly 18 degrees it sets auto instead of heat, and for temperatures above 18 it incorrectly sets heat instead of auto.",
+      "fault_family": "Direction",
+      "construct": "Composite",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C17_9__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script checks only a single #DoorLock #Sector1 device instead of all Sector 1 locks, so it does not correctly implement the 'if any one is open' condition across multiple locks. Also, the standalone line calling doorLock_doorLockState() has no effect; it neither stores nor uses the result, so it doesn’t contribute to the intended check.",
+      "fault_family": "Boundary",
+      "construct": "PeriodicCond",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C16_8__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C07_19__wait_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "There is no trigger based on the baby room sound level; the script just speaks once immediately and never checks whether sound exceeds 40 dB in the baby room.",
+      "fault_family": "Omission",
+      "construct": "LevelWait",
+      "operator": "wait_drop"
+    },
+    {
+      "name": "C09_15__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "WrongAction",
+      "construct": "DelaySeq",
+      "operator": "call_add"
+    },
+    {
+      "name": "C03_6__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two siren actions are issued instead of one: the program sets the siren mode to \\",
+      "fault_family": "WrongAction",
+      "construct": "Stateless",
+      "operator": "call_add"
+    },
+    {
+      "name": "C18_3__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script stops at 24:00 based on clock.time>=2400, but it also runs immediately at 22:00 due to cron and every 10 minutes thereafter. However, with period=600000 and no clock-based gating for the start time, it will also continue executing every 10 minutes on subsequent days at and after 22:00 once started, not just between 22:00 and 24:00 of that day. Additionally, it triggers two siren actions (modes \\",
+      "fault_family": "WrongAction",
+      "construct": "Counter",
+      "operator": "call_add"
+    },
+    {
+      "name": "C08_10__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script runs only once (period=0), so it will never respond to a button press that happens after startup; it should run periodically or be event-based. Also, it issues two immediate brightness commands (100 then 137) when turning on the lights, but the intent is just to turn them on, not to set two different initial brightness levels.",
+      "fault_family": "WrongAction",
+      "construct": "EdgeTrigger",
+      "operator": "call_add"
+    },
+    {
+      "name": "C09_15__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "After turning on the dehumidifier in dehumidifying mode, the script immediately issues a second command to set it to a different mode (\\",
+      "fault_family": "WrongAction",
+      "construct": "DelaySeq",
+      "operator": "call_add"
+    },
+    {
+      "name": "C12_13__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Multiple issues: (1) The presence condition uses all(#PresenceSensor #Floor1) ==| true, which requires all sensors to detect presence, while the command asks to trigger when any presence sensor detects presence. (2) After first trigger, the script is intended to sound sirens for 3 seconds every minute; instead, during phase 0 it waits for presence, sets phase=1, and then sounds the sirens for 30 seconds (delay(30 SEC)) once before turning them off. (3) Because period=60000 and phase is persistent, the script re-enters only the else-branch on later cycles: each minute it sounds sirens for 3 seconds then turns them off, which is correct for the recurring part but still preceded by a single 30-second activation that the user did not request.",
+      "fault_family": "Timing",
+      "construct": "EdgeTrigger",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C09_10__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The final mode is set to \\",
+      "fault_family": "WrongAction",
+      "construct": "DelaySeq",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C05_16__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script runs only once (period=0), so it will never respond if person and smoke are detected after startup. It must be periodically re-evaluated or use wait until to react when the condition becomes true at any time.",
+      "fault_family": "WrongAction",
+      "construct": "Stateless",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C20_13__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The sustain duration is wrong. With period=100ms, 20 seconds corresponds to 200 ticks, but the script uses hold_ticks>=2000, i.e., about 200 seconds. (2) The device selection/tags are incorrect: the trigger checks (#MotionSensor #Motion) instead of a bathroom motion sensor, and the action targets (#Plug #Switch #Fan) instead of specifically the bathroom fan plug, so it may act on the wrong devices and is not scoped to the bathroom as requested.",
+      "fault_family": "Timing",
+      "construct": "Sustain",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C07_27__arg_numeric",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition uses all(... ) ==| true, which requires every floor-1 presence sensor to detect presence. The command says if any presence sensor on floor 1 detects presence, so it should trigger when at least one sensor is true, not all of them.",
+      "fault_family": "Boundary",
+      "construct": "LevelWait",
+      "operator": "arg_numeric"
+    },
+    {
+      "name": "C25_4__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop-after-5-times logic is inverted and blocks all actions. With n := 0 (only at first run), the code immediately checks if (n <= 5), which is true, so it executes break and skips the temperature check and AC mode setting every cycle. It should run while n < 5 and only break when n >= 5; as written, it never performs the requested checks or mode changes.",
+      "fault_family": "Direction",
+      "construct": "Composite",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C25_3__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is inverted and the break is placed inside it, so the script breaks immediately on every cycle and never reads the temperature or controls the AC. Also, the condition uses n <= 10 instead of stopping after 10 runs; it should stop when n >= 10. As written, no checks/actions ever occur.",
+      "fault_family": "Direction",
+      "construct": "Composite",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C18_9__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Ends the scenario at 8 PM rather than including the 8 PM run (should act at 18:00, 19:00, and 20:00, but the break at clock.time>=2000 prevents the 20:00 execution). Also, it issues two brightness commands (100 then 137) instead of a single turn-on action, causing an extra, redundant brightness change.",
+      "fault_family": "WrongAction",
+      "construct": "Counter",
+      "operator": "call_add"
+    },
+    {
+      "name": "C03_24__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C14_5__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script never sends any action to change the light brightness; it only computes tmp but doesn’t call a light_moveToBrightness or equivalent method, so the bedroom light brightness is never actually increased.",
+      "fault_family": "Omission",
+      "construct": "EdgeTrigger",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C22_10__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition uses 'n > 8' instead of 'n >= 8', so it runs 9 times (n = 0..8) instead of the requested 8 runs.",
+      "fault_family": "Boundary",
+      "construct": "Counter",
+      "operator": "comparator"
+    },
+    {
+      "name": "C25_5__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The stop condition is off by one: with n initialized to 0 and the check `if (n > 3) { break }`, the script runs 4 times (for n = 0,1,2,3) instead of stopping after 3 times. It should stop when n >= 3.",
+      "fault_family": "Boundary",
+      "construct": "Composite",
+      "operator": "comparator"
+    },
+    {
+      "name": "C17_6__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When dust <= 100, the script issues two back-to-back mode changes: \\",
+      "fault_family": "WrongAction",
+      "construct": "PeriodicCond",
+      "operator": "call_add"
+    },
+    {
+      "name": "C25_3__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition uses temp > 30 instead of temp >= 30. When the temperature is exactly 30 degrees, it should set mode to cool but the program sets it to auto instead.",
+      "fault_family": "Boundary",
+      "construct": "Composite",
+      "operator": "comparator"
+    },
+    {
+      "name": "C06_2__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The logic for the high-illuminance case excludes exactly 500 lux. The command says: at least 500 lux -> 30%, but the program uses `lux > 500`, so at exactly 500 lux it incorrectly sets brightness to 60% instead of 30%. Additionally, period=0 means the rule runs only once, but the command describes a continuous conditional behavior that should re-evaluate as illuminance changes over time.",
+      "fault_family": "Boundary",
+      "construct": "Stateless",
+      "operator": "comparator"
+    },
+    {
+      "name": "C05_21__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition on the door lock is wrong and the trigger is level-based instead of edge-based. The command requires unlocking only when the door lock is locked, but the program checks doorLockState != \\",
+      "fault_family": "Direction",
+      "construct": "Stateless",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C11_1__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The command says to recheck the temperature after 10 minutes, but the script waits 100 minutes (delay(100 MIN)) before the second reading. The rest (difference calculation and announcement condition) is correct, but the delay duration is wrong by a factor of 10.",
+      "fault_family": "Timing",
+      "construct": "DelaySeq",
+      "operator": "tick_scale"
+    },
+    {
+      "name": "C25_2__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition uses temp <= 20 instead of strictly below 20. At exactly 20 degrees, the command requires auto mode, but the program sets heat; this misimplements the threshold.",
+      "fault_family": "Boundary",
+      "construct": "Composite",
+      "operator": "comparator"
+    },
+    {
+      "name": "C08_16__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C07_11__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "LevelWait",
+      "operator": "comparator"
+    },
+    {
+      "name": "C22_6__enum_flip",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The siren mode value is \\",
+      "fault_family": "WrongAction",
+      "construct": "Counter",
+      "operator": "enum_flip"
+    },
+    {
+      "name": "C07_20__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script waits for the dryer spin speed to drop to 5 or below but never performs the required action of announcing through the living room speaker that the laundry is done.",
+      "fault_family": "Omission",
+      "construct": "LevelWait",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C07_19__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "Boundary",
+      "construct": "LevelWait",
+      "operator": "comparator"
+    },
+    {
+      "name": "C11_1__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted: it speaks when the absolute temperature change is <= 1 degree, but it should only speak when the change is >= 1 degree. The comparison operator in the final if should be >=, not <=.",
+      "fault_family": "Direction",
+      "construct": "DelaySeq",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C08_3__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C25_4__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Two issues: (1) The temperature comparison is reversed. The command says: if temperature is 26 or higher, set mode to cool; otherwise auto. The code uses `if (temp <= 26)` to set cool and `else` to set auto, so it cools at or below 26 instead of at or above 26. (2) The stop condition and increment are misordered: `n := 0` then `if (n >= 5) break` then actions then `n = n + 1`. This runs the actions on cycles when n = 0,1,2,3,4 and stops starting at n = 5, which is correct for “stop after 5 times”. But since `:=` runs only on the first cycle, this is fine; there is no reset. The only real logic error is the comparator direction; stopping logic matches the requirement.",
+      "fault_family": "Direction",
+      "construct": "Composite",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C11_1__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The temperature difference is computed incorrectly. The script uses `diff = t2 + t1` and only corrects it when `diff < 0`, which never happens for normal positive temperatures, so `diff` becomes the sum, not the absolute difference. It should use `diff = t2 - t1` (or absolute difference) before comparing to 1 degree.",
+      "fault_family": "WrongAction",
+      "construct": "DelaySeq",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C18_6__cmp_direction",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "Motion is not monitored continuously between 22:00 and 23:00. The script starts at 22:00 and immediately breaks until the time passes 23:00, then checks for lack of motion only once after 23:00. It should detect that there was no motion at any time during the whole 22:00–23:00 interval. Additionally, the condition is level-based without a one-shot guard, so if run correctly within the window, it would repeatedly re-lock every 100ms while no motion is detected.",
+      "fault_family": "Direction",
+      "construct": "Counter",
+      "operator": "cmp_direction"
+    },
+    {
+      "name": "C17_5__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When humidity is 20 or lower, the program only turns the humidifier on but does not set it to auto mode as requested.",
+      "fault_family": "Omission",
+      "construct": "PeriodicCond",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C19_8__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The else-branch for humidity <= 55% is empty, so the plug is never turned off. The program only turns the fan plug on when humidity >= 75%, but does nothing (including no switch_off) when humidity is 55% or below.",
+      "fault_family": "Omission",
+      "construct": "PeriodicCond",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C08_14__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition on the motion sensor is inverted. The command requires turning on the bedroom light when motion IS detected, but the program checks motionSensor_motion == false (no motion). It also omits the bedroom-specific tags on the motion sensor and light, so it may act on the wrong devices.",
+      "fault_family": "Direction",
+      "construct": "EdgeTrigger",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C25_5__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When temperature is below 18, the script does nothing instead of setting the air conditioner to heat. The heating action is missing in the temp < 18 branch.",
+      "fault_family": "Omission",
+      "construct": "Composite",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C03_16__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition is inverted: it switches to auto when the mode is NOT cool, instead of only when the air conditioner is in cool mode.",
+      "fault_family": "Direction",
+      "construct": "Stateless",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C05_9__comparator",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The condition for fine dust is wrong: it uses > 150 instead of >= 150, so it fails to act when the level is exactly 150. Additionally, with period=0 the script only runs once and will not respond if the dust level or door state changes later; the intent implies continuous monitoring.",
+      "fault_family": "Boundary",
+      "construct": "Stateless",
+      "operator": "comparator"
+    },
+    {
+      "name": "C08_39__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "EdgeTrigger",
+      "operator": "none"
+    },
+    {
+      "name": "C20_3__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timer logic is inverted: hold_ticks is initialized to 0 then decremented (hold_ticks = hold_ticks - 1) when presence is true, so it never counts up to 300 and the 30-second condition can never be met. It should increment (e.g., hold_ticks = hold_ticks + 1) to reach the 300-tick threshold.",
+      "fault_family": "WrongAction",
+      "construct": "Sustain",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C07_7__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The wait condition is inverted: it waits until the button state is NOT \\",
+      "fault_family": "Direction",
+      "construct": "LevelWait",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C19_4__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "PeriodicCond",
+      "operator": "none"
+    },
+    {
+      "name": "C02_9__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Stateless",
+      "operator": "none"
+    },
+    {
+      "name": "C13_3__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The script only ever closes the window (downOrClose) and never opens it. Also, in even-numbered cycles it does nothing instead of opening. To correctly repeat opening and closing every 10 minutes, it must alternate between an open/up action and a close/down action on successive cycles.",
+      "fault_family": "Omission",
+      "construct": "Counter",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C08_13__guard_polarity",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The trigger condition is inverted. The script waits until button1 is NOT \\",
+      "fault_family": "Direction",
+      "construct": "EdgeTrigger",
+      "operator": "guard_polarity"
+    },
+    {
+      "name": "C20_2__arith_op",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The sustain timer logic is wrong: hold_ticks is decremented instead of incremented, so the threshold hold_ticks >= 50 is never reached and the fan never turns on. Also, with period=100ms, 5 seconds would require 50 increments from 0 upward, not downward from 0.",
+      "fault_family": "WrongAction",
+      "construct": "Sustain",
+      "operator": "arith_op"
+    },
+    {
+      "name": "C17_4__call_add",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When temperature is >= 30, the script first sets the target temperature to 25 but then immediately sets it again to 42, so the final effect is 42 degrees instead of the requested 25. The low-temperature branch (<23 -> 26 degrees) and 30-minute period are correct; the extra 42-degree command is incorrect.",
+      "fault_family": "WrongAction",
+      "construct": "PeriodicCond",
+      "operator": "call_add"
+    },
+    {
+      "name": "C20_1__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When motion has been absent for 30 seconds, the script only breaks the cycle and performs no action; it never turns off the living room power strip plug as requested.",
+      "fault_family": "Omission",
+      "construct": "Sustain",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C25_3__clean",
+      "gt": "correct",
+      "judge_says_wrong": false,
+      "problem": "none",
+      "fault_family": "none",
+      "construct": "Composite",
+      "operator": "none"
+    },
+    {
+      "name": "C19_7__call_drop",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "When the temperature is at least 32C, the program does nothing; it should turn on the kitchen ventilation fan plug. Only the <=28C case is implemented (turning the plug off), so the >=32C ON action is missing.",
+      "fault_family": "Omission",
+      "construct": "PeriodicCond",
+      "operator": "call_drop"
+    },
+    {
+      "name": "C09_14__tick_scale",
+      "gt": "wrong",
+      "judge_says_wrong": true,
+      "problem": "The delay before sounding the siren is 10 minutes, but the command requires the emergency siren to sound 1 minute after locking the doors.",
+      "fault_family": "Timing",
+      "construct": "DelaySeq",
+      "operator": "tick_scale"
+    }
+  ]
+}

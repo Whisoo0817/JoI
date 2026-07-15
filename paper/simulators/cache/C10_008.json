@@ -1,0 +1,94 @@
+{
+  "command_eng": "When any illuminance sensor on the terrace reaches 100 lux or higher, raise all blinds after 5 seconds.",
+  "connected_devices": {
+    "Terrace_Sensor_1": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Terrace",
+        "LightSensor"
+      ]
+    },
+    "Terrace_Sensor_2": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Terrace",
+        "LightSensor"
+      ]
+    },
+    "Garden_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Garden",
+        "LightSensor"
+      ]
+    },
+    "Terrace_Blind_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Terrace",
+        "WindowCovering",
+        "Blind"
+      ]
+    },
+    "Terrace_Blind_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Terrace",
+        "WindowCovering",
+        "Blind"
+      ]
+    },
+    "LivingRoom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "WindowCovering",
+        "Blind"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "LightSensor.Brightness >= 100",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#LightSensor #Terrace).lightSensor_brightness >= 100) {\nif (triggered == false) {\nall(#WindowCovering #Blind).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#LightSensor #Terrace).lightSensor_brightness >= 100) {\nif (triggered == false) {\nall(#WindowCovering #Blind).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
+}

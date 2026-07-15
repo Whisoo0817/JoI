@@ -1,0 +1,68 @@
+{
+  "command_eng": "When the bathroom humidity exceeds 70%, set the bathroom dehumidifier to freeze protection mode.",
+  "connected_devices": {
+    "Bathroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bathroom",
+        "HumiditySensor"
+      ]
+    },
+    "Basement_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Basement",
+        "HumiditySensor"
+      ]
+    },
+    "Bathroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bathroom",
+        "Dehumidifier"
+      ]
+    },
+    "Bedroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "HumiditySensor.Humidity > 70",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "freezeProtection"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Bathroom #HumiditySensor).humiditySensor_humidity > 70)\n(#Bathroom #Dehumidifier).dehumidifier_setDehumidifierMode(\"freezeProtection\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bathroom #HumiditySensor).humiditySensor_humidity > 70)\n(#Bathroom #Dehumidifier).dehumidifier_setDehumidifierMode(\\\"freezeProtection\\\")\"\n}"
+}

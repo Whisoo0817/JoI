@@ -1,0 +1,98 @@
+{
+  "command_eng": "When a leak is detected, close the valve immediately and then speak \"Leak detected. Please evacuate.\" through the speaker every minute thereafter.",
+  "connected_devices": {
+    "Basement_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Basement",
+        "LeakSensor"
+      ]
+    },
+    "Kitchen_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "LeakSensor"
+      ]
+    },
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "LeakSensor.Leakage == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Valve.Close",
+        "args": {}
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Leak detected. Please evacuate."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((#LeakSensor).leakSensor_leakage == true)\n    phase = 1\n    (#Valve).valve_close()\n}\nelse {\n(#Speaker).speaker_speak(\"Leak detected. Please evacuate.\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#LeakSensor).leakSensor_leakage == true)\n    phase = 1\n    (#Valve).valve_close()\n}\nelse {\n(#Speaker).speaker_speak(\\\"Leak detected. Please evacuate.\\\")\\n}\"\n}"
+}

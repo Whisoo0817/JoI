@@ -1,0 +1,58 @@
+{
+  "command_eng": "Tell me the outdoor humidity through the speaker.",
+  "connected_devices": {
+    "System_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "outdoor_humidity",
+        "src": "WeatherProvider.HumidityWeather"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "The outdoor humidity is $outdoor_humidity"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "outdoor_humidity = (#WeatherProvider).weatherProvider_humidityWeather\n(#Speaker).speaker_speak(\"The outdoor humidity is \" + outdoor_humidity)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"outdoor_humidity = (#WeatherProvider).weatherProvider_humidityWeather\n(#Speaker).speaker_speak(\\\"The outdoor humidity is \\\" + outdoor_humidity)\"\n}"
+}

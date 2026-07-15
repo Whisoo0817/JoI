@@ -1,0 +1,53 @@
+{
+  "command_eng": "Set the hue of the living room light to 240 and the saturation to 80.",
+  "connected_devices": {
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToHueAndSaturation",
+        "args": {
+          "Hue": "240",
+          "Saturation": "80",
+          "TransitionTime": "0"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#LivingRoom #Light).light_moveToHueAndSaturation(240, 80, 0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#LivingRoom #Light).light_moveToHueAndSaturation(240, 80, 0)\"\n}"
+}

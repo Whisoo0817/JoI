@@ -1,0 +1,106 @@
+{
+  "command_eng": "When any presence sensor in the hallway detects presence, set all hallway lights to purple.",
+  "connected_devices": {
+    "Hallway_PresenceSensor_1": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "PresenceSensor"
+      ]
+    },
+    "Hallway_PresenceSensor_2": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "PresenceSensor"
+      ]
+    },
+    "Porch_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Porch",
+        "PresenceSensor"
+      ]
+    },
+    "Hallway_Light_1": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "ColorControl"
+      ]
+    },
+    "Hallway_Light_2": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "ColorControl"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "ColorControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "body": [
+          {
+            "op": "wait",
+            "cond": "PresenceSensor.Presence == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToColor",
+            "args": {
+              "ColorX": 0.279,
+              "ColorY": 0.142,
+              "TransitionTime": 0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif (any(#Hallway #PresenceSensor).presenceSensor_presence == true) {\nif (triggered == false) {\nall(#Hallway #Light).light_moveToColor(0.279, 0.142, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif (any(#Hallway #PresenceSensor).presenceSensor_presence == true) {\nif (triggered == false) {\nall(#Hallway #Light).light_moveToColor(0.279, 0.142, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
+}

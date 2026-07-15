@@ -1,0 +1,75 @@
+{
+  "command_eng": "Whenever the temperature becomes 30 degrees or higher, close the blind.",
+  "connected_devices": {
+    "Living_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Living",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Living_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "TemperatureSensor.Temperature >= 30",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#TemperatureSensor).temperatureSensor_temperature >= 30) {\nif (triggered == false) {\n(#WindowCovering #Blind).windowCovering_downOrClose()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#TemperatureSensor).temperatureSensor_temperature >= 30) {\nif (triggered == false) {\n(#WindowCovering #Blind).windowCovering_downOrClose()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
+}

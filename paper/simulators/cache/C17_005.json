@@ -1,0 +1,99 @@
+{
+  "command_eng": "Check humidity every 10 minutes; if it's 50 or higher, turn off the humidifier; if it's 20 or lower, turn on the humidifier and set it to auto mode.",
+  "connected_devices": {
+    "Living_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Living",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Living_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Living",
+        "Humidifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Humidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "10 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity >= 50",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "HumiditySensor.Humidity <= 20",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.On",
+                    "args": {}
+                  },
+                  {
+                    "op": "call",
+                    "target": "Humidifier.SetHumidifierMode",
+                    "args": {
+                      "Mode": "auto"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "if ((#HumiditySensor).humiditySensor_humidity >= 50) {\n(#Humidifier #Switch).switch_off()\n}\nelse {\nif ((#HumiditySensor).humiditySensor_humidity <= 20) {\n(#Humidifier #Switch).switch_on()\n(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"if ((#HumiditySensor).humiditySensor_humidity >= 50) {\n(#Humidifier #Switch).switch_off()\n}\nelse {\nif ((#HumiditySensor).humiditySensor_humidity <= 20) {\n(#Humidifier #Switch).switch_on()\n(#Humidifier).humidifier_setHumidifierMode(\\\"auto\\\")\\n}\\n}\"\n}"
+}

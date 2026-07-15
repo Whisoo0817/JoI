@@ -1,0 +1,96 @@
+{
+  "command_eng": "Whenever the button with the 'Stop' tag is pressed, turn off all devices with 'Even' tags.",
+  "connected_devices": {
+    "Stop_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Stop",
+        "Button"
+      ]
+    },
+    "Odd_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Odd",
+        "Button"
+      ]
+    },
+    "Even_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Even",
+        "Charger",
+        "Switch"
+      ]
+    },
+    "Even_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Even",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Odd_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Odd",
+        "Charger",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Button.Button == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 0.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#Button #Stop).button_button == \"pushed\") {\nif (triggered == false) {\nall(#Switch #Even).switch_off()\nall(#Even).light_moveToBrightness(0.0, 0.0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#Button #Stop).button_button == \\\"pushed\\\") {\\nif (triggered == false) {\\nall(#Switch #Even).switch_off()\\nall(#Even).light_moveToBrightness(0.0, 0.0)\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
+}

@@ -1,0 +1,70 @@
+{
+  "command_eng": "When the carbon dioxide level in the server room becomes 5000 ppm or above, sound all sirens in emergency mode.",
+  "connected_devices": {
+    "ServerRoom_AirQualitySensor": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "ServerRoom",
+        "AirQualitySensor"
+      ]
+    },
+    "Office_AirQualitySensor": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Office",
+        "AirQualitySensor"
+      ]
+    },
+    "Siren_Main": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Siren_Back": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Back",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "AirQualitySensor.CarbonDioxide >= 5000",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Siren.SetSirenMode",
+        "args": {
+          "Mode": "emergency"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#ServerRoom #AirQualitySensor).airQualitySensor_carbonDioxide >= 5000)\nall(#Siren).siren_setSirenMode(\"emergency\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#ServerRoom #AirQualitySensor).airQualitySensor_carbonDioxide >= 5000)\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\"\n}"
+}

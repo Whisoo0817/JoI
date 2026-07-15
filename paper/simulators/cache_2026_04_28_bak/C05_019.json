@@ -1,0 +1,95 @@
+{
+  "command_eng": "If the study carbon dioxide is 1000ppm or higher and the air purifier is in sleep mode, switch to auto mode and say \"Switching the air purifier to auto mode\" through the speaker.",
+  "connected_devices": {
+    "Study_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Study",
+        "AirQualitySensor"
+      ]
+    },
+    "Office_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Office",
+        "AirQualitySensor"
+      ]
+    },
+    "Study_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Study",
+        "AirPurifier"
+      ]
+    },
+    "Office_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Office",
+        "AirPurifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Office_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Office",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.CarbonDioxide >= 1000 && AirPurifier.AirPurifierMode == \"sleep\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "auto"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Switching the air purifier to auto mode"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Study #AirQualitySensor).airQualitySensor_carbonDioxide >= 1000 and (#Study #AirPurifier).airPurifier_airPurifierMode == \"sleep\") {\n(#Study #AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n(#Speaker).speaker_speak(\"Switching the air purifier to auto mode\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Study #AirQualitySensor).airQualitySensor_carbonDioxide >= 1000 and (#Study #AirPurifier).airPurifier_airPurifierMode == \\\"sleep\\\") {\\n(#Study #AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n(#Speaker).speaker_speak(\\\"Switching the air purifier to auto mode\\\")\\n}\"\n}"
+}

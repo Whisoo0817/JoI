@@ -1,0 +1,98 @@
+{
+  "command_eng": "If button 2 of the multi-button is pressed and the living room brightness is below 50, turn on all living room lights.",
+  "connected_devices": {
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LR_Illum": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "LightSensor"
+      ]
+    },
+    "Terrace_Illum": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Terrace",
+        "LightSensor"
+      ]
+    },
+    "LR_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "LR_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MultiButton.Button2 == \"pushed\" and LightSensor.Brightness < 50",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#MultiButton #LivingRoom).multiButton_button2 == \"pushed\" and (#LightSensor #LivingRoom).lightSensor_brightness < 50) {\nall(#Light #LivingRoom).light_moveToBrightness(100.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#MultiButton #LivingRoom).multiButton_button2 == \\\"pushed\\\" and (#LightSensor #LivingRoom).lightSensor_brightness < 50) {\\nall(#Light #LivingRoom).light_moveToBrightness(100.0, 0.0)\\n}\"\n}"
+}

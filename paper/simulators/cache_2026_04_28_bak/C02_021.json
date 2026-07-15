@@ -1,0 +1,67 @@
+{
+  "command_eng": "Open all even-tagged valves in the kitchen.",
+  "connected_devices": {
+    "Kitchen_Valve_2": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Even",
+        "Valve"
+      ]
+    },
+    "Kitchen_Valve_4": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Even",
+        "Valve"
+      ]
+    },
+    "Kitchen_Valve_1": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Odd",
+        "Valve"
+      ]
+    },
+    "Bathroom_Valve_2": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Bathroom",
+        "Even",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Valve.Open",
+        "args": {
+          "Selector": "all(#Kitchen #Valve)"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Kitchen #Even #Valve).valve_open()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Kitchen #Even #Valve).valve_open()\"\n}"
+}

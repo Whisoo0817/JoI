@@ -1,0 +1,66 @@
+{
+  "command_eng": "When the button is pushed 3 times, open the valve.",
+  "connected_devices": {
+    "LivingRoom_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Button"
+      ]
+    },
+    "Entrance_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Entrance",
+        "Button"
+      ]
+    },
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Bathroom_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Bathroom",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Button.Button == \"pushed_3x\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Valve.Open",
+        "args": {}
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Button).button_button == \"pushed_3x\")\n(#Valve).valve_open()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Button).button_button == \\\"pushed_3x\\\")\\n(#Valve).valve_open()\"\n}"
+}

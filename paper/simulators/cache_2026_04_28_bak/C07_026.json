@@ -1,0 +1,70 @@
+{
+  "command_eng": "When the bedroom shade button is pushed, lower the shade.",
+  "connected_devices": {
+    "Bedroom_Shade_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "Button"
+      ]
+    },
+    "Bedroom_Blind_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "Button"
+      ]
+    },
+    "Bedroom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "LivingRoom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Shade",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Button.Button == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Bedroom #Shade #Button).button_button == \"pushed\")\n(#Shade).windowCovering_downOrClose()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bedroom #Shade #Button).button_button == \\\"pushed\\\")\\n(#Shade).windowCovering_downOrClose()\"\n}"
+}

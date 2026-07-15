@@ -1,0 +1,63 @@
+{
+  "command_eng": "Every 10 minutes from now until 3 PM, sound the emergency siren for 5 seconds and then turn it off.",
+  "connected_devices": {
+    "Main_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 1500",
+        "period": "10 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "5 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "if (clock.time >= 1500) {\nbreak\n}\nstate := \"on\"\nif (state == \"on\") {\n(#Siren).siren_setSirenMode(\"emergency\")\n    state = \"off\"\n}\nelse {\ndelay(5 SEC)\n(#Siren #Switch).switch_off()\n    state = \"on\"\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"if (clock.time >= 1500) {\nbreak\n}\nstate := \\\"on\\\"\\nif (state == \\\"on\\\") {\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n    state = \\\"off\\\"\\n}\\nelse {\\ndelay(5 SEC)\\n(#Siren #Switch).switch_off()\\n    state = \\\"on\\\"\\n}\"\n}"
+}

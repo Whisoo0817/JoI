@@ -1,0 +1,111 @@
+{
+  "command_eng": "If the noise level is 70 or higher and no one is home, take a photo with the camera and sound the police siren.",
+  "connected_devices": {
+    "Living_Sound": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Living",
+        "SoundSensor"
+      ]
+    },
+    "Entrance_Sound": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "SoundSensor"
+      ]
+    },
+    "Living_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "SoundSensor.Sound >= 70 && PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "police"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#SoundSensor).soundSensor_sound >= 70 and (#PresenceSensor).presenceSensor_presence == false) {\n(#Camera).camera_captureImage()\n(#Siren).siren_setSirenMode(\"police\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#SoundSensor).soundSensor_sound >= 70 and (#PresenceSensor).presenceSensor_presence == false) {\n(#Camera).camera_captureImage()\n(#Siren).siren_setSirenMode(\\\"police\\\")\\n}\"\n}"
+}

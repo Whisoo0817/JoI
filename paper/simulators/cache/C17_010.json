@@ -1,0 +1,87 @@
+{
+  "command_eng": "Measure the temperature every 15 minutes; turn on the air conditioner in cool mode if it's 25 degrees or higher, and turn it off if it's below 25 degrees.",
+  "connected_devices": {
+    "Inside_TemperatureSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Inside",
+        "TemperatureSensor"
+      ]
+    },
+    "Main_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Outside_TemperatureSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Outside",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "15 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature >= 25",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "cool"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 900000,
+    "script": "if ((#TemperatureSensor #Inside).temperatureSensor_temperature >= 25) {\n(#AirConditioner #Main).airConditioner_setAirConditionerMode(\"cool\")\n}\nelse {\n(#AirConditioner #Switch #Main).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 900000,\n  \"script\": \"if ((#TemperatureSensor #Inside).temperatureSensor_temperature >= 25) {\n(#AirConditioner #Main).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\\nelse {\\n(#AirConditioner #Switch #Main).switch_off()\\n}\"\n}"
+}

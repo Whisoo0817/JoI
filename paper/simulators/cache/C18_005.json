@@ -1,0 +1,90 @@
+{
+  "command_eng": "Every 30 minutes during weekends, check all pumps in the factory; if any one is turned on, turn off all pumps and send an email to \"test@example.com\" with the subject 'Risk' and message 'A pump is turned on'.",
+  "connected_devices": {
+    "Fac_Pump_1": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Factory",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Fac_Pump_2": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Factory",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Office_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "EmailProvider": {
+      "category": [
+        "EmailProvider"
+      ],
+      "tags": [
+        "EmailProvider"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 */30 * * 6,7"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Switch.Switch == true",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              },
+              {
+                "op": "call",
+                "target": "EmailProvider.SendMail",
+                "args": {
+                  "ToAddress": "test@example.com",
+                  "Title": "Risk",
+                  "Body": "A pump is turned on"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 */30 * * 6,7",
+    "period": 1800000,
+    "script": "if (all(#Pump #Switch #Factory).switch_switch == true) {\nall(#Pump #Switch #Factory).switch_off()\n(#EmailProvider).emailProvider_sendMail(\"test@example.com\", \"Risk\", \"A pump is turned on\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 */30 * * 6,7\",\n  \"period\": 1800000,\n  \"script\": \"if (all(#Pump #Switch #Factory).switch_switch == true) {\nall(#Pump #Switch #Factory).switch_off()\n(#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"Risk\\\", \\\"A pump is turned on\\\")\\n}\"\n}"
+}

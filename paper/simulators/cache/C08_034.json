@@ -1,0 +1,95 @@
+{
+  "command_eng": "Whenever it rains, close all windows and doors.",
+  "connected_devices": {
+    "Rain": {
+      "category": [
+        "RainSensor"
+      ],
+      "tags": [
+        "RainSensor"
+      ]
+    },
+    "Rain_2": {
+      "category": [
+        "RainSensor"
+      ],
+      "tags": [
+        "Indoor",
+        "RainSensor"
+      ]
+    },
+    "Win_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Win_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Door_1": {
+      "category": [
+        "Door"
+      ],
+      "tags": [
+        "Door"
+      ]
+    },
+    "Door_2": {
+      "category": [
+        "Door"
+      ],
+      "tags": [
+        "Entrance",
+        "Door"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "RainSensor.Rain == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Door.Close",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#RainSensor).rainSensor_rain == true) {\nif (triggered == false) {\nall(#WindowCovering #Window).windowCovering_downOrClose()\nall(#Door).door_close()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#RainSensor).rainSensor_rain == true) {\nif (triggered == false) {\nall(#WindowCovering #Window).windowCovering_downOrClose()\nall(#Door).door_close()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}"
+}

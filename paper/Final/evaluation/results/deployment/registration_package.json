@@ -1,0 +1,1519 @@
+{
+ "derived": "2026-06-04 post-simfix paired run; timestamps are virtual ms from scenario start",
+ "usage": "register joi_to_register on the platform; reproduce 'stimulus' physically; log observed (t, device, action); compare to predicted_actions; record hub jitter",
+ "rows": [
+  {
+   "row": "C07_1",
+   "role": "pass",
+   "command": "When the contact sensor is detected, turn on the light.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "contactsensor.contact",
+       true
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       0,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "contactsensor.contact": false
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#ContactSensor #Entrance).contactSensor_contact == true)\n(#Light).light_moveToBrightness(100.0, 0.0)"
+   }
+  },
+  {
+   "row": "C20_13",
+   "role": "pass",
+   "command": "If no motion is detected in the bathroom for at least 20 seconds, turn off the bathroom fan.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "motionsensor.motion",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       19900,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:flap_reset",
+     "stimulus": [
+      [
+       0,
+       "motionsensor.motion",
+       false
+      ],
+      [
+       10000,
+       "motionsensor.motion",
+       true
+      ],
+      [
+       10200,
+       "motionsensor.motion",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       30100,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "motionsensor.motion": true
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#MotionSensor #Motion).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 200) {\n(#Plug #Switch #Fan).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+   }
+  },
+  {
+   "row": "C25_1",
+   "role": "pass",
+   "command": "Every 5 minutes, check the living room temperature; if it is 28 degrees or higher set the air conditioner to cool, otherwise auto. Stop after 6 times.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "temperaturesensor.temperature",
+       28
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       0,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "cool"
+       ]
+      ],
+      [
+       300000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "cool"
+       ]
+      ],
+      [
+       600000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "cool"
+       ]
+      ],
+      [
+       900000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "cool"
+       ]
+      ],
+      [
+       1200000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "cool"
+       ]
+      ],
+      [
+       1500000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "cool"
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "if@timeline[1].body[1]:else",
+     "stimulus": [
+      [
+       0,
+       "temperaturesensor.temperature",
+       27
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       0,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "auto"
+       ]
+      ],
+      [
+       300000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "auto"
+       ]
+      ],
+      [
+       600000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "auto"
+       ]
+      ],
+      [
+       900000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "auto"
+       ]
+      ],
+      [
+       1200000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "auto"
+       ]
+      ],
+      [
+       1500000,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "auto"
+       ]
+      ]
+     ]
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "n := 0\nif (n >= 6) {\nbreak\n}\nv = (#TemperatureSensor #LivingRoom).temperatureSensor_temperature\nif (v >= 28) {\n(#AirConditioner #LivingRoom).airConditioner_setAirConditionerMode(\"cool\")\n}\nelse {\n(#AirConditioner #LivingRoom).airConditioner_setAirConditionerMode(\"auto\")\n}\nn = n + 1"
+   }
+  },
+  {
+   "row": "C22_10",
+   "role": "pass",
+   "command": "Every 20 seconds, turn the kitchen light on. Stop after 8 runs.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       0,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ],
+      [
+       20000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ],
+      [
+       40000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ],
+      [
+       60000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ],
+      [
+       80000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ],
+      [
+       100000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ],
+      [
+       120000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ],
+      [
+       140000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ]
+     ]
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 20000,
+    "script": "n := 0\nif (n >= 8) {\nbreak\n}\n(#Light #Kitchen).light_moveToBrightness(100, 0)\nn = n + 1"
+   }
+  },
+  {
+   "row": "C09_17",
+   "role": "pass",
+   "command": "Turn off the bathroom light and turn on after 5 minutes.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       0,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       300000,
+       "switch",
+       "on",
+       []
+      ]
+     ]
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#Light #Switch #Bathroom).switch_off()\ndelay(5 MIN)\n(#Light #Switch #Bathroom).switch_on()"
+   }
+  },
+  {
+   "row": "C14_4",
+   "role": "pass",
+   "command": "Whenever motion is detected, increase the light brightness by 10. If it reaches max, stop it.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       800,
+       "motionsensor.motion",
+       false
+      ],
+      [
+       1000,
+       "motionsensor.motion",
+       true
+      ],
+      [
+       1000,
+       "light.currentbrightness",
+       100
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       1000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "if@timeline[1].body[2]:else",
+     "stimulus": [
+      [
+       800,
+       "motionsensor.motion",
+       false
+      ],
+      [
+       1000,
+       "motionsensor.motion",
+       true
+      ],
+      [
+       1000,
+       "light.currentbrightness",
+       99
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       1000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1].body[0]:rearm",
+     "stimulus": [
+      [
+       800,
+       "motionsensor.motion",
+       false
+      ],
+      [
+       1000,
+       "motionsensor.motion",
+       true
+      ],
+      [
+       1000,
+       "light.currentbrightness",
+       100
+      ],
+      [
+       1100,
+       "motionsensor.motion",
+       false
+      ],
+      [
+       2200,
+       "motionsensor.motion",
+       true
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       1000,
+       "light",
+       "movetobrightness",
+       [
+        100,
+        0
+       ]
+      ]
+     ]
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#MotionSensor).motionSensor_motion == true) {\nif (triggered == false) {\ntmp = (#Light).light_currentBrightness + 10\n        if (tmp > 100) {\ntmp = 100\n}\n(#Light).light_moveToBrightness(tmp, 0)\n        if ((#Light).light_currentBrightness >= 100) {\nbreak\n}\ntriggered = true\n}\n}\nelse {\ntriggered = false\n}"
+   }
+  },
+  {
+   "row": "C20_9",
+   "role": "repaired",
+   "command": "If a person stays in the meeting room for at least 2 minutes, turn on the projector.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       true
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       119900,
+       "switch",
+       "on",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:flap_reset",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       true
+      ],
+      [
+       60000,
+       "presencesensor.presence",
+       false
+      ],
+      [
+       60200,
+       "presencesensor.presence",
+       true
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       180100,
+       "switch",
+       "on",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "presencesensor.presence": false
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#PresenceSensor #Presence).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1200) {\n(#Plug #Switch #Projector).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+   },
+   "buggy_joi_for_contrast": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#PresenceSensor #Presence).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 120) {\n(#Plug #Switch #Projector).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+   }
+  },
+  {
+   "row": "C23_1",
+   "role": "repaired",
+   "command": "If no motion is detected in the living room for at least 10 minutes, dim the living room light to 30%, then turn it off 5 minutes later.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "motionsensor.motion",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       599900,
+       "light",
+       "movetobrightness",
+       [
+        30,
+        0
+       ]
+      ],
+      [
+       899900,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:flap_reset",
+     "stimulus": [
+      [
+       0,
+       "motionsensor.motion",
+       false
+      ],
+      [
+       300000,
+       "motionsensor.motion",
+       true
+      ],
+      [
+       300200,
+       "motionsensor.motion",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       900100,
+       "light",
+       "movetobrightness",
+       [
+        30,
+        0
+       ]
+      ],
+      [
+       1200100,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "motionsensor.motion": true
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#MotionSensor #LivingRoom).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n(#Light #LivingRoom).light_moveToBrightness(30, 0)\n        delay(5 MIN)\n(#Light #Switch #LivingRoom).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+   },
+   "buggy_joi_for_contrast": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#MotionSensor #LivingRoom).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Light #LivingRoom).light_moveToBrightness(30, 0)\n        delay(5 MIN)\n(#Light #Switch #LivingRoom).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+   }
+  },
+  {
+   "row": "C23_5",
+   "role": "repaired",
+   "command": "If no motion is detected in the hallway for at least 3 minutes, dim the hallway light to 50%, then turn it off 2 minutes later.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "motionsensor.motion",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       179900,
+       "light",
+       "movetobrightness",
+       [
+        50,
+        0
+       ]
+      ],
+      [
+       299900,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:flap_reset",
+     "stimulus": [
+      [
+       0,
+       "motionsensor.motion",
+       false
+      ],
+      [
+       90000,
+       "motionsensor.motion",
+       true
+      ],
+      [
+       90200,
+       "motionsensor.motion",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       270100,
+       "light",
+       "movetobrightness",
+       [
+        50,
+        0
+       ]
+      ],
+      [
+       390100,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "motionsensor.motion": true
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "joi_to_register": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#MotionSensor #Hallway).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1800) {\n(#Light #Hallway).light_moveToBrightness(50, 0)\n        delay(2 MIN)\n(#Light #Switch #Hallway).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+   },
+   "buggy_joi_for_contrast": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#MotionSensor #Hallway).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 180) {\n(#Light #Hallway).light_moveToBrightness(50, 0)\n        delay(2 MIN)\n(#Light #Switch #Hallway).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+   }
+  },
+  {
+   "row": "C03_24",
+   "role": "rejected",
+   "command": "If all temperature sensors in sector 1 read 35 degrees or higher, set all air conditioners in sector 1 to cool mode.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "temperaturesensor.temperature",
+       35
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       0,
+       "airconditioner",
+       "setairconditionermode",
+       [
+        "cool"
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "if@timeline[1]:else",
+     "stimulus": [
+      [
+       0,
+       "temperaturesensor.temperature",
+       34
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "gate_decision": "rejected (fail-closed)",
+   "n_attempts": 2,
+   "buggy_joi_for_demo": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all((#AirConditioner #Sector1).airQualitySensor_temperature >= 35)) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\"cool\")\n}"
+   }
+  },
+  {
+   "row": "C16_5",
+   "role": "rejected",
+   "command": "Every 7 PM, if no one is detected on the 1st floor, turn off all lights on floor 1; then 1 hour later, if no one is detected on the 2nd floor, turn off all lights on floor 2.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       false
+      ],
+      [
+       3600000,
+       "presencesensor.presence",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       68400000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       72000000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       154800000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       158400000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       241200000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       244800000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       327600000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       331200000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       414000000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       417600000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       500400000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       504000000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       586800000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       590400000,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "if@timeline[1]:else",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       true
+      ],
+      [
+       3600000,
+       "presencesensor.presence",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       68400000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       72000000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       154800000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       158400000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       241200000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       244800000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       327600000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       331200000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       414000000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       417600000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       500400000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       504000000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       586800000,
+       "switch",
+       "off",
+       []
+      ],
+      [
+       590400000,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "if@timeline[3]:else",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       false
+      ],
+      [
+       3600000,
+       "presencesensor.presence",
+       true
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "gate_decision": "rejected (fail-closed)",
+   "n_attempts": 2,
+   "buggy_joi_for_demo": {
+    "name": "Scenario",
+    "cron": "0 19 * * *",
+    "period": 0,
+    "script": "if ((#PresenceSensor #Floor1).presenceSensor_presence == false) {\nall(#Light #Switch #Floor1).switch_off()\n}\nelse {\nall(#Light #Switch #Floor2).switch_off()\n}\ndelay(1 HOUR)\nif ((#PresenceSensor #Floor2).presenceSensor_presence == false) {\nall(#Light #Switch #Floor2).switch_off()\n}"
+   }
+  },
+  {
+   "row": "C23_3",
+   "role": "rejected",
+   "command": "If no one is present in the study for at least 15 minutes, dim the study light to 20%, then turn it off 10 minutes later.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       899900,
+       "light",
+       "movetobrightness",
+       [
+        20,
+        0
+       ]
+      ],
+      [
+       1499900,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:flap_reset",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       false
+      ],
+      [
+       450000,
+       "presencesensor.presence",
+       true
+      ],
+      [
+       450200,
+       "presencesensor.presence",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       1350100,
+       "light",
+       "movetobrightness",
+       [
+        20,
+        0
+       ]
+      ],
+      [
+       1950100,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "presencesensor.presence": true
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "gate_decision": "rejected (fail-closed)",
+   "n_attempts": 2,
+   "buggy_joi_for_demo": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#PresenceSensor #Study).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 90) {\n(#Light #Study).light_moveToBrightness(20, 0)\n        delay(10 MIN)\n(#Light #Switch #Study).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+   }
+  },
+  {
+   "row": "C23_4",
+   "role": "rejected",
+   "command": "If the bedroom temperature stays above 28 degrees for at least 5 minutes, turn on the fan, then turn it off 20 minutes later.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "temperaturesensor.temperature",
+       29
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       299900,
+       "switch",
+       "on",
+       []
+      ],
+      [
+       1499900,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:flap_reset",
+     "stimulus": [
+      [
+       0,
+       "temperaturesensor.temperature",
+       29
+      ],
+      [
+       150000,
+       "temperaturesensor.temperature",
+       28
+      ],
+      [
+       150200,
+       "temperaturesensor.temperature",
+       29
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       450100,
+       "switch",
+       "on",
+       []
+      ],
+      [
+       1650100,
+       "switch",
+       "off",
+       []
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "temperaturesensor.temperature": 28
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "gate_decision": "rejected (fail-closed)",
+   "n_attempts": 2,
+   "buggy_joi_for_demo": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#TemperatureSensor #Bedroom).temperatureSensor_temperature > 28) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 30) {\n(#Plug #Switch #Bedroom).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\ndelay(20 MIN)\n(#Plug #Switch #Bedroom).switch_off()"
+   }
+  },
+  {
+   "row": "C24_2",
+   "role": "rejected",
+   "command": "If a person stays in the meeting room for at least 2 minutes, announce 'The meeting starts soon' through the speaker every 1 minute, 3 times.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       true
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       119900,
+       "speaker",
+       "speak",
+       [
+        "The meeting starts soon"
+       ]
+      ],
+      [
+       179900,
+       "speaker",
+       "speak",
+       [
+        "The meeting starts soon"
+       ]
+      ],
+      [
+       239900,
+       "speaker",
+       "speak",
+       [
+        "The meeting starts soon"
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:flap_reset",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       true
+      ],
+      [
+       60000,
+       "presencesensor.presence",
+       false
+      ],
+      [
+       60200,
+       "presencesensor.presence",
+       true
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       180100,
+       "speaker",
+       "speak",
+       [
+        "The meeting starts soon"
+       ]
+      ],
+      [
+       240100,
+       "speaker",
+       "speak",
+       [
+        "The meeting starts soon"
+       ]
+      ],
+      [
+       300100,
+       "speaker",
+       "speak",
+       [
+        "The meeting starts soon"
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "presencesensor.presence": false
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "gate_decision": "rejected (fail-closed)",
+   "n_attempts": 2,
+   "buggy_joi_for_demo": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "hold_ticks := 0\nif ((#PresenceSensor #Meeting).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 120) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Speaker #Meeting).speaker_speak(\"The meeting starts soon\")\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}\nif (n >= 3) {\nbreak\n}\nif (n >= 3) {\nbreak\n}\n(#Speaker #Meeting).speaker_speak(\"The meeting starts soon\")\nn = n + 1"
+   }
+  },
+  {
+   "row": "C24_4",
+   "role": "rejected",
+   "command": "If no one is present in the lobby for at least 1 minute, announce 'Is anyone there' through the speaker every 15 seconds, up to 4 times.",
+   "predicted": [
+    {
+     "scenario": 0,
+     "label": "happy",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       59900,
+       "speaker",
+       "speak",
+       [
+        "Is anyone there"
+       ]
+      ],
+      [
+       74900,
+       "speaker",
+       "speak",
+       [
+        "Is anyone there"
+       ]
+      ],
+      [
+       89900,
+       "speaker",
+       "speak",
+       [
+        "Is anyone there"
+       ]
+      ],
+      [
+       104900,
+       "speaker",
+       "speak",
+       [
+        "Is anyone there"
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 1,
+     "label": "wait@timeline[1]:flap_reset",
+     "stimulus": [
+      [
+       0,
+       "presencesensor.presence",
+       false
+      ],
+      [
+       30000,
+       "presencesensor.presence",
+       true
+      ],
+      [
+       30200,
+       "presencesensor.presence",
+       false
+      ]
+     ],
+     "initial_world": {},
+     "start_clock": 0,
+     "predicted_actions": [
+      [
+       90100,
+       "speaker",
+       "speak",
+       [
+        "Is anyone there"
+       ]
+      ],
+      [
+       105100,
+       "speaker",
+       "speak",
+       [
+        "Is anyone there"
+       ]
+      ],
+      [
+       120100,
+       "speaker",
+       "speak",
+       [
+        "Is anyone there"
+       ]
+      ],
+      [
+       135100,
+       "speaker",
+       "speak",
+       [
+        "Is anyone there"
+       ]
+      ]
+     ]
+    },
+    {
+     "scenario": 2,
+     "label": "wait@timeline[1]:gate_closed",
+     "stimulus": [],
+     "initial_world": {
+      "presencesensor.presence": true
+     },
+     "start_clock": 0,
+     "predicted_actions": []
+    }
+   ],
+   "gate_decision": "rejected (fail-closed)",
+   "n_attempts": 2,
+   "buggy_joi_for_demo": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 15000,
+    "script": "hold_ticks := 0\nif ((#PresenceSensor #Lobby).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\nn := 0\n        if (n >= 4) {\nbreak\n}\nn = n + 1\n        (#Speaker #Lobby).speaker_speak(\"Is anyone there\")\n}\n}\nelse {\nhold_ticks = 0\n}"
+   }
+  }
+ ]
+}

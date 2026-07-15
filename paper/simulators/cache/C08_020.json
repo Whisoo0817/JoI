@@ -1,0 +1,79 @@
+{
+  "command_eng": "Every time the sound sensor value exceeds 30, set the air purifier to sleep mode.",
+  "connected_devices": {
+    "Main_SoundSensor": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Main",
+        "SoundSensor"
+      ]
+    },
+    "Main_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_SoundSensor": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "SoundSensor"
+      ]
+    },
+    "Bedroom_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "SoundSensor.Sound > 30",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "sleep"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#SoundSensor).soundSensor_sound > 30) {\nif (triggered == false) {\n(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#SoundSensor).soundSensor_sound > 30) {\nif (triggered == false) {\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
+}

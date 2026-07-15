@@ -1,0 +1,46 @@
+{
+  "command_eng": "Set the rice cooker to reheating mode every morning at 7 AM.",
+  "connected_devices": {
+    "Kitchen_RiceCooker": {
+      "category": [
+        "RiceCooker"
+      ],
+      "tags": [
+        "Kitchen",
+        "RiceCooker"
+      ]
+    },
+    "Dining_RiceCooker": {
+      "category": [
+        "RiceCooker"
+      ],
+      "tags": [
+        "Dining",
+        "RiceCooker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 7 * * *"
+      },
+      {
+        "op": "call",
+        "target": "RiceCooker.SetRiceCookerMode",
+        "args": {
+          "Mode": "reheating"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 7 * * *",
+    "period": 0,
+    "script": "(#RiceCooker).riceCooker_setRiceCookerMode(\"reheating\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 7 * * *\",\n  \"period\": 0,\n  \"script\": \"(#RiceCooker).riceCooker_setRiceCookerMode(\\\"reheating\\\")\"\n}"
+}

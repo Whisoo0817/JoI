@@ -1,0 +1,50 @@
+{
+  "command_eng": "When the charging voltage exceeds 250V, stop charging.",
+  "connected_devices": {
+    "Garage_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Garage",
+        "Charger"
+      ]
+    },
+    "Basement_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Basement",
+        "Charger"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Charger.Voltage > 250000",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Charger).charger_voltage > 250000)\n(#Charger).switch_off()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Charger).charger_voltage > 250000)\n(#Charger).switch_off()\"\n}"
+}

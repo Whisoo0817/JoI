@@ -1,0 +1,86 @@
+{
+  "command_eng": "When smoke is detected, sound the emergency siren for 5 seconds every minute thereafter.",
+  "connected_devices": {
+    "Kitchen_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Kitchen",
+        "SmokeDetector"
+      ]
+    },
+    "Bedroom_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Bedroom",
+        "SmokeDetector"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "SmokeDetector.Smoke == true",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "5 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((#SmokeDetector).smokeDetector_smoke == true)\n    phase = 1\n    (#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\n(#Switch).switch_off()\n}\nelse {\n(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\n(#Switch).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#SmokeDetector).smokeDetector_smoke == true)\n    phase = 1\n    (#Siren).siren_setSirenMode(\\\"emergency\\\")\\n    delay(5 SEC)\\n(#Switch).switch_off()\\n}\\nelse {\\n(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n    delay(5 SEC)\\n(#Switch).switch_off()\\n}\"\n}"
+}

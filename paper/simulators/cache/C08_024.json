@@ -1,0 +1,75 @@
+{
+  "command_eng": "Every time the fine dust level goes above 80, set the air purifier to high speed.",
+  "connected_devices": {
+    "Living_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Living",
+        "AirQualitySensor"
+      ]
+    },
+    "Bedroom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirQualitySensor"
+      ]
+    },
+    "Living_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Living",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "AirQualitySensor.FineDustLevel > 80",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "high"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#AirQualitySensor).airQualitySensor_fineDustLevel > 80) {\nif (triggered == false) {\n(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#AirQualitySensor).airQualitySensor_fineDustLevel > 80) {\nif (triggered == false) {\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
+}

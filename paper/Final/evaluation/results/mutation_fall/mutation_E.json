@@ -1,0 +1,218 @@
+{
+  "seed_dir": "/tmp/joi_stageB_full_llm_v2/on",
+  "valid_seeds": 62,
+  "skipped_flagged": 5,
+  "per_operator": {
+    "arg_numeric": {
+      "gen": 17,
+      "equiv": 0,
+      "genuine": 17,
+      "caught": 17,
+      "layer": {
+        "L2": 17
+      },
+      "kinds": {
+        "arg_mismatch": 17
+      }
+    },
+    "enum_flip": {
+      "gen": 14,
+      "equiv": 0,
+      "genuine": 14,
+      "caught": 14,
+      "layer": {
+        "L2": 14
+      },
+      "kinds": {
+        "arg_mismatch": 14
+      }
+    },
+    "call_drop": {
+      "gen": 83,
+      "equiv": 0,
+      "genuine": 83,
+      "caught": 83,
+      "layer": {
+        "L2": 83
+      },
+      "kinds": {
+        "trace_empty": 69,
+        "missing_call": 18,
+        "extra_call": 3,
+        "timing_drift": 2
+      }
+    },
+    "call_add": {
+      "gen": 23,
+      "equiv": 0,
+      "genuine": 23,
+      "caught": 23,
+      "layer": {
+        "L2": 23
+      },
+      "kinds": {
+        "arg_mismatch": 23
+      }
+    },
+    "tick_scale": {
+      "gen": 18,
+      "equiv": 0,
+      "genuine": 18,
+      "caught": 18,
+      "layer": {
+        "L2": 18
+      },
+      "kinds": {
+        "timing_drift": 8,
+        "missing_call": 2,
+        "extra_call": 10
+      }
+    },
+    "guard_polarity": {
+      "gen": 33,
+      "equiv": 0,
+      "genuine": 33,
+      "caught": 33,
+      "layer": {
+        "L2": 33
+      },
+      "kinds": {
+        "trace_empty": 22,
+        "extra_call": 28,
+        "missing_call": 2,
+        "timing_drift": 1
+      }
+    },
+    "comparator": {
+      "gen": 64,
+      "equiv": 7,
+      "genuine": 57,
+      "caught": 50,
+      "layer": {
+        "L2": 50
+      },
+      "kinds": {
+        "timing_drift": 4,
+        "extra_call": 19,
+        "trace_empty": 31,
+        "missing_call": 2,
+        "arg_mismatch": 1
+      }
+    },
+    "assign_init": {
+      "gen": 18,
+      "equiv": 0,
+      "genuine": 18,
+      "caught": 18,
+      "layer": {
+        "L2": 18
+      },
+      "kinds": {
+        "extra_call": 11,
+        "trace_empty": 7
+      }
+    },
+    "cmp_direction": {
+      "gen": 64,
+      "equiv": 7,
+      "genuine": 57,
+      "caught": 57,
+      "layer": {
+        "L2": 57
+      },
+      "kinds": {
+        "trace_empty": 23,
+        "extra_call": 29,
+        "missing_call": 11,
+        "arg_mismatch": 2,
+        "timing_drift": 7
+      }
+    },
+    "arith_op": {
+      "gen": 18,
+      "equiv": 0,
+      "genuine": 18,
+      "caught": 18,
+      "layer": {
+        "L2": 18
+      },
+      "kinds": {
+        "arg_mismatch": 1,
+        "trace_empty": 7,
+        "extra_call": 10
+      }
+    },
+    "break_drop": {
+      "gen": 26,
+      "equiv": 4,
+      "genuine": 22,
+      "caught": 22,
+      "layer": {
+        "L2": 22
+      },
+      "kinds": {
+        "timing_drift": 4,
+        "extra_call": 24
+      }
+    },
+    "wait_drop": {
+      "gen": 0,
+      "equiv": 0,
+      "genuine": 0,
+      "caught": 0,
+      "layer": {},
+      "kinds": {}
+    }
+  },
+  "total": {
+    "gen": 378,
+    "equiv": 18,
+    "genuine": 360,
+    "caught": 353,
+    "catch_rate": 98.05555555555556
+  },
+  "survivors": [
+    {
+      "name": "C20_1",
+      "op": "comparator",
+      "mutation": ">= -> >",
+      "script": "hold_ticks := 0\nif ((#MotionSensor #LivingRoom).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks > 300) {\n(#Plug #Switch #LivingRoom #Strip).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    },
+    {
+      "name": "C20_2",
+      "op": "comparator",
+      "mutation": ">= -> >",
+      "script": "hold_ticks := 0\nif ((#Door #FrontDoor).door_doorState == \"open\") {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks > 50) {\n(#Plug #Switch #Entrance #Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    },
+    {
+      "name": "C20_3",
+      "op": "comparator",
+      "mutation": ">= -> >",
+      "script": "hold_ticks := 0\nif ((#PresenceSensor).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks > 300) {\n(#Switch).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    },
+    {
+      "name": "C20_4",
+      "op": "comparator",
+      "mutation": ">= -> >",
+      "script": "hold_ticks := 0\nif ((#Plug #Office #Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks > 6000) {\n(#Plug #Switch #Office #Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    },
+    {
+      "name": "C20_5",
+      "op": "comparator",
+      "mutation": ">= -> >",
+      "script": "hold_ticks := 0\nif ((#Door #FrontDoor).door_doorState == \"closed\") {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks > 599) {\n(#Plug #Switch #LivingRoom #AC).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    },
+    {
+      "name": "C20_6",
+      "op": "comparator",
+      "mutation": ">= -> >",
+      "script": "hold_ticks := 0\nif ((#MotionSensor #Bedroom).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks > 600) {\n(#Plug #Switch #Bedroom #FloorLamp).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    },
+    {
+      "name": "C20_7",
+      "op": "comparator",
+      "mutation": ">= -> >",
+      "script": "hold_ticks := 0\nif ((#Door #Kitchen).door_doorState == \"open\") {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks > 6000) {\n(#Plug #Switch #Kitchen #Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    }
+  ]
+}

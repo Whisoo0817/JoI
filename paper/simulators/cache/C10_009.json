@@ -1,0 +1,96 @@
+{
+  "command_eng": "When any temperature sensor in the data center reaches 30 degrees or higher, set all air conditioners to cool mode after 1 minute.",
+  "connected_devices": {
+    "DC_Temp_1": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "DataCenter",
+        "TemperatureSensor"
+      ]
+    },
+    "DC_Temp_2": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "DataCenter",
+        "TemperatureSensor"
+      ]
+    },
+    "ServerRoom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "ServerRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "DC_AC_1": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "DataCenter",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "DC_AC_2": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "DataCenter",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Office_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "TemperatureSensor.Temperature >= 30",
+        "edge": "none"
+      },
+      {
+        "op": "delay",
+        "duration": "1 MIN"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetAirConditionerMode",
+        "args": {
+          "Mode": "cool"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#TemperatureSensor #DataCenter).temperatureSensor_temperature >=| 30)\ndelay(1 MIN)\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#TemperatureSensor #DataCenter).temperatureSensor_temperature >=| 30)\ndelay(1 MIN)\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\"\n}"
+}

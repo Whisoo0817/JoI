@@ -1,0 +1,91 @@
+{
+  "command_eng": "Whenever the button with the 'Light' tag is pressed, set the brightness of all lights with 'Odd' tags to maximum.",
+  "connected_devices": {
+    "L_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Light",
+        "Button"
+      ]
+    },
+    "R_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Robot",
+        "Button"
+      ]
+    },
+    "Odd_Light_1": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Odd",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Odd_Light_2": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Odd",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Even_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Even",
+        "Light",
+        "LevelControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Button.Button == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "LevelControl.MoveToLevel",
+            "args": {
+              "Level": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "triggered := false\nif ((#Button #Light).button_button == \"pushed\") {\nif (triggered == false) {\nall(#Light #LevelControl #Odd).levelControl_moveToLevel(100, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 100,\n  \"script\": \"triggered := false\nif ((#Button #Light).button_button == \\\"pushed\\\") {\\nif (triggered == false) {\\nall(#Light #LevelControl #Odd).levelControl_moveToLevel(100, 0)\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}"
+}

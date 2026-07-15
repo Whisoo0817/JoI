@@ -1,0 +1,95 @@
+{
+  "command_eng": "If the temperature is 18 degrees or below and someone is detected, set the air conditioner to heat mode and 22 degrees.",
+  "connected_devices": {
+    "Living_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Living",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Living_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Living_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Living",
+        "AirConditioner"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature <= 18 && PresenceSensor.Presence == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "heat"
+            }
+          },
+          {
+            "op": "call",
+            "target": "AirConditioner.SetTargetTemperature",
+            "args": {
+              "Temperature": 22
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#TemperatureSensor).temperatureSensor_temperature <= 18 and (#PresenceSensor).presenceSensor_presence == true) {\n(#AirConditioner).airConditioner_setAirConditionerMode(\"heat\")\n(#AirConditioner).airConditioner_setTargetTemperature(22)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#TemperatureSensor).temperatureSensor_temperature <= 18 and (#PresenceSensor).presenceSensor_presence == true) {\n(#AirConditioner).airConditioner_setAirConditionerMode(\\\"heat\\\")\\n(#AirConditioner).airConditioner_setTargetTemperature(22)\\n}\"\n}"
+}

@@ -1,0 +1,46 @@
+{
+  "command_eng": "Every 30 minutes on weekend afternoons, set the robot vacuum cleaner to auto mode.",
+  "connected_devices": {
+    "Living_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Living",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Bedroom_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Bedroom",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 12-18 * * 6,7"
+      },
+      {
+        "op": "call",
+        "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+        "args": {
+          "Mode": "auto"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 12-18 * * 6,7",
+    "period": 0,
+    "script": "(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 12-18 * * 6,7\",\n  \"period\": 0,\n  \"script\": \"(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\"\n}"
+}

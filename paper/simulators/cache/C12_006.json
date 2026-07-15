@@ -1,0 +1,75 @@
+{
+  "command_eng": "When the charger voltage drops to 4V or lower, speak \"The charging voltage is low\" through the speaker every 30 minutes thereafter.",
+  "connected_devices": {
+    "Main_Charger": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "Main",
+        "Charger"
+      ]
+    },
+    "Garage_Charger": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "Garage",
+        "Charger"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Charger.Voltage <= 4000",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The charging voltage is low"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((#Charger).charger_voltage <= 4000)\n    phase = 1\n    (#Speaker).speaker_speak(\"The charging voltage is low\")\n}\nelse {\n(#Speaker).speaker_speak(\"The charging voltage is low\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#Charger).charger_voltage <= 4000)\n    phase = 1\n    (#Speaker).speaker_speak(\\\"The charging voltage is low\\\")\\n}\\nelse {\\n(#Speaker).speaker_speak(\\\"The charging voltage is low\\\")\\n}\"\n}"
+}

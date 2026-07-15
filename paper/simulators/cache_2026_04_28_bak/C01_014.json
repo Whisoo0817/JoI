@@ -1,0 +1,53 @@
+{
+  "command_eng": "Announce the outdoor fine dust level using the speaker.",
+  "connected_devices": {
+    "System_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "The outdoor fine dust level is $Pm25Weather"
+        }
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "pm25 = (#WeatherProvider).weatherProvider_pm25Weather\n(#Speaker).speaker_speak(\"The outdoor fine dust level is \" + pm25)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"pm25 = (#WeatherProvider).weatherProvider_pm25Weather\n(#Speaker).speaker_speak(\\\"The outdoor fine dust level is \\\" + pm25)\"\n}"
+}

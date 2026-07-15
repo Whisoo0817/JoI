@@ -1,0 +1,86 @@
+{
+  "command_eng": "Every day at 11 PM, turn off all floor 1 lights with odd tags.",
+  "connected_devices": {
+    "Odd_F1_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Odd",
+        "Floor1",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Odd_F1_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Odd",
+        "Floor1",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Even_F1_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Even",
+        "Floor1",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Odd_F2_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Odd",
+        "Floor2",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Even_F2_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Even",
+        "Floor2",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "59 23 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "59 23 * * *",
+    "period": 0,
+    "script": "all(#Light #Switch #Odd #Floor1).switch_off()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"59 23 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#Light #Switch #Odd #Floor1).switch_off()\"\n}"
+}

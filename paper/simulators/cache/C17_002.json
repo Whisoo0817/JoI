@@ -1,0 +1,92 @@
+{
+  "command_eng": "Every 30 minutes, if the temperature is 20 degrees or higher and below 30 degrees, set the air conditioner to auto mode; if it is 30 degrees or higher, set it to cool mode.",
+  "connected_devices": {
+    "Living_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Living",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Living_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Living",
+        "AirConditioner"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature >= 20 and TemperatureSensor.Temperature < 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "TemperatureSensor.Temperature >= 30",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "AirConditioner.SetAirConditionerMode",
+                    "args": {
+                      "Mode": "auto"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "if ((#TemperatureSensor).temperatureSensor_temperature >= 20 and (#TemperatureSensor).temperatureSensor_temperature < 30) {\n(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}\nelse {\nif ((#TemperatureSensor).temperatureSensor_temperature >= 30) {\n(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"if ((#TemperatureSensor).temperatureSensor_temperature >= 20 and (#TemperatureSensor).temperatureSensor_temperature < 30) {\n(#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\\nelse {\\nif ((#TemperatureSensor).temperatureSensor_temperature >= 30) {\\n(#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\\n}\"\n}"
+}

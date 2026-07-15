@@ -1,0 +1,86 @@
+{
+  "command_eng": "If motion is detected at the entrance, capture an image with the entrance camera.",
+  "connected_devices": {
+    "Entrance_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Yard_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Yard",
+        "MotionSensor"
+      ]
+    },
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    },
+    "Lobby_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Lobby",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Entrance #MotionSensor).motionSensor_motion == true) {\n(#Entrance #Camera).camera_captureImage()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Entrance #MotionSensor).motionSensor_motion == true) {\n(#Entrance #Camera).camera_captureImage()\n}\"\n}"
+}

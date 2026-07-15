@@ -1,0 +1,54 @@
+{
+ "env": {
+  "mac_model": "Mac16,10",
+  "chip": "Apple M4",
+  "ram": "16 GB",
+  "macos": "26.2",
+  "inference_server": "vllm-mlx 0.4.0rc1",
+  "model_id": "qwen3-8b",
+  "model_path": "/Users/caplab/models/qwen3-8b-4bit (mlx-community/Qwen3-8B-4bit, 4-bit)"
+ },
+ "unit": "W (from powermetrics mW)",
+ "samplers": "cpu_power,gpu_power, -i 1000",
+ "windows": {
+  "idle": {
+   "desc": "baseline, nothing running (server loaded+idle)",
+   "cpu": {
+    "n": 60,
+    "mean_W": 0.038,
+    "peak_W": 0.124
+   },
+   "gpu": {
+    "n": 120,
+    "mean_W": 0.008,
+    "peak_W": 0.019
+   }
+  },
+  "generating": {
+   "desc": "LLM 8B generating (GPU load)",
+   "cpu": {
+    "n": 300,
+    "mean_W": 0.128,
+    "peak_W": 1.06
+   },
+   "gpu": {
+    "n": 600,
+    "mean_W": 10.229,
+    "peak_W": 11.343
+   }
+  },
+  "verifier": {
+   "desc": "LLM-free verifier running (CPU load)",
+   "cpu": {
+    "n": 120,
+    "mean_W": 5.5,
+    "peak_W": 5.761
+   },
+   "gpu": {
+    "n": 240,
+    "mean_W": 0.008,
+    "peak_W": 0.021
+   }
+  }
+ }
+}

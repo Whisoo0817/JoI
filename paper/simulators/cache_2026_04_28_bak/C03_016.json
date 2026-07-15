@@ -1,0 +1,52 @@
+{
+  "command_eng": "If the air conditioner in livingroom is in cool mode, switch it to auto mode.",
+  "connected_devices": {
+    "Kitchen_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Kitchen",
+        "AirConditioner"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirConditioner.AirConditionerMode == \"cool\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "auto"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LivingRoom #AirConditioner).airConditioner_airConditionerMode == \"cool\") {\n(#LivingRoom #AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom #AirConditioner).airConditioner_airConditionerMode == \\\"cool\\\") {\\n(#LivingRoom #AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\"\n}"
+}
