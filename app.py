@@ -87,11 +87,14 @@ def _code_item(raw_code: Any) -> Optional[JoiCodeItem]:
     return None
 
 
-def _success_response(result: Dict[str, Any]) -> JoiLLMResponse:
+def _success_response(result: Dict[str, Any], sentence: str) -> JoiLLMResponse:
     log_dict = result.get("log") or {}
     return JoiLLMResponse(
         success=True,
         error_code=JoiErrorCode.SUCCESS,
+        # joi-agent's proxy contract expects the echoed command on success too
+        # (its live matrix test asserts it); the error path already sets it.
+        command=sentence,
         # Emit as a list to match the joi-agent proxy schema (Union[List, str]).
         code=([item] if (item := _code_item(result.get("code"))) is not None else None),
         log=JoiLog(**{k: log_dict[k] for k in ("response_time", "translated_sentence", "logs") if k in log_dict})
@@ -245,7 +248,7 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             base_url=SLLM_LOCAL_BASE_URL,
             current_code=_pick_current_code(request),
         )
-        response = _success_response(result)
+        response = _success_response(result, request.sentence)
     except JoiGenerationError as e:
         raw_code = getattr(e, "error_code", "")
         response = _error_response(
