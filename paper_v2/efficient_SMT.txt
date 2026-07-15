@@ -1,0 +1,300 @@
+네, 그 방향은 **충분히 contribution으로 만들 수 있습니다.** 오히려 현재 논문의 약점을 정면으로 보완하는 좋은 확장입니다.
+
+다만 한 가지는 정확히 구분해야 합니다.
+
+> SMT로 간다고 해서 “실험 없이 전체 정확도”가 자동으로 보장되는 것은 아닙니다.
+> 대신, **정의한 formal model, bounded horizon, JoI semantics encoding이 맞다는 전제하에** 그 범위 안에서는 mutation/coverage 실험보다 훨씬 강한 보장을 줄 수 있습니다.
+
+즉 보장 형태는 이렇게 됩니다.
+
+```text
+기존 OVLA:
+합성한 boundary scenario에서 IR-Sim과 JoI-Sim trace가 같았다.
+
+SMT 기반:
+bounded horizon H 안에서 IR과 JoI trace가 달라지는 입력 trace는 존재하지 않는다.
+```
+
+이 차이는 큽니다.
+
+## SMT로 얻을 수 있는 보장
+
+SMT를 쓰면 verifier의 질문을 다음처럼 바꿀 수 있습니다.
+
+```text
+∃ sensor/time/input trace E, ∃ time t:
+    Action_IR(E, t) ≠ Action_JoI(E, t)
+```
+
+solver가 `SAT`를 주면 반례가 있는 것이고, `UNSAT`를 주면 bounded model 안에서는 divergence가 없다는 뜻입니다.
+
+이 경우 mutation testing은 “검증기의 정확도를 입증하기 위한 핵심 실험”이 아니라, **encoding이 실제 버그를 잘 표현하는지 보여주는 보조 실험**으로 내려갑니다. coverage 실험도 마찬가지입니다. 더 이상 “우리가 만든 scenario가 충분히 넓게 덮었는가?”가 핵심이 아니라, “우리가 정의한 symbolic transition system이 올바른가?”가 핵심이 됩니다.
+
+현재 논문은 pass가 absolute correctness가 아니라 synthesized boundary trace, bounded horizon, tolerance 안에서 맞는다는 의미라고 명확히 제한합니다.  SMT로 바꾸면 이 제한은 여전히 남지만, “synthesized boundary trace”라는 약한 부분을 “bounded symbolic search”로 강화할 수 있습니다.
+
+## 그럼 contribution으로 어떻게 만들 수 있나?
+
+가능합니다. contribution은 대략 이렇게 잡으면 됩니다.
+
+> **C2′. Efficient on-device symbolic trace-equivalence.**
+> We replace boundary-event testing with a bounded SMT-based equivalence checker that encodes the confirmed Timeline IR and generated JoI code as symbolic transition systems. To make SMT feasible on edge devices, we introduce IR-guided abstraction, horizon slicing, incremental solving, and counterexample replay. This provides bounded absence of divergent traces rather than empirical coverage over synthesized scenarios.
+
+한국어로는:
+
+> 기존 OVLA의 boundary-event trace check를 SMT 기반 bounded equivalence checking으로 확장하고, 이를 온디바이스에서 실행 가능하게 만드는 경량화 기법을 제안한다.
+
+이건 충분히 독립 contribution이 될 수 있습니다.
+
+## 핵심 문제: SMT가 너무 무거움
+
+맞아요. SMT를 그대로 쓰면 on-device에 맞지 않을 가능성이 큽니다. 논문이 강조하는 장점은 verifier가 solver 없이 pure Python deterministic core로 구현되어 있고, median 0.97ms로 돈다는 점입니다.  또한 transition-boundary conformance를 solver-free로 제한한 이유도 edge hub에서 작고 빠르게 돌리기 위해서입니다. 
+
+따라서 contribution의 핵심은 단순히 “SMT를 썼다”가 아니라:
+
+> reactive-temporal IoT automation의 구조를 이용해서 SMT 문제를 작게 만드는 방법
+
+이어야 합니다.
+
+## 효율화 아이디어 1: IR-guided symbolic slicing
+
+전체 JoI 코드를 한 번에 SMT로 encode하면 무겁습니다. 대신 IR의 obligation 단위로 나눕니다.
+
+논문에서 IR은 call, wait, delay, read, if, cycle, break 같은 primitive obligation으로 구성됩니다. verifier도 각 primitive가 obligation을 만든다고 설명합니다. 
+
+이를 활용해서 다음처럼 쪼갭니다.
+
+```text
+전체 equivalence:
+IR 전체 trace == JoI 전체 trace
+
+분할 equivalence:
+wait obligation equivalence
+delay obligation equivalence
+edge trigger equivalence
+sustain counter equivalence
+call argument equivalence
+cycle/count equivalence
+```
+
+즉, 하나의 큰 SMT query 대신 여러 개의 작은 query로 만듭니다.
+
+예:
+
+```text
+Q1. rising edge에서 JoI가 정확히 한 번 fire하는가?
+Q2. condition이 유지되는 동안 재발화하지 않는가?
+Q3. condition clear 후 다시 rising하면 다시 fire하는가?
+Q4. action argument가 IR과 같은가?
+```
+
+이렇게 하면 solver 부담이 크게 줄어듭니다.
+
+## 효율화 아이디어 2: Event-region abstraction
+
+센서 값을 실제 domain 전체로 보지 말고, IR과 JoI 조건식이 구분하는 region으로 나눕니다.
+
+예를 들어 조건이:
+
+```text
+temp > 25
+humidity <= 70
+```
+
+라면 실제 값 전체를 다룰 필요 없이:
+
+```text
+temp ∈ {≤25, >25}
+humidity ∈ {≤70, >70}
+```
+
+또는 off-by-one을 잡기 위해:
+
+```text
+temp ∈ {24, 25, 26}
+humidity ∈ {69, 70, 71}
+```
+
+만 보면 됩니다.
+
+이건 현재 논문의 boundary-event synthesis와 비슷해 보이지만, 차이는 큽니다. 기존 방식은 대표 이벤트를 실행하는 것이고, SMT 방식은 region abstraction 위에서 **모든 symbolic 조합에 대해 mismatch 존재성을 묻는 것**입니다.
+
+## 효율화 아이디어 3: Time abstraction
+
+가장 무거운 부분은 시간입니다. 논문은 구현에서 1주일 horizon을 사용한다고 합니다.  1초 tick으로 1주일을 SMT unrolling하면 너무 큽니다.
+
+그래서 tick-by-tick encoding을 피해야 합니다.
+
+시간은 다음 landmark 중심으로 압축합니다.
+
+```text
+start
+period boundary
+delay - ε
+delay
+delay + ε
+sustain - ε
+sustain
+sustain + ε
+condition clear
+second edge
+cycle restart
+count boundary k-1, k, k+1
+```
+
+즉 “모든 tick”을 encode하지 않고, 행동이 바뀔 수 있는 시간 region만 symbolic state로 둡니다.
+
+이렇게 하면 논문의 transition-boundary idea는 유지하되, 단순 실행 테스트가 아니라 SMT equivalence check로 강화됩니다.
+
+## 효율화 아이디어 4: Incremental SMT solving
+
+각 obligation마다 solver를 새로 띄우면 비쌉니다. 대신 공통 prefix를 공유합니다.
+
+예를 들어:
+
+```text
+base constraints:
+- device catalog
+- time model
+- sensor domain abstraction
+- JoI variable initialization
+- IR initial state
+
+query-specific constraints:
+- edge mismatch
+- delay mismatch
+- call argument mismatch
+- extra action mismatch
+- missing action mismatch
+```
+
+SMT solver의 incremental mode를 쓰면 base constraints를 유지한 채 mismatch 조건만 바꿔가며 확인할 수 있습니다.
+
+이건 on-device 최적화 contribution으로 좋습니다.
+
+## 효율화 아이디어 5: Counterexample replay
+
+SMT가 `SAT`를 반환하면 바로 reject하지 않고, 기존 simulator에서 replay합니다.
+
+```text
+SMT model → concrete sensor/time trace 생성
+→ IR-Sim / JoI-Sim으로 replay
+→ 실제 trace mismatch 확인
+→ reject
+```
+
+이렇게 하면 encoding bug 때문에 생기는 false positive를 줄일 수 있습니다. 논문도 reject는 executable counterexample에 묶인다고 주장합니다.  SMT 확장에서도 이 철학을 유지하는 게 좋습니다.
+
+## 효율화 아이디어 6: Two-tier verifier
+
+완전히 SMT만 쓰면 느릴 수 있으니, practical architecture는 이렇게 가는 게 좋습니다.
+
+```text
+Tier 1. 기존 OVLA boundary trace check
+        매우 빠른 reject/pass 후보 분류
+
+Tier 2. SMT equivalence check
+        Tier 1 pass 후보 중 배포 전 최종 검증
+
+Tier 3. optional runtime shadow monitor
+        SMT bounded model 밖 실제 trace 감시
+```
+
+하지만 논문에서 “정확도 contribution”을 강조하려면 Tier 2가 최종 gate가 되어야 합니다.
+
+즉:
+
+```text
+기존 방식:
+boundary trace check pass → deploy
+
+제안 방식:
+boundary trace check pass → SMT check pass → deploy
+```
+
+이렇게 해야 “정확도 강화”가 명확합니다.
+
+## 새로운 contribution을 논문에 넣는다면
+
+기존 C2는 deterministic deployment gate입니다. 논문은 IR→FSM→boundary event→bounded trace-equivalence가 LLM 없이 동작한다고 주장합니다. 
+
+여기에 새 contribution을 추가하면:
+
+```text
+C2a. Symbolic trace-equivalence formulation
+Confirmed Timeline IR and generated JoI code are encoded as bounded transition systems, and deployment is allowed only when the SMT query for divergent action traces is UNSAT.
+
+C2b. Edge-feasible SMT optimization
+To make this check practical on edge hubs, the encoding uses IR-guided slicing, event-region abstraction, time landmark compression, incremental solving, and simulator-backed counterexample replay.
+```
+
+이렇게 나눌 수 있습니다.
+
+## Evaluation도 바뀌어야 함
+
+SMT를 넣으면 mutation/coverage 중심 평가에서 벗어날 수 있습니다. 대신 다음을 보여줘야 합니다.
+
+```text
+1. Soundness of encoding
+   - IR semantics와 JoI subset semantics를 formal하게 정의
+   - simulator replay와 SMT model이 일치함을 검증
+
+2. UNSAT guarantee
+   - bounded horizon H, supported JoI subset, abstraction 조건 안에서
+     divergent trace가 없음을 보장
+
+3. Performance
+   - on-device latency
+   - solver timeout rate
+   - query size
+   - obligation slicing 전/후 비교
+   - incremental solving 전/후 비교
+
+4. Counterexample quality
+   - SAT case에서 생성된 counterexample이 실제 simulator에서 재현되는지
+
+5. Comparison with original OVLA
+   - original boundary verifier가 pass한 surviving bug를 SMT가 잡는지
+```
+
+중요한 점은, mutation testing이 완전히 필요 없어지는 게 아니라 **주장 구조가 바뀐다**는 겁니다.
+
+기존:
+
+```text
+mutation을 많이 잡았으니 verifier가 좋다
+```
+
+SMT 방식:
+
+```text
+formal encoding이 맞으면 UNSAT 결과가 bounded correctness를 보장한다.
+mutation은 encoding과 bug-detection 사례를 보여주는 보조 실험이다.
+```
+
+## 논문 제목/기여 방향 예시
+
+이 방향이면 논문 기여가 꽤 선명해집니다.
+
+```text
+OVLA-S: On-device Symbolic Verification of LLM-Generated IoT Automations
+```
+
+또는:
+
+```text
+From Boundary Testing to Bounded Equivalence: Efficient SMT Verification for LLM-Generated IoT Automations
+```
+
+핵심 claim은:
+
+> 기존 OVLA는 빠르지만 boundary scenario coverage에 의존한다. 우리는 Timeline IR과 JoI를 bounded symbolic transition system으로 변환하여, 배포 전 divergent action trace의 부재를 SMT로 확인한다. 또한 IR-guided slicing과 time/event abstraction으로 이 과정을 edge device에서 실용적으로 만든다.
+
+## 결론
+
+네가 말한 방향은 충분히 좋습니다.
+
+정리하면:
+
+> SMT로 가면 mutation/coverage 실험에 의존하던 정확도 주장을 훨씬 강하게 만들 수 있다. 단, 보장은 bounded model과 encoding correctness 안에서 성립한다. 문제는 SMT가 on-device에 무겁다는 점인데, 이를 IR-guided slicing, event/time abstraction, incremental solving, counterexample replay로 해결하는 것을 새로운 contribution으로 만들 수 있다.
+
+이 방향은 현재 논문의 약점인 evaluation 타당성을 보완하면서도, 기존 Timeline IR 구조를 버리지 않고 확장하는 방식이라 연구적으로도 자연스럽습니다.
