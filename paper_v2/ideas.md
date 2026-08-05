@@ -1,267 +1,788 @@
-# OVLA v2 — 아이디어 정리 (2026-07-15 전면 개편: retrieve–edit–verify 구조)
+# OVLA v2 — 배포된 IoT 자동화의 행동 물질화와 생애주기 재판정
 
-> 상태: 아이디어 정리 단계 (논문 작성 아님). 2026-07-15 세션에서 전면 개편 — 구버전(behavior contract 중심)은 git 이력 참조.
-> 배경: v1(SenSys 제출본) 3약점 — ① IR rendering user study 부재 ② mutation/coverage 순환 평가 ③ 실동작 보증 부족 — 의 해소.
-> 보조 문서: `smt_and_feedback.md`(SMT 효율 전술·typed feedback 상세 — §5·§7에서 참조, 대부분 유효), `efficient_SMT.txt`(SMT 효율 6전술 원본).
+> **전면 개편 2026-08-03 (8차).** 무게중심이 "SMT miter + role 계약"에서
+> **전수 탐색기가 만드는 행동 모델(FSM)** 로 이동했다. 이전 판(7차, 858행:
+> 검증 도구 재배치·3구역 모델·SMT 역할 7종·브레인스토밍 로그 전문)은
+> `paper_v2/ideas_archive_20260803.md`에 보존. 실측 숫자와 락은 전부 이월했다.
+>
+> **이 문서의 지위**: 집필 캐논. 구현 상세는 `simulator/README.md`(이슈 로그
+> 21건)와 `adapt/`·`smt/` 코드, 기계 생성 표는 `simulator/runs/e1.md`.
+> 집필 시 §1·§2·§12만 봐도 되도록 구성했다.
 
 ---
 
-## 0. 한 줄 전환 (v1 → v2)
+## 0. 한 문장과 상태
 
-- v1: 매 명령마다 **전부 새로 생성 → sim boundary trace-equivalence로 검증**.
-- v2: **인증된 스키마 라이브러리에서 구조가 가장 가까운 것을 검색 → slot-level로 수정 → 수정분만 incremental SMT로 재인증 → 배포.** 디코딩은 선제 치환 draft 기반 speculative editing으로 가속.
+**배포된 IoT 자동화의 도달 가능한 행동 전체를 유한한 전이 시스템으로
+물질화하고, 그 모델을 기준 삼아 환경 변화에 사람 개입 없이 재판정한다.**
 
-### 통일 원리: "생성 = 수리(repair)의 특수 케이스"
-| 상황 | base | Δ의 출처 |
+- 시스템 이름: **iot-sim** (탐색기+판정 층). 타깃 = JoI + Home Assistant.
+- 락 문장 3개:
+  - **"Structure is preserved; correctness is not — it lives in the binding."**
+  - **"검증은 이벤트, 유효성은 생애주기."**
+  - **"LLM은 후보를 늘리는 자리에만; 지우는 자리는 항상 결정론."**
+- 현재 상태: 단일 시나리오 파이프라인 완주(코퍼스 10/10), 사영·배포 재생
+  구현 완료, 자동 수리 루프 미구현, HA 프론트엔드 미착수.
+
+---
+
+## 1. 문제
+
+### 1.1 무엇이 잘못되는가
+
+자동화 코드는 **검증된 채 배포되지만, 검증은 (코드 × 환경 × 시점)의
+스냅샷이다.** 배포된 시나리오는 다른 집에 바인딩되고, 환경 변화에 침식되고,
+사용자에게 수정되고, 다른 시나리오들과 조합되며 수년을 산다. 그 각각이
+검증 지위를 조용히 깨뜨리고, 어느 것도 벤더가 원격으로 재판정할 수 없다.
+
+실패의 두 성질이 이 문제를 특별하게 만든다.
+
+- **조용하다.** 예외도 안 나고 로그도 정상이며 집이 그냥 다르게 동작한다.
+  6 고장 클래스(§8)는 전부 "구조 동일·무사 실행인데 틀림"이다.
+- **검토가 불가능하다.** 확인하려면 무한 시간에 걸친 모든 입력 시퀀스를
+  머릿속으로 돌려야 한다.
+
+공급원도 바뀌었다. 코드가 AI 생성물이거나 커뮤니티 블루프린트로 오면서
+양은 늘고 검토 가능성은 떨어진다. 다만 논문의 주장은 provenance와 무관하다:
+**누가 만들든 배포 전후의 인증 층이 없다는 것이 문제다.**
+
+### 1.2 문제 공간 P1~P5 (§1 등뼈 축 3)
+
+- **P1 바인딩 비이식성**: 인증은 바인딩을 건너 이동하지 않는다. "검증된
+  시나리오 설치"의 실제 의미 = "검증 유효 조건을 방금 깨뜨림". 실측 = B1
+  118/120 무사 배포 중 42% 조용한 계약 위반.
+- **P2 시간 부패**: 장애·교체·추가가 검증 스냅샷을 조용히 무효화한다.
+  시나리오는 계속 돈다.
+- **P3 편집 이탈**: 첫 수정에서 인증을 이탈하고, 벤더는 재검증할 수 없다
+  (환경 무지 + 프라이버시 + 지연). 로컬 재인증 기계가 없으면 생태계가 첫
+  수정에서 끝난다.
+- **P4 조합 무인증**: 개별 인증이 내 집 N개 조합의 인증은 아니다(GV·장치·
+  전원 간섭). 조합은 본질적으로 로컬만 안다.
+- **P5 주장의 검사 가능성**: "verified" 뱃지가 아니라 로컬에서 재확인
+  가능한 인증서(무엇에 대해·어떤 성질·어떤 전제)가 코드와 동반 이동해야
+  한다. 계약 없이 온 "검증된" 코드 = 판정 불가능한 코드.
+
+**스코프 아웃 명시**: 원저작의 기능적 올바름(저자 의도 부합)은 벤더/커뮤니티
+검증으로 주어진 것으로 둔다. 우리 책임은 지위의 **보존**이다.
+
+### 1.3 야생 증거 (HA 커뮤니티, 2026-07-31 조사 — §1 동기 인용)
+
+- **P1**: device_id 지옥("If I could change the device_id… tedious affair,
+  since I have 70+ devices", forum 408896) / binary_sensor 상태 어휘 불일치
+  (on/off vs Detected/Wet, forum 541329) / 단위 °F·°C 라벨 불일치(core
+  #73459) / LLM 변형("the AI starts hallucinating devices that don't exist
+  in my setup", forum 979260, 2026).
+- **P2**: 환풍기 한 달 24/7 무감지(발견 경로 = 소리 우연, forum 360339) /
+  누수 8시간 무알림(dev.to genebean) / 없는 엔티티 참조는 2020년까지 완전
+  무음, 지금도 로그 한 줄(WTH 805777). **발견이 항상 물리적 우연이라는 것이
+  "검증은 이벤트, 유효성은 생애주기"의 야생 증거.** Watchman 671★ HACS
+  기본("Missing 181 entities from 1178… over a few years") = 수요 실증이자
+  **전부 구문 수준**이라는 간극 실증.
+- **P3 (최대 수확)**: "take control"은 편도(공식 문서 "되돌릴 수 없다") →
+  커스터마이즈와 업데이트 수신이 상호 배타(forum 419247, WTH 469776).
+  **frenck(HA 코어 개발자, WTH 803306, 2024-12): "We don't know if the
+  update will break stuff. There is no guarantee the new Blueprint is
+  compatible with existing automations."** 보존 보증의 부재가 기능 부재의
+  공식 사유 = 우리 인증서가 채우는 빈칸의 이름.
+- **P4**: helper/Jinja 매크로 숨은 의존성(WTH 470587·802664·467456).
+- **P5**: 배포 전 테스트 불가(forum 535090; trace는 발화 후에만, forum
+  832460) / 유통에 버전·호환성·의존성 메타데이터 전무(WTH 805982).
+
+### 1.4 왜 지금까지의 답이 부족한가
+
+| 접근 | 산출 | 한계 |
 |---|---|---|
-| 최초 생성 | 검색된 certified 스키마 | IR ⊖ 스키마IR |
-| self-correction | 반례 난 자기 코드 | 반례가 지목한 obligation |
-| 사용자 feedback | 배포된 자기 코드 | feedback 라우팅 (§7) |
-
-셋 다 같은 연산: **인증된 base를 Δ만큼 고치고 증명을 상속.** from-scratch 생성 개념이 시스템에서 소멸 — 비용은 항상 "가장 가까운 인증물로부터의 거리"에 비례.
-
-### 관통 원칙 2개
-1. **불안정한 LLM 채널을 통과하는 정보량 ∝ 의도 변화량.** 전체 재생성 = 이미 맞았던 부분까지 재추첨(re-roll; v1 instability 데이터가 근거). delta 경로 = 바뀌는 부분만 채널 통과 + 나머지 보존은 증명으로.
-2. **모델 컴퓨트는 행동이 미결정인 지점에만.** 문법이 골격을, draft가 복사를, 모델은 진짜 선택 지점만.
+| 구문 검사(Watchman류) | 없는 엔티티 목록 | 의미를 못 봄. 구조 통과 = 정확성 아님(B5 실측) |
+| 로그·trace | 일어난 일 | 부정 진술 불가. 안 일어난 일은 로그에 없음 |
+| 샘플 시뮬레이션 | 몇 개 시나리오의 결과 | 커버리지 미지. v1이 이 지점에서 맞았음 |
+| 모델 검사(SPIN/TLC) | 성질 만족 여부 | 모델을 다시 써야 함 + **성질을 저작해야 함**(K1) |
+| 프론티어 LLM 리뷰 | 그럴듯한 설명 | 검증 아님. 강한 모델이 오히려 더 놓침(v1 실측) |
 
 ---
 
-## 1. 세션 확정 결정 (락)
+## 2. 주장과 기여
 
-1. **Spine A: SMT translation validation이 deployment gate.** sim은 gate에서 강등 → ① SAT 반례 replay(인코딩 FP 제거) ② 인코더와 differential testing(**v1 순환 평가의 해소**: 두 독립 semantics 구현의 상호 검증) ③ 렌더링·예시 타임라인 생성.
-2. **컴파일러 없음. 단, "불가능" 주장 금지.** 닫힌 IR이라 3~6주면 만들 수 있음(리뷰어도 앎). 방어 3종: (a) **gate는 임의 코드**(사람 수정·벤더 툴·기존 rule)를 심판해야 하고, 컴파일러는 자기 출력만 보장 (b) 플랫폼당 비용: semantics 인코더 ≪ certified compiler — "기술(describe) ≪ 생성(generate)" (c) 컴파일러가 있어도 translation validation은 필요(Alive2의 존재 이유). **latency로 SMT를 방어하지 말 것** — §10 설계공간 표로 방어.
-3. **사용자 IR 확정(oracle) 단계 제거 = user study 완전 회피.** intent-conformance는 scope 밖으로 정직 서술. 완화 장치: 결정론 렌더링 disclosure(승인 요구 없음) + behavioral consensus 후보(§12). 주장은 "silent **mechanism** 오류의 제거"; slot 오류는 visible이라는 v1 원리(primitive-vs-idiom) 재사용.
-4. **소형(<8B) 모델·클라우드 라우팅 스토리 보류** (아이디어는 §12 보존).
-5. **Composition 정리 아이디어 철회.** 스키마를 통짜로 인증하므로 조합 건전성 문제가 발생하지 않음. (obligation slicing soundness는 full SMT 최적화 문제로만 잔존; 프로그램이 작아 통짜 인코딩이 먼저.)
+### 2.1 핵심 통찰
 
----
+**이 부류의 프로그램은 도달 행동이 유한하고 계산 가능하다.** IoT 자동화는
+모양이 정해져 있다. 작은 센서 어휘 위의 술어, 타임스탬프 레지스터로 구현된
+타이머, 달력 가드, 양화된 기기 셀렉터. 코드 자신의 상수로 만든 술어 칸과
+시간 zone으로 이산화하면 정확도를 잃지 않으면서 열거 가능한 크기가 된다.
 
-## 2. 아키텍처 (v2 메인 루프)
+이 통찰이 성립하는 순간 **사양이 필요 없어진다.** 행동 전체가 손에 있으면
+코드가 스스로 함의하는 질문을 기계가 뽑아낼 수 있기 때문이다.
 
-### 인증된 스키마 엔트리
-```
-스키마 = ( IR 스켈레톤 (slot = 심볼릭),
-          코드 스켈레톤,
-          파라미터 SMT 증명 (∀slot ∈ validity domain) + validity domain,
-          τ-signature (구조 클래스; v1 routing 재사용),
-          provenance (slot ↔ code-span ↔ obligation),
-          obligation별 unsat core (증명이 의존한 제약 "영수증") )
-```
+### 2.2 주장 사다리
 
-### 온라인 파이프라인
-```
-Command
- → (LLM) IR 추출
- → τ(IR)로 스키마 검색 (구조 유사도 라우팅)
- → Δ = IR ⊖ 스키마IR  (slot-level diff, 결정론)
- ├─ [경로1] Δ = 값 slot뿐 (threshold/period/device/args):
- │     코드 결정론 치환 (LLM 0회) + validity domain 확인만 (solver 0회)   [~ms]
- ├─ [경로2] Δ = 구조 포함 (edge↔level, branch/call 추가 등):
- │     선제 치환 draft로 speculative editing (§6)
- │     + 수정분만 incremental SMT (§5), 디코딩과 overlap                  [ms~수백ms 체감]
- └─ [경로3] 매칭 없음 / Δ 과대:
-       freeform 생성 + full SMT (fail-closed)                            [수초, 최초 1회 정가]
-       → 통과 시 slot 일반화하여 새 스키마 등록 (라이브러리 성장)
- → 배포. 반례/feedback 시 repair loop = 경로2와 동일 연산 (base = 자기 코드)
-```
+- **주장 1 (도메인 적합)**: 단편에 속하는 IoT 자동화의 도달 행동은 유한
+  그래프로 물질화되며, 단편 밖은 퍼센트 잔여가 아니라 **이름으로 호명**된다.
+  근거: 코퍼스 10/10 닫힘, 상태 1~320, 밀리초~23초, 술어 단편 85.8% +
+  GROUND 18 = 미해명 0.
+- **주장 2 (사양 없는 판정)**: 물질화된 그래프 위에서 사용자가 아무것도
+  저작하지 않아도 코드가 함의하는 의무를 판정할 수 있고, 두 코드의 행동
+  동치를 반례와 함께 판정할 수 있다.
+- **주장 3 (생애주기)**: 동치와 유효성은 코드만의 성질이 아니라 **바인딩의
+  성질**이다. 실행 실증: 같은 변형이 k=1에서 EQUIV, k=2에서 DIVERGE.
+  따라서 "한 번 인증하면 어디서든"은 거짓이고, 인증은 생애주기 전이마다
+  다시 일어나야 하며, 그 재실행 비용이 초 단위라 실용적으로 감당된다.
+- **주장 4 (재사용)**: 한 번 물질화된 모델은 하나의 판정이 아니라 여러
+  질문에 답한다. 편집이 바꾼 것의 정확한 목록, 설치 전 행동 손실, 왜 안
+  했나에 대한 부정 인증서, 발화율·지연 상한, 배포 후 관여도 분해.
 
-### 라이브러리 특성
-- **Self-bootstrapped**: 경로3(생성+full SMT 인증)이 라이브러리를 만들므로 **컴파일러 불필요** (R1 우회).
-- **Cold start**: 24 τ-class 코퍼스(382셋 기반)로 시드해서 출하.
-- **Home-specialized 성장**: 집이 쓸수록 그 집의 명령 분포에 맞게 라이브러리가 커져 경로3 비율이 하락 — "오래 살수록 싸지는 시스템" (cold-start 곡선으로 실증, §9).
-- gate는 retrieval 성공에 **무의존**: 검색이 실패해도 안전·정확성 불변, 잃는 건 효율뿐.
+### 2.3 기여 (셋으로 고정)
 
----
+- **C1 — iot-sim: 도메인 적합 이산화와 그 실측.**
+  기법(명시적 상태 탐색·술어 추상화·timed zone)은 표준이고 **인용 대상**이다.
+  기여는 ①이 도메인에서 성립한다는 실현 가능성 결과 ②이산화의 정확한 설계
+  (경계 칸·달력 위상·존재 증인 점프·구체 정지 요구) ③단편의 정의와 밖의 호명.
+  **파는 것은 "FSM을 뽑았다"가 아니라 "FSM이 작다"이다.**
+- **C2 — 사양 없는 판정 체계.**
+  코드 유도 의무(VACUITY·SEED-DEP·OVERLAP·COUNTER-CARRY) + 바인딩 상대
+  동치 + 4분 verdict(certified / degraded-visible / invalid→halt / defect).
+  저작 비용: 템플릿 저자 1회, 최종 사용자 0회. **abort가 1급 출력**이라는
+  것 자체가 주장.
+- **C3 — 행동 모델의 재사용과 무인 적응.**
+  하나의 산출물이 이식·장애·배포 불일치·부적합의 네 트리거에 답하는 질의
+  표면이 된다. 두 시간축(오프라인 인증 0.06s/행, 런타임 룩업 0.12µs).
 
-## 3. 왜 Timeline IR인가 (재정의: certified repair space)
-
-SMT가 JoI ≡ IR을 증명하는 순간 IR은 "LLM의 스케치"에서 **"배포 코드의 인증된 모델"**로 승격. IR 위의 모든 행위(diff·편집·검색)가 증명에 의해 곧 코드에 대한 행위가 됨. 코드가 아닌 IR에서 수정해야 하는 이유(전부 시스템 속성, study 불필요):
-
-1. **닫힌 유한 slot 공간** → feedback/수정이 "자연어로 빌기"가 아니라 풀 수 있는 유한 문제. Δ 정의 가능, 검색 가능(τ), repair 탐색 가능.
-2. **Edit locality** → 의도 변경이 코드에선 비국소적(flag·reset 로직), IR에선 slot 플립. 측정 가능(코드 AST 변경량 vs slot 변경량).
-3. **인증된 링키지** → 증명 없으면 IR 편집은 허구 편집. 증명이 있어야 "편집한 것 = 도는 것".
-
-한 줄: **코드는 실행을 위한 형태, IR은 통제를 위한 형태. IR은 spec이자 생성의 scaffold이자 증명의 구조(obligation 분해·provenance·재검증 단위)다.** 렌더링/문서는 부산물이고 IR의 본업은 수정의 착륙 지점.
+> **기여가 아닌 것 (명시할 것)**: FSM 추출 자체, miter, tick induction,
+> 술어 추상화, 슬라이싱. 전부 선행이 있고 인용한다.
 
 ---
 
-## 4. SMT gate (보장 기둥)
+## 3. 기계 — iot-sim
 
-### 인코딩 원칙 (smt_and_feedback.md Part 1 유효)
-- **tick unrolling 금지** → landmark 시간 압축(전이 지점만 심볼릭 시각; difference/linear arithmetic). 문제 크기가 IR 복잡도에 비례.
-- 센서 도메인 **region abstraction** (조건식이 구분하는 구간 + off-by-one).
-- **Linear fragment**로 경계: 비교·덧셈·상수배 = 결정적·빠름. 임의 산술(RMW·비선형) = fragment 밖 → **fail-closed** (v1은 residual로 배포했으나 v2는 명시적 거부 = 안전 개선으로 서술).
-- Sustain counter는 **closed-form** (`hold=(t−last_false)/period`)으로, 펼치지 않음.
-- tolerance 인코딩 `|t_IR − t_JoI| ≤ tol` (sub-tick 차이를 differ로 안 잡음).
+### 3.1 산출물의 정체
 
-### 보장 형태 (정직 서술)
-"bounded horizon H·지원 fragment·인코딩 충실 가정 하에, IR과 다르게 행동하는 입력 trace가 **존재하지 않음**(UNSAT)." — v1의 "합성 boundary 시나리오에서 같았다"를 "탐색 공간 전체에 반례 없음"으로 승격. **claim은 detection upgrade가 아니라 guarantee upgrade** (§10 R2).
+결정론 **Mealy 기계**다.
 
-### TCB와 그 방어
-- 신뢰 대상: 인코딩 충실성 + Z3. 방어: ① SAT 반례 → sim replay로 실재 확인(reject는 executable counterexample에 묶임, v1 철학 유지) ② **sim ↔ SMT 인코더 differential testing** (랜덤 trace에서 두 독립 구현 대조 — v1 mutation/coverage의 순환을 해소하는 방법론) ③ real-trace conformance (semantics ↔ 현실; validation RQ로 유지, 헤드라인 아님).
+- 상태 S = (추상 기억, 달력 칸)
+- 입력 Σ = (센서 칸 조합, dwell = 머문 시간)
+- 출력 = 그 tick에 나가는 액션 다중집합
+- 전이 δ = 결정론 함수
 
-### 예상 latency (실측 전 ballpark; toy 실험이 최우선 §13)
-obligation당 질의 = 데스크톱 1~20ms / ARM 5~50ms. 자동화당 obligation 10~40개 → **full 검증 = 엣지 0.1~2초** (counter 펼치면 수십 초로 폭발 → closed-form 필수). 수정 시엔 §5로 ms 단위.
+**결정론이라는 점이 실용적으로 크다.** 비결정 시스템의 동치는 이중
+시뮬레이션이 필요하지만, 결정론이면 lockstep 곱만으로 동치와 반례가 나온다.
 
----
+용어 대응 (내부 조어 금지):
 
-## 5. 효율적 재검증 — "수정분만 다시" 4단 장치
+| 통용 표현 | 논문 용어 |
+|---|---|
+| 상태를 튜플로 해시 | 술어 추상화 + 시간 zone 위의 명시적 상태 탐색 |
+| 상태→행동 트레이스 | 전이(transition), 라벨 = (입력, dwell, 액션) |
+| 엣지 집합 | 행동 모델, 구체적으로 라벨 붙은 전이 시스템 |
+| 두 코드 비교 | 관계형 곱 위의 관측 동치 판정 + 반례 |
+| 코드가 함의하는 검사 | 코드 유도 증명 의무 |
 
-**장치① Obligation 분해.** 등가를 IR construct별 질의로 분할(Q: edge 1회 발화? 유지 중 재발화 없음? call 인자 일치? ...). "일부만 다시"의 단위. 분할 단위는 IR 트리가 줌.
+### 3.2 이산화 설계 (C1의 실체)
 
-**장치② Unsat-core support tracking (핵심 신기술 포인트).** UNSAT 시 solver에서 "증명에 실제 쓰인 최소 제약 집합"(unsat core)을 뽑아 obligation별 저장. 수정 → 바뀐 span/slot의 제약 집합 D와 core 교차 검사 → **교차 없으면 그 증명은 수정과 무관함이 '확실'** (휴리스틱 아님) → 스킵. 교차한 것만 재-solve. edit-soundness 논증의 기계적 실체 = "proof-support tracking".
+1. **칸의 기준 = 코드 자신의 술어.** `temp >= 20`이 있으면 20이 경계. 같은
+   칸의 두 값은 그 tick의 모든 분기를 동일 통과하므로 칸당 대표값 1개가
+   칸 전체를 돈 것. 샘플링이 열거로 바뀌는 지점.
+2. **변수 3분류**(구문이 아니라 사용 패턴): 재대입 없음 = **param**(재바인딩
+   표면) / 가드 하 재대입 = **register**(상태 벡터) / 매 tick 무조건 재계산
+   = **wire**(tick 간 죽음, 상태 키에서 제외). 경로-지역 스캔으로 판정.
+3. **상태 정규화**: bool·enum은 그대로 / 카운터는 **포화**(최대 비교 상수
+   +1) / 타임스탬프는 **delta의 구간 쌍**(bisect_left, bisect_right) +
+   FAR 클램프 + SENT 센티널 + 쌍별 순서 / 달력은 **경계 구간 인덱스**+요일.
+4. **시간 = 탐색기의 구체 상태.** JoI 관용구 `reg = now` + `now - reg > c`가
+   timed automata의 클록 리셋 + 가드와 동형. 점프 길이를 탐색기가 고르므로
+   타이머 술어의 진리값은 추측이 아니라 **계산**된다. 타이머發 가짜 반례가
+   전멸한다.
+5. **점프 = 고정점 + 다음 사건**, 단 **stutter 증인**으로 게이트한다.
+   사건 3종 = 타이머 임계 통과 시각 / 달력 경계 / 키가 실제로 바뀌는 최근접
+   시각(`next_key_change_ms`). 임계 직전·직후 두 dwell을 모두 포함.
+6. **feasibility 사전 필터**: 조건식의 순수 부분트리 진리값 + 값흐름 키
+   원시값으로 콤보 서명을 만들어 같은 서명은 대표 1개만. 전부 결정론이고
+   불확실하면 항상 "유지"로 강등.
 
-**장치③ Assumption-switch warm solver.** 제약 그룹마다 boolean 스위치(indicator)를 달아 solve-with-assumptions로 켜고 끔. 수정 = 옛 span 스위치 off + 새 제약 assert + 해당 질의만 재실행. solver를 안 끄므로 학습된 lemma 보존(push/pop보다 보존 우수) — 표준 incremental SMT 기법.
+### 3.3 비자명함의 증거 (설계가 임의가 아님)
 
-**장치④ 파라미터 증명 (왕).** 스키마 증명이 slot 심볼릭이므로 **값 수정은 solve 0회** (validity domain 확인 O(1)). 실사용 feedback 다수가 값 타입 → 가장 흔한 수정의 재검증 비용이 문자 그대로 0. validity domain 추출(등가가 성립하는 slot 범위) 자체가 작은 기술 조각.
+각 결함이 특정 고장 클래스 검출 능력과 1:1로 연결된다. "그냥 돌리면 되는
+것 아니냐"에 대한 가장 강한 반박은 이 실패 기록이다.
 
-**+ verify-as-you-decode**: speculative editing에서 복사로 통과된 span은 core 무결로 스킵, 새로 생성된 span이 닫히는 순간 해당 obligation 질의를 디코딩과 병렬 발사 → 재검증 latency가 생성 뒤에 숨음. **+ idle-time precompute**: 허브 유휴 시간에 파라미터 증명·validity domain·τ-lemma 사전 계산.
-
-**Soundness 주의 (아킬레스건):** D를 정확히 잡아야 함. LLM이 편집 중 변수 재사용/스코프 변경하면 텍스트상 안 바뀐 span의 의미가 바뀔 수 있음. 처방: 수정 후 코드 전체 def-use 정적 분석을 매번 재계산(결정론, ~ms) + 편집 span과 변수 공유하는 obligation은 보수적으로 재검증 포함 + 분석 애매하면 full 재검증 폴백. **느려질 수는 있어도 틀릴 수는 없는 구조 유지.**
-
-### 수정 유형별 비용표
-| 수정 | 재생성 | 재검증 | 예상 비용 |
+| 결함 | 잘못된 설계 | 결과 | 대응 능력 |
 |---|---|---|---|
-| 값 (threshold/period/args) | LLM 0 (치환) | 0 (장치④) | ~ms |
-| 구조 국소 | speculative editing | core-교차 obligation 2~5개, warm | 수십~수백ms (디코딩과 overlap) |
-| 구조 광역 | 부분~전체 | 다수 obligation | 초 미만~수초 |
-| 분석 불가 | freeform | full 폴백 | 수초 |
+| ＃10 | 점프를 도달 입력으로만 검사 | 분 단위 임계 너머 영구 미탐색 | 절전 2단 임계 검출 |
+| ＃11 | bisect_right로 경계 뭉갬 | `>`와 `>=` 구분 소멸 | 경계 이동 고장 검출 |
+| ＃16 | 달력 칸 = 술어 진리벡터 | 0시와 11시 병합, 주간 사다리 절단 | cron·요일 시나리오 |
+| ＃21 | stutter를 추상 키로만 판정 | now-추적 레지스터가 정지로 보여 **없는 발화 발명** | 과탐색 유일 사례 |
+
+**＃21의 교훈(집필 재료)**: 추상화가 상대값(now 기준)을 쓰는 순간 "정지"의
+정의가 둘로 갈린다. 시간 점프는 추상 정지가 아니라 **구체 정지**를 요구한다.
+그리고 이 결함은 vacuity가 잡지 못한다(없는 발화가 죽은 액션을 살려놓아
+검사층이 침묵). 적발 수단은 **구체 실행 대조**였고, 이것을 상설 회귀 가드로
+승격해야 한다.
+
+### 3.4 사영 — 사람은 엣지를 보지 않는다
+
+엣지 = 상태 × 입력조합 × dwell 이라 **입력 차원의 곱**으로 폭증한다. 엣지
+수는 시나리오의 복잡도가 아니다(온습도: 엣지 278,516 vs 상태 17).
+
+**경로 사영**: 인터프리터가 tick마다 `IfStmt` 분기 판정을 기록하고, (결정
+경로, 액션 집합)으로 엣지를 분할한다. 열이 코드 자신의 조건이라 **내포적**
+이다. 결합 가드(`temp_avg > max_temp`)가 한 열로 들어오므로, 축별 값 나열이
+실패하던 문제가 사라진다.
+
+| 시나리오 | 상태 | 원시 엣지 | 경로행(발화) | 압축 |
+|---|---|---|---|---|
+| 온습도 자동 제어 | 17 | 278,516 | 21 (14) | 13,262× |
+| 보안모드 자동제어 | 320 | 7,680 | 40 (22) | 192× |
+| 재실기반 절전 제어 | 6 | 2,560 | 162 (157) | 16× |
+
+**폭증원은 둘이고 사영은 하나만 접는다.** ①입력 곱(경로 사영이 제거)
+②**그라운딩 언롤**(제거 못 함). 절전은 기기 그룹 4종의 멱등 검사를 각각
+따지므로 2^k 조합이 그대로 행이 된다.
+
+**액션 역상 + 필수 조건**이 두 번째 사영이다. 한 액션을 내는 모든 경로의
+가드 리터럴 교집합 = 필요조건, 나머지는 "이 액션과 무관"으로 분리.
+
+- `#Plug#Office.off` ← 그 그룹에 켜진 것이 있음 ∧ `elapsed > phase_1` ∧
+  `elapsed > phase_2` ∧ ¬재실 (경로 64개·엣지 192가 한 문장)
+- `#Plug#Office#NoneNecessary.off`는 `phase_1`만 요구 → **2단 절전의 계층이
+  두 역상을 나란히 놓는 것만으로 드러남**
+- `security_mode.setboolean` ← `desired != armed ∧ ¬(synced == False)`
+  = write-on-change 관용구가 그대로 문장이 됨
+
+**규율**: 사영은 요약이 아니라 **분할**이어야 한다. 각 행이 커버한 엣지 수를
+항상 함께 보고한다(무언의 누락 금지). 이전에 만든 축별 요약 뷰는 손실이
+있었다(여름 off 조건과 겨울 off 조건의 합집합이 전 구간을 덮어 가드가 지워짐).
+
+### 3.5 배포 재생 — 모델과 로그의 대조
+
+플랫폼의 `last_triggered`는 자동화당 값 하나이고 이유를 말하지 못한다.
+여기서는 **행동(액션) 단위**로 생애 상태를 붙인다.
+
+| 라벨 | 의미 | 성격 |
+|---|---|---|
+| VACUOUS | 어떤 입력·무한 시간에도 발화 불가 | **판정**(데이터 무관) |
+| WINDOW | 발화 가능하지만 요구 달력 칸이 관측 창에 없음 | 창의 한계 |
+| UNMET | 창 안인데 이 집에서 가드 칸이 한 번도 성립 안 함 | 집에 관한 사실 |
+| NONCONFORM | 가드 성립·코드는 발화했어야 하는데 로그에 없음 | 배포 측 결함 |
+| ENGAGED | 발화 횟수 + 마지막 발화로부터 경과일 | 관여 실적 |
+
+구현 함정: **관측값은 원시값이 아니라 칸으로 기록해야 한다.** 7월(month=7)이
+축 대표값 4.0과 값이 달라 "여름 미관측"이라는 거짓 결론이 나왔다.
+`Axes.cell_preds` + `cell_of()`로 해결. 원인 우선순위는 환경(UNMET) > 창
+(WINDOW): 둘 다 막혔으면 집에 관한 사실이 더 유용하다.
+
+합성 로그 3종 실측(온습도, 30일, 43,200 샘플, period 60s):
+
+| 트레이스 | 결과 |
+|---|---|
+| 여름·정상 재실 | 냉방 4행동 ENGAGED(on ×638, off ×132), 가습 3행동 WINDOW |
+| 여름·occupancy 항상 거짓 | 7행동 전부 UNMET(`@gv:occupancy ∈ [True]` 미관측) |
+| 여름·배포 고장 주입 | 해당 행동만 NONCONFORM(638/638), 나머지 불변 |
+
+**주의(논문 필수 명시)**: 미발화 ≠ 무효. 화재 경보가 30일간 조용한 것은
+정상이다. 따라서 무효 판정은 자동화하지 않고 분류만 제시한다. 결측 구간과
+창 길이를 함께 보고해 "증거의 부재"를 "부재의 증거"로 읽지 않게 한다.
 
 ---
 
-## 6. Speculative editing (디코딩 효율 기둥)
+## 4. 왜 엣지인가 (3단 논증)
 
-### 기본 구도
-- **Prompt 조건화 + draft는 별개 역할이며 상호 전제**: 스키마를 prompt에 넣어 모델을 "편집 모드"로 만들어야(출력 분포가 스키마 변형 쪽으로) draft acceptance가 성립. draft는 그 출력을 forward 병렬 채점으로 앞당기는 가속.
-- lossless speculation은 출력 분포 보존 → "품질 희생?" 공격 원천 차단. 단 latency만 풀지 보존(preservation)은 못 품 → lossy로 확장(아래).
+각 단이 서로 다른 "그냥 X 하면 되잖아"를 막는다.
 
-### Naive("유사 스키마 코드 통째로 tree") 예측 문제 P1~P5
-- **P1 slot-값 불일치 연쇄**(치명): 옛 값 토큰(디바이스명·threshold)이 코드 전역에 반복 등장 → 기각 연쇄 → acceptance 붕괴.
-- **P2 boilerplate 가짜 매칭**: `") {"` 같은 짧은 suffix가 여러 위치 매칭 → 오제안 연쇄.
-- **P3 삽입 후 정렬 붕괴**: 구조 편집 뒤 위치 재앵커링 과정에서 P2와 결합.
-- **P4 소형 모델 허위 기각**: acceptance 기준은 "draft가 맞냐"가 아니라 "모델 분포와 일치하냐" — 엔트로피 높은 모델은 올바른 draft도 기각.
-- **P5 Δ 근처 낭비**: 고정 k로 계속 들이밀면 편집 지점에서 검증 forward 낭비.
+1. **사양이 없으므로 이전 행동이 유일한 기준이다.** 무인 수리에서 "고쳤다"의
+   의미는 "죽기 전 하던 일을 다시 한다"뿐이다. 기준을 **물건으로** 만들어야
+   비교가 되는데, 코드 텍스트는 행동이 아니다(문법 같아도 의미 다르고 역도
+   성립). → 엣지 = 사양 없는 세계에서 "이전 행동"을 사양으로 물질화한 것.
+2. **기준은 완전해야 한다.** 부분 기준으로 고치면 관측되지 않은 행동이
+   조용히 부서진다. 그리고 필요한 판정이 전부 **부정 진술**이다("더는 못
+   한다", "결코 도달 못 한다"). 관측은 부정을 만들지 못한다.
+3. **사건이 터진 뒤엔 늦다.** 판정의 본질이 비교라 상대(고장 전 모델)가
+   미리 있어야 한다. 기기가 죽은 뒤엔 원래 무엇을 할 수 있었는지 복원 불가.
 
-### 처방 3종 세트 (설계 확정)
-1. **Instantiate-then-draft (선제 치환).** draft = 스키마 원본이 아니라 **새 IR의 값-Δ를 결정론 치환한 코드**("예상 최종 코드"). 치환 후 재토크나이즈(토큰 스플라이스 금지). → P1 소멸; draft는 구조-Δ 지점에서만 기각 = LLM의 진짜 일과 정확히 일치.
-2. **Δ-aware draft 스케줄링.** provenance(스키마에 저장)로 편집될 code-span을 디코딩 전에 앎 → frozen 구간 k=32~64, Δ span 안 draft off. + 최소 매칭 길이 임계·빈도 가중(P2·P3 완화).
-3. **Verifier-backed lossy acceptance.** 채택 기준 완화 → 원본(인증된 스키마) 쪽으로 편향 = 재추첨 드리프트 억제. 일반 codegen에선 위험하지만 **SMT gate가 뒤에 있어 이 시스템에서만 안전** — "verifier가 있으면 생성기를 대담하게 만들 수 있다"는 co-design 논지. (P4 대응 겸용.)
+### 4.1 엣지 필요성의 실증 (평가 항목 1호)
 
-### Tree 구성 (층)
-```
-층1: top-k(2~3) 검색 스키마의 치환본 → draft 채택 패턴이 곧 스키마 선택
-     ("speculative routing"; 기각 잦은 스키마는 bandit식 강등)
-층2: 이 집의 과거 인증 코드 코퍼스 (SuffixDecoding식 n-gram 폴백)
-층3: (repair 루프) 직전 iteration 자기 코드 — self-correction의 이상적 draft
-+ grammar-constrained scaffold: JoI 골격 토큰은 유효 토큰 1개 → forward 생략(free token)
-  → 디코딩 비용 ∝ 의미적 선택 지점 수 (관통 원칙 2와 일치)
-+ (repair에서) 목표 구조의 τ-템플릿 인스턴스를 draft로 = template-as-draft
-  ("컴파일러가 제안, LLM이 승인, SMT가 심판" — R1 방어와 접점)
-```
+같은 여름 30일 로그를 두 코드에 먹였다.
 
-### 선행연구 델타 (정직)
-prompt lookup decoding / SuffixDecoding / Cursor speculative edits가 계보. novelty는 speculation 자체가 아니라: **선제 치환(typed Δ를 알기에 가능) + provenance 기반 위치 인지 스케줄링 + 증명 backstop의 lossy 채택** 삼종 결합.
+| | 로그에 남은 가습기 액션 | 엣지 판정 |
+|---|---|---|
+| 원본 | 0건 | **WINDOW**(겨울 칸 미관측) |
+| `is_winter` 상실 변형 | 0건 | **VACUOUS**(영구 불가) |
 
----
+로그만 보면 두 집은 완전히 같다. 한쪽은 정상이고 한쪽은 고장이다.
 
-## 7. Feedback (C4) — repair 루프의 사용자 인터페이스
+### 4.2 기능별 정직한 분해
 
-- **Typed feedback**: `(slot-id, type, [new-value])`로 유한·타입화 (smt_and_feedback.md Part 2 표 유효).
-- **Router (V/S/E/R)**: V 값 변경→경로1(LLM 0·solver 0) / S 구조 변경→경로2, context는 기존 IR만 / **E scope 확장("B조명도")→delta grounding**: catalog 전체 재주입이 아니라 해당 항목만 retrieval — **기존 IR이 곧 upstream context의 인증된 압축**이므로 원명령·전체 catalog 불필요 / R 의도 전면 변경→정직하게 경로3 폴백. 오분류해도 verifier가 backstop이라 safety 무관, 효율만 갈림.
-- **Behavioral diff 확인**: 수정 전후 IR vs IR′의 minimal distinguishing timeline을 SMT로 합성해 제시("이 상황에서만 달라지고 나머지는 동일" — '나머지 동일'이 UNSAT 증명이라 sim으론 불가한 주장). 문서 전체 재독 불필요.
-- **보존성 주장(재생성 대비 핵심 우위)**: from-scratch 재생성은 무관 slot을 X% 확률로 변경(v1 instability 재활용해 측정) vs delta 경로는 0% + 증명. 재생성은 이 보존 보장이 원리적으로 불가.
-- **(강력 후보) MaxSMT trace-example repair**: 사용자 불평 = (시나리오 trace, 기대 행동) → slot을 심볼릭 승격, "이 시나리오에서 기대 행동 + 기존 확인 시나리오 보존"을 제약으로 **최소 slot 변경 Δ를 solver가 탐색**. 사용자는 아무것도 편집 안 함. 닫힌 slot 공간이라 성립(코드 공간에선 불가) — "왜 IR인가"의 최강 답. 평가: (gt, 오염) 쌍 + gt trace 주입 → 복원율. 분량 보고 포함 여부 결정.
+| 기능 | 엣지 없이 | 엣지가 더하는 것 |
+|---|---|---|
+| 발화 횟수·마지막 발화 | 로그로 됨 | 없음 |
+| 배포 불일치(NONCONFORM) | 코드를 로그로 재실행하면 됨 | 없음 |
+| **미발화 원인 분해** | 불가능 | 모집단 + 역상 |
+| **도달 불가 액션** | 불가능(퍼징은 "없었다"를 못 만듦) | 폐포 |
+| **부정 인증서(why-not)** | 불가능 | 폐포 |
+| **편집 동치 + 반례** | 유한 지평 SMT까지는 가능 | 무한 시간 승격 |
+| **발화율·지연 상한** | 불가능 | 전역 구조(사이클 산술) |
+| **시나리오 간 중복·충돌** | 텍스트 비교 실패 | 공통 표현 |
 
----
+엣지가 제공하는 원자 능력 5개: **모집단**(무엇이 존재하는가) / **역상**
+(무엇이 있어야 그것이 일어나는가) / **폐포**(무한 시간에 대한 "결코") /
+**전역 구조**(사이클→비율·지연) / **공통 표현**(비교·해시의 단위).
 
-## 8. Contributions 후보 (초안)
+### 4.3 선행 대비 위치
 
-- **C1 — Retrieve–edit–verify 아키텍처**: 생성·자가수정·사용자수정을 "인증물의 slot-level 수정 + 증명 상속"이라는 단일 연산으로 통일. 라이브러리는 self-bootstrapped(컴파일러 불필요)·home-specialized 성장. *"코드 재사용이 아니라 **증명 재사용**."*
-- **C2 — 반응형-시간 LLM 코드의 bounded-complete SMT 등가 검증**: landmark 압축·region abstraction·counter closed-form·linear fragment fail-closed. 임의 코드 심판 + fragment 내 완전성 정리. (보장 기둥)
-- **C3 — Incremental 재인증**: 파라미터 증명(값 수정 solve 0) + unsat-core support tracking + warm solver + verify-as-you-decode. edit-soundness를 기계적으로 담보.
-- **C4 — Provenance-guided speculative editing**: 선제 치환 draft + Δ-aware 스케줄링 + verifier-backed lossy acceptance. 수정 디코딩 비용 ∝ 의미적 선택 지점.
-- (+ evaluation: 순환 없는 방법론 — sim↔SMT differential, 반례 replay, real-trace)
+BFS + 메모이제이션은 **명시적 상태 탐색**이고 SPIN·TLC·JPF와 같은 계열이다.
+모델 추출 계보(Modex/FeaVer·Bandera), 술어 추상화(Graf-Saïdi·SLAM·BLAST),
+automata learning(L*), specification mining(k-tails·Daikon)도 전부 인용한다.
+델타는 셋이다.
 
----
+1. **입력이 모델이 아니라 배포물 자체** → 번역 간극 0. 인터프리터가 곧
+   의미론이다.
+2. **성질을 받지 않는다** → 의무를 코드에서 도출(K1 회피).
+3. **상태 공간을 소비하지 않고 산출물로 보관한다** → 모델 검사기는 성질
+   확인 후 버린다. 우리의 후속 기능이 전부 그 공간에 대한 질의다.
 
-## 9. Evaluation 계획 (전부 human-free)
-
-### RQ (초안)
-- **RQ1 gate 보장**: fragment coverage(382×3 생성물 중 linear fragment/fail-closed 비율), 반례 replay 재현율, sim↔SMT differential 일치율, v1 mutation 재활용(인코더 검증으로 강등 — 순환 아님을 명시).
-- **RQ2 retrieve-edit 효율**: leave-one-out 매칭률·Δ 분포·경로(1/2/3) 분포, LLM 호출/토큰 절감, freeform 대비 품질 A/B(앵커링 crossover 곡선 포함).
-- **RQ3 incremental 재검증**: zero-solve 비율(경로1 비중), core-교차 재검증 vs full 시간, edit-soundness 실증(closure 재검증 vs full의 verdict 일치 100%).
-- **RQ4 speculative editing**: acceptance 분해 ablation(naive → +선제치환 → +Δ스케줄링 → +lossy), wall-clock speedup, lossy의 보존 편향 정량화(무관 slot 변경률), lossy가 흘린 오류의 gate 포착 확인.
-- **RQ5 시스템**: cold-start 곡선(라이브러리 성장→경로3 비율 하락), on-device 비용(최초 full vs 수정), real-trace conformance(validation).
-- **Baseline**: LLM judge(v1 재사용), random/fuzz differential testing(리뷰어 필문: "랜덤 1000 trace 대비?" — 예상 답: 검출은 비슷할 수 있으나 완전성 정리 없음), from-scratch 재생성.
-
-### 우선 실험 (risk retirement 순 — §13와 동일)
-1. **Toy Z3 timing**: C08(rising)/C20(sustain)/C15(cron)/C22(counted) 손 인코딩 → obligation당/full solve 시간 실측. **전 설계의 비용 모델 확정. 1~2일.**
-2. **Leave-one-out 검색**: 382에서 τ-매칭률 + Δ 크기 분포 → 경로 분포 실증. ~1일 (τ-signature 코드 재사용).
-3. **Fragment coverage**: 기존 382×3 생성 로그 분류(linear/비선형/문법밖) → fail-closed율. 나쁘면 설계 재고 필요하므로 조기 확인.
-4. (보류 후보 검토용) consensus 예비: k-샘플 행동 다수결이 NL→IR 오류 59건을 얼마나 줄이나 — 기존 데이터로 가능.
+기술적으로 가장 강한 표현: **엣지 집합은 계산된 귀납 불변식이다.** 무한
+시간 주장에 필요한 불변식을 사람이 쓰거나 도구가 추측하는 대신 도달 가능
+상태 집합을 직접 계산한다. 사양 저작도 LLM의 추측도 필요 없는 이유가 이것.
 
 ---
 
-## 10. 리뷰어 리스크 & 방어
+## 5. 판정 층
 
-- **R1 "컴파일러 쓰면 되잖아"**: §1-2 방어 3종. Tier0/템플릿 서술이 컴파일에 수렴해 보이지 않게 주의. template-as-draft가 정직한 중간 답("템플릿은 prior, 저자는 LLM, 심판은 SMT").
-- **R2 "SMT가 sim보다 뭘 더 잡았나?"**: v1 survivor 11개 분석상 잔여 2건 = RMW = 비선형 = SMT도 fragment 밖. **detection delta ≈ 0을 인정하고 guarantee upgrade(순환 제거 + 완전성 정리 + unknown→명시적 fail-closed)로 claim.** 단 SMT는 v1 worst-case 8.4s(tick 밟기) tail을 없앨 수 있음 — "median 잃고 tail 얻는다".
-- **R3 "retrieve-and-edit은 알려진 기법"** (Hashimoto '18 등): novelty = 검색 대상이 (코드+**파라미터 증명**) 쌍 + 증명 상속 + speculation 결합. v1 τ-routing의 자연 심화라는 연속성도 유리.
-- **R4 "새 유형 시나리오 나오면?"**: 3중 방어 — ① 경로3 폴백 존재, gate는 retrieval에 무의존(안전 불변) ② 문법 G가 구조 공간을 유계로 묶음(신종은 "알려진 construct의 새 조합") ③ leave-one-out + cold-start 곡선 실측. **커버리지 완전성을 주장하지 말고 비용 모델("novel은 safe하게 정가, common은 fast")만 주장.**
-- **R5 앵커링(잘못된 base)**: gate가 추출 IR과 대조하므로 안전 불변, 손해는 효율뿐. A/B로 crossover 실측해 router 임계 근거화.
-- **R6 인코딩 TCB**: 반례 replay + sim differential + real-trace 3중.
-- **R7 oracle 부재("LLM 오역을 완벽 배포?")**: scope 정직 서술("우리가 제거하는 것은 silent mechanism divergence") + slot 오류=visible 원리 + 렌더링 disclosure + (검토) consensus.
-- **R8 일반화**: retargetable 구조 강조 — IR 인코딩·obligation·landmark·incremental은 플랫폼 독립, per-platform은 semantics 인코더뿐.
+### 5.1 코드 유도 의무 (사양 없음)
 
-### 설계공간 positioning 표 (논문 수록 추천)
-| 방식 | latency | 보장 | 임의 코드 |
+- **VACUITY**: 스크립트에 있는 액션이 닫힌 그래프의 어떤 엣지에서도 발화
+  안 함. 결함이거나 미진술 전제조건이며, 어느 쪽이든 호명해야 한다.
+- **SEED-DEP**: 미시드 스토어에서 출발하면 도달 불가한 액션 = 시나리오의
+  숨은 환경 전제조건. 실측 발견 1건(재실감지 occupancy).
+- **OVERLAP**: duration을 갖는 액션이 이전 점유가 끝나기 전에 재발화(그래프
+  위 Dijkstra). 실측: cooldown 600→5에서 "10s 점유 중 6s 재발화".
+- **COUNTER-CARRY**: 카운터가 달력 경계를 비초기값으로 넘음. 판정이 아니라
+  질문형("통산 3회인가 주말당 3회인가").
+- **자기동치**: 같은 코드끼리의 곱이 EQUIV여야 한다(과탐색 회귀 가드).
+
+### 5.2 동치와 바인딩 상대성
+
+관계형 곱을 lockstep으로 돌려 EQUIV/DIVERGE + 구체 반례(입력·깊이·dwell·
+액션 차이)를 낸다. 술어 집합은 양쪽 프로그램의 합집합.
+
+**핵심 실증**: 화재 시나리오에서 `∃재실` → `특정 1대` 변형이 k=1 환경에서
+EQUIV, k=2에서 DIVERGE(반례 = ps2만 재실 + 연기인데 변형이 대피 방송 누락).
+**동치는 코드의 성질이 아니라 바인딩의 성질**이라는 것의 실행 실증이며,
+"Certify once bind anywhere"의 정확한 한계를 규정한다.
+
+### 5.3 verdict 격자와 purpose liveness
+
+certified / degraded-visible / **invalid→halt** / defect (+undecided).
+필수 role 채널이 base에서는 도달 가능한데 아티팩트에서 VACUOUS면 invalid로
+강등한다. optional의 공허는 라벨 유지(오탐 중단 금지). base부터 공허면
+템플릿 저작 문제로 분리 표시.
+
+논문 문장: "시나리오는 장치 목록 검사가 실패해서가 아니라, **그 존재 이유가
+더 이상 발생할 수 없음이 증명되어** 중단된다."
+
+용어는 field-standard **purpose liveness / non-vacuity**만 쓴다. 선제 인용:
+vacuity detection(Beer et al.), KAOS obstacle analysis, Shelton&Koopman
+graceful degradation, SOC substitution. 신규성 = 공허성을 존속 판정 기준으로
+승격 + 중단 결정 구동 + 대체 탐색 실패 후에만 중단.
+
+---
+
+## 6. 네 트리거, 하나의 메커니즘
+
+메커니즘은 하나다. **변화가 생겼을 때 행동이 보존되는지 판정하고, 안 되면
+보존하는 방향으로 고친다.**
+
+| 트리거 | 계기 | 목표 | 자동화 |
 |---|---|---|---|
-| 컴파일러 lowering | ~1ms | by construction (컴파일러 신뢰 시) | ✗ |
-| 컴파일+구문 대조 | ~1ms | 불성립 (등가 변형 기각) | △ |
-| 템플릿 멤버십 | ~ms | 템플릿 범위 내 | ✗ |
-| sim trace-equiv (v1) | ~1ms (worst 8.4s) | 경험적 (샘플) | ✓ |
-| **SMT (v2)** | 초 (수정은 ms) | **fragment 내 완전성 정리** | ✓ |
+| **A 이식** | 환경이 다름(P1) | 원본 모델 | 보존율·부유 셀렉터 보고 + 재바인딩 |
+| **B 장애** | 기기 사망(P2) | 고장 전 모델 | 잃은 엣지 = 손실 목록 → 수리 |
+| **C 배포 불일치** | 센서·액추에이터가 코드 가정과 어긋남 | 고장 전 모델 | **객관 사실 판정이라 자동 수리 가능** |
+| **D 부적합** | 코드 의도가 이 집과 안 맞음 | 없음(오라클 부재) | 제안까지만 |
 
-"임의 코드 + 완전성 정리" 조합은 SMT 행뿐 — 이걸로 방어하고 latency로 방어하지 않는다.
+### 6.1 C가 자동화 가능한 이유 (판정 근거가 의도가 아니라 사실)
+
+1. **미충족 의존성**: 코드가 읽는 GV를 이 집의 어떤 자동화도 쓰지 않음.
+   패키지 의존성 문제와 같은 종류라 답이 하나다(생산자 설치 또는 작동 불가
+   확정).
+2. **기기 건강**: N일간 값 무변화, 선언 도메인 밖, 동종 센서와 지속 불일치.
+3. **단위·스케일 불일치**: 카탈로그 도메인과 코드 상수의 차원이 안 맞음.
+   실사례 = `공기질`의 `st_tvoc := 0.6`(토스트 문구상 mg/m³) vs 카탈로그
+   `TvocLevel`(ppb). **유저 판정 대기 중.**
+4. **액추에이터 무응답**: 명령 후 관련 상태 시계열이 **전혀** 안 움직임.
+   물리 모델이 아니라 **이진 반응성**만 요구하므로 경험적 전제의 위험이 작다.
+5. **죽은 바인딩**: 셀렉터가 가리키는 기기 소멸.
+
+### 6.2 D는 재설계이므로 제안까지만
+
+임계가 이 집 분포와 안 맞음, 집계 방식 선택(평균/최대/중앙값), 주기·상수
+조정. 무엇이 맞는지 알려주는 오라클이 없다. **C와 D를 섞으면 "수리와
+재설계를 혼동했다"고 정확히 찔린다.**
+
+### 6.3 자동 수리의 수락 게이트
+
+신뢰가 아니라 인증서로 자율성을 제한한다.
+
+```
+목표 = 이전 모델
+  → 후보 생성 (결정론 규칙 또는 로컬 sLLM)
+  → 가격표 = 엣지 차분 (무엇이 바뀌는지 정확히)
+  → 게이트: 잃은 엣지 0 ∧ 새 엣지는 호명된 것뿐  (Exact-change)
+  → 되돌리기 가능 + 인증서 로그
+```
+
+C에 속하더라도 이 게이트를 통과하는 것만 자동 적용한다.
+
+### 6.4 두 세계의 비대칭 (아키텍처의 도출)
+
+- **빼기 = 닫힌 세계**: 고장날 수 있는 것은 설치된 것뿐. (시나리오×role×장치)
+  유한 → 전수 오프라인 컴파일 + 인증 가능(contingency 표 70행, 오프라인
+  255ms, 런타임 룩업 0.12µs).
+- **더하기 = 열린 세계**: 도착할 수 있는 것(새 타입·새 의미론·새 단위)은
+  열거 불가 → 사전 컴파일 원리적 불가, **도착 시점 판정**만 가능.
+
+이 비대칭이 두 경로 아키텍처를 취향이 아니라 **세계의 열림성에서** 도출한다.
+열린 세계에서 미지의 장치를 판정 가능하게 하는 것이 role 계약이다.
+
+**추가의 4 케이스**: ①동일 타입 인스턴스 추가(수량자가 흡수 또는 단수 읽기
+trap으로 fail-closed) ②더 나은 후보 도착(개선 재바인딩; drop됐던 feature의
+복원 = drop의 역연산) ③**조금 다른 기능의 서비스 = 최난**(near-miss가 본론:
+터무니없는 대체는 아무 검사나 잡고, 그럴듯한 대체가 조용히 틀린다.
+Presence→MotionSensor가 실물) ④완전 새 기능(티어 2).
 
 ---
 
-## 11. 선행연구 포지셔닝
+## 7. LLM의 자리
 
-- **LACE**(back-translation+NLI): 가장 가까움. 차별 = 결정론 + 증명 + slot 구조.
-- **AwareAuto**: confirmable reactive-temporal 표현, lowered 코드 미검증.
-- **AutoIoT/TaskSense/AgentSpec/AutoTap 계열**: 결정론이나 고정 기준(conflict/well-formedness/safety rule) — intent-conformance 아님.
-- **Alive2/translation validation**: SMT 등가 계보. 우리 = reactive-temporal + on-device + repair 루프 통합.
-- **Retrieve-and-edit**(Hashimoto '18), exemplar codegen: 코드 재사용 계보. 우리 = 증명 재사용.
-- **Prompt lookup / SuffixDecoding / Cursor speculative edits**: draft 계보. 우리 = 선제 치환 + provenance 스케줄링 + lossy w/ 증명 backstop.
-- **Incremental SMT**(assumption-based solving, unsat core): 표준 기법. 우리 = provenance와 결합한 proof-support tracking으로 edit-soundness 담보.
-- ⚠️ 2차 자료 인용 전 원문 확인 (기존 가드 유지).
+### 7.1 티어 경계 (증명 가능성에서 도출)
+
+| 티어 | 수정 규모 | 처리 | LLM |
+|---|---|---|---|
+| 0 | 코드 무변경 | 재바인딩 β만 | 없음 |
+| 1 | 상수·기기·기능 단위 | typed edit(7 ops) + 재인증 | 델타 명명만 |
+| 2 | 구조 변경(새 guard·블록·역할) | 템플릿 재저작 | 후보 생성기 가능(미구현) |
+| ⊥ | 어느 층도 판정 불가 | reject + 이유 + 후보 | 없음(fail-closed) |
+
+깊은 이유: **새 채널은 비교 대상이 없다.** 곱은 old가 있어야 성립한다.
+LLM 개입 범위가 취향이 아니라 **증명 가능성의 경계에서** 도출되므로 "왜
+LLM을 더/덜 안 썼나" 질문이 무력화된다.
+
+### 7.2 LLM이 앉는 여섯 자리 (전부 후보 생성)
+
+| 자리 | 하는 일 | 틀려도 되는 이유 |
+|---|---|---|
+| 수리·편집 후보 생성 | 반례를 보고 패치 제안 | 엣지 차분 가격표 + 게이트 |
+| 자연어 편집 의도 해석 | "밤엔 하지 마" → 엣지 델타 후보 | 사용자가 사영된 행으로 확인 |
+| 호명된 잔여의 초안 | 스피커 문구·이메일 본문 | 인증 대상 밖이고 지목 승인 |
+| 카탈로그 주석 초안 | 기기 타입별 단위·도메인 | 1회 비준 후 차원 검사는 결정론 |
+| 탐색 순서 휴리스틱 | 무엇부터 볼지 | 순서는 답을 바꾸지 않음 |
+| D 트리거 자문 | "화재엔 평균보다 최댓값" | 게이트가 아니라 조언 |
+
+**인증된 자연어 렌더링**(설계): LLM이 만든 설명 문장을 다시 파싱해 원래
+술어 집합과 일치할 때만 채택한다. 생성은 LLM, 수락은 결정론.
+
+### 7.3 절대 두면 안 되는 자리
+
+미발화 원인 분류(VACUOUS/UNMET), 동치 판정, 수리 수락. 여기에 LLM이 들어가면
+우리가 공격하는 실패 양식을 우리가 재생산한다.
+
+**락 문장**: "시스템의 어떤 판정도 LLM의 올바름을 전제하지 않는다."
+
+### 7.4 티어 무관성 주장 (측정 가능)
+
+오라클이 있으면 모델 품질은 **정확성 변수가 아니라 처리량 변수**로 강등된다.
+측정: 제안 수 대비 도달률, one-shot vs 루프 ≤N회. 목표 문장 = "약한 모델 +
+루프 ≈ 강한 모델 단발".
 
 ---
 
-## 12. 보류 / 후속 아이디어 (버리지 않음)
+## 8. 고장 모델
 
-- **Behavioral consensus** (oracle 대체): NL→IR k-샘플을 SMT 등가로 클러스터링, 행동 다수결로 IR 확정; "다수 없음 = 해석 갈림 → fail-closed/차이 제시". draft-shared ensemble(후보1을 draft로 후보2~k 디코딩 — lossless라 독립성 보존, 비용 ∝ 모호함)과 세트. **R7 방어가 약하면 승격 검토.**
-- **Runtime conformance monitor**: IR-Sim streaming 모드로 허브 상주, 실 로그 vs 예측 상시 대조; divergence = 반례 → repair 루프 직행. horizon 밖·sim-현실 gap을 상설 커버. (v1 약점③의 시스템化 — 분량 되면 승격 가치 높음.)
-- **Retrospective grounding**: 집의 실제 센서 히스토리를 IR-Sim으로 counterfactual replay — "지난주에 있었다면 화 15:02 발화". 문서 예시의 현실 grounding + trace-feedback 자연 발생원. 데모 최강.
-- **Physics-constrained counterexample**: 반례 탐색에 센서 dynamics 제약(판정은 무제약 유지, 보고용 반례만 제약) 또는 2단 보장 격자.
-- **Semantically-minimal repair**: repair 후보 중 behavioral diff 최소인 것 선택.
-- **소형(<8B) 모델 + 클라우드 라우팅**: "스키마가 구조를, verifier가 정확성을 지므로 모델은 편집만" — 스케일 다운 논리. "생성은 어디서든, 검증은 로컬"(verification-anchored trust)로 클라우드 offload 안전화. **보류.**
-- **OVLA-Space** (compositional/공유상태): 후속작 유지.
-- User study: 제거 유지. efficacy는 future work 한 줄.
+### 8.1 6 고장 클래스 (구조 동일·무사 실행인데 틀림)
+
+| 클래스 | 사례 | 본질 |
+|---|---|---|
+| (a) 효과방향·능력 불일치 | 에어컨→선풍기: heat 없음·setpoint 없음 → 겨울 분기 유해 | 제어 루프의 물리 전제 붕괴 |
+| (b) 시간 특성 불일치 | presence(level)→motion(pulse): grace 10s 무력화 | 관용구 변환(latch 삽입) 강제 |
+| (c) 수량 변화의 quantifier 의도 | 연기감지기 1→2대: 화재는 any, 소등은 all, 온도는 avg | 구조 어디에도 없는 정보 |
+| (d) 값 도메인·단위·극성 | °F 센서 → `>25.5` 항상 참 → 24시간 냉방; 가습기→제습기 극성 반전 | 카탈로그 대조 층 |
+| (e) 시나리오 간 재배선 | 대체 선풍기를 #Office 플러그에 → 절전 제어가 밤마다 차단 | 간섭 그래프 변화 |
+| (f) 목적 공허·유해 | ModeToggle 사망: 보안모드는 돌지만 출근마다 침입 경보 | "돌 수 있는가"는 잘못된 질문 |
+
+### 8.2 시뮬레이터의 7클래스 검출 (E1 표 2, 기계 생성)
+
+| 고장 클래스 | 주입 | 판정 | 검출 층 |
+|---|---|---|---|
+| 경계 이동 | 침입 grace `>` → `>=` | DIVERGE | 곱(동치) |
+| 시간 상수 | 화재 cooldown 30분→3분 | DIVERGE | 곱 |
+| 엣지→레벨 | was_pushed 조건 삭제 | DIVERGE | 곱 |
+| 재알림 폭주 | 침입 cooldown 600→60 | DIVERGE | 곱 |
+| 배선(재배포) | 카메라 Office→Lobby | DIVERGE | 곱(불투명 토큰 출처 비교) |
+| 점유 겹침 | cooldown 600→5 | OVERLAP | 의무(Dijkstra) |
+| quantifier | ∃재실 → 특정 1대 | k=1 EQUIV / k=2 DIVERGE | 곱 × 바인딩 |
 
 ---
 
-## 13. 다음 할 일 (우선순위)
+## 9. 실측 종합 (증거 인벤토리)
 
-1. **Toy Z3 timing 실험** (§9 우선실험 1) — 비용 모델 확정. 이후 모든 설계 판단의 기준.
-2. **Leave-one-out 매칭률 + Δ 분포** (§9 우선실험 2) — 경로 분포 실증.
-3. **Fragment coverage 분류** (§9 우선실험 3) — fail-closed율 조기 확인.
-4. JoI subset formal semantics 정의 + 인코더 프로토타입 (JoI-Sim AST 재사용, 인터프리터→선언적 제약 "번역" 작업).
-5. 스키마 엔트리 포맷 + 라이브러리 시드 파이프라인 (382 → τ-class 스키마 일반화).
-6. MaxSMT repair / consensus / monitor 중 승격 대상 결정 (분량·실측 결과 보고).
+### 9.1 시뮬레이터 (`simulator/`, 2026-07-31~08-03)
 
-## 14. Venue
+- 코퍼스 10/10 그래프 닫힘, 자기동치 EQUIV, 미해명 술어 0(85.8% + GROUND 18).
+- 상태 1~320, 탐색 밀리초~23초. `python -m simulator.e1`(114s) → `runs/e1.md`.
+- 진짜 발견 1건: 재실감지 SEED-DEP(occupancy 시드 전제).
+- 콤보 dedup: 강수 468,750→768 엣지(610×), 판정·반례 불변.
+- 임의 신규 시나리오 즉석 판정 확인(온도-조명, 주기 토글 3종).
+- 사영: 278,516→21행(온습도), 액션 역상으로 절전 157행→그룹당 한 문장.
+- 배포 재생: 합성 로그 3종에서 4라벨 분류 실증 + 엣지 필요성 실증.
+- 이슈 로그 21건 전수(`simulator/README.md`), 과탐색 결함은 ＃21 하나뿐.
 
-- **FSE 2027 (10/2, ~11주)**: translation validation + incremental verification + SE 파이프라인 — 최적합. 타이트: SMT 코어+평가는 가능, slicing 등 hard part는 범위 축소(통짜 인코딩 우선).
-- 밀리면: MobiSys 2027 (12/5; monitor·retrospective 승격 시 적합), IMWUT 11/1, PerCom 9/11(촉박).
+### 9.2 적응 파이프라인 (`adapt/`, 2026-07-28)
+
+- **M-A 구조·패치**: ANTLR 파싱 T2 10/10 · T1 306/306, identity splice
+  전건 바이트 동일, 시그니처 불변 304/304. **`#AirConditioner`→`#Fan`
+  교체가 구조 diff에 안 보인다**는 것이 유닛테스트로 고정됨.
+- **M-B 템플릿 5종 + 효과 카탈로그**: role 커버리지 100%(63 device ref
+  orphan 0), **고장 주입 11/11**(AC→Fan abort, Presence→Motion abort,
+  가습기→제습기 극성 반전 자동 분류).
+- **M-C 바인딩 18/18**: capability × space 2축 술어, 실현(realize) 교체,
+  uncertified 실현은 abort. `needs_llm_choice` 플래그로 "모델의 자리"를
+  코드에 고정(sound 후보 2+일 때만).
+- **M-D 슬라이서 23/23**: 안전 규칙 4(essential drop 금지·live 액추에이터
+  보호·if/else 분리 금지·undefined survivor 금지), 전부 위반 시 escalate.
+  "25→26" 데모: 26.0 통과 / 24.0은 band 검사 거부 / 99는 domain 거부.
+- **M-E contingency 70행**: 5템플릿 × 14장치, 오프라인 255ms, abort 4 /
+  keep 56 / redeploy 10 / escalate 0. stale 표 거부(소스 해시 불일치).
+- **M-H editir**: 규칙 14케이스 + 자유 표현 6케이스 ALL PASS(로컬 vLLM
+  Qwen3.5-9B-AWQ). 함정 4종 정확 거부(모호 앵커·coordinated-change·
+  essential·무관 요청).
+- **T1 편집 벤치**: 191케이스/158베이스, 전건 왕복 검증, 복원 실패 0.
+
+### 9.3 인증 엔진 (`smt/`, 2026-07-28)
+
+- Gate 306/307(99.7%), DIVERGE 21/21 재현, FP 0 / E-B 1,225/1,227(99.8%),
+  MISS 0 / M2.6 템플릿 4종 49/72, 0.16ms, K-무한정.
+- relational miter: 자기동치 196/196 EQUIV, 씨딩 편집 104/104 검출 +
+  정확 localize, drop 130/130 검출 + 사영 증명.
+- **M-J tick induction**: redeploy 10행 중 5행 무한-시간 승격, 행당
+  0.02~0.09초(bounded 대비 ~1000×). movetocolor TIMEOUT 2건 해결.
+- **M-G redeploy 인증**: intrusion 3행 완전 인증, **thermo 교차
+  localization**(ts1 사망→가습 채널 EQUIV·온도만 DIVERGE), ap1에서
+  **부분 채널 검출**(슬라이서가 허용한 notifier collateral을 곱이 적발).
+
+### 9.4 베이스라인 (eval 1호 그림 데이터)
+
+- **B1 naive 슬롯 치환(=SO 미들웨어/IoTGPT식)**: 복잡도 판별 곡선 T1(cx1)
+  **100%** → section(cx11) 46% → air(cx16) 62% → **thermo(cx18) 29%**.
+  **핵심 수치: 118/120 셀에서 무사 배포되는데 그중 42%(50셀)가 조용한 계약
+  위반.** 고장 클래스 분포 a=256·b=8·c=4·d=5.
+- **B5 계약 없는 AST patcher**: soundness가 B1과 **120/120 완전 일치** →
+  "Structure is preserved; correctness is not"의 데이터 행 실증.
+- **B3 LLM 전체 재출력(Cursor식, temp 0)**: 원문 라인 생존율 89%(11% 무단
+  재출력), **항등성 대조 5/5 전부 실패**(같은 집에 적응 = 정답은 무변경인데).
+  논문 문장: "재출력은 보존을 보장할 수 없다가 아니라, 가장 온순한 설정에서
+  조차 보존을 **실제로 하지 않는다**."
+
+### 9.5 지연 (두 경로)
+
+- 런타임(장치 고장): 표 룩업 + stale 검사 **0.12µs**.
+- 오프라인(야간): contingency 컴파일 82ms/템플릿 + 인증 중앙값 **0.06s**/행.
+- 편집(NL): 규칙 경로 **~0.1초**(증명서 포함), 자유 표현은 sLLM 17.7s 지배.
+
+---
+
+## 10. 평가 설계
+
+### 10.1 프레이밍 락 — "% 없는 eval"
+
+정확도 %는 주인공이 아니다. 조건부 정리와 전수 표로 쓴다. %가 나오는 유일한
+곳은 "코퍼스의 몇 %가 선언 범위 안"이라는 한계 서술이다.
+
+- **E1 전수 표**: 범위 선언 후 obligation 전수(증명 / 의도된 반례 / 범위 밖
+  **건별 호명**). 이미 기계 생성됨(`simulator/runs/e1.md`).
+- **E2 엣지 필요성 ablation**(신규, §4.2 표의 각 행): 가장 강한 비-그래프
+  대안(퍼징·정적 도달성·로그 분석·유한 지평 SMT)을 실제로 돌리고 무엇을
+  말하지 못하는지 보인다. 1호 = 같은 로그 WINDOW vs VACUOUS.
+- **E3 고장 주입**: 클래스별 전수 표 + 음성 대조(정상 변형 전부 통과, FP 0).
+- **E4 mutation-until-dry**: 생존 0 도달 또는 잔여 전 건 범위 귀속.
+- **E5 베이스라인 head-to-head**: 검출률 + **검출까지 시간**("soak은 11일
+  또는 영원히 못 밟는 fault를 4초에 증명").
+- **E6 엔진 자체 검증**(신규): 구체 실행 대조를 상설 회귀 가드로. ＃21을
+  잡은 방법의 상설화. 자기동치는 양쪽이 똑같이 틀리면 통과하므로 과탐색
+  방향의 가드가 되지 못한다.
+
+검정 단위 = **(시나리오 × 고장 × 의무) 조합 전수** → N=9 취약점(K8) 해소.
+
+### 10.2 베이스라인
+
+| 이름 | 무엇 | 검정 대상 |
+|---|---|---|
+| B0 무적응 | 그대로 배포 | 문제 존재 |
+| **B1 naive 슬롯 치환** ★ | SO 미들웨어/IoTGPT식 | C1 핵심 + 복잡도 곡선 |
+| **B3 LLM 전체 재출력** ★ | Cursor식 실무 | 보존 실패 |
+| **B5 계약 없는 AST patcher** ★ | 결정론 편집만 | 구조 규율의 한계 |
+| B6 IoTRepair식 정책 | 재시도·무시·폴백 | 목적 판정 부재와의 차이 |
+| B7 LLM-as-judge | 검사 대신 LLM 판정 | 검증층 필요성 |
+
+### 10.3 아직 없는 것 (중요도 순)
+
+1. **코퍼스 규모**: 시나리오 10개는 작다. "여기 맞춰 튜닝한 추상화"라는
+   질문은 정당하다. → HA 프론트엔드 + 블루프린트 코퍼스로 단편 소속 실측이
+   가장 값이 큰 투자.
+2. **실기기 데이터**: 트리거 C의 5항목 중 4개가 로그와 카탈로그 도메인을
+   요구한다. 유저 제공 대기(실기기 목록·GV 스토어·센서 도메인/단위).
+3. **자동 수리 루프**: 게이트 설계는 섰고 후보 생성·적용이 없다.
+4. **복합 시나리오(P4)**: `composite.py` 초안 미검증. HA를 타깃으로 삼으면
+   여러 자동화가 한 엔티티 저장소를 공유하므로 선택이 아니라 필수가 된다.
+
+---
+
+## 11. 한계 — 못 잡는 것 전수 목록
+
+구분이 핵심이다. **표면화되며 못 잡는 것**(호명되고 멈춤)과 **certified
+도장을 받고 조용히 새는 것**(위험)은 다르다.
+
+### 11.1 조용히 새는 9
+
+①base 자체 오류(**omission**: 코드에 없는 조건은 경계도 없어 문제가 출제되지
+않음 = 구조적 사각) ②요청 자체의 오류 ③파라미터 부적정(20도가 이 집에 안
+맞음 = 트리거 D) ④물리 피드백과 액추에이터 간섭(코드 그래프 밖 에지)
+⑤카탈로그와 실장치의 괴리 ⑥시나리오 간 조합 타이밍·레이스(P4) ⑦공통모드
+toolchain 버그 ⑧이중 사각(관용구 어휘에도 mutation 연산자에도 없는 유형)
+⑨문자열 의미(동작 보존인데 문구가 상황과 어긋남).
+
+### 11.2 호명되고 멈추는 4
+
+tick 사이 연속시간(모델 선언) / UNSUPPORTED(건별) / TIMEOUT(에스컬레이션) /
+표면화 후 사람 판단(fail-closed는 배포만 막는다).
+
+### 11.3 단편 밖
+
+비선형·동적 임계(임계값 자체가 센서 계산), 래치된 센서값과의 후행 비교,
+HA의 queued·parallel 모드(실행 인스턴스 큐), 임의 Jinja 템플릿, 값 계산의
+내포적 표현(사영이 외연적으로 퇴화하는 자리).
+
+**논문 처리**: 3라벨로 나눈다. 스코프 선언(①②③) / 완화 존재(⑤⑦) /
+정직한 한계(④⑧⑨). 숨긴 99.3%는 공격당하고 호명한 목록은 방어선이 된다.
+
+---
+
+## 12. 집필 골격
+
+### 12.1 §1 등뼈 — 세 질문
+
+| 질문 | 판정 층 | 실패 모드 | 실측 |
+|---|---|---|---|
+| Q1 거기서 실행될 수 있는가 | 2축 바인딩 + role 계약, 6클래스 | 배포되는데 계약 위반 | B1 118/120 배포 중 42% 위반 |
+| Q2 여전히 하던 일을 하는가 | 곱 + induction, 채널 단위 | 의도 밖 행동 변화 | B3 항등 0/5, 11% 무단 재출력 |
+| Q3 여전히 존재할 이유가 있는가 | purpose liveness | 구조·행동 통과인데 필수 채널 영구 불가 | VACUOUS 실측 + 음성 대조 |
+
+각 층의 검사만으로는 위 층의 실패가 안 보인다. 층을 하나씩 빼면 조용한
+실패가 정량으로 드러나는 ablation이 문제 진술에 내장된다.
+
+**§1 오프닝 후보**: 한 집의 단일 스토리로 세 층을 관통. 이사(Q1 재바인딩)
+→ 제습기 장애 대체(Q2 보존) → 재실 센서 사망·무대체(Q3 중단). 예시는
+cooldown + hysteresis + 수량자를 포함해 **TAP으로 오독 불가능하게** 짠다.
+
+### 12.2 §1 세 축
+
+- **무엇을 판정하나** = Q1~Q3
+- **언제 판정하나** = 닫힌 세계(사전 전수) vs 열린 세계(도착 시점)
+- **왜 로컬이어야 하나** = P1~P5
+
+### 12.3 TAP 저평가 방어 4겹
+
+1. **용어 락(v1 이월)**: "reactive-temporal code vs TAP rules"를 첫 페이지에
+   선언 + v1 Table 1의 4칼럼(상태·시간·수량·다채널) 재활용.
+2. **구성적 반박**: "배치만 잘하면"은 문자 그대로 B1(+B5)이고 이미 측정됐다.
+   리뷰어의 제안을 베이스라인으로 실체화해 논변이 아니라 측정으로 답한다.
+3. **양보 구조**: TAP급 복잡도에서는 배치만으로 100%임을 먼저 인정하고,
+   "우리 문제는 TAP에서 시작하지 않는다"고 명시(100%→29% 곡선).
+4. **선행 인용**: SafeTAP 등 TAP 계보 + v1 인벤토리 락("TAP=intent EMPTY").
+
+### 12.4 이웃 인용 (novelty 방어선)
+
+**인정하고 선제 인용할 것**: 명시적 상태 탐색(SPIN·TLC·JPF) / 모델 추출
+(Modex·Bandera) / 술어 추상화·CEGAR(Graf-Saïdi·SLAM·BLAST) / timed automata
+(Alur-Dill·UPPAAL) / 하드웨어 EC·SEC(miter·k-induction) / 차분 검증(RVT·
+SymDiff·differential assertion checking) / refactoring 엔진 / Coccinelle·
+SmPL / SPL·variability-aware 검증 / ENTRUST·QoSMOS / Lustre·SCADE·Simulink·
+Node-RED / 슬라이싱(Weiser·Horwitz-Reps) / automata learning·spec mining.
+
+**남는 신규성**: ①도메인 적합 이산화의 실현 가능성 결과("작다") ②의도된
+다름의 4분 판정(2값 EQUIV/DIVERGE를 계약으로 열화·결함·무효로 분화)
+③바인딩 상대성이라는 발견 ④행동 모델을 보관해 만든 질의 층(사영·재생·역상).
+
+**전략 한 줄**: "어떻게 증명하나 = 기존 기술 / 무엇을 증명 대상으로 삼고
+다름을 어떻게 분류하나 = 우리 것."
+
+**인용 전 원문 확인 필요(락)**: differential assertion checking,
+Shelton&Koopman, commit untangling, Beer et al. vacuity, Modex/FeaVer.
+
+### 12.5 K1(v1 킬러) 재발 방어
+
+v1 리젝 사유는 "문제를 사용자에게 옮겼다"였다. 이번 구성에서 사용자는
+**아무것도 저작하지 않는다.** 의무는 코드에서 나오고, 사용자의 일은 저작
+(recall)이 아니라 **지목된 것의 확인**(recognition)이다. 서론에서 한 문단으로
+명시한다.
+
+### 12.6 Home Assistant 이식 (일반성 주장의 실체)
+
+탐색기가 요구하는 것은 `step(상태, 입력, 시각) → (액션, 다음 상태)` 하나뿐이다.
+포팅 = HA용 step 작성.
+
+- **그대로 가는 것**: 술어 추상화, 시간 zone, BFS+메모, 점프, 의무층, 곱,
+  그라운딩(blueprint `input:` = 바인딩 β).
+- **새로 만들 것**: ①이벤트 구동 의미론(tick 격자는 JoI의 성질이지 탐색기의
+  요구가 아니다. dwell이 이미 일급이라 오히려 자연스럽다. `time_pattern`은
+  주기형과 정확히 대응) ②**연속 실행 상태**(delay·wait_for_trigger·repeat →
+  프로그램 카운터 + 깨어날 시각. 최대 신규 공수) ③mode 의미론(single·restart는
+  유한, queued·parallel은 호명) ④Jinja 부분집합 ⑤`unavailable`/`unknown`
+  상태(오히려 선물: P2 고장 클래스가 네이티브 상태값이 된다).
+- **샘플링 vs 푸시**: JoI는 샘플링이라 tick 사이 전이를 놓칠 수 있고 HA
+  상태 트리거는 놓치지 않는다. 고장 클래스 구성이 달라진다.
+- **의미론 충실성 방어**: HA를 헤드리스로 띄우고 같은 이벤트 시퀀스로 실제
+  트레이스와 대조(translation validation). ＃21을 잡은 방법의 확장판.
+
+---
+
+## 13. 용어·문구 락
+
+- 금지어: **verified / model-checked / sound-acceptance / bounded-completeness**.
+- **"실시간" 금지** → 무인(unattended) 온라인 적응. 예산은 마이크로초가
+  아니라 "다음 이벤트 전까지".
+- **"한 번 인증하면 어디서든" 단독 사용 금지** → 재탐색을 전제로 쓴다.
+  (동치는 바인딩의 성질이므로 자기모순이 된다.)
+- 정확도 % 금지(조건부 정리와 전수 표). % 허용 = 범위 서술 한 곳.
+- 내부 조어 금지. field-standard 용어만(§3.1 대응표).
+- 산문에 em dash 금지. 일본어 금지(한국어/영어).
+- LLM 관련 문장은 "후보 생성"·"제안"으로만. "NL 이해"·"생성 정확도 X%" 금지.
+- 사영·요약을 보고할 때는 **커버한 엣지 수를 항상 병기**(no silent caps).
+
+---
+
+## 14. 보류함 (재론 방지: 결론과 이유)
+
+| 항목 | 결론 | 이유 |
+|---|---|---|
+| GPU 병렬 탐색 | 기각 | 추상화가 성공하면 상태공간이 붕괴. GPU가 필요해지는 순간 = 추상화 실패 신호 |
+| SMT solver를 IoT용으로 변형 | 기각 | 병목이 아님(induction 0.06s). 선행 두껍고 학회 미스매치. 돌파구는 solver가 아니라 obligation 설계 |
+| MLP 대리 모델 훈련 | 기각 | 근사 오차가 판정 경로에 들어오면 그것이 곧 silent-wrong |
+| v1 이벤트 추출 소형 모델 | 기각 | 검사 경로에 학습 모델 = under-extraction이 silent-miss. 크기가 아니라 위치 문제 |
+| 엣지에서 코드 생성 | 기각 | spec 저작 문제의 재판. 값 계산은 표로 환원되지 않음(실측) |
+| 물리 포락선(plant model) | 보류 | 경험적 전제 도입. 실기기 로그 필요. 단, 이진 반응성 판정은 트리거 C에 채택 |
+| 입고 lift(schema-on-write) | 보류 | 매력적이나 별도 논문 규모. verified lifting 선행 확인 필요 |
+| 전수 템플릿 DB | 흡수 | "곱이 아니라 축"으로 재해석되어 skeleton family + 주문형 구체화로 흡수 |
+| 얽힘 지수(슬라이스 Jaccard) | 실험 후보 | 저비용. B1 곡선 x축의 예측 변수 가설 |
+| CHC/Spacer invariant 합성 | 보류 | 파일럿 1건 하루 규모. 현재 병목 아님 |
+| 시나리오 그래프화(HHTPG) | 부분 채택 | 그래프를 기여라 하면 죽고 그래프 위의 판정을 기여라 하면 산다. Fig 2 자리 |
+| Exact-change 인증서 | **채택** | 자동 수리 게이트로 승격(§6.3) |
+| 복합 시나리오 곱(P4) | TODO | `composite.py` 미검증. HA 타깃 시 필수화 |
+
+---
+
+## 15. 다음 할 일
+
+1. **구체 실행 대조 회귀 하네스**(E6) — 과탐색 방향의 상설 가드. 반나절.
+2. **싼 질의 3종**: 발화율·지연 상한(사이클 산술) / 부정 인증서(why-not) /
+   설치 전 행동 손실 보고서. 전부 기존 그래프 위 연산이라 코어 무변경.
+3. **HA 프론트엔드 부분집합 + 블루프린트 코퍼스 단편 실측** — 규모와 일반성
+   동시 해결. 최대 투자.
+4. **자동 수리 루프**(후보 생성 → 엣지 차분 → 게이트).
+5. **복합 시나리오 곱**(P4) 검증.
+6. **유저 판정 대기 2건**: M2 기본 K, `st_tvoc` 단위(mg/m³ vs ppb).
+7. **집필**: §1(문제·세 질문·P1~P5·HA 야생 증거) → §2(기여) → §3~§6(기계·
+   판정·트리거) → §9(실측) → §10~§11(평가·한계).

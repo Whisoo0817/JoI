@@ -1,0 +1,83 @@
+{
+  "_meta": {
+    "schema": "adapt/composites v0",
+    "authored": "2026-07-28",
+    "why": [
+      "A composite service (SoPIoT vocabulary) is an abstract operation with a",
+      "post-condition contract and per-device *realizations* — concrete call",
+      "sequences certified to satisfy the contract. Substitution is judged and",
+      "performed at composite granularity: a device can replace another for a",
+      "role iff it has a certified realization of every composite the role uses.",
+      "Realizations are compile-time adapters: instantiation splices the target",
+      "device's call sequence into the code; nothing is resolved at runtime.",
+      "A realization without a contract cannot exist in this file by schema;",
+      "certified=false realizations are usable only via fail-closed escalation."
+    ],
+    "certification": "certified=true means the realization has an offline proof obligation discharged (M2.6-style); v0 marks the corpus-native sequences certified-by-construction since the source scenarios themselves passed the gate."
+  },
+
+  "reach_target_temperature": {
+    "params": ["mode", "target"],
+    "contract": "After the sequence, the device is powered and configured so room temperature moves toward `target` (down when mode=cool, up when mode=heat), closed-loop; a later stop() halts the effect.",
+    "affects": [{"property": "temperature", "direction": "toward_target", "closed_loop": true}],
+    "stop": "switch.off",
+    "realizations": {
+      "AirConditioner": {
+        "certified": true,
+        "sequence": [
+          {"member": "switch_on", "args": []},
+          {"member": "airConditioner_setAirConditionerMode", "args": ["{mode}"]},
+          {"member": "airConditioner_setTargetTemperature", "args": ["{target}"]}
+        ],
+        "note": "The 온습도 skeleton's three consecutive calls are exactly this realization; certified by the v1 gate on the source scenario."
+      }
+    }
+  },
+
+  "humidify": {
+    "params": ["level"],
+    "contract": "After the sequence, the device is powered and raising room humidity (closed-loop); a later stop() halts the effect.",
+    "affects": [{"property": "humidity", "direction": "up", "closed_loop": true}],
+    "stop": "switch.off",
+    "realizations": {
+      "Humidifier": {
+        "certified": true,
+        "sequence": [
+          {"member": "switch_on", "args": []},
+          {"member": "humidifier_setHumidifierMode", "args": ["{level}"]}
+        ]
+      }
+    }
+  },
+
+  "purify_air": {
+    "params": [],
+    "contract": "After the sequence, the device is powered and lowering particulate/VOC levels (closed-loop); a later stop() halts the effect. The device's power state is readable as switch.switch.",
+    "affects": [
+      {"property": "pm10", "direction": "down", "closed_loop": true},
+      {"property": "pm25", "direction": "down", "closed_loop": true},
+      {"property": "pm1", "direction": "down", "closed_loop": true},
+      {"property": "tvoc", "direction": "down", "closed_loop": true}
+    ],
+    "stop": "switch.off",
+    "realizations": {
+      "AirPurifier": {
+        "certified": true,
+        "sequence": [{"member": "switch_on", "args": []}]
+      }
+    }
+  },
+
+  "indicate_state": {
+    "params": ["x", "y", "transition"],
+    "contract": "The device visibly assumes the colour (x, y); its current colour is readable back (currentX/currentY), so band guards can suppress redundant commands.",
+    "affects": [{"property": "color", "direction": "set", "closed_loop": false}],
+    "stop": null,
+    "realizations": {
+      "Light": {
+        "certified": true,
+        "sequence": [{"member": "light_moveToColor", "args": ["{x}", "{y}", "{transition}"]}]
+      }
+    }
+  }
+}

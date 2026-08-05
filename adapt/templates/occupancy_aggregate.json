@@ -1,0 +1,169 @@
+{
+  "id": "occupancy_aggregate",
+  "name": "재실 상태 감지",
+  "purpose": "Publish one building-wide occupancy flag: occupied when any section reports presence, and write it only when the aggregate actually changes.",
+  "source_ref": {
+    "corpus": "paper_v2/joi_automation_codes.json",
+    "index": 5
+  },
+  "features": {
+    "aggregate": "or-fold over the per-section flags (core purpose)"
+  },
+  "roles": [
+    {
+      "role": "SECTION_SOURCES",
+      "purpose": "Per-section presence flags produced by the section scenarios.",
+      "essential": true,
+      "cardinality": "one_or_more",
+      "quantifier_intent": "any",
+      "on_unavailable": "degrade",
+      "sources": [
+        {
+          "tags": [
+            "GlobalVariable"
+          ],
+          "members": [
+            "globalvariable.getboolean"
+          ]
+        }
+      ],
+      "gv_keys": [
+        "occupancy_section_E",
+        "occupancy_section1",
+        "occupancy_section2",
+        "occupancy_section3",
+        "occupancy_section4",
+        "occupancy_section5",
+        "occupancy_section6"
+      ],
+      "requires": {
+        "kind": "namespace",
+        "temporal": "level"
+      },
+      "note": "`any`, not `all`: presence anywhere means the building is occupied. Swapping the quantifier keeps the structure identical and inverts the purpose (fault class (c)). Losing one section degrades coverage but keeps the scenario meaningful — hence degrade, not abort."
+    },
+    {
+      "role": "OCC_SINK",
+      "purpose": "The published aggregate every consumer scenario reads.",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [
+        {
+          "tags": [
+            "GlobalVariable"
+          ],
+          "members": [
+            "globalvariable.getboolean",
+            "globalvariable.setboolean"
+          ]
+        }
+      ],
+      "gv_keys": [
+        "occupancy"
+      ],
+      "requires": {
+        "kind": "namespace",
+        "temporal": "level"
+      },
+      "note": "Read and write of the same key: the read is the write-on-change guard, not an input of the aggregate."
+    }
+  ],
+  "params": [
+    {
+      "name": "occupancy_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy"
+      },
+      "base_value": "occupancy"
+    },
+    {
+      "name": "section_e_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy_section_E"
+      },
+      "base_value": "occupancy_section_E"
+    },
+    {
+      "name": "section_1_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy_section1"
+      },
+      "base_value": "occupancy_section1"
+    },
+    {
+      "name": "section_2_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy_section2"
+      },
+      "base_value": "occupancy_section2"
+    },
+    {
+      "name": "section_3_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy_section3"
+      },
+      "base_value": "occupancy_section3"
+    },
+    {
+      "name": "section_4_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy_section4"
+      },
+      "base_value": "occupancy_section4"
+    },
+    {
+      "name": "section_5_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy_section5"
+      },
+      "base_value": "occupancy_section5"
+    },
+    {
+      "name": "section_6_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy_section6"
+      },
+      "base_value": "occupancy_section6"
+    }
+  ],
+  "contracts": [
+    {
+      "id": "O1",
+      "kind": "direction",
+      "checkable": "smt",
+      "statement": "The published flag is the OR of the section flags."
+    },
+    {
+      "id": "O2",
+      "kind": "guarded",
+      "checkable": "smt",
+      "statement": "A write happens only when the aggregate differs from the stored value (write-on-change)."
+    },
+    {
+      "id": "O3",
+      "kind": "gating",
+      "checkable": "smt",
+      "statement": "The scenario has no effect other than writing the aggregate key."
+    },
+    {
+      "id": "O4",
+      "kind": "vacuity",
+      "checkable": "static",
+      "statement": "Every section key read is referenced in the or-fold; adding or removing a section must update both places.",
+      "note": "The section list is enumerated by hand — this is the one place in the corpus where a device-count change costs 41% of the file, and the reason a count-parameterised (N-way) template is wanted."
+    }
+  ],
+  "validity": {
+    "section_count": 7,
+    "note": "Sections are GlobalVariable keys, not devices: verification treats them as free inputs (GV lock), so this template is scenario-local like the others."
+  }
+}

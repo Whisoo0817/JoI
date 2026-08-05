@@ -1,0 +1,98 @@
+{
+  "comment": "editir benchmark v0 — NL edit requests over the T2 skeletons. kinds: param_change | device_swap | feature_drop | env_adapt | reject. 'contains'/'absent' are checked on the patched output; 'candidates_min' on rejected ambiguity.",
+  "cases": [
+    {"id": "E01", "template": "thermo_comfort",
+     "nl": "여름 최고 온도 25.5도를 26도로 바꿔줘",
+     "expect": {"kind": "param_change", "contains": ["26"], "absent": ["25.5"]},
+     "e2e": {"unaffected": "sethumidifiermode/1", "affected_any": ["settargettemperature/1", "setairconditionermode/1"]}},
+
+    {"id": "E02", "template": "thermo_comfort",
+     "nl": "50을 55로 바꿔줘",
+     "expect": {"kind": "reject", "candidates_min": 2}},
+
+    {"id": "E03", "template": "thermo_comfort",
+     "nl": "여름 습도 50을 55로 바꿔줘",
+     "expect": {"kind": "param_change", "anchor_contains": "min_humid_summer",
+                "contains": ["55"]}},
+
+    {"id": "E04", "template": "thermo_comfort",
+     "nl": "에어컨 말고 선풍기로 교체해줘",
+     "expect": {"kind": "device_swap", "contains": ["#Fan"],
+                "absent": ["#AirConditioner"]}},
+
+    {"id": "E05", "template": "thermo_comfort",
+     "nl": "가습기는 빼줘",
+     "expect": {"kind": "feature_drop", "drop_applies": true,
+                "absent": ["Humidifier"]}},
+
+    {"id": "E06", "template": "intrusion_alert",
+     "nl": "스피커는 빼줘",
+     "expect": {"kind": "feature_drop", "drop_applies": true,
+                "absent": ["Speaker"]}},
+
+    {"id": "E07", "template": "intrusion_alert",
+     "nl": "토스트는 빼줘",
+     "expect": {"kind": "reject", "reason_contains": "essential"}},
+
+    {"id": "E08", "template": "intrusion_alert",
+     "nl": "120초를 60초로 바꿔줘",
+     "expect": {"kind": "param_change", "anchor_contains": "grace_sec",
+                "contains": ["60"]}},
+
+    {"id": "E09", "template": "air_quality",
+     "nl": "800을 1000으로 바꿔줘",
+     "expect": {"kind": "reject", "candidates_min": 2,
+                "comment": "800 lives in a guard AND a config constant — a coordinated change; guessing one desyncs them"}},
+
+    {"id": "E10", "template": "air_quality",
+     "nl": "연결된 장치에 맞춰 수정해줘",
+     "expect": {"kind": "env_adapt"}},
+
+    {"id": "E11", "template": "thermo_comfort",
+     "nl": "내일 날씨 알려줘",
+     "expect": {"kind": "reject"}},
+
+    {"id": "E12", "template": "section_presence",
+     "nl": "10초를 30초로 바꿔줘",
+     "expect": {"kind": "param_change", "anchor_contains": "absence_grace_sec",
+                "contains": ["30"]}},
+
+    {"id": "E13", "template": "thermo_comfort",
+     "nl": "온도를 바꿔줘",
+     "expect": {"kind": "reject"}},
+
+    {"id": "E14", "template": "thermo_comfort",
+     "nl": "replace the aircon with a fan",
+     "expect": {"kind": "device_swap", "contains": ["#Fan"],
+                "absent": ["#AirConditioner"]}},
+
+    {"id": "L01", "backend": "llm", "template": "thermo_comfort",
+     "nl": "여름엔 좀 시원하게, 26도 기준으로 맞춰줘",
+     "expect": {"kind": "param_change", "anchor_contains": "max_temp_summer",
+                "contains": ["26"], "absent": ["25.5"]}},
+
+    {"id": "L02", "backend": "llm", "template": "thermo_comfort",
+     "nl": "에어컨 대신에 선풍기를 쓰고 싶은데",
+     "expect": {"kind": "device_swap", "contains": ["#Fan"],
+                "absent": ["#AirConditioner"]}},
+
+    {"id": "L03", "backend": "llm", "template": "intrusion_alert",
+     "nl": "침입 알림에서 음성 안내는 필요 없어",
+     "expect": {"kind": "feature_drop", "drop_applies": true,
+                "absent": ["Speaker"]}},
+
+    {"id": "L04", "backend": "llm", "template": "air_quality",
+     "nl": "미세먼지 PM10 경고 기준을 100으로 올려줘",
+     "expect": {"kind": "param_change", "anchor_contains": "st_pm10",
+                "contains": ["100"]}},
+
+    {"id": "L05", "backend": "llm", "template": "thermo_comfort",
+     "nl": "고마워! 오늘 날씨 좋다",
+     "expect": {"kind": "reject"}},
+
+    {"id": "L06", "backend": "llm", "template": "section_presence",
+     "nl": "자리 비운 걸 확정하기까지 좀 더 기다렸다가, 한 30초 정도로",
+     "expect": {"kind": "param_change", "anchor_contains": "absence_grace_sec",
+                "contains": ["30"]}}
+  ]
+}

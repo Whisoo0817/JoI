@@ -1,0 +1,101 @@
+{
+  "id": "section_presence",
+  "name": "재실 상태 감지 (Section 1)",
+  "purpose": "Publish one section's occupancy flag from its presence sensors, holding 'occupied' through short dropouts (debounce) and writing only on change, and mirror the state on a section indicator light.",
+  "source_ref": {"corpus": "paper_v2/joi_automation_codes.json", "index": 7},
+
+  "features": {
+    "presence_publish": "debounced per-section occupancy flag (core purpose)",
+    "indicator": "colour/brightness mirror of the section state (advisory)"
+  },
+
+  "roles": [
+    {
+      "role": "PRESENCE_SOURCE",
+      "purpose": "Report whether anyone is in the section, continuously.",
+      "essential": true,
+      "cardinality": "one_or_more",
+      "quantifier_intent": "any",
+      "on_unavailable": "abort",
+      "sources": [{"tags": ["PresenceSensor"], "members": ["presencesensor.presence"]}],
+      "requires": {
+        "kind": "sensor", "temporal": "level",
+        "properties": [{"property": "occupancy", "type": "BOOL"}]
+      },
+      "note": "temporal=level is the load-bearing clause. A motion sensor reports the same BOOL property and passes every structural and type check, but it is a pulse: `present` would read false between movements, the 10 s grace would expire, and a seated occupant would be published as absent. Re-binding to a pulse source therefore requires an inserted latch and a re-tuned grace — fault class (b)."
+    },
+    {
+      "role": "CLOCK",
+      "purpose": "Timestamps for the dropout debounce.",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [{"tags": ["Clock"], "members": ["clock.timestamp"]}],
+      "requires": {"kind": "infrastructure", "temporal": "level"}
+    },
+    {
+      "role": "SECTION_SINK",
+      "purpose": "The per-section flag the building aggregator reads.",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [{"tags": ["GlobalVariable"],
+                   "members": ["globalvariable.setboolean"]}],
+      "gv_keys": ["occupancy_section1"],
+      "requires": {"kind": "namespace", "temporal": "level"},
+      "note": "Consumer side is out of scope by the GV lock: this scenario is verified alone, with the key treated as an output."
+    },
+    {
+      "role": "INDICATOR",
+      "purpose": "Show the section state as a colour, at a fixed brightness.",
+      "essential": false,
+      "feature": "indicator",
+      "cardinality": "one_or_more",
+      "quantifier_intent": "all",
+      "on_unavailable": "drop_feature",
+      "sources": [{"tags": ["Light"],
+                   "members": ["light.movetocolor", "light.movetobrightness",
+                               "light.currentbrightness", "light.currentx", "light.currenty"]}],
+      "requires": {
+        "kind": "actuator", "temporal": "continuous",
+        "properties": [{"property": "color", "direction": "set", "closed_loop": false},
+                       {"property": "illumination", "direction": "up", "closed_loop": false}],
+        "members": ["switch.on", "switch.switch"]
+      },
+      "note": "The guards read back currentX/currentY/currentBrightness, so a substitute must expose its own state; a write-only light would loop on every tick."
+    }
+  ],
+
+  "params": [
+    {"name": "location", "kind": "scope_tag", "anchor": {"tag": "Office"}, "base_value": "Office"},
+    {"name": "section", "kind": "scope_tag", "anchor": {"tag": "Section1"}, "base_value": "Section1",
+     "note": "Instance scope; changing it must move together with the GV key below."},
+    {"name": "section_key", "kind": "gv_key", "anchor": {"gv": "occupancy_section1"},
+     "base_value": "occupancy_section1"},
+    {"name": "absence_grace_sec", "kind": "cooldown", "anchor": {"var": "absence_grace_sec"},
+     "base_value": "10", "unit": "s", "domain": {"min": 1, "max": 600},
+     "note": "Debounce, not a cooldown on actuation: it decides how long a dropout is tolerated before absence is published. Its correct value depends on the bound sensor's temporal class, which is why (b) forces a re-tune and not just a latch."}
+  ],
+
+  "contracts": [
+    {"id": "S1", "kind": "direction", "checkable": "smt",
+     "statement": "Presence anywhere in the section publishes occupied."},
+    {"id": "S2", "kind": "guarded", "checkable": "smt",
+     "statement": "Absence is published only after the sensor has read false continuously for absence_grace_sec."},
+    {"id": "S3", "kind": "guarded", "checkable": "smt",
+     "statement": "The section key is written only when the mirrored value changes (write-on-change)."},
+    {"id": "S4", "kind": "gating", "checkable": "smt",
+     "statement": "Exactly one seed write happens on the first tick, and never again."},
+    {"id": "S5", "kind": "deadband", "checkable": "static",
+     "statement": "The indicator guards form a band around each target (39-41 brightness; ±0.01 around each colour point), so a satisfied state issues no command."},
+    {"id": "S6", "kind": "vacuity", "checkable": "smt",
+     "statement": "Both the occupied and the vacated branch stay reachable after any edit; in particular the grace must be larger than one period."}
+  ],
+
+  "validity": {
+    "period_ms": 1000,
+    "grace_gt_period": "absence_grace_sec * 1000 > period",
+    "indicator_bands": {"brightness": [39.0, 41.0], "tolerance": 0.01},
+    "note": "The grace value is calibrated for a level sensor. A pulse source needs a latch plus a grace at least as long as the expected gap between pulses."
+  }
+}

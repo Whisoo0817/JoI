@@ -1,0 +1,369 @@
+{
+  "id": "air_quality",
+  "name": "공기질 자동관리",
+  "purpose": "While the space is occupied, run the purifier whenever any particulate/VOC metric is over threshold and stop it only when all of them are well under, warn about CO2 at most twice an hour, and mirror the CO2 level on an indicator light.",
+  "source_ref": {
+    "corpus": "paper_v2/joi_automation_codes.json",
+    "index": 1
+  },
+  "features": {
+    "particulate_control": "purifier on/off with hysteresis (core purpose)",
+    "co2_warning": "cooldown-limited toast when CO2 is high (advisory)",
+    "co2_indicator": "colour bands on an indicator light (advisory)"
+  },
+  "roles": [
+    {
+      "role": "OCC_SOURCE",
+      "purpose": "Gate: do not manage air quality in an empty room.",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [
+        {
+          "tags": [
+            "GlobalVariable"
+          ],
+          "members": [
+            "globalvariable.getboolean"
+          ]
+        }
+      ],
+      "gv_keys": [
+        "occupancy"
+      ],
+      "requires": {
+        "kind": "namespace",
+        "temporal": "level"
+      }
+    },
+    {
+      "role": "CLOCK",
+      "purpose": "Cooldown arithmetic for the CO2 toast.",
+      "essential": false,
+      "feature": "co2_warning",
+      "cardinality": "one",
+      "on_unavailable": "drop_feature",
+      "sources": [
+        {
+          "tags": [
+            "Clock"
+          ],
+          "members": [
+            "clock.timestamp"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "infrastructure",
+        "temporal": "level"
+      }
+    },
+    {
+      "role": "AQ_SENSORS",
+      "purpose": "Measure all five metrics; each metric is averaged over its own reporting count.",
+      "essential": true,
+      "cardinality": "one_or_more",
+      "quantifier_intent": "avg",
+      "on_unavailable": "abort",
+      "sources": [
+        {
+          "tags": [
+            "AirQualitySensor"
+          ],
+          "members": [
+            "airqualitysensor.dustlevel",
+            "airqualitysensor.finedustlevel",
+            "airqualitysensor.veryfinedustlevel",
+            "airqualitysensor.tvoclevel",
+            "airqualitysensor.carbondioxide"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "sensor",
+        "temporal": "level",
+        "properties": [
+          {
+            "property": "pm10",
+            "unit": "μg/m³",
+            "type": "DOUBLE"
+          },
+          {
+            "property": "pm25",
+            "unit": "μg/m³",
+            "type": "DOUBLE"
+          },
+          {
+            "property": "pm1",
+            "unit": "μg/m³",
+            "type": "DOUBLE"
+          },
+          {
+            "property": "tvoc",
+            "unit": "ppb",
+            "type": "DOUBLE"
+          },
+          {
+            "property": "co2",
+            "unit": "ppm",
+            "type": "DOUBLE"
+          }
+        ]
+      },
+      "note": "The body is guarded by n_pm10>0 and ... and n_co2>0, so a partial sensor that reports only some metrics silently disables the whole scenario. That conjunction is the reachability obligation R1 — a structural check sees nothing."
+    },
+    {
+      "role": "PURIFIER",
+      "purpose": "Lower particulates and VOC.",
+      "essential": false,
+      "feature": "particulate_control",
+      "cardinality": "one_or_more",
+      "quantifier_intent": "all",
+      "on_unavailable": "drop_feature",
+      "sources": [
+        {
+          "tags": [
+            "AirPurifier"
+          ],
+          "members": []
+        }
+      ],
+      "requires": {
+        "kind": "actuator",
+        "temporal": "continuous",
+        "control": "onoff",
+        "properties": [
+          {
+            "property": "pm10",
+            "direction": "down",
+            "closed_loop": true
+          },
+          {
+            "property": "pm25",
+            "direction": "down",
+            "closed_loop": true
+          },
+          {
+            "property": "pm1",
+            "direction": "down",
+            "closed_loop": true
+          },
+          {
+            "property": "tvoc",
+            "direction": "down",
+            "closed_loop": true
+          }
+        ],
+        "members": [
+          "switch.on",
+          "switch.off",
+          "switch.switch"
+        ]
+      },
+      "note": "Dropping it leaves an advisory-only scenario: honest degradation, not silent success. The on/off guards read switch.switch, so a substitute must expose its own power state."
+    },
+    {
+      "role": "ALERT_SINK",
+      "purpose": "Tell the occupant to ventilate.",
+      "essential": false,
+      "feature": "co2_warning",
+      "cardinality": "one",
+      "on_unavailable": "drop_feature",
+      "sources": [
+        {
+          "tags": [
+            "ToastPublisher"
+          ],
+          "members": [
+            "toastpublisher.publish"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "notifier",
+        "temporal": "oneshot",
+        "control": "oneshot"
+      }
+    },
+    {
+      "role": "CO2_INDICATOR",
+      "purpose": "Show the CO2 band as a colour.",
+      "essential": false,
+      "feature": "co2_indicator",
+      "cardinality": "one_or_more",
+      "quantifier_intent": "all",
+      "on_unavailable": "drop_feature",
+      "sources": [
+        {
+          "tags": [
+            "Light",
+            "CO2_Indicator"
+          ],
+          "members": [
+            "light.movetocolor"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "actuator",
+        "temporal": "continuous",
+        "properties": [
+          {
+            "property": "color",
+            "direction": "set",
+            "closed_loop": false
+          }
+        ]
+      },
+      "note": "`#CO2_Indicator` is an instance tag, not a location: this role is bound to a specific light, so re-scoping the scenario must not touch it."
+    }
+  ],
+  "params": [
+    {
+      "name": "location",
+      "kind": "scope_tag",
+      "anchor": {
+        "tag": "Office"
+      },
+      "base_value": "Office"
+    },
+    {
+      "name": "occupancy_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy"
+      },
+      "base_value": "occupancy"
+    },
+    {
+      "name": "st_pm10",
+      "kind": "threshold",
+      "anchor": {
+        "var": "st_pm10"
+      },
+      "base_value": "80.0",
+      "unit": "μg/m³",
+      "domain": {
+        "min": 0.0,
+        "max": 1000.0
+      }
+    },
+    {
+      "name": "st_pm25",
+      "kind": "threshold",
+      "anchor": {
+        "var": "st_pm25"
+      },
+      "base_value": "35.0",
+      "unit": "μg/m³",
+      "domain": {
+        "min": 0.0,
+        "max": 1000.0
+      }
+    },
+    {
+      "name": "st_pm1",
+      "kind": "threshold",
+      "anchor": {
+        "var": "st_pm1"
+      },
+      "base_value": "25.0",
+      "unit": "μg/m³",
+      "domain": {
+        "min": 0.0,
+        "max": 1000.0
+      }
+    },
+    {
+      "name": "st_tvoc",
+      "kind": "threshold",
+      "anchor": {
+        "var": "st_tvoc"
+      },
+      "base_value": "0.6",
+      "unit": "mg/m³?",
+      "domain": {
+        "min": 0.0,
+        "max": 5000.0
+      },
+      "note": "FLAG: the catalog types TvocLevel as ppb, but the threshold (0.6) and the toast text (mg/m³) read as mg/m³. Either the annotation or the scenario is wrong — a naturally occurring instance of fault class (d) found while authoring this template. Needs a decision before this template is used for binding."
+    },
+    {
+      "name": "st_co2",
+      "kind": "threshold",
+      "anchor": {
+        "var": "st_co2"
+      },
+      "base_value": "800.0",
+      "unit": "ppm",
+      "domain": {
+        "min": 300.0,
+        "max": 5000.0
+      }
+    },
+    {
+      "name": "co2_toast_cooldown_sec",
+      "kind": "cooldown",
+      "anchor": {
+        "var": "co2_toast_cooldown_sec"
+      },
+      "base_value": "30 * 60",
+      "unit": "s",
+      "domain": {
+        "min": 60,
+        "max": 7200
+      }
+    }
+  ],
+  "contracts": [
+    {
+      "id": "A1",
+      "kind": "gating",
+      "checkable": "smt",
+      "statement": "No purifier command and no toast while OCC_SOURCE reads false."
+    },
+    {
+      "id": "A2",
+      "kind": "guarded",
+      "checkable": "smt",
+      "statement": "Nothing is emitted unless every metric has at least one reporting sensor (n_* > 0)."
+    },
+    {
+      "id": "A3",
+      "kind": "deadband",
+      "checkable": "static",
+      "statement": "The off-threshold is half the on-threshold for each metric, so on- and off-conditions cannot both hold.",
+      "note": "The factor 2 is inlined in the source (st/2) rather than named; it is a parameter in disguise and should become a slot before any threshold edit."
+    },
+    {
+      "id": "A4",
+      "kind": "direction",
+      "checkable": "smt",
+      "statement": "Purifier turns ON when ANY metric exceeds its threshold and OFF only when ALL are under half — the quantifiers are not interchangeable."
+    },
+    {
+      "id": "A5",
+      "kind": "cooldown",
+      "checkable": "smt",
+      "statement": "CO2 toasts are at least co2_toast_cooldown_sec apart."
+    },
+    {
+      "id": "A6",
+      "kind": "deadband",
+      "checkable": "static",
+      "statement": "The indicator bands are a total order (800 < 1000 < 1500) and cover every CO2 value."
+    },
+    {
+      "id": "A7",
+      "kind": "vacuity",
+      "checkable": "smt",
+      "statement": "After any edit, the purifier ON branch and each indicator band stay reachable."
+    }
+  ],
+  "validity": {
+    "thresholds_within_sensor_range": true,
+    "hysteresis_factor": 2.0,
+    "cooldown_ge_period": "co2_toast_cooldown_sec * 1000 >= 60000",
+    "open_issue": "TVOC unit (ppb vs mg/m³) unresolved — see st_tvoc note"
+  }
+}

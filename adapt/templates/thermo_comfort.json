@@ -1,0 +1,424 @@
+{
+  "id": "thermo_comfort",
+  "name": "온습도 자동 제어",
+  "purpose": "Keep an occupied space inside a seasonal temperature band, and in winter also inside a humidity band, without commanding the actuators more often than the cooldown allows.",
+  "source_ref": {
+    "corpus": "paper_v2/joi_automation_codes.json",
+    "index": 4
+  },
+  "features": {
+    "temperature_control": "seasonal band control of the thermostat (core purpose)",
+    "humidity_control": "winter-only humidification (secondary; may be dropped)"
+  },
+  "roles": [
+    {
+      "role": "OCC_SOURCE",
+      "purpose": "Gate: the whole scenario only acts while the space is occupied.",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [
+        {
+          "tags": [
+            "GlobalVariable"
+          ],
+          "members": [
+            "globalvariable.getboolean"
+          ]
+        }
+      ],
+      "gv_keys": [
+        "occupancy"
+      ],
+      "requires": {
+        "kind": "namespace",
+        "temporal": "level"
+      },
+      "note": "Without an occupancy signal the scenario would heat/cool an empty room; that is worse than not running (contract C1)."
+    },
+    {
+      "role": "CLOCK",
+      "purpose": "Season selection (month) and cooldown arithmetic (timestamp).",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [
+        {
+          "tags": [
+            "Clock"
+          ],
+          "members": [
+            "clock.timestamp",
+            "clock.month"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "infrastructure",
+        "temporal": "level"
+      }
+    },
+    {
+      "role": "TEMP_SENSORS",
+      "purpose": "Measure the controlled variable; the band test runs on their average.",
+      "essential": true,
+      "cardinality": "one_or_more",
+      "quantifier_intent": "avg",
+      "on_unavailable": "abort",
+      "sources": [
+        {
+          "tags": [
+            "AirQualitySensor"
+          ],
+          "members": [
+            "airqualitysensor.temperature"
+          ]
+        },
+        {
+          "tags": [
+            "TemperatureSensor"
+          ],
+          "members": [
+            "temperaturesensor.temperature"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "sensor",
+        "temporal": "level",
+        "properties": [
+          {
+            "property": "temperature",
+            "unit": "°C",
+            "type": "DOUBLE"
+          }
+        ]
+      },
+      "note": "avg, not any/all: the purpose is comfort of the space, so one hot sensor must not flip the band (fault class (c)). Unit is load-bearing — the thresholds are °C literals (fault class (d))."
+    },
+    {
+      "role": "THERMO_ACTUATOR",
+      "purpose": "Move room temperature toward the band: down in summer, up in winter.",
+      "essential": true,
+      "cardinality": "one_or_more",
+      "quantifier_intent": "all",
+      "on_unavailable": "abort",
+      "sources": [
+        {
+          "tags": [
+            "AirConditioner"
+          ],
+          "members": [
+            "airconditioner.setairconditionermode",
+            "airconditioner.settargettemperature"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "actuator",
+        "temporal": "continuous",
+        "control": "setpoint",
+        "properties": [
+          {
+            "property": "temperature",
+            "direction": "down",
+            "when": "summer",
+            "closed_loop": true
+          },
+          {
+            "property": "temperature",
+            "direction": "up",
+            "when": "winter",
+            "closed_loop": true
+          }
+        ],
+        "members": [
+          "switch.on",
+          "switch.off"
+        ]
+      },
+      "note": "Bidirectional and closed-loop are the two clauses a fan fails: it has no heat direction and does not move measured room temperature, so the off-branch guard would never be reached (fault class (a), open-loop boundary)."
+    },
+    {
+      "role": "HUMID_SENSORS",
+      "purpose": "Measure humidity for the winter band.",
+      "essential": false,
+      "feature": "humidity_control",
+      "cardinality": "one_or_more",
+      "quantifier_intent": "avg",
+      "on_unavailable": "drop_feature",
+      "sources": [
+        {
+          "tags": [
+            "AirQualitySensor"
+          ],
+          "members": [
+            "airqualitysensor.humidity"
+          ]
+        },
+        {
+          "tags": [
+            "HumiditySensor"
+          ],
+          "members": [
+            "humiditysensor.humidity"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "sensor",
+        "temporal": "level",
+        "properties": [
+          {
+            "property": "humidity",
+            "unit": "%",
+            "type": "DOUBLE"
+          }
+        ]
+      }
+    },
+    {
+      "role": "HUMID_ACTUATOR",
+      "purpose": "Raise humidity toward the winter band.",
+      "essential": false,
+      "feature": "humidity_control",
+      "cardinality": "one_or_more",
+      "quantifier_intent": "all",
+      "on_unavailable": "drop_feature",
+      "sources": [
+        {
+          "tags": [
+            "Humidifier"
+          ],
+          "members": [
+            "humidifier.sethumidifiermode"
+          ]
+        }
+      ],
+      "requires": {
+        "kind": "actuator",
+        "temporal": "continuous",
+        "control": "onoff",
+        "properties": [
+          {
+            "property": "humidity",
+            "direction": "up",
+            "when": "winter",
+            "closed_loop": true
+          }
+        ],
+        "members": [
+          "switch.on",
+          "switch.off"
+        ]
+      },
+      "note": "Direction is the whole content of this contract: a dehumidifier satisfies every structural check and inverts the purpose (fault class (d), polarity)."
+    }
+  ],
+  "params": [
+    {
+      "name": "location",
+      "kind": "scope_tag",
+      "anchor": {
+        "tag": "Office"
+      },
+      "base_value": "Office",
+      "note": "Scope filter applied to every device role; kept separate from the role slots so re-scoping and re-binding are independent edits."
+    },
+    {
+      "name": "occupancy_key",
+      "kind": "gv_key",
+      "anchor": {
+        "gv": "occupancy"
+      },
+      "base_value": "occupancy"
+    },
+    {
+      "name": "min_temp_summer",
+      "kind": "threshold",
+      "anchor": {
+        "var": "min_temp_summer"
+      },
+      "base_value": "24.5",
+      "unit": "°C",
+      "domain": {
+        "min": 16.0,
+        "max": 30.0
+      }
+    },
+    {
+      "name": "max_temp_summer",
+      "kind": "threshold",
+      "anchor": {
+        "var": "max_temp_summer"
+      },
+      "base_value": "25.5",
+      "unit": "°C",
+      "domain": {
+        "min": 16.0,
+        "max": 30.0
+      }
+    },
+    {
+      "name": "min_temp_winter",
+      "kind": "threshold",
+      "anchor": {
+        "var": "min_temp_winter"
+      },
+      "base_value": "19.5",
+      "unit": "°C",
+      "domain": {
+        "min": 16.0,
+        "max": 30.0
+      }
+    },
+    {
+      "name": "max_temp_winter",
+      "kind": "threshold",
+      "anchor": {
+        "var": "max_temp_winter"
+      },
+      "base_value": "20.5",
+      "unit": "°C",
+      "domain": {
+        "min": 16.0,
+        "max": 30.0
+      }
+    },
+    {
+      "name": "min_humid_summer",
+      "kind": "threshold",
+      "anchor": {
+        "var": "min_humid_summer"
+      },
+      "base_value": "50.0",
+      "unit": "%",
+      "domain": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "name": "max_humid_summer",
+      "kind": "threshold",
+      "anchor": {
+        "var": "max_humid_summer"
+      },
+      "base_value": "60.0",
+      "unit": "%",
+      "domain": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "name": "min_humid_winter",
+      "kind": "threshold",
+      "anchor": {
+        "var": "min_humid_winter"
+      },
+      "base_value": "40.0",
+      "unit": "%",
+      "domain": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "name": "max_humid_winter",
+      "kind": "threshold",
+      "anchor": {
+        "var": "max_humid_winter"
+      },
+      "base_value": "50.0",
+      "unit": "%",
+      "domain": {
+        "min": 0.0,
+        "max": 100.0
+      }
+    },
+    {
+      "name": "ac_cooldown_sec",
+      "kind": "cooldown",
+      "anchor": {
+        "var": "ac_command_cooldown_sec"
+      },
+      "base_value": "600",
+      "unit": "s",
+      "domain": {
+        "min": 60,
+        "max": 3600
+      }
+    },
+    {
+      "name": "hf_cooldown_sec",
+      "kind": "cooldown",
+      "anchor": {
+        "var": "hf_command_cooldown_sec"
+      },
+      "base_value": "600",
+      "unit": "s",
+      "domain": {
+        "min": 60,
+        "max": 3600
+      }
+    }
+  ],
+  "contracts": [
+    {
+      "id": "C1",
+      "kind": "gating",
+      "checkable": "smt",
+      "statement": "While OCC_SOURCE reads false, no actuator call is emitted."
+    },
+    {
+      "id": "C2",
+      "kind": "cooldown",
+      "checkable": "smt",
+      "statement": "Consecutive THERMO_ACTUATOR commands are at least ac_cooldown_sec apart; likewise HUMID_ACTUATOR with hf_cooldown_sec."
+    },
+    {
+      "id": "C3",
+      "kind": "deadband",
+      "checkable": "static",
+      "statement": "min_temp < max_temp and min_humid < max_humid in every season; the setpoint (max+min)/2 lies inside the band.",
+      "note": "A value edit that inverts a band makes the on- and off-branches unreachable — the simplest possible request still needs this check."
+    },
+    {
+      "id": "C4",
+      "kind": "direction",
+      "checkable": "smt",
+      "statement": "In summer the actuator is only asked to cool, in winter only to heat; the commanded mode always matches the season branch."
+    },
+    {
+      "id": "C5",
+      "kind": "guarded",
+      "checkable": "smt",
+      "statement": "No actuator call when the sensor sample count is zero (i > 0 / j > 0 guards)."
+    },
+    {
+      "id": "C6",
+      "kind": "gating",
+      "checkable": "smt",
+      "statement": "Humidity control runs only on the winter branch."
+    },
+    {
+      "id": "C7",
+      "kind": "deadband",
+      "checkable": "static",
+      "statement": "target_temp stays inside the bound thermostat's setpoint range."
+    },
+    {
+      "id": "C8",
+      "kind": "vacuity",
+      "checkable": "smt",
+      "statement": "Both the on- and the off-branch of each season remain reachable after any parameter or binding edit."
+    }
+  ],
+  "validity": {
+    "thresholds_within_sensor_range": true,
+    "setpoint_within_actuator_range": "[16.0, 30.0] °C for AirConditioner",
+    "cooldown_ge_period": "cooldown_sec * 1000 >= scenario period (60000 ms)",
+    "season_split": "months 4-9 summer, else winter"
+  }
+}

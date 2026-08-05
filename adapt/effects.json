@@ -1,0 +1,444 @@
+{
+  "_meta": {
+    "schema": "adapt/effects v0",
+    "catalog": "files/service_list_ver2.0.7.json",
+    "authored": "2026-07-28",
+    "why": [
+      "The device catalog already carries types, units and enums. It does NOT carry the",
+      "three axes a re-binding has to reason about, so this file adds exactly those:",
+      "  1. effect direction  - which physical property a call moves, and which way",
+      "  2. temporal class    - level vs pulse vs continuous vs one-shot",
+      "  3. control mode      - setpoint vs on/off vs level (what the code may ask for)",
+      "'essential' is deliberately NOT here: whether a role may be dropped is a property",
+      "of the scenario's purpose, so it lives in the template's role contract."
+    ],
+    "temporal_classes": {
+      "level": "sensor holds its value while the condition holds (presence, temperature)",
+      "pulse": "sensor reports an instantaneous event; the value falls back on its own (motion)",
+      "continuous": "actuator keeps acting until told otherwise (AC, humidifier)",
+      "oneshot": "actuator performs a discrete act (toast, capture)"
+    }
+  },
+  "AirConditioner": {
+    "kind": "actuator",
+    "control": "setpoint",
+    "temporal": "continuous",
+    "power": "switch",
+    "affects": [
+      {
+        "property": "temperature",
+        "direction": "down",
+        "requires_mode": "cool",
+        "closed_loop": true
+      },
+      {
+        "property": "temperature",
+        "direction": "up",
+        "requires_mode": "heat",
+        "closed_loop": true
+      },
+      {
+        "property": "humidity",
+        "direction": "down",
+        "requires_mode": "cool",
+        "incidental": true
+      }
+    ],
+    "setpoint": {
+      "member": "airconditioner.settargettemperature",
+      "unit": "°C",
+      "range": [
+        16.0,
+        30.0
+      ]
+    },
+    "mode": {
+      "member": "airconditioner.setairconditionermode",
+      "enum": [
+        "auto",
+        "cool",
+        "heat"
+      ]
+    }
+  },
+  "Fan": {
+    "kind": "actuator",
+    "control": "level",
+    "temporal": "continuous",
+    "power": "switch",
+    "affects": [
+      {
+        "property": "perceived_temperature",
+        "direction": "down",
+        "closed_loop": false,
+        "note": "airflow only; does not change measured room temperature"
+      },
+      {
+        "property": "air_circulation",
+        "direction": "up",
+        "closed_loop": false
+      }
+    ],
+    "setpoint": null,
+    "mode": {
+      "member": "fan.setfanmode",
+      "enum": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ]
+    }
+  },
+  "Humidifier": {
+    "kind": "actuator",
+    "control": "onoff",
+    "temporal": "continuous",
+    "power": "switch",
+    "affects": [
+      {
+        "property": "humidity",
+        "direction": "up",
+        "closed_loop": true
+      }
+    ],
+    "setpoint": null,
+    "mode": {
+      "member": "humidifier.sethumidifiermode",
+      "enum": [
+        "auto",
+        "low",
+        "medium",
+        "high"
+      ]
+    }
+  },
+  "Dehumidifier": {
+    "kind": "actuator",
+    "control": "onoff",
+    "temporal": "continuous",
+    "power": "switch",
+    "affects": [
+      {
+        "property": "humidity",
+        "direction": "down",
+        "closed_loop": true
+      }
+    ],
+    "setpoint": null,
+    "mode": {
+      "member": "dehumidifier.setdehumidifiermode",
+      "enum": [
+        "dehumidifying",
+        "continuousDehumidifying",
+        "drying",
+        "AIDrying"
+      ]
+    }
+  },
+  "AirPurifier": {
+    "kind": "actuator",
+    "control": "onoff",
+    "temporal": "continuous",
+    "power": "switch",
+    "affects": [
+      {
+        "property": "pm10",
+        "direction": "down",
+        "closed_loop": true
+      },
+      {
+        "property": "pm25",
+        "direction": "down",
+        "closed_loop": true
+      },
+      {
+        "property": "pm1",
+        "direction": "down",
+        "closed_loop": true
+      },
+      {
+        "property": "tvoc",
+        "direction": "down",
+        "closed_loop": true
+      }
+    ],
+    "setpoint": null,
+    "mode": {
+      "member": "airpurifier.setairpurifiermode",
+      "enum": [
+        "auto",
+        "sleep",
+        "low",
+        "medium",
+        "high",
+        "quiet",
+        "windFree",
+        "off"
+      ]
+    }
+  },
+  "TemperatureSensor": {
+    "kind": "sensor",
+    "temporal": "level",
+    "measures": [
+      {
+        "property": "temperature",
+        "member": "temperaturesensor.temperature",
+        "type": "DOUBLE",
+        "unit": "°C",
+        "plausible_range": [
+          -40.0,
+          60.0
+        ]
+      }
+    ]
+  },
+  "HumiditySensor": {
+    "kind": "sensor",
+    "temporal": "level",
+    "measures": [
+      {
+        "property": "humidity",
+        "member": "humiditysensor.humidity",
+        "type": "DOUBLE",
+        "unit": "%",
+        "plausible_range": [
+          0.0,
+          100.0
+        ]
+      }
+    ]
+  },
+  "AirQualitySensor": {
+    "kind": "sensor",
+    "temporal": "level",
+    "measures": [
+      {
+        "property": "temperature",
+        "member": "airqualitysensor.temperature",
+        "type": "DOUBLE",
+        "unit": "°C",
+        "plausible_range": [
+          -40.0,
+          60.0
+        ]
+      },
+      {
+        "property": "humidity",
+        "member": "airqualitysensor.humidity",
+        "type": "DOUBLE",
+        "unit": "%",
+        "plausible_range": [
+          0.0,
+          100.0
+        ]
+      },
+      {
+        "property": "pm10",
+        "member": "airqualitysensor.dustlevel",
+        "type": "DOUBLE",
+        "unit": "μg/m³",
+        "plausible_range": [
+          0.0,
+          1000.0
+        ]
+      },
+      {
+        "property": "pm25",
+        "member": "airqualitysensor.finedustlevel",
+        "type": "DOUBLE",
+        "unit": "μg/m³",
+        "plausible_range": [
+          0.0,
+          1000.0
+        ]
+      },
+      {
+        "property": "pm1",
+        "member": "airqualitysensor.veryfinedustlevel",
+        "type": "DOUBLE",
+        "unit": "μg/m³",
+        "plausible_range": [
+          0.0,
+          1000.0
+        ]
+      },
+      {
+        "property": "tvoc",
+        "member": "airqualitysensor.tvoclevel",
+        "type": "DOUBLE",
+        "unit": "ppb",
+        "plausible_range": [
+          0.0,
+          5000.0
+        ]
+      },
+      {
+        "property": "co2",
+        "member": "airqualitysensor.carbondioxide",
+        "type": "DOUBLE",
+        "unit": "ppm",
+        "plausible_range": [
+          300.0,
+          5000.0
+        ]
+      }
+    ]
+  },
+  "PresenceSensor": {
+    "kind": "sensor",
+    "temporal": "level",
+    "measures": [
+      {
+        "property": "occupancy",
+        "member": "presencesensor.presence",
+        "type": "BOOL",
+        "unit": null
+      }
+    ]
+  },
+  "MotionSensor": {
+    "kind": "sensor",
+    "temporal": "pulse",
+    "measures": [
+      {
+        "property": "occupancy",
+        "member": "motionsensor.motion",
+        "type": "BOOL",
+        "unit": null,
+        "note": "same type and property as PresenceSensor, different temporal class - fault class (b)"
+      }
+    ]
+  },
+  "Light": {
+    "kind": "actuator",
+    "control": "level",
+    "temporal": "continuous",
+    "power": "switch",
+    "affects": [
+      {
+        "property": "illumination",
+        "direction": "up",
+        "closed_loop": false
+      },
+      {
+        "property": "color",
+        "direction": "set",
+        "closed_loop": false
+      }
+    ],
+    "setpoint": {
+      "member": "light.movetobrightness",
+      "unit": "%",
+      "range": [
+        0.0,
+        100.0
+      ]
+    },
+    "mode": null
+  },
+  "ToastPublisher": {
+    "kind": "notifier",
+    "control": "oneshot",
+    "temporal": "oneshot",
+    "affects": [
+      {
+        "property": "user_attention",
+        "direction": "up",
+        "closed_loop": false
+      }
+    ],
+    "setpoint": null,
+    "mode": null
+  },
+  "Speaker": {
+    "kind": "notifier",
+    "control": "oneshot",
+    "temporal": "oneshot",
+    "affects": [
+      {
+        "property": "user_attention",
+        "direction": "up",
+        "closed_loop": false
+      }
+    ],
+    "setpoint": null,
+    "mode": null
+  },
+  "Clock": {
+    "kind": "infrastructure",
+    "temporal": "level",
+    "measures": [
+      {
+        "property": "wall_time",
+        "member": "clock.timestamp",
+        "type": "DOUBLE",
+        "unit": "s"
+      },
+      {
+        "property": "month",
+        "member": "clock.month",
+        "type": "INTEGER",
+        "unit": null
+      },
+      {
+        "property": "hour",
+        "member": "clock.hour",
+        "type": "INTEGER",
+        "unit": null
+      },
+      {
+        "property": "weekday",
+        "member": "clock.weekday",
+        "type": "ENUM",
+        "unit": null
+      },
+      {
+        "property": "holiday",
+        "member": "clock.isholiday",
+        "type": "BOOL",
+        "unit": null
+      }
+    ]
+  },
+  "GlobalVariable": {
+    "kind": "namespace",
+    "temporal": "level",
+    "note": "not a bindable device; a shared key/value store. Treated as free input in verification (GV lock)."
+  },
+  "Camera": {
+    "kind": "sensor",
+    "temporal": "oneshot",
+    "measures": [
+      {
+        "property": "video_evidence",
+        "member": "camera.capturevideo",
+        "type": "STRING",
+        "unit": null,
+        "note": "arg-taking capture; oneshot acquisition, not a level signal"
+      },
+      {
+        "property": "image_evidence",
+        "member": "camera.captureimage",
+        "type": "STRING",
+        "unit": null
+      }
+    ]
+  },
+  "EmailProvider": {
+    "kind": "notifier",
+    "control": "oneshot",
+    "temporal": "oneshot",
+    "affects": [
+      {
+        "property": "user_attention",
+        "direction": "up",
+        "closed_loop": false,
+        "note": "out-of-home reach with attachment support"
+      }
+    ],
+    "setpoint": null,
+    "mode": null
+  }
+}

@@ -1,0 +1,128 @@
+{
+  "id": "intrusion_alert",
+  "name": "보안모드 침입 감지",
+  "purpose": "While the space is armed and someone is present, give the occupant a spoken grace window to disarm; if the grace expires, alert with evidence (video by email) at most once per cooldown.",
+  "source_ref": {"corpus": "paper_v2/joi_automation_codes.json", "index": 3},
+
+  "features": {
+    "alerting": "grace-then-alert state machine over armed∧occupied (core purpose)",
+    "voice_notice": "spoken disarm instruction at grace start (advisory)",
+    "evidence": "video capture attached to the alert email (enhancing)"
+  },
+
+  "roles": [
+    {
+      "role": "ARMED_SOURCE",
+      "purpose": "Whether security mode is on ('보안 모드 자동 제어' produces it).",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [{"tags": ["GlobalVariable"], "members": ["globalvariable.getboolean"]}],
+      "gv_keys": ["security_mode"],
+      "requires": {"kind": "namespace", "temporal": "level"},
+      "note": "Without the armed flag the scenario would alert on every entry — the (f) 사례 of the fault model. Free input under the GV lock."
+    },
+    {
+      "role": "OCC_SOURCE",
+      "purpose": "Presence aggregate that starts the grace window.",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [{"tags": ["GlobalVariable"], "members": ["globalvariable.getboolean"]}],
+      "gv_keys": ["occupancy"],
+      "requires": {"kind": "namespace", "temporal": "level"}
+    },
+    {
+      "role": "CLOCK",
+      "purpose": "Grace and cooldown arithmetic.",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [{"tags": ["Clock"], "members": ["clock.timestamp"]}],
+      "requires": {"kind": "infrastructure", "temporal": "level"}
+    },
+    {
+      "role": "ALERT_SINK",
+      "purpose": "Reach the owner when intrusion is suspected — the scenario's reason to exist.",
+      "essential": true,
+      "cardinality": "one",
+      "on_unavailable": "abort",
+      "sources": [{"tags": ["ToastPublisher"], "members": ["toastpublisher.publish"]}],
+      "requires": {"kind": "notifier", "temporal": "oneshot", "control": "oneshot"},
+      "note": "Essential unlike the air-quality toast: an intrusion scenario that cannot alert anyone is purpose-dead, not degraded."
+    },
+    {
+      "role": "VOICE_NOTICE",
+      "purpose": "Tell the person in the room how to disarm during grace.",
+      "essential": false,
+      "feature": "voice_notice",
+      "cardinality": "one_or_more",
+      "quantifier_intent": "all",
+      "on_unavailable": "drop_feature",
+      "sources": [{"tags": ["Speaker"], "members": ["speaker.setvolume", "speaker.speak"]}],
+      "requires": {
+        "kind": "notifier", "temporal": "oneshot", "control": "oneshot",
+        "properties": [{"property": "user_attention", "direction": "up", "closed_loop": false}]
+      },
+      "note": "Dropping it shortens the courtesy, not the protection; the toast still explains disarm."
+    },
+    {
+      "role": "EVIDENCE_SOURCE",
+      "purpose": "Capture footage for the alert email.",
+      "essential": false,
+      "feature": "evidence",
+      "cardinality": "one",
+      "on_unavailable": "drop_feature",
+      "sources": [{"tags": ["Camera"], "members": ["camera.capturevideo"]}],
+      "requires": {
+        "kind": "sensor", "temporal": "oneshot",
+        "properties": [{"property": "video_evidence", "type": "STRING"}]
+      },
+      "note": "The email consumes the captured video (bind variable), so dropping the camera forces the email into the same cone — the one case where a dropped role's cone crosses another role's call. plan_drop must escalate here, and the degrade needs a *replacement* email call (SendMail without attachment) = an InsertBefore/ReplaceMember design decision, not a pure deletion."
+    },
+    {
+      "role": "EVIDENCE_SINK",
+      "purpose": "Deliver the evidence out of the home.",
+      "essential": false,
+      "feature": "evidence",
+      "cardinality": "one",
+      "on_unavailable": "drop_feature",
+      "sources": [{"tags": ["EmailProvider"], "members": ["emailprovider.sendmailwithbinaryfile"]}],
+      "requires": {
+        "kind": "notifier", "temporal": "oneshot", "control": "oneshot",
+        "properties": [{"property": "user_attention", "direction": "up", "closed_loop": false}]
+      }
+    }
+  ],
+
+  "params": [
+    {"name": "location", "kind": "scope_tag", "anchor": {"tag": "Office"}, "base_value": "Office"},
+    {"name": "armed_key", "kind": "gv_key", "anchor": {"gv": "security_mode"}, "base_value": "security_mode"},
+    {"name": "occupancy_key", "kind": "gv_key", "anchor": {"gv": "occupancy"}, "base_value": "occupancy"},
+    {"name": "grace_sec", "kind": "cooldown", "anchor": {"var": "grace_sec"},
+     "base_value": "120", "unit": "s", "domain": {"min": 10, "max": 900}},
+    {"name": "alert_cooldown", "kind": "cooldown", "anchor": {"var": "alert_cooldown"},
+     "base_value": "600", "unit": "s", "domain": {"min": 60, "max": 7200}}
+  ],
+
+  "contracts": [
+    {"id": "I1", "kind": "gating", "checkable": "smt",
+     "statement": "No alert, speech, capture or email unless armed AND occupied."},
+    {"id": "I2", "kind": "guarded", "checkable": "smt",
+     "statement": "The alert fires only after grace_sec of continuous armed∧occupied."},
+    {"id": "I3", "kind": "cooldown", "checkable": "smt",
+     "statement": "Alerts are at least alert_cooldown apart."},
+    {"id": "I4", "kind": "gating", "checkable": "smt",
+     "statement": "The spoken notice happens exactly once per grace window (grace_start seed)."},
+    {"id": "I5", "kind": "guarded", "checkable": "smt",
+     "statement": "Leaving armed∧occupied resets the grace window."},
+    {"id": "I6", "kind": "vacuity", "checkable": "static",
+     "statement": "grace_sec > period and alert_cooldown > grace_sec, so the state machine can actually traverse its states."}
+  ],
+
+  "validity": {
+    "period_ms": 1000,
+    "ordering": "period < grace_sec*1000 < alert_cooldown*1000",
+    "note": "4 device-ish roles (ALERT_SINK, VOICE_NOTICE, EVIDENCE_SOURCE, EVIDENCE_SINK) + 2 GV + clock — the '침입감지 4-role' contingency prototype target."
+  }
+}

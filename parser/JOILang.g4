@@ -57,6 +57,7 @@ arithmetic_expression
 input_list          : arithmetic_expression (COMMA arithmetic_expression)*;
 
 primary_expression  : (TRUE|FALSE)
+                    | IDENTIFIER DOT IDENTIFIER   // legacy pseudo-device read, e.g. `clock.time`
                     | IDENTIFIER
                     | INTEGER
                     | DOUBLE
