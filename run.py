@@ -3,77 +3,65 @@
 Runs every command in COMMANDS through the full IR -> JoI pipeline and prints
 ONLY the final JoI code. No verifier, no IR/selector rendering.
 
-    python3 run.py
+    python3 run.py         # v1 — 현행 매핑 (retrieve → ground → resolve)
+    python3 run.py v2      # v2 — mapping_v2/ 의 제약추출 + 접지선택 매핑
+
+두 경로는 매핑 단계에서만 갈라지고 그 하류(IR/lowering/naming)는 공유한다.
+스위치는 JOI_MAPPING 환경변수 하나뿐이며, 아래 __main__ 에서 그것만 세팅한다.
+(mapping_v2 하네스들이 CONNECTED_DEVICES 를 쓰려고 이 파일을 import 하므로,
+ 인자 파싱은 반드시 __main__ 안에 있어야 한다.)
 """
 # 바이스 타겟 목록: AirConditioner, AirPurifier, AirQualitySensor,
 # Button, Camera, ContactSensor, Humidifier, HumiditySensor,
 # Light, LightSensor, MotionSensor, Plug, PresenceSensor, 
 # SmokeDetector, Speaker, Switch, TemperatureSensor, Clock,
 # ToastPublisher, EmailProvider
-import re
 import json
+import os
+import re
+import sys
 
 from joi import generate_joi_code
 
-# 실제 연결 디바이스 — last_connected_devices.json(실서버 페이로드) 그대로.
-# 클라이언트가 보내는 그대로 category/tags를 유지하고, UI 카드에 보이는 nickname을
-# 추가로 매핑해 두었다(닉네임 지명 명령 테스트용). GlobalVariable은 제외.
-# 파이프라인은 현재 category/tags만 읽음 — nickname은 향후 그라운딩용 참고 필드.
+# 실제 연결 디바이스 — generate_joi_code API 요청의 connected_devices 페이로드 그대로
+# (last_connected_devices.json 덤프). 파이프라인은 category/tags 를 읽고, nickname 은
+# 지명 명령 테스트용 참고 필드다.
+# ⚠️ 끝의 3개(ChatProvider/NewsProvider/MessageSender)는 허브에 아직 미연결이라
+#    builtin 규칙(tc0_builtin_*, tc0_local)에 맞춰 합성해 둔 항목이다 (COMMANDS_4 테스트용).
 CONNECTED_DEVICES = {
     "tc0_AirQualitySensor_D83ADDD14F2A": {"nickname": "공기질 센서", "category": ["AirQualitySensor"], "tags": ["AirQualityManagement", "tc0_AirQualitySensor_D83ADDD14F2A", "AirQualitySensor", "tc0_local"]},
     "tc0_Speaker_D83ADDD14F4B": {"nickname": "JOI 스피커", "category": ["Speaker"], "tags": ["tc0_Speaker_D83ADDD14F4B", "Speaker", "tc0_local"]},
-    "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305": {"nickname": "Hue color lamp 3", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305", "Light", "tc0_philipshue", "Switch"]},
-    "tc0_7def1d9d-721c-4e35-b217-51fb8b46ba59": {"nickname": "Hue go 1", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "tc0_7def1d9d-721c-4e35-b217-51fb8b46ba59", "Light", "tc0_philipshue", "Switch"]},
-    "tc0_081181c1-3210-4ad2-8af1-f262fdc0fc76": {"nickname": "Hue lindy lamp 3", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "tc0_081181c1-3210-4ad2-8af1-f262fdc0fc76", "Light", "tc0_philipshue", "Switch"]},
-    "tc0_livingroom_light_01": {"nickname": "거실 조명", "category": ["Light", "Switch"], "tags": ["LivingRoom", "tc0_livingroom_light_01", "Light", "Switch", "tc0_local"]},
-    "tc0_livingroom_light_02": {"nickname": "거실 조명", "category": ["Light", "Switch"], "tags": ["LivingRoom", "tc0_livingroom_light_02", "Light", "Switch", "tc0_local"]},
-    "tc0_550713ef-d27f-43f3-9dcf-7b16101c618a": {"nickname": "Hue motion sensor 2", "category": ["MotionSensor", "LightSensor", "TemperatureSensor"], "tags": ["PhilipsHue", "tc0_550713ef-d27f-43f3-9dcf-7b16101c618a", "MotionSensor", "tc0_philipshue", "LightSensor", "TemperatureSensor"]},
-    "tc0_01df2e24-81ac-2056-2edd-c6582bab5d52": {"nickname": "삼성 공기청정기 작은거", "category": ["AirPurifier", "Switch"], "tags": ["Smartthings", "tc0_01df2e24-81ac-2056-2edd-c6582bab5d52", "AirPurifier", "tc0_smartthings", "Switch"]},
-    "tc0_3c7a4839-c2a6-4731-98f9-03eda6b31608": {"nickname": "미로 가습기", "category": ["Humidifier", "Switch"], "tags": ["Smartthings", "tc0_3c7a4839-c2a6-4731-98f9-03eda6b31608", "Humidifier", "tc0_smartthings", "Switch"]},
-    "tc0_481471e8-2319-cbfd-9eb3-714df64ada77": {"nickname": "삼성 로봇청소기", "category": ["RobotVacuumCleaner", "Switch"], "tags": ["Smartthings", "tc0_481471e8-2319-cbfd-9eb3-714df64ada77", "RobotVacuumCleaner", "tc0_smartthings", "Switch"]},
-    "tc0_efb00b25-259e-1660-fb7b-9ca9b396b694": {"nickname": "삼성 공기청정기 큰거", "category": ["AirPurifier", "Switch"], "tags": ["Smartthings", "tc0_efb00b25-259e-1660-fb7b-9ca9b396b694", "AirPurifier", "tc0_smartthings", "Switch"]},
-    "tc0_s8e7a31295af78fb09mmpp": {"nickname": "헤이홈 IR 에어컨", "category": ["AirConditioner", "Switch", "TemperatureSensor"], "tags": ["Hejhome", "tc0_s8e7a31295af78fb09mmpp", "AirConditioner", "tc0_hejhome", "Switch", "TemperatureSensor"]},
-    "tc0_LG_Smart_Button_2_Button__28__ep1": {"nickname": "LG 스마트 버튼 2구 1", "category": ["Button"], "tags": ["Matter", "tc0_LG_Smart_Button_2_Button__28__ep1", "Button", "tc0_matter"]},
-    "tc0_LG_Smart_Button_2_Button__28__ep2": {"nickname": "LG 스마트 버튼 2구 2", "category": ["Button"], "tags": ["Matter", "tc0_LG_Smart_Button_2_Button__28__ep2", "Button", "tc0_matter"]},
-    "tc0_LG_Smart_Button_1_Button__29": {"nickname": "LG 스마트 버튼 1구", "category": ["Button"], "tags": ["Matter", "tc0_LG_Smart_Button_1_Button__29", "Button", "tc0_matter"]},
+    "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305": {"nickname": "재실 상태 인디케이터 (구역 5)", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "Section5", "tc0_5452b6c5-0dee-4cca-ba6f-15582b358305", "Light", "tc0_philipshue", "Switch"]},
+    "tc0_7def1d9d-721c-4e35-b217-51fb8b46ba59": {"nickname": "CO2 농도 인디케이터", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "CO2_Indicator", "tc0_7def1d9d-721c-4e35-b217-51fb8b46ba59", "Light", "tc0_philipshue", "Switch"]},
+    "tc0_081181c1-3210-4ad2-8af1-f262fdc0fc76": {"nickname": "Hue lindy lamp 3", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "tc0_081181c1-3210-4ad2-8af1-f262fdc0fc76", "Light", "tc0_philipshue", "Switch"]},
+    "tc0_550713ef-d27f-43f3-9dcf-7b16101c618a": {"nickname": "사무실 입구 모션 센서", "category": ["MotionSensor", "LightSensor", "TemperatureSensor"], "tags": ["PhilipsHue", "Entrance", "Door", "Section_E", "tc0_550713ef-d27f-43f3-9dcf-7b16101c618a", "MotionSensor", "tc0_philipshue", "LightSensor", "TemperatureSensor"]},
+    "tc0_01df2e24-81ac-2056-2edd-c6582bab5d52": {"nickname": "삼성 공기청정기 큰거", "category": ["AirPurifier", "Switch"], "tags": ["Smartthings", "tc0_01df2e24-81ac-2056-2edd-c6582bab5d52", "AirPurifier", "tc0_smartthings", "Switch"]},
+    "tc0_3c7a4839-c2a6-4731-98f9-03eda6b31608": {"nickname": "미로 가습기", "category": ["Humidifier", "Switch"], "tags": ["가습기", "tc0_3c7a4839-c2a6-4731-98f9-03eda6b31608", "Humidifier", "tc0_smartthings", "Switch"]},
+    "tc0_481471e8-2319-cbfd-9eb3-714df64ada77": {"nickname": "삼성 로봇청소기", "category": ["RobotVacuumCleaner"], "tags": ["Smartthings", "tc0_481471e8-2319-cbfd-9eb3-714df64ada77", "RobotVacuumCleaner", "tc0_smartthings"]},
+    "tc0_efb00b25-259e-1660-fb7b-9ca9b396b694": {"nickname": "삼성 공기청정기 작은거", "category": ["AirPurifier", "Switch"], "tags": ["Smartthings", "lindytest", "tc0_efb00b25-259e-1660-fb7b-9ca9b396b694", "AirPurifier", "tc0_smartthings", "Switch"]},
+    "tc0_efb00b25-259e-1660-fb7b-9ca9b396b6": {"nickname": "KT 공기청정기", "category": ["AirPurifier", "Switch"], "tags": ["Smartthings", "lindytest", "tc0_efb00b25-259e-1660-fb7b-9ca9b396b6", "AirPurifier", "tc0_smartthings", "Switch"]},
+    "tc0_s8e7a31295af78fb09mmpp": {"nickname": "헤이홈 IR 에이컨", "category": ["AirConditioner", "Switch", "TemperatureSensor"], "tags": ["Hejhome", "tc0_s8e7a31295af78fb09mmpp", "AirConditioner", "tc0_hejhome", "Switch", "TemperatureSensor"]},
     "tc0_LG_Temp_and_Humidity_Sensor__30__ep1": {"nickname": "LG 온습도 센서 (온도)", "category": ["TemperatureSensor"], "tags": ["Matter", "tc0_LG_Temp_and_Humidity_Sensor__30__ep1", "TemperatureSensor", "tc0_matter"]},
     "tc0_LG_Temp_and_Humidity_Sensor__30__ep2": {"nickname": "LG 온습도 센서 (습도)", "category": ["HumiditySensor"], "tags": ["Matter", "tc0_LG_Temp_and_Humidity_Sensor__30__ep2", "HumiditySensor", "tc0_matter"]},
-    "tc0_LG_Door_and_Window_Sensor__31": {"nickname": "LG 문열림 센서", "category": ["ContactSensor"], "tags": ["Matter", "Window", "tc0_LG_Door_and_Window_Sensor__31", "ContactSensor", "tc0_matter"]},
+    "tc0_LG_Door_and_Window_Sensor__31": {"nickname": "좌측 창문 열림 센서", "category": ["ContactSensor"], "tags": ["Matter", "Window", "tc0_LG_Door_and_Window_Sensor__31", "ContactSensor", "tc0_matter"]},
     "tc0_LG_Air_Quality_Sensor__32": {"nickname": "LG 공기질 센서", "category": ["AirQualitySensor"], "tags": ["Matter", "tc0_LG_Air_Quality_Sensor__32", "AirQualitySensor", "tc0_matter"]},
-    "tc0_Aqara_Motion_and_Light_Sensor_P2__33__ep1": {"nickname": "Aqara P2 모션&조도 센서 1 (재실)", "category": ["PresenceSensor"], "tags": ["Matter", "tc0_Aqara_Motion_and_Light_Sensor_P2__33__ep1", "PresenceSensor", "tc0_matter"]},
     "tc0_Aqara_Motion_and_Light_Sensor_P2__33__ep2": {"nickname": "Aqara P2 모션&조도 센서 1 (조도)", "category": ["LightSensor"], "tags": ["Matter", "tc0_Aqara_Motion_and_Light_Sensor_P2__33__ep2", "LightSensor", "tc0_matter"]},
-    "tc0_Aqara_Motion_and_Light_Sensor_P2__36__ep1": {"nickname": "Aqara P2 모션&조도 센서 2 (재실)", "category": ["PresenceSensor"], "tags": ["Matter", "tc0_Aqara_Motion_and_Light_Sensor_P2__36__ep1", "PresenceSensor", "tc0_matter"]},
-    "tc0_Aqara_Motion_and_Light_Sensor_P2__36__ep2": {"nickname": "Aqara P2 모션&조도 센서 2 (조도)", "category": ["LightSensor"], "tags": ["Matter", "tc0_Aqara_Motion_and_Light_Sensor_P2__36__ep2", "LightSensor", "tc0_matter"]},
-    "tc0_Aqara_Door_and_Window_Sensor_P2__25__ep1": {"nickname": "Aqara P2 문열림 센서 1", "category": ["ContactSensor"], "tags": ["Matter", "Entrance", "Door", "tc0_Aqara_Door_and_Window_Sensor_P2__25__ep1", "ContactSensor", "tc0_matter"]},    
-    "tc0_Aqara_Door_and_Window_Sensor_P2__25__ep2": {"nickname": "Aqara P2 문열림 센서 1 (배터리)", "category": ["Battery"], "tags": ["Matter", "tc0_Aqara_Door_and_Window_Sensor_P2__25__ep2", "Battery", "tc0_matter"]},
+    "tc0_Aqara_Door_and_Window_Sensor_P2__25__ep1": {"nickname": "사무실 문열림 센서", "category": ["ContactSensor"], "tags": ["Matter", "Entrance", "Door", "Section_E", "tc0_Aqara_Door_and_Window_Sensor_P2__25__ep1", "ContactSensor", "tc0_matter"]},
     "tc0_Aqara_Motion_and_Light_Sensor_P2__33__ep3": {"nickname": "Aqara P2 모션&조도 센서 1 (배터리)", "category": ["Battery"], "tags": ["Matter", "tc0_Aqara_Motion_and_Light_Sensor_P2__33__ep3", "Battery", "tc0_matter"]},
-    "tc0_Aqara_Motion_and_Light_Sensor_P2__36__ep3": {"nickname": "Aqara P2 모션&조도 센서 2 (배터리)", "category": ["Battery"], "tags": ["Matter", "tc0_Aqara_Motion_and_Light_Sensor_P2__36__ep3", "Battery", "tc0_matter"]},
-    "tc0_Aqara_Door_and_Window_Sensor_P2__37__ep1": {"nickname": "Aqara P2 문열림 센서 2", "category": ["ContactSensor"], "tags": ["Matter", "Window", "tc0_Aqara_Door_and_Window_Sensor_P2__37__ep1", "ContactSensor", "tc0_matter"]},
-    "tc0_Aqara_Door_and_Window_Sensor_P2__37__ep2": {"nickname": "Aqara P2 문열림 센서 2 (배터리)", "category": ["Battery"], "tags": ["Matter", "tc0_Aqara_Door_and_Window_Sensor_P2__37__ep2", "Battery", "tc0_matter"]},
-    "tc0_Presence_Multi-Sensor_FP300__41__ep1": {"nickname": "Aqara FP300 재실 센서 (재실)", "category": ["PresenceSensor"], "tags": ["Matter", "tc0_Presence_Multi-Sensor_FP300__41__ep1", "PresenceSensor", "tc0_matter"]},
-    "tc0_Presence_Multi-Sensor_FP300__41__ep2": {"nickname": "Aqara FP300 재실 센서 (조도)", "category": ["LightSensor"], "tags": ["Matter", "tc0_Presence_Multi-Sensor_FP300__41__ep2", "LightSensor", "tc0_matter"]},
-    "tc0_Presence_Multi-Sensor_FP300__41__ep3": {"nickname": "Aqara FP300 재실 센서 (온도)", "category": ["TemperatureSensor"], "tags": ["Matter", "tc0_Presence_Multi-Sensor_FP300__41__ep3", "TemperatureSensor", "tc0_matter"]},
-    "tc0_Presence_Multi-Sensor_FP300__41__ep4": {"nickname": "Aqara FP300 재실 센서 (습도)", "category": ["HumiditySensor"], "tags": ["Matter", "tc0_Presence_Multi-Sensor_FP300__41__ep4", "HumiditySensor", "tc0_matter"]},
-    "tc0_Presence_Multi-Sensor_FP300__41__ep5": {"nickname": "Aqara FP300 재실 센서 (배터리)", "category": ["Battery"], "tags": ["Matter", "tc0_Presence_Multi-Sensor_FP300__41__ep5", "Battery", "tc0_matter"]},
+    "tc0_Aqara_Door_and_Window_Sensor_P2__37__ep1": {"nickname": "우측 창문 열림 센서", "category": ["ContactSensor"], "tags": ["Matter", "Window", "tc0_Aqara_Door_and_Window_Sensor_P2__37__ep1", "ContactSensor", "tc0_matter"]},
     "tc0_6dbb914e-01ee-4f38-a977-6b700af2ba96": {"nickname": "Hue dimmer switch 1", "category": ["MultiButton"], "tags": ["PhilipsHue", "tc0_6dbb914e-01ee-4f38-a977-6b700af2ba96", "MultiButton", "tc0_philipshue"]},
     "tc0_163a3cde-6bca-4b70-b93f-839d57b6f6ff": {"nickname": "Hue dimmer switch 2", "category": ["MultiButton"], "tags": ["PhilipsHue", "tc0_163a3cde-6bca-4b70-b93f-839d57b6f6ff", "MultiButton", "tc0_philipshue"]},
     "tc0_4fab94c3-a3ce-4814-8d03-e84c6775d1f4": {"nickname": "Hue tap dial switch 1", "category": ["RotaryControl", "MultiButton"], "tags": ["PhilipsHue", "tc0_4fab94c3-a3ce-4814-8d03-e84c6775d1f4", "RotaryControl", "tc0_philipshue", "MultiButton"]},
-    "tc0_ebe47e098219089fc7frjx__ep1": {"nickname": "스마트빌 전등 스위치 6구 1", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "tc0_ebe47e098219089fc7frjx__ep1", "LightSwitch", "Switch", "tc0_tuya"]},
-    "tc0_ebe47e098219089fc7frjx__ep2": {"nickname": "스마트빌 전등 스위치 6구 2", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "tc0_ebe47e098219089fc7frjx__ep2", "LightSwitch", "Switch", "tc0_tuya"]},
-    "tc0_ebe47e098219089fc7frjx__ep3": {"nickname": "스마트빌 전등 스위치 6구 3", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "tc0_ebe47e098219089fc7frjx__ep3", "LightSwitch", "Switch", "tc0_tuya"]},
-    "tc0_ebe47e098219089fc7frjx__ep4": {"nickname": "스마트빌 전등 스위치 6구 4", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "tc0_ebe47e098219089fc7frjx__ep4", "LightSwitch", "Switch", "tc0_tuya"]},
-    "tc0_ebe47e098219089fc7frjx__ep5": {"nickname": "스마트빌 전등 스위치 6구 5", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "tc0_ebe47e098219089fc7frjx__ep5", "LightSwitch", "Switch", "tc0_tuya"]},
-    "tc0_ebe47e098219089fc7frjx__ep6": {"nickname": "스마트빌 전등 스위치 6구 6", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "tc0_ebe47e098219089fc7frjx__ep6", "LightSwitch", "Switch", "tc0_tuya"]},
-    "tc0_ebfce1cbd88459d75bnymz": {"nickname": "투야 스마트 IR&온습도 센서", "category": ["TemperatureSensor", "HumiditySensor"], "tags": ["Tuya", "tc0_ebfce1cbd88459d75bnymz", "TemperatureSensor", "tc0_tuya", "HumiditySensor"]},
-    "tc0_ebfb522a028ef8add497wu": {"nickname": "스카이라이트 CCT", "category": ["Light", "Switch"], "tags": ["Tuya", "NoneNecessary", "tc0_ebfb522a028ef8add497wu", "Light", "tc0_tuya", "Switch"]},
-    "tc0_eb8c9cf310d709af51rs9c": {"nickname": "스카이라이트 YUER", "category": ["Light", "Switch"], "tags": ["Tuya", "NoneNecessary", "tc0_eb8c9cf310d709af51rs9c", "Light", "tc0_tuya", "Switch"]},
+    "tc0_ebe47e098219089fc7frjx__ep1": {"nickname": "스마트빌 전등 스위치 6구 1", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "LightSwitch", "tc0_ebe47e098219089fc7frjx__ep1", "Switch", "tc0_tuya"]},
+    "tc0_ebe47e098219089fc7frjx__ep2": {"nickname": "스마트빌 전등 스위치 6구 2", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "LightSwitch", "tc0_ebe47e098219089fc7frjx__ep2", "Switch", "tc0_tuya"]},
+    "tc0_ebe47e098219089fc7frjx__ep3": {"nickname": "스마트빌 전등 스위치 6구 3", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "LightSwitch", "tc0_ebe47e098219089fc7frjx__ep3", "Switch", "tc0_tuya"]},
+    "tc0_ebe47e098219089fc7frjx__ep4": {"nickname": "스마트빌 전등 스위치 6구 4", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "LightSwitch", "tc0_ebe47e098219089fc7frjx__ep4", "Switch", "tc0_tuya"]},
+    "tc0_ebe47e098219089fc7frjx__ep5": {"nickname": "스마트빌 전등 스위치 6구 5", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "LightSwitch", "tc0_ebe47e098219089fc7frjx__ep5", "Switch", "tc0_tuya"]},
+    "tc0_ebe47e098219089fc7frjx__ep6": {"nickname": "스마트빌 전등 스위치 6구 6", "category": ["Switch"], "tags": ["Tuya", "NoneNecessary", "LightSwitch", "tc0_ebe47e098219089fc7frjx__ep6", "Switch", "tc0_tuya"]},
+    "tc0_ebfb522a028ef8add497wu": {"nickname": "스카이라이트 CCT", "category": ["Light", "Switch"], "tags": ["Tuya", "NoneNecessary", "SharedLight", "tc0_ebfb522a028ef8add497wu", "Light", "tc0_tuya", "Switch"]},
+    "tc0_eb8c9cf310d709af51rs9c": {"nickname": "스카이라이트 YUER", "category": ["Light", "Switch"], "tags": ["Tuya", "NoneNecessary", "SharedLight", "tc0_eb8c9cf310d709af51rs9c", "Light", "tc0_tuya", "Switch"]},
     "tc0_ebd62449e3a700125du284": {"nickname": "투야 푸시 버튼 1", "category": ["Button", "Battery"], "tags": ["Tuya", "ModeToggle", "tc0_ebd62449e3a700125du284", "Button", "tc0_tuya", "Battery"]},
-    "tc0_eb70b2f140ec4acb9ebpwt": {"nickname": "투야 모션 센서 1", "category": ["PresenceSensor"], "tags": ["Tuya", "tc0_eb70b2f140ec4acb9ebpwt", "PresenceSensor", "tc0_tuya"]},
-    "tc0_ebc3c76ceb8d4a5a4907wk": {"nickname": "투야 미니 재실 센서 1", "category": ["PresenceSensor"], "tags": ["Tuya", "tc0_ebc3c76ceb8d4a5a4907wk", "PresenceSensor", "tc0_tuya"]},
     "tc0_ebe62c3d24c9220549quqn": {"nickname": "투야 화재 감지 센서", "category": ["SmokeDetector", "Battery"], "tags": ["Tuya", "tc0_ebe62c3d24c9220549quqn", "SmokeDetector", "tc0_tuya", "Battery"]},
-    "tc0_ebec1cd10fda5a0f355eq9": {"nickname": "투야 미니 재실 센서 2", "category": ["PresenceSensor"], "tags": ["Tuya", "tc0_ebec1cd10fda5a0f355eq9", "PresenceSensor", "tc0_tuya"]},
-    "tc0_ebfee34916a45f1de9sllx": {"nickname": "투야 유선 재실 센서", "category": ["PresenceSensor"], "tags": ["Tuya", "tc0_ebfee34916a45f1de9sllx", "PresenceSensor", "tc0_tuya"]},
-    "tc0_builtin_clock": {"nickname": "시계", "category": ["Clock"], "tags": ["tc0_builtin_clock", "Clock", "tc0_local"]},
     "tc0_builtin_toast_publisher": {"nickname": "토스트 퍼블리셔", "category": ["ToastPublisher"], "tags": ["tc0_builtin_toast_publisher", "ToastPublisher", "tc0_local"]},
     "tc0_builtin_weather_provider": {"nickname": "날씨", "category": ["WeatherProvider"], "tags": ["tc0_builtin_weather_provider", "WeatherProvider", "tc0_local"]},
     "tc0_builtin_email_provider": {"nickname": "이메일", "category": ["EmailProvider"], "tags": ["tc0_builtin_email_provider", "EmailProvider", "tc0_local"]},
@@ -81,8 +69,24 @@ CONNECTED_DEVICES = {
     "tc0_Smart_Wi-Fi_Plug__43": {"nickname": "스마트 Wi-Fi 플러그 1", "category": ["Plug", "Switch", "PowerMeter", "EnergyMeter"], "tags": ["Matter", "NoneNecessary", "tc0_Smart_Wi-Fi_Plug__43", "Plug", "tc0_matter", "Switch", "PowerMeter", "EnergyMeter"]},
     "tc0_Smart_Wi-Fi_Plug__44": {"nickname": "스마트 Wi-Fi 플러그 2", "category": ["Plug", "Switch", "PowerMeter", "EnergyMeter"], "tags": ["Matter", "NoneNecessary", "tc0_Smart_Wi-Fi_Plug__44", "Plug", "tc0_matter", "Switch", "PowerMeter", "EnergyMeter"]},
     "tc0_Wi-Fi_Plug__46": {"nickname": "스마트 Wi-Fi 플러그 3", "category": ["Plug", "Switch"], "tags": ["Matter", "NoneNecessary", "tc0_Wi-Fi_Plug__46", "Plug", "tc0_matter", "Switch"]},
-    "tc0_Smart_Presence_Sensor__47__ep1": {"nickname": "Smart Presence Sensor 47 ep1", "category": ["PresenceSensor"], "tags": ["Matter", "tc0_Smart_Presence_Sensor__47__ep1", "PresenceSensor", "tc0_matter"]},
-    "tc0_Smart_Presence_Sensor__47__ep2": {"nickname": "Smart Presence Sensor 47 ep2", "category": ["LightSensor"], "tags": ["Matter", "tc0_Smart_Presence_Sensor__47__ep2", "LightSensor", "tc0_matter"]},
+    "tc0_builtin_printer": {"nickname": "사무실 프린터", "category": ["Printer"], "tags": ["Builtin", "tc0_builtin_printer", "Printer", "tc0_local"]},
+    "Clock_IoT_Core": {"nickname": "시계", "category": ["Clock"], "tags": ["Clock_IoT_Core", "Clock"]},
+    "tc0_Smart_Presence_Sensor__52__ep2": {"nickname": "재실 감지 센서 (구역 1)", "category": ["PresenceSensor"], "tags": ["Matter", "Section1", "tc0_Smart_Presence_Sensor__52__ep2", "PresenceSensor", "tc0_matter"]},
+    "GlobalVariable_IoT_Core": {"nickname": "전역 변수", "category": ["GlobalVariable"], "tags": ["GlobalVariable_IoT_Core", "GlobalVariable"]},
+    "tc0_57b081e4-f567-4a84-9121-4f0ed61ae733": {"nickname": "재실 상태 인디케이터 (구역 3)", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "Section3", "tc0_57b081e4-f567-4a84-9121-4f0ed61ae733", "Light", "tc0_philipshue", "Switch"]},
+    "tc0_d1b5e845-cbe2-42b4-9606-8ad71cb14901": {"nickname": "재실 상태 인디케이터 (구역 1)", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "Section1", "tc0_d1b5e845-cbe2-42b4-9606-8ad71cb14901", "Light", "tc0_philipshue", "Switch"]},
+    "tc0_4e13891d-054f-494a-9517-c56b38632fef": {"nickname": "재실 상태 인디케이터 (구역 2)", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "Section2", "tc0_4e13891d-054f-494a-9517-c56b38632fef", "Light", "tc0_philipshue", "Switch"]},
+    "tc0_05b24023-a435-4e1a-bf7d-680c5a0174ba": {"nickname": "재실 상태 인디케이터 (구역 6)", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "Section6", "tc0_05b24023-a435-4e1a-bf7d-680c5a0174ba", "Light", "tc0_philipshue", "Switch"]},
+    "tc0_ba52d76e-e6dc-41ff-8207-64c7d9d88b3b": {"nickname": "재실 상태 인디케이터 (구역 4)", "category": ["Light", "Switch"], "tags": ["PhilipsHue", "NoneNecessary", "Section4", "tc0_ba52d76e-e6dc-41ff-8207-64c7d9d88b3b", "Light", "tc0_philipshue", "Switch"]},
+    "tc0_Smart_Presence_Sensor__60__ep2": {"nickname": "재실 감지 센서 (구역 2)", "category": ["PresenceSensor"], "tags": ["Matter", "Section2", "tc0_Smart_Presence_Sensor__60__ep2", "PresenceSensor", "tc0_matter"]},
+    "tc0_Smart_Presence_Sensor__61__ep2": {"nickname": "재실 감지 센서 (구역 3)", "category": ["PresenceSensor"], "tags": ["Matter", "Section3", "tc0_Smart_Presence_Sensor__61__ep2", "PresenceSensor", "tc0_matter"]},
+    "tc0_Smart_Presence_Sensor__62__ep2": {"nickname": "재실 감지 센서 (구역 4)", "category": ["PresenceSensor"], "tags": ["Matter", "Section4", "tc0_Smart_Presence_Sensor__62__ep2", "PresenceSensor", "tc0_matter"]},
+    "tc0_Smart_Presence_Sensor__63__ep2": {"nickname": "재실 감지 센서 (구역 5)", "category": ["PresenceSensor"], "tags": ["Matter", "Section5", "tc0_Smart_Presence_Sensor__63__ep2", "PresenceSensor", "tc0_matter"]},
+    "tc0_Smart_Presence_Sensor__64__ep2": {"nickname": "재실 감지 센서 (구역 6)", "category": ["PresenceSensor"], "tags": ["Matter", "Section6", "tc0_Smart_Presence_Sensor__64__ep2", "PresenceSensor", "tc0_matter"]},
+    "tc0_Aqara_Door_and_Window_Sensor_P2__65__ep1": {"nickname": "Aqara Door and Window Sensor P2 65 ep1", "category": ["ContactSensor"], "tags": ["Matter", "tc0_Aqara_Door_and_Window_Sensor_P2__65__ep1", "ContactSensor", "tc0_matter"]},
+    "tc0_builtin_chat_provider": {"nickname": "AI 챗봇", "category": ["ChatProvider"], "tags": ["tc0_builtin_chat_provider", "ChatProvider", "tc0_local"]},
+    "tc0_builtin_news_provider": {"nickname": "뉴스", "category": ["NewsProvider"], "tags": ["tc0_builtin_news_provider", "NewsProvider", "tc0_local"]},
+    "tc0_builtin_message_sender": {"nickname": "문자 발송", "category": ["MessageSender"], "tags": ["tc0_builtin_message_sender", "MessageSender", "tc0_local"]},
 }
 
 # 실행할 명령어 목록 — 여기에 추가하면 모두 순서대로 수행된다.
@@ -144,11 +148,22 @@ COMMANDS_3 = [
     "창문이 열려 있는데 에어컨이 켜져 있으면 에어컨을 꺼줘",
 ]
 
-# 돌릴 그룹만 여기서 선택 (COMMANDS_1 / COMMANDS_2 / COMMANDS_3)
-# qwen ↔ Ornith 결과가 갈렸거나 이슈가 있던 명령들 (직접 돌려 비교용)
-COMMANDS = [
-    "매일 오후 8시 에어컨 끄기"
+# service_list_ver2.0.7 신규 스킬 실험 중 오류가 관측된 명령만 남김 (세부 로그 분석용).
+# 각 줄 끝 주석 = 관측된 증상.
+COMMANDS_4 = [
+    # ── ChatProvider ──
+    "챗봇에게 대한민국의 수도가 어디인지 물어봐줘",                # speaker_speak가 #ChatProvider 태그에 붙음(4/4 재현)
+    "챗봇에게 삼행시 지어달라고 하고 토스트로 보여줘",             # Message 미분리(명령 전체 verbatim) + 토스트 고정문구→답변 유실
+    # ── NewsProvider ──
+    "최신 뉴스 요약해서 스피커로 읽어줘",                        # Topic/Count 과다주입(테크/3, 명령엔 없음)
+    "AI 뉴스 3개만 토스트로 보여줘",                            # Topic "AI" 누락(→"") + 토스트 고정문구→뉴스 유실
+    "경제 뉴스 알려줘",                                       # 요청 안 한 토스트(고정문구) 덤으로 추가
+    # ── MessageSender ──
+    "문이 열리면 '문이 열렸습니다'라고 010-1234-5678로 문자 보내줘",  # SMS 본문이 영어("The door is open")로 번역 유출
 ]
+
+# 돌릴 그룹만 여기서 선택 (COMMANDS_1 / COMMANDS_2 / COMMANDS_3 / COMMANDS_4)
+COMMANDS = COMMANDS_3
 
 def _reindent(script: str, unit: str = "    ") -> str:
     """Re-indent a JoI script by { } nesting depth so blocks are readable."""
@@ -199,6 +214,19 @@ def run(command: str) -> None:
     print(f"\nresponse_time : {log.get('response_time', '')}")
 
 
+def _mapping_version_from_argv(argv) -> str:
+    version = "v1"
+    for arg in argv:
+        if arg.lower() in ("v1", "v2"):
+            version = arg.lower()
+        else:
+            sys.exit(f"사용법: python3 run.py [v1|v2]   (알 수 없는 인자: {arg!r})")
+    return version
+
+
 if __name__ == "__main__":
+    version = _mapping_version_from_argv(sys.argv[1:])
+    os.environ["JOI_MAPPING"] = version
+    print(f"■ mapping={version}  ({len(COMMANDS)} commands)")
     for command in COMMANDS:
         run(command)
