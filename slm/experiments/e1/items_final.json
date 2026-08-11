@@ -1,0 +1,2977 @@
+[
+ {
+  "index": 11,
+  "csv_index": "1",
+  "category": "C05",
+  "cmd": "거실에 사람이 있고 주방에서 연기가 감지되고 있으면, 거실 스피커로 주방에 연기가 감지되었다고 출력하고 주방 밸브를 잠궈줘.",
+  "devices": "LivingRoom_Presence: [PresenceSensor]\nKitchen_Smoke: [SmokeDetector]\nLivingRoom_Speaker: [Speaker]\nKitchen_Valve: [Valve]\nBedroom_Speaker: [Speaker]\n\n[Services]\nPresenceSensor:\n  attrs: Presence(BOOL)\nSmokeDetector:\n  attrs: Smoke(BOOL)\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nValve:\n  attrs: ValveState(BOOL)\n  funcs: Close(), Open()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true and SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Smoke has been detected in the kitchen"
+       }
+      },
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "거실에 사람이 있고",
+   "주방에서 연기가 감지되고 있으면,",
+   "거실 스피커로 주방에 연기가 감지되었다고 출력하고",
+   "주방 밸브를 잠궈줘."
+  ],
+  "devices_raw": "{\"LivingRoom_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"LivingRoom\", \"PresenceSensor\"]}, \"Kitchen_Smoke\": {\"category\": [\"SmokeDetector\"], \"tags\": [\"Kitchen\", \"SmokeDetector\"]}, \"LivingRoom_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"LivingRoom\", \"Speaker\"]}, \"Kitchen_Valve\": {\"category\": [\"Valve\"], \"tags\": [\"Kitchen\", \"Valve\"]}, \"Bedroom_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Bedroom\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "거실에 사람이 있고 주방에서 연기가 감지되고 있으면,",
+   "거실 스피커로 주방에 연기가 감지되었다고 출력하고",
+   "주방 밸브를 잠궈줘."
+  ]
+ },
+ {
+  "index": 14,
+  "csv_index": "1",
+  "category": "C17",
+  "cmd": "10분마다 확인해서 온도가 30도 이상이면 에어컨을 쿨모드로 설정해줘.",
+  "devices": "LivingRoom_Temp: [TemperatureSensor]\nLivingRoom_AC: [AirConditioner, Switch]\nBedroom_AC: [AirConditioner, Switch]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nAirConditioner:\n  attrs: AirConditionerMode(ENUM:AirConditionerModeEnum), TargetTemperature(DOUBLE)\n  funcs: SetAirConditionerMode(Mode:ENUM:AirConditionerModeEnum), SetTargetTemperature(Temperature:DOUBLE)\n  enum AirConditionerModeEnum: auto, cool, heat\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "10분마다 확인해서",
+   "온도가 30도 이상이면",
+   "에어컨을 쿨모드로 설정해줘."
+  ],
+  "devices_raw": "{\"LivingRoom_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"LivingRoom\", \"TemperatureSensor\"]}, \"LivingRoom_AC\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"LivingRoom\", \"AirConditioner\", \"Switch\"]}, \"Bedroom_AC\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"Bedroom\", \"AirConditioner\", \"Switch\"]}}",
+  "clauses_merged": [
+   "10분마다 확인해서",
+   "온도가 30도 이상이면",
+   "에어컨을 쿨모드로 설정해줘."
+  ]
+ },
+ {
+  "index": 64,
+  "csv_index": "9",
+  "category": "C08",
+  "cmd": "멀티버튼의 버튼1이 눌리면 현관 조명을 켜고 5분 후에 꺼줘.",
+  "devices": "Entrance_MB: [MultiButton]\nHall_MB: [MultiButton]\nEntrance_Light: [Light]\nHall_Light: [Light]\n\n[Services]\nMultiButton:\n  attrs: Button1(ENUM:ButtonEnum), Button2(ENUM:ButtonEnum), Button3(ENUM:ButtonEnum), Button4(ENUM:ButtonEnum)\n  enum ButtonEnum: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "MultiButton.Button1 == \"pushed\"",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 100.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "5 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 0.0,
+      "Rate": 0.0
+     }
+    }
+   ]
+  },
+  "n_ops": 5,
+  "clauses": [
+   "멀티버튼의 버튼1이 눌리면",
+   "현관 조명을 켜고",
+   "5분 후에",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"Entrance_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"Entrance\", \"MultiButton\"]}, \"Hall_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"Hallway\", \"MultiButton\"]}, \"Entrance_Light\": {\"category\": [\"Light\"], \"tags\": [\"Entrance\", \"Light\"]}, \"Hall_Light\": {\"category\": [\"Light\"], \"tags\": [\"Hallway\", \"Light\"]}}",
+  "clauses_merged": [
+   "멀티버튼의 버튼1이 눌리면",
+   "현관 조명을 켜고",
+   "5분 후에",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 90,
+  "csv_index": "1",
+  "category": "C14",
+  "cmd": "멀티버튼의 버튼1이 눌릴 때마다 복도 조명 밝기를 10씩 높여줘. 최대 100까지.",
+  "devices": "Hall_MB: [MultiButton]\nLR_MB: [MultiButton]\nHall_Light: [Light]\nLR_Light: [Light]\n\n[Services]\nMultiButton:\n  attrs: Button1(ENUM:ButtonEnum), Button2(ENUM:ButtonEnum), Button3(ENUM:ButtonEnum), Button4(ENUM:ButtonEnum)\n  enum ButtonEnum: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button1 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": "min($Light.CurrentBrightness + 10, 100)",
+        "Rate": 0.0
+       },
+       "var": "Light"
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "멀티버튼의 버튼1이 눌릴 때마다",
+   "복도 조명 밝기를 10씩 높여줘.",
+   "최대 100까지."
+  ],
+  "devices_raw": "{\"Hall_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"Hallway\", \"MultiButton\"]}, \"LR_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"LivingRoom\", \"MultiButton\"]}, \"Hall_Light\": {\"category\": [\"Light\"], \"tags\": [\"Hallway\", \"Light\"]}, \"LR_Light\": {\"category\": [\"Light\"], \"tags\": [\"LivingRoom\", \"Light\"]}}",
+  "clauses_merged": [
+   "멀티버튼의 버튼1이 눌릴 때마다",
+   "복도 조명 밝기를 10씩 높여줘.",
+   "최대 100까지."
+  ]
+ },
+ {
+  "index": 96,
+  "csv_index": "12",
+  "category": "C08",
+  "cmd": "멀티버튼의 버튼3이 눌릴 때마다 주방 조명을 켜고 끄는 것을 반복해줘.",
+  "devices": "Kitchen_MB: [MultiButton]\nLR_MB: [MultiButton]\nKitchen_Light: [Light]\nLR_Light: [Light]\n\n[Services]\nMultiButton:\n  attrs: Button1(ENUM:ButtonEnum), Button2(ENUM:ButtonEnum), Button3(ENUM:ButtonEnum), Button4(ENUM:ButtonEnum)\n  enum ButtonEnum: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button3 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "delay",
+       "duration": "1 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 0.0,
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "멀티버튼의 버튼3이 눌릴 때마다",
+   "주방 조명을 켜고",
+   "끄는 것을 반복해줘."
+  ],
+  "devices_raw": "{\"Kitchen_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"Kitchen\", \"MultiButton\"]}, \"LR_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"LivingRoom\", \"MultiButton\"]}, \"Kitchen_Light\": {\"category\": [\"Light\"], \"tags\": [\"Kitchen\", \"Light\"]}, \"LR_Light\": {\"category\": [\"Light\"], \"tags\": [\"LivingRoom\", \"Light\"]}}",
+  "clauses_merged": [
+   "멀티버튼의 버튼3이 눌릴 때마다",
+   "주방 조명을 켜고",
+   "끄는 것을 반복해줘."
+  ]
+ },
+ {
+  "index": 124,
+  "csv_index": "1",
+  "category": "C09",
+  "cmd": "TV 채널을 7번으로 바꾸고 1시간 뒤에 11번으로 바꿔줘.",
+  "devices": "LivingRoom_Television: [Television]\nBedroom_Television: [Television]\n\n[Services]\nTelevision:\n  attrs: Channel(INTEGER)\n  funcs: ChannelDown(), ChannelUp(), SetChannel(Channel:INTEGER)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Television.SetChannel",
+     "args": {
+      "Channel": 7
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "call",
+     "target": "Television.SetChannel",
+     "args": {
+      "Channel": 11
+     }
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "TV 채널을 7번으로 바꾸고",
+   "1시간 뒤에",
+   "11번으로 바꿔줘."
+  ],
+  "devices_raw": "{\"LivingRoom_Television\": {\"category\": [\"Television\"], \"tags\": [\"LivingRoom\", \"Television\"]}, \"Bedroom_Television\": {\"category\": [\"Television\"], \"tags\": [\"Bedroom\", \"Television\"]}}",
+  "clauses_merged": [
+   "TV 채널을 7번으로 바꾸고",
+   "1시간 뒤에",
+   "11번으로 바꿔줘."
+  ]
+ },
+ {
+  "index": 127,
+  "csv_index": "4",
+  "category": "C09",
+  "cmd": "에어컨 온도를 24도로 설정하고 1시간 뒤에 26도로 설정해줘.",
+  "devices": "LivingRoom_AirConditioner: [AirConditioner, Switch]\nBedroom_AirConditioner: [AirConditioner, Switch]\n\n[Services]\nAirConditioner:\n  attrs: AirConditionerMode(ENUM:AirConditionerModeEnum), TargetTemperature(DOUBLE)\n  funcs: SetAirConditionerMode(Mode:ENUM:AirConditionerModeEnum), SetTargetTemperature(Temperature:DOUBLE)\n  enum AirConditionerModeEnum: auto, cool, heat\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetTargetTemperature",
+     "args": {
+      "Temperature": 24.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetTargetTemperature",
+     "args": {
+      "Temperature": 26.0
+     }
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "에어컨 온도를 24도로 설정하고",
+   "1시간 뒤에",
+   "26도로 설정해줘."
+  ],
+  "devices_raw": "{\"LivingRoom_AirConditioner\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"LivingRoom\", \"AirConditioner\"]}, \"Bedroom_AirConditioner\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"Bedroom\", \"AirConditioner\"]}}",
+  "clauses_merged": [
+   "에어컨 온도를 24도로 설정하고",
+   "1시간 뒤에",
+   "26도로 설정해줘."
+  ]
+ },
+ {
+  "index": 130,
+  "csv_index": "2",
+  "category": "C10",
+  "cmd": "오븐이 가열 모드가 되면 3초 뒤에 전자레인지 모드로 바꿔줘.",
+  "devices": "Kitchen_Oven: [Oven]\nBasement_Oven: [Oven]\n\n[Services]\nOven: (unknown category)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Oven.OvenMode == \"heating\"",
+     "edge": "none"
+    },
+    {
+     "op": "delay",
+     "duration": "3 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Oven.SetOvenMode",
+     "args": {
+      "Mode": "Microwave"
+     }
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "오븐이 가열 모드가 되면",
+   "3초 뒤에",
+   "전자레인지 모드로 바꿔줘."
+  ],
+  "devices_raw": "{\"Kitchen_Oven\": {\"category\": [\"Oven\"], \"tags\": [\"Kitchen\", \"Oven\"]}, \"Basement_Oven\": {\"category\": [\"Oven\"], \"tags\": [\"Basement\", \"Oven\"]}}",
+  "clauses_merged": [
+   "오븐이 가열 모드가 되면",
+   "3초 뒤에",
+   "전자레인지 모드로 바꿔줘."
+  ]
+ },
+ {
+  "index": 136,
+  "csv_index": "8",
+  "category": "C09",
+  "cmd": "로봇 청소기를 자동 모드로 시작하고 30분 뒤에 수동 모드로 바꿔줘.",
+  "devices": "LivingRoom_RobotVacuumCleaner: [RobotVacuumCleaner]\nKitchen_RobotVacuumCleaner: [RobotVacuumCleaner]\n\n[Services]\nRobotVacuumCleaner:\n  attrs: RobotVacuumCleanerCleaningMode(ENUM:RobotVacuumCleanerCleaningModeEnum), RobotVacuumCleanerOperatingState(ENUM:RobotVacuumCleanerOperatingStateEnum), RobotVacuumCleanerRunMode(ENUM:RobotVacuumCleanerRunModeEnum)\n  funcs: SetRobotVacuumCleanerCleaningMode(Mode:ENUM:RobotVacuumCleanerCleaningModeEnum), SetRobotVacuumCleanerRunMode(Mode:ENUM:RobotVacuumCleanerRunModeEnum)\n  enum RobotVacuumCleanerCleaningModeEnum: auto, part, repeat, manual, stop, map\n  enum RobotVacuumCleanerOperatingStateEnum: stopped, running, paused, seekingCharger, charging, docked, unableToStartOrResume, unableToCompleteOperation, commandInvalidInState, failedToFindChargingDock, stuck, dustBinMissing, dustBinFull, waterTankEmpty, waterTankMissing, waterTankLidOpen, mopCleaningPadMissing\n  enum RobotVacuumCleanerRunModeEnum: homing, idle, charging, alarm, powerOff, reserve, point, after, cleaning, pause, washingMop\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+     "args": {
+      "Mode": "auto"
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "30 MIN"
+    },
+    {
+     "op": "call",
+     "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+     "args": {
+      "Mode": "manual"
+     }
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "로봇 청소기를 자동 모드로 시작하고",
+   "30분 뒤에",
+   "수동 모드로 바꿔줘."
+  ],
+  "devices_raw": "{\"LivingRoom_RobotVacuumCleaner\": {\"category\": [\"RobotVacuumCleaner\"], \"tags\": [\"LivingRoom\", \"RobotVacuumCleaner\"]}, \"Kitchen_RobotVacuumCleaner\": {\"category\": [\"RobotVacuumCleaner\"], \"tags\": [\"Kitchen\", \"RobotVacuumCleaner\"]}}",
+  "clauses_merged": [
+   "로봇 청소기를 자동 모드로 시작하고",
+   "30분 뒤에",
+   "수동 모드로 바꿔줘."
+  ]
+ },
+ {
+  "index": 138,
+  "csv_index": "10",
+  "category": "C09",
+  "cmd": "제습기를 건조 모드로 작동시키고 1시간 뒤에 리프레쉬 모드로 바꿔줘.",
+  "devices": "LivingRoom_Dehumidifier: [Dehumidifier]\nBedroom_Dehumidifier: [Dehumidifier]\n\n[Services]\nDehumidifier:\n  attrs: DehumidifierMode(ENUM:DehumidifierModeEnum)\n  funcs: SetDehumidifierMode(Mode:ENUM:DehumidifierModeEnum)\n  enum DehumidifierModeEnum: cooling, delayWash, drying, finished, refreshing, weightSensing, wrinklePrevent, dehumidifying, AIDrying, sanitizing, internalCare, freezeProtection, continuousDehumidifying, thawingFrozenInside\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Dehumidifier.SetDehumidifierMode",
+     "args": {
+      "Mode": "drying"
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "call",
+     "target": "Dehumidifier.SetDehumidifierMode",
+     "args": {
+      "Mode": "refreshing"
+     }
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "제습기를 건조 모드로 작동시키고",
+   "1시간 뒤에",
+   "리프레쉬 모드로 바꿔줘."
+  ],
+  "devices_raw": "{\"LivingRoom_Dehumidifier\": {\"category\": [\"Dehumidifier\"], \"tags\": [\"LivingRoom\", \"Dehumidifier\"]}, \"Bedroom_Dehumidifier\": {\"category\": [\"Dehumidifier\"], \"tags\": [\"Bedroom\", \"Dehumidifier\"]}}",
+  "clauses_merged": [
+   "제습기를 건조 모드로 작동시키고",
+   "1시간 뒤에",
+   "리프레쉬 모드로 바꿔줘."
+  ]
+ },
+ {
+  "index": 141,
+  "csv_index": "11",
+  "category": "C09",
+  "cmd": "주방의 모든 벨브를 열고 5분 뒤에 다시 잠궈줘.",
+  "devices": "Kitchen_Valve_Gas: [Valve]\nKitchen_Valve_Water: [Valve]\nGarden_Valve: [Valve]\n\n[Services]\nValve:\n  attrs: ValveState(BOOL)\n  funcs: Close(), Open()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Valve.Open",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "5 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Valve.Close",
+     "args": {}
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "주방의 모든 벨브를 열고",
+   "5분 뒤에",
+   "다시 잠궈줘."
+  ],
+  "devices_raw": "{\"Kitchen_Valve_Gas\": {\"category\": [\"Valve\"], \"tags\": [\"Kitchen\", \"Valve\"]}, \"Kitchen_Valve_Water\": {\"category\": [\"Valve\"], \"tags\": [\"Kitchen\", \"Valve\"]}, \"Garden_Valve\": {\"category\": [\"Valve\"], \"tags\": [\"Garden\", \"Valve\"]}}",
+  "clauses_merged": [
+   "주방의 모든 벨브를 열고",
+   "5분 뒤에",
+   "다시 잠궈줘."
+  ]
+ },
+ {
+  "index": 144,
+  "csv_index": "13",
+  "category": "C09",
+  "cmd": "연구실의 모든 제습기를 켜고 4시간 뒤에 꺼줘.",
+  "devices": "Lab_Dehumidifier_1: [Dehumidifier, Switch]\nLab_Dehumidifier_2: [Dehumidifier, Switch]\nOffice_Dehumidifier: [Dehumidifier, Switch]\n\n[Services]\nDehumidifier:\n  attrs: DehumidifierMode(ENUM:DehumidifierModeEnum)\n  funcs: SetDehumidifierMode(Mode:ENUM:DehumidifierModeEnum)\n  enum DehumidifierModeEnum: cooling, delayWash, drying, finished, refreshing, weightSensing, wrinklePrevent, dehumidifying, AIDrying, sanitizing, internalCare, freezeProtection, continuousDehumidifying, thawingFrozenInside\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "4 HOUR"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "연구실의 모든 제습기를 켜고",
+   "4시간 뒤에",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"Lab_Dehumidifier_1\": {\"category\": [\"Dehumidifier\", \"Switch\"], \"tags\": [\"Lab\", \"Dehumidifier\", \"Switch\"]}, \"Lab_Dehumidifier_2\": {\"category\": [\"Dehumidifier\", \"Switch\"], \"tags\": [\"Lab\", \"Dehumidifier\", \"Switch\"]}, \"Office_Dehumidifier\": {\"category\": [\"Dehumidifier\", \"Switch\"], \"tags\": [\"Office\", \"Dehumidifier\", \"Switch\"]}}",
+  "clauses_merged": [
+   "연구실의 모든 제습기를 켜고",
+   "4시간 뒤에",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 147,
+  "csv_index": "8",
+  "category": "C10",
+  "cmd": "테라스의 어느 조도 센서라도 100 럭스 이상이 되면 5초 뒤에 모든 블라인드를 올려줘.",
+  "devices": "Terrace_Sensor_1: [LightSensor]\nTerrace_Sensor_2: [LightSensor]\nGarden_LightSensor: [LightSensor]\nTerrace_Blind_1: [WindowCovering]\nTerrace_Blind_2: [WindowCovering]\nLivingRoom_Blind: [WindowCovering]\n\n[Services]\nLightSensor:\n  attrs: Brightness(DOUBLE)\nWindowCovering:\n  attrs: CurrentPosition(INTEGER), WindowCoveringType(ENUM:WindowCoveringTypeEnum)\n  funcs: DownOrClose(), SetLevel(Level:INTEGER), Stop(), UpOrOpen()\n  enum WindowCoveringTypeEnum: window, blind, shade\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "LightSensor.Brightness >= 100",
+     "edge": "none"
+    },
+    {
+     "op": "delay",
+     "duration": "5 SEC"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.UpOrOpen",
+     "args": {}
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "테라스의 어느 조도 센서라도 100 럭스 이상이 되면",
+   "5초 뒤에",
+   "모든 블라인드를 올려줘."
+  ],
+  "devices_raw": "{\"Terrace_Sensor_1\": {\"category\": [\"LightSensor\"], \"tags\": [\"Terrace\", \"LightSensor\"]}, \"Terrace_Sensor_2\": {\"category\": [\"LightSensor\"], \"tags\": [\"Terrace\", \"LightSensor\"]}, \"Garden_LightSensor\": {\"category\": [\"LightSensor\"], \"tags\": [\"Garden\", \"LightSensor\"]}, \"Terrace_Blind_1\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Terrace\", \"WindowCovering\", \"Blind\"]}, \"Terrace_Blind_2\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Terrace\", \"WindowCovering\", \"Blind\"]}, \"LivingRoom_Blind\": {\"category\": [\"WindowCovering\"], \"tags\": [\"LivingRoom\", \"WindowCovering\", \"Blind\"]}}",
+  "clauses_merged": [
+   "테라스의 어느 조도 센서라도 100 럭스 이상이 되면",
+   "5초 뒤에",
+   "모든 블라인드를 올려줘."
+  ]
+ },
+ {
+  "index": 150,
+  "csv_index": "16",
+  "category": "C09",
+  "cmd": "서재 공기청정기를 강풍으로 틀고 2시간 뒤에 꺼줘.",
+  "devices": "Study_AP: [AirPurifier, Switch]\nBedroom_AP: [AirPurifier, Switch]\n\n[Services]\nAirPurifier:\n  attrs: AirPurifierMode(ENUM:AirPurifierModeEnum)\n  funcs: SetAirPurifierMode(Mode:ENUM:AirPurifierModeEnum)\n  enum AirPurifierModeEnum: auto, sleep, low, medium, high, quiet, windFree, off\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirPurifier.SetAirPurifierMode",
+     "args": {
+      "Mode": "high"
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "2 HOUR"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "서재 공기청정기를 강풍으로 틀고",
+   "2시간 뒤에",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"Study_AP\": {\"category\": [\"AirPurifier\", \"Switch\"], \"tags\": [\"Study\", \"AirPurifier\", \"Switch\"]}, \"Bedroom_AP\": {\"category\": [\"AirPurifier\", \"Switch\"], \"tags\": [\"Bedroom\", \"AirPurifier\", \"Switch\"]}}",
+  "clauses_merged": [
+   "서재 공기청정기를 강풍으로 틀고",
+   "2시간 뒤에",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 153,
+  "csv_index": "1",
+  "category": "C11",
+  "cmd": "지금 와인 셀러 온도를 체크하고 10분뒤에 다시 체크해서 1도 이상 차이가 나면, 스피커로 온도가 급변했다고 안내해줘.",
+  "devices": "WineCellar_Temp: [TemperatureSensor]\nKitchen_Temp: [TemperatureSensor]\nSpeaker: [Speaker]\nLivingRoom_Speaker: [Speaker]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "t1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "delay",
+     "duration": "10 MIN"
+    },
+    {
+     "op": "read",
+     "var": "t2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "if",
+     "cond": "abs($t2 - $t1) >= 1",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "The wine cellar temperature has changed rapidly"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "지금 와인 셀러 온도를 체크하고",
+   "10분뒤에",
+   "다시 체크해서",
+   "1도 이상 차이가 나면,",
+   "스피커로 온도가 급변했다고 안내해줘."
+  ],
+  "devices_raw": "{\"WineCellar_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"WineCellar\", \"TemperatureSensor\"]}, \"Kitchen_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"Kitchen\", \"TemperatureSensor\"]}, \"Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Speaker\"]}, \"LivingRoom_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"LivingRoom\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "지금 와인 셀러 온도를 체크하고",
+   "10분뒤에",
+   "다시 체크해서",
+   "1도 이상 차이가 나면,",
+   "스피커로 온도가 급변했다고 안내해줘."
+  ]
+ },
+ {
+  "index": 154,
+  "csv_index": "4",
+  "category": "C05",
+  "cmd": "온도가 28도 이상이고 습도가 70% 이상이면, 에어컨을 냉방 모드로 설정하고 온도를 24도로 맞춰줘.",
+  "devices": "LivingRoom_TemperatureSensor: [TemperatureSensor]\nBedroom_TemperatureSensor: [TemperatureSensor]\nLivingRoom_HumiditySensor: [HumiditySensor]\nBedroom_HumiditySensor: [HumiditySensor]\nLivingRoom_AirConditioner: [AirConditioner, Switch]\nBedroom_AirConditioner: [AirConditioner, Switch]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nHumiditySensor:\n  attrs: Humidity(DOUBLE)\nAirConditioner:\n  attrs: AirConditionerMode(ENUM:AirConditionerModeEnum), TargetTemperature(DOUBLE)\n  funcs: SetAirConditionerMode(Mode:ENUM:AirConditionerModeEnum), SetTargetTemperature(Temperature:DOUBLE)\n  enum AirConditionerModeEnum: auto, cool, heat\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 28 and HumiditySensor.Humidity >= 70",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "cool"
+       }
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": 24.0
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "온도가 28도 이상이고",
+   "습도가 70% 이상이면,",
+   "에어컨을 냉방 모드로 설정하고",
+   "온도를 24도로 맞춰줘."
+  ],
+  "devices_raw": "{\"LivingRoom_TemperatureSensor\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"LivingRoom\", \"TemperatureSensor\"]}, \"Bedroom_TemperatureSensor\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"Bedroom\", \"TemperatureSensor\"]}, \"LivingRoom_HumiditySensor\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"LivingRoom\", \"HumiditySensor\"]}, \"Bedroom_HumiditySensor\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"Bedroom\", \"HumiditySensor\"]}, \"LivingRoom_AirConditioner\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"LivingRoom\", \"AirConditioner\", \"Switch\"]}, \"Bedroom_AirConditioner\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"Bedroom\", \"AirConditioner\", \"Switch\"]}}",
+  "clauses_merged": [
+   "온도가 28도 이상이고 습도가 70% 이상이면,",
+   "에어컨을 냉방 모드로 설정하고",
+   "온도를 24도로 맞춰줘."
+  ]
+ },
+ {
+  "index": 157,
+  "csv_index": "7",
+  "category": "C05",
+  "cmd": "소음 수치가 70 이상이고 집에 아무도 없으면, 카메라로 사진을 찍고 경찰 사이렌을 울려줘.",
+  "devices": "Living_Sound: [SoundSensor]\nEntrance_Sound: [SoundSensor]\nLiving_Presence: [PresenceSensor]\nBedroom_Presence: [PresenceSensor]\nEntrance_Camera: [Camera]\nGarage_Camera: [Camera]\nMain_Siren: [Siren]\nEntrance_Siren: [Siren]\n\n[Services]\nSoundSensor:\n  attrs: Sound(DOUBLE)\nPresenceSensor:\n  attrs: Presence(BOOL)\nCamera:\n  attrs: CameraState(ENUM:CameraStateEnum), Image(BINARY), MicrophoneMuted(BOOL), RecordingActive(BOOL), Video(BINARY)\n  funcs: CaptureImage(), CaptureVideo(Duration:DOUBLE), SetMicrophoneMuted(Muted:BOOL), StartRecording(), StopRecording()\n  enum CameraStateEnum: off, on, restarting, unavailable\nSiren:\n  attrs: SirenMode(ENUM:SirenModeEnum)\n  funcs: SetSirenMode(Mode:ENUM:SirenModeEnum)\n  enum SirenModeEnum: emergency, fire, police, ambulance\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "SoundSensor.Sound >= 70 and PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "Camera.CaptureImage",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "police"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "소음 수치가 70 이상이고",
+   "집에 아무도 없으면,",
+   "카메라로 사진을 찍고",
+   "경찰 사이렌을 울려줘."
+  ],
+  "devices_raw": "{\"Living_Sound\": {\"category\": [\"SoundSensor\"], \"tags\": [\"Living\", \"SoundSensor\"]}, \"Entrance_Sound\": {\"category\": [\"SoundSensor\"], \"tags\": [\"Entrance\", \"SoundSensor\"]}, \"Living_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Living\", \"PresenceSensor\"]}, \"Bedroom_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Bedroom\", \"PresenceSensor\"]}, \"Entrance_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Entrance\", \"Camera\"]}, \"Garage_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Garage\", \"Camera\"]}, \"Main_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Main\", \"Siren\"]}, \"Entrance_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Entrance\", \"Siren\"]}}",
+  "clauses_merged": [
+   "소음 수치가 70 이상이고 집에 아무도 없으면,",
+   "카메라로 사진을 찍고",
+   "경찰 사이렌을 울려줘."
+  ]
+ },
+ {
+  "index": 160,
+  "csv_index": "10",
+  "category": "C05",
+  "cmd": "비가 오고 아무도 없는 상태면, 도어락을 잠그고 밸브를 차단해줘.",
+  "devices": "Main_Weather: [WeatherProvider]\nOutdoor_Weather: [WeatherProvider]\nLiving_Presence: [PresenceSensor]\nBedroom_Presence: [PresenceSensor]\nEntrance_Lock: [DoorLock]\nGarage_Lock: [DoorLock]\nMain_Valve: [Valve]\nGarden_Valve: [Valve]\n\n[Services]\nWeatherProvider:\n  attrs: HumidityWeather(DOUBLE), Pm10Weather(DOUBLE), Pm25Weather(DOUBLE), PressureWeather(DOUBLE), TemperatureWeather(DOUBLE), Weather(ENUM:WeatherEnum)\n  funcs: Forecast(Hour:INTEGER), GetWeatherInfo(Lat:DOUBLE, Lon:DOUBLE)\n  enum WeatherEnum: thunderstorm, drizzle, rain, snow, mist, smoke, haze, dust, fog, sand, ash, squall, tornado, clear, clouds\nPresenceSensor:\n  attrs: Presence(BOOL)\nDoorLock:\n  attrs: DoorLockState(ENUM:DoorLockStateEnum)\n  funcs: Lock(), Unlock()\n  enum DoorLockStateEnum: closed, closing, open, opening, unknown\nValve:\n  attrs: ValveState(BOOL)\n  funcs: Close(), Open()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Weather == \"rain\" and PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "비가 오고",
+   "아무도 없는 상태면,",
+   "도어락을 잠그고",
+   "밸브를 차단해줘."
+  ],
+  "devices_raw": "{\"Main_Weather\": {\"category\": [\"WeatherProvider\"], \"tags\": [\"Main\", \"WeatherProvider\"]}, \"Outdoor_Weather\": {\"category\": [\"WeatherProvider\"], \"tags\": [\"Outdoor\", \"WeatherProvider\"]}, \"Living_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Living\", \"PresenceSensor\"]}, \"Bedroom_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Bedroom\", \"PresenceSensor\"]}, \"Entrance_Lock\": {\"category\": [\"DoorLock\"], \"tags\": [\"Entrance\", \"DoorLock\"]}, \"Garage_Lock\": {\"category\": [\"DoorLock\"], \"tags\": [\"Garage\", \"DoorLock\"]}, \"Main_Valve\": {\"category\": [\"Valve\"], \"tags\": [\"Main\", \"Valve\"]}, \"Garden_Valve\": {\"category\": [\"Valve\"], \"tags\": [\"Garden\", \"Valve\"]}}",
+  "clauses_merged": [
+   "비가 오고",
+   "아무도 없는 상태면,",
+   "도어락을 잠그고",
+   "밸브를 차단해줘."
+  ]
+ },
+ {
+  "index": 163,
+  "csv_index": "13",
+  "category": "C05",
+  "cmd": "이산화탄소가 1500ppm 이상이고 블라인드가 닫혀있으면, 공기청정기를 자동 모드로 켜고 블라인드를 올려줘.",
+  "devices": "Living_AQ: [AirQualitySensor]\nBedroom_AQ: [AirQualitySensor]\nLiving_Blind: [WindowCovering]\nBedroom_Blind: [WindowCovering]\nLiving_AP: [AirPurifier]\nBedroom_AP: [AirPurifier]\n\n[Services]\nAirQualitySensor:\n  attrs: CarbonDioxide(DOUBLE), DustLevel(DOUBLE), FineDustLevel(DOUBLE), Humidity(DOUBLE), Temperature(DOUBLE), TvocLevel(DOUBLE), VeryFineDustLevel(DOUBLE)\nWindowCovering:\n  attrs: CurrentPosition(INTEGER), WindowCoveringType(ENUM:WindowCoveringTypeEnum)\n  funcs: DownOrClose(), SetLevel(Level:INTEGER), Stop(), UpOrOpen()\n  enum WindowCoveringTypeEnum: window, blind, shade\nAirPurifier:\n  attrs: AirPurifierMode(ENUM:AirPurifierModeEnum)\n  funcs: SetAirPurifierMode(Mode:ENUM:AirPurifierModeEnum)\n  enum AirPurifierModeEnum: auto, sleep, low, medium, high, quiet, windFree, off\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.CarbonDioxide >= 1500 and WindowCovering.CurrentPosition == 0",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "auto"
+       }
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "이산화탄소가 1500ppm 이상이고",
+   "블라인드가 닫혀있으면,",
+   "공기청정기를 자동 모드로 켜고",
+   "블라인드를 올려줘."
+  ],
+  "devices_raw": "{\"Living_AQ\": {\"category\": [\"AirQualitySensor\"], \"tags\": [\"Living\", \"AirQualitySensor\"]}, \"Bedroom_AQ\": {\"category\": [\"AirQualitySensor\"], \"tags\": [\"Bedroom\", \"AirQualitySensor\"]}, \"Living_Blind\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Living\", \"Blind\", \"WindowCovering\"]}, \"Bedroom_Blind\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Bedroom\", \"Blind\", \"WindowCovering\"]}, \"Living_AP\": {\"category\": [\"AirPurifier\"], \"tags\": [\"Living\", \"AirPurifier\"]}, \"Bedroom_AP\": {\"category\": [\"AirPurifier\"], \"tags\": [\"Bedroom\", \"AirPurifier\"]}}",
+  "clauses_merged": [
+   "이산화탄소가 1500ppm 이상이고 블라인드가 닫혀있으면,",
+   "공기청정기를 자동 모드로 켜고",
+   "블라인드를 올려줘."
+  ]
+ },
+ {
+  "index": 166,
+  "csv_index": "16",
+  "category": "C05",
+  "cmd": "사람이 있는데 연기가 감지되고 있으면, 사이렌을 화재 모드로 울리고 스피커로 \"대피하세요\"라고 해줘.",
+  "devices": "Living_Presence: [PresenceSensor]\nBedroom_Presence: [PresenceSensor]\nKitchen_Smoke: [SmokeDetector]\nBedroom_Smoke: [SmokeDetector]\nMain_Siren: [Siren]\nEntrance_Siren: [Siren]\nLiving_Speaker: [Speaker]\nBedroom_Speaker: [Speaker]\n\n[Services]\nPresenceSensor:\n  attrs: Presence(BOOL)\nSmokeDetector:\n  attrs: Smoke(BOOL)\nSiren:\n  attrs: SirenMode(ENUM:SirenModeEnum)\n  funcs: SetSirenMode(Mode:ENUM:SirenModeEnum)\n  enum SirenModeEnum: emergency, fire, police, ambulance\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true and SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "fire"
+       }
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Evacuate"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "사람이 있는데",
+   "연기가 감지되고 있으면,",
+   "사이렌을 화재 모드로 울리고",
+   "스피커로 \"대피하세요\"라고 해줘."
+  ],
+  "devices_raw": "{\"Living_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Living\", \"PresenceSensor\"]}, \"Bedroom_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Bedroom\", \"PresenceSensor\"]}, \"Kitchen_Smoke\": {\"category\": [\"SmokeDetector\"], \"tags\": [\"Kitchen\", \"SmokeDetector\"]}, \"Bedroom_Smoke\": {\"category\": [\"SmokeDetector\"], \"tags\": [\"Bedroom\", \"SmokeDetector\"]}, \"Main_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Main\", \"Siren\"]}, \"Entrance_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Entrance\", \"Siren\"]}, \"Living_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Living\", \"Speaker\"]}, \"Bedroom_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Bedroom\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "사람이 있는데",
+   "연기가 감지되고 있으면,",
+   "사이렌을 화재 모드로 울리고",
+   "스피커로 \"대피하세요\"라고 해줘."
+  ]
+ },
+ {
+  "index": 169,
+  "csv_index": "19",
+  "category": "C05",
+  "cmd": "서재 이산화탄소가 1000ppm 이상이고 공기청정기가 수면 모드이면, 자동 모드로 바꾸고 스피커로 \"공기청정기를 자동모드로 변경합니다\"라고 말해줘.",
+  "devices": "Study_AQ: [AirQualitySensor]\nOffice_AQ: [AirQualitySensor]\nStudy_AP: [AirPurifier]\nOffice_AP: [AirPurifier]\nStudy_Speaker: [Speaker]\nOffice_Speaker: [Speaker]\n\n[Services]\nAirQualitySensor:\n  attrs: CarbonDioxide(DOUBLE), DustLevel(DOUBLE), FineDustLevel(DOUBLE), Humidity(DOUBLE), Temperature(DOUBLE), TvocLevel(DOUBLE), VeryFineDustLevel(DOUBLE)\nAirPurifier:\n  attrs: AirPurifierMode(ENUM:AirPurifierModeEnum)\n  funcs: SetAirPurifierMode(Mode:ENUM:AirPurifierModeEnum)\n  enum AirPurifierModeEnum: auto, sleep, low, medium, high, quiet, windFree, off\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.CarbonDioxide >= 1000 and AirPurifier.AirPurifierMode == \"sleep\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "auto"
+       }
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Switching the air purifier to auto mode"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "서재 이산화탄소가 1000ppm 이상이고",
+   "공기청정기가 수면 모드이면,",
+   "자동 모드로 바꾸고",
+   "스피커로 \"공기청정기를 자동모드로 변경합니다\"라고 말해줘."
+  ],
+  "devices_raw": "{\"Study_AQ\": {\"category\": [\"AirQualitySensor\"], \"tags\": [\"Study\", \"AirQualitySensor\"]}, \"Office_AQ\": {\"category\": [\"AirQualitySensor\"], \"tags\": [\"Office\", \"AirQualitySensor\"]}, \"Study_AP\": {\"category\": [\"AirPurifier\"], \"tags\": [\"Study\", \"AirPurifier\"]}, \"Office_AP\": {\"category\": [\"AirPurifier\"], \"tags\": [\"Office\", \"AirPurifier\"]}, \"Study_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Study\", \"Speaker\"]}, \"Office_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Office\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "서재 이산화탄소가 1000ppm 이상이고 공기청정기가 수면 모드이면,",
+   "자동 모드로 바꾸고",
+   "스피커로 \"공기청정기를 자동모드로 변경합니다\"라고 말해줘."
+  ]
+ },
+ {
+  "index": 172,
+  "csv_index": "22",
+  "category": "C05",
+  "cmd": "정원 조도가 50 미만이고 테라스 조명이 꺼져 있으면, 조명을 켜고 정원 스피커로 조명을 켠다고 말해줘.",
+  "devices": "Garden_Illum: [LightSensor]\nPorch_Illum: [LightSensor]\nTerrace_Light: [Light, Switch]\nPorch_Light: [Light, Switch]\nGarden_Speaker: [Speaker]\nTerrace_Speaker: [Speaker]\n\n[Services]\nLightSensor:\n  attrs: Brightness(DOUBLE)\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LightSensor.Brightness < 50 and Switch.Switch == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "The terrace light has been turned on."
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "정원 조도가 50 미만이고",
+   "테라스 조명이 꺼져 있으면,",
+   "조명을 켜고",
+   "정원 스피커로 조명을 켠다고 말해줘."
+  ],
+  "devices_raw": "{\"Garden_Illum\": {\"category\": [\"LightSensor\"], \"tags\": [\"Garden\", \"LightSensor\"]}, \"Porch_Illum\": {\"category\": [\"LightSensor\"], \"tags\": [\"Porch\", \"LightSensor\"]}, \"Terrace_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Terrace\", \"Light\", \"Switch\"]}, \"Porch_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Porch\", \"Light\", \"Switch\"]}, \"Garden_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Garden\", \"Speaker\"]}, \"Terrace_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Terrace\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "정원 조도가 50 미만이고 테라스 조명이 꺼져 있으면,",
+   "조명을 켜고",
+   "정원 스피커로 조명을 켠다고 말해줘."
+  ]
+ },
+ {
+  "index": 175,
+  "csv_index": "25",
+  "category": "C05",
+  "cmd": "서버실 온도가 30도 이상이고 에어컨이 꺼져 있으면, 에어컨을 냉방 모드로 켜고 메인 사이렌을 긴급 모드로 울려줘.",
+  "devices": "Server_Temp: [TemperatureSensor]\nBasement_Temp: [TemperatureSensor]\nServer_AC: [AirConditioner, Switch]\nBasement_AC: [AirConditioner, Switch]\nMain_Siren: [Siren]\nGarage_Siren: [Siren]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nAirConditioner:\n  attrs: AirConditionerMode(ENUM:AirConditionerModeEnum), TargetTemperature(DOUBLE)\n  funcs: SetAirConditionerMode(Mode:ENUM:AirConditionerModeEnum), SetTargetTemperature(Temperature:DOUBLE)\n  enum AirConditionerModeEnum: auto, cool, heat\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nSiren:\n  attrs: SirenMode(ENUM:SirenModeEnum)\n  funcs: SetSirenMode(Mode:ENUM:SirenModeEnum)\n  enum SirenModeEnum: emergency, fire, police, ambulance\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 30 and Switch.Switch == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "서버실 온도가 30도 이상이고",
+   "에어컨이 꺼져 있으면,",
+   "에어컨을 냉방 모드로 켜고",
+   "메인 사이렌을 긴급 모드로 울려줘."
+  ],
+  "devices_raw": "{\"Server_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"ServerRoom\", \"TemperatureSensor\"]}, \"Basement_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"Basement\", \"TemperatureSensor\"]}, \"Server_AC\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"ServerRoom\", \"AirConditioner\", \"Switch\"]}, \"Basement_AC\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"Basement\", \"AirConditioner\", \"Switch\"]}, \"Main_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Main\", \"Siren\"]}, \"Garage_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Garage\", \"Siren\"]}}",
+  "clauses_merged": [
+   "서버실 온도가 30도 이상이고 에어컨이 꺼져 있으면,",
+   "에어컨을 냉방 모드로 켜고",
+   "메인 사이렌을 긴급 모드로 울려줘."
+  ]
+ },
+ {
+  "index": 177,
+  "csv_index": "27",
+  "category": "C05",
+  "cmd": "지하에서 누수가 감지되고 메인 밸브가 열려 있으면, 모든 메인 밸브를 잠그고 경찰 사이렌을 울려줘.",
+  "devices": "Basement_Leak: [LeakSensor]\nGarage_Leak: [LeakSensor]\nMain_Valve_1: [Valve]\nMain_Valve_2: [Valve]\nGarden_Valve: [Valve]\nMain_Siren: [Siren]\nGarage_Siren: [Siren]\n\n[Services]\nLeakSensor:\n  attrs: Leakage(BOOL)\n  enum LeakageEnum: detected, not detected\nValve:\n  attrs: ValveState(BOOL)\n  funcs: Close(), Open()\nSiren:\n  attrs: SirenMode(ENUM:SirenModeEnum)\n  funcs: SetSirenMode(Mode:ENUM:SirenModeEnum)\n  enum SirenModeEnum: emergency, fire, police, ambulance\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LeakSensor.Leakage == true and Valve.ValveState == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "police"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "지하에서 누수가 감지되고",
+   "메인 밸브가 열려 있으면,",
+   "모든 메인 밸브를 잠그고",
+   "경찰 사이렌을 울려줘."
+  ],
+  "devices_raw": "{\"Basement_Leak\": {\"category\": [\"LeakSensor\"], \"tags\": [\"Basement\", \"LeakSensor\"]}, \"Garage_Leak\": {\"category\": [\"LeakSensor\"], \"tags\": [\"Garage\", \"LeakSensor\"]}, \"Main_Valve_1\": {\"category\": [\"Valve\"], \"tags\": [\"Main\", \"Valve\"]}, \"Main_Valve_2\": {\"category\": [\"Valve\"], \"tags\": [\"Main\", \"Valve\"]}, \"Garden_Valve\": {\"category\": [\"Valve\"], \"tags\": [\"Garden\", \"Valve\"]}, \"Main_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Main\", \"Siren\"]}, \"Garage_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Garage\", \"Siren\"]}}",
+  "clauses_merged": [
+   "지하에서 누수가 감지되고 메인 밸브가 열려 있으면,",
+   "모든 메인 밸브를 잠그고",
+   "경찰 사이렌을 울려줘."
+  ]
+ },
+ {
+  "index": 180,
+  "csv_index": "30",
+  "category": "C05",
+  "cmd": "거실 조명이 켜져 있고 조도가 50 럭스 이상이면, 거실 블라인드를 닫고 에어컨을 자동 모드로 설정해줘.",
+  "devices": "LivingRoom_Light: [Light, Switch]\nBedroom_Light: [Light, Switch]\nLivingRoom_LightSensor: [LightSensor]\nBedroom_LightSensor: [LightSensor]\nLivingRoom_Blind: [WindowCovering]\nBedroom_Blind: [WindowCovering]\nLivingRoom_AC: [AirConditioner, Switch]\nBedroom_AC: [AirConditioner, Switch]\n\n[Services]\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nLightSensor:\n  attrs: Brightness(DOUBLE)\nWindowCovering:\n  attrs: CurrentPosition(INTEGER), WindowCoveringType(ENUM:WindowCoveringTypeEnum)\n  funcs: DownOrClose(), SetLevel(Level:INTEGER), Stop(), UpOrOpen()\n  enum WindowCoveringTypeEnum: window, blind, shade\nAirConditioner:\n  attrs: AirConditionerMode(ENUM:AirConditionerModeEnum), TargetTemperature(DOUBLE)\n  funcs: SetAirConditionerMode(Mode:ENUM:AirConditionerModeEnum), SetTargetTemperature(Temperature:DOUBLE)\n  enum AirConditionerModeEnum: auto, cool, heat\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "Switch.Switch == true and LightSensor.Brightness >= 50",
+     "then": [
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "auto"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "거실 조명이 켜져 있고",
+   "조도가 50 럭스 이상이면,",
+   "거실 블라인드를 닫고",
+   "에어컨을 자동 모드로 설정해줘."
+  ],
+  "devices_raw": "{\"LivingRoom_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"LivingRoom\", \"Light\", \"Switch\"]}, \"Bedroom_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Bedroom\", \"Light\", \"Switch\"]}, \"LivingRoom_LightSensor\": {\"category\": [\"LightSensor\"], \"tags\": [\"LivingRoom\", \"LightSensor\"]}, \"Bedroom_LightSensor\": {\"category\": [\"LightSensor\"], \"tags\": [\"Bedroom\", \"LightSensor\"]}, \"LivingRoom_Blind\": {\"category\": [\"WindowCovering\"], \"tags\": [\"LivingRoom\", \"Blind\", \"WindowCovering\"]}, \"Bedroom_Blind\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Bedroom\", \"Blind\", \"WindowCovering\"]}, \"LivingRoom_AC\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"LivingRoom\", \"AirConditioner\"]}, \"Bedroom_AC\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"Bedroom\", \"AirConditioner\"]}}",
+  "clauses_merged": [
+   "거실 조명이 켜져 있고 조도가 50 럭스 이상이면,",
+   "거실 블라인드를 닫고",
+   "에어컨을 자동 모드로 설정해줘."
+  ]
+ },
+ {
+  "index": 181,
+  "csv_index": "2",
+  "category": "C17",
+  "cmd": "30분마다 체크해서 온도가 20도 이상, 30도 미만이면 에어컨을 자동모드로 설정하고, 30도 이상이면 쿨모드로 설정해줘.",
+  "devices": "Living_Temp: [TemperatureSensor]\nBedroom_Temp: [TemperatureSensor]\nLiving_AC: [AirConditioner, Switch]\nBedroom_AC: [AirConditioner, Switch]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nAirConditioner:\n  attrs: AirConditionerMode(ENUM:AirConditionerModeEnum), TargetTemperature(DOUBLE)\n  funcs: SetAirConditionerMode(Mode:ENUM:AirConditionerModeEnum), SetTargetTemperature(Temperature:DOUBLE)\n  enum AirConditionerModeEnum: auto, cool, heat\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "read",
+       "var": "temp",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "$temp >= 20 and $temp < 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "$temp >= 30",
+         "then": [
+          {
+           "op": "call",
+           "target": "AirConditioner.SetAirConditionerMode",
+           "args": {
+            "Mode": "cool"
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 7,
+  "clauses": [
+   "30분마다 체크해서",
+   "온도가 20도 이상,",
+   "30도 미만이면",
+   "에어컨을 자동모드로 설정하고,",
+   "30도 이상이면",
+   "쿨모드로 설정해줘."
+  ],
+  "devices_raw": "{\"Living_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"Living\", \"TemperatureSensor\"]}, \"Bedroom_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"Bedroom\", \"TemperatureSensor\"]}, \"Living_AC\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"Living\", \"AirConditioner\"]}, \"Bedroom_AC\": {\"category\": [\"AirConditioner\", \"Switch\"], \"tags\": [\"Bedroom\", \"AirConditioner\"]}}",
+  "clauses_merged": [
+   "30분마다 체크해서",
+   "온도가 20도 이상,",
+   "30도 미만이면",
+   "에어컨을 자동모드로 설정하고,",
+   "30도 이상이면",
+   "쿨모드로 설정해줘."
+  ]
+ },
+ {
+  "index": 204,
+  "csv_index": "8",
+  "category": "C17",
+  "cmd": "그룹 2에 속한 습도 센서들을 1분마다 체크해서 모두 50% 이상이면, 모든 제습기를 리프레쉬 모드로 설정해줘.",
+  "devices": "Grp2_Hum_1: [HumiditySensor]\nGrp2_Hum_2: [HumiditySensor]\nGrp1_Hum_1: [HumiditySensor]\nDehum_1: [Dehumidifier, Switch]\nDehum_2: [Dehumidifier, Switch]\n\n[Services]\nHumiditySensor:\n  attrs: Humidity(DOUBLE)\nDehumidifier:\n  attrs: DehumidifierMode(ENUM:DehumidifierModeEnum)\n  funcs: SetDehumidifierMode(Mode:ENUM:DehumidifierModeEnum)\n  enum DehumidifierModeEnum: cooling, delayWash, drying, finished, refreshing, weightSensing, wrinklePrevent, dehumidifying, AIDrying, sanitizing, internalCare, freezeProtection, continuousDehumidifying, thawingFrozenInside\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "HumiditySensor.Humidity >= 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Dehumidifier.SetDehumidifierMode",
+         "args": {
+          "Mode": "refreshing"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "그룹 2에 속한 습도 센서들을 1분마다 체크해서",
+   "모두 50% 이상이면,",
+   "모든 제습기를 리프레쉬 모드로 설정해줘."
+  ],
+  "devices_raw": "{\"Grp2_Hum_1\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"Group2\", \"HumiditySensor\", \"North\"]}, \"Grp2_Hum_2\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"Group2\", \"HumiditySensor\", \"South\"]}, \"Grp1_Hum_1\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"Group1\", \"HumiditySensor\", \"East\"]}, \"Dehum_1\": {\"category\": [\"Dehumidifier\", \"Switch\"], \"tags\": [\"Main\", \"Dehumidifier\", \"Switch\"]}, \"Dehum_2\": {\"category\": [\"Dehumidifier\", \"Switch\"], \"tags\": [\"Backup\", \"Dehumidifier\", \"Switch\"]}}",
+  "clauses_merged": [
+   "그룹 2에 속한 습도 센서들을 1분마다 체크해서",
+   "모두 50% 이상이면,",
+   "모든 제습기를 리프레쉬 모드로 설정해줘."
+  ]
+ },
+ {
+  "index": 208,
+  "csv_index": "9",
+  "category": "C17",
+  "cmd": "섹터1의 모든 도어락을 1시간마다 확인해서, 하나라도 열려 있으면 해당 섹터의 모든 조명을 빨간색으로 바꿔줘.",
+  "devices": "S1_Lock_1: [DoorLock]\nS1_Lock_2: [DoorLock]\nS2_Lock: [DoorLock]\nS1_Light_1: [Light, ColorControl]\nS1_Light_2: [Light, ColorControl]\nS2_Light: [Light, ColorControl]\n\n[Services]\nDoorLock:\n  attrs: DoorLockState(ENUM:DoorLockStateEnum)\n  funcs: Lock(), Unlock()\n  enum DoorLockStateEnum: closed, closing, open, opening, unknown\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nColorControl:\n  attrs: Color(STRING)\n  funcs: SetColor(Color:STRING)\n  enum ColorModeEnum: HSV, RGB, XY, CT\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "DoorLock.DoorLockState",
+       "args": {}
+      },
+      {
+       "op": "if",
+       "cond": "DoorLock.DoorLockState == \"open\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToColor",
+         "args": {
+          "ColorX": 0.675,
+          "ColorY": 0.322,
+          "TransitionTime": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 5,
+  "clauses": [
+   "섹터1의 모든 도어락을 1시간마다 확인해서,",
+   "하나라도 열려 있으면",
+   "해당 섹터의 모든 조명을 빨간색으로 바꿔줘."
+  ],
+  "devices_raw": "{\"S1_Lock_1\": {\"category\": [\"DoorLock\"], \"tags\": [\"Sector1\", \"DoorLock\"]}, \"S1_Lock_2\": {\"category\": [\"DoorLock\"], \"tags\": [\"Sector1\", \"DoorLock\"]}, \"S2_Lock\": {\"category\": [\"DoorLock\"], \"tags\": [\"Sector2\", \"DoorLock\"]}, \"S1_Light_1\": {\"category\": [\"Light\", \"ColorControl\"], \"tags\": [\"Sector1\", \"Light\", \"ColorControl\"]}, \"S1_Light_2\": {\"category\": [\"Light\", \"ColorControl\"], \"tags\": [\"Sector1\", \"Light\", \"ColorControl\"]}, \"S2_Light\": {\"category\": [\"Light\", \"ColorControl\"], \"tags\": [\"Sector2\", \"Light\", \"ColorControl\"]}}",
+  "clauses_merged": [
+   "섹터1의 모든 도어락을 1시간마다 확인해서,",
+   "하나라도 열려 있으면",
+   "해당 섹터의 모든 조명을 빨간색으로 바꿔줘."
+  ]
+ },
+ {
+  "index": 215,
+  "csv_index": "6",
+  "category": "C18",
+  "cmd": "밤 10시부터 11시까지 움직임이 한번도 감지되지 않았으면, 모든 도어락을 잠궈줘.",
+  "devices": "Main_MotionSensor: [MotionSensor]\nMain_DoorLock: [DoorLock]\nStorage_DoorLock: [DoorLock]\nGarage_MotionSensor: [MotionSensor]\n\n[Services]\nMotionSensor:\n  attrs: Motion(BOOL)\nDoorLock:\n  attrs: DoorLockState(ENUM:DoorLockStateEnum)\n  funcs: Lock(), Unlock()\n  enum DoorLockStateEnum: closed, closing, open, opening, unknown\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2300",
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "not MotionSensor.Motion",
+       "then": [
+        {
+         "op": "call",
+         "target": "DoorLock.Lock",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "밤 10시부터 11시까지 움직임이 한번도 감지되지 않았으면,",
+   "모든 도어락을 잠궈줘."
+  ],
+  "devices_raw": "{\"Main_MotionSensor\": {\"category\": [\"MotionSensor\"], \"tags\": [\"Main\", \"MotionSensor\"]}, \"Main_DoorLock\": {\"category\": [\"DoorLock\"], \"tags\": [\"Main\", \"DoorLock\"]}, \"Storage_DoorLock\": {\"category\": [\"DoorLock\"], \"tags\": [\"Storage\", \"DoorLock\"]}, \"Garage_MotionSensor\": {\"category\": [\"MotionSensor\"], \"tags\": [\"Garage\", \"MotionSensor\"]}}",
+  "clauses_merged": [
+   "밤 10시부터 11시까지 움직임이 한번도 감지되지 않았으면,",
+   "모든 도어락을 잠궈줘."
+  ]
+ },
+ {
+  "index": 222,
+  "csv_index": "11",
+  "category": "C16",
+  "cmd": "오후 10시부터 11시까지 5분마다 체크해서 충전이 완료되면 꺼줘.",
+  "devices": "Main_Charger: [Charger, Switch]\nPhone_Charger: [Charger, Switch]\n\n[Services]\nCharger:\n  attrs: ChargingState(ENUM:ChargingStateEnum), Current(DOUBLE), Power(DOUBLE), Voltage(DOUBLE)\n  enum ChargingStateEnum: charging, discharging, stopped, fullyCharged, error\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2300",
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Charger.ChargingState == \"fullyCharged\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "오후 10시부터 11시까지 5분마다 체크해서",
+   "충전이 완료되면",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"Main_Charger\": {\"category\": [\"Charger\", \"Switch\"], \"tags\": [\"Main\", \"Charger\", \"Switch\"]}, \"Phone_Charger\": {\"category\": [\"Charger\", \"Switch\"], \"tags\": [\"Phone\", \"Charger\", \"Switch\"]}}",
+  "clauses_merged": [
+   "오후 10시부터 11시까지 5분마다 체크해서",
+   "충전이 완료되면",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 230,
+  "csv_index": "19",
+  "category": "C08",
+  "cmd": "비가 그칠 때마다 창문을 열어줘.",
+  "devices": "Outside_RainSensor: [RainSensor]\nMain_Window: [WindowCovering]\nRooftop_RainSensor: [RainSensor]\nBedroom_Window: [WindowCovering]\n\n[Services]\nRainSensor: (unknown category)\nWindowCovering:\n  attrs: CurrentPosition(INTEGER), WindowCoveringType(ENUM:WindowCoveringTypeEnum)\n  funcs: DownOrClose(), SetLevel(Level:INTEGER), Stop(), UpOrOpen()\n  enum WindowCoveringTypeEnum: window, blind, shade\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "RainSensor.Rain == false",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "비가 그칠 때마다",
+   "창문을 열어줘."
+  ],
+  "devices_raw": "{\"Outside_RainSensor\": {\"category\": [\"RainSensor\"], \"tags\": [\"Outside\", \"RainSensor\"]}, \"Main_Window\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Main\", \"Window\", \"WindowCovering\"]}, \"Rooftop_RainSensor\": {\"category\": [\"RainSensor\"], \"tags\": [\"Rooftop\", \"RainSensor\"]}, \"Bedroom_Window\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Bedroom\", \"Window\", \"WindowCovering\"]}}",
+  "clauses_merged": [
+   "비가 그칠 때마다",
+   "창문을 열어줘."
+  ]
+ },
+ {
+  "index": 233,
+  "csv_index": "22",
+  "category": "C08",
+  "cmd": "창문이 열릴 때마다 스피커로 '창문이 열렸습니다'라고 말해줘.",
+  "devices": "Main_Window: [WindowCovering]\nMain_Speaker: [Speaker]\nBedroom_Window: [WindowCovering]\nBedroom_Speaker: [Speaker]\n\n[Services]\nWindowCovering:\n  attrs: CurrentPosition(INTEGER), WindowCoveringType(ENUM:WindowCoveringTypeEnum)\n  funcs: DownOrClose(), SetLevel(Level:INTEGER), Stop(), UpOrOpen()\n  enum WindowCoveringTypeEnum: window, blind, shade\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "WindowCovering.CurrentPosition > 0",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "The window is open"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "창문이 열릴 때마다",
+   "스피커로 '창문이 열렸습니다'라고 말해줘."
+  ],
+  "devices_raw": "{\"Main_Window\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Main\", \"Window\", \"WindowCovering\"]}, \"Main_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Main\", \"Speaker\"]}, \"Bedroom_Window\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Bedroom\", \"Window\", \"WindowCovering\"]}, \"Bedroom_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Bedroom\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "창문이 열릴 때마다",
+   "스피커로 '창문이 열렸습니다'라고 말해줘."
+  ]
+ },
+ {
+  "index": 237,
+  "csv_index": "25",
+  "category": "C08",
+  "cmd": "이산화탄소 농도가 900ppm 이상이 될때마다 벨브를 닫아줘.",
+  "devices": "Living_AQ: [AirQualitySensor]\nBedroom_AQ: [AirQualitySensor]\nMain_Valve: [Valve]\nGarden_Valve: [Valve]\n\n[Services]\nAirQualitySensor:\n  attrs: CarbonDioxide(DOUBLE), DustLevel(DOUBLE), FineDustLevel(DOUBLE), Humidity(DOUBLE), Temperature(DOUBLE), TvocLevel(DOUBLE), VeryFineDustLevel(DOUBLE)\nValve:\n  attrs: ValveState(BOOL)\n  funcs: Close(), Open()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "AirQualitySensor.CarbonDioxide >= 900",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "이산화탄소 농도가 900ppm 이상이 될때마다",
+   "벨브를 닫아줘."
+  ],
+  "devices_raw": "{\"Living_AQ\": {\"category\": [\"AirQualitySensor\"], \"tags\": [\"Living\", \"AirQualitySensor\"]}, \"Bedroom_AQ\": {\"category\": [\"AirQualitySensor\"], \"tags\": [\"Bedroom\", \"AirQualitySensor\"]}, \"Main_Valve\": {\"category\": [\"Valve\"], \"tags\": [\"Main\", \"Valve\"]}, \"Garden_Valve\": {\"category\": [\"Valve\"], \"tags\": [\"Garden\", \"Valve\"]}}",
+  "clauses_merged": [
+   "이산화탄소 농도가 900ppm 이상이 될때마다",
+   "벨브를 닫아줘."
+  ]
+ },
+ {
+  "index": 240,
+  "csv_index": "2",
+  "category": "C12",
+  "cmd": "접촉센서가 닫히면, 그 이후로 10초마다 경찰 사이렌을 울려줘.",
+  "devices": "Entrance_Contact: [ContactSensor]\nGarage_Contact: [ContactSensor]\nMain_Siren: [Siren]\nEntrance_Siren: [Siren]\n\n[Services]\nContactSensor:\n  attrs: Contact(BOOL)\nSiren:\n  attrs: SirenMode(ENUM:SirenModeEnum)\n  funcs: SetSirenMode(Mode:ENUM:SirenModeEnum)\n  enum SirenModeEnum: emergency, fire, police, ambulance\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == true",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "police"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "접촉센서가 닫히면,",
+   "그 이후로 10초마다 경찰 사이렌을 울려줘."
+  ],
+  "devices_raw": "{\"Entrance_Contact\": {\"category\": [\"ContactSensor\"], \"tags\": [\"Entrance\", \"ContactSensor\"]}, \"Garage_Contact\": {\"category\": [\"ContactSensor\"], \"tags\": [\"Garage\", \"ContactSensor\"]}, \"Main_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Main\", \"Siren\"]}, \"Entrance_Siren\": {\"category\": [\"Siren\"], \"tags\": [\"Entrance\", \"Siren\"]}}",
+  "clauses_merged": [
+   "접촉센서가 닫히면,",
+   "그 이후로 10초마다 경찰 사이렌을 울려줘."
+  ]
+ },
+ {
+  "index": 241,
+  "csv_index": "3",
+  "category": "C12",
+  "cmd": "현관문이 열리면 그 후부터 5분마다 금고를 체크해서 잠겨있지 않으면 스피커로 금고가 열려있다고 출력해줘.",
+  "devices": "Entrance_Door: [Door]\nGarage_Door: [Door]\nMain_Safe: [Safe]\nBedroom_Safe: [Safe]\nLiving_Speaker: [Speaker]\nBedroom_Speaker: [Speaker]\n\n[Services]\nDoor: (unknown category)\nSafe: (unknown category)\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Door.DoorState == \"open\"",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Safe.SafeState != \"locked\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Speaker.Speak",
+         "args": {
+          "Text": "The safe is open"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 5,
+  "clauses": [
+   "현관문이 열리면",
+   "그 후부터 5분마다 금고를 체크해서",
+   "잠겨있지 않으면",
+   "스피커로 금고가 열려있다고 출력해줘."
+  ],
+  "devices_raw": "{\"Entrance_Door\": {\"category\": [\"Door\"], \"tags\": [\"Entrance\", \"Door\"]}, \"Garage_Door\": {\"category\": [\"Door\"], \"tags\": [\"Garage\", \"Door\"]}, \"Main_Safe\": {\"category\": [\"Safe\"], \"tags\": [\"Main\", \"Safe\"]}, \"Bedroom_Safe\": {\"category\": [\"Safe\"], \"tags\": [\"Bedroom\", \"Safe\"]}, \"Living_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Living\", \"Speaker\"]}, \"Bedroom_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Bedroom\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "현관문이 열리면",
+   "그 후부터 5분마다 금고를 체크해서",
+   "잠겨있지 않으면",
+   "스피커로 금고가 열려있다고 출력해줘."
+  ]
+ },
+ {
+  "index": 243,
+  "csv_index": "5",
+  "category": "C12",
+  "cmd": "연기가 감지되면, 그 이후로 1분마다 긴급 사이렌을 5초간 울려줘.",
+  "devices": "Kitchen_Smoke: [SmokeDetector]\nBedroom_Smoke: [SmokeDetector]\nMain_Siren: [Siren, Switch]\nEntrance_Siren: [Siren, Switch]\n\n[Services]\nSmokeDetector:\n  attrs: Smoke(BOOL)\nSiren:\n  attrs: SirenMode(ENUM:SirenModeEnum)\n  funcs: SetSirenMode(Mode:ENUM:SirenModeEnum)\n  enum SirenModeEnum: emergency, fire, police, ambulance\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "SmokeDetector.Smoke == true",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      },
+      {
+       "op": "delay",
+       "duration": "5 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "연기가 감지되면,",
+   "그 이후로 1분마다 긴급 사이렌을 5초간 울려줘."
+  ],
+  "devices_raw": "{\"Kitchen_Smoke\": {\"category\": [\"SmokeDetector\"], \"tags\": [\"Kitchen\", \"SmokeDetector\"]}, \"Bedroom_Smoke\": {\"category\": [\"SmokeDetector\"], \"tags\": [\"Bedroom\", \"SmokeDetector\"]}, \"Main_Siren\": {\"category\": [\"Siren\", \"Switch\"], \"tags\": [\"Main\", \"Siren\"]}, \"Entrance_Siren\": {\"category\": [\"Siren\", \"Switch\"], \"tags\": [\"Entrance\", \"Siren\"]}}",
+  "clauses_merged": [
+   "연기가 감지되면,",
+   "그 이후로 1분마다 긴급 사이렌을 5초간 울려줘."
+  ]
+ },
+ {
+  "index": 248,
+  "csv_index": "9",
+  "category": "C12",
+  "cmd": "움직임이 감지되면 그 뒤로 10초마다 사진을 찍어줘.",
+  "devices": "Entrance_Motion: [MotionSensor]\nGarage_Motion: [MotionSensor]\nEntrance_Camera: [Camera]\nGarage_Camera: [Camera]\n\n[Services]\nMotionSensor:\n  attrs: Motion(BOOL)\nCamera:\n  attrs: CameraState(ENUM:CameraStateEnum), Image(BINARY), MicrophoneMuted(BOOL), RecordingActive(BOOL), Video(BINARY)\n  funcs: CaptureImage(), CaptureVideo(Duration:DOUBLE), SetMicrophoneMuted(Muted:BOOL), StartRecording(), StopRecording()\n  enum CameraStateEnum: off, on, restarting, unavailable\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "MotionSensor.Motion == true",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.CaptureImage",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "움직임이 감지되면",
+   "그 뒤로 10초마다 사진을 찍어줘."
+  ],
+  "devices_raw": "{\"Entrance_Motion\": {\"category\": [\"MotionSensor\"], \"tags\": [\"Entrance\", \"MotionSensor\"]}, \"Garage_Motion\": {\"category\": [\"MotionSensor\"], \"tags\": [\"Garage\", \"MotionSensor\"]}, \"Entrance_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Entrance\", \"Camera\"]}, \"Garage_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Garage\", \"Camera\"]}}",
+  "clauses_merged": [
+   "움직임이 감지되면",
+   "그 뒤로 10초마다 사진을 찍어줘."
+  ]
+ },
+ {
+  "index": 251,
+  "csv_index": "29",
+  "category": "C08",
+  "cmd": "상단부에 있는 조명이 켜질 때마다, 하단부에 있는 조명도 켜줘.",
+  "devices": "Up_Light: [Light, Switch]\nDown_Light: [Light, Switch]\nMid_Light: [Light, Switch]\n\n[Services]\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Light.CurrentBrightness > 0",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "상단부에 있는 조명이 켜질 때마다,",
+   "하단부에 있는 조명도 켜줘."
+  ],
+  "devices_raw": "{\"Up_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Top\", \"Light\", \"Switch\"]}, \"Down_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Bottom\", \"Light\", \"Switch\"]}, \"Mid_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Middle\", \"Light\", \"Switch\"]}}",
+  "clauses_merged": [
+   "상단부에 있는 조명이 켜질 때마다,",
+   "하단부에 있는 조명도 켜줘."
+  ]
+ },
+ {
+  "index": 254,
+  "csv_index": "32",
+  "category": "C08",
+  "cmd": "문이 열릴 때마다, 복도와 거실의 조명을 모두 켜줘.",
+  "devices": "Door_1: [Door]\nDoor_2: [Door]\nHall_Light_1: [Light, Switch]\nHall_Light_2: [Light, Switch]\nLR_Light_1: [Light, Switch]\nLR_Light_2: [Light, Switch]\nKitchen_Light: [Light, Switch]\n\n[Services]\nDoor: (unknown category)\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Door.DoorState == \"open\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "문이 열릴 때마다,",
+   "복도와 거실의 조명을 모두 켜줘."
+  ],
+  "devices_raw": "{\"Door_1\": {\"category\": [\"Door\"], \"tags\": [\"Door\"]}, \"Door_2\": {\"category\": [\"Door\"], \"tags\": [\"Door\"]}, \"Hall_Light_1\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Hallway\", \"Light\", \"Switch\"]}, \"Hall_Light_2\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Hallway\", \"Light\", \"Switch\"]}, \"LR_Light_1\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"LivingRoom\", \"Light\", \"Switch\"]}, \"LR_Light_2\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"LivingRoom\", \"Light\", \"Switch\"]}, \"Kitchen_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Kitchen\", \"Light\", \"Switch\"]}}",
+  "clauses_merged": [
+   "문이 열릴 때마다,",
+   "복도와 거실의 조명을 모두 켜줘."
+  ]
+ },
+ {
+  "index": 256,
+  "csv_index": "34",
+  "category": "C08",
+  "cmd": "비가 올때마다, 모든 창문과 문을 닫아줘",
+  "devices": "Rain: [RainSensor]\nRain_2: [RainSensor]\nWin_1: [WindowCovering]\nWin_2: [WindowCovering]\nDoor_1: [Door]\nDoor_2: [Door]\n\n[Services]\nRainSensor: (unknown category)\nWindowCovering:\n  attrs: CurrentPosition(INTEGER), WindowCoveringType(ENUM:WindowCoveringTypeEnum)\n  funcs: DownOrClose(), SetLevel(Level:INTEGER), Stop(), UpOrOpen()\n  enum WindowCoveringTypeEnum: window, blind, shade\nDoor: (unknown category)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "RainSensor.Rain == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Door.Close",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 5,
+  "clauses": [
+   "비가 올때마다,",
+   "모든 창문과 문을 닫아줘"
+  ],
+  "devices_raw": "{\"Rain\": {\"category\": [\"RainSensor\"], \"tags\": [\"RainSensor\"]}, \"Rain_2\": {\"category\": [\"RainSensor\"], \"tags\": [\"Indoor\", \"RainSensor\"]}, \"Win_1\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Window\", \"WindowCovering\"]}, \"Win_2\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Living\", \"Window\", \"WindowCovering\"]}, \"Door_1\": {\"category\": [\"Door\"], \"tags\": [\"Door\"]}, \"Door_2\": {\"category\": [\"Door\"], \"tags\": [\"Entrance\", \"Door\"]}}",
+  "clauses_merged": [
+   "비가 올때마다,",
+   "모든 창문과 문을 닫아줘"
+  ]
+ },
+ {
+  "index": 261,
+  "csv_index": "11",
+  "category": "C12",
+  "cmd": "주차장 이산화탄소 농도가 880ppm보다 높아지면, 그 이후로 10초마다 \"CO2 농도 위험\"이라고 주차장 스피커로 출력해줘.",
+  "devices": "P_AQ: [AirQualitySensor]\nGarage_AQ: [AirQualitySensor]\nP_Speaker: [Speaker]\nGarage_Speaker: [Speaker]\n\n[Services]\nAirQualitySensor:\n  attrs: CarbonDioxide(DOUBLE), DustLevel(DOUBLE), FineDustLevel(DOUBLE), Humidity(DOUBLE), Temperature(DOUBLE), TvocLevel(DOUBLE), VeryFineDustLevel(DOUBLE)\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "AirQualitySensor.CarbonDioxide > 880",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "CO2 level danger"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "주차장 이산화탄소 농도가 880ppm보다 높아지면,",
+   "그 이후로 10초마다 \"CO2 농도 위험\"이라고 주차장 스피커로 출력해줘."
+  ],
+  "devices_raw": "{\"P_AQ\": {\"category\": [\"AirQualitySensor\"], \"tags\": [\"ParkingLot\", \"AirQualitySensor\"]}, \"Garage_AQ\": {\"category\": [\"AirQualitySensor\"], \"tags\": [\"Garage\", \"AirQualitySensor\"]}, \"P_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"ParkingLot\", \"Speaker\"]}, \"Garage_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Garage\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "주차장 이산화탄소 농도가 880ppm보다 높아지면,",
+   "그 이후로 10초마다 \"CO2 농도 위험\"이라고 주차장 스피커로 출력해줘."
+  ]
+ },
+ {
+  "index": 263,
+  "csv_index": "13",
+  "category": "C12",
+  "cmd": "1층에서 재실센서가 하나라도 감지되면, 그 이후로 1분마다 모든 긴급 사이렌을 3초간 울렸다 꺼줘.",
+  "devices": "F1_Pres_1: [PresenceSensor]\nF1_Pres_2: [PresenceSensor]\nF2_Pres: [PresenceSensor]\nF1_Siren: [Siren, Switch]\nF2_Siren: [Siren, Switch]\n\n[Services]\nPresenceSensor:\n  attrs: Presence(BOOL)\nSiren:\n  attrs: SirenMode(ENUM:SirenModeEnum)\n  funcs: SetSirenMode(Mode:ENUM:SirenModeEnum)\n  enum SirenModeEnum: emergency, fire, police, ambulance\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == true",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      },
+      {
+       "op": "delay",
+       "duration": "3 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "1층에서 재실센서가 하나라도 감지되면,",
+   "그 이후로 1분마다 모든 긴급 사이렌을 3초간 울렸다 꺼줘."
+  ],
+  "devices_raw": "{\"F1_Pres_1\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Floor1\", \"PresenceSensor\"]}, \"F1_Pres_2\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Floor1\", \"PresenceSensor\"]}, \"F2_Pres\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Floor2\", \"PresenceSensor\"]}, \"F1_Siren\": {\"category\": [\"Siren\", \"Switch\"], \"tags\": [\"Floor1\", \"Siren\", \"Switch\"]}, \"F2_Siren\": {\"category\": [\"Siren\", \"Switch\"], \"tags\": [\"Floor2\", \"Siren\", \"Switch\"]}}",
+  "clauses_merged": [
+   "1층에서 재실센서가 하나라도 감지되면,",
+   "그 이후로 1분마다 모든 긴급 사이렌을 3초간 울렸다 꺼줘."
+  ]
+ },
+ {
+  "index": 265,
+  "csv_index": "15",
+  "category": "C12",
+  "cmd": "주방의 연기 감지기로 연기가 감지되면, 그 이후로 10초마다 거실 스피커로 \"화재 발생\"이라고 말해줘.",
+  "devices": "K_Smoke: [SmokeDetector]\nBedroom_Smoke: [SmokeDetector]\nLR_Speaker: [Speaker]\nBedroom_Speaker: [Speaker]\n\n[Services]\nSmokeDetector:\n  attrs: Smoke(BOOL)\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "SmokeDetector.Smoke == true",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Fire outbreak"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "주방의 연기 감지기로 연기가 감지되면,",
+   "그 이후로 10초마다 거실 스피커로 \"화재 발생\"이라고 말해줘."
+  ],
+  "devices_raw": "{\"K_Smoke\": {\"category\": [\"SmokeDetector\"], \"tags\": [\"Kitchen\", \"SmokeDetector\"]}, \"Bedroom_Smoke\": {\"category\": [\"SmokeDetector\"], \"tags\": [\"Bedroom\", \"SmokeDetector\"]}, \"LR_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"LivingRoom\", \"Speaker\"]}, \"Bedroom_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Bedroom\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "주방의 연기 감지기로 연기가 감지되면,",
+   "그 이후로 10초마다 거실 스피커로 \"화재 발생\"이라고 말해줘."
+  ]
+ },
+ {
+  "index": 268,
+  "csv_index": "40",
+  "category": "C08",
+  "cmd": "멀티버튼의 버튼2가 눌릴 때마다 거실의 창문을 모두 열어줘.",
+  "devices": "LR_MB: [MultiButton]\nBedroom_MB: [MultiButton]\nLR_Win_1: [WindowCovering]\nLR_Win_2: [WindowCovering]\nBedroom_Win: [WindowCovering]\n\n[Services]\nMultiButton:\n  attrs: Button1(ENUM:ButtonEnum), Button2(ENUM:ButtonEnum), Button3(ENUM:ButtonEnum), Button4(ENUM:ButtonEnum)\n  enum ButtonEnum: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold\nWindowCovering:\n  attrs: CurrentPosition(INTEGER), WindowCoveringType(ENUM:WindowCoveringTypeEnum)\n  funcs: DownOrClose(), SetLevel(Level:INTEGER), Stop(), UpOrOpen()\n  enum WindowCoveringTypeEnum: window, blind, shade\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button2 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "멀티버튼의 버튼2가 눌릴 때마다",
+   "거실의 창문을 모두 열어줘."
+  ],
+  "devices_raw": "{\"LR_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"LivingRoom\", \"MultiButton\"]}, \"Bedroom_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"Bedroom\", \"MultiButton\"]}, \"LR_Win_1\": {\"category\": [\"WindowCovering\"], \"tags\": [\"LivingRoom\", \"Window\", \"WindowCovering\"]}, \"LR_Win_2\": {\"category\": [\"WindowCovering\"], \"tags\": [\"LivingRoom\", \"Window\", \"WindowCovering\"]}, \"Bedroom_Win\": {\"category\": [\"WindowCovering\"], \"tags\": [\"Bedroom\", \"Window\", \"WindowCovering\"]}}",
+  "clauses_merged": [
+   "멀티버튼의 버튼2가 눌릴 때마다",
+   "거실의 창문을 모두 열어줘."
+  ]
+ },
+ {
+  "index": 300,
+  "csv_index": "12",
+  "category": "C17",
+  "cmd": "30분마다 체크해서 복도의 모든 조명의 밝기가 하나라도 50% 이상이면 모두 꺼줘.",
+  "devices": "Hall_Light_1: [Light, Switch, LevelControl]\nHall_Light_2: [Light, Switch, LevelControl]\nHall_Light_3: [Light, Switch, LevelControl]\nLR_Light: [Light, Switch, LevelControl]\nBedroom_Light: [Light, Switch, LevelControl]\n\n[Services]\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nLevelControl:\n  attrs: CurrentLevel(DOUBLE), MaxLevel(DOUBLE), MinLevel(DOUBLE)\n  funcs: MoveToLevel(Level:DOUBLE, Rate:DOUBLE)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness >= 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "30분마다 체크해서",
+   "복도의 모든 조명의 밝기가 하나라도 50% 이상이면",
+   "모두 꺼줘."
+  ],
+  "devices_raw": "{\"Hall_Light_1\": {\"category\": [\"Light\", \"Switch\", \"LevelControl\"], \"tags\": [\"Hallway\", \"Light\", \"Switch\", \"LevelControl\"]}, \"Hall_Light_2\": {\"category\": [\"Light\", \"Switch\", \"LevelControl\"], \"tags\": [\"Hallway\", \"Light\", \"Switch\", \"LevelControl\"]}, \"Hall_Light_3\": {\"category\": [\"Light\", \"Switch\", \"LevelControl\"], \"tags\": [\"Hallway\", \"Light\", \"Switch\", \"LevelControl\"]}, \"LR_Light\": {\"category\": [\"Light\", \"Switch\", \"LevelControl\"], \"tags\": [\"LivingRoom\", \"Light\", \"Switch\", \"LevelControl\"]}, \"Bedroom_Light\": {\"category\": [\"Light\", \"Switch\", \"LevelControl\"], \"tags\": [\"Bedroom\", \"Light\", \"Switch\", \"LevelControl\"]}}",
+  "clauses_merged": [
+   "30분마다 체크해서",
+   "복도의 모든 조명의 밝기가 하나라도 50% 이상이면",
+   "모두 꺼줘."
+  ]
+ },
+ {
+  "index": 305,
+  "csv_index": "2",
+  "category": "C06",
+  "cmd": "거실 조도가 200lux 이하면 거실 등을 100% 밝기로, 500lux 이상이면 30%로, 그 외에는 60%로 설정해줘.",
+  "devices": "LivingRoom_LightSensor: [LightSensor]\nBedroom_LightSensor: [LightSensor]\nLivingRoom_Light: [Light, Switch]\nBathroom_Light: [Light, Switch]\nOffice_Camera: [Camera]\n\n[Services]\nLightSensor:\n  attrs: Brightness(DOUBLE)\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nCamera:\n  attrs: CameraState(ENUM:CameraStateEnum), Image(BINARY), MicrophoneMuted(BOOL), RecordingActive(BOOL), Video(BINARY)\n  funcs: CaptureImage(), CaptureVideo(Duration:DOUBLE), SetMicrophoneMuted(Muted:BOOL), StartRecording(), StopRecording()\n  enum CameraStateEnum: off, on, restarting, unavailable\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "lux",
+     "src": "LightSensor.Brightness"
+    },
+    {
+     "op": "if",
+     "cond": "lux <= 200",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      }
+     ],
+     "else": [
+      {
+       "op": "if",
+       "cond": "lux >= 500",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 30.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 60.0,
+          "Rate": 0.0
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 7,
+  "clauses": [
+   "거실 조도가 200lux 이하면",
+   "거실 등을 100% 밝기로,",
+   "500lux 이상이면",
+   "30%로,",
+   "그 외에는 60%로 설정해줘."
+  ],
+  "devices_raw": "{\"LivingRoom_LightSensor\": {\"category\": [\"LightSensor\"], \"tags\": [\"LivingRoom\", \"LightSensor\"]}, \"Bedroom_LightSensor\": {\"category\": [\"LightSensor\"], \"tags\": [\"Bedroom\", \"LightSensor\"]}, \"LivingRoom_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"LivingRoom\", \"Light\"]}, \"Bathroom_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Bathroom\", \"Light\"]}, \"Office_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Office\", \"Camera\"]}}",
+  "clauses_merged": [
+   "거실 조도가 200lux 이하면",
+   "거실 등을 100% 밝기로,",
+   "500lux 이상이면",
+   "30%로,",
+   "그 외에는 60%로 설정해줘."
+  ]
+ },
+ {
+  "index": 307,
+  "csv_index": "1",
+  "category": "C19",
+  "cmd": "1초마다 거실 온도가 28도 이상이면 에어컨 플러그를 켜고, 그렇지 않고 25도 이하이면 꺼줘.",
+  "devices": "LivingRoom_TempSensor: [TemperatureSensor]\nBedroom_TempSensor: [TemperatureSensor]\nLivingRoom_AC: [Plug, Switch]\nStudy_Speaker: [Speaker]\nBakery_Oven: [Oven]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nPlug:\n  attrs: Current(DOUBLE), Power(DOUBLE), Voltage(DOUBLE)\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nOven: (unknown category)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 28",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "TemperatureSensor.Temperature <= 25",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "1초마다 거실 온도가 28도 이상이면",
+   "에어컨 플러그를 켜고,",
+   "그렇지 않고 25도 이하이면",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"LivingRoom_TempSensor\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"LivingRoom\", \"TemperatureSensor\"]}, \"Bedroom_TempSensor\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"Bedroom\", \"TemperatureSensor\"]}, \"LivingRoom_AC\": {\"category\": [\"Plug\", \"Switch\"], \"tags\": [\"LivingRoom\", \"Plug\", \"AC\"]}, \"Study_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Study\", \"Speaker\"]}, \"Bakery_Oven\": {\"category\": [\"Oven\"], \"tags\": [\"Bakery\", \"Oven\"]}}",
+  "clauses_merged": [
+   "1초마다 거실 온도가 28도 이상이면",
+   "에어컨 플러그를 켜고,",
+   "그렇지 않고 25도 이하이면",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 311,
+  "csv_index": "5",
+  "category": "C19",
+  "cmd": "1초마다 거실 습도가 30% 이하이면 가습기 플러그를 켜고, 그렇지 않고 55% 이상이면 꺼줘.",
+  "devices": "LivingRoom_HumiditySensor: [HumiditySensor]\nBedroom_HumiditySensor: [HumiditySensor]\nLivingRoom_Humidifier: [Plug, Switch]\nKitchen_RiceCooker: [RiceCooker]\nStudy_Speaker: [Speaker]\n\n[Services]\nHumiditySensor:\n  attrs: Humidity(DOUBLE)\nPlug:\n  attrs: Current(DOUBLE), Power(DOUBLE), Voltage(DOUBLE)\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nRiceCooker: (unknown category)\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "HumiditySensor.Humidity <= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "HumiditySensor.Humidity >= 55",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "1초마다 거실 습도가 30% 이하이면",
+   "가습기 플러그를 켜고,",
+   "그렇지 않고 55% 이상이면",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"LivingRoom_HumiditySensor\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"LivingRoom\", \"HumiditySensor\"]}, \"Bedroom_HumiditySensor\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"Bedroom\", \"HumiditySensor\"]}, \"LivingRoom_Humidifier\": {\"category\": [\"Plug\", \"Switch\"], \"tags\": [\"LivingRoom\", \"Plug\", \"Humidifier\"]}, \"Kitchen_RiceCooker\": {\"category\": [\"RiceCooker\"], \"tags\": [\"Kitchen\", \"RiceCooker\"]}, \"Study_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Study\", \"Speaker\"]}}",
+  "clauses_merged": [
+   "1초마다 거실 습도가 30% 이하이면",
+   "가습기 플러그를 켜고,",
+   "그렇지 않고 55% 이상이면",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 323,
+  "csv_index": "33",
+  "category": "C03",
+  "cmd": "침실 조도가 100lux 이하면 침실 스탠드 플러그를 켜고, 아니면 꺼줘.",
+  "devices": "Bedroom_LightSensor: [LightSensor]\nLivingRoom_LightSensor: [LightSensor]\nBedroom_FloorLamp: [Plug, Switch]\nGarage_Door: [Door]\nKitchen_RiceCooker: [RiceCooker]\n\n[Services]\nLightSensor:\n  attrs: Brightness(DOUBLE)\nPlug:\n  attrs: Current(DOUBLE), Power(DOUBLE), Voltage(DOUBLE)\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nDoor: (unknown category)\nRiceCooker: (unknown category)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "brightness",
+     "src": "LightSensor.Brightness"
+    },
+    {
+     "op": "if",
+     "cond": "brightness <= 100",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": [
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 5,
+  "clauses": [
+   "침실 조도가 100lux 이하면",
+   "침실 스탠드 플러그를 켜고,",
+   "아니면 꺼줘."
+  ],
+  "devices_raw": "{\"Bedroom_LightSensor\": {\"category\": [\"LightSensor\"], \"tags\": [\"Bedroom\", \"LightSensor\"]}, \"LivingRoom_LightSensor\": {\"category\": [\"LightSensor\"], \"tags\": [\"LivingRoom\", \"LightSensor\"]}, \"Bedroom_FloorLamp\": {\"category\": [\"Plug\", \"Switch\"], \"tags\": [\"Bedroom\", \"Plug\", \"FloorLamp\"]}, \"Garage_Door\": {\"category\": [\"Door\"], \"tags\": [\"Garage\", \"Door\"]}, \"Kitchen_RiceCooker\": {\"category\": [\"RiceCooker\"], \"tags\": [\"Kitchen\", \"RiceCooker\"]}}",
+  "clauses_merged": [
+   "침실 조도가 100lux 이하면",
+   "침실 스탠드 플러그를 켜고,",
+   "아니면 꺼줘."
+  ]
+ },
+ {
+  "index": 324,
+  "csv_index": "34",
+  "category": "C03",
+  "cmd": "거실에 사람이 감지되면 거실 메인 조명을 켜고, 아니면 꺼줘.",
+  "devices": "LivingRoom_PresenceSensor: [PresenceSensor]\nBedroom_PresenceSensor: [PresenceSensor]\nLivingRoom_Light: [Light, Switch]\nBathroom_Light: [Light, Switch]\nOffice_Camera: [Camera]\n\n[Services]\nPresenceSensor:\n  attrs: Presence(BOOL)\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nCamera:\n  attrs: CameraState(ENUM:CameraStateEnum), Image(BINARY), MicrophoneMuted(BOOL), RecordingActive(BOOL), Video(BINARY)\n  funcs: CaptureImage(), CaptureVideo(Duration:DOUBLE), SetMicrophoneMuted(Muted:BOOL), StartRecording(), StopRecording()\n  enum CameraStateEnum: off, on, restarting, unavailable\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": [
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "거실에 사람이 감지되면",
+   "거실 메인 조명을 켜고,",
+   "아니면 꺼줘."
+  ],
+  "devices_raw": "{\"LivingRoom_PresenceSensor\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"LivingRoom\", \"PresenceSensor\"]}, \"Bedroom_PresenceSensor\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Bedroom\", \"PresenceSensor\"]}, \"LivingRoom_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"LivingRoom\", \"Light\"]}, \"Bathroom_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Bathroom\", \"Light\"]}, \"Office_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Office\", \"Camera\"]}}",
+  "clauses_merged": [
+   "거실에 사람이 감지되면",
+   "거실 메인 조명을 켜고,",
+   "아니면 꺼줘."
+  ]
+ },
+ {
+  "index": 332,
+  "csv_index": "4",
+  "category": "C11",
+  "cmd": "지금 거실 습도를 확인하고 20분 뒤 다시 확인해서 10% 이상 떨어졌으면 거실 가습기 플러그를 켜줘.",
+  "devices": "LivingRoom_HumiditySensor: [HumiditySensor]\nBedroom_HumiditySensor: [HumiditySensor]\nLivingRoom_Humidifier: [Plug, Switch]\nOffice_Camera: [Camera]\nKitchen_RiceCooker: [RiceCooker]\n\n[Services]\nHumiditySensor:\n  attrs: Humidity(DOUBLE)\nPlug:\n  attrs: Current(DOUBLE), Power(DOUBLE), Voltage(DOUBLE)\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nCamera:\n  attrs: CameraState(ENUM:CameraStateEnum), Image(BINARY), MicrophoneMuted(BOOL), RecordingActive(BOOL), Video(BINARY)\n  funcs: CaptureImage(), CaptureVideo(Duration:DOUBLE), SetMicrophoneMuted(Muted:BOOL), StartRecording(), StopRecording()\n  enum CameraStateEnum: off, on, restarting, unavailable\nRiceCooker: (unknown category)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "h1",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "delay",
+     "duration": "20 MIN"
+    },
+    {
+     "op": "read",
+     "var": "h2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "if",
+     "cond": "($h1 - $h2) >= 10",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "지금 거실 습도를 확인하고",
+   "20분 뒤 다시 확인해서",
+   "10% 이상 떨어졌으면",
+   "거실 가습기 플러그를 켜줘."
+  ],
+  "devices_raw": "{\"LivingRoom_HumiditySensor\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"LivingRoom\", \"HumiditySensor\"]}, \"Bedroom_HumiditySensor\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"Bedroom\", \"HumiditySensor\"]}, \"LivingRoom_Humidifier\": {\"category\": [\"Plug\", \"Switch\"], \"tags\": [\"LivingRoom\", \"Plug\", \"Humidifier\"]}, \"Office_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Office\", \"Camera\"]}, \"Kitchen_RiceCooker\": {\"category\": [\"RiceCooker\"], \"tags\": [\"Kitchen\", \"RiceCooker\"]}}",
+  "clauses_merged": [
+   "지금 거실 습도를 확인하고",
+   "20분 뒤 다시 확인해서",
+   "10% 이상 떨어졌으면",
+   "거실 가습기 플러그를 켜줘."
+  ]
+ },
+ {
+  "index": 335,
+  "csv_index": "7",
+  "category": "C11",
+  "cmd": "지금 침실 습도를 확인하고 30분 뒤 다시 확인해서 15 이상 올랐으면 침실 제습기 플러그를 켜줘.",
+  "devices": "Bedroom_HumiditySensor: [HumiditySensor]\nLivingRoom_HumiditySensor: [HumiditySensor]\nBedroom_Dehumidifier: [Plug, Switch]\nStudy_Speaker: [Speaker]\nOffice_Camera: [Camera]\n\n[Services]\nHumiditySensor:\n  attrs: Humidity(DOUBLE)\nPlug:\n  attrs: Current(DOUBLE), Power(DOUBLE), Voltage(DOUBLE)\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nCamera:\n  attrs: CameraState(ENUM:CameraStateEnum), Image(BINARY), MicrophoneMuted(BOOL), RecordingActive(BOOL), Video(BINARY)\n  funcs: CaptureImage(), CaptureVideo(Duration:DOUBLE), SetMicrophoneMuted(Muted:BOOL), StartRecording(), StopRecording()\n  enum CameraStateEnum: off, on, restarting, unavailable\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "h1",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "delay",
+     "duration": "30 MIN"
+    },
+    {
+     "op": "read",
+     "var": "h2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "if",
+     "cond": "$h2 - $h1 >= 15",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "지금 침실 습도를 확인하고",
+   "30분 뒤 다시 확인해서",
+   "15 이상 올랐으면",
+   "침실 제습기 플러그를 켜줘."
+  ],
+  "devices_raw": "{\"Bedroom_HumiditySensor\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"Bedroom\", \"HumiditySensor\"]}, \"LivingRoom_HumiditySensor\": {\"category\": [\"HumiditySensor\"], \"tags\": [\"LivingRoom\", \"HumiditySensor\"]}, \"Bedroom_Dehumidifier\": {\"category\": [\"Plug\", \"Switch\"], \"tags\": [\"Bedroom\", \"Plug\", \"Dehumidifier\"]}, \"Study_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Study\", \"Speaker\"]}, \"Office_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Office\", \"Camera\"]}}",
+  "clauses_merged": [
+   "지금 침실 습도를 확인하고",
+   "30분 뒤 다시 확인해서",
+   "15 이상 올랐으면",
+   "침실 제습기 플러그를 켜줘."
+  ]
+ },
+ {
+  "index": 338,
+  "csv_index": "6",
+  "category": "C14",
+  "cmd": "멀티버튼의 버튼4가 눌릴 때마다 거실 조명 밝기를 15씩 낮춰줘. 최소 10까지.",
+  "devices": "LivingRoom_MB: [MultiButton]\nBedroom_MB: [MultiButton]\nLivingRoom_Light: [Light, LevelControl]\nBedroom_Light: [Light, LevelControl]\nGarage_Door: [Door]\n\n[Services]\nMultiButton:\n  attrs: Button1(ENUM:ButtonEnum), Button2(ENUM:ButtonEnum), Button3(ENUM:ButtonEnum), Button4(ENUM:ButtonEnum)\n  enum ButtonEnum: pushed, held, double, pushed_2x, pushed_3x, down, down_hold, up, up_hold\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nLevelControl:\n  attrs: CurrentLevel(DOUBLE), MaxLevel(DOUBLE), MinLevel(DOUBLE)\n  funcs: MoveToLevel(Level:DOUBLE, Rate:DOUBLE)\nDoor: (unknown category)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button4 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "LevelControl.MoveToLevel",
+       "args": {
+        "Level": "max($LevelControl.CurrentLevel - 15, 10)",
+        "Rate": 0.0
+       },
+       "var": "LevelControl.CurrentLevel"
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "멀티버튼의 버튼4가 눌릴 때마다",
+   "거실 조명 밝기를 15씩 낮춰줘.",
+   "최소 10까지."
+  ],
+  "devices_raw": "{\"LivingRoom_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"LivingRoom\", \"MultiButton\"]}, \"Bedroom_MB\": {\"category\": [\"MultiButton\"], \"tags\": [\"Bedroom\", \"MultiButton\"]}, \"LivingRoom_Light\": {\"category\": [\"Light\", \"LevelControl\"], \"tags\": [\"LivingRoom\", \"Light\", \"LevelControl\"]}, \"Bedroom_Light\": {\"category\": [\"Light\", \"LevelControl\"], \"tags\": [\"Bedroom\", \"Light\", \"LevelControl\"]}, \"Garage_Door\": {\"category\": [\"Door\"], \"tags\": [\"Garage\", \"Door\"]}}",
+  "clauses_merged": [
+   "멀티버튼의 버튼4가 눌릴 때마다",
+   "거실 조명 밝기를 15씩 낮춰줘.",
+   "최소 10까지."
+  ]
+ },
+ {
+  "index": 341,
+  "csv_index": "7",
+  "category": "C19",
+  "cmd": "1초마다 부엌 온도가 32도 이상이면 부엌 환기팬 플러그를 켜고, 그렇지 않고 28도 이하이면 꺼줘.",
+  "devices": "Kitchen_TempSensor: [TemperatureSensor]\nLivingRoom_TempSensor: [TemperatureSensor]\nKitchen_Fan: [Plug, Switch]\nBakery_Oven: [Oven]\nGarage_Door: [Door]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nPlug:\n  attrs: Current(DOUBLE), Power(DOUBLE), Voltage(DOUBLE)\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nOven: (unknown category)\nDoor: (unknown category)\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 32",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "TemperatureSensor.Temperature <= 28",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "1초마다 부엌 온도가 32도 이상이면",
+   "부엌 환기팬 플러그를 켜고,",
+   "그렇지 않고 28도 이하이면",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"Kitchen_TempSensor\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"Kitchen\", \"TemperatureSensor\"]}, \"LivingRoom_TempSensor\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"LivingRoom\", \"TemperatureSensor\"]}, \"Kitchen_Fan\": {\"category\": [\"Plug\", \"Switch\"], \"tags\": [\"Kitchen\", \"Plug\", \"Fan\"]}, \"Bakery_Oven\": {\"category\": [\"Oven\"], \"tags\": [\"Bakery\", \"Oven\"]}, \"Garage_Door\": {\"category\": [\"Door\"], \"tags\": [\"Garage\", \"Door\"]}}",
+  "clauses_merged": [
+   "1초마다 부엌 온도가 32도 이상이면",
+   "부엌 환기팬 플러그를 켜고,",
+   "그렇지 않고 28도 이하이면",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 368,
+  "csv_index": "2",
+  "category": "C23",
+  "cmd": "현관문이 1분 이상 열려 있으면 현관 조명을 켜고, 3분 뒤에 꺼줘.",
+  "devices": "Porch_Door: [Door]\nPorch_Light: [Plug, Switch]\nFront_Door: [Door]\n\n[Services]\nDoor: (unknown category)\nPlug:\n  attrs: Current(DOUBLE), Power(DOUBLE), Voltage(DOUBLE)\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Door.DoorState == \"open\"",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "3 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "n_ops": 5,
+  "clauses": [
+   "현관문이 1분 이상 열려 있으면",
+   "현관 조명을 켜고,",
+   "3분 뒤에",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"Porch_Door\": {\"category\": [\"Door\"], \"tags\": [\"Porch\", \"Door\"]}, \"Porch_Light\": {\"category\": [\"Plug\", \"Switch\"], \"tags\": [\"Porch\", \"Plug\", \"Switch\"]}, \"Front_Door\": {\"category\": [\"Door\"], \"tags\": [\"Front\", \"Door\"]}}",
+  "clauses_merged": [
+   "현관문이 1분 이상 열려 있으면",
+   "현관 조명을 켜고,",
+   "3분 뒤에",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 371,
+  "csv_index": "5",
+  "category": "C23",
+  "cmd": "복도에 3분 이상 동작이 없으면 복도 조명을 50%로 낮추고, 2분 뒤에 꺼줘.",
+  "devices": "Hallway_Motion: [MotionSensor]\nHallway_Light: [Light, Switch]\nLobby_Motion: [MotionSensor]\n\n[Services]\nMotionSensor:\n  attrs: Motion(BOOL)\nLight:\n  attrs: ColorMode(ENUM:ColorModeEnum), ColorTempPhysicalMaxMireds(INTEGER), ColorTempPhysicalMinMireds(INTEGER), ColorTemperatureMireds(INTEGER), CurrentBrightness(DOUBLE), CurrentHue(INTEGER), CurrentSaturation(INTEGER), CurrentX(DOUBLE), CurrentY(DOUBLE), EnhancedCurrentHue(INTEGER)\n  funcs: EnhancedMoveToHue(EnhancedHue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), EnhancedMoveToHueAndSaturation(EnhancedHue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveColor(RateX:DOUBLE, RateY:DOUBLE), MoveColorTemperature(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), MoveHue(MoveMode:ENUM:MoveModeEnum, Rate:INTEGER), MoveToBrightness(Brightness:DOUBLE, Rate:DOUBLE), MoveToColor(ColorX:DOUBLE, ColorY:DOUBLE, TransitionTime:DOUBLE), MoveToColorTemperature(ColorTemperatureMireds:INTEGER, TransitionTime:DOUBLE), MoveToHue(Hue:INTEGER, Direction:ENUM:HueDirectionEnum, TransitionTime:DOUBLE), MoveToHueAndSaturation(Hue:INTEGER, Saturation:INTEGER, TransitionTime:DOUBLE), MoveToSaturation(Saturation:INTEGER, TransitionTime:DOUBLE), StepColor(StepX:DOUBLE, StepY:DOUBLE, TransitionTime:DOUBLE), StepColorTemperature(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE, ColorTemperatureMinimumMireds:INTEGER, ColorTemperatureMaximumMireds:INTEGER), StepHue(StepMode:ENUM:StepModeEnum, StepSize:INTEGER, TransitionTime:DOUBLE)\n  enum ColorModeEnum: hsv, xy, ct\n  enum HueDirectionEnum: shortest_distance, longest_distance, up, down\n  enum MoveModeEnum: stop, up, down\n  enum StepModeEnum: up, down\nSwitch:\n  attrs: Switch(BOOL)\n  funcs: Off(), On(), Toggle()\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "MotionSensor.Motion == false",
+     "edge": "none",
+     "for": "3 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 50.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "2 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "n_ops": 5,
+  "clauses": [
+   "복도에 3분 이상 동작이 없으면",
+   "복도 조명을 50%로 낮추고,",
+   "2분 뒤에",
+   "꺼줘."
+  ],
+  "devices_raw": "{\"Hallway_Motion\": {\"category\": [\"MotionSensor\"], \"tags\": [\"Hallway\", \"MotionSensor\"]}, \"Hallway_Light\": {\"category\": [\"Light\", \"Switch\"], \"tags\": [\"Hallway\", \"Light\", \"Switch\"]}, \"Lobby_Motion\": {\"category\": [\"MotionSensor\"], \"tags\": [\"Lobby\", \"MotionSensor\"]}}",
+  "clauses_merged": [
+   "복도에 3분 이상 동작이 없으면",
+   "복도 조명을 50%로 낮추고,",
+   "2분 뒤에",
+   "꺼줘."
+  ]
+ },
+ {
+  "index": 373,
+  "csv_index": "2",
+  "category": "C24",
+  "cmd": "회의실에 사람이 2분 이상 있으면 1분마다 스피커로 \"회의가 곧 시작됩니다\"라고 3번 알려줘.",
+  "devices": "Meeting_Presence: [PresenceSensor]\nMeeting_Speaker: [Speaker]\nLobby_Presence: [PresenceSensor]\n\n[Services]\nPresenceSensor:\n  attrs: Presence(BOOL)\nSpeaker:\n  attrs: PlaybackState(ENUM:PlaybackStateEnum), Volume(INTEGER)\n  funcs: FastForward(), Pause(), Play(MediaSource:STRING), Rewind(), SetVolume(Volume:INTEGER), Speak(Text:STRING), Stop(), VolumeDown(), VolumeUp()\n  enum PlaybackStateEnum: paused, playing, stopped, fastforwarding, rewinding, buffering\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == true",
+     "edge": "none",
+     "for": "2 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "1 MIN",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "The meeting starts soon"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "회의실에 사람이 2분 이상 있으면",
+   "1분마다 스피커로 \"회의가 곧 시작됩니다\"라고 3번 알려줘."
+  ],
+  "devices_raw": "{\"Meeting_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Meeting\", \"PresenceSensor\"]}, \"Meeting_Speaker\": {\"category\": [\"Speaker\"], \"tags\": [\"Meeting\", \"Speaker\"]}, \"Lobby_Presence\": {\"category\": [\"PresenceSensor\"], \"tags\": [\"Lobby\", \"PresenceSensor\"]}}",
+  "clauses_merged": [
+   "회의실에 사람이 2분 이상 있으면",
+   "1분마다 스피커로 \"회의가 곧 시작됩니다\"라고 3번 알려줘."
+  ]
+ },
+ {
+  "index": 376,
+  "csv_index": "5",
+  "category": "C24",
+  "cmd": "금고 문이 30초 이상 닫혀 있으면 30초마다 카메라로 사진을 최대 5번 찍어줘.",
+  "devices": "Safe_Door: [Door]\nSafe_Camera: [Camera]\nVault_Door: [Door]\n\n[Services]\nDoor: (unknown category)\nCamera:\n  attrs: CameraState(ENUM:CameraStateEnum), Image(BINARY), MicrophoneMuted(BOOL), RecordingActive(BOOL), Video(BINARY)\n  funcs: CaptureImage(), CaptureVideo(Duration:DOUBLE), SetMicrophoneMuted(Muted:BOOL), StartRecording(), StopRecording()\n  enum CameraStateEnum: off, on, restarting, unavailable\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Door.DoorState == \"closed\"",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "30 SEC",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.CaptureImage",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 4,
+  "clauses": [
+   "금고 문이 30초 이상 닫혀 있으면",
+   "30초마다 카메라로 사진을 최대 5번 찍어줘."
+  ],
+  "devices_raw": "{\"Safe_Door\": {\"category\": [\"Door\"], \"tags\": [\"Safe\", \"Door\"]}, \"Safe_Camera\": {\"category\": [\"Camera\"], \"tags\": [\"Safe\", \"Camera\"]}, \"Vault_Door\": {\"category\": [\"Door\"], \"tags\": [\"Vault\", \"Door\"]}}",
+  "clauses_merged": [
+   "금고 문이 30초 이상 닫혀 있으면",
+   "30초마다 카메라로 사진을 최대 5번 찍어줘."
+  ]
+ },
+ {
+  "index": 378,
+  "csv_index": "2",
+  "category": "C25",
+  "cmd": "10분마다 침실 온도를 확인해서 20도 미만이면 에어컨을 난방으로, 아니면 자동으로 설정하고, 4번 후 멈춰줘.",
+  "devices": "Bedroom_Temp: [TemperatureSensor]\nBedroom_AC: [AirConditioner]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nAirConditioner:\n  attrs: AirConditionerMode(ENUM:AirConditionerModeEnum), TargetTemperature(DOUBLE)\n  funcs: SetAirConditionerMode(Mode:ENUM:AirConditionerModeEnum), SetTargetTemperature(Temperature:DOUBLE)\n  enum AirConditionerModeEnum: auto, cool, heat\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 4",
+     "period": "10 MIN",
+     "count": "n",
+     "body": [
+      {
+       "op": "read",
+       "var": "v",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "v < 20",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "heat"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "10분마다 침실 온도를 확인해서",
+   "20도 미만이면",
+   "에어컨을 난방으로,",
+   "아니면 자동으로 설정하고,",
+   "4번 후 멈춰줘."
+  ],
+  "devices_raw": "{\"Bedroom_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"Bedroom\", \"TemperatureSensor\"]}, \"Bedroom_AC\": {\"category\": [\"AirConditioner\"], \"tags\": [\"Bedroom\", \"AirConditioner\"]}}",
+  "clauses_merged": [
+   "10분마다 침실 온도를 확인해서",
+   "20도 미만이면",
+   "에어컨을 난방으로,",
+   "아니면 자동으로 설정하고,",
+   "4번 후 멈춰줘."
+  ]
+ },
+ {
+  "index": 381,
+  "csv_index": "5",
+  "category": "C25",
+  "cmd": "15분마다 거실 온도를 확인해서 18도 미만이면 에어컨을 난방으로, 아니면 자동으로 설정하고, 3번 후 멈춰줘.",
+  "devices": "LivingRoom_Temp: [TemperatureSensor]\nLivingRoom_AC: [AirConditioner]\n\n[Services]\nTemperatureSensor:\n  attrs: Temperature(DOUBLE)\nAirConditioner:\n  attrs: AirConditionerMode(ENUM:AirConditionerModeEnum), TargetTemperature(DOUBLE)\n  funcs: SetAirConditionerMode(Mode:ENUM:AirConditionerModeEnum), SetTargetTemperature(Temperature:DOUBLE)\n  enum AirConditionerModeEnum: auto, cool, heat\nClock:\n  attrs: Date(STRING), Datetime(STRING), Day(INTEGER), Hour(INTEGER), IsHoliday(BOOL), Minute(INTEGER), Month(INTEGER), Second(INTEGER), Time(STRING), Timestamp(DOUBLE), Weekday(ENUM:WeekdayEnum), Year(INTEGER)\n  funcs: Delay(Hour:INTEGER, Minute:INTEGER, Second:INTEGER)\n  enum WeekdayEnum: monday, tuesday, wednesday, thursday, friday, saturday, sunday",
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "15 MIN",
+     "count": "n",
+     "body": [
+      {
+       "op": "read",
+       "var": "v",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "v < 18",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "heat"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "n_ops": 6,
+  "clauses": [
+   "15분마다 거실 온도를 확인해서",
+   "18도 미만이면",
+   "에어컨을 난방으로,",
+   "아니면 자동으로 설정하고,",
+   "3번 후 멈춰줘."
+  ],
+  "devices_raw": "{\"LivingRoom_Temp\": {\"category\": [\"TemperatureSensor\"], \"tags\": [\"LivingRoom\", \"TemperatureSensor\"]}, \"LivingRoom_AC\": {\"category\": [\"AirConditioner\"], \"tags\": [\"LivingRoom\", \"AirConditioner\"]}}",
+  "clauses_merged": [
+   "15분마다 거실 온도를 확인해서",
+   "18도 미만이면",
+   "에어컨을 난방으로,",
+   "아니면 자동으로 설정하고,",
+   "3번 후 멈춰줘."
+  ]
+ }
+]
