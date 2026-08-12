@@ -69,4 +69,4 @@ Other endpoints: `GET /health`.
 ---
 
 ## ⚛️ JoI Code Specification
-JoI is a DSL for IoT automation. For the syntax and pipeline (state `:=` vs `=`, tag selectors `(#Tag)` / `all` / `any`, quantifier comparisons `==|`/`>=|`, the device-first IR generation pipeline, and the API), see [AGENTS.md](AGENTS.md).
+JoI is a DSL for IoT automation. For the syntax and pipeline (state `:=` vs `=`, tag selectors `(#Tag)` / `all` / `any`, quantifier comparisons `==|`/`>=|`, the device-first IR generation pipeline, and the API), see [JOI_SPEC.md](JOI_SPEC.md).
