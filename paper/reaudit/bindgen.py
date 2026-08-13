@@ -82,21 +82,23 @@ def cond_services(c):
 
 
 def walk_slots(steps, out):
+    """자리 걷기 — (서비스, 자리 성격) 목록. 성격: "read"(조건·읽기·인자) /
+    "call"(액션 표적). 순서가 곧 자리 번호 (§9.4)."""
     for s in steps:
         if not isinstance(s, dict):
             continue
         for f in ("cond", "until"):
             if s.get(f):
-                out.extend(cond_services(s[f]))
+                out.extend((x, "read") for x in cond_services(s[f]))
         if s.get("op") == "read" and s.get("src"):
             svc = s["src"].partition(".")[0]
             if svc != "clock":
-                out.append(svc)
+                out.append((svc, "read"))
         if s.get("op") == "call":
-            out.append(s["target"].partition(".")[0])
+            out.append((s["target"].partition(".")[0], "call"))
             for v in (s.get("args") or {}).values():
                 if isinstance(v, str):
-                    out.extend(cond_services(v))
+                    out.extend((x, "read") for x in cond_services(v))
         for v in s.values():
             if isinstance(v, list):
                 walk_slots(v, out)
@@ -234,13 +236,34 @@ def from_cache(groups, svc, cands, devs):
     return None
 
 
+# 여러 대를 읽는 자리의 뜻: "하나라도"(any)가 기본, "전부"(all)만 수기 표기.
+# (2026-08-14 검수: 다기기 읽기 19행 중 any 17, all 2 — §9.10)
+READ_QUANT_ALL = {("C17_008", "HumiditySensor"), ("C03_024", "TemperatureSensor")}
+
 # 휴리스틱이 원리상 못 가르는 행 (예: DoorLock 태그가 전 후보 공유 —
-# "금고"와 "도어락"을 태그 부재로 구분 불가) — 수기 명세
+# "금고"와 "도어락"을 태그 부재로 구분 불가) — 수기 명세.
+# 2026-08-14 게이트 가동(W3)이 드러낸 4행 추가:
+#   C05_016·C16_001  장소 없는 "감지되면"(아무 센서나)을 무지정 단수 규약이
+#                    첫 후보로 좁혔음 → any 집합으로 정정
+#   C10_005          "모든 긴급 사이렌"(3대 전부)인데 집합 어구 판정이 앞
+#                    구절의 "house"에 걸려 2대로 좁혔음
+#   C05_026          "에어컨 켜기/가습기 끄기" 두 자리를 언급 겹침으로
+#                    4기기 한 자리로 뭉갰음 → 자리 분리
 OVERRIDE = {
     "C16_002": {"DoorLock": ["Main_DoorLock"], "DoorLock#2": ["Entrance_Lock"],
                 "Speaker": ["Living_Speaker"]},
     "C16_004": {"DoorLock": ["Main_DoorLock"], "DoorLock#2": ["Entrance_Lock"],
                 "Speaker": ["Living_Speaker"]},
+    "C05_016": {"PresenceSensor": {"any": ["Living_Presence", "Bedroom_Presence"]},
+                "SmokeDetector": {"any": ["Kitchen_Smoke", "Bedroom_Smoke"]},
+                "Siren": ["Main_Siren"], "Speaker": ["Living_Speaker"]},
+    "C16_001": {"LeakSensor": {"any": ["Basement_Leak", "Kitchen_Leak"]},
+                "Siren": ["Main_Siren"]},
+    "C10_005": {"PresenceSensor": {"any": ["House_Presence_1", "House_Presence_2"]},
+                "Siren": ["Main_Siren", "Sub_Siren", "Garden_Siren"]},
+    "C05_026": {"TemperatureSensor": ["WineCellar_Temp"],
+                "HumiditySensor": ["WineCellar_Hum"],
+                "Switch": ["AC"], "Switch#2": ["WineCellar_Humidifier"]},
 }
 
 
@@ -250,15 +273,19 @@ def build(r):
     eng = r["command_eng"].lower()
     kor = r["command_kor"]
     seq = walk_slots(ir.get("timeline") or [], [])
-    # 서비스별 자리 수 (연속 중복은 한 자리로 — 같은 원자 반복 읽기)
+    # 서비스별 자리 수 + 자리 성격(read/call) 등장 순서
     by_svc = {}
+    kinds_by_svc = {}
     order = []
-    for svc in seq:
+    for svc, kind in seq:
         if svc not in by_svc:
             by_svc[svc] = 0
+            kinds_by_svc[svc] = []
             order.append(svc)
         by_svc[svc] += 1
+        kinds_by_svc[svc].append(kind)
     binding, ways, flags = {}, {}, []
+    read_slots = set()
     key = f'{r["category_v2"]}_{int(float(r["index"])):03d}'
     if key in OVERRIDE:
         return OVERRIDE[key], {k: "manual" for k in OVERRIDE[key]}, []
@@ -286,19 +313,31 @@ def build(r):
                         devices, way = cands[:1], "first"
             fixed.append((devices, way))
         picks = fixed
-        # 같은 집합이면 자리 합치기
-        seen = []
-        for devices, way in picks:
-            if any(sorted(devices) == sorted(p) for p in seen):
+        # 같은 집합이면 자리 합치기 (합쳐진 자리의 read 성격은 누적)
+        kinds = kinds_by_svc[svc]
+        seen = []                      # [(sorted(devices), 자리 이름)]
+        for i, (devices, way) in enumerate(picks):
+            hit = next((nm for ds, nm in seen if sorted(devices) == ds), None)
+            if hit:
+                if kinds[i] == "read":
+                    read_slots.add(hit)
                 continue
-            seen.append(devices)
             name = svc if not any(x == svc or x.startswith(svc + "#")
                                   for x in binding) else \
                 f"{svc}#{sum(1 for x in binding if x == svc or x.startswith(svc + '#')) + 1}"
+            seen.append((sorted(devices), name))
             binding[name] = devices
             ways[name] = way
+            if kinds[i] == "read":
+                read_slots.add(name)
             if way in ("main", "first"):
                 flags.append(f"{name}[{way}]: 후보 {cands} → {devices}")
+    # 여러 대를 읽는 자리 → 한정자 표기 ({"any"/"all": [...]}), 액션 전용은 목록 그대로
+    for name in list(binding):
+        if len(binding[name]) > 1 and name in read_slots:
+            q = "all" if (key, name) in READ_QUANT_ALL else "any"
+            binding[name] = {q: binding[name]}
+            flags.append(f"{name}[읽기 {q}]: {binding[name][q]}")
     return binding, ways, flags
 
 

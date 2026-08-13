@@ -3,400 +3,426 @@
 휴리스틱(위치어·한정어)이 못 정해 규약(Main 태그 → 인벤토리 첫 후보)으로
 배정한 자리들. 레퍼런스로 쓰기 전 눈검토 대상. 규약 자체는 percom.md §9.8.
 
+게이트 가동(W3, §9.10)이 드러낸 4행(C05_016·C16_001·C10_005·C05_026)은
+수기 명세(OVERRIDE)로 정정돼 이 목록에서 빠졌다.
+
 - **C01_001** — Switch the dehumidifier to drying mode.
-  - Dehumidifier [first]: ['Kitchen_Dehumidifier', 'Utility_Dehumidifier'] → ['Kitchen_Dehumidifier']
+  - Dehumidifier[first] : ['Kitchen_Dehumidifier', 'Utility_Dehumidifier'] → ['Kitchen_Dehumidifier']
 - **C01_002** — Record a 5-minute video with the camera.
-  - Camera [first]: ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
+  - Camera[first] : ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
 - **C01_003** — Set the blinds to 50 percent.
-  - WindowCovering [first]: ['Living_Blind', 'Bedroom_Blind'] → ['Living_Blind']
+  - WindowCovering[first] : ['Living_Blind', 'Bedroom_Blind'] → ['Living_Blind']
 - **C01_004** — Set the siren to emergency mode.
-  - Siren [main]: ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
+  - Siren[main] : ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
 - **C01_005** — Set the speaker volume to 30.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
 - **C07_001** — When the contact sensor is detected, turn on the light.
-  - Light [first]: ['LivingRoom_Light', 'Kitchen_Light'] → ['LivingRoom_Light']
+  - Light[first] : ['LivingRoom_Light', 'Kitchen_Light'] → ['LivingRoom_Light']
 - **C07_002** — When the presence sensor detects someone, turn on the TV.
-  - Switch [first]: ['LivingRoom_TV', 'Bedroom_TV'] → ['LivingRoom_TV']
+  - Switch[first] : ['LivingRoom_TV', 'Bedroom_TV'] → ['LivingRoom_TV']
 - **C07_003** — When the sound sensor value exceeds 50, stop speaker playback.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
-- **C17_001** — Every 10 minutes, if the temperature is 30 degrees or higher, set the 
-  - AirConditioner [first]: ['LivingRoom_AC', 'Bedroom_AC'] → ['LivingRoom_AC']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+- **C17_001** — Every 10 minutes, if the temperature is 30 degrees or higher, set the air condit
+  - AirConditioner[first] : ['LivingRoom_AC', 'Bedroom_AC'] → ['LivingRoom_AC']
 - **C13_001** — Every hour, repeat opening and closing the water valve.
-  - Valve [first]: ['Kitchen_Valve', 'Basement_Valve'] → ['Kitchen_Valve']
-- **C18_001** — Every 5 minutes from 1 PM to 3 PM, repeat opening and closing the valv
-  - Valve [first]: ['Kitchen_Valve', 'Garden_Valve'] → ['Kitchen_Valve']
+  - Valve[first] : ['Kitchen_Valve', 'Basement_Valve'] → ['Kitchen_Valve']
+- **C18_001** — Every 5 minutes from 1 PM to 3 PM, repeat opening and closing the valve.
+  - Valve[first] : ['Kitchen_Valve', 'Garden_Valve'] → ['Kitchen_Valve']
 - **C01_006** — Turn the TV channel down by one.
-  - Television [first]: ['LivingRoom_TV', 'Bedroom_TV'] → ['LivingRoom_TV']
+  - Television[first] : ['LivingRoom_TV', 'Bedroom_TV'] → ['LivingRoom_TV']
 - **C01_007** — Switch the TV to channel 7.
-  - Television [first]: ['LivingRoom_TV', 'Bedroom_TV'] → ['LivingRoom_TV']
+  - Television[first] : ['LivingRoom_TV', 'Bedroom_TV'] → ['LivingRoom_TV']
 - **C01_008** — Announce the indoor temperature through the speaker.
-  - TemperatureSensor [first]: ['LivingRoom_Temp', 'Bedroom_Temp'] → ['LivingRoom_Temp']
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - TemperatureSensor[first] : ['LivingRoom_Temp', 'Bedroom_Temp'] → ['LivingRoom_Temp']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_009** — Tell me the outdoor temperature through the speaker.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_010** — Tell me the current humidity through the speaker.
-  - HumiditySensor [first]: ['LivingRoom_Humidity', 'Bedroom_Humidity'] → ['LivingRoom_Humidity']
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - HumiditySensor[first] : ['LivingRoom_Humidity', 'Bedroom_Humidity'] → ['LivingRoom_Humidity']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_011** — Tell me the outdoor humidity through the speaker.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_012** — Output today's weather through the speaker.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_013** — Announce the fine dust level through the speaker.
-  - AirQualitySensor [first]: ['LivingRoom_AirQuality', 'Bedroom_AirQuality'] → ['LivingRoom_AirQuality']
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - AirQualitySensor[first] : ['LivingRoom_AirQuality', 'Bedroom_AirQuality'] → ['LivingRoom_AirQuality']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_014** — Announce the outdoor fine dust level using the speaker.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_016** — Output the charger's power consumption through the speaker.
-  - Charger [first]: ['LivingRoom_Charger', 'Bedroom_Charger'] → ['LivingRoom_Charger']
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - Charger[first] : ['LivingRoom_Charger', 'Bedroom_Charger'] → ['LivingRoom_Charger']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_017** — Tell me today's menu using the speaker.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_018** — Tell me the lunch menu for Building 301 today through the speaker.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
-- **C01_019** — Ask the cloud AI what an LLM is, and output its answer through the spe
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+- **C01_019** — Ask the cloud AI what an LLM is, and output its answer through the speaker.
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
 - **C01_020** — Lock the safe.
-  - DoorLock [first]: ['Bedroom_DoorLock', 'Office_DoorLock'] → ['Bedroom_DoorLock']
+  - DoorLock[first] : ['Bedroom_DoorLock', 'Office_DoorLock'] → ['Bedroom_DoorLock']
 - **C01_021** — Lock the door.
-  - DoorLock [first]: ['Entrance_DoorLock', 'Garage_DoorLock'] → ['Entrance_DoorLock']
+  - DoorLock[first] : ['Entrance_DoorLock', 'Garage_DoorLock'] → ['Entrance_DoorLock']
 - **C01_022** — Set the pump to normal mode.
-  - Pump [first]: ['Basement_Pump', 'Garden_Pump'] → ['Basement_Pump']
+  - Pump[first] : ['Basement_Pump', 'Garden_Pump'] → ['Basement_Pump']
 - **C01_023** — Stop the robot vacuum cleaner.
-  - RobotVacuumCleaner [first]: ['LivingRoom_RVC', 'Kitchen_RVC'] → ['LivingRoom_RVC']
+  - RobotVacuumCleaner[first] : ['LivingRoom_RVC', 'Kitchen_RVC'] → ['LivingRoom_RVC']
 - **C01_024** — Play "music.mp3" through the speaker.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
 - **C01_025** — Set the speaker volume to maximum.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
 - **C01_026** — Lower the speaker volume by one.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
 - **C01_027** — Open the valve.
-  - Valve [first]: ['Kitchen_Valve', 'Bathroom_Valve'] → ['Kitchen_Valve']
+  - Valve[first] : ['Kitchen_Valve', 'Bathroom_Valve'] → ['Kitchen_Valve']
 - **C01_028** — Set the TV channel to 30.
-  - Television [first]: ['LivingRoom_Television', 'Bedroom_Television'] → ['LivingRoom_Television']
-- **C08_011** — When button 3 of the multi-button is pressed, turn off all lights afte
-  - MultiButton [first]: ['Main_MB', 'Hall_MB'] → ['Main_MB']
+  - Television[first] : ['LivingRoom_Television', 'Bedroom_Television'] → ['LivingRoom_Television']
+- **C08_011** — When button 3 of the multi-button is pressed, turn off all lights after 1 hour.
+  - MultiButton[first] : ['Main_MB', 'Hall_MB'] → ['Main_MB']
 - **C03_002** — If the cloud service is activated, upload test.png file to the cloud.
-  - CloudServiceProvider [main]: ['Main_CloudServiceProvider', 'Backup_CloudServiceProvider'] → ['Main_CloudServiceProvider']
-- **C03_003** — If the air conditioner is in cool mode, lower the target temperature b
-  - AirConditioner [first]: ['Living_AC', 'Bedroom_AC'] → ['Living_AC']
+  - CloudServiceProvider[main] : ['Main_CloudServiceProvider', 'Backup_CloudServiceProvider'] → ['Main_CloudServiceProvider']
+- **C03_003** — If the air conditioner is in cool mode, lower the target temperature by 2 degree
+  - AirConditioner[first] : ['Living_AC', 'Bedroom_AC'] → ['Living_AC']
 - **C03_004** — If the robot vacuum cleaner is in manual mode, switch it to auto mode.
-  - RobotVacuumCleaner [first]: ['Living_RVC', 'Kitchen_RVC'] → ['Living_RVC']
-- **C03_005** — If the outdoor very fine dust level is 15 or higher, sound the emergen
-  - Siren [main]: ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
-- **C03_006** — If the charger current is 10 amperes or above, sound the emergency sir
-  - Siren [main]: ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
+  - RobotVacuumCleaner[first] : ['Living_RVC', 'Kitchen_RVC'] → ['Living_RVC']
+- **C03_005** — If the outdoor very fine dust level is 15 or higher, sound the emergency siren.
+  - Siren[main] : ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
+- **C03_006** — If the charger current is 10 amperes or above, sound the emergency siren.
+  - Siren[main] : ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
 - **C03_007** — If the pump is in normal mode, set it to maximum mode.
-  - Pump [main]: ['Main_Pump', 'Garage_Pump'] → ['Main_Pump']
+  - Pump[main] : ['Main_Pump', 'Garage_Pump'] → ['Main_Pump']
 - **C03_008** — If the speaker is playing, stop it.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
 - **C03_009** — If the air purifier is in quiet mode, switch it to high speed mode.
-  - AirPurifier [first]: ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
+  - AirPurifier[first] : ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
 - **C03_010** — If the charger is fully charged, turn off the charger.
-  - Charger [main]: ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
-  - Switch [main]: ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
+  - Charger[main] : ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
+  - Switch[main] : ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
 - **C03_011** — If the button is in the pushed state, raise the blind.
-  - Button [main]: ['Main_Button', 'Garage_Button'] → ['Main_Button']
-  - WindowCovering [first]: ['LivingRoom_Blind', 'Bedroom_Blind'] → ['LivingRoom_Blind']
+  - Button[main] : ['Main_Button', 'Garage_Button'] → ['Main_Button']
+  - WindowCovering[first] : ['LivingRoom_Blind', 'Bedroom_Blind'] → ['LivingRoom_Blind']
 - **C03_012** — If the speaker volume is 40 or higher, stop the playback.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
 - **C03_014** — If the shade is 30% or less open, set it to 50%.
-  - WindowCovering [first]: ['LivingRoom_Shade', 'Bedroom_Shade'] → ['LivingRoom_Shade']
-- **C03_017** — If any presence sensor in the house is currently in the detected state
-  - Siren [main]: ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
-- **C03_018** — If the contact sensor at the entrance is in detected state, sound the 
-  - Siren [main]: ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
+  - WindowCovering[first] : ['LivingRoom_Shade', 'Bedroom_Shade'] → ['LivingRoom_Shade']
+- **C03_017** — If any presence sensor in the house is currently in the detected state, set the 
+  - Siren[main] : ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
+- **C03_018** — If the contact sensor at the entrance is in detected state, sound the emergency 
+  - Siren[main] : ['Main_Siren', 'Garage_Siren'] → ['Main_Siren']
 - **C07_004** — When it rains, turn on the dehumidifier.
-  - Switch [first]: ['LivingRoom_Dehumidifier', 'Bathroom_Dehumidifier'] → ['LivingRoom_Dehumidifier']
-- **C07_005** — When the carbon dioxide concentration reaches 1000ppm or higher, sound
-  - CarbonDioxideSensor [first]: ['LivingRoom_CO2Sensor', 'Bedroom_CO2Sensor'] → ['LivingRoom_CO2Sensor']
-  - Siren [first]: ['LivingRoom_Siren', 'Entrance_Siren'] → ['LivingRoom_Siren']
+  - Switch[first] : ['LivingRoom_Dehumidifier', 'Bathroom_Dehumidifier'] → ['LivingRoom_Dehumidifier']
+- **C07_005** — When the carbon dioxide concentration reaches 1000ppm or higher, sound the emerg
+  - CarbonDioxideSensor[first] : ['LivingRoom_CO2Sensor', 'Bedroom_CO2Sensor'] → ['LivingRoom_CO2Sensor']
+  - Siren[first] : ['LivingRoom_Siren', 'Entrance_Siren'] → ['LivingRoom_Siren']
 - **C07_006** — When smoke is detected, sound the fire alarm with the siren.
-  - SmokeDetector [first]: ['LivingRoom_SmokeDetector', 'Kitchen_SmokeDetector'] → ['LivingRoom_SmokeDetector']
-  - Siren [first]: ['LivingRoom_Siren', 'Entrance_Siren'] → ['LivingRoom_Siren']
+  - SmokeDetector[first] : ['LivingRoom_SmokeDetector', 'Kitchen_SmokeDetector'] → ['LivingRoom_SmokeDetector']
+  - Siren[first] : ['LivingRoom_Siren', 'Entrance_Siren'] → ['LivingRoom_Siren']
 - **C07_007** — When the button is pushed 3 times, open the valve.
-  - Button [first]: ['LivingRoom_Button', 'Entrance_Button'] → ['LivingRoom_Button']
-  - Valve [first]: ['Kitchen_Valve', 'Bathroom_Valve'] → ['Kitchen_Valve']
-- **C07_008** — When the temperature reaches 35 degrees or higher, set the air conditi
-  - TemperatureSensor [first]: ['LivingRoom_TempSensor', 'Bedroom_TempSensor'] → ['LivingRoom_TempSensor']
-  - AirConditioner [first]: ['LivingRoom_AC', 'Bedroom_AC'] → ['LivingRoom_AC']
+  - Button[first] : ['LivingRoom_Button', 'Entrance_Button'] → ['LivingRoom_Button']
+  - Valve[first] : ['Kitchen_Valve', 'Bathroom_Valve'] → ['Kitchen_Valve']
+- **C07_008** — When the temperature reaches 35 degrees or higher, set the air conditioner to 30
+  - TemperatureSensor[first] : ['LivingRoom_TempSensor', 'Bedroom_TempSensor'] → ['LivingRoom_TempSensor']
+  - AirConditioner[first] : ['LivingRoom_AC', 'Bedroom_AC'] → ['LivingRoom_AC']
 - **C07_009** — When the safe is unlocked, sound the police siren.
-  - DoorLock [first]: ['Study_DoorLock', 'Bedroom_DoorLock'] → ['Study_DoorLock']
-  - Siren [first]: ['LivingRoom_Siren', 'Entrance_Siren'] → ['LivingRoom_Siren']
+  - DoorLock[first] : ['Study_DoorLock', 'Bedroom_DoorLock'] → ['Study_DoorLock']
+  - Siren[first] : ['LivingRoom_Siren', 'Entrance_Siren'] → ['LivingRoom_Siren']
 - **C07_010** — When a leak is detected, close the valve.
-  - LeakSensor [first]: ['Kitchen_LeakSensor', 'Bathroom_LeakSensor'] → ['Kitchen_LeakSensor']
-  - Valve [first]: ['Kitchen_Valve', 'Bathroom_Valve'] → ['Kitchen_Valve']
+  - LeakSensor[first] : ['Kitchen_LeakSensor', 'Bathroom_LeakSensor'] → ['Kitchen_LeakSensor']
+  - Valve[first] : ['Kitchen_Valve', 'Bathroom_Valve'] → ['Kitchen_Valve']
 - **C07_011** — When the humidity exceeds 80%, start the dehumidifier in drying mode.
-  - HumiditySensor [first]: ['LivingRoom_HumiditySensor', 'Bedroom_HumiditySensor'] → ['LivingRoom_HumiditySensor']
-  - Dehumidifier [first]: ['LivingRoom_Dehumidifier', 'Bathroom_Dehumidifier'] → ['LivingRoom_Dehumidifier']
-- **C07_012** — When the indoor very fine dust level becomes 35 or higher, set the air
-  - AirQualitySensor [first]: ['LivingRoom_AirQualitySensor', 'Bedroom_AirQualitySensor'] → ['LivingRoom_AirQualitySensor']
-  - AirPurifier [first]: ['LivingRoom_AirPurifier', 'Bedroom_AirPurifier'] → ['LivingRoom_AirPurifier']
+  - HumiditySensor[first] : ['LivingRoom_HumiditySensor', 'Bedroom_HumiditySensor'] → ['LivingRoom_HumiditySensor']
+  - Dehumidifier[first] : ['LivingRoom_Dehumidifier', 'Bathroom_Dehumidifier'] → ['LivingRoom_Dehumidifier']
+- **C07_012** — When the indoor very fine dust level becomes 35 or higher, set the air purifier 
+  - AirQualitySensor[first] : ['LivingRoom_AirQualitySensor', 'Bedroom_AirQualitySensor'] → ['LivingRoom_AirQualitySensor']
+  - AirPurifier[first] : ['LivingRoom_AirPurifier', 'Bedroom_AirPurifier'] → ['LivingRoom_AirPurifier']
 - **C07_013** — When the charging voltage exceeds 250V, stop charging.
-  - Charger [first]: ['Garage_Charger', 'Basement_Charger'] → ['Garage_Charger']
-  - Switch [first]: ['Garage_Charger', 'Basement_Charger'] → ['Garage_Charger']
+  - Charger[first] : ['Garage_Charger', 'Basement_Charger'] → ['Garage_Charger']
+  - Switch[first] : ['Garage_Charger', 'Basement_Charger'] → ['Garage_Charger']
 - **C09_001** — Switch the TV to channel 7 and switch to channel 11 after 1 hour.
-  - Television [first]: ['LivingRoom_Television', 'Bedroom_Television'] → ['LivingRoom_Television']
-- **C09_002** — Set the air conditioner to cool mode and switch to auto mode after 30 
-  - AirConditioner [first]: ['LivingRoom_AirConditioner', 'Bedroom_AirConditioner'] → ['LivingRoom_AirConditioner']
-- **C09_003** — Set the air purifier to auto mode and switch to sleep mode after 2 hou
-  - AirPurifier [first]: ['LivingRoom_AirPurifier', 'Bedroom_AirPurifier'] → ['LivingRoom_AirPurifier']
-- **C09_004** — Set the air conditioner temperature to 24 degrees and change it to 26 
-  - AirConditioner [first]: ['LivingRoom_AirConditioner', 'Bedroom_AirConditioner'] → ['LivingRoom_AirConditioner']
-- **C09_005** — Set the air conditioner to cool mode and change it to auto mode after 
-  - AirConditioner [first]: ['Kitchen_AirConditioner', 'Basement_AirConditioner'] → ['Kitchen_AirConditioner']
-- **C10_001** — When the presence sensor detects someone, take a picture after 1 minut
-  - PresenceSensor [first]: ['Entrance_PresenceSensor', 'Hallway_PresenceSensor'] → ['Entrance_PresenceSensor']
-  - Camera [first]: ['Entrance_Camera', 'LivingRoom_Camera'] → ['Entrance_Camera']
+  - Television[first] : ['LivingRoom_Television', 'Bedroom_Television'] → ['LivingRoom_Television']
+- **C09_002** — Set the air conditioner to cool mode and switch to auto mode after 30 minutes.
+  - AirConditioner[first] : ['LivingRoom_AirConditioner', 'Bedroom_AirConditioner'] → ['LivingRoom_AirConditioner']
+- **C09_003** — Set the air purifier to auto mode and switch to sleep mode after 2 hours.
+  - AirPurifier[first] : ['LivingRoom_AirPurifier', 'Bedroom_AirPurifier'] → ['LivingRoom_AirPurifier']
+- **C09_004** — Set the air conditioner temperature to 24 degrees and change it to 26 degrees af
+  - AirConditioner[first] : ['LivingRoom_AirConditioner', 'Bedroom_AirConditioner'] → ['LivingRoom_AirConditioner']
+- **C09_005** — Set the air conditioner to cool mode and change it to auto mode after 10 minutes
+  - AirConditioner[first] : ['Kitchen_AirConditioner', 'Basement_AirConditioner'] → ['Kitchen_AirConditioner']
+- **C10_001** — When the presence sensor detects someone, take a picture after 1 minute.
+  - PresenceSensor[first] : ['Entrance_PresenceSensor', 'Hallway_PresenceSensor'] → ['Entrance_PresenceSensor']
+  - Camera[first] : ['Entrance_Camera', 'LivingRoom_Camera'] → ['Entrance_Camera']
 - **C10_002** — When the fan enters high mode, switch it to low mode after 3 seconds.
-  - Fan [first]: ['Kitchen_Fan', 'Basement_Fan'] → ['Kitchen_Fan']
-- **C10_003** — When the humidity falls below 30%, output "Humidity is low" through th
-  - HumiditySensor [first]: ['LivingRoom_HumiditySensor', 'Bedroom_HumiditySensor'] → ['LivingRoom_HumiditySensor']
-  - Speaker [first]: ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
-- **C09_006** — If the dust level concentration is 2000ppm or above, lock the door and
-  - Valve [first]: ['Kitchen_Valve', 'Basement_Valve'] → ['Kitchen_Valve']
-- **C09_008** — Start the robot vacuum cleaner in auto mode and switch to manual mode 
-  - RobotVacuumCleaner [first]: ['LivingRoom_RobotVacuumCleaner', 'Kitchen_RobotVacuumCleaner'] → ['LivingRoom_RobotVacuumCleaner']
+  - Fan[first] : ['Kitchen_Fan', 'Basement_Fan'] → ['Kitchen_Fan']
+- **C10_003** — When the humidity falls below 30%, output "Humidity is low" through the speaker 
+  - HumiditySensor[first] : ['LivingRoom_HumiditySensor', 'Bedroom_HumiditySensor'] → ['LivingRoom_HumiditySensor']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Kitchen_Speaker'] → ['LivingRoom_Speaker']
+- **C09_006** — If the dust level concentration is 2000ppm or above, lock the door and close the
+  - Valve[first] : ['Kitchen_Valve', 'Basement_Valve'] → ['Kitchen_Valve']
+- **C09_008** — Start the robot vacuum cleaner in auto mode and switch to manual mode after 30 m
+  - RobotVacuumCleaner[first] : ['LivingRoom_RobotVacuumCleaner', 'Kitchen_RobotVacuumCleaner'] → ['LivingRoom_RobotVacuumCleaner']
 - **C09_009** — Set the speaker volume to 20 and increase it to 40 after 10 minutes.
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
-- **C09_010** — Start the dehumidifier in drying mode and change to refreshing mode af
-  - Dehumidifier [first]: ['LivingRoom_Dehumidifier', 'Bedroom_Dehumidifier'] → ['LivingRoom_Dehumidifier']
-- **C08_017** — When button 4 of the multi-button is pressed, set all lights to night 
-  - MultiButton [first]: ['Main_MB', 'Hall_MB'] → ['Main_MB']
-- **C11_001** — Check the wine cellar temperature now and again in 10 minutes. If it h
-  - Speaker [first]: ['Speaker', 'LivingRoom_Speaker'] → ['Speaker']
-- **C05_004** — If the temperature is 28 degrees or higher and the humidity is 70% or 
-  - TemperatureSensor [first]: ['LivingRoom_TemperatureSensor', 'Bedroom_TemperatureSensor'] → ['LivingRoom_TemperatureSensor']
-  - HumiditySensor [first]: ['LivingRoom_HumiditySensor', 'Bedroom_HumiditySensor'] → ['LivingRoom_HumiditySensor']
-  - AirConditioner [first]: ['LivingRoom_AirConditioner', 'Bedroom_AirConditioner'] → ['LivingRoom_AirConditioner']
-- **C05_005** — If the carbon dioxide concentration is 1200ppm or higher and person is
-  - AirQualitySensor [first]: ['Living_AQ', 'Office_AQ'] → ['Living_AQ']
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - AirPurifier [first]: ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C05_006** — If it is raining and the humidity is 80% or higher, set the dehumidifi
-  - HumiditySensor [first]: ['Living_Hum', 'Bedroom_Hum'] → ['Living_Hum']
-  - Dehumidifier [first]: ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C05_007** — If the noise level is 70 or higher and no one is home, take a photo wi
-  - SoundSensor [first]: ['Living_Sound', 'Entrance_Sound'] → ['Living_Sound']
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - Camera [first]: ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-- **C05_008** — If the illuminance is 100 lux or lower and a person is being detected,
-  - LightSensor [first]: ['Living_LightSensor', 'Bedroom_LightSensor'] → ['Living_LightSensor']
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C05_009** — If the fine dust level is 150 or higher and the door is unlocked, lock
-  - AirQualitySensor [first]: ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
-  - DoorLock [first]: ['Living_DoorLock', 'Bedroom_DoorLock'] → ['Living_DoorLock']
-  - AirPurifier [first]: ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
-- **C05_010** — If the weather is rainy and no one is being detected, lock the door an
-  - WeatherProvider [main]: ['Main_Weather', 'Outdoor_Weather'] → ['Main_Weather']
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - DoorLock [first]: ['Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
-  - Valve [main]: ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
-- **C05_011** — If the air conditioner is heating and no one is being detected, change
-  - AirConditioner [first]: ['Kitchen_AirConditioner', 'Dining_AirConditioner'] → ['Kitchen_AirConditioner']
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - Speaker [first]: ['Kitchen_Speaker', 'Living_Speaker'] → ['Kitchen_Speaker']
-- **C05_012** — If the noise level is 80 or higher and no person is being detected, st
-  - SoundSensor [first]: ['Living_Sound', 'Entrance_Sound'] → ['Living_Sound']
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-- **C05_013** — If the carbon dioxide is 1500ppm or higher and the blind is closed, se
-  - AirQualitySensor [first]: ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
-  - WindowCovering [first]: ['Living_Blind', 'Bedroom_Blind'] → ['Living_Blind']
-  - AirPurifier [first]: ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
-- **C05_014** — If the temperature is 18 degrees or below and someone is detected, set
-  - TemperatureSensor [first]: ['Living_Temp', 'Bedroom_Temp'] → ['Living_Temp']
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - AirConditioner [first]: ['Living_AC', 'Bedroom_AC'] → ['Living_AC']
-- **C05_015** — If it is raining and the door is unlocked, lock the door and set the d
-  - DoorLock [first]: ['Living_DoorLock', 'Bedroom_DoorLock'] → ['Living_DoorLock']
-  - Dehumidifier [first]: ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
-- **C05_016** — If a person is detected and smoke is detected, sound the siren in fire
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - SmokeDetector [first]: ['Kitchen_Smoke', 'Bedroom_Smoke'] → ['Kitchen_Smoke']
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C05_017** — If the pressure is 100 or higher and no one is home, close the valve a
-  - PressureSensor [main]: ['Main_Pressure', 'Garden_Pressure'] → ['Main_Pressure']
-  - PresenceSensor [first]: ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
-  - Valve [main]: ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-- **C05_018** — If no motion is detected but the door is open, take a photo and output
-  - MotionSensor [first]: ['Entrance_Motion', 'Garage_Motion'] → ['Entrance_Motion']
-  - ContactSensor [first]: ['Living_ContactSensor', 'Bedroom_ContactSensor'] → ['Living_ContactSensor']
-  - Camera [first]: ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C17_002** — Every 30 minutes, if the temperature is 20 degrees or higher and below
-  - TemperatureSensor [first]: ['Living_Temp', 'Bedroom_Temp'] → ['Living_Temp']
-  - AirConditioner [first]: ['Living_AC', 'Bedroom_AC'] → ['Living_AC']
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+- **C09_010** — Start the dehumidifier in drying mode and change to refreshing mode after 1 hour
+  - Dehumidifier[first] : ['LivingRoom_Dehumidifier', 'Bedroom_Dehumidifier'] → ['LivingRoom_Dehumidifier']
+- **C08_017** — When button 4 of the multi-button is pressed, set all lights to night mode at 10
+  - MultiButton[first] : ['Main_MB', 'Hall_MB'] → ['Main_MB']
+- **C11_001** — Check the wine cellar temperature now and again in 10 minutes. If it has changed
+  - Speaker[first] : ['Speaker', 'LivingRoom_Speaker'] → ['Speaker']
+- **C05_004** — If the temperature is 28 degrees or higher and the humidity is 70% or higher, se
+  - TemperatureSensor[first] : ['LivingRoom_TemperatureSensor', 'Bedroom_TemperatureSensor'] → ['LivingRoom_TemperatureSensor']
+  - HumiditySensor[first] : ['LivingRoom_HumiditySensor', 'Bedroom_HumiditySensor'] → ['LivingRoom_HumiditySensor']
+  - AirConditioner[first] : ['LivingRoom_AirConditioner', 'Bedroom_AirConditioner'] → ['LivingRoom_AirConditioner']
+- **C05_005** — If the carbon dioxide concentration is 1200ppm or higher and person is being det
+  - AirQualitySensor[first] : ['Living_AQ', 'Office_AQ'] → ['Living_AQ']
+  - PresenceSensor[first] : ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
+  - AirPurifier[first] : ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C05_006** — If it is raining and the humidity is 80% or higher, set the dehumidifier to dryi
+  - HumiditySensor[first] : ['Living_Hum', 'Bedroom_Hum'] → ['Living_Hum']
+  - Dehumidifier[first] : ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C05_007** — If the noise level is 70 or higher and no one is home, take a photo with the cam
+  - SoundSensor[first] : ['Living_Sound', 'Entrance_Sound'] → ['Living_Sound']
+  - PresenceSensor[first] : ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
+  - Camera[first] : ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
+  - Siren[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+- **C05_008** — If the illuminance is 100 lux or lower and a person is being detected, set the s
+  - LightSensor[first] : ['Living_LightSensor', 'Bedroom_LightSensor'] → ['Living_LightSensor']
+  - PresenceSensor[first] : ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C05_009** — If the fine dust level is 150 or higher and the door is unlocked, lock the door 
+  - AirQualitySensor[first] : ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
+  - DoorLock[first] : ['Living_DoorLock', 'Bedroom_DoorLock'] → ['Living_DoorLock']
+  - AirPurifier[first] : ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
+- **C05_010** — If the weather is rainy and no one is being detected, lock the door and close th
+  - WeatherProvider[main] : ['Main_Weather', 'Outdoor_Weather'] → ['Main_Weather']
+  - PresenceSensor[first] : ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
+  - DoorLock[first] : ['Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
+  - Valve[main] : ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
+- **C05_011** — If the air conditioner is heating and no one is being detected, change the mode 
+  - AirConditioner[first] : ['Kitchen_AirConditioner', 'Dining_AirConditioner'] → ['Kitchen_AirConditioner']
+  - PresenceSensor[first] : ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
+  - Speaker[first] : ['Kitchen_Speaker', 'Living_Speaker'] → ['Kitchen_Speaker']
+- **C05_012** — If the noise level is 80 or higher and no person is being detected, stop speaker
+  - SoundSensor[first] : ['Living_Sound', 'Entrance_Sound'] → ['Living_Sound']
+  - PresenceSensor[first] : ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+  - Siren[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+- **C05_013** — If the carbon dioxide is 1500ppm or higher and the blind is closed, set the air 
+  - AirQualitySensor[first] : ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
+  - WindowCovering[first] : ['Living_Blind', 'Bedroom_Blind'] → ['Living_Blind']
+  - AirPurifier[first] : ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
+- **C05_014** — If the temperature is 18 degrees or below and someone is detected, set the air c
+  - TemperatureSensor[first] : ['Living_Temp', 'Bedroom_Temp'] → ['Living_Temp']
+  - PresenceSensor[first] : ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
+  - AirConditioner[first] : ['Living_AC', 'Bedroom_AC'] → ['Living_AC']
+- **C05_015** — If it is raining and the door is unlocked, lock the door and set the dehumidifie
+  - DoorLock[first] : ['Living_DoorLock', 'Bedroom_DoorLock'] → ['Living_DoorLock']
+  - Dehumidifier[first] : ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
+- **C05_017** — If the pressure is 100 or higher and no one is home, close the valve and sound e
+  - PressureSensor[main] : ['Main_Pressure', 'Garden_Pressure'] → ['Main_Pressure']
+  - PresenceSensor[first] : ['Living_Presence', 'Bedroom_Presence'] → ['Living_Presence']
+  - Valve[main] : ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
+  - Siren[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+- **C05_018** — If no motion is detected but the door is open, take a photo and output "Warning"
+  - MotionSensor[first] : ['Entrance_Motion', 'Garage_Motion'] → ['Entrance_Motion']
+  - ContactSensor[first] : ['Living_ContactSensor', 'Bedroom_ContactSensor'] → ['Living_ContactSensor']
+  - Camera[first] : ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C17_002** — Every 30 minutes, if the temperature is 20 degrees or higher and below 30 degree
+  - TemperatureSensor[first] : ['Living_Temp', 'Bedroom_Temp'] → ['Living_Temp']
+  - AirConditioner[first] : ['Living_AC', 'Bedroom_AC'] → ['Living_AC']
 - **C15_003** — Lock the doorlock every day at midnight.
-  - DoorLock [first]: ['Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
-- **C16_001** — On weekends at 3 PM, check for leakage; if detected, set the siren to 
-  - LeakSensor [first]: ['Basement_Leak', 'Kitchen_Leak'] → ['Basement_Leak']
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+  - DoorLock[first] : ['Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
 - **C15_004** — Set the humidifier to auto mode every morning at 7 AM.
-  - Humidifier [first]: ['Kitchen_Humidifier', 'Dining_Humidifier'] → ['Kitchen_Humidifier']
-- **C18_002** — Every 30 minutes on weekend afternoons, set the robot vacuum cleaner t
-  - RobotVacuumCleaner [first]: ['Living_RVC', 'Bedroom_RVC'] → ['Living_RVC']
+  - Humidifier[first] : ['Kitchen_Humidifier', 'Dining_Humidifier'] → ['Kitchen_Humidifier']
+- **C18_002** — Every 30 minutes on weekend afternoons, set the robot vacuum cleaner to auto mod
+  - RobotVacuumCleaner[first] : ['Living_RVC', 'Bedroom_RVC'] → ['Living_RVC']
 - **C18_003** — From 10 PM to midnight every 10 minutes, sound the emergency siren.
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-- **C15_005** — On weekdays from 8 AM to midnight every hour, capture an image with th
-  - Camera [first]: ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
+  - Siren[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+- **C15_005** — On weekdays from 8 AM to midnight every hour, capture an image with the camera.
+  - Camera[first] : ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
 - **C15_006** — When the new year begins, make the arm robot say hello.
-  - ArmRobot [main]: ['Main_ArmRobot', 'Lab_ArmRobot'] → ['Main_ArmRobot']
+  - ArmRobot[main] : ['Main_ArmRobot', 'Lab_ArmRobot'] → ['Main_ArmRobot']
 - **C15_007** — On weekdays at 7 AM, start the robot vacuum cleaner in auto mode.
-  - RobotVacuumCleaner [first]: ['Kitchen_RobotVacuumCleaner', 'Dining_RobotVacuumCleaner'] → ['Kitchen_RobotVacuumCleaner']
-- **C15_008** — At 6 AM on Mondays and Wednesdays, announce the weather information th
-  - WeatherProvider [main]: ['Main_Weather', 'Outdoor_Weather'] → ['Main_Weather']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+  - RobotVacuumCleaner[first] : ['Kitchen_RobotVacuumCleaner', 'Dining_RobotVacuumCleaner'] → ['Kitchen_RobotVacuumCleaner']
+- **C15_008** — At 6 AM on Mondays and Wednesdays, announce the weather information through the 
+  - WeatherProvider[main] : ['Main_Weather', 'Outdoor_Weather'] → ['Main_Weather']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
 - **C17_003** — Every hour, increase the speaker volume by 10.
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C16_002** — Every Monday at 8 AM, if both the safe and the door lock are locked, s
-  - DoorLock [manual]: ['Main_DoorLock', 'Bedroom_DoorLock', 'Entrance_Lock', 'Garage_Lock'] → ['Main_DoorLock']
-  - DoorLock#2 [manual]: ['Main_DoorLock', 'Bedroom_DoorLock', 'Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
-  - Speaker [manual]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C16_003** — Every 30 minutes from 7 PM to 10 PM, check the robot vacuum cleaner an
-  - RobotVacuumCleaner [first]: ['Living_RVC', 'Bedroom_RVC'] → ['Living_RVC']
-- **C15_009** — At noon every day, announce the lunch menu of the 301 building cafeter
-  - MenuProvider [main]: ['Main_MenuProvider', 'Office_MenuProvider'] → ['Main_MenuProvider']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C15_010** — At 6 PM every day, announce the dinner menu of the student cafeteria t
-  - MenuProvider [main]: ['Main_MenuProvider', 'Office_MenuProvider'] → ['Main_MenuProvider']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C16_004** — At 11 PM, if safe is open or the door lock is open , speak 'Check the 
-  - DoorLock [manual]: ['Main_DoorLock', 'Bedroom_DoorLock', 'Entrance_Lock', 'Garage_Lock'] → ['Main_DoorLock']
-  - DoorLock#2 [manual]: ['Main_DoorLock', 'Bedroom_DoorLock', 'Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
-  - Speaker [manual]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C17_004** — Check every 30 minutes; if the temperature is 30 degrees or higher, se
-  - TemperatureSensor [first]: ['Living_Temp', 'Bedroom_Temp'] → ['Living_Temp']
-  - AirConditioner [first]: ['Living_AC', 'Bedroom_AC'] → ['Living_AC']
-- **C17_005** — Check humidity every 10 minutes; if it's 50 or higher, turn off the hu
-  - HumiditySensor [first]: ['Living_Hum', 'Bedroom_Hum'] → ['Living_Hum']
-  - Switch [first]: ['Living_Humidifier', 'Bedroom_Humidifier'] → ['Living_Humidifier']
-  - Humidifier [first]: ['Living_Humidifier', 'Bedroom_Humidifier'] → ['Living_Humidifier']
-- **C17_006** — Check the fine dust level every hour; if it's 200 or higher, set the a
-  - AirQualitySensor [first]: ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
-  - AirPurifier [first]: ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C16_003** — Every 30 minutes from 7 PM to 10 PM, check the robot vacuum cleaner and start it
+  - RobotVacuumCleaner[first] : ['Living_RVC', 'Bedroom_RVC'] → ['Living_RVC']
+- **C15_009** — At noon every day, announce the lunch menu of the 301 building cafeteria through
+  - MenuProvider[main] : ['Main_MenuProvider', 'Office_MenuProvider'] → ['Main_MenuProvider']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C15_010** — At 6 PM every day, announce the dinner menu of the student cafeteria through the
+  - MenuProvider[main] : ['Main_MenuProvider', 'Office_MenuProvider'] → ['Main_MenuProvider']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C17_004** — Check every 30 minutes; if the temperature is 30 degrees or higher, set the targ
+  - TemperatureSensor[first] : ['Living_Temp', 'Bedroom_Temp'] → ['Living_Temp']
+  - AirConditioner[first] : ['Living_AC', 'Bedroom_AC'] → ['Living_AC']
+- **C17_005** — Check humidity every 10 minutes; if it's 50 or higher, turn off the humidifier; 
+  - HumiditySensor[first] : ['Living_Hum', 'Bedroom_Hum'] → ['Living_Hum']
+  - Switch[first] : ['Living_Humidifier', 'Bedroom_Humidifier'] → ['Living_Humidifier']
+  - Humidifier[first] : ['Living_Humidifier', 'Bedroom_Humidifier'] → ['Living_Humidifier']
+- **C17_006** — Check the fine dust level every hour; if it's 200 or higher, set the air purifie
+  - AirQualitySensor[first] : ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
+  - AirPurifier[first] : ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
 - **C17_007** — Check every 5 minutes; if the charger is fully charged, turn it off.
-  - Charger [main]: ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
-  - Switch [main]: ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
+  - Charger[main] : ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
+  - Switch[main] : ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
 - **C15_011** — When the Christmas arrives, change the light color to red.
-  - Light [first]: ['Living_Light', 'Bedroom_Light'] → ['Living_Light']
+  - Light[first] : ['Living_Light', 'Bedroom_Light'] → ['Living_Light']
 - **C15_012** — Every hour on Christmas, play 'Christmas.mp3' through the speaker.
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C18_004** — Every 10 minutes from now until 3 PM, sound the emergency siren for 5 
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-  - Switch [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C18_004** — Every 10 minutes from now until 3 PM, sound the emergency siren for 5 seconds an
+  - Siren[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+  - Switch[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
 - **C18_006** — If no motion is detected between 10 PM and 11 PM, lock all door locks.
-  - MotionSensor [main]: ['Main_MotionSensor', 'Garage_MotionSensor'] → ['Main_MotionSensor']
+  - MotionSensor[main] : ['Main_MotionSensor', 'Garage_MotionSensor'] → ['Main_MotionSensor']
 - **C15_017** — Turn on the light every morning at 8 AM.
-  - Light [main]: ['Main_Light', 'Bedroom_Light'] → ['Main_Light']
-- **C16_010** — Every morning at 8 AM, make the speaker speak 'Get up'. Additionally, 
-  - Speaker [main]: ['Main_Speaker', 'Bedroom_Speaker'] → ['Main_Speaker']
-  - WindowCovering [main]: ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
-- **C18_007** — Every 30 seconds from 10 PM to 11 PM, check for rain; if it rains, clo
-  - WindowCovering [main]: ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
-- **C18_008** — Every 5 seconds on weekends, if the pump is off, turn it on; if it is 
-  - Switch [main]: ['Main_Pump', 'Garden_Pump'] → ['Main_Pump']
-- **C17_010** — Measure the temperature every 15 minutes; turn on the air conditioner 
-  - TemperatureSensor [first]: ['Inside_TemperatureSensor', 'Outside_TemperatureSensor'] → ['Inside_TemperatureSensor']
-- **C16_011** — Check every 5 minutes from 10 PM to 11 PM and turn it off when chargin
-  - Charger [main]: ['Main_Charger', 'Phone_Charger'] → ['Main_Charger']
-  - Switch [main]: ['Main_Charger', 'Phone_Charger'] → ['Main_Charger']
+  - Light[main] : ['Main_Light', 'Bedroom_Light'] → ['Main_Light']
+- **C16_010** — Every morning at 8 AM, make the speaker speak 'Get up'. Additionally, if the win
+  - Speaker[main] : ['Main_Speaker', 'Bedroom_Speaker'] → ['Main_Speaker']
+  - WindowCovering[main] : ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
+- **C18_007** — Every 30 seconds from 10 PM to 11 PM, check for rain; if it rains, close the win
+  - WindowCovering[main] : ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
+- **C18_008** — Every 5 seconds on weekends, if the pump is off, turn it on; if it is on, turn i
+  - Switch[main] : ['Main_Pump', 'Garden_Pump'] → ['Main_Pump']
+- **C17_010** — Measure the temperature every 15 minutes; turn on the air conditioner in cool mo
+  - TemperatureSensor[first] : ['Inside_TemperatureSensor', 'Outside_TemperatureSensor'] → ['Inside_TemperatureSensor']
+- **C16_011** — Check every 5 minutes from 10 PM to 11 PM and turn it off when charging is compl
+  - Charger[main] : ['Main_Charger', 'Phone_Charger'] → ['Main_Charger']
+  - Switch[main] : ['Main_Charger', 'Phone_Charger'] → ['Main_Charger']
 - **C13_003** — Repeat opening and closing the window every 10 minutes.
-  - WindowCovering [main]: ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
-- **C13_004** — Every 30 minutes, toggle the air purifier between sleep mode and high 
-  - AirPurifier [main]: ['Main_AirPurifier', 'Bedroom_AirPurifier'] → ['Main_AirPurifier']
-- **C08_018** — Whenever the humidity level drops to 30% or below, turn on the humidif
-  - HumiditySensor [main]: ['Main_HumiditySensor', 'Bedroom_HumiditySensor'] → ['Main_HumiditySensor']
-  - Switch [main]: ['Main_Humidifier', 'Bedroom_Humidifier'] → ['Main_Humidifier']
+  - WindowCovering[main] : ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
+- **C13_004** — Every 30 minutes, toggle the air purifier between sleep mode and high speed mode
+  - AirPurifier[main] : ['Main_AirPurifier', 'Bedroom_AirPurifier'] → ['Main_AirPurifier']
+- **C08_018** — Whenever the humidity level drops to 30% or below, turn on the humidifier.
+  - HumiditySensor[main] : ['Main_HumiditySensor', 'Bedroom_HumiditySensor'] → ['Main_HumiditySensor']
+  - Switch[main] : ['Main_Humidifier', 'Bedroom_Humidifier'] → ['Main_Humidifier']
 - **C08_019** — Whenever the rain stops, open the window.
-  - WindowCovering [main]: ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
-- **C08_020** — Every time the sound sensor value exceeds 30, set the air purifier to 
-  - SoundSensor [main]: ['Main_SoundSensor', 'Bedroom_SoundSensor'] → ['Main_SoundSensor']
-  - AirPurifier [main]: ['Main_AirPurifier', 'Bedroom_AirPurifier'] → ['Main_AirPurifier']
-- **C08_021** — Each time the humidity drops below 50%, set the dehumidifier to drying
-  - HumiditySensor [main]: ['Main_HumiditySensor', 'Bedroom_HumiditySensor'] → ['Main_HumiditySensor']
-  - Dehumidifier [main]: ['Main_Dehumidifier', 'Bathroom_Dehumidifier'] → ['Main_Dehumidifier']
-- **C08_022** — Whenever the window opens, make the speaker speak 'The window is open'
-  - WindowCovering [main]: ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
-  - Speaker [main]: ['Main_Speaker', 'Bedroom_Speaker'] → ['Main_Speaker']
-- **C14_004** — Whenever motion is detected, increase the light brightness by 10. If i
-  - MotionSensor [first]: ['Entrance_Motion', 'Garage_Motion'] → ['Entrance_Motion']
-  - Light [first]: ['Living_Light', 'Bedroom_Light'] → ['Living_Light']
+  - WindowCovering[main] : ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
+- **C08_020** — Every time the sound sensor value exceeds 30, set the air purifier to sleep mode
+  - SoundSensor[main] : ['Main_SoundSensor', 'Bedroom_SoundSensor'] → ['Main_SoundSensor']
+  - AirPurifier[main] : ['Main_AirPurifier', 'Bedroom_AirPurifier'] → ['Main_AirPurifier']
+- **C08_021** — Each time the humidity drops below 50%, set the dehumidifier to drying mode.
+  - HumiditySensor[main] : ['Main_HumiditySensor', 'Bedroom_HumiditySensor'] → ['Main_HumiditySensor']
+  - Dehumidifier[main] : ['Main_Dehumidifier', 'Bathroom_Dehumidifier'] → ['Main_Dehumidifier']
+- **C08_022** — Whenever the window opens, make the speaker speak 'The window is open'.
+  - WindowCovering[main] : ['Main_Window', 'Bedroom_Window'] → ['Main_Window']
+  - Speaker[main] : ['Main_Speaker', 'Bedroom_Speaker'] → ['Main_Speaker']
+- **C14_004** — Whenever motion is detected, increase the light brightness by 10. If it reaches 
+  - MotionSensor[first] : ['Entrance_Motion', 'Garage_Motion'] → ['Entrance_Motion']
+  - Light[first] : ['Living_Light', 'Bedroom_Light'] → ['Living_Light']
 - **C08_023** — Each time the brightness level falls below 100 lux, turn on the light.
-  - LightSensor [first]: ['Living_LightSensor', 'Bedroom_LightSensor'] → ['Living_LightSensor']
-  - Light [first]: ['Living_Light', 'Bedroom_Light'] → ['Living_Light']
-- **C08_024** — Every time the fine dust level goes above 80, set the air purifier to 
-  - AirQualitySensor [first]: ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
-  - AirPurifier [first]: ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
-- **C08_025** — Each time the carbon dioxide level reaches 900ppm or higher, close the
-  - AirQualitySensor [first]: ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
-  - Valve [main]: ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
-- **C08_026** — Whenever the temperature becomes 30 degrees or higher, close the blind
-  - TemperatureSensor [first]: ['Living_Temp', 'Bedroom_Temp'] → ['Living_Temp']
-  - WindowCovering [first]: ['Living_Blind', 'Bedroom_Blind'] → ['Living_Blind']
-- **C12_001** — When the door opens, make the speaker speak "Welcome" every minute the
-  - ContactSensor [first]: ['Entrance_ContactSensor', 'Garage_ContactSensor'] → ['Entrance_ContactSensor']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C12_002** — When the contact sensor is closed, sound the police siren every 10 sec
-  - ContactSensor [first]: ['Entrance_Contact', 'Garage_Contact'] → ['Entrance_Contact']
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-- **C12_003** — Once the entrance door is opened, check the safe every 5 minutes there
-  - DoorLock [main]: ['Main_DoorLock', 'Bedroom_DoorLock'] → ['Main_DoorLock']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C12_004** — When a leak is detected, close the valve immediately and then speak "L
-  - LeakSensor [first]: ['Basement_Leak', 'Kitchen_Leak'] → ['Basement_Leak']
-  - Valve [main]: ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C12_005** — When smoke is detected, sound the emergency siren for 5 seconds every 
-  - SmokeDetector [first]: ['Kitchen_Smoke', 'Bedroom_Smoke'] → ['Kitchen_Smoke']
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-  - Switch [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-- **C18_010** — At midnight, lock the door and check the light every hour until 6 AM; 
-  - DoorLock [first]: ['Entrance_DoorLock', 'Garage_DoorLock'] → ['Entrance_DoorLock']
-  - LevelControl [first]: ['Living_Light', 'Bedroom_Light'] → ['Living_Light']
-- **C12_006** — When the charger voltage drops to 4V or lower, speak "The charging vol
-  - Charger [main]: ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C12_007** — When smoke is detected, announce it through the speaker and then send 
-  - SmokeDetector [first]: ['Kitchen_Smoke', 'Bedroom_Smoke'] → ['Kitchen_Smoke']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
-- **C12_008** — When the fan speed becomes 0, say 'Please check the fan' through the s
-  - Fan [main]: ['Main_Fan', 'Garage_Fan'] → ['Main_Fan']
-  - Speaker [first]: ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+  - LightSensor[first] : ['Living_LightSensor', 'Bedroom_LightSensor'] → ['Living_LightSensor']
+  - Light[first] : ['Living_Light', 'Bedroom_Light'] → ['Living_Light']
+- **C08_024** — Every time the fine dust level goes above 80, set the air purifier to high speed
+  - AirQualitySensor[first] : ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
+  - AirPurifier[first] : ['Living_AP', 'Bedroom_AP'] → ['Living_AP']
+- **C08_025** — Each time the carbon dioxide level reaches 900ppm or higher, close the valve.
+  - AirQualitySensor[first] : ['Living_AQ', 'Bedroom_AQ'] → ['Living_AQ']
+  - Valve[main] : ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
+- **C08_026** — Whenever the temperature becomes 30 degrees or higher, close the blind.
+  - TemperatureSensor[first] : ['Living_Temp', 'Bedroom_Temp'] → ['Living_Temp']
+  - WindowCovering[first] : ['Living_Blind', 'Bedroom_Blind'] → ['Living_Blind']
+- **C12_001** — When the door opens, make the speaker speak "Welcome" every minute thereafter.
+  - ContactSensor[first] : ['Entrance_ContactSensor', 'Garage_ContactSensor'] → ['Entrance_ContactSensor']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C12_002** — When the contact sensor is closed, sound the police siren every 10 seconds there
+  - ContactSensor[first] : ['Entrance_Contact', 'Garage_Contact'] → ['Entrance_Contact']
+  - Siren[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+- **C12_003** — Once the entrance door is opened, check the safe every 5 minutes thereafter and 
+  - DoorLock[main] : ['Main_DoorLock', 'Bedroom_DoorLock'] → ['Main_DoorLock']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C12_004** — When a leak is detected, close the valve immediately and then speak "Leak detect
+  - LeakSensor[first] : ['Basement_Leak', 'Kitchen_Leak'] → ['Basement_Leak']
+  - Valve[main] : ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C12_005** — When smoke is detected, sound the emergency siren for 5 seconds every minute the
+  - SmokeDetector[first] : ['Kitchen_Smoke', 'Bedroom_Smoke'] → ['Kitchen_Smoke']
+  - Siren[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+  - Switch[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+- **C18_010** — At midnight, lock the door and check the light every hour until 6 AM; if the bri
+  - DoorLock[first] : ['Entrance_DoorLock', 'Garage_DoorLock'] → ['Entrance_DoorLock']
+  - LevelControl[first] : ['Living_Light', 'Bedroom_Light'] → ['Living_Light']
+- **C12_006** — When the charger voltage drops to 4V or lower, speak "The charging voltage is lo
+  - Charger[main] : ['Main_Charger', 'Garage_Charger'] → ['Main_Charger']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C12_007** — When smoke is detected, announce it through the speaker and then send an email e
+  - SmokeDetector[first] : ['Kitchen_Smoke', 'Bedroom_Smoke'] → ['Kitchen_Smoke']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
+- **C12_008** — When the fan speed becomes 0, say 'Please check the fan' through the speaker eve
+  - Fan[main] : ['Main_Fan', 'Garage_Fan'] → ['Main_Fan']
+  - Speaker[first] : ['Living_Speaker', 'Bedroom_Speaker'] → ['Living_Speaker']
 - **C12_009** — When motion is detected, capture an image every 10 seconds thereafter.
-  - MotionSensor [first]: ['Entrance_Motion', 'Garage_Motion'] → ['Entrance_Motion']
-  - Camera [first]: ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
-- **C08_032** — Each time the door is opened, turn on all lights in the hallway and li
-  - ContactSensor [first]: ['ContactSensor_1', 'ContactSensor_2'] → ['ContactSensor_1']
-- **C08_035** — Whenever the door lock is locked, turn on the entrance light at maximu
-  - DoorLock [first]: ['DoorLock', 'Garage_Lock'] → ['DoorLock']
-- **C08_037** — Whenever the brightness drops below 50 lux, open all shades in the par
-  - LightSensor [first]: ['Light_S', 'Indoor_Light_S'] → ['Light_S']
-- **C12_012** — When smoke is detected in the living room, sound all fire alarms. Then
-  - Speaker [first]: ['Speaker', 'Bedroom_Speaker'] → ['Speaker']
-- **C22_003** — Every 1 minute, announce "lunch time" through the speaker. Total 3 tim
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
-- **C22_005** — Every 20 minutes, announce "meeting reminder" through the speaker. Tot
-  - Speaker [first]: ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
-- **C22_006** — Every 10 seconds, sound the siren in emergency mode. Stop after 6 burs
-  - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
-- **C22_008** — Every 15 minutes, set the air purifier to high mode. Stop after 4 runs
-  - AirPurifier [first]: ['LivingRoom_AirPurifier', 'Bedroom_AirPurifier'] → ['LivingRoom_AirPurifier']
-- **C26_002** — Whenever the water valve opens, if it is not closed within 10 minutes,
-  - Valve [main]: ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
-- **C26_003** — When the robot vacuum cleaner starts running, if it is not docked with
-  - RobotVacuumCleaner [first]: ['Living_RVC', 'Kitchen_RVC'] → ['Living_RVC']
-- **C26_004** — At 11 PM, wait up to 10 minutes for the door lock to be locked; if it 
-  - DoorLock [first]: ['Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
-- **C26_005** — Turn on the dehumidifier; if the humidity drops to 60% or below within
-  - Switch [first]: ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
-  - HumiditySensor [first]: ['Living_Hum', 'Bedroom_Hum'] → ['Living_Hum']
-  - Dehumidifier [first]: ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
-- **C26_006** — Whenever it starts raining, if the window is not closed within 3 minut
-  - WindowCovering [first]: ['Living_Window', 'Bedroom_Window'] → ['Living_Window']
+  - MotionSensor[first] : ['Entrance_Motion', 'Garage_Motion'] → ['Entrance_Motion']
+  - Camera[first] : ['Entrance_Camera', 'Garage_Camera'] → ['Entrance_Camera']
+- **C08_032** — Each time the door is opened, turn on all lights in the hallway and living room.
+  - ContactSensor[first] : ['ContactSensor_1', 'ContactSensor_2'] → ['ContactSensor_1']
+- **C08_035** — Whenever the door lock is locked, turn on the entrance light at maximum brightne
+  - DoorLock[first] : ['DoorLock', 'Garage_Lock'] → ['DoorLock']
+- **C08_037** — Whenever the brightness drops below 50 lux, open all shades in the parking lot.
+  - LightSensor[first] : ['Light_S', 'Indoor_Light_S'] → ['Light_S']
+- **C12_012** — When smoke is detected in the living room, sound all fire alarms. Then, every 10
+  - Speaker[first] : ['Speaker', 'Bedroom_Speaker'] → ['Speaker']
+- **C22_003** — Every 1 minute, announce "lunch time" through the speaker. Total 3 times.
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+- **C22_005** — Every 20 minutes, announce "meeting reminder" through the speaker. Total 5 times
+  - Speaker[first] : ['LivingRoom_Speaker', 'Bedroom_Speaker'] → ['LivingRoom_Speaker']
+- **C22_006** — Every 10 seconds, sound the siren in emergency mode. Stop after 6 bursts.
+  - Siren[main] : ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
+- **C22_008** — Every 15 minutes, set the air purifier to high mode. Stop after 4 runs.
+  - AirPurifier[first] : ['LivingRoom_AirPurifier', 'Bedroom_AirPurifier'] → ['LivingRoom_AirPurifier']
+- **C26_002** — Whenever the water valve opens, if it is not closed within 10 minutes, close it 
+  - Valve[main] : ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
+- **C26_003** — When the robot vacuum cleaner starts running, if it is not docked within 2 hours
+  - RobotVacuumCleaner[first] : ['Living_RVC', 'Kitchen_RVC'] → ['Living_RVC']
+- **C26_004** — At 11 PM, wait up to 10 minutes for the door lock to be locked; if it is still u
+  - DoorLock[first] : ['Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
+- **C26_005** — Turn on the dehumidifier; if the humidity drops to 60% or below within 30 minute
+  - Switch[first] : ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
+  - HumiditySensor[first] : ['Living_Hum', 'Bedroom_Hum'] → ['Living_Hum']
+  - Dehumidifier[first] : ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
+- **C26_006** — Whenever it starts raining, if the window is not closed within 3 minutes, close 
+  - WindowCovering[first] : ['Living_Window', 'Bedroom_Window'] → ['Living_Window']
+
+## 여러 대를 읽는 자리 — 한정자 표기 (§9.10, any 기본·all 수기)
+
+- **C03_017** — If any presence sensor in the house is currently in the detected state, set the 
+  - PresenceSensor[읽기 any]: ['House_Presence_1', 'House_Presence_2']
+- **C07_024** — When any presence sensor in the hallway detects presence, set all hallway lights
+  - PresenceSensor[읽기 any]: ['Hallway_PresenceSensor_1', 'Hallway_PresenceSensor_2']
+- **C10_006** — When any light in the hallway is turned on, turn off all lights in the living ro
+  - Light[읽기 any]: ['Hallway_Light_1', 'Hallway_Light_2']
+- **C10_007** — When any air purifier in the office switches to sleep mode, turn off the light a
+  - AirPurifier[읽기 any]: ['Office_AP_1', 'Office_AP_2']
+- **C10_008** — When any illuminance sensor on the terrace reaches 100 lux or higher, raise all 
+  - LightSensor[읽기 any]: ['Terrace_Sensor_1', 'Terrace_Sensor_2']
+- **C10_009** — When any temperature sensor in the data center reaches 30 degrees or higher, set
+  - TemperatureSensor[읽기 any]: ['DC_Temp_1', 'DC_Temp_2']
+- **C05_027** — If a water leak is detected in the basement and the main valve is open, close al
+  - Valve[읽기 any]: ['Main_Valve_1', 'Main_Valve_2']
+- **C17_008** — Every minute, if the humidity of all sensors in Group2 is 50% or higher, set all
+  - HumiditySensor[읽기 all]: ['Grp2_Hum_1', 'Grp2_Hum_2']
+- **C17_009** — Check all door locks in Sector 1 every hour; if any one is open, change all ligh
+  - DoorLock[읽기 any]: ['S1_Lock_1', 'S1_Lock_2']
+- **C18_005** — Every 30 minutes during weekends, check all pumps in the factory; if any one is 
+  - Switch[읽기 any]: ['Fac_Pump_1', 'Fac_Pump_2']
+- **C16_009** — Every hour from midnight to 5 AM, if at least one door is open, turn all hallway
+  - ContactSensor[읽기 any]: ['Front_ContactSensor', 'Hallway_ContactSensor', 'Basement_ContactSensor']
+- **C16_012** — At 6 PM, if any window is open, close all of them.
+  - WindowCovering[읽기 any]: ['LivingRoom_Window', 'Bedroom_Window']
+- **C12_013** — When any presence sensor on the 1st floor detects presence, sound all emergency 
+  - PresenceSensor[읽기 any]: ['F1_Pres_1', 'F1_Pres_2']
+- **C03_024** — If all temperature sensors in sector 1 read 35 degrees or higher, set all air co
+  - TemperatureSensor[읽기 all]: ['S1_Temp_1', 'S1_Temp_2']
+- **C07_027** — If any presence sensor on floor 1 detects presence, turn on all lights on floor 
+  - PresenceSensor[읽기 any]: ['F1_Pres_1', 'F1_Pres_2']
+- **C03_030** — If any door lock in sector 1 is open, sound the sector 1 siren in police mode.
+  - DoorLock[읽기 any]: ['S1_Lock_1', 'S1_Lock_2']
+- **C17_012** — Every 30 minutes, if any hallway light brightness is 50% or higher, turn off all
+  - Light[읽기 any]: ['Hall_Light_1', 'Hall_Light_2', 'Hall_Light_3']
+- **C03_031** — If any indoor Group1 humidity sensor reads 60% or higher, set all indoor Group1 
+  - HumiditySensor[읽기 any]: ['In_G1_Hum_1', 'In_G1_Hum_2']

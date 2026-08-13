@@ -106,6 +106,13 @@ def main():
                 if m in idx and m != "Clock"}
         bound = {k.split("#")[0] for k in b}
         for name, ds in b.items():
+            if isinstance(ds, dict):     # 다기기 읽기 자리: {"any"/"all": [...]}
+                if len(ds) != 1 or next(iter(ds)) not in ("any", "all"):
+                    note("바인딩 한정자 표기 이상", key, f"{name}: {ds}")
+                    continue
+                ds = next(iter(ds.values()))
+                if len(ds) < 2:
+                    note("한정자인데 1대", key, f"{name}: {ds}")
             if not ds or any(x not in devs for x in ds):
                 note("바인딩 기기 없음", key, f"{name}: {ds}")
         if svcs - bound:
