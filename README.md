@@ -24,7 +24,7 @@ Python 3.9+ and a local OpenAI-compatible LLM server (vLLM).
 pip install -r requirements.txt
 
 # 2. Start the LLM server (vLLM)
-bash start_qwen36_5090.sh    # serves on http://localhost:8002/v1 by default
+bash start_qwen35_9b_5090.sh # serves on http://localhost:8002/v1 by default
 
 # 3. Start the generation API
 python app.py                # FastAPI on port 49999
