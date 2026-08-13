@@ -185,7 +185,8 @@ def eval_cond(n: tuple, vars_: dict, inputs: dict) -> Any:
         return False if op in _CMP else None
     try:
         return {">": l > r, ">=": l >= r, "<": l < r, "<=": l <= r,
-                "+": l + r, "-": l - r, "*": l * r, "/": l / r,
+                "+": l + r, "-": l - r, "*": l * r,
+                "/": l / r if r else None,
                 "%": l % r if r else None}[op]
     except TypeError:
         return False if op in _CMP else None
@@ -302,7 +303,10 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
 
     def carg(v: Any) -> tuple:
         if isinstance(v, str) and "$" in v:
-            ast = parse_cond(v, to_key)   # 인자 안 표현식 (min($X.Y+10,100))
+            try:                # 인자 안 표현식 (min($X.Y+10,100))
+                ast = parse_cond(v, to_key)
+            except Exception:   # 자연어 템플릿("humidity is $Humidity")은
+                return ("lit", v)   # 문자열 그대로 — 판정은 비교가 가른다
             note_axes(ast)
             return ("expr", ast)
         if isinstance(v, float) and v.is_integer():

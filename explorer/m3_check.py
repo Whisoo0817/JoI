@@ -54,16 +54,24 @@ def build_maps(stmts) -> tuple[dict, dict]:
 
 
 def check_pair(d: dict):
+    from .interp import parse as _parse
+    from .oneshot import OneShotRunner
     jb = d["joi_block"]
     period = int(jb.get("period") or 0)
-    stmts = jp.parse(jb["script"]) if hasattr(jp, "parse") else None
-    if stmts is None:
-        from .interp import parse as _p
-        stmts = _p(jb["script"])
+    stmts = _parse(jb["script"])
     name_map, bind = build_maps(stmts)
     ir_r = IrRunner(d["ir"], name_map=name_map, bind=bind)
-    joi_r = JoiRunner.from_src(stmts)
-    return product_runners(ir_r, joi_r, period if period > 0 else 60000)
+    if period > 0:
+        joi_r = JoiRunner.from_src(stmts)
+        return product_runners(ir_r, joi_r, period)
+    joi_r = OneShotRunner(stmts)
+    # one-shot의 tick 격자: 등장하는 최소 시간 상수보다 촘촘하게
+    ts = [t for t in (set(ir_r.axes.ts_thresholds)
+                      | set(joi_r.axes.ts_thresholds)) if t > 0]
+    grid = 60000
+    if ts and min(ts) < 60:
+        grid = 1000 if min(ts) >= 1 else 100
+    return product_runners(ir_r, joi_r, grid)
 
 
 def main() -> None:
@@ -76,11 +84,8 @@ def main() -> None:
             res["(joi_block 없음)"] += 1
             continue
         s = jb["script"]
-        if not jb.get("period"):
-            res["(one-shot 후순위)"] += 1
-            continue
-        if "wait until" in s or "delay(" in s:
-            res["(blocking 후순위)"] += 1
+        if jb.get("period") and ("wait until" in s or "delay(" in s):
+            res["(주기형 blocking 후순위)"] += 1
             continue
         name = f.split("/")[-1]
         try:
