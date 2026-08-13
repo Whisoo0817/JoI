@@ -1,0 +1,178 @@
+Review #453A
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject
+
+Reviewer expertise
+------------------
+4. Expert
+
+Paper summary
+-------------
+The paper presents an edge system for checking whether LLM-generated
+smart-home automation code matches a given specification before
+deployment. The key idea is to translate a user’s natural-language
+request into a structured Timeline IR, obtain user confirmation of the
+correctness of the IR, then use the confirmed IR as the reference
+oracle for verifying the generated automation code. This avoids
+relying on another LLM judge or code inspection. The authors' system
+synthesizes boundary-event scenarios from the IR, simulates both the
+IR and generated code, and compares their action traces to catch bugs
+involving triggers, delays, repetitions, and sustained conditions. The
+evaluation shows that 99.3% of injected faults are detected across 382
+automations.
+
+Strengths
+---------
+- Carefully designed verification pipeline
+
+- The synthetic evaluation is broad and looks at multiple complementary aspects
+
+Weaknesses
+----------
+- It looks like the authors are not solving the problem, but moving it
+   elsewhere
+
+- Generalization claims are excessive compared to what is actually
+   demonstrated in the paper
+
+Comments for authors
+--------------------
+I applaud the authors for the precise and careful design. The paper
+does a great job at explaining the different steps of the
+verification pipeline and the rationale for the different design
+choices. The reason for my negative score is mainly twofold:
+
+1) I feel like the authors are not really solving the problem, but
+moving it somewhere else. Indeed, the core guarantee depends on users
+approving the right IR, but the paper does not provide any evidence
+on whether real users can do that. If the IR is wrong with respect to
+application requirements but looks plausible to the user, the authors'
+system would faithfully verify the wrong behavior.  The authors
+explicitly state they do not measure non-expert confirmation success
+and that the technical guarantee is “firmly in Layer B”, that is,
+after IR approval. Also, it is after IR approval that the process
+becomes deterministic. In other words, they left the hard part of the
+problem in the hands of the user, yet there is no backing that real
+users can really handle that. This leaves a major hole in the whole
+design.
+
+2) The generalizability claims appear bloated. The paper calls the
+deployment, an “existence proof”, the live deployment is only six
+automations on one commercial platform/DSL, and says the principal
+open question is generalizing beyond a single target platform and
+DSL. I think there's more than that... A completely declarative DSL,
+say in the form of condition->action rules, would likely be
+feasible. With a different DSL, however, say for example one that
+doesn't distinguish so clearly the transition boundaries, the whole
+design may be inapplicable altogether.
+
+Additional discussion would also be needed on two more aspects,
+although neither is a killer argument in my opinion:
+
+- Verification is bounded, not complete. This may be just fine for the
+  system at hand, and would be in line with similar approaches in the
+  traditional verification literature (bounded model checking, ...),
+  yet the authors need to elaborate on what realistic bugs may be
+  missed because of this design choice, and the related trade-offs.
+
+- I kind of miss the motivation for running this whole thing on an
+   edge device. The authors insist on the privacy argument. The
+   verification effort, however, is expected to run sparingly, and
+   certainly not continuously. One may simply set up a protected
+   environment in the cloud for the necessary time, and that's it..
+
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+Review #453B
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject
+
+Reviewer expertise
+------------------
+2. Some familiarity
+
+Paper summary
+-------------
+The paper describes an LLM-based system for generating verified IoT/smart home automations using natural language. The proposed system (OVLA) uses an LLM to convert a natural language request to a JSON-based intermediate language (Timeline IR) which is then deterministically converted back to natural language for the user to verify. Once confirmed, another LLM generates executable (Jol) code from the Timeline IR, which is accepted only if it passes a deterministic verification step, where output traces from deterministic IR and Jol simulators match for synthesized boundary-event scenarios.
+
+The system is evaluated with respect to rendering faithfulness, how well the verifier detects incorrect generated code, system safety, and overhead. The reported results using 382 natural language commands seem promising, and the performance (when run on a Mac mini M4) seems reasonable.
+
+Strengths
+---------
++ The paper addresses an important goal (vetting LLM-generated code). Introducing determinism through the intermediate representation seems like a strong choice.
++ The verification aspects of the system seem to address the right kinds of problematic flaws.
++ The evaluation explores the system performance in different layers.
+
+Weaknesses
+----------
+- It's unclear how usable the system is.
+- The LLM-based verification part of the system doesn't seem well motivated.
+- It's not clear how it compares to related systems.
+
+Comments for authors
+--------------------
+This is an interesting paper, and I really like the idea of using a deterministic intermediate language to facilitate validation of the generated code. The evaluation also explores a lot of important factors relating to the system's performance and success.
+
+I do have some concerns though:
+
+**No usability testing.**
+A key part of the system is the user verifying that the Timeline IR generated by Layer A is the behavior they intended. The paper acknowledges this shortcoming, and it seems like a significant missing piece. If your typical non-technical user is not able to accurately identify Timeline IR errors, then all of this verification isn't going to be very helpful.
+
+**Why not make a deterministic Timeline IR -> Jol generator?**
+Once Timeline IR is accepted as a correct description of behavior, it's not clear why we should use probabilistic IR-to-JoI lowering. Why not just make a deterministic Timeline IR compiler/generator? The paper explains that Timeline IR can map to multiple different Jol implementations, but it doesn't explain why a deterministic compiler from Timeline IR to JoI is infeasible or undesirable. It seems like it would remove the need for the verification step. You have removed the pesky nondeterminism in Layer A. Why add it back in in Layer B?
+
+If you decided to keep Layer B and the verification step, you might want to be careful about using the terms **"verifier"** and **"verification"**, as they tend to imply a formal proof-based process, or at least the validation of a mathematical model of the code.
+
+**Position with respect to Related work**
+
+(“IoT automation is rapidly moving toward LLM-based code generation.”)
+The motivating claim that starts the paper should probably be softened or justified (citations added at the very least). There are some research systems that have explored using LLMs to generate IoT automations, but this makes it sound like it's a wave taking over the industry which feels like a stretch.
+
+There also seem to be several related papers that have goals that are similar in spirit to OVLA. The paper explains some of the differences in the text, but it's hard to tell (from the paper) how much (or if) OVLA actually outperforms its competition.
+
+**Reproducibility.** There are some aspects of the paper that seem to be underspecified. For example, the paper says the benchmark has 382 commands, manually authored reference IRs, and 24 categories. that sounds impressive, but what are those commands? To independently replicate the work, someone would need more information about the command list, IRs, generated JoI code, prompts, seeds, quantization settings, and model versions. It would also be nice to have information about the boundary-event synthesis algorithm and information about the simulators. The paper’s claims depend on simulator agreement and scenario coverage, so these details are important. As is, independent replication would be challenging.
+
+
+* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+
+
+Review #453C
+===========================================================================
+
+Overall merit
+-------------
+2. Weak reject
+
+Reviewer expertise
+------------------
+3. Knowledgeable
+
+Paper summary
+-------------
+This paper proposes OVLA, an on-device verification system for LLM-generated reactive-temporal IoT automations. The key idea is to translate a user’s natural-language command into a Timeline IR and and then use the IR as a behavioral oracle to verify generated JoI code through bounded trace-equivalence.
+
+Strengths
+---------
+The paper targets an important and timely problem: ensuring the safety and correctness of LLM-generated IoT automations before deployment. The idea of using a user-confirmed Timeline IR as both a readable confirmation surface and a machine-checkable oracle is elegant, and the paper provides a clear motivation for why purely syntactic checks or LLM judges are unreliable for this setting.
+
+Weaknesses
+----------
+The main weakness is that the paper’s strongest guarantee depends on the user correctly understanding and approving the rendered IR, but this assumption is not validated with a human-subject study. In addition, the verifier only provides bounded transition-boundary conformance rather than full semantic equivalence, and some important residual cases remain outside the verification scope. As a result, the claimed end-to-end safety story feels somewhat stronger than what the current evaluation fully supports.
+
+Comments for authors
+--------------------
+The strongest assumption is that users can correctly understand and approve the rendered IR. However, the paper does not provide a human-subject study showing that non-expert users can reliably detect wrong renderings or subtle temporal distinctions, such as edge-triggered versus level-triggered behavior.
+
+The guarantee only holds after the correct IR has been approved. If the NL-to-IR step produces a plausible but semantically wrong IR and the user fails to notice it, the verifier will still certify the generated code against the wrong reference.
+
+The verifier checks transition-boundary conformance under a bounded horizon and a specific observation model. This is useful as a deployment-time filter, but it is not full semantic equivalence or formal verification of arbitrary reactive programs.
+
+The paper reports high fault-detection accuracy, but the remaining missed faults deserve deeper analysis. It would be useful to understand what types of bugs escape the verifier and whether they correspond to realistic LLM lowering errors.
