@@ -453,3 +453,39 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   (#Grp2→#Group2류) + 인자 기본값 정규화. lowering 프롬프트(files/)의
   D-3 재무장·phase 첫 회차 지연은 별도 논의(게이트가 잡는 게 정답일
   수도 — E2 서사).
+
+### 9.7 W2 카탈로그 재감사 — 382행 v2.0.7 정합 (2026-08-14)
+
+- **카탈로그 반입**: service_list 2.0.6/2.0.7을 test 브랜치에서 paper로
+  가져옴. 2.0.5→2.0.7은 스킬 4개 추가뿐(삭제·서명 변경 0). 진짜 간극은
+  코퍼스가 2.0.4 시절 카탈로그 기준이라는 것 — **2.0.5로 넘어오며 7개
+  스킬이 사라짐** (Dishwasher, Door, LaundryDryer, Oven, RainSensor,
+  RiceCooker, Safe). 영향 85행(+함수 오용 4행) = 전체의 22%.
+- **치환 정책** (구현: 감사·변환 스크립트, 산출 89행 수정):
+  - 문 상태 읽기 전용 → **ContactSensor.Contact** (closed=true 규약,
+    NL 무변경). 문 액션 → **DoorLock** (NL을 잠금 언어로: close→lock),
+    환기 의도(욕실·비 오는 날)는 **창문(WindowCovering)**으로, 여닫기
+    반복(C13_001)은 **밸브(Valve)**로 재조준.
+  - Safe → **DoorLock**(금고의 잠금장치; NL 무변경, Safe 태그 유지.
+    locked→closed 어휘 매핑). 한 행에 도어락 2대가 생기는 C16_002/004는
+    §9.4 "같은 서비스, 바인딩 표가 구분" 설계의 실물 사례가 됨.
+  - RainSensor.Rain → **WeatherProvider.Weather == "rain"** (기존
+    C05_010 관례 그대로, NL 무변경).
+  - 주방가전(모드·시간형)은 생존 모드 기기로 명령 재작성 (영/한 동시):
+    식기세척기 건조→제습기 drying, 오븐→에어컨/선풍기 모드,
+    밥솥→로봇청소기·가습기, 건조기 회전속도→환풍기 Fan.Speed.
+  - 미끼 기기(인벤토리만 등장)는 카테고리 교체(충돌 회피 규칙).
+- **함수 오용 4건 수정**: C17_009(값 DoorLockState를 call로 호출 — call
+  제거), C08_038·C03_029(Camera.StartStream 부재 → StartRecording, NL도
+  녹화로), C03_002(IsAvailable은 함수 → 결과 담는 질의 호출 + $var 읽기).
+- **검증**: v2.0.7 대조 감사 0건(카탈로그 외 참조 없음), 382행 전부
+  explorer IR 컴파일 통과(cron 앵커 소거 후). 행 내 태그 요동은 C05_023
+  1건(Living/LivingRoom 혼용)뿐 — 정규화. 인자 부분 지정은 C03_002
+  1건뿐(기본값 규약으로 허용).
+- **저절로 해소된 것**: M3의 IR 결함 8건은 캐시(4월판)에만 있고 현재
+  csv에는 이미 수정돼 있었음(diff로 확인 — 캐시는 v1 시대 스냅샷으로
+  보존, m3_findings의 E2 서사는 유효). C15_002 인자 서명 접착도 신
+  카탈로그가 1-인자 서명이라 해소.
+- **잔여(다음 단위)**: ① 행별 레퍼런스 바인딩 명시 + "두 방 같은 명령"
+  1 op+집합 바인딩 정규화(§9.4), ② 타임아웃 유형 명령 신설(§9.3),
+  ③ lowering exemplar 재검증, ④ 논문에 catalog version pinning 문구.
