@@ -1,7 +1,7 @@
 # 바인딩 검토 목록 — 기본값 규약으로 정한 자리 (2026-08-14)
 
 휴리스틱(위치어·한정어)이 못 정해 규약(Main 태그 → 인벤토리 첫 후보)으로
-배정한 자리들. 레퍼런스로 쓰기 전 눈검토 대상. 규약 자체는 percom.md §9.7.
+배정한 자리들. 레퍼런스로 쓰기 전 눈검토 대상. 규약 자체는 percom.md §9.8.
 
 - **C01_001** — Switch the dehumidifier to drying mode.
   - Dehumidifier [first]: ['Kitchen_Dehumidifier', 'Utility_Dehumidifier'] → ['Kitchen_Dehumidifier']
@@ -388,3 +388,15 @@
   - Siren [main]: ['Main_Siren', 'Entrance_Siren'] → ['Main_Siren']
 - **C22_008** — Every 15 minutes, set the air purifier to high mode. Stop after 4 runs
   - AirPurifier [first]: ['LivingRoom_AirPurifier', 'Bedroom_AirPurifier'] → ['LivingRoom_AirPurifier']
+- **C26_002** — Whenever the water valve opens, if it is not closed within 10 minutes,
+  - Valve [main]: ['Main_Valve', 'Garden_Valve'] → ['Main_Valve']
+- **C26_003** — When the robot vacuum cleaner starts running, if it is not docked with
+  - RobotVacuumCleaner [first]: ['Living_RVC', 'Kitchen_RVC'] → ['Living_RVC']
+- **C26_004** — At 11 PM, wait up to 10 minutes for the door lock to be locked; if it 
+  - DoorLock [first]: ['Entrance_Lock', 'Garage_Lock'] → ['Entrance_Lock']
+- **C26_005** — Turn on the dehumidifier; if the humidity drops to 60% or below within
+  - Switch [first]: ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
+  - HumiditySensor [first]: ['Living_Hum', 'Bedroom_Hum'] → ['Living_Hum']
+  - Dehumidifier [first]: ['Living_Dehum', 'Bedroom_Dehum'] → ['Living_Dehum']
+- **C26_006** — Whenever it starts raining, if the window is not closed within 3 minut
+  - WindowCovering [first]: ['Living_Window', 'Bedroom_Window'] → ['Living_Window']
