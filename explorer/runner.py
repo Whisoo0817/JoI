@@ -47,3 +47,36 @@ class JoiRunner:
     def step(self, vars_: dict, gv: dict, inputs: dict, now_ms: int,
              first_tick: bool = False) -> StepResult:
         return step(self.stmts, vars_, gv, inputs, now_ms, first_tick)
+
+
+class DoneLatch:
+    """겉옷: 안쪽 실행기가 "끝났다"(terminated)를 낸 뒤로는 영구히 멈춤.
+
+    주기형 JoI의 최상위 break는 플랫폼에서 블록의 영구 종료지만, v2
+    interp는 tick마다 처음부터 다시 돌므로 다음 tick에 되살아난다.
+    __fin 래치가 그 플랫폼 의미(한 번 끝나면 끝)를 복원한다.
+    terminated 플래그는 삼킨다(항상 False) — 비교는 행동(액션)으로만
+    하고, 상대편(IR END → done 래치 후 무행동)과 같은 모양이 된다.
+    stmts는 일부러 노출하지 않는다 → product의 콤보 dedup은 건너뜀(보수적).
+    """
+
+    def __init__(self, inner) -> None:
+        from .predicates import VarInfo
+        self.inner = inner
+        self.vars_info = dict(inner.vars_info)
+        self.vars_info["__fin"] = VarInfo("state", init=False)
+        self.axes = inner.axes
+
+    def check_finite(self, axes: Axes | None = None) -> list[str]:
+        return self.inner.check_finite(axes)
+
+    def step(self, vars_: dict, gv: dict, inputs: dict, now_ms: int,
+             first_tick: bool = False) -> StepResult:
+        if vars_.get("__fin"):
+            return StepResult(dict(vars_), dict(gv), [])
+        r = self.inner.step(vars_, gv, inputs, now_ms, first_tick)
+        if r.terminated:
+            v = dict(r.vars)
+            v["__fin"] = True
+            return StepResult(v, r.gv, r.actions)
+        return r

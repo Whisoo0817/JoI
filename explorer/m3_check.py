@@ -19,8 +19,9 @@ from .interp import Unsupported, world_key
 from .ir_step import IrRunner
 from .explore import _read_key
 from .predicates import stmt_exprs, walk_stmts
+from .pause import PauseRunner, has_blocking
 from .product import product_runners
-from .runner import JoiRunner
+from .runner import DoneLatch, JoiRunner
 
 
 def _walk_expr(n):
@@ -42,7 +43,10 @@ def build_maps(stmts) -> tuple[dict, dict]:
         if isinstance(s, jp.CallStmt):
             c = s.call
             svc, m = canonical_key(c.service, c.method)
-            bind.setdefault((svc, m), tuple(c.tags))
+            g = tuple(c.tags)
+            lst = bind.setdefault((svc, m), [])
+            if g not in lst:       # 문장 순서대로의 서로 다른 셀렉터 그룹
+                lst.append(g)
         for e in stmt_exprs(s):
             for n in _walk_expr(e):
                 wk = _read_key(n)
@@ -58,13 +62,34 @@ def check_pair(d: dict):
     from .oneshot import OneShotRunner
     jb = d["joi_block"]
     period = int(jb.get("period") or 0)
+    cron = (jb.get("cron") or "").strip()
+    ir = d["ir"]
+    if cron and cron != "x":
+        # cron 쌍: 양쪽이 같은 cron 문자열을 공유(47/47 사전 확인) →
+        # 시작 시점이 공통이므로 앵커를 소거하고, 한 번의 발화(창) 안
+        # 행동만 나란히 비교한다. 문자열이 다르면 진짜 결함이므로 중단.
+        tl = [dict(t) for t in (ir.get("timeline") or [])]
+        if not (tl and tl[0].get("op") == "start_at"
+                and tl[0].get("anchor") == "cron"
+                and (tl[0].get("cron") or "").strip() == cron):
+            raise Unsupported(f"cron 앵커 불일치: joi={cron!r}")
+        tl[0] = {"op": "start_at", "anchor": "now"}
+        ir = {**ir, "timeline": tl}
     stmts = _parse(jb["script"])
     name_map, bind = build_maps(stmts)
-    ir_r = IrRunner(d["ir"], name_map=name_map, bind=bind)
+    ir_r = IrRunner(ir, name_map=name_map, bind=bind)
     if period > 0:
-        joi_r = JoiRunner.from_src(stmts)
+        # 주기형 JoI의 최상위 break = 블록 영구 종료 → DoneLatch로 고정.
+        # blocking 문이 있으면 멈춤 이어가기 실행기(pause.py)로.
+        if has_blocking(stmts):
+            joi_r = DoneLatch(PauseRunner(stmts, repeat=True))
+        else:
+            joi_r = DoneLatch(JoiRunner.from_src(stmts))
         return product_runners(ir_r, joi_r, period)
-    joi_r = OneShotRunner(stmts)
+    try:
+        joi_r = OneShotRunner(stmts)
+    except Unsupported:      # 중첩 blocking → 멈춤 이어가기 실행기
+        joi_r = PauseRunner(stmts, repeat=False)
     # one-shot의 tick 격자: 등장하는 최소 시간 상수보다 촘촘하게
     ts = [t for t in (set(ir_r.axes.ts_thresholds)
                       | set(joi_r.axes.ts_thresholds)) if t > 0]
@@ -82,10 +107,6 @@ def main() -> None:
         jb = d.get("joi_block")
         if not jb:
             res["(joi_block 없음)"] += 1
-            continue
-        s = jb["script"]
-        if jb.get("period") and ("wait until" in s or "delay(" in s):
-            res["(주기형 blocking 후순위)"] += 1
             continue
         name = f.split("/")[-1]
         try:

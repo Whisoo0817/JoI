@@ -438,3 +438,18 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
 - **쉬운 네이밍**: 구현·설명 모두 어려운 용어를 자제한다. 예: "lockstep
   product" 대신 "나란히 실행 비교", "transition system" 대신 "한-걸음
   실행기(step 함수)". 코드 이름도 짧고 평이하게.
+
+### 9.6 W1 M3 완료 (2026-08-14)
+
+- **정답 307쌍 판정 완결: EQUIV 281 / DIVERGE 25 / joi_block 없음 1**
+  (Unsupported 0). cron 47은 앵커 공통 소거(양쪽 cron 문자열 일치 검사
+  후 창 내부만 비교), 주기형 blocking 23은 멈춤 이어가기 실행기
+  (explorer/pause.py)로 판정.
+- DIVERGE 25 전수 분류: 레퍼런스 IR 결함 8 / 생성 JoI 결함 4(v1
+  생존자) / lowering 시간 어긋남 12(재무장 한 박자 6 + 회차 한 주기
+  밀림 6) / 인자 서명 접착 미지원 1. 상세와 반례는
+  explorer/runs/m3_findings.md — E2 절의 실물 사례 목록으로 사용.
+- 파생 수정 대상: 382 재감사 때 IR 결함 8건 수정 + 태그 표기 정규화
+  (#Grp2→#Group2류) + 인자 기본값 정규화. lowering 프롬프트(files/)의
+  D-3 재무장·phase 첫 회차 지연은 별도 논의(게이트가 잡는 게 정답일
+  수도 — E2 서사).

@@ -187,11 +187,11 @@ def main() -> None:
               " k≥2 결합 칸은 실물 인벤토리 대기 / 복합 시나리오 곱 보류(TODO)"]
 
     out = "\n".join(lines)
-    os.makedirs("simulator/runs", exist_ok=True)
-    with open("simulator/runs/e1.md", "w") as fp:
+    os.makedirs("explorer/runs", exist_ok=True)
+    with open("explorer/runs/e1.md", "w") as fp:
         fp.write(out + "\n")
     print(out)
-    print("\n→ simulator/runs/e1.md 저장")
+    print("\n→ explorer/runs/e1.md 저장")
 
 
 if __name__ == "__main__":

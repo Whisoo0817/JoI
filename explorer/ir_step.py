@@ -27,7 +27,8 @@ from typing import Any
 
 from .explore import Axes
 from .expr import canonical_key
-from .interp import Action, OpaqueToken, StepResult, Unsupported
+from .interp import (Action, OpaqueToken, StepResult, Unsupported,
+                     clock_state, world_key)
 from .predicates import VarInfo
 
 FUEL_CAP = 4_096          # tick 하나에서 실행할 수 있는 명령 수 상한
@@ -73,7 +74,22 @@ def _tokens(src: str) -> list[str]:
     return out
 
 
+_QREF = re.compile(r"(?:all|any)\(\s*(#\w+(?:\s+#\w+)*)\s*\)\.(\w+)")
+
+
 def parse_cond(src: str, to_key) -> tuple:
+    # JoI식 한정 읽기 all(#A #B).Attr → 자리표(__qN)로 바꿔 파싱 후 read로 치환.
+    # 한정 비교는 grounding 전엔 그대로의 비교로 평가 (interp와 동일, 1대 세계 정확)
+    qmap: dict[str, tuple[str, str]] = {}
+
+    def _q(m: re.Match) -> str:
+        tags = tuple(t[1:] for t in m.group(1).split())
+        ph = f"__q{len(qmap)}"
+        qmap[ph] = (world_key(tags, tags[-1], m.group(2)),
+                    f"{'+'.join(tags)}.{m.group(2)}")
+        return "$" + ph
+
+    src = _QREF.sub(_q, src)
     toks = _tokens(src)
     pos = [0]
 
@@ -95,6 +111,11 @@ def parse_cond(src: str, to_key) -> tuple:
             e = expr_or()
             assert take() == ")", "abs)"
             return ("abs", e)
+        if t in ("all", "any") and peek() == "(":
+            take()                  # 한정 비교 = 그대로의 비교 (grounding 전)
+            e = expr_or()
+            assert take() == ")", "all/any )"
+            return e
         if t in ("min", "max") and peek() == "(":
             take()
             a = expr_or()
@@ -150,6 +171,16 @@ def parse_cond(src: str, to_key) -> tuple:
     e = expr_or()
     if pos[0] != len(toks):
         raise Unsupported(f"cond trailing: {toks[pos[0]:]!r}")
+
+    if qmap:                        # 자리표 → 한정 읽기 노드로 되돌림
+        def sub(n):
+            if not isinstance(n, tuple):
+                return n
+            if n[0] == "var" and n[1] in qmap:
+                k, disp = qmap[n[1]]
+                return ("read", k, disp)
+            return n[:1] + tuple(sub(c) for c in n[1:])
+        e = sub(e)
     return e
 
 
@@ -181,13 +212,27 @@ def eval_cond(n: tuple, vars_: dict, inputs: dict) -> Any:
         return l == r
     if op == "!=":
         return l != r
-    if l is None or r is None:
-        return False if op in _CMP else None
+    if op in _CMP:
+        if l is None or r is None:
+            return False
+        try:
+            return {">": l > r, ">=": l >= r,
+                    "<": l < r, "<=": l <= r}[op]
+        except TypeError:
+            return False
+    # 산술의 None 처리: expr.py의 '+' 규칙과 동일 — 문자열이 끼면 str 강제
+    # (None→""), 숫자면 None→0, 0으로 나누기는 0
+    if op == "+":
+        if isinstance(l, str) or isinstance(r, str):
+            return ("" if l is None else str(l)) + ("" if r is None else str(r))
+    if l is None:
+        l = 0
+    if r is None:
+        r = 0
     try:
-        return {">": l > r, ">=": l >= r, "<": l < r, "<=": l <= r,
-                "+": l + r, "-": l - r, "*": l * r,
-                "/": l / r if r else None,
-                "%": l % r if r else None}[op]
+        return {"+": l + r, "-": l - r, "*": l * r,
+                "/": l / r if r != 0 else 0,
+                "%": l % r if r != 0 else 0}[op]
     except TypeError:
         return False if op in _CMP else None
 
@@ -205,6 +250,7 @@ class Ins:
     svc: str = ""
     method: str = ""
     tags: tuple = ()
+    groups: tuple = ()        # CALL 액션 타깃 그룹 목록 (집합 바인딩 언롤)
     args: tuple = ()          # ('lit', v) | ('var', nm) 목록
     var: str = ""             # READ/CALL 담을 변수
     key: str = ""             # READ 센서 키
@@ -213,6 +259,26 @@ class Ins:
     idx: int = 0              # TOP/END_ITER 쌍 번호
     cname: str = ""           # 반복 카운터 변수 이름 ("" = 안 셈)
     mod: int = 0              # 카운터를 접는 나머지 (modulo 전용 카운터)
+
+
+_TMPL = re.compile(r"\$([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)*)")
+
+
+def _tmpl_parts(v: str, to_key) -> list | None:
+    """"a is $B.C d" → ["a is ", ("read",key,"B.C"), " d"]. $ 없으면 None."""
+    parts: list = []
+    last = 0
+    for m in _TMPL.finditer(v):
+        if m.start() > last:
+            parts.append(v[last:m.start()])
+        nm = m.group(1)
+        parts.append(("read", to_key(nm), nm) if "." in nm else ("var", nm))
+        last = m.end()
+    if last == 0:
+        return None
+    if last < len(v):
+        parts.append(v[last:])
+    return parts
 
 
 def default_to_key(name: str) -> str:
@@ -254,6 +320,22 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
     n_cycle = [0]
     all_conds: list[tuple] = []           # 카운터 사용 후분석용
     counter_sites: dict[str, list[Ins]] = {}   # 이름 카운터 → TOP/END_ITER
+
+    # (svc,method)별 call op 수 미리 세기 — 바인딩 그룹 배정 규칙에 사용
+    call_counts: dict[tuple, int] = {}
+    call_seen: dict[tuple, int] = {}
+
+    def _count_calls(n) -> None:
+        if isinstance(n, dict):
+            if n.get("op") == "call" and "." in (n.get("target") or ""):
+                ck = canonical_key(*n["target"].split(".", 1))
+                call_counts[ck] = call_counts.get(ck, 0) + 1
+            for v_ in n.values():
+                _count_calls(v_)
+        elif isinstance(n, list):
+            for v_ in n:
+                _count_calls(v_)
+    _count_calls(tl)
 
     def note_axes(cond: tuple) -> None:
         all_conds.append(cond)
@@ -305,8 +387,14 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
         if isinstance(v, str) and "$" in v:
             try:                # 인자 안 표현식 (min($X.Y+10,100))
                 ast = parse_cond(v, to_key)
-            except Exception:   # 자연어 템플릿("humidity is $Humidity")은
-                return ("lit", v)   # 문자열 그대로 — 판정은 비교가 가른다
+            except Exception:
+                # 값 삽입 템플릿("humidity is $Humidity"): $이름 자리에
+                # 읽은 값을 끼워 넣는다 — JoI의 "..." + 변수 이어붙이기와
+                # 같은 규칙(str 강제, None→"")으로 평가 (expr.py '+')
+                parts = _tmpl_parts(v, to_key)
+                if parts is not None:
+                    return ("tmpl", parts)
+                return ("lit", v)   # $ 없는 문자열 그대로
             note_axes(ast)
             return ("expr", ast)
         if isinstance(v, float) and v.is_integer():
@@ -320,13 +408,28 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
         if op == "call":
             svc, method = node["target"].split(".", 1)
             csvc, cm = canonical_key(svc, method)
-            tags = (bind or {}).get((csvc, cm), (svc,))
+            # 바인딩 값: 태그 그룹 목록. IR op 수(k)와 그룹 수(g)로 배정 —
+            # k==g면 등장 순서대로 1:1, k==1<g면 집합 바인딩(op 하나가 그룹
+            # 전체로 언롤, §9.4), 그 외엔 첫 그룹.
+            raw = (bind or {}).get((csvc, cm))
+            if raw and not isinstance(raw[0], (list, tuple)):
+                raw = [tuple(raw)]           # 옛 형식(태그 튜플 하나) 허용
+            groups = [tuple(g) for g in raw] if raw else [(svc,)]
+            k = call_counts.get((csvc, cm), 1)
+            i_op = call_seen.get((csvc, cm), 0)
+            call_seen[(csvc, cm)] = i_op + 1
+            if k == len(groups):
+                groups = [groups[i_op]]
+            elif k != 1:
+                groups = [groups[0]]
             args = tuple(carg(v) for v in (node.get("args") or {}).values())
             v = node.get("var", "")
             if v:
                 vinfo[v] = VarInfo("state")
-            ins.append(Ins("CALL", svc=csvc, method=cm, tags=tags,
-                           args=args, var=v))
+            # key = 질의 답을 찾을 월드 키 (var 있는 호출 = 질의, interp와 동일)
+            ins.append(Ins("CALL", svc=csvc, method=cm, tags=groups[0],
+                           groups=tuple(groups), args=args, var=v,
+                           key=world_key(groups[0], svc, method)))
         elif op == "read":
             key = to_key(node["src"])
             v = node["var"]
@@ -443,6 +546,36 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
         if x.kind == "GOTO" and x.succ == -1:
             x.kind, x.succ = "END", 0
 
+    # 호출의 var가 "질의"인 조건: 다른 명령이 그 변수를 읽을 때만.
+    # (생성기가 speak 같은 실행 호출에도 var를 붙이는 일이 있다 — 아무도
+    # 안 읽는 var는 무시하고 액션으로 취급. interp의 문장/표현식 위치
+    # 구분을 IR에서 근사하는 규칙.)
+    def _names_in(n, out):
+        if isinstance(n, tuple):
+            if n[0] == "var":
+                out.add(n[1])
+            else:
+                for c in n[1:]:
+                    _names_in(c, out)
+        elif isinstance(n, list):
+            for c in n:
+                _names_in(c, out)
+    for x in ins:
+        if x.kind == "CALL" and x.var:
+            used: set = set()
+            for y in ins:
+                if y is x:
+                    continue
+                if y.cond is not None:
+                    _names_in(y.cond, used)
+                for a_ in y.args:
+                    if a_[0] in ("expr", "tmpl"):
+                        _names_in(a_[1], used)
+                    elif a_[0] == "var":
+                        used.add(a_[1])
+            if x.var not in used:
+                x.var = ""            # 결과를 아무도 안 읽음 → 실행 호출
+
     # 이름 카운터 후분석: 조건에서 어떻게 쓰였는지에 따라 접는 방식 결정.
     # %k만 쓰면 증가할 때 나머지로 접고(라운드로빈), 크기/등호 비교만 쓰면
     # 최대 상수에서 포화. 둘 다 쓰면 아직 못 다룬다. 아무도 안 읽으면
@@ -518,13 +651,27 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
     actions: list[Action] = []
     pc = int(vars_.get("pc", 0))
     fuel = FUEL_CAP
+    # interp와 같은 세계 구성: clock.*은 now에서 계산(입력이 덮어쓸 수 있음),
+    # clock.time은 항상 hour*100+minute 파생 (자유 입력이 아님 — ClockRef와 동일)
+    world = dict(clock_state(now_ms))
+    world.update(inputs)
+    world["clock.time"] = world["clock.hour"] * 100 + world["clock.minute"]
 
     def argv(a: tuple) -> Any:
         if a[0] == "lit":
             return a[1]
         if a[0] == "var":
             return vars_.get(a[1])
-        v = eval_cond(a[1], vars_, inputs)      # ("expr", ast)
+        if a[0] == "tmpl":               # 값 삽입: str 강제, None→"" (expr '+')
+            out = []
+            for p in a[1]:
+                if isinstance(p, str):
+                    out.append(p)
+                else:
+                    val = eval_cond(p, vars_, world)
+                    out.append("" if val is None else str(val))
+            return "".join(out)
+        v = eval_cond(a[1], vars_, world)      # ("expr", ast)
         return int(v) if isinstance(v, float) and v.is_integer() else v
 
     while fuel:
@@ -534,17 +681,26 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
             vars_["done"] = True
             break
         if x.kind == "CALL":
-            act = Action(x.svc, x.method, tuple(argv(a) for a in x.args),
-                         x.tags)
+            vals = tuple(argv(a) for a in x.args)
             if x.var:
-                vars_[x.var] = OpaqueToken(x.svc, x.tags, x.method)
-            actions.append(act)
+                # 결과를 담는 호출 = 질의 (interp 표현식 위치 호출과 동일):
+                # 액션으로 기록하지 않고, 환경 답 → 없으면 출처 토큰
+                pkey = f"{x.key}({','.join(map(repr, vals))})"
+                if pkey in world:
+                    vars_[x.var] = world[pkey]
+                elif x.key in world:
+                    vars_[x.var] = world[x.key]
+                else:
+                    vars_[x.var] = OpaqueToken(x.svc, x.tags, x.method, vals)
+            else:
+                for g in (x.groups or (x.tags,)):
+                    actions.append(Action(x.svc, x.method, vals, g))
             pc += 1
         elif x.kind == "READ":
-            vars_[x.var] = inputs.get(x.key)
+            vars_[x.var] = world.get(x.key)
             pc += 1
         elif x.kind == "IF":
-            pc = pc + 1 if eval_cond(x.cond, vars_, inputs) else x.succ
+            pc = pc + 1 if eval_cond(x.cond, vars_, world) else x.succ
         elif x.kind == "GOTO":
             pc = x.succ
         elif x.kind == "DELAY":
@@ -557,7 +713,7 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
             else:
                 break                      # 이번 tick은 여기까지
         elif x.kind == "WAIT":
-            ok = eval_cond(x.cond, vars_, inputs)
+            ok = eval_cond(x.cond, vars_, world)
             fired = False
             if x.for_sec:                  # 지속: 끊기지 않고 for 이상
                 reg = f"s{pc}"
@@ -593,7 +749,7 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
         elif x.kind == "TOP":
             if x.cname and x.cname not in vars_:
                 vars_[x.cname] = 0        # 조건이 첫 회차부터 읽을 수 있게
-            if x.cond is not None and eval_cond(x.cond, vars_, inputs):
+            if x.cond is not None and eval_cond(x.cond, vars_, world):
                 pc = x.succ
                 continue
             if x.count and vars_.get(x.cname, 0) >= x.count:
@@ -614,8 +770,10 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
                 if x.mod:
                     v %= x.mod
                 vars_[x.cname] = v
-            vars_["pc"] = x.succ           # 다음 tick에 TOP부터
-            return StepResult(vars_, gv_in, actions)
+            # 같은 tick에 TOP 재검사 — 회차가 period보다 길었으면(안의 delay
+            # 탓) 다음 회차가 바로 시작한다. tick을 소모하면 JoI(매 발화
+            # 실행)와 한 칸 어긋난다. period 미달이면 TOP이 멈춰 준다.
+            pc = x.succ
         else:
             raise Unsupported(f"ins: {x.kind}")
     if not fuel:
