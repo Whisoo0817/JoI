@@ -70,8 +70,20 @@ class ProductResult:
     notes: list = field(default_factory=list)
 
 
+def _canon(v):
+    """비교용 인자 표기 통일: 100.0(JSON)과 100(코드)은 같은 값."""
+    return int(v) if isinstance(v, float) and v.is_integer() else v
+
+
 def _out(actions) -> tuple:
-    return tuple(sorted(repr(a) for a in actions))
+    out = []
+    for a in actions:
+        try:
+            args = tuple(_canon(x) for x in a.args)
+            out.append(repr(type(a)(a.service, a.method, args, a.target)))
+        except Exception:
+            out.append(repr(a))
+    return tuple(sorted(out))
 
 
 def product_explore(src_a: str | list, src_b: str | list, period_ms: int,

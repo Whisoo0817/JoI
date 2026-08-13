@@ -55,8 +55,8 @@ def parse_duration(v: Any) -> float:
 # unary := 'not' u | '-' u | atom
 # atom := NUM | STR | true/false/null | abs(expr) | $var | Name.Name | (expr)
 
-_TOKEN = re.compile(r"\s*(>=|<=|==|!=|>|<|\(|\)|\+|-|\*|/|%|"
-                    r"\$\w+|\"[^\"]*\"|'[^']*'|[\d.]+|\w+(?:\.\w+)*)")
+_TOKEN = re.compile(r"\s*(>=|<=|==|!=|>|<|\(|\)|,|\+|-|\*|/|%|"
+                    r"\$\w+(?:\.\w+)*|\"[^\"]*\"|'[^']*'|[\d.]+|\w+(?:\.\w+)*)")
 _CMP = (">=", "<=", "==", "!=", ">", "<")
 
 
@@ -95,8 +95,18 @@ def parse_cond(src: str, to_key) -> tuple:
             e = expr_or()
             assert take() == ")", "abs)"
             return ("abs", e)
+        if t in ("min", "max") and peek() == "(":
+            take()
+            a = expr_or()
+            assert take() == ",", "min/max ,"
+            b = expr_or()
+            assert take() == ")", "min/max )"
+            return (t, a, b)
         if t.startswith("$"):
-            return ("var", t[1:])
+            nm = t[1:]
+            if "." in nm:               # $Service.Attr = 센서 읽기
+                return ("read", to_key(nm), nm)
+            return ("var", nm)
         if t.startswith(("'", '"')):
             return ("lit", t[1:-1])
         if re.fullmatch(r"[\d.]+", t):
@@ -154,6 +164,12 @@ def eval_cond(n: tuple, vars_: dict, inputs: dict) -> Any:
     if k == "abs":
         v = eval_cond(n[1], vars_, inputs)
         return None if v is None else abs(v)
+    if k in ("min", "max"):
+        a = eval_cond(n[1], vars_, inputs)
+        b = eval_cond(n[2], vars_, inputs)
+        if a is None or b is None:
+            return None
+        return min(a, b) if k == "min" else max(a, b)
     if k == "not":
         return not eval_cond(n[1], vars_, inputs)
     op, l, r = n[1], eval_cond(n[2], vars_, inputs), eval_cond(n[3], vars_, inputs)
@@ -248,6 +264,9 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
                 out.append(var_keys[n[1]])
             elif n[0] in ("abs", "not"):
                 reads_in(n[1], out)
+            elif n[0] in ("min", "max"):
+                reads_in(n[1], out)
+                reads_in(n[2], out)
             elif n[0] == "bin":
                 reads_in(n[2], out)
                 reads_in(n[3], out)
@@ -255,6 +274,9 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
         def walk(n):
             if n[0] in ("abs", "not"):
                 walk(n[1])
+            elif n[0] in ("min", "max"):
+                walk(n[1])
+                walk(n[2])
             elif n[0] == "bin" and n[1] in ("and", "or"):
                 walk(n[2])
                 walk(n[3])
@@ -279,8 +301,10 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
         walk(cond)
 
     def carg(v: Any) -> tuple:
-        if isinstance(v, str) and v.startswith("$"):
-            return ("var", v[1:])
+        if isinstance(v, str) and "$" in v:
+            ast = parse_cond(v, to_key)   # 인자 안 표현식 (min($X.Y+10,100))
+            note_axes(ast)
+            return ("expr", ast)
         if isinstance(v, float) and v.is_integer():
             v = int(v)          # JSON의 100.0 ↔ JoI 코드의 100 표기 통일
         return ("lit", v)
@@ -492,7 +516,12 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
     fuel = FUEL_CAP
 
     def argv(a: tuple) -> Any:
-        return a[1] if a[0] == "lit" else vars_.get(a[1])
+        if a[0] == "lit":
+            return a[1]
+        if a[0] == "var":
+            return vars_.get(a[1])
+        v = eval_cond(a[1], vars_, inputs)      # ("expr", ast)
+        return int(v) if isinstance(v, float) and v.is_integer() else v
 
     while fuel:
         fuel -= 1

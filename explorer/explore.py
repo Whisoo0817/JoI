@@ -49,20 +49,39 @@ from .predicates import (CAL_KEYS, CMP_OPS, TS_KEY, VarInfo, classify_vars,
 
 
 def _closure_device_reads(node, defs, vars_, visiting=frozenset()) -> set:
-    """Device keys read by an expression, following wire definitions."""
+    """Device WORLD keys read by an expression, following wire definitions.
+
+    이슈 #22: 종전에는 expr_reads의 태그 없는 canonical 키를 그대로 써서,
+    방 태그가 붙은 읽기((#Light #Hallway) → 'hallway+light.…')의 셀이
+    실행이 읽는 키에 도달하지 못했다 (affine 분배 한정 under-exploration).
+    _read_key(월드 키)로 통일."""
     out: set = set()
-    reads: list = []
-    expr_reads(node, reads)
-    for k, nm in reads:
-        if k == "device":
-            if nm not in CAL_KEYS and nm != TS_KEY:
-                out.add(nm)
-        elif k == "var" and nm not in visiting:
-            vi = vars_.get(nm)
-            if vi and vi.role == "wire" and not vi.timestamp:
-                for d in defs.get(nm, []):
-                    out |= _closure_device_reads(d, defs, vars_,
-                                                 visiting | {nm})
+
+    def visit(n) -> None:
+        k = _read_key(n)
+        if k is not None:
+            if k not in CAL_KEYS and k != TS_KEY:
+                out.add(k)
+            return
+        if isinstance(n, expr_mod.VarRef):
+            nm = n.name
+            if nm not in visiting:
+                vi = vars_.get(nm)
+                if vi and vi.role == "wire" and not vi.timestamp:
+                    for d in defs.get(nm, []):
+                        out.update(_closure_device_reads(
+                            d, defs, vars_, visiting | {nm}))
+            return
+        if hasattr(n, "__dict__"):
+            for v in vars(n).values():
+                if isinstance(v, (list, tuple)):
+                    for x in v:
+                        if hasattr(x, "__dict__"):
+                            visit(x)
+                elif hasattr(v, "__dict__"):
+                    visit(v)
+
+    visit(node)
     return out
 
 DAY_MS = 86_400_000
