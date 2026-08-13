@@ -70,6 +70,64 @@ class ProductResult:
     notes: list = field(default_factory=list)
 
 
+@dataclass
+class ReplayResult:
+    confirmed: bool
+    at_step: int = -1        # 몇 번째 걸음에서 실제로 갈라졌나 (0-기준)
+    mirror_init: dict = field(default_factory=dict)
+    actions_a: tuple = ()
+    actions_b: tuple = ()
+    note: str = ""
+
+
+def replay_divergence(runner_a, runner_b, div: "Divergence",
+                      t0_ms: int | None = None) -> ReplayResult:
+    """반례 경로를 구체 상태로 되밟아 진짜 갈라짐인지 확인 (T2 복원).
+
+    탐색(BFS)은 정규화된 상태(키 병합·과근사)를 걷기 때문에 DIVERGE가
+    허위일 수 있다. 여기서는 병합 없이 실제 상태 dict를 끌고 기록된
+    입력·시간 경로를 그대로 다시 실행한다. 어느 걸음에서든 양쪽 액션이
+    실제로 다르면 확인(confirmed) — 반례 = 실행 가능한 입력 시퀀스.
+    거울 GV 초기값은 경로에 저장되지 않으므로 조합을 전부 시도한다.
+    """
+    t0_ms = T0_DEFAULT if t0_ms is None else t0_ms
+    axes = merge_axes(runner_a.axes, runner_b.axes)
+    ext_gv = {k[4:] for k in axes.cells if k.startswith("@gv:")}
+    seq = list(div.path) + [(div.input_, div.dwell_ms)]
+
+    def split(i: dict) -> tuple[dict, dict]:
+        return ({k: v for k, v in i.items() if not k.startswith("@gv:")},
+                {k[4:]: v for k, v in i.items() if k.startswith("@gv:")})
+
+    def own(gv: dict) -> dict:
+        return {k: v for k, v in gv.items() if k not in ext_gv}
+
+    mirror_inits = [dict(zip(axes.mirror_gv, vals)) for vals in
+                    itertools.product([None, False, True],
+                                      repeat=len(axes.mirror_gv))]
+    for m in mirror_inits:
+        gv0 = {k: v for k, v in m.items() if v is not None}
+        av, ag = {}, dict(gv0)
+        bv, bg = {}, dict(gv0)
+        now = t0_ms
+        for n, (i, d) in enumerate(seq):
+            if i is None:        # 기록 없는 걸음(방어) — 재생 불가
+                break
+            w, gvs = split(i)
+            now += d
+            ra = runner_a.step(av, {**ag, **gvs}, w, now, first_tick=(n == 0))
+            rb = runner_b.step(bv, {**bg, **gvs}, w, now, first_tick=(n == 0))
+            if _out(ra.actions) != _out(rb.actions) \
+                    or ra.terminated != rb.terminated:
+                return ReplayResult(True, n, gv0,
+                                    _out(ra.actions), _out(rb.actions))
+            if ra.terminated or rb.terminated:
+                break            # 양쪽 다 종료했고 액션도 같았음 — 이 초기값은 실패
+            av, ag = ra.vars, own(ra.gv)
+            bv, bg = rb.vars, own(rb.gv)
+    return ReplayResult(False, note="재생에서 갈라짐 없음 — 허위 반례 의심")
+
+
 def _canon(v):
     """비교용 인자 표기 통일: 100.0(JSON)과 100(코드)은 같은 값."""
     return int(v) if isinstance(v, float) and v.is_integer() else v
@@ -239,7 +297,7 @@ def product_runners(runner_a, runner_b, period_ms: int,
 
 # ── Driver: self-equivalence + seeded fault variants ─────────────────────────
 
-def _show(name: str, r: ProductResult) -> None:
+def _show(name: str, r: ProductResult, replay_with=None) -> None:
     print(f"{name[:44]:44s} {r.verdict:8s} 상태={r.n_states:<6d} "
           f"step={r.n_steps:<7d} {r.seconds:5.2f}s "
           f"{'닫힘' if r.closed else '미완'} {' '.join(r.notes)}")
@@ -248,6 +306,11 @@ def _show(name: str, r: ProductResult) -> None:
         print(f"    ↳ 반례: 깊이 {dv.depth}, 입력 {ia}, dwell {dv.dwell_ms/1000:.0f}s")
         print(f"      base : {list(dv.actions_a) or '(무발화)'}")
         print(f"      변형 : {list(dv.actions_b) or '(무발화)'}")
+        if replay_with:
+            rr = replay_divergence(replay_with[0], replay_with[1], dv)
+            tag = (f"확인 (걸음 {rr.at_step})" if rr.confirmed
+                   else f"허위? {rr.note}")
+            print(f"      재생 : {tag}")
 
 
 def main() -> None:
@@ -270,29 +333,35 @@ def main() -> None:
         assert out != code, f"no-op mutation: {old!r} not found"
         return out
 
-    print("\n== 고장 주입 변형 (전부 DIVERGE여야 함) ==")
+    print("\n== 고장 주입 변형 (전부 DIVERGE + 재생 확인이어야 함) ==")
+
+    def show_mut(name: str, base_src: str, mut_src: str, period: int) -> None:
+        ra = JoiRunner.from_src(base_src)
+        rb = JoiRunner.from_src(mut_src)
+        _show(name, product_runners(ra, rb, period), replay_with=(ra, rb))
+
     fire = by_name["화재 감지 알림"]
     mut1 = mutate(fire["code"], "30 * 60", "3 * 60")
-    _show("화재: cooldown 30분→3분 (단위류 오류)",
-          product_explore(fire["code"], mut1, int(fire["period"])))
+    show_mut("화재: cooldown 30분→3분 (단위류 오류)",
+             fire["code"], mut1, int(fire["period"]))
 
     sec = by_name["보안모드 자동제어"]
     mut2 = sec["code"].replace(
         "if (pushed == true and was_pushed == false)",
         "if (pushed == true)")
-    _show("보안모드: 엣지→레벨 (was_pushed 조건 삭제)",
-          product_explore(sec["code"], mut2, int(sec["period"])))
+    show_mut("보안모드: 엣지→레벨 (was_pushed 조건 삭제)",
+             sec["code"], mut2, int(sec["period"]))
 
     intr = by_name["보안모드 침입 감지"]
     mut3 = intr["code"].replace("now - grace_start > grace_sec",
                                 "now - grace_start >= grace_sec")
-    _show("침입: grace 경계 > → >= (1 tick 조기 발화)",
-          product_explore(intr["code"], mut3, int(intr["period"])))
+    show_mut("침입: grace 경계 > → >= (1 tick 조기 발화)",
+             intr["code"], mut3, int(intr["period"]))
 
     mut4 = intr["code"].replace("alert_cooldown := 600",
                                 "alert_cooldown := 60")
-    _show("침입: cooldown 600→60 (재알림 폭주)",
-          product_explore(intr["code"], mut4, int(intr["period"])))
+    show_mut("침입: cooldown 600→60 (재알림 폭주)",
+             intr["code"], mut4, int(intr["period"]))
 
 
 if __name__ == "__main__":

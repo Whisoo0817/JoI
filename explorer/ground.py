@@ -72,9 +72,19 @@ class GroundReport:
 
 
 class _G:
-    def __init__(self, devs: list[Dev]):
+    def __init__(self, devs: list[Dev], pick=None):
         self.devs = devs
+        self.pick = pick          # 단수 셀렉터가 여러 대와 맞을 때 고르는 규약
         self.report = GroundReport()
+
+    def _one(self, m: list[Dev], what: str) -> Dev:
+        if len(m) == 1:
+            return m[0]
+        if self.pick is not None:
+            return self.pick(m)
+        raise Unsupported(
+            f"{what} matches {len(m)} devices "
+            f"(binding must choose): {[d.id for d in m]}")
 
     # selector resolution -----------------------------------------------------
     def _sel(self, tags: tuple) -> list[Dev] | None:
@@ -140,11 +150,8 @@ class _G:
         sr = self._sel_read(node)
         if sr is not None:
             m, svc, member = sr
-            if len(m) == 1:
-                return expr_mod.DeviceRef(self._key(m[0], svc, member))
-            raise Unsupported(
-                f"selector matches {len(m)} devices in scalar position "
-                f"(binding must choose): {[d.id for d in m]}")
+            inst = self._one(m, "selector in scalar position")
+            return expr_mod.DeviceRef(self._key(inst, svc, member))
         if isinstance(node, jp.CallExpr) and node.args is not None:
             return self._ground_call(node, expect_one=True)[0]
         return node
@@ -159,11 +166,7 @@ class _G:
                                 tags=call.tags, quant=call.quant)]
         insts = m if (call.quant == "all" and not expect_one) else None
         if insts is None:
-            if len(m) != 1:
-                raise Unsupported(
-                    f"call selector matches {len(m)} devices "
-                    f"(binding must choose): {[d.id for d in m]}")
-            insts = m
+            insts = [self._one(m, "call selector")]
         return [jp.CallExpr(call.service, call.method, args,
                             tags=(inst.id,), quant=None) for inst in insts]
 
@@ -239,8 +242,8 @@ def _subst(node: Any, var: str, ref: Any) -> Any:
     return node
 
 
-def ground(stmts: list, devs: list[Dev]) -> tuple[list, GroundReport]:
-    g = _G(devs)
+def ground(stmts: list, devs: list[Dev], pick=None) -> tuple[list, GroundReport]:
+    g = _G(devs, pick)
     return g._body(stmts), g.report
 
 

@@ -411,17 +411,24 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
             # 바인딩 값: 태그 그룹 목록. IR op 수(k)와 그룹 수(g)로 배정 —
             # k==g면 등장 순서대로 1:1, k==1<g면 집합 바인딩(op 하나가 그룹
             # 전체로 언롤, §9.4), 그 외엔 첫 그룹.
+            # 자리별 명세(값이 list의 list — [자리i][그룹j]=태그 튜플)면
+            # i번째 call 자리가 자기 그룹들로 언롤 (게이트가 바인딩 표에서
+            # 만들어 넘기는 형식, §9.10).
             raw = (bind or {}).get((csvc, cm))
-            if raw and not isinstance(raw[0], (list, tuple)):
-                raw = [tuple(raw)]           # 옛 형식(태그 튜플 하나) 허용
-            groups = [tuple(g) for g in raw] if raw else [(svc,)]
-            k = call_counts.get((csvc, cm), 1)
             i_op = call_seen.get((csvc, cm), 0)
             call_seen[(csvc, cm)] = i_op + 1
-            if k == len(groups):
-                groups = [groups[i_op]]
-            elif k != 1:
-                groups = [groups[0]]
+            if raw and isinstance(raw[0], list):
+                site = raw[i_op] if i_op < len(raw) else raw[-1]
+                groups = [tuple(g) for g in site]
+            else:
+                if raw and not isinstance(raw[0], (list, tuple)):
+                    raw = [tuple(raw)]       # 옛 형식(태그 튜플 하나) 허용
+                groups = [tuple(g) for g in raw] if raw else [(svc,)]
+                k = call_counts.get((csvc, cm), 1)
+                if k == len(groups):
+                    groups = [groups[i_op]]
+                elif k != 1:
+                    groups = [groups[0]]
             args = tuple(carg(v) for v in (node.get("args") or {}).values())
             v = node.get("var", "")
             if v:
