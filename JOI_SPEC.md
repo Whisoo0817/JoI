@@ -68,7 +68,7 @@ Generation reads `connected_devices` to resolve phrases → tags/categories.
 ---
 
 ## 3. Joi Code Generation Pipeline (device-first, IR-mediated)
-The active pipeline lives in `paper/run_local_ir.py` (`generate_joi_code`). It compiles a Korean/English command into a Joi block through a **Timeline IR**. LLM stages are interleaved with **deterministic Python** steps (grounding resolution, selector-tag minimization, quantifier choice) so small local models never decide what code can compute exactly.
+The active pipeline lives in `joi/generate.py` (`generate_joi_code`). It compiles a Korean/English command into a Joi block through a **Timeline IR**. LLM stages are interleaved with **deterministic Python** steps (grounding resolution, selector-tag minimization, quantifier choice) so small local models never decide what code can compute exactly.
 
 ### Stage 1 — Targeting
 1.  **`device_retrieve`** (LLM, command only — does NOT see devices): parses the command into target groups, one per line: `role=<condition|read|action|notify> | by=label:<verbatim phrase>|channel:<speaker,toast> | scope=<all|any|one|auto>`.
@@ -81,7 +81,7 @@ The active pipeline lives in `paper/run_local_ir.py` (`generate_joi_code`). It c
 The command is translated to English for the IR/lowering prompts; the original Korean is retained for human-facing arg text (Speaker/Toast/Email).
 
 ### Stage 3 — Resolve + IR extraction (parallel branches)
-*   **Branch A**: `enum_cond_check` → `enum_resolve` → `arg_resolve` (fill argument values) → `timeline_ir_extract` (the LLM emits the selector-free Timeline IR; validated against devices + catalog with a bounded retry).
+*   **Branch A**: `enum_cond_check` → `enum_resolve` → `arg_resolve` (fill argument values) → `ir_extract` (the LLM emits the selector-free Timeline IR; validated against devices + catalog with a bounded retry).
 *   **Branch B**: the precision selectors produced in Stage 1.
 The IR is selector-free, so the two branches are independent.
 
@@ -91,7 +91,7 @@ The Timeline IR + precision selectors are mechanically lowered to a Joi block `{
 ### Stage 5 — Naming
 `re_translate` (code → English NL) → `re_translate_kor` (→ Korean NL for Korean input) → `scenario_name` (short label used as `name`).
 
-**Timeline IR** is the pipeline's pivot: temporal/trigger logic is resolved into IR ops (`start_at`, `wait`, `cycle`, `if`, `call`, `read`, `delay`, `break`), then lowering picks the Joi idiom. See `paper/timeline_ir_extractor.md`, `files/joi_common.md`, `files/joi_noncycle.md`, `files/joi_cycle.md`.
+**Timeline IR** is the pipeline's pivot: temporal/trigger logic is resolved into IR ops (`start_at`, `wait`, `cycle`, `if`, `call`, `read`, `delay`, `break`), then lowering picks the Joi idiom. See `files/ir_extractor.md`, `files/joi_common.md`, `files/joi_noncycle.md`, `files/joi_cycle.md`.
 
 ---
 
@@ -105,10 +105,13 @@ FastAPI service wrapping `generate_joi_code`. Prompts and the service catalog lo
   "model": "cyankiwi/Ornith-1.0-9B-AWQ-FP8",
   "connected_devices": { "...": { "category": [], "tags": [] } },
   "current_time": "2026-06-23T02:13:31",
-  "other_params": null
+  "other_params": null,
+  "current_code": null
 }
 ```
-Response is a `JoiLLMResponse` (`schemas.py`): `outcome`, `error_code`/`error_message`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs` — the per-stage reasoning trace). Errors are typed (e.g. `device_not_connected`, `reasoning_failed`, `ir_catalog_*`).
+`current_code` is optional. When it carries a previously generated JoI block,
+`sentence` is read as an edit request against that block instead of a fresh command.
+Response is a `JoiLLMResponse` (`schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs` — the per-stage reasoning trace). Errors are typed (e.g. `no_suitable_device`, `reasoning_failed`, `ir_catalog_*`).
 
 Other endpoints: **`GET /health`**.
 
