@@ -21,7 +21,7 @@ Compression is not summarization: every projection is a quotient of the
 edge set, and the rows partition it. `paths()` reports the edge count each
 row stands for so nothing is silently dropped.
 
-Run:  python -m simulator.project
+Run:  python -m explorer.project
 """
 
 from __future__ import annotations

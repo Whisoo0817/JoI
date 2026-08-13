@@ -28,7 +28,7 @@ emitters never jump, so no multiplicity is lost).
 Pre-flight `finiteness_check` refuses exploration when a carried variable
 fits none of the finite shapes — surfaced by name, never a silent hang.
 
-Run:  python -m simulator.explore     (door demo + all periodic scenarios)
+Run:  python -m explorer.explore     (door demo + all periodic scenarios)
 """
 
 from __future__ import annotations

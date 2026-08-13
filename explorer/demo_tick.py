@@ -1,6 +1,6 @@
 """Tick-by-tick walkthrough of interp.step on the weekend-door-light example.
 
-Run:  python -m simulator.demo_tick   (from /home/gnltnwjstk/joi)
+Run:  python -m explorer.demo_tick   (from /home/gnltnwjstk/joi)
 
 Prints, for each tick: the inputs fed in, the variable store after the tick,
 and any emitted actions — the "beginner view" of what one step() call does.

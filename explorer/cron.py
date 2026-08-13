@@ -17,7 +17,7 @@ Equivalent tick model, explored with the ordinary machinery:
 Supported specs: minute/hour = `*` or int; day-of-week = `*` or 0-7
 (0/7 = sunday); day-of-month and month must be `*` (else Unsupported).
 
-Run:  python -m simulator.cron   (강수예보 · 주간미팅 exploration + obligations)
+Run:  python -m explorer.cron   (강수예보 · 주간미팅 exploration + obligations)
 """
 
 from __future__ import annotations

@@ -16,7 +16,7 @@ Semantics: all members share the tick grid (equal periods asserted); one
 composite tick runs every member once, in list order, threading the GV
 store. Order sensitivity is measured, not assumed away.
 
-Run:  python -m simulator.composite   (재실감지 → 보안모드 → 침입감지 3-체인)
+Run:  python -m explorer.composite   (재실감지 → 보안모드 → 침입감지 3-체인)
 """
 
 from __future__ import annotations

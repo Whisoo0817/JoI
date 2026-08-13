@@ -10,7 +10,7 @@ percentage remainder.
 
 Output: stdout + runs/e1.md (markdown, commit-ready).
 
-Run:  python -m simulator.e1
+Run:  python -m explorer.e1
 """
 
 from __future__ import annotations

@@ -11,7 +11,7 @@ time, within the fragment.
 Cells/thresholds are the UNION of both sides' predicates, so the input
 partition is fine enough for whichever program distinguishes more.
 
-Run:  python -m simulator.product   (self-checks + seeded fault variants)
+Run:  python -m explorer.product   (self-checks + seeded fault variants)
 """
 
 from __future__ import annotations

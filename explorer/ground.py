@@ -24,7 +24,7 @@ default the simulator should invent.
 The library takes plain device tuples; only the __main__ demo imports the
 adapt/ inventory (keeps this package self-contained).
 
-Run:  python -m simulator.ground   (bindings report + grounded exploration
+Run:  python -m explorer.ground   (bindings report + grounded exploration
                                     + the k=1 vs k=2 quantifier demo)
 """
 

@@ -15,7 +15,7 @@ idioms):
    hidden preconditions ("occupancy must exist before this runs") and go
    into the certificate as environment requirements.
 
-Run:  python -m simulator.obligations   (base_office-grounded corpus report)
+Run:  python -m explorer.obligations   (base_office-grounded corpus report)
 """
 
 from __future__ import annotations

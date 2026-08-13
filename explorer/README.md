@@ -1,4 +1,4 @@
-# simulator/ — 이산화 전수 탐색기 (신규, 자족 패키지)
+# explorer/ — 이산화 전수 탐색기 (신규, 자족 패키지)
 
 ## 현황 요약 (2026-08-01 마감 시점)
 
@@ -8,7 +8,7 @@
 EQUIV·미해명 술어 0. 고장 주입 **7클래스 전부 검출**(경계·시간상수·
 엣지→레벨·재알림·재배선·점유겹침·quantifier k=1/k=2). 진짜 발견=재실감지
 SEED-DEP 1건. 임의 신규 시나리오도 JoI+period+인벤토리만 있으면 즉시 판정
-(온도-조명 예시로 확인). `python -m simulator.e1` 한 번(114s)이 논문 표 생성.
+(온도-조명 예시로 확인). `python -m explorer.e1` 한 번(114s)이 논문 표 생성.
 
 **보류(TODO)**: P4 복합 곱(composite.py 미검증)·전 구역 충돌 깔때기.
 **대기**: 실기기 목록·GV 스토어·센서 도메인/단위 (유저 제공).
@@ -23,7 +23,7 @@ SEED-DEP 1건. 임의 신규 시나리오도 JoI+period+인벤토리만 있으�
 | `expr.py` | 표현식 AST + 평가기 (sim/ 복사본) |
 | `joi_parser.py` | JoI 스크립트 → 문장 AST (sim/ 복사본 + `loop` 구문·`OP|` 보존) |
 | `interp.py` | 순수 1-tick step 함수 (+OpaqueToken, AbortTickStmt) |
-| `demo_tick.py` | tick 단위 실행 데모 (`python -m simulator.demo_tick`) |
+| `demo_tick.py` | tick 단위 실행 데모 (`python -m explorer.demo_tick`) |
 | `predicates.py` | 변수 3분류(경로-지역 스캔) + 술어 단편 판정 |
 | `explore.py` | BFS+메모, zone/포화/달력구간 정규화, 증인 게이트 점프, 축 도출 |
 | `product.py` | base×변형 lockstep 곱 = 동치 판정 + 반례 경로 |
@@ -274,7 +274,7 @@ under-exploration 오류들은 vacuity가 적발했지만, 과탐색은 반대�
 
 ## e1.py — E1 전수 판정 표 하네스 (2026-08-01, 단일 시나리오 마감)
 
-- `python -m simulator.e1` 한 번(114s) → `runs/e1.md` 기계 생성.
+- `python -m explorer.e1` 한 번(114s) → `runs/e1.md` 기계 생성.
 - 표 1: 시나리오 10행 전수 — 술어(단편/GROUND/미해명), 상태·에지·닫힘,
   자기동치, 의무 판정, 비고(cron·부유). **10/10 닫힘·EQUIV, 발견은
   SEED-DEP 1건뿐, 미해명 0.**

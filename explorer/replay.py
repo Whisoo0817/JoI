@@ -29,7 +29,7 @@ Only VACUOUS is a verdict. The rest are observations bounded by the window,
 and they are reported with the window and its gaps so nobody reads absence
 of evidence as evidence of absence.
 
-Run:  python -m simulator.replay   (synthetic traces until real logs land)
+Run:  python -m explorer.replay   (synthetic traces until real logs land)
 """
 
 from __future__ import annotations

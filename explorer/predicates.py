@@ -13,7 +13,7 @@ Two questions, both answered from the AST alone (no execution):
    the fragment admit exact discretization; anything else lands in REVIEW and
    is listed verbatim — that list is the honest boundary of the claim.
 
-Run:  python -m simulator.predicates   (from /home/gnltnwjstk/joi)
+Run:  python -m explorer.predicates   (from /home/gnltnwjstk/joi)
 """
 
 from __future__ import annotations
