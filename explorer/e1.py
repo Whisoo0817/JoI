@@ -151,7 +151,7 @@ def main() -> None:
     from adapt.inventory import base_office
 
     devs = from_adapt(base_office())
-    data = json.load(open("paper_v2/joi_automation_codes.json"))
+    data = json.load(open("explorer/corpus/joi_automation_codes.json"))
     t0 = _time.time()
     srows = scenario_rows(data, devs)
     frows = fault_rows(data, devs)

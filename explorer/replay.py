@@ -207,7 +207,7 @@ def main() -> None:
 
     devs = from_adapt(base_office())
     data = {s["name"]: s for s in
-            json.load(open("paper_v2/joi_automation_codes.json"))}
+            json.load(open("explorer/corpus/joi_automation_codes.json"))}
     s = data["온습도 자동 제어"]
     stmts, _ = ground(parse(s["code"]), devs)
     period = int(s["period"])

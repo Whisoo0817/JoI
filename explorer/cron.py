@@ -104,7 +104,7 @@ def main() -> None:
     from .obligations import check, _fmt
 
     devs = from_adapt(base_office())
-    data = json.load(open("paper_v2/joi_automation_codes.json"))
+    data = json.load(open("explorer/corpus/joi_automation_codes.json"))
     for s in data:
         cron = s.get("cron", "")
         if cron in ("", "x", None):

@@ -798,7 +798,7 @@ def main() -> None:
           f"{'닫힘':>4s} {'시간':>7s}  액션 종류")
     targets = [("문-불 데모 (period 1s)", DOOR_SRC, 1000,
                 28 * DAY_MS + SAT_14H)]   # +28d keeps Saturday
-    data = json.load(open("paper_v2/joi_automation_codes.json"))
+    data = json.load(open("explorer/corpus/joi_automation_codes.json"))
     for s in data:
         if s.get("cron") not in ("", "x", None):
             targets.append((s["name"] + " [cron→스킵]", None, 0, 0))

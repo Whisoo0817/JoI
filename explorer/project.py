@@ -167,7 +167,7 @@ def main() -> None:
     from .interp import parse
 
     devs = from_adapt(base_office())
-    data = json.load(open("paper_v2/joi_automation_codes.json"))
+    data = json.load(open("explorer/corpus/joi_automation_codes.json"))
     for name in ("온습도 자동 제어", "보안모드 자동제어", "재실기반 절전 제어"):
         s = next(x for x in data if x["name"] == name)
         stmts, _ = ground(parse(s["code"]), devs)

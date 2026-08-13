@@ -196,7 +196,7 @@ def main() -> None:
     from .ground import from_adapt, ground
 
     devs = from_adapt(base_office())
-    data = json.load(open("paper_v2/joi_automation_codes.json"))
+    data = json.load(open("explorer/corpus/joi_automation_codes.json"))
     print(f"{'시나리오':26s} {'정적':>4s} {'발화':>4s}  판정")
     for s in data:
         if s.get("cron") not in ("", "x", None):

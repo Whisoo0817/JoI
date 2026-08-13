@@ -254,7 +254,7 @@ def main() -> None:
     from .product import product_explore
 
     devs = from_adapt(base_office())
-    data = json.load(open("paper_v2/joi_automation_codes.json"))
+    data = json.load(open("explorer/corpus/joi_automation_codes.json"))
 
     print("== base_office 그라운딩 + 탐색 (ForEach 2건 편입 목표) ==")
     for s in data:

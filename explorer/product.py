@@ -235,7 +235,7 @@ def _show(name: str, r: ProductResult) -> None:
 
 def main() -> None:
     import json
-    data = json.load(open("paper_v2/joi_automation_codes.json"))
+    data = json.load(open("explorer/corpus/joi_automation_codes.json"))
     by_name = {s["name"]: s for s in data}
 
     print("== 자기동치 (base × base → 전부 EQUIV여야 함) ==")

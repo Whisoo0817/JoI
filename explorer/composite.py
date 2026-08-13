@@ -231,7 +231,7 @@ def main() -> None:
 
     devs = from_adapt(base_office())
     data = {s["name"]: s for s in
-            json.load(open("paper_v2/joi_automation_codes.json"))}
+            json.load(open("explorer/corpus/joi_automation_codes.json"))}
     chain = ["재실 상태 감지", "보안모드 자동제어", "보안모드 침입 감지"]
     specs = []
     for nm in chain:

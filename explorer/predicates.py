@@ -507,7 +507,7 @@ def analyze(name: str, src: str) -> dict:
 
 
 def main() -> None:
-    data = json.load(open("paper_v2/joi_automation_codes.json"))
+    data = json.load(open("explorer/corpus/joi_automation_codes.json"))
     grand_in = grand_tot = 0
     reviews: list[tuple[str, Pred]] = []
     print(f"{'시나리오':26s} {'state(ts)':>9s} {'술어':>4s} {'단편내':>5s}  클래스 분포")
