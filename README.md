@@ -29,8 +29,10 @@ bash start_qwen36_5090.sh    # serves on http://localhost:8002/v1 by default
 # 3. Start the generation API
 python app.py                # FastAPI on port 49999
 
-# 4. Quick local run (edit the COMMANDS list in run.py)
-python run.py
+# 4. Local runs (unified entry point: test.py)
+python test.py target            # full pipeline over dataset test_targets (verifier ON, Stage-B repro)
+JOI_VERIFY=0 python test.py target   # E2E only, verifier OFF (replaces the old run.py)
+python test.py custom            # single interactive command
 ```
 
 The backend endpoint is configured via `LLM_BASE_URL` (default `http://localhost:8002/v1`).
