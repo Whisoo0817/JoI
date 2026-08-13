@@ -26,6 +26,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .explore import Axes
+from .expr import canonical_key
 from .interp import Action, OpaqueToken, StepResult, Unsupported
 from .predicates import VarInfo
 
@@ -186,7 +187,7 @@ class Ins:
     succ: int = 0             # WAIT 성공 시 / IF 거짓 시 / GOTO 목적지
     svc: str = ""
     method: str = ""
-    tag: str = ""
+    tags: tuple = ()
     args: tuple = ()          # ('lit', v) | ('var', nm) 목록
     var: str = ""             # READ/CALL 담을 변수
     key: str = ""             # READ 센서 키
@@ -199,7 +200,8 @@ class Ins:
 
 def default_to_key(name: str) -> str:
     svc, attr = name.split(".", 1)
-    return f"{svc.lower()}.{attr.lower()}"
+    csvc, cattr = canonical_key(svc, attr)
+    return f"{csvc}.{cattr}"
 
 
 @dataclass
@@ -210,8 +212,12 @@ class IrProgram:
     var_keys: dict[str, str]          # read 변수 → 센서 키 (축 배분용)
 
 
-def compile_ir(ir: dict, name_map: dict[str, str] | None = None) -> IrProgram:
-    to_key = (lambda n: (name_map or {}).get(n) or default_to_key(n))
+def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
+               bind: dict[tuple, tuple] | None = None) -> IrProgram:
+    """name_map: canonical 'svc.attr' → 월드 키 (방 태그 포함) 덮어쓰기.
+    bind: canonical (svc, method) → 셀렉터 태그 튜플 (액션 타깃 바인딩)."""
+    to_key = (lambda n: (name_map or {}).get(default_to_key(n))
+              or default_to_key(n))
     tl = list(ir["timeline"])
     if not tl or tl[0].get("op") != "start_at":
         raise Unsupported("timeline must open with start_at")
@@ -275,6 +281,8 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None) -> IrProgram:
     def carg(v: Any) -> tuple:
         if isinstance(v, str) and v.startswith("$"):
             return ("var", v[1:])
+        if isinstance(v, float) and v.is_integer():
+            v = int(v)          # JSON의 100.0 ↔ JoI 코드의 100 표기 통일
         return ("lit", v)
 
     def emit(node: dict, iter_end: int | None, cyc_exit: list[int]) -> None:
@@ -283,12 +291,14 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None) -> IrProgram:
         op = node.get("op")
         if op == "call":
             svc, method = node["target"].split(".", 1)
+            csvc, cm = canonical_key(svc, method)
+            tags = (bind or {}).get((csvc, cm), (svc,))
             args = tuple(carg(v) for v in (node.get("args") or {}).values())
             v = node.get("var", "")
             if v:
                 vinfo[v] = VarInfo("state")
-            ins.append(Ins("CALL", svc=svc.lower(), method=method.lower(),
-                           tag=svc, args=args, var=v))
+            ins.append(Ins("CALL", svc=csvc, method=cm, tags=tags,
+                           args=args, var=v))
         elif op == "read":
             key = to_key(node["src"])
             v = node["var"]
@@ -476,7 +486,7 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None) -> IrProgram:
 def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
             now_ms: int, first_tick: bool = False) -> StepResult:
     vars_ = dict(vars_in)
-    now_sec = now_ms // 1000
+    now_sec = now_ms / 1000          # 소수 초 (100ms 주기 지원)
     actions: list[Action] = []
     pc = int(vars_.get("pc", 0))
     fuel = FUEL_CAP
@@ -492,9 +502,9 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
             break
         if x.kind == "CALL":
             act = Action(x.svc, x.method, tuple(argv(a) for a in x.args),
-                         (x.tag,))
+                         x.tags)
             if x.var:
-                vars_[x.var] = OpaqueToken(x.svc, (x.tag,), x.method)
+                vars_[x.var] = OpaqueToken(x.svc, x.tags, x.method)
             actions.append(act)
             pc += 1
         elif x.kind == "READ":
@@ -508,7 +518,7 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
             reg = f"d{pc}"
             if not vars_.get(reg):
                 vars_[reg] = now_sec
-            if now_sec - vars_[reg] >= x.for_sec:
+            if now_ms - round(vars_[reg] * 1000) >= round(x.for_sec * 1000):
                 vars_[reg] = 0
                 pc += 1
             else:
@@ -521,7 +531,7 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
                 if ok:
                     if not vars_.get(reg):
                         vars_[reg] = now_sec
-                    fired = now_sec - vars_[reg] >= x.for_sec
+                    fired = now_ms - round(vars_[reg] * 1000) >= round(x.for_sec * 1000)
                 else:
                     vars_[reg] = 0
             elif x.edge == "rising":
@@ -541,7 +551,7 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
                 reg = f"t{pc}"
                 if not vars_.get(reg):
                     vars_[reg] = now_sec
-                if now_sec - vars_[reg] >= x.to_sec:
+                if now_ms - round(vars_[reg] * 1000) >= round(x.to_sec * 1000):
                     vars_[f"s{pc}"] = 0
                     vars_[f"t{pc}"] = 0
                     pc += 1                # on_timeout 블록으로
@@ -560,7 +570,7 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
             if not vars_.get(reg):
                 vars_[reg] = now_sec
                 pc += 1
-            elif now_sec - vars_[reg] >= x.period:
+            elif now_ms - round(vars_[reg] * 1000) >= round(x.period * 1000):
                 vars_[reg] = now_sec
                 pc += 1
             else:
@@ -585,10 +595,11 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
 
 class IrRunner:
     def __init__(self, ir: dict | str,
-                 name_map: dict[str, str] | None = None) -> None:
+                 name_map: dict[str, str] | None = None,
+                 bind: dict[tuple, tuple] | None = None) -> None:
         if isinstance(ir, str):
             ir = json.loads(ir)
-        self.prog = compile_ir(ir, name_map)
+        self.prog = compile_ir(ir, name_map, bind)
         self.vars_info = self.prog.vars_info
         self.axes = self.prog.axes
 

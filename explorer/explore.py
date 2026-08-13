@@ -472,7 +472,7 @@ def _hour_region(hour: int, hours: list[int]) -> int:
 
 def normalize(vars_: dict, gv: dict, now_ms: int,
               vinfo: dict[str, VarInfo], axes: Axes) -> tuple:
-    now_sec = now_ms // 1000
+    now_sec = now_ms / 1000
     regs: list = []
     ts_vals: list[tuple[str, float]] = []
     tmax = max(axes.ts_thresholds) if axes.ts_thresholds else 0.0
@@ -516,7 +516,7 @@ def normalize(vars_: dict, gv: dict, now_ms: int,
 def next_event_ms(vars_: dict, now_ms: int, vinfo: dict[str, VarInfo],
                   axes: Axes) -> int | None:
     cands: list[int] = []
-    now_sec = now_ms // 1000
+    now_sec = now_ms / 1000
     for nm, vi in vinfo.items():
         if vi.role == "state" and vi.timestamp and vars_.get(nm):
             v = vars_[nm]
@@ -559,7 +559,7 @@ def _cal_cell(now_ms: int, axes: Axes) -> tuple:
 
 def _ts_regions(vars_: dict, now_ms: int, vinfo: dict, axes: Axes) -> tuple:
     from bisect import bisect_left
-    now_sec = now_ms // 1000
+    now_sec = now_ms / 1000
     tmax = max(axes.ts_thresholds) if axes.ts_thresholds else 0.0
     out = []
     for nm in sorted(vinfo):
@@ -580,7 +580,7 @@ def next_key_change_ms(vars_: dict, now_ms: int, vinfo: dict,
     its successor is dropped as already-visited and time never advances —
     the weekly ladder needs a jump that lands somewhere genuinely new."""
     cands: set[int] = set()
-    now_sec = now_ms // 1000
+    now_sec = now_ms / 1000
     for nm, vi in vinfo.items():
         if vi.role == "state" and vi.timestamp and vars_.get(nm):
             for t in axes.ts_thresholds:
