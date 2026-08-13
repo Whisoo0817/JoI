@@ -34,7 +34,8 @@ FUEL_CAP = 4_096          # tick 하나에서 실행할 수 있는 명령 수 �
 
 # ── 시간 단위 ────────────────────────────────────────────────────────────────
 
-_UNIT = {"MS": 0.001, "SEC": 1, "MIN": 60, "HOUR": 3600, "DAY": 86400}
+_UNIT = {"MS": 0.001, "MSEC": 0.001, "SEC": 1, "MIN": 60, "HOUR": 3600,
+         "DAY": 86400}
 
 
 def parse_duration(v: Any) -> float:
@@ -53,7 +54,7 @@ def parse_duration(v: Any) -> float:
 # unary := 'not' u | '-' u | atom
 # atom := NUM | STR | true/false/null | abs(expr) | $var | Name.Name | (expr)
 
-_TOKEN = re.compile(r"\s*(>=|<=|==|!=|>|<|\(|\)|\+|-|\*|/|"
+_TOKEN = re.compile(r"\s*(>=|<=|==|!=|>|<|\(|\)|\+|-|\*|/|%|"
                     r"\$\w+|\"[^\"]*\"|'[^']*'|[\d.]+|\w+(?:\.\w+)*)")
 _CMP = (">=", "<=", "==", "!=", ">", "<")
 
@@ -105,7 +106,7 @@ def parse_cond(src: str, to_key) -> tuple:
             return ("lit", None)
         if "." in t:
             return ("read", to_key(t), t)
-        raise Unsupported(f"cond name: {t!r} (변수는 $이름)")
+        return ("var", t)      # 점 없는 이름 = 변수 (read/call/카운터)
 
     def unary() -> tuple:
         if peek() == "not":
@@ -124,7 +125,7 @@ def parse_cond(src: str, to_key) -> tuple:
             return e
         return rule
 
-    expr_mul = level(("*", "/"), unary)
+    expr_mul = level(("*", "/", "%"), unary)
     expr_add = level(("+", "-"), expr_mul)
 
     def expr_cmp() -> tuple:
@@ -167,7 +168,8 @@ def eval_cond(n: tuple, vars_: dict, inputs: dict) -> Any:
         return False if op in _CMP else None
     try:
         return {">": l > r, ">=": l >= r, "<": l < r, "<=": l <= r,
-                "+": l + r, "-": l - r, "*": l * r, "/": l / r}[op]
+                "+": l + r, "-": l - r, "*": l * r, "/": l / r,
+                "%": l % r if r else None}[op]
     except TypeError:
         return False if op in _CMP else None
 
@@ -191,6 +193,8 @@ class Ins:
     period: float = 0.0       # TOP
     count: int = 0            # TOP (0 = 무제한)
     idx: int = 0              # TOP/END_ITER 쌍 번호
+    cname: str = ""           # 반복 카운터 변수 이름 ("" = 안 셈)
+    mod: int = 0              # 카운터를 접는 나머지 (modulo 전용 카운터)
 
 
 def default_to_key(name: str) -> str:
@@ -225,8 +229,11 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None) -> IrProgram:
     ts_thresholds: set[float] = set()
     counter_caps: dict[str, float] = {}
     n_cycle = [0]
+    all_conds: list[tuple] = []           # 카운터 사용 후분석용
+    counter_sites: dict[str, list[Ins]] = {}   # 이름 카운터 → TOP/END_ITER
 
     def note_axes(cond: tuple) -> None:
+        all_conds.append(cond)
         """비교식의 (op, 상수)를 관련된 모든 센서 키에 배분 (과분할=안전)."""
         def reads_in(n, out):
             if n[0] == "read":
@@ -346,20 +353,32 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None) -> IrProgram:
                      if node.get("until") else None)
             if until is not None:
                 note_axes(until)
-            count = int(node.get("count") or 0)
+            # count가 숫자면 그만큼 반복, 이름이면 "반복 횟수를 그 이름의
+            # 변수로 노출" (until이나 조건이 참조; 접는 방식은 후분석)
+            raw = node.get("count")
+            count, cname = 0, ""
+            if isinstance(raw, str) and raw.strip() and not raw.strip().isdigit():
+                cname = raw.strip()
+            elif raw:
+                count, cname = int(raw), f"n{k}"
             i_top = len(ins)
-            ins.append(Ins("TOP", cond=until, period=period, count=count, idx=k))
+            top = Ins("TOP", cond=until, period=period, count=count, idx=k,
+                      cname=cname)
+            ins.append(top)
             vinfo[f"c{k}"] = VarInfo("state", timestamp=True)
-            if count:      # 무제한 cycle은 세지 않는다 — 생값 카운터가
-                           # 상태 키에 들어가면 상태가 무한히 늘어난다
-                vinfo[f"n{k}"] = VarInfo("state", init=0)
-                counter_caps[f"n{k}"] = float(count)
+            if cname:
+                vinfo[cname] = VarInfo("state", init=0)
+            if count:      # 숫자 count는 포화 상한이 곧 정해짐
+                counter_caps[cname] = float(count)
             my_exit: list[int] = []
             i_end = [None]
             for ch in node.get("body") or []:
                 emit(ch, None, my_exit)   # iter_end는 아래에서 일괄 패치
             i_end[0] = len(ins)
-            ins.append(Ins("END_ITER", succ=i_top, idx=k, count=count))
+            end = Ins("END_ITER", succ=i_top, idx=k, count=count, cname=cname)
+            ins.append(end)
+            if cname and not count:       # 이름 카운터: 접는 방식 후분석 대상
+                counter_sites.setdefault(cname, []).extend([top, end])
             ins[i_top].succ = len(ins)    # until/count 충족 시 탈출 번지
             for a in my_exit:
                 ins[a].succ = len(ins)
@@ -385,6 +404,51 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None) -> IrProgram:
     for a, x in enumerate(ins):
         if x.kind == "GOTO" and x.succ == -1:
             x.kind, x.succ = "END", 0
+
+    # 이름 카운터 후분석: 조건에서 어떻게 쓰였는지에 따라 접는 방식 결정.
+    # %k만 쓰면 증가할 때 나머지로 접고(라운드로빈), 크기/등호 비교만 쓰면
+    # 최대 상수에서 포화. 둘 다 쓰면 아직 못 다룬다. 아무도 안 읽으면
+    # 아예 세지 않는다(생값이 상태 키에 들어가 상태가 무한해지는 것 방지).
+    def counter_uses(c: str) -> tuple[list, list]:
+        mods, caps = [], []
+
+        def walk(n):
+            if not isinstance(n, tuple):
+                return
+            if n[0] == "bin":
+                op, l, r = n[1], n[2], n[3]
+                if op == "%" and l == ("var", c) and r[0] == "lit":
+                    mods.append(int(r[1]))
+                if op in _CMP:
+                    for a_, b_ in ((l, r), (r, l)):
+                        if a_ == ("var", c) and b_[0] == "lit" \
+                                and isinstance(b_[1], (int, float)) \
+                                and not isinstance(b_[1], bool):
+                            caps.append(float(b_[1]))
+                walk(l)
+                walk(r)
+            elif n[0] in ("abs", "not"):
+                walk(n[1])
+        for cond in all_conds:
+            walk(cond)
+        return mods, caps
+
+    for c, sites in counter_sites.items():
+        mods, caps = counter_uses(c)
+        if mods and caps:
+            raise Unsupported(f"counter {c}: %와 크기 비교 혼용")
+        if mods:
+            from math import gcd
+            m = mods[0]
+            for x in mods[1:]:
+                m = m * x // gcd(m, x)
+            for s in sites:
+                s.mod = m
+        elif caps:
+            counter_caps[c] = max(caps)
+        else:
+            for s in sites:
+                s.cname = ""
 
     cells: dict[str, list] = {}
     for k, oc in num_consts.items():
@@ -484,10 +548,12 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
                     continue
             break
         elif x.kind == "TOP":
+            if x.cname and x.cname not in vars_:
+                vars_[x.cname] = 0        # 조건이 첫 회차부터 읽을 수 있게
             if x.cond is not None and eval_cond(x.cond, vars_, inputs):
                 pc = x.succ
                 continue
-            if x.count and vars_.get(f"n{x.idx}", 0) >= x.count:
+            if x.count and vars_.get(x.cname, 0) >= x.count:
                 pc = x.succ
                 continue
             reg = f"c{x.idx}"
@@ -500,8 +566,11 @@ def ir_step(prog: IrProgram, vars_in: dict, gv_in: dict, inputs: dict,
             else:
                 break
         elif x.kind == "END_ITER":
-            if x.count:
-                vars_[f"n{x.idx}"] = vars_.get(f"n{x.idx}", 0) + 1
+            if x.cname:
+                v = vars_.get(x.cname, 0) + 1
+                if x.mod:
+                    v %= x.mod
+                vars_[x.cname] = v
             vars_["pc"] = x.succ           # 다음 tick에 TOP부터
             return StepResult(vars_, gv_in, actions)
         else:
