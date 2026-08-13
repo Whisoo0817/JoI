@@ -20,11 +20,10 @@ import itertools
 import time as _time
 from dataclasses import dataclass, field
 
-from . import joi_parser as jp
-from .interp import Unsupported, parse, step
-from .predicates import classify_vars, walk_stmts
-from .explore import (Axes, T0_DEFAULT, derive_axes, finiteness_check,
-                      next_event_ms, next_key_change_ms, normalize)
+from .explore import (Axes, T0_DEFAULT, next_event_ms, next_key_change_ms,
+                      normalize)
+from .interp import Unsupported
+from .runner import JoiRunner
 
 STATE_CAP = 400_000
 STEP_CAP = 4_000_000
@@ -78,18 +77,22 @@ def _out(actions) -> tuple:
 def product_explore(src_a: str | list, src_b: str | list, period_ms: int,
                     t0_ms: int | None = None,
                     max_diverge: int = 3) -> ProductResult:
+    """JoI × JoI 진입점 — 실행기(Runner)로 감싸 본체에 넘긴다."""
+    return product_runners(JoiRunner.from_src(src_a), JoiRunner.from_src(src_b),
+                           period_ms, t0_ms, max_diverge)
+
+
+def product_runners(runner_a, runner_b, period_ms: int,
+                    t0_ms: int | None = None,
+                    max_diverge: int = 3) -> ProductResult:
+    """실행기 두 개를 나란히 걸으며 액션을 대조한다 (runner.py의 계약 참조)."""
     t_start = _time.time()
-    sa = src_a if isinstance(src_a, list) else parse(src_a)
-    sb = src_b if isinstance(src_b, list) else parse(src_b)
-    for s_ in (sa, sb):
-        if any(isinstance(x, jp.ForEach) for x in walk_stmts(s_)):
-            raise Unsupported("ForEach needs grounding")
     t0_ms = T0_DEFAULT if t0_ms is None else t0_ms
-    va, vb = classify_vars(sa), classify_vars(sb)
-    axes = merge_axes(derive_axes(sa, va), derive_axes(sb, vb))
+    va, vb = runner_a.vars_info, runner_b.vars_info
+    axes = merge_axes(runner_a.axes, runner_b.axes)
     if axes.param_reads:
         raise Unsupported(f"parameterized reads: {axes.param_reads}")
-    bad = finiteness_check(va, axes, sa) + finiteness_check(vb, axes, sb)
+    bad = runner_a.check_finite(axes) + runner_b.check_finite(axes)
     if bad:
         raise Unsupported(f"unbounded carried vars: {bad}")
 
@@ -100,9 +103,11 @@ def product_explore(src_a: str | list, src_b: str | list, period_ms: int,
     if not combos:
         combos = [{}]
     from .feasibility import dedup_combos
-    combos, dd = dedup_combos([(sa, va), (sb, vb)], combos)
-    if dd.after < dd.before:
-        res.notes.append(f"combo dedup {dd.before}→{dd.after}")
+    if hasattr(runner_a, "stmts") and hasattr(runner_b, "stmts"):
+        combos, dd = dedup_combos([(runner_a.stmts, va), (runner_b.stmts, vb)],
+                                  combos)
+        if dd.after < dd.before:
+            res.notes.append(f"combo dedup {dd.before}→{dd.after}")
     ext_gv = {k[4:] for k in axes.cells if k.startswith("@gv:")}
 
     def split(i: dict) -> tuple[dict, dict]:
@@ -142,8 +147,8 @@ def product_explore(src_a: str | list, src_b: str | list, period_ms: int,
         for m in mirror_inits:
             gv0 = {k: v for k, v in m.items() if v is not None}
             w, gvs = split(i)
-            ra = step(sa, {}, {**gv0, **gvs}, w, t0_ms, first_tick=True)
-            rb = step(sb, {}, {**gv0, **gvs}, w, t0_ms, first_tick=True)
+            ra = runner_a.step({}, {**gv0, **gvs}, w, t0_ms, first_tick=True)
+            rb = runner_b.step({}, {**gv0, **gvs}, w, t0_ms, first_tick=True)
             res.n_steps += 2
             if _out(ra.actions) != _out(rb.actions) \
                     or ra.terminated != rb.terminated:
@@ -171,8 +176,8 @@ def product_explore(src_a: str | list, src_b: str | list, period_ms: int,
         stutter = False
         for cand in [held] + combos:
             w, gvs = split(cand)
-            pa = step(sa, av, {**ag, **gvs}, w, now + period_ms)
-            pb = step(sb, bv, {**bg, **gvs}, w, now + period_ms)
+            pa = runner_a.step(av, {**ag, **gvs}, w, now + period_ms)
+            pb = runner_b.step(bv, {**bg, **gvs}, w, now + period_ms)
             res.n_steps += 2
             if (not pa.actions and not pb.actions
                     and not pa.terminated and not pb.terminated
@@ -195,8 +200,8 @@ def product_explore(src_a: str | list, src_b: str | list, period_ms: int,
         for i in combos:
             w, gvs = split(i)
             for d in dwells:
-                ra = step(sa, av, {**ag, **gvs}, w, now + d)
-                rb = step(sb, bv, {**bg, **gvs}, w, now + d)
+                ra = runner_a.step(av, {**ag, **gvs}, w, now + d)
+                rb = runner_b.step(bv, {**bg, **gvs}, w, now + d)
                 res.n_steps += 2
                 if _out(ra.actions) != _out(rb.actions) \
                         or ra.terminated != rb.terminated:
