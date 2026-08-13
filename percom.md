@@ -230,11 +230,14 @@ idiom으로 남고 trace-equivalence가 흡수한다."**
 3. **sun/calendar** ("해질녘에") — catalog 확장이 기본(sun.elevation을
   센서 read로). `start_at "sunset+30m"` anchor 확장은 "HA가 지원해서"가
   아니라 "사용자가 말해서"라는 NL-driven 서사로만 도입.
+  → **결정(2026-08-13): 해질녘류 애매한 표현은 데이터셋에 넣지 않는다.
+  따라서 anchor 확장·카탈로그 확장 모두 하지 않음 (§9).**
 4. **wait timeout** (`wait_template`/`wait_for_trigger`의 timeout +
   `continue_on_timeout` **기본 true** = silent-divergence 발생기) —
   **유일하게 진지한 IR 확장 후보**. "5분 안에 안 열리면 X"는 실제 사용자
   패턴. `cycle`+`until` 우회 표현 가능성을 코퍼스로 확인 후 결정.
   확장 여부와 무관하게 검증기는 반드시 커버.
+  → **결정(2026-08-13): IR에 편입 확정. 문법·검증 결과는 §9 참조.**
 
 ### 4.4 HA 고유 fault class (신규 mutation operator 후보)
 
@@ -347,13 +350,67 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   재인증" (iot-sim). 어느 쪽을 PerCom에 낼지, 혹은 게이트 논문에 생애주기
   일부(replay.py 배포 재생)를 흡수할지는 **미결 — 착수 전 결정 필요**.
   (본 세션 논의는 전자를 전제로 진행했음.)
+- → **결정(2026-08-13): percom.md 노선 확정. ideas.md(iot-sim) 노선은
+  기각되어 `paper_v2/` 디렉토리를 test 브랜치에서 삭제함. 생애주기 요소
+  (replay.py 배포 재생)도 이번 논문에 흡수하지 않는다.**
 
 ## 8. 우선순위 (제출 D-29 역산)
 
-1. §7 방향 확정 (percom.md vs ideas.md 노선)
+1. ~~§7 방향 확정~~ → **완료: percom.md 노선 (§9)**
 2. IR×JoI product 연결 (§3.3 최우선 — 정체성 성립 조건)
 3. 382 스케일업 + 카탈로그 재감사 (§5.2) — 신 E1~E3 수치의 전제
 4. HA profile 최소 구현 (parser→step 의미론, 제한 템플릿 fragment,
    HA fault class 주입) — E4
 5. 정규화 lemma 집필 + 반례 replay 게이트
 6. 본문 압축 집필 (14쪽 ACM → IEEE 지면)
+
+---
+
+## 9. 착수 결정 로그 (2026-08-13 저녁, whisoo + Claude)
+
+### 9.1 브랜치 정리 (완료)
+
+- **작업 브랜치 = `paper`.** test 브랜치는 새 시뮬레이터 코드만 가져오고
+  폐기한다.
+- test → paper 이식 완료: `simulator/`(BFS 전수 탐색기, 자족 패키지) +
+  `smt/`(교차검산, 각주용) — 커밋 `5091e3c`.
+- `paper_v2/`(iot-sim 아이디어 문서들)는 노선 기각으로 test 브랜치에서
+  삭제 — 커밋 `62538b8`(test).
+
+### 9.2 Timeline IR 동결 선언
+
+**이 시점부로 IR 문법은 아래 확장 1건을 끝으로 동결한다.** 이후 모든 구현
+(IR 한-걸음 실행기, HA 타깃, 실험)은 이 문법 위에서만 진행.
+
+- **넣기로 한 것 — `wait`의 제한시간(timeout)**: "문이 열리고 5분 안에 안
+  닫히면 알려줘" 같은 명령용. HA에는 기본 기능(`wait_template` timeout)이라
+  타깃 2개 중 1개가 1급으로 지원하고, 사용자가 실제로 말하는 패턴이므로 편입.
+  ```json
+  {"op": "wait", "cond": "Door.Contact == closed",
+   "timeout": "5 MIN", "on_timeout": [{"op": "call", "...": "..."}]}
+  ```
+  의미: 조건이 제한시간 안에 참이 되면 → 다음 op로 진행(성공 길).
+  시간이 먼저 다 되면 → `on_timeout` 블록 실행 후 이번 회차 종료(초과 길).
+  cycle 안이면 다음 회차에 다시 무장.
+  렌더링(안): "문이 닫히기를 최대 5분 기다립니다. 5분 안에 안 되면: ..."
+- **검증 완료(2026-08-13)**: 이 패턴의 JoI 관용구(지켜보기 래치 `watching` +
+  시작시각 저장 `opened_at` + `now - opened_at > 300` 비교)를 실제로 작성해
+  ① 파서 통과, ② 단편 판정 전부 기존 클래스(ENUM/LINEAR/LATCH/TIMER,
+  미해명 0 = 탐색기가 그대로 다룸), ③ tick 실행에서 늦게 닫히면 정확히
+  1회 발화·빨리 닫히면 침묵 확인. **JoI로 자연스럽게 표현됨 → 편입 타당.**
+- **안 넣기로 한 것 — 해질녘류(sun/calendar anchor)**: 애매한 표현은
+  데이터셋에 넣지 않기로 결정. anchor 확장·카탈로그 확장 모두 하지 않음.
+- 기존 심사 유지: `mode` 미편입(§4.3.1, admission criterion 모범 사례),
+  병렬 액션 블록 REFUSED(§4.3.2), JoI 신규 `for`/`loop`에도 IR 불변(§5.1).
+
+### 9.3 데이터셋 후속 작업
+
+- 382 코퍼스에 타임아웃 패턴 0건, 해질녘류 0건 확인(2026-08-13 검색).
+- 카탈로그 재감사(§5.2) 때 **타임아웃 유형 명령을 신설**해 코퍼스에 추가
+  (레퍼런스 IR은 신 문법 사용). 규모는 재감사 시 결정(카테고리 분포 고려).
+
+### 9.4 작업 규칙
+
+- **쉬운 네이밍**: 구현·설명 모두 어려운 용어를 자제한다. 예: "lockstep
+  product" 대신 "나란히 실행 비교", "transition system" 대신 "한-걸음
+  실행기(step 함수)". 코드 이름도 짧고 평이하게.
