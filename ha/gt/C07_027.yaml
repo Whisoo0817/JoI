@@ -1,0 +1,19 @@
+kind: script
+key: C07_027
+script:
+  alias: C07_027
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (is_state(''binary_sensor.f1_pres_1_presence'', ''on'') or is_state(''binary_sensor.f1_pres_2_presence'',
+        ''on'')) }}'
+    then:
+    - action: light.move_to_brightness
+      target:
+        entity_id:
+        - light.f1_light_1
+        - light.f1_light_2
+      data:
+        Brightness: 100
+        Rate: 0

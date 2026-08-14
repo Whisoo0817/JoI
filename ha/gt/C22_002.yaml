@@ -1,0 +1,27 @@
+kind: automation
+key: C22_002
+automation:
+  alias: C22_002
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    seconds: /30
+  conditions:
+  - condition: numeric_state
+    entity_id: counter.c22_002_n
+    below: 4
+  actions:
+  - action: light.move_to_brightness
+    target:
+      entity_id:
+      - light.living_room_light
+    data:
+      Brightness: 100
+      Rate: 0
+  - action: counter.increment
+    target:
+      entity_id: counter.c22_002_n
+helpers:
+  counter:
+    c22_002_n:
+      initial: 0

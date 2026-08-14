@@ -1,0 +1,15 @@
+kind: script
+key: C21_004
+script:
+  alias: C21_004
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.living_room_light_sensor_brightness'')|float <=
+        100 and states(''sensor.bedroom_light_sensor_brightness'')|float <= 100) }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.living_room_mood_light

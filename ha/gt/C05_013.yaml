@@ -1,0 +1,22 @@
+kind: script
+key: C05_013
+script:
+  alias: C05_013
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ ((states(''sensor.living_aq_carbon_dioxide'')|float >= 1500 or states(''sensor.bedroom_aq_carbon_dioxide'')|float
+        >= 1500) and states(''sensor.living_blind_current_position'')|float == 0) }}'
+    then:
+    - action: fan.set_air_purifier_mode
+      target:
+        entity_id:
+        - fan.living_ap
+        - fan.bedroom_ap
+      data:
+        Mode: auto
+    - action: cover.open_cover
+      target:
+        entity_id:
+        - cover.living_blind

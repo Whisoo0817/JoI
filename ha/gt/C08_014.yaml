@@ -1,0 +1,18 @@
+kind: script
+key: C08_014
+script:
+  alias: C08_014
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.bedroom_mb_button1'') == ''pushed'' and is_state(''binary_sensor.bedroom_ms_motion'',
+        ''on'')) }}'
+    then:
+    - action: light.move_to_brightness
+      target:
+        entity_id:
+        - light.bedroom_light
+      data:
+        Brightness: 100
+        Rate: 0

@@ -1,0 +1,30 @@
+kind: automation
+key: C13_006
+automation:
+  alias: C13_006
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    hours: /2
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ ((states(''counter.c13_006_n'')|int % 2) == 0) }}'
+    then:
+    - action: cover.open_cover
+      target:
+        entity_id:
+        - cover.br_win
+    else:
+    - action: cover.close_cover
+      target:
+        entity_id:
+        - cover.br_win
+  - action: counter.increment
+    target:
+      entity_id: counter.c13_006_n
+helpers:
+  counter:
+    c13_006_n:
+      initial: 0

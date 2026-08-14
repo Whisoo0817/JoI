@@ -1,0 +1,21 @@
+kind: script
+key: C20_008
+script:
+  alias: C20_008
+  mode: single
+  sequence:
+  - repeat:
+      sequence:
+      - wait_template: '{{ is_state(''binary_sensor.office_motion_motion'', ''off'') }}'
+      - wait_for_trigger:
+        - trigger: template
+          value_template: '{{ not (is_state(''binary_sensor.office_motion_motion'', ''off''))
+            }}'
+        timeout:
+          minutes: 5
+        continue_on_timeout: true
+      until: '{{ wait.trigger is none }}'
+  - action: switch.turn_off
+    target:
+      entity_id:
+      - switch.office_light

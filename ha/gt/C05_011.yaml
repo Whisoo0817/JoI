@@ -1,0 +1,25 @@
+kind: script
+key: C05_011
+script:
+  alias: C05_011
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.kitchen_air_conditioner_air_conditioner_mode'')
+        == ''heat'' and (is_state(''binary_sensor.living_presence_presence'', ''off'') and
+        is_state(''binary_sensor.bedroom_presence_presence'', ''off''))) }}'
+    then:
+    - action: climate.set_air_conditioner_mode
+      target:
+        entity_id:
+        - climate.kitchen_air_conditioner
+      data:
+        Mode: auto
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.kitchen_speaker
+        - media_player.living_speaker
+      data:
+        Text: The air conditioner mode has been changed to auto.

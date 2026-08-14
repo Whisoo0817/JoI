@@ -1,0 +1,14 @@
+kind: script
+key: C08_005
+script:
+  alias: C08_005
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.entrance_mb_button1'') == ''pushed'' }}'
+  - action: light.move_to_brightness
+    target:
+      entity_id:
+      - light.entrance_light
+    data:
+      Brightness: 100
+      Rate: 0

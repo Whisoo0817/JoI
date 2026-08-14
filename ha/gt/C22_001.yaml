@@ -1,0 +1,24 @@
+kind: automation
+key: C22_001
+automation:
+  alias: C22_001
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    minutes: /5
+  conditions:
+  - condition: numeric_state
+    entity_id: counter.c22_001_n
+    below: 10
+  actions:
+  - action: camera.capture_image
+    target:
+      entity_id:
+      - camera.meeting_room_camera
+  - action: counter.increment
+    target:
+      entity_id: counter.c22_001_n
+helpers:
+  counter:
+    c22_001_n:
+      initial: 0

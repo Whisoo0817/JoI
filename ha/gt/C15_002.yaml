@@ -1,0 +1,22 @@
+kind: automation
+key: C15_002
+automation:
+  alias: C15_002
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    hours: /2
+    minutes: '0'
+  conditions:
+  - condition: time
+    weekday:
+    - sat
+    - sun
+  actions:
+  - action: vacuum.set_robot_vacuum_cleaner_cleaning_mode
+    target:
+      entity_id:
+      - vacuum.lr_rvc_1
+      - vacuum.lr_rvc_2
+    data:
+      Mode: repeat

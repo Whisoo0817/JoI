@@ -1,0 +1,24 @@
+kind: script
+key: C05_007
+script:
+  alias: C05_007
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ ((states(''sensor.living_sound_sound'')|float >= 70 or states(''sensor.entrance_sound_sound'')|float
+        >= 70) and (is_state(''binary_sensor.living_presence_presence'', ''off'') and is_state(''binary_sensor.bedroom_presence_presence'',
+        ''off''))) }}'
+    then:
+    - action: camera.capture_image
+      target:
+        entity_id:
+        - camera.entrance_camera
+        - camera.garage_camera
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.main_siren
+        - siren.entrance_siren
+      data:
+        Mode: police

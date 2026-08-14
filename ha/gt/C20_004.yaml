@@ -1,0 +1,20 @@
+kind: script
+key: C20_004
+script:
+  alias: C20_004
+  mode: single
+  sequence:
+  - repeat:
+      sequence:
+      - wait_template: '{{ states(''sensor.office_printer_power'')|float < 5 }}'
+      - wait_for_trigger:
+        - trigger: template
+          value_template: '{{ not (states(''sensor.office_printer_power'')|float < 5) }}'
+        timeout:
+          minutes: 10
+        continue_on_timeout: true
+      until: '{{ wait.trigger is none }}'
+  - action: switch.turn_off
+    target:
+      entity_id:
+      - switch.office_printer

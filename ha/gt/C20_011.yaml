@@ -1,0 +1,20 @@
+kind: script
+key: C20_011
+script:
+  alias: C20_011
+  mode: single
+  sequence:
+  - repeat:
+      sequence:
+      - wait_template: '{{ states(''sensor.living_room_tv_power'')|float < 10 }}'
+      - wait_for_trigger:
+        - trigger: template
+          value_template: '{{ not (states(''sensor.living_room_tv_power'')|float < 10) }}'
+        timeout:
+          minutes: 15
+        continue_on_timeout: true
+      until: '{{ wait.trigger is none }}'
+  - action: switch.turn_off
+    target:
+      entity_id:
+      - switch.living_room_tv

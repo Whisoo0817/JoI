@@ -1,0 +1,28 @@
+kind: automation
+key: C18_007
+automation:
+  alias: C18_007
+  mode: single
+  triggers:
+  - trigger: time
+    at: '22:00:00'
+  conditions: []
+  actions:
+  - repeat:
+      while:
+      - condition: time
+        before: '23:00:00'
+      sequence:
+      - if:
+        - condition: state
+          entity_id: sensor.home_weather_provider_weather
+          state: rain
+        then:
+        - action: cover.close_cover
+          target:
+            entity_id:
+            - cover.main_window
+            - cover.bedroom_window
+      - wait_for_trigger:
+        - trigger: time_pattern
+          seconds: /30

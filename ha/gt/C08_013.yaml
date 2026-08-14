@@ -1,0 +1,28 @@
+kind: script
+key: C08_013
+script:
+  alias: C08_013
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.bedroom_mb_button1'') == ''pushed'' }}'
+  - variables:
+      current: '{{ states(''sensor.bedroom_light_current_brightness'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (current >= 80) }}'
+    then:
+    - action: light.move_to_brightness
+      target:
+        entity_id:
+        - light.bedroom_light
+      data:
+        Brightness: 10
+        Rate: 0
+    else:
+    - action: light.move_to_brightness
+      target:
+        entity_id:
+        - light.bedroom_light
+      data:
+        Brightness: 80
+        Rate: 0

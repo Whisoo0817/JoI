@@ -1,0 +1,15 @@
+kind: script
+key: C07_005
+script:
+  alias: C07_005
+  mode: single
+  sequence:
+  - wait_template: '{{ (states(''sensor.living_room_co2_sensor_carbon_dioxide'')|float >=
+      1000 or states(''sensor.bedroom_co2_sensor_carbon_dioxide'')|float >= 1000) }}'
+  - action: siren.set_siren_mode
+    target:
+      entity_id:
+      - siren.living_room_siren
+      - siren.entrance_siren
+    data:
+      Mode: emergency

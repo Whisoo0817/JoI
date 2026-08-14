@@ -1,0 +1,19 @@
+kind: automation
+key: C14_007
+automation:
+  alias: C14_007
+  mode: single
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.kitchen_motion_sensor_motion
+    to: 'on'
+  conditions: []
+  actions:
+  - action: light.move_to_brightness
+    target:
+      entity_id:
+      - light.kitchen_light
+    data:
+      Brightness: min({{ states('sensor.kitchen_light_current_brightness') }} + 20, 100)
+      Rate: 0
+    response_variable: Light

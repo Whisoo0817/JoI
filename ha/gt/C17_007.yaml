@@ -1,0 +1,20 @@
+kind: automation
+key: C17_007
+automation:
+  alias: C17_007
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    minutes: /5
+  conditions: []
+  actions:
+  - if:
+    - condition: state
+      entity_id: sensor.main_charger_charging_state
+      state: fullyCharged
+    then:
+    - action: charger.turn_off
+      target:
+        entity_id:
+        - charger.main_charger
+        - charger.garage_charger

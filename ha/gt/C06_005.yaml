@@ -1,0 +1,18 @@
+kind: script
+key: C06_005
+script:
+  alias: C06_005
+  mode: single
+  sequence:
+  - variables:
+      livingRoomHumidity: '{{ states(''sensor.living_room_humidity_sensor_humidity'') }}'
+  - variables:
+      bedroomHumidity: '{{ states(''sensor.bedroom_humidity_sensor_humidity'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ ((livingRoomHumidity <= 30) or (bedroomHumidity <= 30)) }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.living_room_humidifier

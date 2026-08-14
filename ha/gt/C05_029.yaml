@@ -1,0 +1,23 @@
+kind: script
+key: C05_029
+script:
+  alias: C05_029
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (is_state(''binary_sensor.guest_room_motion_motion'', ''on'') and
+        is_state(''binary_sensor.guest_room_ac_switch'', ''off'')) }}'
+    then:
+    - action: climate.set_air_conditioner_mode
+      target:
+        entity_id:
+        - climate.guest_room_ac
+      data:
+        Mode: auto
+    - action: climate.set_target_temperature
+      target:
+        entity_id:
+        - climate.guest_room_ac
+      data:
+        Temperature: 24

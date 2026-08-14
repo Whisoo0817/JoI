@@ -1,0 +1,16 @@
+kind: automation
+key: C08_025
+automation:
+  alias: C08_025
+  mode: single
+  triggers:
+  - trigger: template
+    value_template: '{{ (states(''sensor.living_aq_carbon_dioxide'')|float >= 900 or states(''sensor.bedroom_aq_carbon_dioxide'')|float
+      >= 900) }}'
+  conditions: []
+  actions:
+  - action: valve.close_valve
+    target:
+      entity_id:
+      - valve.main_valve
+      - valve.garden_valve

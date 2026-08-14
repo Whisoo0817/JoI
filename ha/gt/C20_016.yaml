@@ -1,0 +1,20 @@
+kind: script
+key: C20_016
+script:
+  alias: C20_016
+  mode: single
+  sequence:
+  - repeat:
+      sequence:
+      - wait_template: '{{ states(''sensor.kitchen_charger_power'')|float < 5 }}'
+      - wait_for_trigger:
+        - trigger: template
+          value_template: '{{ not (states(''sensor.kitchen_charger_power'')|float < 5) }}'
+        timeout:
+          minutes: 30
+        continue_on_timeout: true
+      until: '{{ wait.trigger is none }}'
+  - action: switch.turn_off
+    target:
+      entity_id:
+      - switch.kitchen_charger

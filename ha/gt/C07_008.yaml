@@ -1,0 +1,15 @@
+kind: script
+key: C07_008
+script:
+  alias: C07_008
+  mode: single
+  sequence:
+  - wait_template: '{{ (states(''sensor.living_room_temp_sensor_temperature'')|float >= 35
+      or states(''sensor.bedroom_temp_sensor_temperature'')|float >= 35) }}'
+  - action: climate.set_target_temperature
+    target:
+      entity_id:
+      - climate.living_room_ac
+      - climate.bedroom_ac
+    data:
+      Temperature: 30

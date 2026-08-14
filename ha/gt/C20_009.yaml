@@ -1,0 +1,21 @@
+kind: script
+key: C20_009
+script:
+  alias: C20_009
+  mode: single
+  sequence:
+  - repeat:
+      sequence:
+      - wait_template: '{{ is_state(''binary_sensor.meeting_presence_presence'', ''on'') }}'
+      - wait_for_trigger:
+        - trigger: template
+          value_template: '{{ not (is_state(''binary_sensor.meeting_presence_presence'', ''on''))
+            }}'
+        timeout:
+          minutes: 2
+        continue_on_timeout: true
+      until: '{{ wait.trigger is none }}'
+  - action: switch.turn_on
+    target:
+      entity_id:
+      - switch.meeting_projector

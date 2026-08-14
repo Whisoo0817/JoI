@@ -1,0 +1,18 @@
+kind: script
+key: C03_018
+script:
+  alias: C03_018
+  mode: single
+  sequence:
+  - if:
+    - condition: state
+      entity_id: binary_sensor.entrance_contact_contact
+      state: 'on'
+    then:
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.main_siren
+        - siren.garage_siren
+      data:
+        Mode: emergency

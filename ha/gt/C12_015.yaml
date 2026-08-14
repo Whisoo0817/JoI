@@ -1,0 +1,21 @@
+kind: script
+key: C12_015
+script:
+  alias: C12_015
+  mode: single
+  sequence:
+  - wait_template: '{{ is_state(''binary_sensor.k_smoke_smoke'', ''on'') }}'
+  - repeat:
+      while:
+      - condition: template
+        value_template: '{{ true }}'
+      sequence:
+      - action: media_player.speak
+        target:
+          entity_id:
+          - media_player.lr_speaker
+        data:
+          Text: Fire outbreak
+      - wait_for_trigger:
+        - trigger: time_pattern
+          seconds: /10

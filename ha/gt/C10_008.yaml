@@ -1,0 +1,15 @@
+kind: script
+key: C10_008
+script:
+  alias: C10_008
+  mode: single
+  sequence:
+  - wait_template: '{{ (states(''sensor.terrace_sensor_1_brightness'')|float >= 100 or states(''sensor.terrace_sensor_2_brightness'')|float
+      >= 100) }}'
+  - delay:
+      seconds: 5
+  - action: cover.open_cover
+    target:
+      entity_id:
+      - cover.terrace_blind_1
+      - cover.terrace_blind_2

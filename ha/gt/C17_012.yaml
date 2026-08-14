@@ -1,0 +1,25 @@
+kind: automation
+key: C17_012
+automation:
+  alias: C17_012
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    minutes: /30
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.hall_light_1_current_brightness'')|float >= 50
+        or states(''sensor.hall_light_2_current_brightness'')|float >= 50 or states(''sensor.hall_light_3_current_brightness'')|float
+        >= 50) }}'
+    then:
+    - action: light.move_to_brightness
+      target:
+        entity_id:
+        - light.hall_light_1
+        - light.hall_light_2
+        - light.hall_light_3
+      data:
+        Brightness: 0
+        Rate: 0

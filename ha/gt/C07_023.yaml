@@ -1,0 +1,12 @@
+kind: script
+key: C07_023
+script:
+  alias: C07_023
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.office_button_button'') == ''pushed'' }}'
+  - action: humidifier.turn_on
+    target:
+      entity_id:
+      - humidifier.office_humidifier_1
+      - humidifier.office_humidifier_2

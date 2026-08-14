@@ -1,0 +1,26 @@
+kind: automation
+key: C16_001
+automation:
+  alias: C16_001
+  mode: single
+  triggers:
+  - trigger: time
+    at: '15:00:00'
+  conditions:
+  - condition: time
+    weekday:
+    - sat
+    - sun
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ (is_state(''binary_sensor.basement_leak_leakage'', ''on'') or is_state(''binary_sensor.kitchen_leak_leakage'',
+        ''on'')) }}'
+    then:
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.main_siren
+        - siren.entrance_siren
+      data:
+        Mode: emergency

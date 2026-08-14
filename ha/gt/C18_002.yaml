@@ -1,0 +1,29 @@
+kind: automation
+key: C18_002
+automation:
+  alias: C18_002
+  mode: single
+  triggers:
+  - trigger: time
+    at: '12:00:00'
+  conditions:
+  - condition: time
+    weekday:
+    - sat
+    - sun
+  actions:
+  - repeat:
+      while:
+      - condition: time
+        before: '18:00:00'
+      sequence:
+      - action: vacuum.set_robot_vacuum_cleaner_cleaning_mode
+        target:
+          entity_id:
+          - vacuum.living_rvc
+          - vacuum.bedroom_rvc
+        data:
+          Mode: auto
+      - wait_for_trigger:
+        - trigger: time_pattern
+          minutes: /30

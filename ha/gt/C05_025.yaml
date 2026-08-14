@@ -1,0 +1,21 @@
+kind: script
+key: C05_025
+script:
+  alias: C05_025
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.server_temp_temperature'')|float >= 30 and is_state(''binary_sensor.server_ac_switch'',
+        ''off'')) }}'
+    then:
+    - action: climate.turn_on
+      target:
+        entity_id:
+        - climate.server_ac
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.main_siren
+      data:
+        Mode: emergency

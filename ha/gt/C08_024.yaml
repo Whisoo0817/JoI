@@ -1,0 +1,18 @@
+kind: automation
+key: C08_024
+automation:
+  alias: C08_024
+  mode: single
+  triggers:
+  - trigger: template
+    value_template: '{{ (states(''sensor.living_aq_fine_dust_level'')|float > 80 or states(''sensor.bedroom_aq_fine_dust_level'')|float
+      > 80) }}'
+  conditions: []
+  actions:
+  - action: fan.set_air_purifier_mode
+    target:
+      entity_id:
+      - fan.living_ap
+      - fan.bedroom_ap
+    data:
+      Mode: high

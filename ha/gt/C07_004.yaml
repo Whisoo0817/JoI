@@ -1,0 +1,12 @@
+kind: script
+key: C07_004
+script:
+  alias: C07_004
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.home_weather_provider_weather'') == ''rain'' }}'
+  - action: dehumidifier.turn_on
+    target:
+      entity_id:
+      - dehumidifier.living_room_dehumidifier
+      - dehumidifier.bathroom_dehumidifier

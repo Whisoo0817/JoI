@@ -656,3 +656,54 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   허브 43명령 기준(과적합 상한) — 388행 코퍼스 측정은 LLM 서버 필요,
   E1~E3 재측정(HA lowering 후 일괄)에서 첫 실측. ③ vLLM 전용
   guided_json 의존(현 서버 인프라와 동일).
+
+### 9.13 W4 — HA platform profile + E4 고장 주입 (2026-08-14)
+
+- **whisoo 결정 3건(계획 검토 승인)**: ① HA GT는 LLM 없이 **참조
+  lowering**(규칙 기반, IR+binding_gt+인벤토리 → YAML)으로 388행 전부
+  생성. ② LLM lowering(IR→HA) arm은 코어 완료 후 시간 남으면
+  소표본(카테고리별 1행)만 — W4 범위 밖. ③ mode는 single만 조각 안
+  (그 외 REFUSED), 겹침 실행 의미론 모델링은 **todo 보류**.
+- **profile 구성**(`ha/` — 탐색기·비교기 본체 무변경, 총 2,358줄):
+  README(조각 선언), skill_map.json(스킬 55종→domain/서비스/속성 표),
+  names.py(entity 명명 정/역), lower_ref.py(참조 lowering),
+  ha_step.py(제한 파서 + HaRunner), gate_ha.py(게이트), e4.py(주입).
+- **행 종류 → 산출물**: 원샷 246 + 전주 있는 cycle 20 → script 266 /
+  cycle 단독 102 + cron 20 → automation 122. 흡수 규칙: cycle[wait-엣지]
+  → trigger(엣지가 primitive), cycle[if] → time_pattern+condition,
+  cron → time trigger+달력 가드(게이트가 표기 무시 정규화 후 공통 소거).
+  run 간 기억(count/until)은 helper(counter/input_boolean)로 — §4.1의
+  "영속 헬퍼" 쌍대 실물.
+- **실행 의미론**: ha_step은 제한 조각 문서를 **기기 형태 IR로 번역**해
+  같은 한-걸음 실행기 명령어(ir_step)로 실행 — 번역 규칙이 선언된 HA
+  의미론(trigger=엣지 래치·시작 시 참이면 발화=재시작 unknown→값 전이,
+  condition=레벨, wait_template=즉시 통과 레벨, 지속·타임아웃은 정해진
+  관용구 꼴만, 위상·1초 미만은 추상화). 조각 밖은 전부 Unsupported →
+  REFUSED fail-closed.
+- **게이트 맞검사 EQUIV 388/388** (lower_ref ⊥ ha_step, 이름 규칙만
+  공유). 수정 루프에서 잡힌 결함 4부류가 곧 의미론 교훈: ① 이름 카운터
+  until(n≥k)은 k회 반복으로 접어야 함(미정의 변수 템플릿 유출), ②
+  script 반복의 **delay 사슬은 몸통 지연이 다음 회차로 표류** — 반복
+  끝을 wait_for_trigger[time_pattern](벽시계 정렬)로 닫아 회차 앵커 고정
+  (+until이 delay 안에서 안 깨어나는 문제도 함께 해소), ③ 시간 패턴
+  {hours:"/1"}의 cron 오분류, ④ 그리드 바닥 1초(조각 해상도) 선언으로
+  IR 100ms 주기와 정합.
+- **E4 고장 주입 9/9 검출**(ha/e4.py → explorer/runs/e4.md): §4.4의
+  fault class 실물 — trigger→condition(엣지를 레벨 자리에)·지속 누락·
+  timeout 방치·>=를 above(exclusive)로(경계 셀)·while→until(최소 1회)·
+  집합 탈락·읽기 재배선 = 전부 DIVERGE+반례 재생 확인; mode 변조·helper
+  미시드 = REFUSED(fail-closed). 치환 no-op 가드 포함(e1 교훈).
+- **논문 배선**: C3 정량 증거 = "본체 무변경 + profile 2,358줄(그중
+  YAML 문법·의미론 번역기 711줄)". toy-subset 방어 = 조각은 388행 op
+  폐포에서 도출(§9.13 실측: wait 134 중 레벨 90·지속 27·타임아웃 6,
+  cycle 111 전부 period형 등) + REFUSED 공식 판정 + HA 2025.8 버전 고정.
+  GT 순환성 방어 = 생성기/실행기 독립 구현, EQUIV 388은 전제가 아니라
+  측정. 엣지/레벨 fault가 두 타깃에서 다른 표면형(관용구 오류 ↔ 문법
+  위치 오류)으로 나타나고 같은 게이트가 잡는다는 §4.2 서사의 실물 확보.
+- **회귀**: m3_check 281/25 무변화, JoI 게이트 97/81 무변화(주입 3종
+  검출 유지). explorer/ 코드 무변경(runs/e4.md 산출물만 추가).
+- **미결(todo)**: ① mode 겹침 의미론(restart/queued의 DIVERGE 검출)
+  모델링 — v1은 REFUSED. ② LLM lowering IR→HA 소표본 — 코어 완료
+  시점(지금)에 재판단, E1~E3 재측정과 묶는 게 자연스러움. ③ 지속
+  관용구는 wait_for_trigger[template]의 재시작 발화 여부 등 HA 구현
+  세부와의 대조 각주(집필 때).

@@ -1,0 +1,26 @@
+kind: script
+key: C05_006
+script:
+  alias: C05_006
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.home_weather_provider_weather'') == ''rain'' and
+        (states(''sensor.living_hum_humidity'')|float >= 80 or states(''sensor.bedroom_hum_humidity'')|float
+        >= 80)) }}'
+    then:
+    - action: dehumidifier.set_dehumidifier_mode
+      target:
+        entity_id:
+        - dehumidifier.living_dehum
+        - dehumidifier.bedroom_dehum
+      data:
+        Mode: drying
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.living_speaker
+        - media_player.bedroom_speaker
+      data:
+        Text: It's raining and himidity is high

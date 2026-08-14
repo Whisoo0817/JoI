@@ -1,0 +1,24 @@
+kind: automation
+key: C15_007
+automation:
+  alias: C15_007
+  mode: single
+  triggers:
+  - trigger: time
+    at: 07:00:00
+  conditions:
+  - condition: time
+    weekday:
+    - mon
+    - tue
+    - wed
+    - thu
+    - fri
+  actions:
+  - action: vacuum.set_robot_vacuum_cleaner_cleaning_mode
+    target:
+      entity_id:
+      - vacuum.kitchen_robot_vacuum_cleaner
+      - vacuum.dining_robot_vacuum_cleaner
+    data:
+      Mode: auto

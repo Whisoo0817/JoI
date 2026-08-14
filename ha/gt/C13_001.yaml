@@ -1,0 +1,32 @@
+kind: automation
+key: C13_001
+automation:
+  alias: C13_001
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    hours: /1
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ ((states(''counter.c13_001_n'')|int % 2) == 0) }}'
+    then:
+    - action: valve.open_valve
+      target:
+        entity_id:
+        - valve.kitchen_valve
+        - valve.basement_valve
+    else:
+    - action: valve.close_valve
+      target:
+        entity_id:
+        - valve.kitchen_valve
+        - valve.basement_valve
+  - action: counter.increment
+    target:
+      entity_id: counter.c13_001_n
+helpers:
+  counter:
+    c13_001_n:
+      initial: 0

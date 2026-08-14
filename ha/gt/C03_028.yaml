@@ -1,0 +1,16 @@
+kind: script
+key: C03_028
+script:
+  alias: C03_028
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.baby_room_sound_sound'')|float >= 60 }}'
+    then:
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.lr_speaker
+      data:
+        Text: The baby is crying

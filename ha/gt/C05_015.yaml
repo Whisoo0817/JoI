@@ -1,0 +1,22 @@
+kind: script
+key: C05_015
+script:
+  alias: C05_015
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.home_weather_provider_weather'') == ''rain'' and
+        states(''sensor.living_door_lock_door_lock_state'') == ''open'') }}'
+    then:
+    - action: lock.lock
+      target:
+        entity_id:
+        - lock.living_door_lock
+    - action: dehumidifier.set_dehumidifier_mode
+      target:
+        entity_id:
+        - dehumidifier.living_dehum
+        - dehumidifier.bedroom_dehum
+      data:
+        Mode: internalCare

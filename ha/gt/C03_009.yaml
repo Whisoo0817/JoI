@@ -1,0 +1,17 @@
+kind: script
+key: C03_009
+script:
+  alias: C03_009
+  mode: single
+  sequence:
+  - if:
+    - condition: state
+      entity_id: sensor.living_ap_air_purifier_mode
+      state: quiet
+    then:
+    - action: fan.set_air_purifier_mode
+      target:
+        entity_id:
+        - fan.living_ap
+      data:
+        Mode: high

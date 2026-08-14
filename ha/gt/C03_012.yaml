@@ -1,0 +1,14 @@
+kind: script
+key: C03_012
+script:
+  alias: C03_012
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_speaker_volume'')|float >= 40 }}'
+    then:
+    - action: media_player.stop
+      target:
+        entity_id:
+        - media_player.living_room_speaker

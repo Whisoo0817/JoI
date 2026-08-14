@@ -1,0 +1,20 @@
+kind: script
+key: C11_005
+script:
+  alias: C11_005
+  mode: single
+  sequence:
+  - variables:
+      t1: '{{ states(''sensor.kitchen_temp_sensor_temperature'') }}'
+  - delay:
+      minutes: 15
+  - variables:
+      t2: '{{ states(''sensor.kitchen_temp_sensor_temperature'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (((t2 - t1))|abs >= 5) }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.kitchen_fan

@@ -1,0 +1,15 @@
+kind: script
+key: C05_021
+script:
+  alias: C05_021
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.entrance_face_recognized_result'') == ''family''
+        and states(''sensor.entrance_lock_door_lock_state'') == ''closed'') }}'
+    then:
+    - action: lock.unlock
+      target:
+        entity_id:
+        - lock.entrance_lock

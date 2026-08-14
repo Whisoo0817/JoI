@@ -1,0 +1,39 @@
+kind: script
+key: C06_002
+script:
+  alias: C06_002
+  mode: single
+  sequence:
+  - variables:
+      lux: '{{ states(''sensor.living_room_light_sensor_brightness'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (lux <= 200) }}'
+    then:
+    - action: light.move_to_brightness
+      target:
+        entity_id:
+        - light.living_room_light
+      data:
+        Brightness: 100
+        Rate: 0
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ (lux >= 500) }}'
+      then:
+      - action: light.move_to_brightness
+        target:
+          entity_id:
+          - light.living_room_light
+        data:
+          Brightness: 30
+          Rate: 0
+      else:
+      - action: light.move_to_brightness
+        target:
+          entity_id:
+          - light.living_room_light
+        data:
+          Brightness: 60
+          Rate: 0

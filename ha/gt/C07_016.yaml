@@ -1,0 +1,11 @@
+kind: script
+key: C07_016
+script:
+  alias: C07_016
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.study_aq_fine_dust_level'')|float >= 30 }}'
+  - action: fan.turn_on
+    target:
+      entity_id:
+      - fan.study_ap

@@ -1,0 +1,35 @@
+kind: automation
+key: C17_004
+automation:
+  alias: C17_004
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    minutes: /30
+  conditions: []
+  actions:
+  - variables:
+      temp: '{{ states(''sensor.living_temp_temperature'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (temp >= 30) }}'
+    then:
+    - action: climate.set_target_temperature
+      target:
+        entity_id:
+        - climate.living_ac
+        - climate.bedroom_ac
+      data:
+        Temperature: 25
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ (temp < 23) }}'
+      then:
+      - action: climate.set_target_temperature
+        target:
+          entity_id:
+          - climate.living_ac
+          - climate.bedroom_ac
+        data:
+          Temperature: 26

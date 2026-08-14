@@ -1,0 +1,23 @@
+kind: script
+key: C05_028
+script:
+  alias: C05_028
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.warehouse_aq_fine_dust_level'')|float >= 100 and
+        states(''sensor.warehouse_ap_air_purifier_mode'') == ''auto'') }}'
+    then:
+    - action: fan.set_air_purifier_mode
+      target:
+        entity_id:
+        - fan.warehouse_ap
+      data:
+        Mode: high
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.warehouse_speaker
+      data:
+        Text: Switching to high mode

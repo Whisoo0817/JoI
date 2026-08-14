@@ -1,0 +1,29 @@
+kind: automation
+key: C19_005
+automation:
+  alias: C19_005
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    seconds: /1
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_humidity_sensor_humidity'')|float <=
+        30 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.living_room_humidifier
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_humidity_sensor_humidity'')|float
+          >= 55 }}'
+      then:
+      - action: switch.turn_off
+        target:
+          entity_id:
+          - switch.living_room_humidifier

@@ -1,0 +1,16 @@
+kind: script
+key: C01_017
+script:
+  alias: C01_017
+  mode: single
+  sequence:
+  - variables:
+      TodayMenu: '{{ states(''sensor.system_menu_provider_today_menu'') }}'
+  - action: media_player.speak
+    target:
+      entity_id:
+      - media_player.living_room_speaker
+      - media_player.kitchen_speaker
+    data:
+      Text: Today's menu is {{ TodayMenu }}
+    response_variable: TodayMenu

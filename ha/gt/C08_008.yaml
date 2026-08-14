@@ -1,0 +1,15 @@
+kind: script
+key: C08_008
+script:
+  alias: C08_008
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.f1_mb_button4'') == ''pushed'' }}'
+  - action: light.move_to_brightness
+    target:
+      entity_id:
+      - light.f1_light_1
+      - light.f1_light_2
+    data:
+      Brightness: 0
+      Rate: 0

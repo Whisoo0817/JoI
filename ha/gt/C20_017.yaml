@@ -1,0 +1,21 @@
+kind: script
+key: C20_017
+script:
+  alias: C20_017
+  mode: single
+  sequence:
+  - repeat:
+      sequence:
+      - wait_template: '{{ is_state(''binary_sensor.backyard_motion_motion'', ''on'') }}'
+      - wait_for_trigger:
+        - trigger: template
+          value_template: '{{ not (is_state(''binary_sensor.backyard_motion_motion'', ''on''))
+            }}'
+        timeout:
+          minutes: 1
+        continue_on_timeout: true
+      until: '{{ wait.trigger is none }}'
+  - action: switch.turn_on
+    target:
+      entity_id:
+      - switch.backyard_light

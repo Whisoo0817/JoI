@@ -1,0 +1,21 @@
+kind: script
+key: C03_033
+script:
+  alias: C03_033
+  mode: single
+  sequence:
+  - variables:
+      brightness: '{{ states(''sensor.bedroom_light_sensor_brightness'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (brightness <= 100) }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.bedroom_floor_lamp
+    else:
+    - action: switch.turn_off
+      target:
+        entity_id:
+        - switch.bedroom_floor_lamp

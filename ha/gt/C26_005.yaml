@@ -1,0 +1,33 @@
+kind: script
+key: C26_005
+script:
+  alias: C26_005
+  mode: single
+  sequence:
+  - action: dehumidifier.turn_on
+    target:
+      entity_id:
+      - dehumidifier.living_dehum
+      - dehumidifier.bedroom_dehum
+  - wait_template: '{{ (states(''sensor.living_hum_humidity'')|float <= 60 or states(''sensor.bedroom_hum_humidity'')|float
+      <= 60) }}'
+    timeout:
+      minutes: 30
+    continue_on_timeout: true
+  - if:
+    - condition: template
+      value_template: '{{ not wait.completed }}'
+    then:
+    - action: dehumidifier.set_dehumidifier_mode
+      target:
+        entity_id:
+        - dehumidifier.living_dehum
+        - dehumidifier.bedroom_dehum
+      data:
+        Mode: continuousDehumidifying
+    - stop: timeout
+  - action: dehumidifier.turn_off
+    target:
+      entity_id:
+      - dehumidifier.living_dehum
+      - dehumidifier.bedroom_dehum

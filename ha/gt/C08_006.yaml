@@ -1,0 +1,15 @@
+kind: script
+key: C08_006
+script:
+  alias: C08_006
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.hall_mb_button2'') == ''pushed'' }}'
+  - action: light.move_to_brightness
+    target:
+      entity_id:
+      - light.hall_light_1
+      - light.hall_light_2
+    data:
+      Brightness: 0
+      Rate: 0

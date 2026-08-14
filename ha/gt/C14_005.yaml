@@ -1,0 +1,19 @@
+kind: automation
+key: C14_005
+automation:
+  alias: C14_005
+  mode: single
+  triggers:
+  - trigger: state
+    entity_id: sensor.bedroom_mb_button3
+    to: pushed
+  conditions: []
+  actions:
+  - action: light.move_to_brightness
+    target:
+      entity_id:
+      - light.bedroom_light
+    data:
+      Brightness: min({{ states('sensor.bedroom_light_current_brightness') }} + 5, 80)
+      Rate: 0
+    response_variable: Light

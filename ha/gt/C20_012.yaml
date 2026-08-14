@@ -1,0 +1,22 @@
+kind: script
+key: C20_012
+script:
+  alias: C20_012
+  mode: single
+  sequence:
+  - repeat:
+      sequence:
+      - wait_template: '{{ is_state(''binary_sensor.study_contact_sensor_contact'', ''on'')
+          }}'
+      - wait_for_trigger:
+        - trigger: template
+          value_template: '{{ not (is_state(''binary_sensor.study_contact_sensor_contact'',
+            ''on'')) }}'
+        timeout:
+          minutes: 3
+        continue_on_timeout: true
+      until: '{{ wait.trigger is none }}'
+  - action: switch.turn_off
+    target:
+      entity_id:
+      - switch.study_light

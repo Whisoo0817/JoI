@@ -1,0 +1,18 @@
+kind: script
+key: C03_031
+script:
+  alias: C03_031
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.in_g1_hum_1_humidity'')|float >= 60 or states(''sensor.in_g1_hum_2_humidity'')|float
+        >= 60) }}'
+    then:
+    - action: dehumidifier.set_dehumidifier_mode
+      target:
+        entity_id:
+        - dehumidifier.in_g1_dehum_1
+        - dehumidifier.in_g1_dehum_2
+      data:
+        Mode: drying

@@ -1,0 +1,29 @@
+kind: automation
+key: C18_006
+automation:
+  alias: C18_006
+  mode: single
+  triggers:
+  - trigger: time
+    at: '22:00:00'
+  conditions: []
+  actions:
+  - repeat:
+      while:
+      - condition: time
+        before: '23:00:00'
+      sequence:
+      - if:
+        - condition: template
+          value_template: '{{ (not (is_state(''binary_sensor.main_motion_sensor_motion'',
+            ''on'') and is_state(''binary_sensor.garage_motion_sensor_motion'', ''on'')))
+            }}'
+        then:
+        - action: lock.lock
+          target:
+            entity_id:
+            - lock.main_door_lock
+            - lock.storage_door_lock
+      - wait_for_trigger:
+        - trigger: time_pattern
+          seconds: /1

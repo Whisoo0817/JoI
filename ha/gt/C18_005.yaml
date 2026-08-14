@@ -1,0 +1,42 @@
+kind: automation
+key: C18_005
+automation:
+  alias: C18_005
+  mode: single
+  triggers:
+  - trigger: time
+    at: 00:00:00
+  conditions:
+  - condition: time
+    weekday:
+    - sat
+  actions:
+  - repeat:
+      while:
+      - condition: not
+        conditions:
+        - condition: time
+          weekday:
+          - mon
+      sequence:
+      - if:
+        - condition: template
+          value_template: '{{ (is_state(''binary_sensor.fac_pump_1_switch'', ''on'') or is_state(''binary_sensor.fac_pump_2_switch'',
+            ''on'')) }}'
+        then:
+        - action: pump.turn_off
+          target:
+            entity_id:
+            - pump.fac_pump_1
+            - pump.fac_pump_2
+        - action: email_provider.send_mail
+          target:
+            entity_id:
+            - email_provider.email_provider
+          data:
+            ToAddress: test@example.com
+            Title: Risk
+            Body: A pump is turned on
+      - wait_for_trigger:
+        - trigger: time_pattern
+          minutes: /30

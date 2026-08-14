@@ -1,0 +1,22 @@
+kind: script
+key: C05_027
+script:
+  alias: C05_027
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (is_state(''binary_sensor.basement_leak_leakage'', ''on'') and (is_state(''binary_sensor.main_valve_1_valve_state'',
+        ''on'') or is_state(''binary_sensor.main_valve_2_valve_state'', ''on''))) }}'
+    then:
+    - action: valve.close_valve
+      target:
+        entity_id:
+        - valve.main_valve_1
+        - valve.main_valve_2
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.main_siren
+      data:
+        Mode: police

@@ -1,0 +1,20 @@
+kind: script
+key: C03_032
+script:
+  alias: C03_032
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_temp_sensor_temperature'')|float >=
+        26 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.living_room_ac
+    else:
+    - action: switch.turn_off
+      target:
+        entity_id:
+        - switch.living_room_ac

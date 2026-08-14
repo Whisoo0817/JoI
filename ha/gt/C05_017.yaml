@@ -1,0 +1,24 @@
+kind: script
+key: C05_017
+script:
+  alias: C05_017
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ ((states(''sensor.main_pressure_pressure'')|float >= 100 or states(''sensor.garden_pressure_pressure'')|float
+        >= 100) and (is_state(''binary_sensor.living_presence_presence'', ''off'') and is_state(''binary_sensor.bedroom_presence_presence'',
+        ''off''))) }}'
+    then:
+    - action: valve.close_valve
+      target:
+        entity_id:
+        - valve.main_valve
+        - valve.garden_valve
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.main_siren
+        - siren.entrance_siren
+      data:
+        Mode: emergency

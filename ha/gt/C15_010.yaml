@@ -1,0 +1,25 @@
+kind: automation
+key: C15_010
+automation:
+  alias: C15_010
+  mode: single
+  triggers:
+  - trigger: time
+    at: '18:00:00'
+  conditions: []
+  actions:
+  - action: menu_provider.get_menu
+    target:
+      entity_id:
+      - menu_provider.main_menu_provider
+      - menu_provider.office_menu_provider
+    data:
+      Command: 오늘 학생식당 저녁
+    response_variable: TodayMenu
+  - action: media_player.speak
+    target:
+      entity_id:
+      - media_player.living_speaker
+      - media_player.bedroom_speaker
+    data:
+      Text: '{{ TodayMenu }}'

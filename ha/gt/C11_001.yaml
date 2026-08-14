@@ -1,0 +1,23 @@
+kind: script
+key: C11_001
+script:
+  alias: C11_001
+  mode: single
+  sequence:
+  - variables:
+      t1: '{{ states(''sensor.wine_cellar_temp_temperature'') }}'
+  - delay:
+      minutes: 10
+  - variables:
+      t2: '{{ states(''sensor.wine_cellar_temp_temperature'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (((t2 - t1))|abs >= 1) }}'
+    then:
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.speaker
+        - media_player.living_room_speaker
+      data:
+        Text: The wine cellar temperature has changed rapidly

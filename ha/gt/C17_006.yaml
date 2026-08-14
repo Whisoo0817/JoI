@@ -1,0 +1,35 @@
+kind: automation
+key: C17_006
+automation:
+  alias: C17_006
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    hours: /1
+  conditions: []
+  actions:
+  - variables:
+      fd: '{{ states(''sensor.living_aq_fine_dust_level'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (fd >= 200) }}'
+    then:
+    - action: fan.set_air_purifier_mode
+      target:
+        entity_id:
+        - fan.living_ap
+        - fan.bedroom_ap
+      data:
+        Mode: high
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ (fd <= 100) }}'
+      then:
+      - action: fan.set_air_purifier_mode
+        target:
+          entity_id:
+          - fan.living_ap
+          - fan.bedroom_ap
+        data:
+          Mode: low

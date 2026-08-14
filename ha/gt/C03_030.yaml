@@ -1,0 +1,17 @@
+kind: script
+key: C03_030
+script:
+  alias: C03_030
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.s1_lock_1_door_lock_state'') == ''open'' or states(''sensor.s1_lock_2_door_lock_state'')
+        == ''open'') }}'
+    then:
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.s1_siren
+      data:
+        Mode: police

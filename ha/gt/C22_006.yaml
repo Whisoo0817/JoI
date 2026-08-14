@@ -1,0 +1,27 @@
+kind: automation
+key: C22_006
+automation:
+  alias: C22_006
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    seconds: /10
+  conditions:
+  - condition: numeric_state
+    entity_id: counter.c22_006_n
+    below: 6
+  actions:
+  - action: siren.set_siren_mode
+    target:
+      entity_id:
+      - siren.main_siren
+      - siren.entrance_siren
+    data:
+      Mode: emergency
+  - action: counter.increment
+    target:
+      entity_id: counter.c22_006_n
+helpers:
+  counter:
+    c22_006_n:
+      initial: 0

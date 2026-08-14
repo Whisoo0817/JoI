@@ -1,0 +1,16 @@
+kind: script
+key: C07_012
+script:
+  alias: C07_012
+  mode: single
+  sequence:
+  - wait_template: '{{ (states(''sensor.living_room_air_quality_sensor_very_fine_dust_level'')|float
+      >= 35 or states(''sensor.bedroom_air_quality_sensor_very_fine_dust_level'')|float >=
+      35) }}'
+  - action: fan.set_air_purifier_mode
+    target:
+      entity_id:
+      - fan.living_room_air_purifier
+      - fan.bedroom_air_purifier
+    data:
+      Mode: high

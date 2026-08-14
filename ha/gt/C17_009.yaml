@@ -1,0 +1,24 @@
+kind: automation
+key: C17_009
+automation:
+  alias: C17_009
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    hours: /1
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.s1_lock_1_door_lock_state'') == ''open'' or states(''sensor.s1_lock_2_door_lock_state'')
+        == ''open'') }}'
+    then:
+    - action: light.move_to_color
+      target:
+        entity_id:
+        - light.s1_light_1
+        - light.s1_light_2
+      data:
+        ColorX: 0.675
+        ColorY: 0.322
+        TransitionTime: 0

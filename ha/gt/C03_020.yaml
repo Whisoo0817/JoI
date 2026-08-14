@@ -1,0 +1,16 @@
+kind: script
+key: C03_020
+script:
+  alias: C03_020
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.sector1_temp_temperature'')|float >= 36.5 }}'
+    then:
+    - action: climate.set_target_temperature
+      target:
+        entity_id:
+        - climate.sector1_ac
+      data:
+        Temperature: 30

@@ -1,0 +1,15 @@
+kind: script
+key: C07_011
+script:
+  alias: C07_011
+  mode: single
+  sequence:
+  - wait_template: '{{ (states(''sensor.living_room_humidity_sensor_humidity'')|float > 80
+      or states(''sensor.bedroom_humidity_sensor_humidity'')|float > 80) }}'
+  - action: dehumidifier.set_dehumidifier_mode
+    target:
+      entity_id:
+      - dehumidifier.living_room_dehumidifier
+      - dehumidifier.bathroom_dehumidifier
+    data:
+      Mode: drying

@@ -1,0 +1,25 @@
+kind: automation
+key: C18_003
+automation:
+  alias: C18_003
+  mode: single
+  triggers:
+  - trigger: time
+    at: '22:00:00'
+  conditions: []
+  actions:
+  - repeat:
+      while:
+      - condition: time
+        before: '24:00:00'
+      sequence:
+      - action: siren.set_siren_mode
+        target:
+          entity_id:
+          - siren.main_siren
+          - siren.entrance_siren
+        data:
+          Mode: emergency
+      - wait_for_trigger:
+        - trigger: time_pattern
+          minutes: /10

@@ -1,0 +1,21 @@
+kind: script
+key: C05_023
+script:
+  alias: C05_023
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.home_weather_provider_weather'') == ''rain'' and
+        states(''sensor.living_room_window_current_position'')|float > 0) }}'
+    then:
+    - action: cover.close_cover
+      target:
+        entity_id:
+        - cover.living_room_window
+    - action: dehumidifier.set_dehumidifier_mode
+      target:
+        entity_id:
+        - dehumidifier.living_room_dehum
+      data:
+        Mode: dehumidifying

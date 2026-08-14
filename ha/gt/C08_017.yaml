@@ -1,0 +1,26 @@
+kind: script
+key: C08_017
+script:
+  alias: C08_017
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.main_mb_button4'') == ''pushed'' }}'
+  - action: light.move_to_color
+    target:
+      entity_id:
+      - light.lr_light
+      - light.hall_light
+      - light.bedroom_light
+    data:
+      ColorX: 0.675
+      ColorY: 0.322
+      TransitionTime: 0
+  - action: light.move_to_brightness
+    target:
+      entity_id:
+      - light.lr_light
+      - light.hall_light
+      - light.bedroom_light
+    data:
+      Brightness: 10
+      Rate: 0

@@ -1,0 +1,30 @@
+kind: automation
+key: C26_002
+automation:
+  alias: C26_002
+  mode: single
+  triggers:
+  - trigger: state
+    entity_id: binary_sensor.main_valve_valve_state
+    to: 'on'
+  conditions: []
+  actions:
+  - wait_template: '{{ is_state(''binary_sensor.main_valve_valve_state'', ''off'') }}'
+    timeout:
+      minutes: 10
+    continue_on_timeout: true
+  - if:
+    - condition: template
+      value_template: '{{ not wait.completed }}'
+    then:
+    - action: valve.close_valve
+      target:
+        entity_id:
+        - valve.main_valve
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.kitchen_speaker
+      data:
+        Text: The water valve has been closed
+    - stop: timeout

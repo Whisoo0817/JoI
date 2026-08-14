@@ -1,0 +1,15 @@
+kind: script
+key: C10_002
+script:
+  alias: C10_002
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.kitchen_fan_fan_mode'') == ''high'' }}'
+  - delay:
+      seconds: 3
+  - action: fan.set_fan_mode
+    target:
+      entity_id:
+      - fan.kitchen_fan
+    data:
+      Mode: low

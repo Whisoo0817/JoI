@@ -1,0 +1,29 @@
+kind: automation
+key: C19_004
+automation:
+  alias: C19_004
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    seconds: /1
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.living_room_temp_sensor_temperature'')|float <=
+        18 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.living_room_heater
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ states(''sensor.living_room_temp_sensor_temperature'')|float >=
+          22 }}'
+      then:
+      - action: switch.turn_off
+        target:
+          entity_id:
+          - switch.living_room_heater

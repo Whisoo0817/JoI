@@ -1,0 +1,18 @@
+kind: script
+key: C21_005
+script:
+  alias: C21_005
+  mode: single
+  sequence:
+  - variables:
+      living_temp: '{{ states(''sensor.living_room_temp_sensor_temperature'') }}'
+  - variables:
+      bedroom_temp: '{{ states(''sensor.bedroom_temp_sensor_temperature'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ ((living_temp >= 25) and (bedroom_temp >= 25)) }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.living_room_fan

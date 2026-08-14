@@ -1,0 +1,18 @@
+kind: script
+key: C03_007
+script:
+  alias: C03_007
+  mode: single
+  sequence:
+  - variables:
+      currentMode: '{{ states(''sensor.main_pump_pump_mode'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (currentMode == ''normal'') }}'
+    then:
+    - action: pump.set_pump_mode
+      target:
+        entity_id:
+        - pump.main_pump
+      data:
+        PumpMode: maximum

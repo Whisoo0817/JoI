@@ -1,0 +1,24 @@
+kind: automation
+key: C22_009
+automation:
+  alias: C22_009
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    minutes: /3
+  conditions:
+  - condition: numeric_state
+    entity_id: counter.c22_009_n
+    below: 3
+  actions:
+  - action: lock.unlock
+    target:
+      entity_id:
+      - lock.garage_door_lock
+  - action: counter.increment
+    target:
+      entity_id: counter.c22_009_n
+helpers:
+  counter:
+    c22_009_n:
+      initial: 0

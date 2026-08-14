@@ -1,0 +1,31 @@
+kind: automation
+key: C18_009
+automation:
+  alias: C18_009
+  mode: single
+  triggers:
+  - trigger: time
+    at: '18:00:00'
+  conditions: []
+  actions:
+  - repeat:
+      while:
+      - condition: time
+        before: '20:00:00'
+      sequence:
+      - if:
+        - condition: state
+          entity_id: binary_sensor.f1_presence_sensor_presence
+          state: 'on'
+        then:
+        - action: light.move_to_brightness
+          target:
+            entity_id:
+            - light.f1_light_1
+            - light.f1_light_2
+          data:
+            Brightness: 100
+            Rate: 0
+      - wait_for_trigger:
+        - trigger: time_pattern
+          hours: /1

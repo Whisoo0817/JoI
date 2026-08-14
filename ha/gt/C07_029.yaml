@@ -1,0 +1,17 @@
+kind: script
+key: C07_029
+script:
+  alias: C07_029
+  mode: single
+  sequence:
+  - if:
+    - condition: state
+      entity_id: binary_sensor.kitchen_smoke_smoke
+      state: 'on'
+    then:
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.kitchen_siren
+      data:
+        Mode: fire

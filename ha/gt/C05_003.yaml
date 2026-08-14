@@ -1,0 +1,21 @@
+kind: script
+key: C05_003
+script:
+  alias: C05_003
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (is_state(''binary_sensor.garage_motion_motion'', ''on'') and states(''sensor.main_siren_siren_mode'')
+        != ''emergency'') }}'
+    then:
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.main_siren
+      data:
+        Mode: emergency
+    - action: camera.capture_image
+      target:
+        entity_id:
+        - camera.garage_camera

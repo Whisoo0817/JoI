@@ -1,0 +1,23 @@
+kind: script
+key: C05_019
+script:
+  alias: C05_019
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.study_aq_carbon_dioxide'')|float >= 1000 and states(''sensor.study_ap_air_purifier_mode'')
+        == ''sleep'') }}'
+    then:
+    - action: fan.set_air_purifier_mode
+      target:
+        entity_id:
+        - fan.study_ap
+      data:
+        Mode: auto
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.study_speaker
+      data:
+        Text: Switching the air purifier to auto mode

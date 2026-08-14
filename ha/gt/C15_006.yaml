@@ -1,0 +1,17 @@
+kind: automation
+key: C15_006
+automation:
+  alias: C15_006
+  mode: single
+  triggers:
+  - trigger: time
+    at: 00:00:00
+  conditions:
+  - condition: template
+    value_template: '{{ now().day == 1 and now().month == 1 }}'
+  actions:
+  - action: arm_robot.hello
+    target:
+      entity_id:
+      - arm_robot.main_arm_robot
+      - arm_robot.lab_arm_robot

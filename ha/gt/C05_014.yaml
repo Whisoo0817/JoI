@@ -1,0 +1,26 @@
+kind: script
+key: C05_014
+script:
+  alias: C05_014
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ ((states(''sensor.living_temp_temperature'')|float <= 18 or states(''sensor.bedroom_temp_temperature'')|float
+        <= 18) and (is_state(''binary_sensor.living_presence_presence'', ''on'') or is_state(''binary_sensor.bedroom_presence_presence'',
+        ''on''))) }}'
+    then:
+    - action: climate.set_air_conditioner_mode
+      target:
+        entity_id:
+        - climate.living_ac
+        - climate.bedroom_ac
+      data:
+        Mode: heat
+    - action: climate.set_target_temperature
+      target:
+        entity_id:
+        - climate.living_ac
+        - climate.bedroom_ac
+      data:
+        Temperature: 22

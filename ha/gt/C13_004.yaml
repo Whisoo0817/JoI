@@ -1,0 +1,36 @@
+kind: automation
+key: C13_004
+automation:
+  alias: C13_004
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    minutes: /30
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ ((states(''counter.c13_004_n'')|int % 2) == 0) }}'
+    then:
+    - action: fan.set_air_purifier_mode
+      target:
+        entity_id:
+        - fan.main_air_purifier
+        - fan.bedroom_air_purifier
+      data:
+        Mode: sleep
+    else:
+    - action: fan.set_air_purifier_mode
+      target:
+        entity_id:
+        - fan.main_air_purifier
+        - fan.bedroom_air_purifier
+      data:
+        Mode: high
+  - action: counter.increment
+    target:
+      entity_id: counter.c13_004_n
+helpers:
+  counter:
+    c13_004_n:
+      initial: 0

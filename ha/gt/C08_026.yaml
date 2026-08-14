@@ -1,0 +1,16 @@
+kind: automation
+key: C08_026
+automation:
+  alias: C08_026
+  mode: single
+  triggers:
+  - trigger: template
+    value_template: '{{ (states(''sensor.living_temp_temperature'')|float >= 30 or states(''sensor.bedroom_temp_temperature'')|float
+      >= 30) }}'
+  conditions: []
+  actions:
+  - action: cover.close_cover
+    target:
+      entity_id:
+      - cover.living_blind
+      - cover.bedroom_blind

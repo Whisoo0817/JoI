@@ -1,0 +1,28 @@
+kind: automation
+key: C18_001
+automation:
+  alias: C18_001
+  mode: single
+  triggers:
+  - trigger: time
+    at: '13:00:00'
+  conditions: []
+  actions:
+  - repeat:
+      while:
+      - condition: time
+        before: '15:00:00'
+      sequence:
+      - action: valve.open_valve
+        target:
+          entity_id:
+          - valve.kitchen_valve
+          - valve.garden_valve
+      - action: valve.close_valve
+        target:
+          entity_id:
+          - valve.kitchen_valve
+          - valve.garden_valve
+      - wait_for_trigger:
+        - trigger: time_pattern
+          minutes: /5

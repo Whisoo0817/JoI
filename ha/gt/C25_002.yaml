@@ -1,0 +1,39 @@
+kind: automation
+key: C25_002
+automation:
+  alias: C25_002
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    minutes: /10
+  conditions:
+  - condition: numeric_state
+    entity_id: counter.c25_002_n
+    below: 4
+  actions:
+  - variables:
+      v: '{{ states(''sensor.bedroom_temp_temperature'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ (v < 20) }}'
+    then:
+    - action: climate.set_air_conditioner_mode
+      target:
+        entity_id:
+        - climate.bedroom_ac
+      data:
+        Mode: heat
+    else:
+    - action: climate.set_air_conditioner_mode
+      target:
+        entity_id:
+        - climate.bedroom_ac
+      data:
+        Mode: auto
+  - action: counter.increment
+    target:
+      entity_id: counter.c25_002_n
+helpers:
+  counter:
+    c25_002_n:
+      initial: 0

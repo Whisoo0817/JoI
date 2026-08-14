@@ -1,0 +1,21 @@
+kind: script
+key: C05_010
+script:
+  alias: C05_010
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.main_weather_weather'') == ''rain'' and (is_state(''binary_sensor.living_presence_presence'',
+        ''off'') and is_state(''binary_sensor.bedroom_presence_presence'', ''off''))) }}'
+    then:
+    - action: lock.lock
+      target:
+        entity_id:
+        - lock.entrance_lock
+        - lock.garage_lock
+    - action: valve.close_valve
+      target:
+        entity_id:
+        - valve.main_valve
+        - valve.garden_valve

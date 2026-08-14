@@ -1,0 +1,30 @@
+kind: script
+key: C23_005
+script:
+  alias: C23_005
+  mode: single
+  sequence:
+  - repeat:
+      sequence:
+      - wait_template: '{{ is_state(''binary_sensor.hallway_motion_motion'', ''off'') }}'
+      - wait_for_trigger:
+        - trigger: template
+          value_template: '{{ not (is_state(''binary_sensor.hallway_motion_motion'', ''off''))
+            }}'
+        timeout:
+          minutes: 3
+        continue_on_timeout: true
+      until: '{{ wait.trigger is none }}'
+  - action: light.move_to_brightness
+    target:
+      entity_id:
+      - light.hallway_light
+    data:
+      Brightness: 50
+      Rate: 0
+  - delay:
+      minutes: 2
+  - action: light.turn_off
+    target:
+      entity_id:
+      - light.hallway_light

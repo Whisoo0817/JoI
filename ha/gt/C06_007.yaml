@@ -1,0 +1,17 @@
+kind: script
+key: C06_007
+script:
+  alias: C06_007
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (is_state(''binary_sensor.entrance_motion_sensor_motion'', ''on'')
+        or is_state(''binary_sensor.balcony_motion_sensor_motion'', ''on'')) }}'
+    then:
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.living_room_speaker
+      data:
+        Text: Motion is detected at the entrance or motion is detected on the balcony

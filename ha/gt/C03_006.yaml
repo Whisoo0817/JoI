@@ -1,0 +1,17 @@
+kind: script
+key: C03_006
+script:
+  alias: C03_006
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.garage_charger_current'')|float >= 10 }}'
+    then:
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.main_siren
+        - siren.garage_siren
+      data:
+        Mode: emergency

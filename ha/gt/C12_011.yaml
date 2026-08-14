@@ -1,0 +1,21 @@
+kind: script
+key: C12_011
+script:
+  alias: C12_011
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.p_aq_carbon_dioxide'')|float > 880 }}'
+  - repeat:
+      while:
+      - condition: template
+        value_template: '{{ true }}'
+      sequence:
+      - action: media_player.speak
+        target:
+          entity_id:
+          - media_player.p_speaker
+        data:
+          Text: CO2 level danger
+      - wait_for_trigger:
+        - trigger: time_pattern
+          seconds: /10

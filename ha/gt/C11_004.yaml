@@ -1,0 +1,20 @@
+kind: script
+key: C11_004
+script:
+  alias: C11_004
+  mode: single
+  sequence:
+  - variables:
+      h1: '{{ states(''sensor.living_room_humidity_sensor_humidity'') }}'
+  - delay:
+      minutes: 20
+  - variables:
+      h2: '{{ states(''sensor.living_room_humidity_sensor_humidity'') }}'
+  - if:
+    - condition: template
+      value_template: '{{ ((h1 - h2) >= 10) }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.living_room_humidifier

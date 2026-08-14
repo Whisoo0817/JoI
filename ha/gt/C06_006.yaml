@@ -1,0 +1,15 @@
+kind: script
+key: C06_006
+script:
+  alias: C06_006
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ (states(''sensor.kitchen_temp_sensor_temperature'')|float >= 35
+        or states(''sensor.living_room_temp_sensor_temperature'')|float >= 33) }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.kitchen_fan

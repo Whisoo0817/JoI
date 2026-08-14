@@ -1,0 +1,14 @@
+kind: script
+key: C07_009
+script:
+  alias: C07_009
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.study_door_lock_door_lock_state'') == ''open'' }}'
+  - action: siren.set_siren_mode
+    target:
+      entity_id:
+      - siren.living_room_siren
+      - siren.entrance_siren
+    data:
+      Mode: police

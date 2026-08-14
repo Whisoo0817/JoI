@@ -1,0 +1,22 @@
+kind: script
+key: C09_006
+script:
+  alias: C09_006
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.home_weather_provider_pm25_weather'')|float >= 2000
+        }}'
+    then:
+    - action: lock.lock
+      target:
+        entity_id:
+        - lock.back_door_lock
+    - delay:
+        hours: 4
+    - action: valve.close_valve
+      target:
+        entity_id:
+        - valve.kitchen_valve
+        - valve.basement_valve

@@ -1,0 +1,28 @@
+kind: automation
+key: C19_007
+automation:
+  alias: C19_007
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    seconds: /1
+  conditions: []
+  actions:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.kitchen_temp_sensor_temperature'')|float >= 32 }}'
+    then:
+    - action: switch.turn_on
+      target:
+        entity_id:
+        - switch.kitchen_fan
+    else:
+    - if:
+      - condition: template
+        value_template: '{{ states(''sensor.kitchen_temp_sensor_temperature'')|float <= 28
+          }}'
+      then:
+      - action: switch.turn_off
+        target:
+          entity_id:
+          - switch.kitchen_fan

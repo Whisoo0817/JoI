@@ -1,0 +1,26 @@
+kind: script
+key: C05_005
+script:
+  alias: C05_005
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ ((states(''sensor.living_aq_carbon_dioxide'')|float >= 1200 or states(''sensor.office_aq_carbon_dioxide'')|float
+        >= 1200) and (is_state(''binary_sensor.living_presence_presence'', ''on'') or is_state(''binary_sensor.bedroom_presence_presence'',
+        ''on''))) }}'
+    then:
+    - action: fan.set_air_purifier_mode
+      target:
+        entity_id:
+        - fan.living_ap
+        - fan.bedroom_ap
+      data:
+        Mode: high
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.living_speaker
+        - media_player.bedroom_speaker
+      data:
+        Text: Carbon dioxide concentration is high and person detected.

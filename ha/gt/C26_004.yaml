@@ -1,0 +1,29 @@
+kind: automation
+key: C26_004
+automation:
+  alias: C26_004
+  mode: single
+  triggers:
+  - trigger: time
+    at: '23:00:00'
+  conditions: []
+  actions:
+  - wait_template: '{{ states(''sensor.entrance_lock_door_lock_state'') == ''closed'' }}'
+    timeout:
+      minutes: 10
+    continue_on_timeout: true
+  - if:
+    - condition: template
+      value_template: '{{ not wait.completed }}'
+    then:
+    - action: lock.lock
+      target:
+        entity_id:
+        - lock.entrance_lock
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.living_speaker
+      data:
+        Text: The door lock has been locked
+    - stop: timeout

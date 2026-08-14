@@ -1,0 +1,19 @@
+kind: automation
+key: C15_012
+automation:
+  alias: C15_012
+  mode: single
+  triggers:
+  - trigger: time_pattern
+    minutes: '0'
+  conditions:
+  - condition: template
+    value_template: '{{ now().day == 25 and now().month == 12 }}'
+  actions:
+  - action: media_player.media_play
+    target:
+      entity_id:
+      - media_player.living_speaker
+      - media_player.bedroom_speaker
+    data:
+      MediaSource: Christmas.mp3

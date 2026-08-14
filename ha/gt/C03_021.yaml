@@ -1,0 +1,16 @@
+kind: script
+key: C03_021
+script:
+  alias: C03_021
+  mode: single
+  sequence:
+  - if:
+    - condition: template
+      value_template: '{{ states(''sensor.farm_aq_carbon_dioxide'')|float >= 800 }}'
+    then:
+    - action: siren.set_siren_mode
+      target:
+        entity_id:
+        - siren.farm_siren
+      data:
+        Mode: emergency

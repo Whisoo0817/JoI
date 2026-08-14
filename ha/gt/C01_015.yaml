@@ -1,0 +1,20 @@
+kind: script
+key: C01_015
+script:
+  alias: C01_015
+  mode: single
+  sequence:
+  - action: cloud_service_provider.generate_image
+    target:
+      entity_id:
+      - cloud_service_provider.system_cloud_service_provider
+    data:
+      Prompt: Generate a cat image
+    response_variable: GenerateImage
+  - action: cloud_service_provider.save_to_file
+    target:
+      entity_id:
+      - cloud_service_provider.system_cloud_service_provider
+    data:
+      Data: '{{ GenerateImage }}'
+      FilePath: cat.png

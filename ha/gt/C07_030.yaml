@@ -1,0 +1,15 @@
+kind: script
+key: C07_030
+script:
+  alias: C07_030
+  mode: single
+  sequence:
+  - if:
+    - condition: state
+      entity_id: binary_sensor.basement_leak_leakage
+      state: 'on'
+    then:
+    - action: valve.close_valve
+      target:
+        entity_id:
+        - valve.basement_valve

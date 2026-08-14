@@ -1,0 +1,12 @@
+kind: script
+key: C07_013
+script:
+  alias: C07_013
+  mode: single
+  sequence:
+  - wait_template: '{{ states(''sensor.garage_charger_voltage'')|float > 250000 }}'
+  - action: charger.turn_off
+    target:
+      entity_id:
+      - charger.garage_charger
+      - charger.basement_charger

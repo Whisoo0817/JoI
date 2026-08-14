@@ -1,0 +1,22 @@
+kind: script
+key: C26_001
+script:
+  alias: C26_001
+  mode: single
+  sequence:
+  - wait_template: '{{ is_state(''binary_sensor.front_door_contact_contact'', ''off'') }}'
+  - wait_template: '{{ is_state(''binary_sensor.front_door_contact_contact'', ''on'') }}'
+    timeout:
+      minutes: 5
+    continue_on_timeout: true
+  - if:
+    - condition: template
+      value_template: '{{ not wait.completed }}'
+    then:
+    - action: media_player.speak
+      target:
+        entity_id:
+        - media_player.living_speaker
+      data:
+        Text: The door is still open
+    - stop: timeout
