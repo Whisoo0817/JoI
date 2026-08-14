@@ -571,3 +571,35 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   DIVERGE + 재생 확인 — E3 mutation operator의 게이트판 예행.
 - **남은 것**: 382 전 행 게이트 측정은 신규 lowering 산출물이 생기는
   E2/E3 때. ForEach 후보는 ground 언롤로 이제 게이트에서 판정 가능.
+
+### 9.11 W2 잔재 정리 — exemplar 재검증 + 센서 집합 읽기 정책 (2026-08-14)
+
+- **lowering exemplar 재검증(§9.7 잔여 ①)**: files/ 프롬프트 8개에서
+  죽은 서비스·함수 오용을 정리. 카탈로그 단계 프롬프트만 대상 —
+  Door 예시→ContactSensor/DoorLock(잠금 언어), Safe.Lock→DoorLock.Lock,
+  oven 예시→제습기/공기청정기, AirConditioner.SetMode(×5)→
+  SetAirConditionerMode("cooling"→"cool"), Camera.Capture→CaptureImage,
+  (#Valve).door_open→valve_open. 순수 언어 단계(translation,
+  re_translate_kor)의 낱말 예문("식기세척기=dishwasher", "Door|문")은
+  카탈로그 무관이라 유지. service_plan의 Light.On/MaxLevel·
+  MultiButton.ButtonN은 **의도된 오답 예시·메타 이름이라 보존**.
+  전 파일 카탈로그 대조 재스캔 0건. 신규 4스킬(ArmRobotDetail,
+  ChatProvider, MessageSender, NewsProvider)은 rule sheet 부재 —
+  코퍼스 미사용이라 보류.
+- **센서 집합 읽기 정책(whisoo 결정)**: 명령어(NL)와 동결 IR은 그대로
+  두고 binding_gt 열에만 얹는 후처리. 센서류(*Sensor/*Detector)를
+  **조건에서** 읽는 자리를 규약(첫 후보 1대)으로 좁히던 것을 **후보
+  전체 집합**으로 — "연기가 감지되면"의 자연스러운 뜻은 "아무 센서나".
+  극성: 재실류 부재 감시(Presence/Motion == false, not Motion)는
+  all(전부 미감지), 그 외 any. 값 하나를 담는 scalar 자리(알림용 읽기·
+  인자)는 집합 불가라 단수 유지, 기기 상태 읽기("에어컨이 냉방 모드면")·
+  버튼·WeatherProvider·액션 타깃도 단수 규약 유지.
+- **적용**: 40행 변경(집합 자리 48, all 7). 자리 판정 분포에 set 48
+  신설(first 178→135, main 55→50). 감사 0건. 게이트 재측정: 유효 178쌍
+  EQUIV 139 / DIVERGE 39(전부 재생 확인) — 늘어난 25건은 v1 캐시 정답
+  JoI가 센서 1대만 읽던 행들로, 새 기준과 어긋나는 낡은 정답(E2에서
+  확정 IR+바인딩 기반으로 재생성될 대상). §9.10의 178쌍 수치는 이
+  정책 이전 기준.
+- binding_review.md 재편: 남은 눈검토 대상 = 규약(Main/첫 후보) 자리
+  145행(기기 상태·scalar·액션 — 이상 배정만 잡으면 됨) + 한정자 자동
+  표기 58행(참고용).

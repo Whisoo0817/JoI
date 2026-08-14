@@ -82,23 +82,24 @@ def cond_services(c):
 
 
 def walk_slots(steps, out):
-    """자리 걷기 — (서비스, 자리 성격) 목록. 성격: "read"(조건·읽기·인자) /
-    "call"(액션 표적). 순서가 곧 자리 번호 (§9.4)."""
+    """자리 걷기 — (서비스, 자리 성격) 목록. 성격: "cond"(조건 — 참/거짓
+    맥락) / "scalar"(read op·인자 — 값 하나를 담는 자리) / "call"(액션
+    표적). 순서가 곧 자리 번호 (§9.4)."""
     for s in steps:
         if not isinstance(s, dict):
             continue
         for f in ("cond", "until"):
             if s.get(f):
-                out.extend((x, "read") for x in cond_services(s[f]))
+                out.extend((x, "cond") for x in cond_services(s[f]))
         if s.get("op") == "read" and s.get("src"):
             svc = s["src"].partition(".")[0]
             if svc != "clock":
-                out.append((svc, "read"))
+                out.append((svc, "scalar"))
         if s.get("op") == "call":
             out.append((s["target"].partition(".")[0], "call"))
             for v in (s.get("args") or {}).values():
                 if isinstance(v, str):
-                    out.extend((x, "read") for x in cond_services(v))
+                    out.extend((x, "scalar") for x in cond_services(v))
         for v in s.values():
             if isinstance(v, list):
                 walk_slots(v, out)
@@ -240,6 +241,21 @@ def from_cache(groups, svc, cands, devs):
 # (2026-08-14 검수: 다기기 읽기 19행 중 any 17, all 2 — §9.10)
 READ_QUANT_ALL = {("C17_008", "HumiditySensor"), ("C03_024", "TemperatureSensor")}
 
+# 센서류를 조건에서 읽는 자리를 규약(첫 후보 1대)으로 좁히지 않고 후보
+# 전체 집합으로 두는 정책 (2026-08-14 whisoo 결정, §9.11). "연기가
+# 감지되면"의 자연스러운 뜻은 "아무 센서나". 값 하나를 담는 scalar
+# 자리(알림용 읽기 등)는 집합 불가라 제외. 극성: 재실류 부재 감시
+# (Presence/Motion == false)는 all(전부 미감지), 그 외는 any.
+SENSORISH = lambda svc: svc.endswith("Sensor") or svc.endswith("Detector")
+ABSENCE_SVCS = {"PresenceSensor", "MotionSensor", "PresenceVitalSensor"}
+
+
+def absence_read(svc, ir_text):
+    """부재 감시인가 — 재실류 서비스를 false/not으로 비교하면 all."""
+    if svc not in ABSENCE_SVCS:
+        return False
+    return bool(re.search(rf"{svc}\.\w+\s*==\s*false|not\s+{svc}\.", ir_text))
+
 # 휴리스틱이 원리상 못 가르는 행 (예: DoorLock 태그가 전 후보 공유 —
 # "금고"와 "도어락"을 태그 부재로 구분 불가) — 수기 명세.
 # 2026-08-14 게이트 가동(W3)이 드러낸 4행 추가:
@@ -297,13 +313,17 @@ def build(r):
             continue
         k = by_svc[svc]
         picks = assign(svc, k, cands, devs, eng, kor)
-        # 애매하면: ① 캐시 셀렉터 증거 ② Main 태그 ③ 첫 후보 (규약)
+        # 애매하면: ① 캐시 셀렉터 증거 ② 센서류 조건 읽기 = 후보 전체
+        # 집합(§9.11) ③ Main 태그 ④ 첫 후보 (규약)
+        kinds = kinds_by_svc[svc]
         fixed = []
-        for devices, way in picks:
+        for i, (devices, way) in enumerate(picks):
             if way == "ambig":
                 cev = from_cache(cgroups, svc, cands, devs)
                 if cev:
                     devices, way = cev, "cache"
+                elif kinds[i] == "cond" and SENSORISH(svc):
+                    devices, way = cands[:], "set"
                 else:
                     mains = [d for d in cands
                              if "Main" in devs[d].get("tags", [])]
@@ -313,13 +333,12 @@ def build(r):
                         devices, way = cands[:1], "first"
             fixed.append((devices, way))
         picks = fixed
-        # 같은 집합이면 자리 합치기 (합쳐진 자리의 read 성격은 누적)
-        kinds = kinds_by_svc[svc]
+        # 같은 집합이면 자리 합치기 (합쳐진 자리의 조건 성격은 누적)
         seen = []                      # [(sorted(devices), 자리 이름)]
         for i, (devices, way) in enumerate(picks):
             hit = next((nm for ds, nm in seen if sorted(devices) == ds), None)
             if hit:
-                if kinds[i] == "read":
+                if kinds[i] == "cond":
                     read_slots.add(hit)
                 continue
             name = svc if not any(x == svc or x.startswith(svc + "#")
@@ -328,14 +347,17 @@ def build(r):
             seen.append((sorted(devices), name))
             binding[name] = devices
             ways[name] = way
-            if kinds[i] == "read":
+            if kinds[i] == "cond":
                 read_slots.add(name)
             if way in ("main", "first"):
                 flags.append(f"{name}[{way}]: 후보 {cands} → {devices}")
-    # 여러 대를 읽는 자리 → 한정자 표기 ({"any"/"all": [...]}), 액션 전용은 목록 그대로
+    # 조건에서 여러 대를 읽는 자리 → 한정자 표기 ({"any"/"all": [...]}),
+    # 액션 전용은 목록 그대로. 부재 감시(재실류 == false)는 all.
     for name in list(binding):
         if len(binding[name]) > 1 and name in read_slots:
-            q = "all" if (key, name) in READ_QUANT_ALL else "any"
+            svc = name.split("#")[0]
+            q = ("all" if (key, name) in READ_QUANT_ALL
+                 or absence_read(svc, r["ir_gt"]) else "any")
             binding[name] = {q: binding[name]}
             flags.append(f"{name}[읽기 {q}]: {binding[name][q]}")
     return binding, ways, flags
@@ -344,8 +366,8 @@ def build(r):
 def main():
     rows = list(csv.DictReader(open("dataset.csv")))
     n_flag = 0
-    stats = {"only": 0, "loc": 0, "all": 0, "cache": 0, "main": 0, "first": 0,
-             "manual": 0}
+    stats = {"only": 0, "loc": 0, "all": 0, "cache": 0, "set": 0, "main": 0,
+             "first": 0, "manual": 0}
     for r in rows:
         key = f'{r["category_v2"]}_{int(float(r["index"])):03d}'
         try:
