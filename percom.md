@@ -603,3 +603,56 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
 - binding_review.md 재편: 남은 눈검토 대상 = 규약(Main/첫 후보) 자리
   145행(기기 상태·scalar·액션 — 이상 배정만 잡으면 됨) + 한정자 자동
   표기 58행(참고용).
+
+### 9.12 매핑 파이프라인 교체(mapping_v2) + 무표지 액션→전체 정책 (2026-08-14)
+
+- **whisoo 결정 2건**: ① main 브랜치의 mapping_v2(제약 추출 LLM + 후보
+  조인 + 선택 LLM, resolver_v3)로 paper의 매핑 3-step(device_retrieve →
+  ground_targets → device_resolve)을 통째 교체. ② 수량사를 말하지 않은
+  액션("조명을 켜줘")은 해당 기기가 2대 이상이면 전부(all) — 하나만
+  켜면 이상함. **읽기 자리(조건·값)에는 적용하지 않음**(read condition
+  제외 — whisoo 명시).
+- **코드 이식**: mapping_v2/ 13파일을 main에서 가져와 루트에 두고,
+  paper/run_local_ir.py의 매핑 블록(구 748-1089, dN 익명화 포함)을
+  resolver_v3 → pipeline_adapter 호출로 교체. 하류 계약 6이름
+  (selected_services/df_selectors/df_resolved/_df_read_services/
+  _fallback_args/_restore_ids=항등)만 채우면 이후 단계 무변경.
+  v1 잔재 삭제: 프롬프트 3개(device_retrieve/ground_targets/
+  device_resolve)+죽은 service_plan.md, run_local_ir의 v1 전용 헬퍼 2개,
+  device_ontology의 parse_targets/resolve_criterion/_CHANNEL_CATEGORY.
+  minimal_tags_for/quantifier_for는 mapping_v2가 쓰므로 존치.
+  device_rules 55파일은 enum/arg 단계가 계속 읽으므로 유지(기본 섹션만
+  preferences.json으로 대체됨).
+- **배선 결함 수정 3건**: extract_runner 클라이언트 지연 초기화 +
+  set_client() 주입(base_url 전파, 서버 없이 import 가능),
+  connected_devices 방어 정규화(문자열 category 등), pipeline_adapter
+  df_resolved 같은 svc 덮어쓰기→기기 합집합.
+- **카탈로그 2.0.7 승격**: loader.py·paper/simulators 2.0.5→2.0.7.
+  main의 device_rules 신규 4종(ArmRobotDetail·ChatProvider·
+  MessageSender·NewsProvider) + 수정 3종(camera·emailprovider·armrobot)
+  동반 이식 — §9.11의 "rule sheet 부재 보류" 해소.
+- **어휘 재구축(코퍼스 정합)**: category_aliases 20종 보강(제습기·
+  사이렌·밸브·TV·도어락="금고" 등 — LevelControl은 이름으로 불리지 않는
+  능력 스킬이라 제외), tag_lexicon에 코퍼스 장소 태그 35종(주방→Kitchen
+  등, bindgen 한국어 대응표에서 승격). 이식 전 커버리지: 태그 147중 3,
+  카테고리 41중 20 — 실 허브 환경 종속이었음.
+- **binding_gt 정책 반영**: bindgen 무표지(ambig) call 자리 = 후보
+  전체(act-all 144자리). 같은 서비스를 읽는 자리가 있으면 액션이 그
+  대상을 물려받음(coref 3자리 — "안 잠겨있으면 잠가줘"는 보던 기기를
+  잠금, 후보 전부가 아님). 옛 Main/첫 후보 규약과 캐시 증거는 액션
+  자리에서 폐기. OVERRIDE 4행의 무표지 스피커·사이렌도 전체로 갱신.
+  148행 변경, 감사 0건, IR 접지 388/388.
+- **게이트**: ground.py match()에 기기 id 매칭 추가(태그로 못 가르는
+  형제 기기를 매핑이 (#기기id)로 분해하므로 — JoI 셀렉터 의미 확장).
+  재측정 178쌍 EQUIV 97 / DIVERGE 81(전부 재생 확인, 재배선 고장 주입
+  3종 전부 검출). 늘어난 42건은 낡은 캐시 정답이 무표지 액션을 1대만
+  잡던 행 — E2 재생성 대상. §9.11의 139/39는 이 정책 이전 기준.
+- **binding_review.md 재편**: 눈검토 대상(§1 규약 읽기 자리)이
+  145행→**44자리/44행**으로 축소(액션이 정책 산출물로 빠짐). §2 한정자
+  70자리, §3 무표지 액션 전체 147자리는 참고용.
+- **미결·주의**: ① 라이브 quantifier_for는 다후보 조건에 any를 붙이는데
+  binding_gt는 비센서 기기 상태 조건을 단수 규약으로 유지 — E2 측정에서
+  이 어긋남이 DIVERGE로 드러나면 그때 판정. ② mapping_v2의 40/40은 실
+  허브 43명령 기준(과적합 상한) — 388행 코퍼스 측정은 LLM 서버 필요,
+  E1~E3 재측정(HA lowering 후 일괄)에서 첫 실측. ③ vLLM 전용
+  guided_json 의존(현 서버 인프라와 동일).

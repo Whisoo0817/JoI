@@ -265,16 +265,19 @@ def absence_read(svc, ir_text):
 #                    구절의 "house"에 걸려 2대로 좁혔음
 #   C05_026          "에어컨 켜기/가습기 끄기" 두 자리를 언급 겹침으로
 #                    4기기 한 자리로 뭉갰음 → 자리 분리
+# §9.12(무표지 액션→전체) 반영: 무표지 스피커·사이렌 액션 자리는 후보 전체.
+# C05_026의 에어컨·가습기는 와인셀러 문맥이 기기를 명시적으로 좁힘 — 단수 유지.
 OVERRIDE = {
     "C16_002": {"DoorLock": ["Main_DoorLock"], "DoorLock#2": ["Entrance_Lock"],
-                "Speaker": ["Living_Speaker"]},
+                "Speaker": ["Living_Speaker", "Bedroom_Speaker"]},
     "C16_004": {"DoorLock": ["Main_DoorLock"], "DoorLock#2": ["Entrance_Lock"],
-                "Speaker": ["Living_Speaker"]},
+                "Speaker": ["Living_Speaker", "Bedroom_Speaker"]},
     "C05_016": {"PresenceSensor": {"any": ["Living_Presence", "Bedroom_Presence"]},
                 "SmokeDetector": {"any": ["Kitchen_Smoke", "Bedroom_Smoke"]},
-                "Siren": ["Main_Siren"], "Speaker": ["Living_Speaker"]},
+                "Siren": ["Main_Siren", "Entrance_Siren"],
+                "Speaker": ["Living_Speaker", "Bedroom_Speaker"]},
     "C16_001": {"LeakSensor": {"any": ["Basement_Leak", "Kitchen_Leak"]},
-                "Siren": ["Main_Siren"]},
+                "Siren": ["Main_Siren", "Entrance_Siren"]},
     "C10_005": {"PresenceSensor": {"any": ["House_Presence_1", "House_Presence_2"]},
                 "Siren": ["Main_Siren", "Sub_Siren", "Garden_Siren"]},
     "C05_026": {"TemperatureSensor": ["WineCellar_Temp"],
@@ -313,11 +316,16 @@ def build(r):
             continue
         k = by_svc[svc]
         picks = assign(svc, k, cands, devs, eng, kor)
-        # 애매하면: ① 캐시 셀렉터 증거 ② 센서류 조건 읽기 = 후보 전체
-        # 집합(§9.11) ③ Main 태그 ④ 첫 후보 (규약)
+        # 애매하면(무표지): ① 액션 자리 = 후보 전체(§9.12 무표지→all)
+        # ② 캐시 셀렉터 증거 ③ 센서류 조건 읽기 = 후보 전체 집합(§9.11)
+        # ④ Main 태그 ⑤ 첫 후보 (규약). 읽기 자리(cond/scalar)에는
+        # 무표지→all을 적용하지 않는다 (whisoo 결정 §9.12).
         kinds = kinds_by_svc[svc]
-        fixed = []
+        # 1차: 읽기 자리(cond/scalar)와 무표지 아닌 자리 먼저 확정 (기존 규약)
+        fixed = [None] * len(picks)
         for i, (devices, way) in enumerate(picks):
+            if way == "ambig" and kinds[i] == "call":
+                continue                     # 액션 무표지는 2차에서
             if way == "ambig":
                 cev = from_cache(cgroups, svc, cands, devs)
                 if cev:
@@ -331,7 +339,21 @@ def build(r):
                         devices, way = mains, "main"
                     else:
                         devices, way = cands[:1], "first"
-            fixed.append((devices, way))
+            fixed[i] = (devices, way)
+        # 2차: 액션 무표지 자리. 같은 서비스를 읽는 자리가 이 행에 있으면
+        # 같은 대상을 물려받는다 ("안 잠겨있으면 잠가줘" — 보던 그 기기를
+        # 잠가야지 후보 전부가 아님). 없으면 후보 전체 (§9.12 무표지→all:
+        # "조명을 켜줘"에 조명이 여럿이면 전부. 옛 Main/첫 후보 규약과
+        # 옛 규약 산물인 캐시 증거는 액션 자리에서 폐기).
+        for i in range(len(picks)):
+            if fixed[i] is not None:
+                continue
+            ref = next((fixed[j][0] for j in range(len(picks))
+                        if fixed[j] is not None and kinds[j] != "call"), None)
+            if ref:
+                fixed[i] = (list(ref), "coref")
+            else:
+                fixed[i] = (cands[:], "act-all")
         picks = fixed
         # 같은 집합이면 자리 합치기 (합쳐진 자리의 조건 성격은 누적)
         seen = []                      # [(sorted(devices), 자리 이름)]
@@ -366,8 +388,8 @@ def build(r):
 def main():
     rows = list(csv.DictReader(open("dataset.csv")))
     n_flag = 0
-    stats = {"only": 0, "loc": 0, "all": 0, "cache": 0, "set": 0, "main": 0,
-             "first": 0, "manual": 0}
+    stats = {"only": 0, "loc": 0, "all": 0, "cache": 0, "set": 0, "act-all": 0,
+             "coref": 0, "main": 0, "first": 0, "manual": 0}
     for r in rows:
         key = f'{r["category_v2"]}_{int(float(r["index"])):03d}'
         try:
