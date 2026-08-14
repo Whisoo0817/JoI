@@ -65,6 +65,11 @@ def select_devices(command, group, cand_ids, devices):
     """후보가 0~1개면 LLM을 부르지 않는다 (선택의 여지가 없음)."""
     if len(cand_ids) <= 1:
         return set(cand_ids), "후보 단일 — LLM 생략"
+    # 무표지(지칭 구절 없음) 그룹은 좁힐 근거 자체가 없다 — 확정 정책
+    # (§9.11/9.12: 무표지 액션·센서류 조건은 후보 전체)대로 전체 선택.
+    # LLM에게 물으면 임의로 제외하는 결함이 있었다 (2026-08-14, C07_013).
+    if not group.get("device_hint"):
+        return set(cand_ids), "무표지 — 후보 전체(정책)"
 
     alias = {f"d{i+1}": did for i, did in enumerate(sorted(cand_ids))}
     lines = []
@@ -171,7 +176,11 @@ def resolve_v3(command, devices, log=None):
         light = {d for d in picked if "Light" in devices[d]["category"]}
         lsw = {d for d in picked - light if "LightSwitch" in devices[d]["tags"]}
         rest = picked - light - lsw
-        level = bool(eh) and any(w in eh for w in ("밝기", "퍼센트", "%"))
+        # 밝기/퍼센트 명령은 Light 클러스터만 남긴다 — 단, 조명이 실제로
+        # 골라졌을 때만. 조명 없는 퍼센트 명령(블라인드 50%, 볼륨 30% 등)까지
+        # 전부 드롭하던 결함 수정 (2026-08-14, 388행 첫 실측에서 발견).
+        level = bool(eh) and bool(light) \
+            and any(w in eh for w in ("밝기", "퍼센트", "%"))
 
         clusters = []
         for part in (light, lsw, rest):

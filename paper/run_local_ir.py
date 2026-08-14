@@ -672,6 +672,9 @@ def generate_joi_code_ir(
     _IR_ONLY = os.environ.get("JOI_IR_ONLY", "0") == "1"
     _IR_DUMP_DIR = os.environ.get("JOI_IR_DUMP_DIR", "/tmp/joi_ir_dump")
     _IR_DUMP_NAME = os.environ.get("JOI_IR_DUMP_NAME", "")
+    # 확인된 IR 주입(Stage-B): 파일의 IR을 그대로 lowering. test.py IR-confirm
+    # 흐름과 배치 측정(run_lower_gt_batch)이 쓴다.
+    _GT_IR_PATH = os.environ.get("JOI_GT_IR_PATH", "")
 
     log_buf = []
 
@@ -1088,20 +1091,35 @@ def generate_joi_code_ir(
 
     resolved_args = {}
     resolved_enum_conds = {}
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        f_branch_a = executor.submit(run_resolve_and_ir_branch)
-        f_precision = executor.submit(run_precision)
-        ir = f_branch_a.result()
-        precision_output = f_precision.result()
+    if _GT_IR_PATH:
+        # 확인된 IR을 그대로 사용 — resolve/extract 브랜치와 후처리 3종은
+        # 건너뛴다(인자·enum은 IR에 이미 확정, verbatim 유지). 매핑·precision은
+        # 위에서 이미 돌았으므로 lowering의 selector 입력은 평소와 동일하다.
+        try:
+            with open(_GT_IR_PATH, encoding="utf-8") as _f:
+                ir = json.load(_f)
+        except Exception as e:
+            raise JoiGenerationError(
+                f"JOI_GT_IR_PATH set but failed to load {_GT_IR_PATH}: {e}",
+                "\n".join(log_buf), error_code="gt_ir_load_failed",
+            )
+        log_buf.append("🧪 confirmed-IR mode: extract_ir/resolve 생략, IR verbatim")
+        precision_output = run_precision()
+    else:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            f_branch_a = executor.submit(run_resolve_and_ir_branch)
+            f_precision = executor.submit(run_precision)
+            ir = f_branch_a.result()
+            precision_output = f_precision.result()
+
+        # IR post-process trio. See module-level helper docstrings for semantics:
+        # _enforce_resolved_args (R3 verbatim override), _normalize_logical_ops
+        # (C-style → JoI keywords), _inject_implicit_vars (`var` backstop).
+        _enforce_resolved_args(ir, resolved_args)
+        _normalize_logical_ops(ir)
+        _inject_implicit_vars(ir)
 
     service_details = local_service_details
-
-    # IR post-process trio. See module-level helper docstrings for semantics:
-    # _enforce_resolved_args (R3 verbatim override), _normalize_logical_ops
-    # (C-style → JoI keywords), _inject_implicit_vars (`var` backstop).
-    _enforce_resolved_args(ir, resolved_args)
-    _normalize_logical_ops(ir)
-    _inject_implicit_vars(ir)
 
     # Structural feasibility gate (grammar G membership): reject IRs that are
     # malformed (break outside a cycle, mis-anchored start_at) or that JoI

@@ -164,11 +164,14 @@ def _select_service(cluster_ids, devices, effect_hint, role):
             and any(w in en for w in ("밝기", "퍼센트", "%")):
         return "Light.MoveToBrightness"
     if role == "action" and en:
+        # '실행시켜줘/작동시키면'의 '켜'는 전원 의도가 아니다 — 사동 어미
+        # '시켜/시키'를 지우고 본다 (2026-08-14, 388행 실측에서 발견).
+        en_power = en.replace("시켜", "").replace("시키", "")
         for word, sw, lf in (("켜", "Switch.On", "Light.MoveToBrightness"),
                              ("꺼", "Switch.Off", "Light.MoveToBrightness"),
                              ("토글", "Switch.Toggle", None),
                              ("끄", "Switch.Off", "Light.MoveToBrightness")):
-            if word in en:
+            if word in en_power:
                 if "Switch" in cats:
                     return sw
                 if "Light" in cats and lf:

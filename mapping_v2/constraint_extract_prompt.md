@@ -88,3 +88,48 @@ Each group has:
   "effect_hint": "뉴스", "quantifier": null, "args_text": "AI, 3개"},
  {"role": "notify", "device_hint": "토스트", "device_hard": true,
   "effect_hint": "보여줘", "quantifier": null, "args_text": null}]}
+
+[Command] 1시간마다 수도 밸브를 열었다 잠갔다 반복해줘
+{"groups": [{"role": "action", "device_hint": "수도 밸브", "device_hard": true,
+  "effect_hint": "열었다 잠갔다 반복해줘", "quantifier": null, "args_text": null}]}
+(주기어 "1시간마다"만 떨어진다 — 반복/전환하는 대상과 행동은 여전히 action
+ 그룹이다. 주기어가 있어도 groups 를 비우면 안 된다)
+
+[Command] 버튼3이 눌릴 때마다 주방 조명을 켜줘
+{"groups": [
+ {"role": "condition", "device_hint": "버튼", "device_hard": true,
+  "effect_hint": "버튼3이 눌릴 때마다", "quantifier": null, "args_text": null},
+ {"role": "action", "device_hint": "주방 조명", "device_hard": true,
+  "effect_hint": "켜줘", "quantifier": null, "args_text": null}]}
+(버튼이 "눌릴 때마다/눌리면"은 센서 이벤트 = condition 이다 — 주기어가
+ 아니고 action 도 아니다)
+
+[Command] 매일 아침 7시에 홀수 태그가 붙은 1층의 모든 블라인드를 올려줘
+{"groups": [{"role": "action", "device_hint": "홀수 태그가 붙은 1층의 블라인드",
+  "device_hard": true, "effect_hint": "올려줘", "quantifier": "all",
+  "args_text": null}]}
+(수식어절("홀수 태그가 붙은", "1층의", "구역1에 있는")은 device_hint 의
+ 일부로 그대로 담는다 — 스케줄어만 떨어지고, groups 는 절대 비지 않는다)
+
+[Command] 5분마다 체크해서 충전이 완료되면 충전기를 꺼줘
+{"groups": [
+ {"role": "condition", "device_hint": "충전", "device_hard": true,
+  "effect_hint": "충전이 완료되면", "quantifier": null, "args_text": null},
+ {"role": "action", "device_hint": "충전기", "device_hard": true,
+  "effect_hint": "꺼줘", "quantifier": null, "args_text": null}]}
+("체크해서"는 그룹이 아니다 — 주기어와 함께 떨어진다. 완료되면/되면 이
+ condition, 꺼줘가 action 이다)
+
+[Command] 30분마다 스피커로 "휴식 시간" 안내. 총 3번.
+{"groups": [{"role": "notify", "device_hint": "스피커", "device_hard": true,
+  "effect_hint": "안내", "quantifier": null, "args_text": "'휴식 시간'"}]}
+(안내/방송도 notify 다. 횟수어("총 3번")는 스케줄어처럼 떨어진다)
+
+[Command] 아침 8시에 홀수 태그 조명을 다 켜주고, 30분 뒤에 짝수 태그 조명을 다 꺼줘
+{"groups": [
+ {"role": "action", "device_hint": "홀수 태그 조명", "device_hard": true,
+  "effect_hint": "켜주고", "quantifier": "all", "args_text": null},
+ {"role": "action", "device_hint": "짝수 태그 조명", "device_hard": true,
+  "effect_hint": "꺼줘", "quantifier": "all", "args_text": null}]}
+(사이의 지연어("30분 뒤에")는 스케줄어처럼 떨어진다 — 앞뒤 행동은 각각
+ action 그룹으로 남는다)
