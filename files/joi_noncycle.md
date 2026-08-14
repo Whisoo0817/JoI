@@ -61,29 +61,29 @@ One-shot action.
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
   {"op":"if","cond":"TempSensor.Temperature >= 30",
-   "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"cool"}}],
+   "then":[{"op":"call","target":"AirConditioner.SetAirConditionerMode","args":{"Mode":"cool"}}],
    "else":[{"op":"if","cond":"TempSensor.Temperature < 20",
-            "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"heat"}}],
+            "then":[{"op":"call","target":"AirConditioner.SetAirConditionerMode","args":{"Mode":"heat"}}],
             "else":[]}]}]}
 ```
 [Precision Selectors] `(#TemperatureSensor)` / `(#AirConditioner)`
 <Reasoning>
 One-shot nested if-else.
 </Reasoning>
-{"cron":"","period":0,"script":"if ((#TemperatureSensor).Temperature >= 30) {\n    (#AirConditioner).SetMode(\"cool\")\n} else {\n    if ((#TemperatureSensor).Temperature < 20) {\n        (#AirConditioner).SetMode(\"heat\")\n    }\n}"}
+{"cron":"","period":0,"script":"if ((#TemperatureSensor).Temperature >= 30) {\n    (#AirConditioner).SetAirConditionerMode(\"cool\")\n} else {\n    if ((#TemperatureSensor).Temperature < 20) {\n        (#AirConditioner).SetAirConditionerMode(\"heat\")\n    }\n}"}
 
 ### Ex3 — when one-shot wait (D-2)
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"wait","cond":"Door.DoorState == \"open\"","edge":"none"},
+ {"op":"wait","cond":"ContactSensor.Contact == false","edge":"none"},
  {"op":"call","target":"Switch.On","args":{}}]}
 ```
-[Precision Selectors] `(#Door)` / `(#Light)`
+[Precision Selectors] `(#ContactSensor)` / `(#Light)`
 <Reasoning>
 One-shot wait then action.
 </Reasoning>
-{"cron":"","period":0,"script":"wait until((#Door).DoorState == \"open\")\n(#Light).On()"}
+{"cron":"","period":0,"script":"wait until((#ContactSensor).Contact == false)\n(#Light).On()"}
 
 ### Ex4 — top-level wait(rising) WITHOUT cycle (B-1b, button-press style)
 [Timeline IR]
@@ -103,14 +103,14 @@ No cycle → one-shot. Collapse edge:"rising" to a level wait. NOT D-3.
 ```
 {"timeline":[{"op":"start_at","anchor":"cron","cron":"0 9 * * *"},
  {"op":"if","cond":"MotionSensor.Motion == \"detected\"",
-  "then":[{"op":"call","target":"Door.Open","args":{}}],
-  "else":[{"op":"call","target":"Door.Close","args":{}}]}]}
+  "then":[{"op":"call","target":"DoorLock.Unlock","args":{}}],
+  "else":[{"op":"call","target":"DoorLock.Lock","args":{}}]}]}
 ```
-[Precision Selectors] `(#MotionSensor)` / `(#Door)`
+[Precision Selectors] `(#MotionSensor)` / `(#DoorLock)`
 <Reasoning>
 Cron + snapshot branch.
 </Reasoning>
-{"cron":"0 9 * * *","period":0,"script":"if ((#MotionSensor).Motion == \"detected\") {\n    (#Door).Open()\n} else {\n    (#Door).Close()\n}"}
+{"cron":"0 9 * * *","period":0,"script":"if ((#MotionSensor).Motion == \"detected\") {\n    (#DoorLock).Unlock()\n} else {\n    (#DoorLock).Lock()\n}"}
 
 ### Ex6 — read + delay + read + diff (D-8)
 [Timeline IR]

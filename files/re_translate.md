@@ -114,7 +114,7 @@ Action `light_moveToColor(x, y, ...)` → "set the color to [Color Name]"
 
 ## Control Flow
 - `wait until A` → "when A"
-  - e.g., `wait until (#Door).contact == "open"` → "when the door opens"
+  - e.g., `wait until ((#ContactSensor).contact == false)` → "when the door opens"
 - `period` + `if` condition check → "every N, check ~ and if ~, do ~"
   - e.g., period=600000 + `if temp > 28` → "every 10 minutes, if temperature is above 28"
   - ⚠️ EXCEPTION: if the script is a polling-counter pattern (`hold_ticks`/`triggered`/`phase`), the `period` is a 1-second polling TICK, NOT an interval — do NOT say "every second / every N". Use the dedicated phrasing below.
@@ -155,13 +155,13 @@ Output: During Christmas, every second, play the speaker.
 Input: `[Code] {"cron": "0 22 * * *", "period": 600000, "script": "if ((#Clock).Hour == 0) {\n  break\n}\n(#Siren).SetSirenMode(\"emergency\")\ndelay(10 SEC)\n(#Siren).Off()"}`
 Output: From 10 PM to midnight, every 10 minutes, set the siren to emergency mode, then turn it off after 10 seconds.
 
-Input: `[Code] {"cron": "0 13 * * *", "period": 300000, "script": "if ((#Clock).Hour == 15) {\n  break\n}\n(#Valve).door_open()"}`
+Input: `[Code] {"cron": "0 13 * * *", "period": 300000, "script": "if ((#Clock).Hour == 15) {\n  break\n}\n(#Valve).valve_open()"}`
 Output: From 1 PM to 3 PM, every 5 minutes, open the valve.
 
 Input: `[Code] {"cron": "", "period": 1800000, "script": "mode := \"sleep\"\nif (mode == \"sleep\") {\n    (#LivingRoom #AirPurifier).SetAirPurifierMode(\"auto\")\n    mode = \"auto\"\n} else {\n    (#LivingRoom #AirPurifier).SetAirPurifierMode(\"sleep\")\n    mode = \"sleep\"\n}"}`
 Output: Every 30 minutes, toggle the living room air purifier between sleep mode and auto mode.
 
-Input: `[Code] {"cron": "", "period": 60000, "script": "phase := 0\nif (phase == 0) {\n    wait until ((#Door).DoorState == \"open\")\n    phase = 1\n}\nif (phase == 1) {\n    (#Speaker).speaker_speak(\"Welcome\")\n}"}`
+Input: `[Code] {"cron": "", "period": 60000, "script": "phase := 0\nif (phase == 0) {\n    wait until ((#ContactSensor).Contact == false)\n    phase = 1\n}\nif (phase == 1) {\n    (#Speaker).speaker_speak(\"Welcome\")\n}"}`
 Output: When the door opens, then every minute, say "Welcome" through the speaker.
 
 

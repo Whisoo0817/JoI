@@ -155,13 +155,13 @@ Cycle without edge/until/break/pre-wait/multi-delay markers. Just emit body's ca
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"cycle","until":null,"period":"5 MIN","body":[
-   {"op":"call","target":"Camera.Capture","args":{}}]}]}
+   {"op":"call","target":"Camera.CaptureImage","args":{}}]}]}
 ```
 [Precision Selectors] `(#Camera)`
 <Reasoning>
 B-2: cycle without edge/until/break/pre-wait. cycle.period = 5 MIN → wrapper.period = 300000; emit body as-is.
 </Reasoning>
-{"cron":"","period":300000,"script":"(#Camera).Capture()"}
+{"cron":"","period":300000,"script":"(#Camera).CaptureImage()"}
 
 ### Ex2 — B-2 with conditional body
 [Timeline IR]
@@ -169,13 +169,13 @@ B-2: cycle without edge/until/break/pre-wait. cycle.period = 5 MIN → wrapper.p
 {"timeline":[{"op":"start_at","anchor":"now"},
  {"op":"cycle","until":null,"period":"10 MIN","body":[
    {"op":"if","cond":"TemperatureSensor.Temperature >= 30",
-    "then":[{"op":"call","target":"AirConditioner.SetMode","args":{"Mode":"cool"}}],"else":[]}]}]}
+    "then":[{"op":"call","target":"AirConditioner.SetAirConditionerMode","args":{"Mode":"cool"}}],"else":[]}]}]}
 ```
 [Precision Selectors] `(#TemperatureSensor)` / `(#AirConditioner)`
 <Reasoning>
 B-2: cycle.period = 10 MIN → wrapper.period = 600000; emit the `if` as body.
 </Reasoning>
-{"cron":"","period":600000,"script":"if ((#TemperatureSensor).Temperature >= 30) {\n    (#AirConditioner).SetMode(\"cool\")\n}"}
+{"cron":"","period":600000,"script":"if ((#TemperatureSensor).Temperature >= 30) {\n    (#AirConditioner).SetAirConditionerMode(\"cool\")\n}"}
 
 ### Ex3 — D-3 rising-edge whenever with MULTI-STEP Y (call + delay + call)
 [Timeline IR]
@@ -197,15 +197,15 @@ D-3 with multi-step Y: ALL body ops AFTER `wait(rising)` (call, delay, call) go 
 [Timeline IR]
 ```
 {"timeline":[{"op":"start_at","anchor":"now"},
- {"op":"wait","cond":"Door.DoorState == \"open\"","edge":"none"},
+ {"op":"wait","cond":"ContactSensor.Contact == false","edge":"none"},
  {"op":"cycle","until":null,"period":"3 MIN","body":[
    {"op":"call","target":"Switch.On","args":{}}]}]}
 ```
-[Precision Selectors] `(#Door)` / `(#Light)`
+[Precision Selectors] `(#ContactSensor)` / `(#Light)`
 <Reasoning>
 D-4: pre-cycle wait(none) + cycle. Phase 0→1 transition. cycle.period 3 MIN → wrapper.period = 180000.
 </Reasoning>
-{"cron":"","period":180000,"script":"phase := 0\nif (phase == 0) {\n    wait until((#Door).DoorState == \"open\")\n    phase = 1\n    (#Light).On()\n}\nelse {\n    (#Light).On()\n}"}
+{"cron":"","period":180000,"script":"phase := 0\nif (phase == 0) {\n    wait until((#ContactSensor).Contact == false)\n    phase = 1\n    (#Light).On()\n}\nelse {\n    (#Light).On()\n}"}
 
 ### Ex5 — alternation via `cycle.count` (Step 1.5)
 [Timeline IR]

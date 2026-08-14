@@ -162,8 +162,8 @@ Example (bad — do not do this):
 - ❌ Do NOT add `all(...)` / `any(...)` to a precision-given `(#X)`. Quantifiers change semantics (fan-out vs intersection vs existence).
 - ❌ Do NOT remove `all`/`any` from a precision selector that has them.
 - ❌ Do NOT split a multi-tag selector `(#A #B)` into separate calls. Tags inside ONE selector are an intersection (a single device that carries all listed tags) — emit ONE call: `(#A #B).M()`.
-- ❌ Do NOT wrap a selector in extra parentheses. Write `any(#Door).DoorState`, NOT `(any(#Door)).DoorState`.
-- ⚠️ **Multi-tag is the trap.** Bare `(#Light #Entrance)`, `(#Door #MeetingRoom)` LOOK like fan-outs — they are NOT; still intersection of one device. Never promote to `all(...)` unless precision literally wrote it.
+- ❌ Do NOT wrap a selector in extra parentheses. Write `any(#ContactSensor).Contact`, NOT `(any(#ContactSensor)).Contact`.
+- ⚠️ **Multi-tag is the trap.** Bare `(#Light #Entrance)`, `(#DoorLock #MeetingRoom)` LOOK like fan-outs — they are NOT; still intersection of one device. Never promote to `all(...)` unless precision literally wrote it.
 
 **Applies inside `cond` too** — to EVERY operand in `and`/`or` compounds, not just the first.
 - ✅ Precision `(#X)` → `(#X).Attr op V`. ❌ NOT `all(#X).Attr op V`.

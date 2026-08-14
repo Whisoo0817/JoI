@@ -160,10 +160,10 @@ verbatim — any padded arg becomes a hallucinated runtime parameter.
 - ❌ "Increase brightness by 10" → `{"Brightness": "$Light.CurrentBrightness + 10", "Rate": 0}`
 
 ## 8. Compound conditions — values per action term only
-This stage does NOT build conditions; it only resolves call args. If the command says "if temperature ≥ 30, set AC to cooling", value reads (e.g. `TemperatureSensor.Temperature`) are filtered out upstream, so you only see `["AirConditioner.SetMode"]`. Output:
+This stage does NOT build conditions; it only resolves call args. If the command says "if temperature ≥ 30, set AC to cooling", value reads (e.g. `TemperatureSensor.Temperature`) are filtered out upstream, so you only see `["AirConditioner.SetAirConditionerMode"]`. Output:
 ```json
 {
-  "AirConditioner.SetMode": {"Mode": "cooling"}
+  "AirConditioner.SetAirConditionerMode": {"Mode": "cool"}
 }
 ```
 The `30` threshold is the IR extractor's concern, not yours.

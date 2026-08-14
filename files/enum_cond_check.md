@@ -15,7 +15,7 @@ Examples that mean **yes**:
 
 Examples that mean **no**:
 - "Speak the current weather" (read weather, embed in TTS — no comparison)
-- "Display the oven mode" (read and show — no comparison)
+- "Display the air purifier mode" (read and show — no comparison)
 - "Tell me what mode the AC is in" (read for source, no comparison)
 - The selected services include a value-ENUM service but it's used as `$Var` source, not in a `wait`/`if` condition.
 
