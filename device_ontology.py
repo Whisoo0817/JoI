@@ -1,18 +1,11 @@
-"""Deterministic device-targeting helpers for the device-first pipeline.
+"""Deterministic device-targeting helpers for the mapping stage.
 
-Pure functions shared by the targeting stages (no LLM, no I/O):
-  - parse_targets      : <targets> block text → structured target groups
+Pure functions shared by the mapping stage (no LLM, no I/O):
   - minimal_tags_for   : matched devices → the tightest selector tag(s)
   - quantifier_for     : (scope, role, count) → all/any/'' prefix
-  - _CHANNEL_CATEGORY  : notify channel → realizing category
 """
 
-import re
 from itertools import combinations
-
-
-# Notification channels → the category that realizes each.
-_CHANNEL_CATEGORY = {"speaker": "Speaker", "toast": "ToastPublisher"}
 
 
 def minimal_tags_for(matched, cd):
@@ -60,72 +53,6 @@ def minimal_tags_for(matched, cd):
     if len(M) == 1:
         return ([], False)
     return (cands, False)
-
-
-def _norm(s):
-    return re.sub(r'\s+', '', str(s)).lower()
-
-
-def resolve_criterion(expr, cd):
-    """Parse a grounding criterion into OR-groups of matched device keys.
-
-    Grammar (emitted by the ground_targets LLM): tokens joined by `+` (intersection,
-    AND) within a group, groups joined by `;` (union, separate clusters). A token is
-    a label matched against a device's category ∪ tags, or `nickname:<name>`.
-      "Tuya"                  → [[all Tuya devices]]
-      "LivingRoom + Light"    → [[devices with BOTH LivingRoom and Light]]
-      "Light ; LightSwitch"   → [[Light devices], [LightSwitch devices]]  (2 clusters)
-      "nickname:삼성 …"        → [[that one device]]
-    Returns a list of OR-groups (each a sorted list of device keys); empty groups
-    are dropped, so an all-miss criterion returns [].
-    """
-    def labels_of(k):
-        d = cd.get(k, {})
-        return set(d.get("category", [])) | set(d.get("tags", []))
-
-    out = []
-    for orpart in str(expr).split(';'):
-        toks = [t.strip() for t in orpart.split('+') if t.strip()]
-        if not toks:
-            continue
-        ids = None
-        for tok in toks:
-            if tok.lower().startswith('nickname:'):
-                want = _norm(tok.split(':', 1)[1])
-                match = {k for k in cd if want and (
-                    want == _norm(cd[k].get("nickname", "")) or
-                    want in _norm(cd[k].get("nickname", "")) or
-                    _norm(cd[k].get("nickname", "")) in want)}
-            else:
-                want = _norm(tok)
-                match = {k for k in cd if any(_norm(x) == want for x in labels_of(k))}
-            ids = match if ids is None else (ids & match)
-        if ids:
-            out.append(sorted(ids))
-    return out
-
-
-def parse_targets(block: str) -> list:
-    """Parse a <targets> block body into [{role, by_kind, by_val, scope}].
-    Tolerant of spacing; ignores non-matching lines."""
-    out = []
-    for ln in (block or "").splitlines():
-        ln = ln.strip().lstrip("-").strip()
-        if not ln or "by=" not in ln:
-            continue
-        role_m = re.search(r'role\s*=\s*(\w+)', ln)
-        scope_m = re.search(r'scope\s*=\s*(\w+)', ln)
-        # by= must stop at the next " | " so it doesn't swallow "| scope=..."
-        by_m = re.search(r'by\s*=\s*([a-zA-Z]+)\s*:\s*([^|]+)', ln)
-        if not by_m:
-            continue
-        out.append({
-            "role": (role_m.group(1).strip().lower() if role_m else "action"),
-            "by_kind": by_m.group(1).strip().lower(),     # label | channel
-            "by_val": by_m.group(2).strip(),
-            "scope": (scope_m.group(1).strip().lower() if scope_m else "auto"),  # all|any|one|auto
-        })
-    return out
 
 
 def quantifier_for(scope: str, role: str, n: int) -> str:

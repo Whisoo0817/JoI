@@ -36,7 +36,6 @@ if _BASE_DIR not in sys.path:
 
 from config import get_client, get_model_id
 from loader import SERVICE_DATA, PROMPTS, get_device_rules_section
-from device_ontology import parse_targets
 from parser.validator import validate_joi
 
 from pipeline_helpers import (
@@ -174,51 +173,6 @@ def _format_return(svc_info: dict, is_value: bool) -> str:
     if isinstance(rt, str) and rt:
         return rt
     return "VOID"
-
-
-def _strip_legacy_examples(rule: str) -> str:
-    """Drop the LEGACY few-shot example blocks from a device_rules section.
-
-    device_rules_*.md still carry `[Command] … ["Skill.Method"]` examples in the
-    OLD mapping-stage output format (a JSON array of skill methods). device-first
-    device_resolve emits `RESULT:\\n(#Tag).Cat.Method` instead, so feeding those
-    arrays as context poisons the model into copying the array form (esp. capable
-    models that faithfully imitate in-context examples). We keep the `[Device
-    Summary]` XML and the prose rules (the actual service-selection knowledge) and
-    remove only the `[Command] … [".."]` blocks: a `[Command]` line, then lines up
-    to and including the first line containing a `["..."]` array literal.
-    """
-    lines = rule.split("\n")
-    out, i, n = [], 0, len(lines)
-    while i < n:
-        if lines[i].strip() == "[Command]":
-            j = i + 1
-            # scan forward to the array-literal line that ends this example block
-            while j < n and '["' not in lines[j] and lines[j].strip() != "[Command]":
-                j += 1
-            if j < n and '["' in lines[j]:
-                i = j + 1  # skip the whole [Command]…[".."] block
-                continue
-            # no array terminator (not a legacy block) — keep the line as-is
-        out.append(lines[i])
-        i += 1
-    # collapse the blank-line runs the removals leave behind
-    return re.sub(r"\n{3,}", "\n\n", "\n".join(out)).strip()
-
-
-def _build_device_selection_rules(categories) -> str:
-    """Concatenate the default ('service_plan') section of each connected
-    device's device_rules_*.md. Stage-scoped sections (e.g. `# @ArgResolve`)
-    are stripped — those are pulled by their respective stages. Legacy
-    array-format `[Command] … ["..."]` few-shot blocks are also removed so they
-    don't override device_resolve's `RESULT:` output contract.
-    """
-    chunks = []
-    for cat in categories:
-        rule = get_device_rules_section(cat, "service_plan")
-        if rule:
-            chunks.append(f"### {cat}\n{_strip_legacy_examples(rule)}")
-    return "\n\n".join(chunks) if chunks else "(no device-specific rules)"
 
 
 def _build_device_specific_hints(svcs, section: str) -> str:
@@ -752,10 +706,15 @@ def generate_joi_code_ir(
             "\n".join(log_buf),
             error_code="no_devices",
         )
-    cd_simple = {}
+    # ── Payload normalization for the mapping stage. resolver_v3 indexes
+    # d["category"] / d["tags"] directly, so guard against string categories and
+    # non-string tags here (hub payloads are not always well-formed). Real ids
+    # and tags pass through as-is — the v2 mapper never aliases devices.
+    cd_norm = {}
     for k, v in connected_devices.items():
-        raw_tags = v.get("tags", [])
-        tags = [t for t in raw_tags if isinstance(t, str)]
+        if not isinstance(v, dict):
+            v = {}
+        tags = [t for t in v.get("tags", []) if isinstance(t, str)]
         raw_cat = v.get("category", [])
         if isinstance(raw_cat, str):
             cats = [raw_cat]
@@ -763,30 +722,16 @@ def generate_joi_code_ir(
             cats = [c for c in raw_cat if isinstance(c, str)]
         else:
             cats = []
-        cd_simple[k] = {"category": cats, "tags": [t for t in tags if t not in cats]}
+        nick = v.get("nickname", "")
+        cd_norm[k] = {"category": cats, "tags": tags,
+                      "nickname": nick if isinstance(nick, str) else ""}
 
-    # ── ID aliasing: anonymize device ids as d1/d2/... once, shared across the
-    # device stages (grounding returns dN ids; minimal_tags derives selector tags
-    # from them; real_of maps any dN that survives into the selector back to real).
-    real_ids = list(cd_simple.keys())
-    alias_of = {real: f"d{i+1}" for i, real in enumerate(real_ids)}
-    real_of = {a: r for r, a in alias_of.items()}
-    # dN-aliased device dict shared with the device stages.
-    cd_aliased = {
-        alias_of[r]: {
-            "category": cd_simple[r]["category"],
-            "tags": list(cd_simple[r]["tags"]),
-        }
-        for r in real_ids
-    }
-
-    # ── Device-first pipeline (the only path). Runs on the raw Korean command:
-    # device_retrieve (command-only) → ground_targets (LLM, devices) → minimal_tags
-    # (Python) → device_resolve → quantifier (Python) → translation → arg_resolve/IR
-    # → lowering → naming. Produces `selected_services` + `_df_precision` (selectors)
-    # directly, so run_precision returns them instead of a device-match LLM call.
-    # `original_sentence` keeps the Korean wording for arg_resolve's human-facing
-    # text (Speaker/Toast); the device stages read it directly (no preprocess/MT).
+    # ── Mapping (mapping_v2): constraint extraction (LLM #1, environment-blind)
+    # → candidate join (Python, recall-oriented) → grounded selection (LLM #2,
+    # constrained to the candidates) → service/selector/quantifier (Python).
+    # Replaced the device_retrieve → ground_targets → device_resolve pipeline
+    # (2026-08-14). `original_sentence` keeps the Korean wording for
+    # arg_resolve's human-facing text (Speaker/Toast).
 
     # ── Stage 0 (optional): feedback edit. When the caller passes an existing
     # `current_code` block, `sentence` is an EDIT request. Instead of blindly
@@ -827,261 +772,42 @@ def generate_joi_code_ir(
 
     original_sentence = sentence
 
-    # cd_named: dN-keyed device dict (nickname + real category/tags). Shared with
-    # the GROUNDING stage. device_retrieve itself no longer sees devices.
-    cd_named = {
-        a: {"category": cd_aliased[a]["category"],
-            "tags": cd_aliased[a]["tags"],
-            "nickname": connected_devices.get(real_of[a], {}).get("nickname", "")}
-        for a in cd_aliased
-    }
+    # ── Mapping stage (mapping_v2 / resolver_v3). Works on real ids and tags,
+    # so there is no dN aliasing and nothing to restore downstream.
+    import sys as _sys
+    _v2dir = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "mapping_v2")
+    if _v2dir not in _sys.path:
+        _sys.path.insert(0, _v2dir)
+    import extract_runner as _extract_runner
+    from resolver_v3 import resolve_v3 as _resolve_v3
+    from pipeline_adapter import v3_to_pipeline_contract as _v3_adapt
 
-    # ── Stage 1: device_retrieve (LLM, COMMAND ONLY) — parses the language into
-    # target groups: role | by=label:<verbatim phrase> / channel:… | scope. It does
-    # NOT see devices and never decides existence (no NONE here — that's grounding).
-    targets = []
-    for _attempt in range(2):  # retrieve occasionally emits an empty/malformed block
-        retr_raw = infer("device_retrieve", f"[Command]\n{sentence}", max_tokens=512).strip()
-        _tm = re.search(r'<targets>(.*?)</targets>', retr_raw, re.DOTALL)
-        targets_spec = (_tm.group(1).strip() if _tm else retr_raw).strip()
-        targets = parse_targets(targets_spec)
-        if targets:
-            break
-        log_buf.append("⚠️ device_retrieve produced no targets — retrying once")
-    if not targets:
+    # Reuse the pipeline's client so the base_url argument reaches the mapper
+    # (its own lazy default would silently fall back to the env base URL).
+    _extract_runner.set_client(client, model)
+    _map_log = []
+    _ctr = _v3_adapt(_resolve_v3(sentence, cd_norm, log=_map_log))
+    for _ln in _map_log:
+        log_buf.append(f"[mapping] {_ln}")
+    for _e in _ctr["errors"]:
+        log_buf.append(f"[mapping] ⚠️ {_e}")
+    if not _ctr["selected_services"]:
+        _emsg = _ctr["errors"][0] if _ctr["errors"] else "no device mapping"
         raise JoiGenerationError(
-            "No target groups parsed from device_retrieve.",
-            "\n".join(log_buf), error_code="reasoning_failed",
-        )
-
-    # ── Stage 2: grounding. The ground_targets LLM maps each label phrase to a
-    # CRITERION (tag/category/nickname tokens, `+`=AND, `;`=OR-cluster) — NOT a raw
-    # device list. Python then resolves the criterion to device sets deterministically
-    # (exact, no LLM mis-pick), one selector CLUSTER per OR-group. A `channel:` target
-    # is resolved by category in Python.
-    from device_ontology import (quantifier_for as _qf, _CHANNEL_CATEGORY as _CHCAT,
-                                  minimal_tags_for as _min_tags,
-                                  resolve_criterion as _resolve_crit)
-    label_targets = [t for t in targets if t["by_kind"] == "label"]
-    grounded = {}   # label-target-index → criterion string
-    if label_targets:
-        _phrases = "\n".join(f"{i+1}. {t['by_val']}" for i, t in enumerate(label_targets))
-        # Prefix-cache layout: the (near-constant within a session) [Devices] dump
-        # goes FIRST so `system + [Devices]` forms a shared prefix that vLLM's
-        # prefix cache reuses across commands. The per-command [Command]/[Phrases]
-        # — the only parts that vary request-to-request — go LAST so they never
-        # invalidate the cached device-block prefix.
-        ground_user = (
-            f"[Devices]\n{json.dumps(cd_named, indent=2, ensure_ascii=False)}\n\n"
-            f"[Command]\n{sentence}\n\n"
-            f"[Phrases]\n{_phrases}"
-        )
-        ground_raw = infer("ground_targets", ground_user, max_tokens=512).strip()
-        _gm = re.search(r'<grounded>(.*?)</grounded>', ground_raw, re.DOTALL)
-        for ln in (_gm.group(1) if _gm else ground_raw).splitlines():
-            m = re.match(r'\s*(\d+)\.\s*.*?\|\s*(.+?)\s*$', ln)
-            if m:
-                grounded[int(m.group(1)) - 1] = m.group(2).strip()
-
-    def _mk_group(t, ids, sel_tags):
-        cats = sorted({c for a in ids for c in cd_named.get(a, {}).get("category", [])})
-        return {**t, "ids": ids, "categories": cats, "sel_tags": sel_tags or list(ids)}
-
-    groups, li = [], 0
-    for t in targets:
-        if t["by_kind"] == "channel":
-            # ONE group PER channel (speaker,toast → a Speaker group AND a
-            # ToastPublisher group), each with its own single-category selector.
-            # Never one (#Speaker #Toast) group — that intersection selects nothing.
-            for ch in t["by_val"].split(","):
-                cat = _CHCAT.get(ch.strip().lower())
-                cids = [a for a in cd_named if cat and cat in cd_named[a]["category"]]
-                if cids:
-                    st, _ = _min_tags(cids, cd_named)
-                    groups.append(_mk_group(t, cids, st))
-            continue
-        # label → criterion → OR-groups of device ids (one selector cluster each)
-        crit = grounded.get(li, "")
-        li += 1
-        or_groups = _resolve_crit(crit, cd_named) if crit.upper() != "NONE" else []
-        if not or_groups:
-            raise JoiGenerationError(
-                f"Cannot fulfill command — no connected device for {t['by_val']!r}",
-                "\n".join(log_buf), error_code="device_not_connected",
-            )
-        for grp_ids in or_groups:
-            sel_tags, _ = _min_tags(grp_ids, cd_named)
-            groups.append(_mk_group(t, grp_ids, sel_tags))
-
-    # ── Stage 3: device_resolve — pick the SERVICE per group; echo the given tags.
-    target_lines = [
-        f"- role={g['role']} | tags={' '.join('#'+x for x in g['sel_tags'])} | "
-        f"{len(g['ids'])} devices matched" for g in groups]
-    resolve_cats = sorted({c for g in groups for c in g["categories"]})
-    resolve_user = (
-        f"[Command]\n{sentence}\n\n"
-        f"[Targets]\n" + "\n".join(target_lines) + "\n\n"
-        f"[Device Summary]\n{_build_device_selection_rules(resolve_cats)}"
-    )
-    # Force the `<Reasoning>` header so the model can't slip into the legacy
-    # `["Skill.Method"]` array form or drop the RESULT: block.
-    resolve_raw = infer("device_resolve", resolve_user,
-                        system=PROMPTS.get("device_resolve", ""),
-                        prefill="<Reasoning>\n").strip()
-    _err = re.search(r'(?im)^\s*ERROR:\s*(.+?)\s*$', resolve_raw)
-    if _err:
-        log_buf.append(f"⛔ device_resolve ERROR: {_err.group(1)}")
-        raise JoiGenerationError(
-            f"Cannot fulfill command — {_err.group(1)}",
-            "\n".join(log_buf), error_code="device_not_connected",
-        )
-    # Split on the `RESULT` header tolerantly — the model sometimes drops the
-    # trailing colon (`RESULT` vs `RESULT:`), which otherwise zeroes the block
-    # and yields a spurious "no usable calls" (non-deterministic failure).
-    _rmatch = re.search(r"RESULT\s*:?\s*\n", resolve_raw)
-    result_block = resolve_raw[_rmatch.end():].strip() if _rmatch else ""
-    # New RESULT format: one line per service, `Cat.Method: (#a), (#b)` — the
-    # service is chosen by the model, the tag(s) are COPIED from [Targets] (given
-    # to it), so the model can no longer invent a wrong tag (e.g. `#Switch`). We
-    # expand each `service: tags` line back into per-tag `(#tag).Cat.Method`
-    # selector strings so the deterministic skill-filter / quantifier loop below
-    # is unchanged. Legacy `(#tag).Cat.Method` lines are still accepted verbatim.
-    # Normalize the `<service>:` key each RESULT line into a clean `Cat.Method`:
-    # the model sometimes drops the category (`Open:` → find its owner Valve) or
-    # duplicates the method (`SetFanMode.SetFanMode:` → `Fan.SetFanMode`). We
-    # resolve the owning category from the catalog (SERVICE_DATA) by method name.
-    def _method_owner(method):
-        for cat in resolve_cats:
-            d = SERVICE_DATA.get(cat, {})
-            if any(e.get("id") == method for e in d.get("values", [])) or \
-               any(e.get("id") == method for e in d.get("functions", [])):
-                return cat
-        return None
-
-    def _canonical_svc(raw_svc):
-        parts = raw_svc.split(".")
-        method = parts[-1]
-        owner = _method_owner(method)
-        if owner:
-            return f"{owner}.{method}"
-        # method not found under any target category — keep a 2-part form as-is
-        return raw_svc if "." in raw_svc else None
-
-    raw_selectors = []
-    for ln in result_block.splitlines():
-        ln = ln.strip()
-        if not ln or "(" not in ln:
-            continue
-        # `<service>: (#a), (#b)` — service may be `Cat.Method`, bare `Method`,
-        # or a duplicated `Method.Method`; all normalized to `Cat.Method`.
-        m = re.match(r'^([A-Za-z][\w.]*)\s*:\s*(.+)$', ln)
-        if m and "(" in m.group(2):
-            svc = _canonical_svc(m.group(1))
-            if svc:
-                for sel in re.findall(r'(?:all|any|one)?\s*\(#[^)]*\)', m.group(2)):
-                    raw_selectors.append(f"{sel.strip()}.{svc}")
-                continue
-        if ")" in ln:  # legacy `(#tag).Cat.Method`
-            raw_selectors.append(ln)
-
-    # ── Deterministic quantifier: resolve emits NO prefix; we add all/any/one from
-    # each group's scope + role + match count. Map a selector's tag → its group.
-    tag_to_group = {}
-    for g in groups:
-        for t in g["sel_tags"]:
-            tag_to_group[t] = g
-    selectors = []
-    # Deterministic on/off fallback: when a Light cluster has NO `Switch`
-    # sub-category, `Switch.On/Off` is undeliverable. Instead of dropping (→
-    # "no usable calls" error), rewrite to `Light.MoveToBrightness` with forced
-    # args (ON→100, OFF→0, Rate 0.0) — collected here, merged into resolved_args
-    # after arg_resolve so `_enforce_resolved_args` writes them verbatim.
+            f"Cannot fulfill command — {_emsg}",
+            "\n".join(log_buf), error_code="device_not_connected")
+    selected_services = _ctr["selected_services"]
+    df_selectors = _ctr["df_selectors"]
+    df_resolved = _ctr["df_resolved"]
+    _df_read_services = _ctr["df_read_services"]
+    _df_precision = _ctr["precision"]
     _fallback_args = {}
-    for s in raw_selectors:
-        s = re.sub(r'^\s*(all|any|one)\s*\(', '(', s)  # drop any LLM-emitted prefix
-        first_tag = re.search(r'#([A-Za-z0-9_\-]+)', s)
-        g = tag_to_group.get(first_tag.group(1)) if first_tag else None
-        # Skill filter (DEVICE-level): a call's `.Category.` is the capability it needs.
-        # Keep only the group's devices that ACTUALLY have that category, then rebuild
-        # the selector for that subset. A whole-group miss drops the call. e.g. a #Tuya
-        # group spans sensors+switches → `Switch.Off` narrows to `(#Tuya #Switch)` (the
-        # 8 switchable), not all 16; `Light.MoveToBrightness` onto a Switch-only cluster
-        # → empty → dropped. (Cluster-level checks missed partial-capability groups.)
-        _svc = re.search(r'\)\.([A-Za-z]\w*)\.', s)
-        if g and _svc:
-            cat = _svc.group(1)
-            capable = [a for a in g["ids"] if cat in cd_named[a]["category"]]
-            if not capable:
-                # Light-only fallback: Switch.On/Off onto a Switch-less Light
-                # cluster → Light.MoveToBrightness(ON 100 / OFF 0, Rate 0.0).
-                method = s.rsplit(".", 1)[-1].strip("()")
-                light_ids = [a for a in g["ids"] if "Light" in cd_named[a]["category"]]
-                if cat == "Switch" and method in ("On", "Off") and light_ids:
-                    bright = 100.0 if method == "On" else 0.0
-                    nt, _ = _min_tags(light_ids, cd_named)
-                    nt = nt or light_ids
-                    s = re.sub(r'\(#[^)]*\)\.\w+\.\w+',
-                               "(#" + " #".join(nt) + ").Light.MoveToBrightness", s, count=1)
-                    g = {**g, "ids": light_ids, "sel_tags": nt,
-                         "categories": sorted({c for a in light_ids
-                                               for c in cd_named[a]["category"]})}
-                    _fallback_args.setdefault("Light.MoveToBrightness", []).append(
-                        {"Brightness": bright, "Rate": 0.0})
-                    log_buf.append(
-                        f"↩️ fallback Switch.{method} → Light.MoveToBrightness({bright}, 0.0): {s}")
-                else:
-                    log_buf.append(f"🚫 drop call (no {cat} device in cluster): {s}")
-                    continue
-            elif len(capable) < len(g["ids"]):
-                new_tags, _ = _min_tags(capable, cd_named)
-                new_tags = new_tags or capable
-                s = re.sub(r'\(#[^)]*\)', "(#" + " #".join(new_tags) + ")", s, count=1)
-                g = {**g, "ids": capable, "sel_tags": new_tags,
-                     "categories": sorted({c for a in capable
-                                           for c in cd_named[a]["category"]})}
-        q = _qf(g["scope"], g["role"], len(g["ids"])) if g else ""
-        full = (q + s) if q else s
-        selectors.append((full, g))
 
-    # ── Adapt device-first selectors → the IR pipeline's contract ──
-    # Split `<quant>(#tags).Cat.Method` into selected_services (Cat.Method, in
-    # order) + precision_output ({selectors:{svc:[<quant>(#tags)]}, resolved}).
-    # Then translate the command to English (IR/lowering prompts are English;
-    # original_sentence stays Korean for arg_resolve's human-facing text), and
-    # fall through to the shared arg_resolve → IR → lowering → naming path.
-    selected_services = []
-    df_selectors, df_resolved = {}, {}
-    _df_read_services = set()
-    # A nickname target resolves to the device's internal dN handle; the FINAL
-    # selector must carry the device's REAL id (which is one of its own tags in
-    # the payload), not the alias, or it matches nothing on the hub. Label/channel
-    # tags (#Light, #Tuya, #Speaker) are already real tags and pass through.
     def _restore_ids(sel: str) -> str:
-        return re.sub(r'#(d\d+)\b',
-                      lambda mm: '#' + real_of.get(mm.group(1), mm.group(1)), sel)
-    _sel_re = re.compile(r'^\s*(all|any)?\s*(\(#[^)]*\))\.([A-Za-z]\w*\.[A-Za-z]\w*)')
-    for full, g in selectors:
-        m = _sel_re.match(full)
-        if not m:
-            continue
-        # Keep dN aliases in the selector through IR/lowering — the LLM only ever
-        # copies a short `#dN`, not a 36-char real id (transcription-safe). They are
-        # restored to real ids once, post-lowering, in _finalize.
-        quant, sel_tags, svc = (m.group(1) or ""), m.group(2), m.group(3)
-        selected_services.append(svc)
-        df_selectors.setdefault(svc, []).append(f"{quant}{sel_tags}")
-        if g:
-            df_resolved[svc] = {"q": (quant or "one"),
-                                "devices": [real_of.get(a, a) for a in g["ids"]]}
-            if g.get("role") == "read":
-                _df_read_services.add(svc)
-    if not selected_services:
-        raise JoiGenerationError(
-            "device_resolve produced no usable calls.",
-            "\n".join(log_buf), error_code="reasoning_failed",
-        )
-    _df_precision = {"selectors": df_selectors, "resolved": df_resolved,
-                     "reasoning": "[device-first] selectors from device_resolve"}
+        # v3 selectors already carry real ids/tags — nothing to restore.
+        return sel
+    log_buf.append(f"🧭 mapping_v2: {selected_services}")
     # Korean → English for the downstream IR/lowering stages. original_sentence
     # (Korean) is already captured; keep it for arg_resolve language routing.
     if re.search(r"[가-힣]", sentence):

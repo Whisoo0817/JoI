@@ -5,7 +5,7 @@ import json
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # ── Service List (1회 로딩) ───────────────────────────────
-_SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.5.json")
+_SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver2.0.7.json")
 try:
     with open(_SERVICE_LIST_PATH, 'r', encoding='utf-8') as f:
         _raw = json.load(f)
@@ -48,7 +48,6 @@ PROMPTS = _load_all_prompts(os.path.join(_BASE_DIR, "files"))
 #     selectors unless the service prefix matches)
 #   - pipeline_helpers.py _build_service_category_map (lets sub-skill categories
 #     overwrite primary mappings for shared service names)
-#   - files/mapping_device_match.md Rule 1 (rendered via {{SUB_SKILLS}})
 SUB_SKILL_TAGS = {"Switch", "LevelControl", "ColorControl", "RotaryControl"}
 
 
