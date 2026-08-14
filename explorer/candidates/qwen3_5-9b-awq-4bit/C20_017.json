@@ -1,0 +1,82 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif (all(#Backyard #MotionSensor).motionSensor_motion ==| true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\n(#Light).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif (all(#Backyard #MotionSensor).motionSensor_motion ==| true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\n(#Light).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#Backyard #MotionSensor)"
+    ],
+    "Switch.On": [
+      "(#Light)"
+    ]
+  },
+  "command_kor": "뒷마당에 1분 이상 동작이 감지되면 뒷마당 조명을 켜줘.",
+  "command_eng": "If motion is detected in the backyard for at least 1 minute, turn on the backyard light.",
+  "connected_devices": {
+    "Backyard_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Backyard",
+        "MotionSensor"
+      ]
+    },
+    "Backyard_Light": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Backyard",
+        "Light",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Frontyard_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Frontyard",
+        "MotionSensor"
+      ]
+    },
+    "Backyard_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Backyard",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == true",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.6
+}

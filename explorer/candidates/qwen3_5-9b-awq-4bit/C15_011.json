@@ -1,0 +1,57 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 25 12 *",
+    "period": 0,
+    "script": "all(#Light).light_moveToHue(0.675, 0.322, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 25 12 *\",\n  \"period\": 0,\n  \"script\": \"all(#Light).light_moveToHue(0.675, 0.322, 0.0)\"\n}",
+  "precision": {
+    "Light.MoveToHue": [
+      "all(#Light)"
+    ]
+  },
+  "command_kor": "크리스마스가 되면 불을 빨간색으로 바꿔줘.",
+  "command_eng": "When the Christmas arrives, change the light color to red.",
+  "connected_devices": {
+    "Living_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Living",
+        "Light"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 25 12 *"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToColor",
+        "args": {
+          "ColorX": 0.675,
+          "ColorY": 0.322,
+          "TransitionTime": 0.0
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.2
+}

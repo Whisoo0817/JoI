@@ -1,0 +1,113 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#AirConditioner).airConditioner_airConditionerMode ==| \"heat\" and all(#PresenceSensor).presenceSensor_presence == false) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\nall(#Speaker).speaker_speak(\"The air conditioner mode has been changed to auto.\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#AirConditioner).airConditioner_airConditionerMode ==| \\\"heat\\\" and all(#PresenceSensor).presenceSensor_presence == false) {\\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\nall(#Speaker).speaker_speak(\\\"The air conditioner mode has been changed to auto.\\\")\\n}\"\n}",
+  "precision": {
+    "AirConditioner.AirConditionerMode": [
+      "any(#AirConditioner)"
+    ],
+    "PresenceSensor.Presence": [
+      "all(#PresenceSensor)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "all(#AirConditioner)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "에어컨이 난방 중이고 아무도 없으면, 에어컨을 자동 모드로 변경하고 스피커로 자동 모드로 변경했다고 알려줘.",
+  "command_eng": "If the air conditioner is heating and no one is being detected, change the mode to auto and notify that the mode has been changed to auto.",
+  "connected_devices": {
+    "Kitchen_AirConditioner": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Kitchen",
+        "AirConditioner"
+      ]
+    },
+    "Dining_AirConditioner": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Dining",
+        "AirConditioner"
+      ]
+    },
+    "Living_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirConditioner.AirConditionerMode == \"heat\" and PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "auto"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The air conditioner mode has been changed to auto."
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.7
+}

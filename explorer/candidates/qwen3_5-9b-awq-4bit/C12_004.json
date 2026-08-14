@@ -1,0 +1,111 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((any(#LeakSensor) or all(#LeakSensor)).Leakage == true)\n    phase = 1\n    all(#LeakSensor).valve_close()\n}\nelse {\nall(#Speaker).speaker_speak(\"Leak detected. Please evacuate.\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((any(#LeakSensor) or all(#LeakSensor)).Leakage == true)\n    phase = 1\n    all(#LeakSensor).valve_close()\n}\nelse {\nall(#Speaker).speaker_speak(\\\"Leak detected. Please evacuate.\\\")\\n}\"\n}",
+  "precision": {
+    "LeakSensor.Leakage": [
+      "any(#LeakSensor)",
+      "all(#LeakSensor)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "누수가 감지되면 즉시 밸브를 잠그고, 그 이후로 1분마다 스피커로 \"누수가 감지되었습니다. 대피하세요\"라고 출력해줘.",
+  "command_eng": "When a leak is detected, close the valve immediately and then speak \"Leak detected. Please evacuate.\" through the speaker every minute thereafter.",
+  "connected_devices": {
+    "Basement_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Basement",
+        "LeakSensor"
+      ]
+    },
+    "Kitchen_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "LeakSensor"
+      ]
+    },
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "LeakSensor.Leakage == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Valve.Close",
+        "args": {}
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Leak detected. Please evacuate."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.4
+}

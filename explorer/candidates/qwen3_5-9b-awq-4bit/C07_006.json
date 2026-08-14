@@ -1,0 +1,82 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\nall(#Siren).siren_setSirenMode(\"fire\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\nall(#Siren).siren_setSirenMode(\\\"fire\\\")\"\n}",
+  "precision": {
+    "SmokeDetector.Smoke": [
+      "any(#SmokeDetector)"
+    ],
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ]
+  },
+  "command_kor": "연기가 감지되면 사이렌으로 화재경보를 울려줘.",
+  "command_eng": "When smoke is detected, sound the fire alarm with the siren.",
+  "connected_devices": {
+    "LivingRoom_SmokeDetector": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "LivingRoom",
+        "SmokeDetector"
+      ]
+    },
+    "Kitchen_SmokeDetector": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Kitchen",
+        "SmokeDetector"
+      ]
+    },
+    "LivingRoom_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "SmokeDetector.Smoke == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Siren.SetSirenMode",
+        "args": {
+          "Mode": "fire"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.0
+}

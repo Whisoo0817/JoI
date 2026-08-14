@@ -1,0 +1,96 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "t1 = (#WineCellar).airQualitySensor_temperature\ndelay(10 MIN)\nt2 = (#WineCellar).airQualitySensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 1) {\nall(#Speaker).speaker_speak(\"The wine cellar temperature has changed rapidly\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#WineCellar).airQualitySensor_temperature\ndelay(10 MIN)\nt2 = (#WineCellar).airQualitySensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 1) {\nall(#Speaker).speaker_speak(\\\"The wine cellar temperature has changed rapidly\\\")\\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#WineCellar)",
+      "(#WineCellar)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "지금 와인 셀러 온도를 체크하고 10분뒤에 다시 체크해서 1도 이상 차이가 나면, 스피커로 온도가 급변했다고 안내해줘. ",
+  "command_eng": "Check the wine cellar temperature now and again in 10 minutes. If it has changed by 1 degree or higher, announce through the speaker that the wine cellar temperature has changed rapidly.",
+  "connected_devices": {
+    "WineCellar_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "WineCellar",
+        "TemperatureSensor"
+      ]
+    },
+    "Kitchen_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "TemperatureSensor"
+      ]
+    },
+    "Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Speaker"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "10 MIN"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "abs($t2 - $t1) >= 1",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The wine cellar temperature has changed rapidly"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.7
+}

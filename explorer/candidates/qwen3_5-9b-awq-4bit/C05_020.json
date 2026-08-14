@@ -1,0 +1,118 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Bathroom #HumiditySensor).humiditySensor_humidity >= 85 and (#Bathroom #Window).windowCovering_currentPosition == 0) {\n(#Bathroom #Light).light_moveToBrightness(100.0, 0.0)\n(#Bathroom #Window).windowCovering_upOrOpen()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bathroom #HumiditySensor).humiditySensor_humidity >= 85 and (#Bathroom #Window).windowCovering_currentPosition == 0) {\n(#Bathroom #Light).light_moveToBrightness(100.0, 0.0)\n(#Bathroom #Window).windowCovering_upOrOpen()\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#Bathroom #HumiditySensor)"
+    ],
+    "WindowCovering.CurrentPosition": [
+      "(#Bathroom #Window)"
+    ],
+    "Switch.On": [
+      "(#Bathroom #Light)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "(#Bathroom #Window)"
+    ]
+  },
+  "command_kor": "욕실 습도가 85% 이상이고 욕실 창문이 닫혀 있으면, 조명을 켜고 창문을 열어줘.",
+  "command_eng": "If the bathroom humidity is 85% or higher and the bathroom window is closed, turn on the light and open the window.",
+  "connected_devices": {
+    "Bathroom_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bathroom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Bathroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bathroom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "HumiditySensor.Humidity >= 85 and WindowCovering.CurrentPosition == 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.8
+}

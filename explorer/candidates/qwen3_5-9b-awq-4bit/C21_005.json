@@ -1,0 +1,101 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "living_temp = all(#Bedroom).airQualitySensor_temperature\nbedroom_temp = all(#Bedroom).airQualitySensor_temperature\nif (living_temp >= 25 and bedroom_temp >= 25) {\n(#Plug).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"living_temp = all(#Bedroom).airQualitySensor_temperature\nbedroom_temp = all(#Bedroom).airQualitySensor_temperature\nif (living_temp >= 25 and bedroom_temp >= 25) {\n(#Plug).switch_on()\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "all(#Bedroom)"
+    ],
+    "Switch.On": [
+      "(#Plug)"
+    ]
+  },
+  "command_kor": "거실과 침실 온도가 모두 25도 이상이면 거실 선풍기 플러그를 켜줘.",
+  "command_eng": "If both the living room and bedroom temperatures are at least 25C, turn on the living room fan plug.",
+  "connected_devices": {
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "living_temp",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "read",
+        "var": "bedroom_temp",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "living_temp >= 25 and bedroom_temp >= 25",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.3
+}

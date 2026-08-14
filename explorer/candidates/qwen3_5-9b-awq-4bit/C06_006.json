@@ -1,0 +1,92 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Kitchen #TemperatureSensor).temperatureSensor_temperature >= 35 or (#LivingRoom #TemperatureSensor).temperatureSensor_temperature >= 33) {\n(#Fan).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Kitchen #TemperatureSensor).temperatureSensor_temperature >= 35 or (#LivingRoom #TemperatureSensor).temperatureSensor_temperature >= 33) {\n(#Fan).switch_on()\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Kitchen #TemperatureSensor)",
+      "(#LivingRoom)"
+    ],
+    "Switch.On": [
+      "(#Fan)"
+    ]
+  },
+  "command_kor": "부엌 온도가 35도 이상이거나 거실 온도가 33도 이상이면 부엌 환기팬 플러그를 켜줘.",
+  "command_eng": "If the kitchen temperature is at least 35C or the living room temperature is at least 33C, turn on the kitchen ventilation fan plug.",
+  "connected_devices": {
+    "Kitchen_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Kitchen_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 35 or TemperatureSensor.Temperature >= 33",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.0
+}

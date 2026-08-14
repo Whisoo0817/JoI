@@ -1,0 +1,118 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "if (all(#HumiditySensor).humiditySensor_humidity >=| 50) {\nall(#Humidifier).switch_off()\n}\nelse {\nif (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\nall(#Humidifier).switch_on()\nall(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"if (all(#HumiditySensor).humiditySensor_humidity >=| 50) {\nall(#Humidifier).switch_off()\n}\nelse {\nif (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\nall(#Humidifier).switch_on()\nall(#Humidifier).humidifier_setHumidifierMode(\\\"auto\\\")\\n}\\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "any(#HumiditySensor)",
+      "any(#HumiditySensor)"
+    ],
+    "Switch.Off": [
+      "all(#Humidifier)"
+    ],
+    "Switch.On": [
+      "all(#Humidifier)"
+    ],
+    "Humidifier.SetHumidifierMode": [
+      "all(#Humidifier)"
+    ]
+  },
+  "command_kor": "10분마다 습도를 체크해서 50 이상이면 가습기를 끄고 20 이하면 가습기를 켜고 자동모드로 설정해줘.",
+  "command_eng": "Check humidity every 10 minutes; if it's 50 or higher, turn off the humidifier; if it's 20 or lower, turn on the humidifier and set it to auto mode.",
+  "connected_devices": {
+    "Living_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Living",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Living_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Living",
+        "Humidifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Humidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "10 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity >= 50",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "HumiditySensor.Humidity <= 20",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.On",
+                    "args": {}
+                  },
+                  {
+                    "op": "call",
+                    "target": "Humidifier.SetHumidifierMode",
+                    "args": {
+                      "Mode": "auto"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 12.2
+}

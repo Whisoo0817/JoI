@@ -1,0 +1,115 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#Kitchen #TemperatureSensor).temperatureSensor_temperature >= 32) {\n(#Plug).switch_on()\n}\nelse {\nif ((#Kitchen #TemperatureSensor).temperatureSensor_temperature <= 28) {\n(#Plug).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#Kitchen #TemperatureSensor).temperatureSensor_temperature >= 32) {\n(#Plug).switch_on()\n}\nelse {\nif ((#Kitchen #TemperatureSensor).temperatureSensor_temperature <= 28) {\n(#Plug).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Kitchen #TemperatureSensor)",
+      "(#Kitchen #TemperatureSensor)"
+    ],
+    "Switch.On": [
+      "(#Plug)"
+    ],
+    "Switch.Off": [
+      "(#Plug)"
+    ]
+  },
+  "command_kor": "1초마다 부엌 온도가 32도 이상이면 부엌 환기팬 플러그를 켜고, 그렇지 않고 28도 이하이면 꺼줘.",
+  "command_eng": "Every 1 second, if the kitchen temperature is at least 32C, turn on the kitchen ventilation fan plug; otherwise if it is 28C or below, turn off the kitchen ventilation fan plug.",
+  "connected_devices": {
+    "Kitchen_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Kitchen_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature >= 32",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "TemperatureSensor.Temperature <= 28",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.9
+}

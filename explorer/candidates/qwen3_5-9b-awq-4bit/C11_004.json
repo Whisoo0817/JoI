@@ -1,0 +1,105 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "h1 = (#Plug).plug_power\ndelay(20 MIN)\nh2 = (#Plug).plug_power\ndiff = h1 - h2\nif (diff >= 10) {\n(#Plug).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"h1 = (#Plug).plug_power\ndelay(20 MIN)\nh2 = (#Plug).plug_power\ndiff = h1 - h2\nif (diff >= 10) {\n(#Plug).switch_on()\n}\"\n}",
+  "precision": {
+    "Plug.Power": [
+      "(#Plug)"
+    ],
+    "Switch.On": [
+      "(#Plug)"
+    ]
+  },
+  "command_kor": "지금 거실 습도를 확인하고 20분 뒤 다시 확인해서 10% 이상 떨어졌으면 거실 가습기 플러그를 켜줘.",
+  "command_eng": "Check the living room humidity now and again in 20 minutes. If it dropped by at least 10%, turn on the living room humidifier plug.",
+  "connected_devices": {
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_Humidifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Humidifier"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "h1",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "delay",
+        "duration": "20 MIN"
+      },
+      {
+        "op": "read",
+        "var": "h2",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "if",
+        "cond": "($h1 - $h2) >= 10",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.7
+}

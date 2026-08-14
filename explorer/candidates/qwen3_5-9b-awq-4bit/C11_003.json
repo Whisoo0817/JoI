@@ -1,0 +1,106 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "t1 = (#Bedroom #TemperatureSensor).temperatureSensor_temperature\ndelay(30 MIN)\nt2 = (#Bedroom #TemperatureSensor).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 3) {\n(#Heater).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#Bedroom #TemperatureSensor).temperatureSensor_temperature\ndelay(30 MIN)\nt2 = (#Bedroom #TemperatureSensor).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 3) {\n(#Heater).switch_on()\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Bedroom #TemperatureSensor)",
+      "(#Bedroom #TemperatureSensor)"
+    ],
+    "Switch.On": [
+      "(#Heater)"
+    ]
+  },
+  "command_kor": "지금 침실 온도를 확인하고 30분 뒤 다시 확인해서 3도 이상 떨어졌으면 침실 히터 플러그를 켜줘.",
+  "command_eng": "Check the bedroom temperature now and again in 30 minutes. If it dropped by at least 3 degrees, turn on the bedroom heater plug.",
+  "connected_devices": {
+    "Bedroom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Heater": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "Heater"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "30 MIN"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "($t1 - $t2) >= 3",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 9.0
+}

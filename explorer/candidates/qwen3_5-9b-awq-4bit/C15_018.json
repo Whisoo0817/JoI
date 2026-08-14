@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 8 * * *",
+    "period": 0,
+    "script": "(#HighEfficiency).switch_on()\n(#HighEfficiency).airPurifier_setAirPurifierMode(\"auto\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * *\",\n  \"period\": 0,\n  \"script\": \"(#HighEfficiency).switch_on()\n(#HighEfficiency).airPurifier_setAirPurifierMode(\\\"auto\\\")\"\n}",
+  "precision": {
+    "Switch.On": [
+      "(#HighEfficiency)"
+    ]
+  },
+  "command_kor": "오전 8시에 고효율 태그가 붙은 공기청정기를 켜고 자동모드로 설정해줘.",
+  "command_eng": "At 8 AM, turn on the high-efficiency tagged air purifier and set it to auto mode.",
+  "connected_devices": {
+    "HighEfficiency_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "HighEfficiency",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "LowEfficiency_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "LowEfficiency",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      },
+      {
+        "op": "call",
+        "target": "AirPurifier.SetAirPurifierMode",
+        "args": {
+          "Mode": "auto"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 3.8
+}

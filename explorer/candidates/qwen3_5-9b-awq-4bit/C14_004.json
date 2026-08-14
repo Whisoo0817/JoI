@@ -1,0 +1,102 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#MotionSensor).motionSensor_motion ==| true) {\nif (triggered == false) {\ntmp = all(#LevelControl).light_currentBrightness + 10\n        if (tmp > 100) {\ntmp = 100\n}\nall(#LevelControl).light_moveToBrightness(tmp, 0)\n        if (all(#LevelControl).light_currentBrightness >= 100) {\nbreak\n}\ntriggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#MotionSensor).motionSensor_motion ==| true) {\nif (triggered == false) {\ntmp = all(#LevelControl).light_currentBrightness + 10\n        if (tmp > 100) {\ntmp = 100\n}\nall(#LevelControl).light_moveToBrightness(tmp, 0)\n        if (all(#LevelControl).light_currentBrightness >= 100) {\nbreak\n}\ntriggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "any(#MotionSensor)"
+    ],
+    "Light.MoveToBrightness": [
+      "all(#LevelControl)"
+    ]
+  },
+  "command_kor": "움직임이 감지될 때마다 조명의 밝기를 10씩 높여줘. 최대 밝기가 되면 그만해.",
+  "command_eng": "Whenever motion is detected, increase the light brightness by 10. If it reaches max, stop it.",
+  "connected_devices": {
+    "Entrance_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Living_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Living",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "LevelControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": "min($Light.CurrentBrightness + 10, 100)",
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "if",
+            "cond": "Light.CurrentBrightness >= 100",
+            "then": [
+              {
+                "op": "break"
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.9
+}

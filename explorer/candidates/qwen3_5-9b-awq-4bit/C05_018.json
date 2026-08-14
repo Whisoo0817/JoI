@@ -1,0 +1,128 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#ContactSensor).contactSensor_contact ==| false and all(#ContactSensor).contactSensor_contact ==| false) {\nall(#Camera).camera_captureImage()\nall(#Speaker).speaker_speak(\"Warning\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#ContactSensor).contactSensor_contact ==| false and all(#ContactSensor).contactSensor_contact ==| false) {\nall(#Camera).camera_captureImage()\nall(#Speaker).speaker_speak(\\\"Warning\\\")\\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "any(#ContactSensor)"
+    ],
+    "Camera.CaptureImage": [
+      "all(#Camera)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "움직임이 감지되지 않는데 문이 열려 있으면, 사진을 찍고 스피커로 \"경고\"라고 말해줘.",
+  "command_eng": "If no motion is detected but the door is open, take a photo and output \"Warning\" through the speaker.",
+  "connected_devices": {
+    "Entrance_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Living_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Living",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Bedroom_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == false and ContactSensor.Contact == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Warning"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.8
+}

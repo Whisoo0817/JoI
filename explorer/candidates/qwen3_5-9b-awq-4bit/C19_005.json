@@ -1,0 +1,115 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#Plug).plug_current <= 30) {\n(#Plug).switch_on()\n}\nelse {\nif ((#Plug).plug_current >= 55) {\n(#Plug).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#Plug).plug_current <= 30) {\n(#Plug).switch_on()\n}\nelse {\nif ((#Plug).plug_current >= 55) {\n(#Plug).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "Plug.Current": [
+      "(#Plug)",
+      "(#Plug)"
+    ],
+    "Switch.On": [
+      "(#Plug)"
+    ],
+    "Switch.Off": [
+      "(#Plug)"
+    ]
+  },
+  "command_kor": "1초마다 거실 습도가 30% 이하이면 가습기 플러그를 켜고, 그렇지 않고 55% 이상이면 꺼줘.",
+  "command_eng": "Every 1 second, if the living room humidity is at most 30%, turn on the humidifier plug; otherwise if it is at least 55%, turn off the humidifier plug.",
+  "connected_devices": {
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_Humidifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Humidifier"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity <= 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "HumiditySensor.Humidity >= 55",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 9.3
+}

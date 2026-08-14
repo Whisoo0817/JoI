@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 10000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until(all(#ContactSensor).contactSensor_contact ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"police\")\n}\nelse {\nall(#Siren).siren_setSirenMode(\"police\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 10000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until(all(#ContactSensor).contactSensor_contact ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\\\"police\\\")\\n}\\nelse {\\nall(#Siren).siren_setSirenMode(\\\"police\\\")\\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "any(#ContactSensor)"
+    ],
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ]
+  },
+  "command_kor": "접촉센서가 닫히면, 그 이후로 10초마다 경찰 사이렌을 울려줘.",
+  "command_eng": "When the contact sensor is closed, sound the police siren every 10 seconds thereafter.",
+  "connected_devices": {
+    "Entrance_Contact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "ContactSensor"
+      ]
+    },
+    "Garage_Contact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Garage",
+        "ContactSensor"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "10 SEC",
+        "body": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "police"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.0
+}

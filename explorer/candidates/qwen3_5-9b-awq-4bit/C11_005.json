@@ -1,0 +1,106 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "t1 = (#Fan).charger_current\ndelay(15 MIN)\nt2 = (#Fan).charger_current\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 5) {\n(#Fan).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#Fan).charger_current\ndelay(15 MIN)\nt2 = (#Fan).charger_current\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 5) {\n(#Fan).switch_on()\n}\"\n}",
+  "precision": {
+    "Plug.Current": [
+      "(#Fan)"
+    ],
+    "Switch.On": [
+      "(#Fan)"
+    ]
+  },
+  "command_kor": "지금 부엌 온도를 확인하고 15분 뒤 다시 확인해서 5도 이상 차이가 나면 부엌 환기팬 플러그를 켜줘.",
+  "command_eng": "Check the kitchen temperature now and again in 15 minutes. If it changed by at least 5 degrees, turn on the kitchen ventilation fan plug.",
+  "connected_devices": {
+    "Kitchen_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Kitchen_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "15 MIN"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "abs($t2 - $t1) >= 5",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.5
+}

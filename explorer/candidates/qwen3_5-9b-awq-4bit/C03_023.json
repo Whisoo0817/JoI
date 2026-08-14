@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#TemperatureSensor).temperatureSensor_temperature >= 36.5) {\n(#AirConditioner #Bedroom).airConditioner_setTargetTemperature(30.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#TemperatureSensor).temperatureSensor_temperature >= 36.5) {\n(#AirConditioner #Bedroom).airConditioner_setTargetTemperature(30.0)\n}\"\n}",
+  "precision": {
+    "AirConditioner.SetTargetTemperature": [
+      "(#AirConditioner #Bedroom)"
+    ]
+  },
+  "command_kor": "안방 온도가 36.5도 이상이면, 에어컨을 30도로 설정해줘.",
+  "command_eng": "If the temperature in the bedroom is 36.5 degrees or higher, set the bedroom air conditioner to 30 degrees.",
+  "connected_devices": {
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 36.5",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetTargetTemperature",
+            "args": {
+              "Temperature": 30.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.2
+}

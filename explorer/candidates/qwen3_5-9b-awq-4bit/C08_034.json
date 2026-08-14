@@ -1,0 +1,95 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#WeatherProvider).weatherProvider_weather == \"rain\") {\nif (triggered == false) {\nall(#DoorLock).windowCovering_downOrClose()\nall(#DoorLock).doorLock_lock()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#WeatherProvider).weatherProvider_weather == \\\"rain\\\") {\\nif (triggered == false) {\\nall(#DoorLock).windowCovering_downOrClose()\\nall(#DoorLock).doorLock_lock()\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "DoorLock.Lock": [
+      "all(#DoorLock)"
+    ]
+  },
+  "command_kor": "비가 올때마다, 모든 창문을 닫고 모든 문을 잠가줘",
+  "command_eng": "Whenever it rains, close all windows and lock all doors.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Win_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Win_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "DoorLock_1": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "DoorLock"
+      ]
+    },
+    "DoorLock_2": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WeatherProvider.Weather == \"rain\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.9
+}

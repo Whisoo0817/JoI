@@ -1,0 +1,100 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LivingRoom #PresenceSensor).presenceSensor_presence == true) {\n(#Light #LivingRoom).switch_on()\n}\nelse {\n(#Light #LivingRoom).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom #PresenceSensor).presenceSensor_presence == true) {\n(#Light #LivingRoom).switch_on()\n}\nelse {\n(#Light #LivingRoom).switch_off()\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#LivingRoom #PresenceSensor)"
+    ],
+    "Switch.On": [
+      "(#Light #LivingRoom)"
+    ],
+    "Light.ColorMode": [
+      "(#Light #LivingRoom)"
+    ]
+  },
+  "command_kor": "거실에 사람이 감지되면 거실 메인 조명을 켜고, 아니면 꺼줘.",
+  "command_eng": "If a person is detected in the living room, turn on the living room main light; otherwise turn it off.",
+  "connected_devices": {
+    "LivingRoom_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.2
+}

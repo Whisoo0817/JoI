@@ -1,0 +1,84 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif ((#Bathroom #MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 20) {\n(#Fan).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#Bathroom #MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 20) {\n(#Fan).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#Bathroom #MotionSensor)"
+    ],
+    "Switch.Off": [
+      "(#Fan)"
+    ]
+  },
+  "command_kor": "욕실에 20초 이상 동작이 없으면 욕실 환풍기를 꺼줘.",
+  "command_eng": "If no motion is detected in the bathroom for at least 20 seconds, turn off the bathroom fan.",
+  "connected_devices": {
+    "Bathroom_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bathroom",
+        "MotionSensor"
+      ]
+    },
+    "Bathroom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Fan",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Hall_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "MotionSensor"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == false",
+        "edge": "none",
+        "for": "20 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.1
+}

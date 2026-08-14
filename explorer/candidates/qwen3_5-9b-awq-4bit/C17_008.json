@@ -1,0 +1,105 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "if (all(#Group2).airQualitySensor_humidity >= 50) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"refreshing\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"if (all(#Group2).airQualitySensor_humidity >= 50) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"refreshing\\\")\\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "all(#Group2)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "command_kor": "그룹 2에 속한 습도 센서들을 1분마다 체크해서 모두 50% 이상이면, 모든 제습기를 리프레쉬 모드로 설정해줘.",
+  "command_eng": "Every minute, if the humidity of all sensors in Group2 is 50% or higher, set all dehumidifiers to refresh mode.",
+  "connected_devices": {
+    "Grp2_Hum_1": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Group2",
+        "HumiditySensor",
+        "North"
+      ]
+    },
+    "Grp2_Hum_2": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Group2",
+        "HumiditySensor",
+        "South"
+      ]
+    },
+    "Grp1_Hum_1": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Group1",
+        "HumiditySensor",
+        "East"
+      ]
+    },
+    "Dehum_1": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Dehum_2": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Backup",
+        "Dehumidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity >= 50",
+            "then": [
+              {
+                "op": "call",
+                "target": "Dehumidifier.SetDehumidifierMode",
+                "args": {
+                  "Mode": "refreshing"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.9
+}

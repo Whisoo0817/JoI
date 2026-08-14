@@ -1,0 +1,126 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "lux = (#LightSensor #LivingRoom).lightSensor_brightness\nif (lux <= 200) {\n(#Light #LivingRoom).light_moveToBrightness(100.0, 0.0)\n}\nelse {\nif (lux >= 500) {\n(#Light #LivingRoom).light_moveToBrightness(30.0, 0.0)\n}\nelse {\n(#Light #LivingRoom).light_moveToBrightness(60.0, 0.0)\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"lux = (#LightSensor #LivingRoom).lightSensor_brightness\nif (lux <= 200) {\n(#Light #LivingRoom).light_moveToBrightness(100.0, 0.0)\n}\nelse {\nif (lux >= 500) {\n(#Light #LivingRoom).light_moveToBrightness(30.0, 0.0)\n}\nelse {\n(#Light #LivingRoom).light_moveToBrightness(60.0, 0.0)\n}\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "(#LightSensor #LivingRoom)",
+      "(#LightSensor #LivingRoom)",
+      "(#LightSensor #LivingRoom)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Light #LivingRoom)"
+    ]
+  },
+  "command_kor": "거실 조도가 200lux 이하면 거실 등을 100% 밝기로, 500lux 이상이면 30%로, 그 외에는 60%로 설정해줘.",
+  "command_eng": "If living room illuminance is at most 200 lux, set the living room light to 100% brightness; if at least 500 lux, set it to 30%; otherwise set it to 60%.",
+  "connected_devices": {
+    "LivingRoom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "LightSensor"
+      ]
+    },
+    "Bedroom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "LightSensor"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "lux",
+        "src": "LightSensor.Brightness"
+      },
+      {
+        "op": "if",
+        "cond": "lux <= 200",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": [
+          {
+            "op": "if",
+            "cond": "lux >= 500",
+            "then": [
+              {
+                "op": "call",
+                "target": "Light.MoveToBrightness",
+                "args": {
+                  "Brightness": 30.0,
+                  "Rate": 0.0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Light.MoveToBrightness",
+                "args": {
+                  "Brightness": 60.0,
+                  "Rate": 0.0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 11.6
+}

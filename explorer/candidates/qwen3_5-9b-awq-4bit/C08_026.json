@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#TemperatureSensor).temperatureSensor_temperature >=| 30) {\nif (triggered == false) {\nall(#Blind).windowCovering_downOrClose()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#TemperatureSensor).temperatureSensor_temperature >=| 30) {\nif (triggered == false) {\nall(#Blind).windowCovering_downOrClose()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "any(#TemperatureSensor)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "all(#Blind)"
+    ]
+  },
+  "command_kor": "온도가 30도 이상이 될 때마다 블라인드를 닫아줘.",
+  "command_eng": "Whenever the temperature becomes 30 degrees or higher, close the blind.",
+  "connected_devices": {
+    "Living_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Living",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Living_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "TemperatureSensor.Temperature >= 30",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.2
+}

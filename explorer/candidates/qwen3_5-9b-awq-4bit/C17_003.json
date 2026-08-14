@@ -1,0 +1,62 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "tmp = all(#Speaker).speaker_volume + 10\nall(#Speaker).speaker_volumeUp(tmp)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"tmp = all(#Speaker).speaker_volume + 10\nall(#Speaker).speaker_volumeUp(tmp)\"\n}",
+  "precision": {
+    "Speaker.VolumeUp": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "1시간마다 스피커 볼륨을 10씩 올려줘.",
+  "command_eng": "Every hour, increase the speaker volume by 10.",
+  "connected_devices": {
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.SetVolume",
+            "args": {
+              "Volume": "$Speaker.Volume + 10"
+            },
+            "var": "Speaker.Volume"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.1
+}

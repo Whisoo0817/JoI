@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#HumiditySensor).humiditySensor_humidity <| 30)\ndelay(3 SEC)\nany(#HumiditySensor).speaker_speak(\"Humidity is low\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#HumiditySensor).humiditySensor_humidity <| 30)\ndelay(3 SEC)\nany(#HumiditySensor).speaker_speak(\\\"Humidity is low\\\")\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "any(#HumiditySensor)"
+    ]
+  },
+  "command_kor": "습도가 30%보다 낮아지면 3초 뒤에 스피커로 \"습도가 낮습니다\"를 출력해.",
+  "command_eng": "When the humidity falls below 30%, output \"Humidity is low\" through the speaker after 3 seconds.",
+  "connected_devices": {
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "HumiditySensor.Humidity < 30",
+        "edge": "none"
+      },
+      {
+        "op": "delay",
+        "duration": "3 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Humidity is low"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.6
+}

@@ -1,0 +1,100 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#AirPurifier #ParkingLot).airPurifier_airPurifierMode > 900) {\n(#AirPurifier #ParkingLot).airPurifier_setAirPurifierMode(\"high\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirPurifier #ParkingLot).airPurifier_airPurifierMode > 900) {\n(#AirPurifier #ParkingLot).airPurifier_setAirPurifierMode(\\\"high\\\")\\n}\"\n}",
+  "precision": {
+    "AirPurifier.AirPurifierMode": [
+      "(#AirPurifier #ParkingLot)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "(#AirPurifier #ParkingLot)"
+    ]
+  },
+  "command_kor": "주차장 이산화탄소 농도가 900ppm을 넘으면, 주차장 공기청정기를 강풍으로 작동시켜줘.",
+  "command_eng": "If the parking lot carbon dioxide level exceeds 900ppm, set the parking lot air purifier to high mode.",
+  "connected_devices": {
+    "P_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "ParkingLot",
+        "AirQualitySensor"
+      ]
+    },
+    "Warehouse_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Warehouse",
+        "AirQualitySensor"
+      ]
+    },
+    "Office_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Office",
+        "AirQualitySensor"
+      ]
+    },
+    "P_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "ParkingLot",
+        "AirPurifier"
+      ]
+    },
+    "Warehouse_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Warehouse",
+        "AirPurifier"
+      ]
+    },
+    "Office_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Office",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.CarbonDioxide > 900",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "high"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.9
+}

@@ -1,0 +1,82 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 30000,
+    "script": "hold_ticks := 0\nif ((#Entrance).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Hall).speaker_speak(\"Please close the door\")\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 30000,\n  \"script\": \"hold_ticks := 0\nif ((#Entrance).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Hall).speaker_speak(\\\"Please close the door\\\")\\n        n = n + 1\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#Entrance)"
+    ],
+    "Speaker.Speak": [
+      "(#Hall)"
+    ]
+  },
+  "command_kor": "현관문이 1분 이상 열려 있으면 30초마다 스피커로 \"문을 닫아주세요\"라고 최대 3번 알려줘.",
+  "command_eng": "If the entrance door stays open for at least 1 minute, announce 'Please close the door' through the speaker every 30 seconds, up to 3 times.",
+  "connected_devices": {
+    "Entrance_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Hall_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Hall",
+        "Speaker"
+      ]
+    },
+    "Garage_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Garage",
+        "Door",
+        "ContactSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "30 SEC",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Please close the door"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.1
+}

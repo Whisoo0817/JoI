@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif (all(#Front).contactSensor_contact ==| false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\nany(#Front).switch_on()\n        delay(3 MIN)\nany(#Front).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif (all(#Front).contactSensor_contact ==| false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\nany(#Front).switch_on()\n        delay(3 MIN)\nany(#Front).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#Front)"
+    ]
+  },
+  "command_kor": "현관문이 1분 이상 열려 있으면 현관 조명을 켜고, 3분 뒤에 꺼줘.",
+  "command_eng": "If the porch door stays open for at least 1 minute, turn on the porch light, then turn it off 3 minutes later.",
+  "connected_devices": {
+    "Porch_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Porch",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Porch_Light": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Porch",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Front_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Front",
+        "Door",
+        "ContactSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "3 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 11.5
+}

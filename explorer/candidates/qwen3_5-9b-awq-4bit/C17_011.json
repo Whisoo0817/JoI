@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((all(#Charger).charger_chargingState ==| \"fullyCharged\")) {\nif (triggered == false) {\nall(#Speaker).speaker_speak(\"Charging is complete\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((all(#Charger).charger_chargingState ==| \\\"fullyCharged\\\")) {\\nif (triggered == false) {\\nall(#Speaker).speaker_speak(\\\"Charging is complete\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "Charger.ChargingState": [
+      "any(#Charger)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "주차장의 차량 충전기가 완충될때마다, 스피커로 \"충전이 완료되었습니다\"라고 말해줘.",
+  "command_eng": "Whenever the car charger in the parking lot is fully charged, speak \"Charging is complete\" through the speaker.",
+  "connected_devices": {
+    "P_Charge": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Charger"
+      ]
+    },
+    "Garage_Charge": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "Garage",
+        "Charger"
+      ]
+    },
+    "P_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Speaker"
+      ]
+    },
+    "Garage_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Garage",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Charger.ChargingState == \"fullyCharged\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Charging is complete"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.8
+}

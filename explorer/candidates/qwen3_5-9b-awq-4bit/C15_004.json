@@ -1,0 +1,55 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 7 * * *",
+    "period": 0,
+    "script": "all(#Humidifier).humidifier_setHumidifierMode(\"auto\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 7 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#Humidifier).humidifier_setHumidifierMode(\\\"auto\\\")\"\n}",
+  "precision": {
+    "Humidifier.SetHumidifierMode": [
+      "all(#Humidifier)"
+    ]
+  },
+  "command_kor": "매일 아침 7시에 가습기를 자동 모드로 설정해줘.",
+  "command_eng": "Set the humidifier to auto mode every morning at 7 AM.",
+  "connected_devices": {
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    },
+    "Dining_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Dining",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 7 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Humidifier.SetHumidifierMode",
+        "args": {
+          "Mode": "auto"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 3.8
+}

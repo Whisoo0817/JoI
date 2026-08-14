@@ -1,0 +1,115 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "temp = any(#TemperatureSensor).temperatureSensor_temperature\nif (temp >= 20 and temp < 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}\nelse {\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"temp = any(#TemperatureSensor).temperatureSensor_temperature\nif (temp >= 20 and temp < 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\\nelse {\\nif (temp >= 30) {\\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "any(#TemperatureSensor)",
+      "any(#TemperatureSensor)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "all(#AirConditioner)"
+    ],
+    "AirConditioner.SetTargetTemperature": [
+      "all(#AirConditioner)"
+    ]
+  },
+  "command_kor": "30분마다 체크해서 온도가 20도 이상, 30도 미만이면 에어컨을 자동모드로 설정하고, 30도 이상이면 쿨모드로 설정해줘.",
+  "command_eng": "Every 30 minutes, if the temperature is 20 degrees or higher and below 30 degrees, set the air conditioner to auto mode; if it is 30 degrees or higher, set it to cool mode.",
+  "connected_devices": {
+    "Living_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Living",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Living_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Living",
+        "AirConditioner"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "read",
+            "var": "temp",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "$temp >= 20 and $temp < 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "$temp >= 30",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "AirConditioner.SetAirConditionerMode",
+                    "args": {
+                      "Mode": "cool"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.5
+}

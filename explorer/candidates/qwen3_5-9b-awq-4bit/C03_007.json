@@ -1,0 +1,69 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "currentMode = any(#Pump).pump_pumpMode\nif (currentMode == \"normal\") {\nall(#Pump).pump_setPumpMode(\"maximum\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"currentMode = any(#Pump).pump_pumpMode\nif (currentMode == \\\"normal\\\") {\\nall(#Pump).pump_setPumpMode(\\\"maximum\\\")\\n}\"\n}",
+  "precision": {
+    "Pump.PumpMode": [
+      "any(#Pump)"
+    ],
+    "Pump.SetPumpMode": [
+      "all(#Pump)"
+    ]
+  },
+  "command_kor": "펌프가 노말 모드이면 맥시멈 모드로 설정해줘.",
+  "command_eng": "If the pump is in normal mode, set it to maximum mode.",
+  "connected_devices": {
+    "Main_Pump": {
+      "category": [
+        "Pump"
+      ],
+      "tags": [
+        "Main",
+        "Pump"
+      ]
+    },
+    "Garage_Pump": {
+      "category": [
+        "Pump"
+      ],
+      "tags": [
+        "Garage",
+        "Pump"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "currentMode",
+        "src": "Pump.PumpMode"
+      },
+      {
+        "op": "if",
+        "cond": "currentMode == \"normal\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Pump.SetPumpMode",
+            "args": {
+              "PumpMode": "maximum"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.6
+}

@@ -1,0 +1,108 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#Entrance #MotionSensor).motionSensor_motion == true) {\nif (triggered == false) {\n(#Entrance #LevelControl).light_moveToBrightness(100, 0)\n        delay(3 SEC)\n(#Entrance #LevelControl).switch_off()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#Entrance #MotionSensor).motionSensor_motion == true) {\nif (triggered == false) {\n(#Entrance #LevelControl).light_moveToBrightness(100, 0)\n        delay(3 SEC)\n(#Entrance #LevelControl).switch_off()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#Entrance #MotionSensor)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Entrance #LevelControl)"
+    ],
+    "Switch.Off": [
+      "(#Entrance #LevelControl)"
+    ]
+  },
+  "command_kor": "입구에 움직임이 감지될 때마다 입구 조명을 최대밝기로 켰다가 3초 뒤에 꺼줘.",
+  "command_eng": "Whenever motion is detected at the entrance, turn on the entrance light at maximum brightness and then turn it off after 3 seconds.",
+  "connected_devices": {
+    "Ent_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Ent_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "3 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.4
+}

@@ -1,0 +1,104 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 8 * * 1",
+    "period": 0,
+    "script": "if (all(#Safe).doorLock_doorLockState == \"closed\" or all(#DoorLock).doorLock_doorLockState == \"closed\") {\nall(#Speaker).speaker_speak(\"It is safe\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * 1\",\n  \"period\": 0,\n  \"script\": \"if (all(#Safe).doorLock_doorLockState == \\\"closed\\\" or all(#DoorLock).doorLock_doorLockState == \\\"closed\\\") {\\nall(#Speaker).speaker_speak(\\\"It is safe\\\")\\n}\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "all(#Safe)",
+      "all(#DoorLock)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "월요일 아침 8시마다 금고와 도어락이 모두 잠겨있으면 스피커로 \"안전합니다\"라고 말해줘.",
+  "command_eng": "Every Monday at 8 AM, if both the safe and the door lock are locked, say 'It is safe' through the speaker",
+  "connected_devices": {
+    "Main_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Main",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "Bedroom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Bedroom",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * 1"
+      },
+      {
+        "op": "if",
+        "cond": "DoorLock.DoorLockState == \"closed\" and DoorLock.DoorLockState == \"closed\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "It is safe"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.8
+}

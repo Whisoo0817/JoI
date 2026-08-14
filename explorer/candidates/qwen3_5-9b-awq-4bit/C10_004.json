@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#WeatherProvider).weatherProvider_weather == \"rain\")\nall(#Window).windowCovering_downOrClose()\ndelay(1 HOUR)\nif ((#WeatherProvider).weatherProvider_weather != \"rain\") {\nall(#Window).windowCovering_upOrOpen()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#WeatherProvider).weatherProvider_weather == \\\"rain\\\")\\nall(#Window).windowCovering_downOrClose()\\ndelay(1 HOUR)\\nif ((#WeatherProvider).weatherProvider_weather != \\\"rain\\\") {\\nall(#Window).windowCovering_upOrOpen()\\n}\"\n}",
+  "precision": {
+    "WeatherProvider.Weather": [
+      "(#WeatherProvider)",
+      "(#WeatherProvider)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#Window)"
+    ]
+  },
+  "command_kor": "비가 오면 창문을 닫고 1시간 뒤에 체크해서 비가 안오면 창문을 다시 열어줘.",
+  "command_eng": "When it rains, close the window and check again after 1 hour; if it's not raining then, open the window again.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Front_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Front",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Back_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Back",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "WeatherProvider.Weather == \"rain\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather != \"rain\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.5
+}

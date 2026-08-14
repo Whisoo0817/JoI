@@ -1,0 +1,111 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 10000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n    phase = 1\n    all(#LivingRoom #Siren).siren_setSirenMode(\"fire\")\n}\nelse {\nall(#LivingRoom #Siren).siren_setSirenMode(\"fire\")\n(#Speaker).speaker_speak(\"Please evacuate\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 10000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n    phase = 1\n    all(#LivingRoom #Siren).siren_setSirenMode(\\\"fire\\\")\\n}\\nelse {\\nall(#LivingRoom #Siren).siren_setSirenMode(\\\"fire\\\")\\n(#Speaker).speaker_speak(\\\"Please evacuate\\\")\\n}\"\n}",
+  "precision": {
+    "SmokeDetector.Smoke": [
+      "any(#SmokeDetector)"
+    ],
+    "Siren.SetSirenMode": [
+      "all(#LivingRoom #Siren)"
+    ]
+  },
+  "command_kor": "거실에서 연기가 감지되면 모든 화재 경보를 울리고, 그 이후로 10초마다 스피커로 \"대피하세요\"라고 출력해줘.",
+  "command_eng": "When smoke is detected in the living room, sound all fire alarms. Then, every 10 seconds, speak \"Please evacuate\" through the speaker.",
+  "connected_devices": {
+    "LR_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "LivingRoom",
+        "SmokeDetector"
+      ]
+    },
+    "Bedroom_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Bedroom",
+        "SmokeDetector"
+      ]
+    },
+    "LR_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Siren"
+      ]
+    },
+    "Bedroom_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Bedroom",
+        "Siren"
+      ]
+    },
+    "Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "SmokeDetector.Smoke == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Siren.SetSirenMode",
+        "args": {
+          "Mode": "fire"
+        }
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "10 SEC",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Please evacuate"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 9.6
+}

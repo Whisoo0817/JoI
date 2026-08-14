@@ -1,0 +1,66 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\ndelay(1 HOUR)\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"refreshing\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\ndelay(1 HOUR)\\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"refreshing\\\")\"\n}",
+  "precision": {
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)",
+      "all(#Dehumidifier)"
+    ]
+  },
+  "command_kor": "제습기를 건조 모드로 작동시키고 1시간 뒤에 리프레쉬 모드로 바꿔줘.",
+  "command_eng": "Start the dehumidifier in drying mode and change to refreshing mode after 1 hour.",
+  "connected_devices": {
+    "LivingRoom_Dehumidifier": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Dehumidifier"
+      ]
+    },
+    "Bedroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "drying"
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "refreshing"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.4
+}

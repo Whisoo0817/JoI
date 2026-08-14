@@ -1,0 +1,114 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((#Entrance).contactSensor_contact == false)\n    phase = 1\n    if ((#DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}\n}\nelse {\nif ((#DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 300000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#Entrance).contactSensor_contact == false)\n    phase = 1\n    if ((#DoorLock).doorLock_doorLockState != \\\"closed\\\") {\\nall(#Speaker).speaker_speak(\\\"The safe is open\\\")\\n}\\n}\\nelse {\\nif ((#DoorLock).doorLock_doorLockState != \\\"closed\\\") {\\nall(#Speaker).speaker_speak(\\\"The safe is open\\\")\\n}\\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#Entrance)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "현관문이 열리면 그 후부터 5분마다 금고를 체크해서 잠겨있지 않으면 스피커로 금고가 열려있다고 출력해줘.",
+  "command_eng": "Once the entrance door is opened, check the safe every 5 minutes thereafter and announce \"The safe is open\" through the speaker if it's not locked.",
+  "connected_devices": {
+    "Entrance_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "ContactSensor"
+      ]
+    },
+    "Garage_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Garage",
+        "ContactSensor"
+      ]
+    },
+    "Main_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Main",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "Bedroom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Bedroom",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "5 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "DoorLock.DoorLockState != \"closed\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "The safe is open"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.7
+}

@@ -1,0 +1,96 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#LightSensor).lightSensor_brightness <| 50) {\nif (triggered == false) {\nall(#ParkingLot).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#LightSensor).lightSensor_brightness <| 50) {\nif (triggered == false) {\nall(#ParkingLot).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "any(#LightSensor)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#ParkingLot)"
+    ]
+  },
+  "command_kor": "조도가 50럭스 미만으로 떨어질 때마다 주차장의 모든 쉐이드를 열어줘.",
+  "command_eng": "Whenever the brightness drops below 50 lux, open all shades in the parking lot.",
+  "connected_devices": {
+    "Light_S": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LightSensor"
+      ]
+    },
+    "Indoor_Light_S": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Indoor",
+        "LightSensor"
+      ]
+    },
+    "P_Shade_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "P_Shade_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "G_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Garden",
+        "Shade",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "LightSensor.Brightness < 50",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.2
+}

@@ -1,0 +1,96 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#Light).lightSensor_brightness == 10)\nall(#Light).light_moveToColor(0.675, 0.322, 0.0)\nall(#Light).light_moveToBrightness(10.0, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#Light).lightSensor_brightness == 10)\nall(#Light).light_moveToColor(0.675, 0.322, 0.0)\nall(#Light).light_moveToBrightness(10.0, 0.0)\"\n}",
+  "precision": {
+    "Light.MoveToBrightness": [
+      "all(#Light)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼4가 눌리면 모든 조명을 야간 모드(밝기 10%)로 설정해줘.",
+  "command_eng": "When button 4 of the multi-button is pressed, set all lights to night mode at 10% brightness.",
+  "connected_devices": {
+    "Main_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Hall_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Hallway",
+        "MultiButton"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button4 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToColor",
+        "args": {
+          "ColorX": 0.675,
+          "ColorY": 0.322,
+          "TransitionTime": 0.0
+        }
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 10.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.7
+}

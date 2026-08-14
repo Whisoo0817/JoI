@@ -1,0 +1,73 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "n := 0\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nelse {\nall(#Valve).valve_close()\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"n := 0\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nelse {\nall(#Valve).valve_close()\n}\nn = n + 1\"\n}",
+  "precision": {
+    "Valve.Open": [
+      "all(#Valve)"
+    ]
+  },
+  "command_kor": "1시간마다 수도 밸브를 열었다 잠갔다 반복해줘.",
+  "command_eng": "Every hour, repeat opening and closing the water valve.",
+  "connected_devices": {
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Basement_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Basement",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "count": "n",
+        "body": [
+          {
+            "op": "if",
+            "cond": "n % 2 == 0",
+            "then": [
+              {
+                "op": "call",
+                "target": "Valve.Open",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Valve.Close",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 4.9
+}

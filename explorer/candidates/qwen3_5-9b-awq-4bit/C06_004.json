@@ -1,0 +1,124 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Bedroom #LightSensor).lightSensor_brightness <= 100) {\n(#LevelControl).levelControl_moveToLevel(100.0, 0.0)\n}\nelse {\nif ((#Bedroom #LightSensor).lightSensor_brightness <= 300) {\n(#LevelControl).levelControl_moveToLevel(50.0, 0.0)\n}\nelse {\n(#LevelControl).levelControl_moveToLevel(20.0, 0.0)\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bedroom #LightSensor).lightSensor_brightness <= 100) {\n(#LevelControl).levelControl_moveToLevel(100.0, 0.0)\n}\nelse {\nif ((#Bedroom #LightSensor).lightSensor_brightness <= 300) {\n(#LevelControl).levelControl_moveToLevel(50.0, 0.0)\n}\nelse {\n(#LevelControl).levelControl_moveToLevel(20.0, 0.0)\n}\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "(#Bedroom #LightSensor)",
+      "(#Bedroom #LightSensor)",
+      "(#Bedroom #LightSensor)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#LevelControl)"
+    ],
+    "LevelControl.MoveToLevel": [
+      "(#LevelControl)"
+    ]
+  },
+  "command_kor": "침실 조도가 100lux 이하면 침실 등을 100% 밝기로, 300lux 이하면 50%로, 그 외에는 20%로 설정해줘.",
+  "command_eng": "If the bedroom illuminance is at most 100 lux, set the bedroom light to 100% brightness; else if it is at most 300 lux, set it to 50%; otherwise set it to 20%.",
+  "connected_devices": {
+    "Bedroom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "LightSensor"
+      ]
+    },
+    "LivingRoom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "LightSensor"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LightSensor.Brightness <= 100",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": [
+          {
+            "op": "if",
+            "cond": "LightSensor.Brightness <= 300",
+            "then": [
+              {
+                "op": "call",
+                "target": "Light.MoveToBrightness",
+                "args": {
+                  "Brightness": 50.0,
+                  "Rate": 0.0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Light.MoveToBrightness",
+                "args": {
+                  "Brightness": 20.0,
+                  "Rate": 0.0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 13.8
+}

@@ -1,0 +1,90 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif (all(#LivingRoom #PresenceSensor).presenceSensor_presence ==| true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 30) {\n(#Plug).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif (all(#LivingRoom #PresenceSensor).presenceSensor_presence ==| true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 30) {\n(#Plug).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#LivingRoom #PresenceSensor)"
+    ],
+    "Switch.On": [
+      "(#Plug)"
+    ]
+  },
+  "command_kor": "거실에 사람이 30초 이상 감지되면 거실 TV 플러그를 켜줘.",
+  "command_eng": "If a person is detected in the living room for at least 30 seconds, turn on the living room TV plug.",
+  "connected_devices": {
+    "LivingRoom_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "LivingRoom_TV": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "TV"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none",
+        "for": "30 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.9
+}

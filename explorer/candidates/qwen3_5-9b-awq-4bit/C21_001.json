@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (not (all(#Bedroom).presenceSensor_presence == true) or all(#Bedroom).presenceSensor_presence == false) {\nall(#Plug).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not (all(#Bedroom).presenceSensor_presence == true) or all(#Bedroom).presenceSensor_presence == false) {\nall(#Plug).switch_off()\n}\"\n}",
+  "precision": {
+    "Plug.Current": [
+      "all(#Plug)"
+    ],
+    "PresenceSensor.Presence": [
+      "all(#Bedroom)"
+    ],
+    "Switch.Off": [
+      "(#Plug)"
+    ]
+  },
+  "command_kor": "거실과 침실에 모두 사람이 감지되지 않으면 거실 멀티탭 플러그를 꺼줘.",
+  "command_eng": "If no person is detected in either the living room or the bedroom, turn off the living room power strip plug.",
+  "connected_devices": {
+    "LivingRoom_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "LivingRoom_Strip": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Strip"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "not (PresenceSensor.Presence == true) or PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.0
+}

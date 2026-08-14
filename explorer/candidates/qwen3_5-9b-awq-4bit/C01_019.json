@@ -1,0 +1,70 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "ChatWithAI = all(#Speaker).cloudServiceProvider_chatWithAI(\"What is an LLM?\")\nall(#Speaker).speaker_speak(ChatWithAI)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"ChatWithAI = all(#Speaker).cloudServiceProvider_chatWithAI(\\\"What is an LLM?\\\")\\nall(#Speaker).speaker_speak(ChatWithAI)\"\n}",
+  "precision": {
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "클라우드 AI한테 llm이 무엇인지 질문하고 답을 스피커로 출력해줘.",
+  "command_eng": "Ask the cloud AI what an LLM is, and output its answer through the speaker.",
+  "connected_devices": {
+    "System_CloudServiceProvider": {
+      "category": [
+        "CloudServiceProvider"
+      ],
+      "tags": [
+        "CloudServiceProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "CloudServiceProvider.ChatWithAI",
+        "args": {
+          "Prompt": "What is an LLM?"
+        },
+        "var": "ChatWithAI"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "$ChatWithAI"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.1
+}

@@ -1,0 +1,85 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#Hallway #Light).multiButton_button2 == \"pushed\") {\nif (triggered == false) {\ntmp = (#Hallway #Light).light_currentBrightness - 10\n        if (0 > tmp) {\ntmp = 0\n}\n(#Hallway #Light).light_moveToBrightness(tmp, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#Hallway #Light).multiButton_button2 == \\\"pushed\\\") {\\nif (triggered == false) {\\ntmp = (#Hallway #Light).light_currentBrightness - 10\\n        if (0 > tmp) {\\ntmp = 0\\n}\\n(#Hallway #Light).light_moveToBrightness(tmp, 0)\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "Light.MoveToBrightness": [
+      "(#Hallway #Light)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼2가 눌릴 때마다 복도 조명 밝기를 10씩 낮춰줘. 최소 0까지.",
+  "command_eng": "Each time button 2 of the multi-button is pressed, decrease the hallway light brightness by 10, down to a minimum of 0.",
+  "connected_devices": {
+    "Hall_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Hallway",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MultiButton.Button2 == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": "max($Light.CurrentBrightness - 10, 0)",
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.5
+}

@@ -1,0 +1,127 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "n := 0\ntriggered := false\nif (all(#Light #LivingRoom).multiButton_button4 == \"pushed\") {\nif (triggered == false) {\nif (n % 3 == 0) {\nall(#Light #LivingRoom).light_moveToBrightness(25, 0)\n}\nelse if (n % 3 == 1) {\nall(#Light #LivingRoom).light_moveToBrightness(50, 0)\n}\nelse {\nall(#Light #LivingRoom).light_moveToBrightness(75, 0)\n}\ntriggered = true\n}\n}\nelse {\ntriggered = false\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"n := 0\ntriggered := false\nif (all(#Light #LivingRoom).multiButton_button4 == \\\"pushed\\\") {\\nif (triggered == false) {\\nif (n % 3 == 0) {\\nall(#Light #LivingRoom).light_moveToBrightness(25, 0)\\n}\\nelse if (n % 3 == 1) {\\nall(#Light #LivingRoom).light_moveToBrightness(50, 0)\\n}\\nelse {\\nall(#Light #LivingRoom).light_moveToBrightness(75, 0)\\n}\\ntriggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\\nn = n + 1\"\n}",
+  "precision": {
+    "Light.MoveToBrightness": [
+      "all(#Light #LivingRoom)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼4가 눌릴 때마다 거실 조명 밝기를 25→50→75 순서로 반복 변경해줘.",
+  "command_eng": "Each time button 4 of the multi-button is pressed, cycle the living room light brightness through 25→50→75 (repeating).",
+  "connected_devices": {
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LR_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "LR_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "count": "n",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MultiButton.Button4 == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "if",
+            "cond": "n % 3 == 0",
+            "then": [
+              {
+                "op": "call",
+                "target": "Light.MoveToBrightness",
+                "args": {
+                  "Brightness": 25.0,
+                  "Rate": 0.0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "n % 3 == 1",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Light.MoveToBrightness",
+                    "args": {
+                      "Brightness": 50.0,
+                      "Rate": 0.0
+                    }
+                  }
+                ],
+                "else": [
+                  {
+                    "op": "call",
+                    "target": "Light.MoveToBrightness",
+                    "args": {
+                      "Brightness": 75.0,
+                      "Rate": 0.0
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.8
+}

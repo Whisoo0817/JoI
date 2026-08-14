@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((all(#Bedroom).airQualitySensor_temperature >=| 30 or all(#Bedroom).airQualitySensor_temperature >=| 30)) {\nany(#AC).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((all(#Bedroom).airQualitySensor_temperature >=| 30 or all(#Bedroom).airQualitySensor_temperature >=| 30)) {\nany(#AC).switch_on()\n}\"\n}",
+  "precision": {
+    "Plug.Current": [
+      "any(#AC)"
+    ],
+    "TemperatureSensor.Temperature": [
+      "any(#Bedroom)"
+    ],
+    "Switch.On": [
+      "(#AC)"
+    ]
+  },
+  "command_kor": "거실이나 침실 중 한 곳이라도 온도가 30도 이상이면 거실 에어컨 플러그를 켜줘.",
+  "command_eng": "If either the living room or the bedroom temperature is at least 30C, turn on the living room AC plug.",
+  "connected_devices": {
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "AC"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 30 or TemperatureSensor.Temperature >= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.6
+}

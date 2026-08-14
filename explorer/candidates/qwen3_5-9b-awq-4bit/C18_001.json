@@ -1,0 +1,65 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 13 * * *",
+    "period": 300000,
+    "script": "n := 0\nif ((#Clock).clock_hour >= 15) {\nbreak\n}\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nelse {\nall(#Valve).valve_close()\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 13 * * *\",\n  \"period\": 300000,\n  \"script\": \"n := 0\nif ((#Clock).clock_hour >= 15) {\nbreak\n}\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nelse {\nall(#Valve).valve_close()\n}\nn = n + 1\"\n}",
+  "precision": {
+    "Valve.Open": [
+      "all(#Valve)"
+    ]
+  },
+  "command_kor": "오후 1시부터 3시까지 5분마다 벨브를 열었다 닫았다 반복해줘.",
+  "command_eng": "Every 5 minutes from 1 PM to 3 PM, repeat opening and closing the valve.",
+  "connected_devices": {
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 13 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 1500",
+        "period": "5 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Valve.Open",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.8
+}

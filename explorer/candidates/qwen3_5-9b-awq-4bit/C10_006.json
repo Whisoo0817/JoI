@@ -1,0 +1,104 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#Hallway).light_colorMode ==| \"hsv\" or all(#Hallway).light_colorMode ==| \"xy\" or all(#Hallway).light_colorMode ==| \"ct\")\ndelay(5 MIN)\nall(#LivingRoom).switch_off()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#Hallway).light_colorMode ==| \\\"hsv\\\" or all(#Hallway).light_colorMode ==| \\\"xy\\\" or all(#Hallway).light_colorMode ==| \\\"ct\\\")\\ndelay(5 MIN)\\nall(#LivingRoom).switch_off()\"\n}",
+  "precision": {
+    "Light.ColorMode": [
+      "any(#Hallway)"
+    ],
+    "Switch.Off": [
+      "all(#LivingRoom)"
+    ]
+  },
+  "command_kor": "복도의 조명이 하나라도 켜지면 5분 뒤에 거실의 모든 조명을 꺼줘.",
+  "command_eng": "When any light in the hallway is turned on, turn off all lights in the living room after 5 minutes.",
+  "connected_devices": {
+    "Hallway_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Hallway_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Light.CurrentBrightness > 0",
+        "edge": "none"
+      },
+      {
+        "op": "delay",
+        "duration": "5 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.7
+}

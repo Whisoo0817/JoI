@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#MotionSensor #Yard).motionSensor_motion == true) {\nif (triggered == false) {\n(#Siren #Yard).siren_setSirenMode(\"police\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#MotionSensor #Yard).motionSensor_motion == true) {\nif (triggered == false) {\n(#Siren #Yard).siren_setSirenMode(\\\"police\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#MotionSensor #Yard)"
+    ],
+    "Siren.SetSirenMode": [
+      "(#Siren #Yard)"
+    ]
+  },
+  "command_kor": "마당에 있는 움직임 센서가 감지될 때마다 경찰 사이렌을 울려줘.",
+  "command_eng": "Whenever the motion sensor in the yard detects anything, sound the police siren.",
+  "connected_devices": {
+    "Y_Mot": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Yard",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Mot": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Y_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Yard",
+        "Siren"
+      ]
+    },
+    "Garage_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Garage",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "police"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.1
+}

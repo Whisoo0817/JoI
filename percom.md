@@ -707,3 +707,45 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   시점(지금)에 재판단, E1~E3 재측정과 묶는 게 자연스러움. ③ 지속
   관용구는 wait_for_trigger[template]의 재시작 발화 여부 등 HA 구현
   세부와의 대조 각주(집필 때).
+
+### 9.14 E3 첫 실측 — 388행 코퍼스 × 라이브 파이프라인 (2026-08-14)
+
+- **구도**: 확인된 IR(ir_gt)을 파이프라인에 주입(Stage-B)하고 매핑
+  (mapping_v2, LLM 2회)과 lowering(LLM 1회)만 라이브로 돌려 후보 JoI를
+  생성 → 게이트(binding_gt 접지 나란히 비교)로 3-way 판정. 모델
+  Qwen3.5-9B-AWQ(vLLM, 32k). 하네스 `explorer/e3.py`(gen/gate 2단,
+  이어하기 지원), 후보는 `explorer/candidates/<모델태그>/`.
+- **주입 후크 복원**: JOI_GT_IR_PATH가 mapping_v2 이식(§9.12) 때
+  run_local_ir에서 사라져 있었음 — 현 구조에 맞게 복원(주입 시
+  extract_ir·resolve·후처리 3종 생략, IR verbatim; 매핑·precision은
+  평소대로). 네이밍 단계는 JOI_SKIP_NAME=1로 측정에서 제외.
+- **입력 언어**: 매핑의 제약 추출은 한국어 명령 전제(프롬프트가 한국어
+  few-shot) — command_eng를 넣으면 그룹 공백·한글 힌트 오염으로 오류율
+  43%. **command_kor 입력이 제품 흐름이자 측정 기준**(영→한 번역은
+  파이프라인 안에서 IR/lowering용으로만).
+- **매핑 결함 수정(388행 첫 실측이 드러낸 것, 이후 클린 재생성)**:
+  ① resolver_v3 `level` 지름길이 "퍼센트" 명령에서 Light 외 클러스터
+  전부 드롭 → 조명이 실제 골라졌을 때만 제한. ② join_engine 전원
+  지름길이 '실행시켜줘'의 '켜'를 오탐 → 사동 어미 '시켜/시키' 마스킹.
+  ③ select_devices가 무표지 그룹에서 후보를 임의 제외 → 무표지(지칭
+  구절 없음)는 LLM 없이 후보 전체 선택(§9.11/9.12 확정 정책의 결정론
+  구현). ④ 추출 프롬프트 few-shot 5건 보강(주기어+반복/전환, 수식어절
+  스케줄, 버튼 눌림=condition, 체크-완료 조건, 안내=notify, 지연 낀 두
+  액션). ⑤ 어휘: 별칭 창문/벨브, 트리거 잠궈·과거형 교대(열었다 닫았다)·
+  울리고·toggle·높이 조절 등. 수정 후 **생성 오류 0/388**.
+- **E3 판정 분포 (388행)**: **EQUIV 186 / DIVERGE 187(전부 반례 재생
+  확인) / REFUSED 15**. REFUSED 내역: 미유계 캐리 변수(n) 9, JoI 문법
+  위반(파서 거부→fail-closed) 5, cron 앵커 불일치 1. DIVERGE 표본 분류:
+  (a) 바인딩 정책 어긋남 — 라이브 quantifier가 비센서 조건·무표지
+  읽기에 집합(any/all)을 붙이는데 binding_gt는 단수 규약(§9.12 미결①의
+  실물, 예 C03_003 에어컨 2대 vs 1대), (b) 형제 메서드 오선택(예 C02_003
+  enhancedMoveToHueAndSaturation vs MoveToHueAndSaturation), (c) 읽기
+  집합·발화 텍스트 차이(예 C01_010). 세부 분류표는 E3 분석 때.
+- **회귀**: JoI 게이트 97/81 + 재배선 주입 3종 검출 유지, m3_check
+  281/25, HA 게이트 EQUIV 388/388 — 게이트·탐색기 본체 무변경.
+- **미결(todo)**: ① DIVERGE 187의 클래스별 분류표(정책 어긋남 vs 진짜
+  lowering 결함 분리 — binding_gt 단수 규약 vs 라이브 any 정책은 whisoo
+  판정 필요). ② 생성 모델 3종 비교(E3 표의 나머지 축 — 서버 교체 후
+  gen --tag로 반복). ③ reasoning_overflow 등 간헐 오류는 재시도로
+  해소됨(C24_004) — 하네스에 자동 재시도는 미구현. ④ LLM lowering
+  IR→HA 소표본 여부 재판단(§9.13 todo②)은 여전히 대기.

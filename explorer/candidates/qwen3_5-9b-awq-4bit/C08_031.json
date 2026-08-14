@@ -1,0 +1,96 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#Robot).button_button == \"pushed\") {\nif (triggered == false) {\nall(#Even).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#Robot).button_button == \\\"pushed\\\") {\\nif (triggered == false) {\\nall(#Even).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "Button.Button": [
+      "(#Robot)"
+    ],
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "all(#Even)"
+    ]
+  },
+  "command_kor": "로봇 태그가 붙은 버튼이 눌릴때마다, 짝수 태그 로봇청소기들을 모두 자동모드로 작동시켜줘.",
+  "command_eng": "Every time the button with the 'Robot' tag is pressed, set all robot vacuum cleaners with 'Even' tags to auto mode.",
+  "connected_devices": {
+    "R_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Robot",
+        "Button"
+      ]
+    },
+    "L_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Light",
+        "Button"
+      ]
+    },
+    "Even_Robot_1": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Even",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Even_Robot_2": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Even",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Odd_Robot": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Odd",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Button.Button == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+            "args": {
+              "Mode": "auto"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.9
+}

@@ -1,0 +1,59 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#Charger).charger_voltage >| 250000)\nany(#Charger).switch_off()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#Charger).charger_voltage >| 250000)\nany(#Charger).switch_off()\"\n}",
+  "precision": {
+    "Charger.Voltage": [
+      "any(#Charger)"
+    ]
+  },
+  "command_kor": "충전 전압이 250V보다 높아지면 충전을 중단해줘.",
+  "command_eng": "When the charging voltage exceeds 250V, stop charging.",
+  "connected_devices": {
+    "Garage_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Garage",
+        "Charger"
+      ]
+    },
+    "Basement_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Basement",
+        "Charger"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Charger.Voltage > 250000",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.6
+}

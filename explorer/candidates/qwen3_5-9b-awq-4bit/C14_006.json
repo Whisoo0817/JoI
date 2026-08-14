@@ -1,0 +1,99 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#MultiButton).multiButton_button4 == \"pushed\") {\nif (triggered == false) {\ntmp = (#LevelControl).levelControl_currentLevel - 15\n        if (tmp < 10) {\ntmp = 10\n}\n(#LevelControl).light_moveToBrightness(tmp, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#MultiButton).multiButton_button4 == \\\"pushed\\\") {\\nif (triggered == false) {\\ntmp = (#LevelControl).levelControl_currentLevel - 15\\n        if (tmp < 10) {\\ntmp = 10\\n}\\n(#LevelControl).light_moveToBrightness(tmp, 0)\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "Light.MoveToBrightness": [
+      "(#LevelControl #LivingRoom)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼4가 눌릴 때마다 거실 조명 밝기를 15씩 낮춰줘. 최소 10까지.",
+  "command_eng": "Whenever button 4 of the multi-button is pressed, decrease the living room light brightness by 15, down to a minimum of 10.",
+  "connected_devices": {
+    "LivingRoom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MultiButton.Button4 == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "LevelControl.MoveToLevel",
+            "args": {
+              "Level": "max($LevelControl.CurrentLevel - 15, 10)",
+              "Rate": 0.0
+            },
+            "var": "LevelControl.CurrentLevel"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 9.0
+}

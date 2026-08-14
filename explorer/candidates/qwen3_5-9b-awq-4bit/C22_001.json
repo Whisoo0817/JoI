@@ -1,0 +1,60 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "n := 0\nif (n >= 10) {\nbreak\n}\n(#MeetingRoom).camera_captureImage()\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 300000,\n  \"script\": \"n := 0\nif (n >= 10) {\nbreak\n}\n(#MeetingRoom).camera_captureImage()\nn = n + 1\"\n}",
+  "precision": {
+    "Camera.CaptureImage": [
+      "(#MeetingRoom)"
+    ]
+  },
+  "command_kor": "5분마다 회의실 카메라로 사진을 찍어줘. 총 10번만.",
+  "command_eng": "Every 5 minutes, capture an image with the meeting room camera. Stop after 10 photos.",
+  "connected_devices": {
+    "MeetingRoom_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Camera"
+      ]
+    },
+    "Hallway_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Hallway",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 10",
+        "period": "5 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.7
+}

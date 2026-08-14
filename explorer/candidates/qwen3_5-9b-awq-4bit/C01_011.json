@@ -1,0 +1,70 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "HumidityWeather = (#WeatherProvider).weatherProvider_humidityWeather\nall(#Speaker).speaker_speak(\"The outdoor humidity is \" + HumidityWeather)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"HumidityWeather = (#WeatherProvider).weatherProvider_humidityWeather\nall(#Speaker).speaker_speak(\\\"The outdoor humidity is \\\" + HumidityWeather)\"\n}",
+  "precision": {
+    "WeatherProvider.HumidityWeather": [
+      "(#WeatherProvider)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "외부 습도를 스피커로 말해줘.",
+  "command_eng": "Tell me the outdoor humidity through the speaker.",
+  "connected_devices": {
+    "System_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "HumidityWeather",
+        "src": "WeatherProvider.HumidityWeather"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "The outdoor humidity is $HumidityWeather"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.3
+}

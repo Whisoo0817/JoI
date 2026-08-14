@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#BabyRoom).soundSensor_sound > 40)\nall(#Speaker).speaker_speak(\"Noise detected in the baby room\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#BabyRoom).soundSensor_sound > 40)\nall(#Speaker).speaker_speak(\\\"Noise detected in the baby room\\\")\"\n}",
+  "precision": {
+    "SoundSensor.Sound": [
+      "(#BabyRoom)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "아기방 소리가 40dB보다 커지면 거실 스피커로 아기방에 소음이 감지되었다고 말해줘.",
+  "command_eng": "When the baby room sound exceeds 40 dB, output \"Noise detected in the baby room\" through the living room speaker.",
+  "connected_devices": {
+    "BabyRoom_SoundSensor": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "BabyRoom",
+        "SoundSensor"
+      ]
+    },
+    "Kitchen_SoundSensor": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "SoundSensor"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "SoundSensor.Sound > 40",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Noise detected in the baby room"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 4.6
+}

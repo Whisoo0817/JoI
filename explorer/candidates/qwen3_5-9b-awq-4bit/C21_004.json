@@ -1,0 +1,91 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#LightSensor).lightSensor_brightness <= 100 and all(#LightSensor).lightSensor_brightness <= 100) {\n(#MoodLight).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#LightSensor).lightSensor_brightness <= 100 and all(#LightSensor).lightSensor_brightness <= 100) {\n(#MoodLight).switch_on()\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "all(#LightSensor)"
+    ],
+    "Switch.On": [
+      "(#MoodLight)"
+    ]
+  },
+  "command_kor": "거실과 침실 조도가 모두 100lux 이하이면 거실 무드등 플러그를 켜줘.",
+  "command_eng": "If both the living room and bedroom illuminance are at most 100 lux, turn on the living room mood-light plug.",
+  "connected_devices": {
+    "LivingRoom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "LightSensor"
+      ]
+    },
+    "Bedroom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "LightSensor"
+      ]
+    },
+    "LivingRoom_MoodLight": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "MoodLight"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LightSensor.Brightness <= 100 and LightSensor.Brightness <= 100",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.5
+}

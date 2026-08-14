@@ -1,0 +1,104 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 23 * * *",
+    "period": 0,
+    "script": "if (all(#Safe).doorLock_doorLockState ==| \"open\" or all(#DoorLock).doorLock_doorLockState ==| \"open\") {\nall(#Speaker).speaker_speak(\"Check the safe and door lock\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 23 * * *\",\n  \"period\": 0,\n  \"script\": \"if (all(#Safe).doorLock_doorLockState ==| \\\"open\\\" or all(#DoorLock).doorLock_doorLockState ==| \\\"open\\\") {\\nall(#Speaker).speaker_speak(\\\"Check the safe and door lock\\\")\\n}\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "any(#Safe)",
+      "any(#DoorLock)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "오후 11시에 금고가 열려있거나 도어락이 열려있으면, 스피커로 \"금고와 도어락을 확인하세요\"라고 말해줘.",
+  "command_eng": "At 11 PM, if safe is open or the door lock is open , speak 'Check the safe and door lock' through the speaker.",
+  "connected_devices": {
+    "Main_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Main",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "Bedroom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Bedroom",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 23 * * *"
+      },
+      {
+        "op": "if",
+        "cond": "DoorLock.DoorLockState == \"open\" or DoorLock.DoorLockState == \"open\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Check the safe and door lock"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 9.8
+}

@@ -1,0 +1,67 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 */2 * * 6,7",
+    "period": 0,
+    "script": "all(#LivingRoom).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"repeat\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 */2 * * 6,7\",\n  \"period\": 0,\n  \"script\": \"all(#LivingRoom).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"repeat\\\")\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "all(#LivingRoom)"
+    ]
+  },
+  "command_kor": "주말에 2시간마다 거실에 있는 로봇 청소기들을 모두 반복 모드로 설정해줘.",
+  "command_eng": "Every 2 hours on weekends, set all robot vacuum cleaners in the living room to repeat mode.",
+  "connected_devices": {
+    "LR_RVC_1": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "LivingRoom",
+        "RobotVacuumCleaner",
+        "ModelA"
+      ]
+    },
+    "LR_RVC_2": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "LivingRoom",
+        "RobotVacuumCleaner",
+        "ModelB"
+      ]
+    },
+    "Kitchen_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Kitchen",
+        "RobotVacuumCleaner",
+        "ModelA"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 */2 * * 6,7"
+      },
+      {
+        "op": "call",
+        "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+        "args": {
+          "Mode": "repeat"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 3.6
+}

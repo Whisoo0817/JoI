@@ -1,0 +1,107 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "t1 = (#WineCellar).airQualitySensor_temperature\ndelay(1 HOUR)\nt2 = (#WineCellar).airQualitySensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 2) {\n(#LivingRoom).speaker_speak(\"The wine cellar temperature rose by at least 2 degrees.\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#WineCellar).airQualitySensor_temperature\ndelay(1 HOUR)\nt2 = (#WineCellar).airQualitySensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 2) {\n(#LivingRoom).speaker_speak(\\\"The wine cellar temperature rose by at least 2 degrees.\\\")\\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#WineCellar)",
+      "(#WineCellar)",
+      "(#WineCellar)"
+    ],
+    "Speaker.Speak": [
+      "(#LivingRoom)"
+    ]
+  },
+  "command_kor": "지금 와인셀러 온도를 확인하고 1시간 뒤 다시 확인해서 2도 이상 올랐으면 거실 스피커로 알려줘.",
+  "command_eng": "Check the wine cellar temperature now and again in 1 hour. If it rose by at least 2 degrees, announce through the living room speaker.",
+  "connected_devices": {
+    "WineCellar_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "WineCellar",
+        "TemperatureSensor"
+      ]
+    },
+    "Kitchen_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "$t2 - $t1 >= 2",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The wine cellar temperature rose by at least 2 degrees."
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.3
+}

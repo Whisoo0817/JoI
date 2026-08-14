@@ -1,0 +1,90 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nhold_ticks := 0\nif (all(#Valve).valve_valveState ==| true) {\nif (triggered == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 60) {\nany(#Valve).valve_close()\n(#Kitchen).speaker_speak(\"The water valve has been closed\")\n            triggered = true\n}\n}\n}\nelse {\ntriggered = false\n    hold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nhold_ticks := 0\nif (all(#Valve).valve_valveState ==| true) {\nif (triggered == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 60) {\nany(#Valve).valve_close()\n(#Kitchen).speaker_speak(\\\"The water valve has been closed\\\")\\n            triggered = true\\n}\\n}\\n}\\nelse {\\ntriggered = false\\n    hold_ticks = 0\\n}\"\n}",
+  "precision": {
+    "Valve.ValveState": [
+      "any(#Valve)"
+    ],
+    "Speaker.Speak": [
+      "(#Kitchen)"
+    ]
+  },
+  "command_kor": "수도 밸브가 열릴 때마다, 10분 안에 잠기지 않으면 잠그고 스피커로 알려줘.",
+  "command_eng": "Whenever the water valve opens, if it is not closed within 10 minutes, close it and announce it through the speaker.",
+  "connected_devices": {
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Valve.ValveState == true",
+            "edge": "rising"
+          },
+          {
+            "op": "wait",
+            "cond": "Valve.ValveState == false",
+            "timeout": "10 MIN",
+            "on_timeout": [
+              {
+                "op": "call",
+                "target": "Valve.Close",
+                "args": {}
+              },
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "The water valve has been closed"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.3
+}

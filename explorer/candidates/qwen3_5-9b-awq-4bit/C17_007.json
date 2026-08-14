@@ -1,0 +1,68 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "if (all(#Charger).charger_chargingState == \"fullyCharged\") {\nall(#Charger).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 300000,\n  \"script\": \"if (all(#Charger).charger_chargingState == \\\"fullyCharged\\\") {\\nall(#Charger).switch_off()\\n}\"\n}",
+  "precision": {
+    "Switch.Off": [
+      "all(#Charger)"
+    ]
+  },
+  "command_kor": "5분마다 체크해서 충전기가 완충됐으면 충전기를 꺼줘.",
+  "command_eng": "Check every 5 minutes; if the charger is fully charged, turn it off.",
+  "connected_devices": {
+    "Main_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Charger"
+      ]
+    },
+    "Garage_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Garage",
+        "Charger"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "5 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Charger.ChargingState == \"fullyCharged\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.4
+}

@@ -1,0 +1,115 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#LivingRoom #TemperatureSensor).temperatureSensor_temperature >= 28) {\n(#AC).switch_on()\n}\nelse {\nif ((#LivingRoom #TemperatureSensor).temperatureSensor_temperature <= 25) {\n(#AC).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#LivingRoom #TemperatureSensor).temperatureSensor_temperature >= 28) {\n(#AC).switch_on()\n}\nelse {\nif ((#LivingRoom #TemperatureSensor).temperatureSensor_temperature <= 25) {\n(#AC).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#LivingRoom #TemperatureSensor)",
+      "(#LivingRoom #TemperatureSensor)"
+    ],
+    "Switch.On": [
+      "(#AC)"
+    ],
+    "Switch.Off": [
+      "(#AC)"
+    ]
+  },
+  "command_kor": "1초마다 거실 온도가 28도 이상이면 에어컨 플러그를 켜고, 그렇지 않고 25도 이하이면 꺼줘.",
+  "command_eng": "Every 1 second, if the living room temperature is at least 28C, turn on the AC plug; otherwise if it is 25C or below, turn off the AC plug.",
+  "connected_devices": {
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "AC"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature >= 28",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "TemperatureSensor.Temperature <= 25",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.1
+}

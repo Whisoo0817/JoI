@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#ContactSensor #Garage).contactSensor_contact == false)\n(#Camera #Garage).camera_captureImage()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#ContactSensor #Garage).contactSensor_contact == false)\n(#Camera #Garage).camera_captureImage()\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#ContactSensor #Garage)"
+    ],
+    "Camera.CaptureImage": [
+      "(#Camera #Garage)"
+    ]
+  },
+  "command_kor": "차고 문이 열리면 차고 카메라로 사진을 찍어줘.",
+  "command_eng": "When the garage door is opened, take a picture with the garage camera.",
+  "connected_devices": {
+    "Garage_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Garage",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Front_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Front",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    },
+    "LivingRoom_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Camera.CaptureImage",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.0
+}

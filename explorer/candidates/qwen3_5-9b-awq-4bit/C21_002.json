@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "front = all(#ContactSensor).contactSensor_contact\nbalcony = all(#FrontDoor).contactSensor_contact\nif (front == true and balcony == true) {\n(#Camera).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"front = all(#ContactSensor).contactSensor_contact\nbalcony = all(#FrontDoor).contactSensor_contact\nif (front == true and balcony == true) {\n(#Camera).switch_on()\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "all(#ContactSensor)",
+      "all(#FrontDoor)"
+    ],
+    "Switch.On": [
+      "(#Camera)"
+    ]
+  },
+  "command_kor": "현관문과 베란다문이 모두 닫혀있으면 거실 보안 카메라 플러그를 켜줘.",
+  "command_eng": "If both the front door and the balcony door are closed, turn on the living room security camera plug.",
+  "connected_devices": {
+    "FrontContactSensor_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Balcony_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Balcony",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "LivingRoom_Camera": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Camera"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "ContactSensor.Contact == true and ContactSensor.Contact == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.9
+}

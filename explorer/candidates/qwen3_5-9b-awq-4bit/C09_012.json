@@ -1,0 +1,73 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Bedroom).windowCovering_downOrClose()\ndelay(2 HOUR)\nall(#Bedroom).windowCovering_upOrOpen()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Bedroom).windowCovering_downOrClose()\ndelay(2 HOUR)\nall(#Bedroom).windowCovering_upOrOpen()\"\n}",
+  "precision": {
+    "WindowCovering.UpOrOpen": [
+      "all(#Bedroom)"
+    ]
+  },
+  "command_kor": "안방의 모든 블라인드를 닫고 2시간 뒤에 다시 열어줘.",
+  "command_eng": "Close all blinds in the bedroom and open them again after 2 hours.",
+  "connected_devices": {
+    "Bedroom_Blind_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Blind_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "LivingRoom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Blind",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "2 HOUR"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.UpOrOpen",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 4.6
+}
