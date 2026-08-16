@@ -856,3 +856,30 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   논문용 실험 수치를 뽑을 때가 아니라 **시스템 전체 파이프라인을 다
   구성하는 게 우선**. Quantifier·서비스·디바이스 매핑의 판정·정답·규칙
   정리는 그 뒤로 미룬다.
+
+### 9.15 게이트를 라이브 파이프라인에 연결 (2026-08-14 저녁)
+
+- **whisoo 결정**: 재시도는 구현에서 뺀다. VERIFY 옵션 없이 게이트는
+  **무조건 실행** — NL → IR → 코드는 어차피 한 번에 확정. 대신 파이프라인
+  어디서 무엇이 잘못됐는지 알 수 있게 **Timeline IR 등 단계 산출을 저장**.
+- **구현**(paper/run_local_ir.py): ① 옛 검증기(paper/verifier retry_harness·
+  l2_runtime, JOI_VERIFY/JOI_LLM_DIAGNOSE/JOI_SEED_JOI_PATH) 경로 제거.
+  ② lowering 직후 `explorer.gate.gate_pair` 항상 호출 — IR 쪽 접지는
+  **라이브 바인딩** `_live_binding`(매핑 산출 df_resolved: 서비스→기기·수량
+  → 스킬별 한 자리; 조건 읽기의 any/all은 {"any"/"all": ids}, 액션은
+  목록; IR 스칼라 자리(read op·인자 읽기)에 쓰이는 스킬이 여러 대면 JoI
+  실행 규약과 같은 1대(Main 태그→첫 후보)로 축약). 후보 파서 예외는
+  REFUSED로 접음. 결과 `gate`{verdict, notes, counterexample(입력·dwell·
+  양쪽 행동·재생 확인), binding, seconds}를 반환값·로그(🚧)에 싣고 코드는
+  그대로 돌려준다(배포 여부는 호출자 몫; 응답 스키마는 프록시 고정이라
+  log.logs 텍스트에만 실림). ③ **흔적(trace)**: 호출마다 `traces/
+  <시각>.json` — sentence·mapping(선택 서비스·셀렉터·기기·오류·로그)·
+  ir(+출처 injected/extracted)·ir_readable·lowering(raw·joi_block)·gate·
+  code·elapsed, 실패 시 `error{stage, code, message}`와 그 시점까지의
+  산출. JOI_TRACE_DIR로 위치, JOI_TRACE=0으로 끔(e3 배치는 끔).
+  ④ 매핑 실현 불가 사유가 하나라도 있으면 fail-closed(부분 실현 금지 —
+  일부만 매핑된 채 lowering이 엉뚱한 기기에 스킬을 얹던 C05_001 사례).
+- 확인: 라이브 E2E(C03_026 → Switch.On, EQUIV), 주입 경로(C05_001 →
+  EQUIV), 오류 경로(no_devices → trace.error 기록).
+- **다음 후보**: 서빙 API의 IR 확인 2단계화 여부(현 /generate_joi_code는
+  단일 호출), HA lowering LLM arm + gate_ha 연결.

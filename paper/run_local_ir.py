@@ -58,21 +58,110 @@ from timeline_ir import (
 from feasibility import check_feasibility, FeasibilityError, lowering_bucket
 from ir_renderer import render_ir_with_devices
 
-# Verifier integration (Phase 2). Activated when env JOI_VERIFY=1 (default off
-# during transition so baselines stay reproducible). When on, the lowering
-# stage is wrapped by `retry_harness.run` with max_attempts=2; retry hints
-# are delivered as a follow-up user turn via `infer_followup`, not as a
-# template slot — first-attempt prompt distribution is unchanged.
-from paper.verifier.retry_harness import run as _verifier_run
-from paper.verifier.llm_diagnose import make_llm_diagnoser as _make_llm_diagnoser
-from paper.simulators.catalog import load_catalog as _load_catalog
+# 게이트(항상 실행). 확인된 IR + 매핑이 고른 기기(라이브 바인딩) × 후보 JoI를
+# 나란히 비교해 EQUIV / DIVERGE(반례) / REFUSED(조각 밖)를 낸다. 재시도는
+# 없다 — NL → IR → 코드는 무조건 한 번에 확정되고, 판정은 결과와 흔적
+# (trace) 파일에 남긴다. 옛 검증기(paper/verifier, JOI_VERIFY)는 제거.
+_ROOT_DIR = os.path.dirname(_BASE_DIR)
+if _ROOT_DIR not in sys.path:
+    sys.path.insert(0, _ROOT_DIR)
+from explorer.gate import gate_pair as _gate_pair  # noqa: E402
 
-_VERIFY_ENABLED = os.environ.get("JOI_VERIFY", "0") == "1"
-_VERIFY_MAX_ATTEMPTS = int(os.environ.get("JOI_VERIFY_MAX_ATTEMPTS", "2"))
-# LLM-aided diagnose (paper §8.3): adds one reasoning call between violation
-# detection and retry. Off by default so the deterministic-diagnose baseline
-# stays reproducible; flip JOI_LLM_DIAGNOSE=1 for the ablation's LLM-aided arm.
-_LLM_DIAGNOSE_ENABLED = os.environ.get("JOI_LLM_DIAGNOSE", "0") == "1"
+# 흔적(trace) 저장 — 파이프라인 어느 단계에서 무엇이 나왔고 어디서 막혔는지
+# 나중에 볼 수 있게 호출마다 JSON 한 개. JOI_TRACE_DIR (기본 <root>/traces),
+# JOI_TRACE=0 이면 끔.
+_TRACE_DIR = os.environ.get("JOI_TRACE_DIR", os.path.join(_ROOT_DIR, "traces"))
+
+
+def _live_binding(resolved: dict, ir: dict, connected_devices: dict) -> dict:
+    """매핑 산출(df_resolved: 서비스 → {q, devices}) → 게이트 바인딩 표.
+
+    스킬별 한 자리(모든 등장에 같은 집합). 수량사: 조건 읽기의 any/all은
+    {"any"/"all": ids}로, 액션은 기기 목록으로. IR의 스칼라 자리(read op·
+    인자 안 읽기)에 쓰이는 스킬이 여러 대면 JoI 실행 규약과 같은 1대
+    (Main 태그 1대 → 아니면 인벤토리 첫 후보)로 줄인다 — 게이트 IR 쪽은
+    스칼라 자리에 여러 대를 못 놓는다."""
+    order = {d: i for i, d in enumerate(connected_devices or {})}
+    scalar_skills: set = set()
+
+    def walk(steps):
+        for st in steps or []:
+            if not isinstance(st, dict):
+                continue
+            if st.get("op") == "read" and "." in (st.get("src") or ""):
+                scalar_skills.add(st["src"].split(".")[0])
+            for v in (st.get("args") or {}).values():
+                if isinstance(v, str):
+                    for m in re.finditer(r"\b([A-Z][A-Za-z0-9]+)\.[A-Za-z_]\w*", v):
+                        scalar_skills.add(m.group(1))
+            for v in st.values():
+                if isinstance(v, list):
+                    walk(v)
+    walk((ir or {}).get("timeline"))
+
+    per: dict = {}
+    for svc, info in (resolved or {}).items():
+        skill = svc.split(".")[0]
+        if skill in ("Clock", "GlobalVariable"):
+            continue
+        ids = [d for d in (info.get("devices") or []) if d in order]
+        q = info.get("q") or ""
+        e = per.setdefault(skill, {"ids": set(), "quants": set()})
+        e["ids"] |= set(ids)
+        if q in ("any", "all"):
+            e["quants"].add(q)
+    out = {}
+    for skill, e in per.items():
+        ids = sorted(e["ids"], key=order.get)
+        if not ids:
+            continue
+        if skill in scalar_skills and len(ids) > 1:
+            mains = [d for d in ids
+                     if "Main" in (connected_devices[d].get("tags") or [])]
+            ids = [mains[0]] if len(mains) == 1 else ids[:1]
+        if len(ids) > 1 and "any" in e["quants"]:
+            out[skill] = {"any": ids}
+        elif len(ids) > 1 and "all" in e["quants"] and skill in scalar_skills:
+            out[skill] = {"all": ids}
+        else:
+            out[skill] = ids
+    return out
+
+
+def _run_gate(ir: dict, binding: dict, connected_devices: dict,
+              joi_json: dict) -> dict:
+    """게이트 한 번. 후보가 아예 해석 불가여도 예외 대신 REFUSED로 접는다."""
+    t0 = time.perf_counter()
+    try:
+        g = _gate_pair(ir, binding, connected_devices, joi_json)
+        verdict, notes = g.verdict, list(g.notes)
+        ce = None
+        if g.product and g.product.divergences:
+            dv = g.product.divergences[0]
+            ce = {"depth": dv.depth, "input": dv.input_, "dwell_ms": dv.dwell_ms,
+                  "ir_actions": list(dv.actions_a),
+                  "joi_actions": list(dv.actions_b),
+                  "replay_confirmed": g.confirmed}
+    except Exception as e:  # 파서·접지 예외 = 조각 밖 (fail-closed)
+        verdict, notes, ce = "REFUSED", [f"후보 해석 불가: {type(e).__name__}: {e}"], None
+    return {"verdict": verdict, "notes": notes, "counterexample": ce,
+            "binding": binding, "seconds": round(time.perf_counter() - t0, 3)}
+
+
+def _write_trace(trace: dict) -> str:
+    if os.environ.get("JOI_TRACE", "1") == "0":
+        return ""
+    try:
+        os.makedirs(_TRACE_DIR, exist_ok=True)
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        name = f"{ts}_{int((time.time() % 1) * 1000):03d}.json"
+        path = os.path.join(_TRACE_DIR, name)
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(trace, f, ensure_ascii=False, indent=2, default=str)
+        return path
+    except Exception:
+        return ""
+
 
 # IR-only short-circuit. When JOI_IR_ONLY=1, the pipeline runs through the
 # device + resolve + IR-extract stages (+ post-process trio) and then writes
@@ -653,7 +742,35 @@ def generate_joi_code_ir(
     base_url=None,
     current_code=None,
 ):
-    """IR-mediated JoI generation. Drop-in compatible return shape with run_local.generate_joi_code.
+    """IR-mediated JoI generation (NL → 매핑 → IR → lowering → 게이트 → 이름).
+
+    호출마다 흔적(trace) 한 개를 남긴다: 각 단계 산출(매핑·Timeline IR·코드·
+    게이트 판정)과, 실패했다면 어느 단계에서 왜 막혔는지. 성공 결과에도
+    `trace_path`가 들어간다."""
+    trace = {"sentence": sentence, "stage": "start",
+             "started_at": time.strftime("%Y-%m-%d %H:%M:%S")}
+    try:
+        result = _generate_impl(sentence, connected_devices, other_params,
+                                base_url, current_code, trace)
+    except JoiGenerationError as e:
+        trace["error"] = {"stage": trace.get("stage"),
+                          "code": getattr(e, "error_code", ""),
+                          "message": str(e)[:800]}
+        trace["trace_path"] = _write_trace(trace)
+        raise
+    except Exception as e:
+        trace["error"] = {"stage": trace.get("stage"),
+                          "code": "exception",
+                          "message": f"{type(e).__name__}: {str(e)[:800]}"}
+        trace["trace_path"] = _write_trace(trace)
+        raise
+    result["trace_path"] = _write_trace(trace)
+    return result
+
+
+def _generate_impl(sentence, connected_devices, other_params, base_url,
+                   current_code, trace):
+    """generate_joi_code_ir 본체. Drop-in compatible return shape with run_local.generate_joi_code.
 
     `current_code` (optional): an already-generated JoI block the user wants to
     EDIT. When supplied, `sentence` is treated as the edit request (feedback) and
@@ -789,14 +906,21 @@ def generate_joi_code_ir(
     # Reuse the pipeline's client so the base_url argument reaches the mapper
     # (its own lazy default would silently fall back to the env base URL).
     _extract_runner.set_client(client, model)
+    trace["stage"] = "mapping"
     _map_log = []
     _ctr = _v3_adapt(_resolve_v3(sentence, cd_norm, log=_map_log))
+    trace["mapping"] = {"selected_services": _ctr["selected_services"],
+                        "selectors": _ctr["df_selectors"],
+                        "resolved": _ctr["df_resolved"],
+                        "errors": _ctr["errors"], "log": list(_map_log)}
     for _ln in _map_log:
         log_buf.append(f"[mapping] {_ln}")
     for _e in _ctr["errors"]:
         log_buf.append(f"[mapping] ⚠️ {_e}")
-    if not _ctr["selected_services"]:
-        _emsg = _ctr["errors"][0] if _ctr["errors"] else "no device mapping"
+    # 실현 불가 사유가 하나라도 있으면 fail-closed — 사용자가 말한 일부만
+    # 실현한 코드를 내보내지 않는다(부분 실현 금지). 사유는 흔적에 남는다.
+    if not _ctr["selected_services"] or _ctr["errors"]:
+        _emsg = "; ".join(_ctr["errors"]) if _ctr["errors"] else "no device mapping"
         raise JoiGenerationError(
             f"Cannot fulfill command — {_emsg}",
             "\n".join(log_buf), error_code="device_not_connected")
@@ -1091,6 +1215,7 @@ def generate_joi_code_ir(
 
     resolved_args = {}
     resolved_enum_conds = {}
+    trace["stage"] = "ir"
     if _GT_IR_PATH:
         # 확인된 IR을 그대로 사용 — resolve/extract 브랜치와 후처리 3종은
         # 건너뛴다(인자·enum은 IR에 이미 확정, verbatim 유지). 매핑·precision은
@@ -1134,6 +1259,8 @@ def generate_joi_code_ir(
         )
 
     ir_readable = ir_to_readable(ir)
+    trace["ir"] = ir
+    trace["ir_source"] = "injected" if _GT_IR_PATH else "extracted"
     # Device-scoped confirmation rendering: the selector-free IR plus the
     # precision stage's resolved devices, naming the actual devices the rule
     # acts on. Falls back to the plain readable when no devices were resolved.
@@ -1198,6 +1325,8 @@ def generate_joi_code_ir(
         }
 
     # === Stage 4 (joi_from_ir lowering) ===
+    trace["ir_readable"] = ir_readable_scoped
+    trace["stage"] = "lowering"
     log_buf.append(f"📦 IR bucket: {bucket}")
     prompt_key = f"joi_from_ir_{bucket}"
     try:
@@ -1217,7 +1346,7 @@ def generate_joi_code_ir(
     )
     def _finalize(raw: str) -> dict:
         """Parse + post-process raw LLM output into final joi_block dict.
-        Used by both the verifier-on path (per attempt) and verifier-off path."""
+        (raw LLM 출력 → 검사·후처리 → 최종 joi_block dict)."""
         script = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
         joi_json = {}
         try:
@@ -1264,164 +1393,31 @@ def generate_joi_code_ir(
 
         return joi_json
 
-    if _VERIFY_ENABLED:
-        # Verifier-on: wrap the lowering call in retry_harness. Retry hints are
-        # delivered as a follow-up user turn (B-design): first attempt is a
-        # plain `infer(...)` so the prompt distribution is unchanged; only on
-        # retry does the prior (user, assistant) exchange get replayed and the
-        # retry message appear as the next user turn.
-        prev_raw = {"text": None}
+    raw = infer(prompt_key, joi_input, system=system_prompt)
+    joi_json = _finalize(raw)
+    code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
+    trace["lowering"] = {"raw": raw, "joi_block": joi_json}
 
-        def _lower_fn(ir_arg, hints):
-            if hints is None:
-                # Paired-design support: when JOI_SEED_JOI_PATH is set, attempt 1
-                # returns the pre-generated candidate (e.g. the ungated arm's
-                # lowering) instead of calling the LLM, so the verifier+repair
-                # loop operates on the exact same candidate the ungated arm
-                # deployed. Behavior is unchanged when the env var is unset.
-                _seed_path = os.environ.get("JOI_SEED_JOI_PATH")
-                if _seed_path:
-                    try:
-                        with open(_seed_path, encoding="utf-8") as _sf:
-                            _seed = json.load(_sf)
-                        _seed_joi = _seed.get("joi_block")
-                        if isinstance(_seed_joi, dict):
-                            prev_raw["text"] = _seed.get("code_raw") or json.dumps(
-                                _seed_joi, ensure_ascii=False)
-                            log_buf.append(f"🌱 attempt-1 seeded from {_seed_path}")
-                            return _seed_joi
-                        log_buf.append("⚠️ seed has no joi_block; fresh generation")
-                    except Exception as _e:
-                        log_buf.append(f"⚠️ seed load failed ({_e}); fresh generation")
-                raw = infer(prompt_key, joi_input, system=system_prompt)
-            else:
-                raw = infer_followup(
-                    prompt_key, hints,
-                    system=system_prompt,
-                    prior_user=joi_input,
-                    prior_assistant=prev_raw["text"] or "",
-                )
-            prev_raw["text"] = raw
-            return _finalize(raw)
-
-        try:
-            catalog_obj = _load_catalog()
-        except Exception as e:
-            log_buf.append(f"⚠️ verifier disabled (catalog load failed): {e}")
-            catalog_obj = None
-
-        # Debug: show the synthesized scenarios the verifier will exercise
-        # (currently event_synth returns a single scenario; cap at 2 for future).
-        try:
-            from paper.simulators.event_synth import synthesize_scenarios as _synth
-            _scns = _synth(ir)[:2]
-            for _i, _scn in enumerate(_scns):
-                _evs = ", ".join(
-                    f"@{e.at_ms}ms {e.key}={e.value!r}" for e in _scn.events[:8]
-                ) or "(none)"
-                _suffix = f" (+{len(_scn.events) - 8} more)" if len(_scn.events) > 8 else ""
-                log_buf.append(f"🎬 Scenario {_i}: {_evs}{_suffix}")
-        except Exception as _e:
-            log_buf.append(f"⚠️ scenario synth (debug) failed: {_e}")
-
-        _diagnoser = _make_llm_diagnoser(infer) if _LLM_DIAGNOSE_ENABLED else None
-        if _diagnoser is not None:
-            log_buf.append("🧠 LLM-aided diagnose: ON")
-        v_result = _verifier_run(
-            ir, _lower_fn,
-            connected_devices=connected_devices,
-            catalog=catalog_obj,
-            max_attempts=_VERIFY_MAX_ATTEMPTS,
-            diagnose_fn=_diagnoser,
-        )
-        for rec in v_result.attempts:
-            tag = rec.retry_message.summary if rec.retry_message else "clean"
-            log_buf.append(
-                f"🔁 Attempt {rec.attempt}: L1={len(rec.l1)} L2={len(rec.l2)} — {tag}"
-            )
-            # L1 detail — one bullet per violation (kind, where, message)
-            for v in rec.l1:
-                log_buf.append(f"     L1 {v.kind} @ {v.where}: {v.message}")
-            # L2 detail — kind, ir_path, target, expected/observed
-            for v in rec.l2:
-                bits = [f"L2 {v.kind} @ {v.ir_path} target={v.target}"]
-                if v.expected is not None:
-                    bits.append(f"exp={v.expected}")
-                if v.observed is not None:
-                    bits.append(f"obs={v.observed}")
-                if v.occurrences > 1:
-                    bits.append(f"×{v.occurrences}")
-                log_buf.append("     " + " ".join(bits))
-            # Retry hint (the prompt block actually injected on the next turn).
-            # Dump the FULL block (deterministic floor + any LLM-aided note) so
-            # the exact message handed to the lowering LLM is auditable.
-            if rec.retry_message is not None and rec.attempt < len(v_result.attempts):
-                log_buf.append(
-                    f"     ↪ retry hint: {rec.retry_message.bullet_count} bullets — "
-                    f"{rec.retry_message.summary}"
-                )
-                log_buf.append("     ┌─ FULL retry hint passed to next attempt ─")
-                for _ln in rec.retry_message.prompt_block.splitlines():
-                    log_buf.append(f"     │ {_ln}")
-                log_buf.append("     └────────────────────────────────────────")
-
-        # Trace-equivalence debug: re-run sims on the final accepted/rejected
-        # JoI under the synthesized scenario and dump the trace records so a
-        # human can eyeball IR vs JoI emit divergence. Capped to keep log
-        # readable; cycle-heavy rows will repeat many times.
-        try:
-            from paper.simulators.ir_simulator import run_ir_simulation
-            from paper.simulators.joi_simulator import run_joi_simulation
-            if _scns and v_result.final_joi:
-                _scn0 = _scns[0]
-                _t_ir = run_ir_simulation(ir, _scn0, catalog_obj).records[:6]
-                _t_joi = run_joi_simulation(v_result.final_joi, _scn0, catalog_obj).records[:6]
-                log_buf.append(
-                    f"📜 IR trace ({len(_t_ir)} shown): " + "; ".join(
-                        f"@{r.timestamp_ms} {r.service}.{r.method}{r.args}" for r in _t_ir
-                    ) if _t_ir else "📜 IR trace: (empty)"
-                )
-                log_buf.append(
-                    f"📜 JoI trace ({len(_t_joi)} shown): " + "; ".join(
-                        f"@{r.timestamp_ms} {r.service}.{r.method}{r.args}" for r in _t_joi
-                    ) if _t_joi else "📜 JoI trace: (empty)"
-                )
-        except Exception as _e:
-            log_buf.append(f"⚠️ trace dump (debug) failed: {_e}")
-
+    # === 게이트 (항상 실행, 재시도 없음) ===
+    # 확인된 IR + 매핑이 고른 기기 × 후보 JoI. 판정은 로그·흔적·결과에 남기고
+    # 코드는 그대로 돌려준다 — 배포 여부는 호출자가 판정으로 정한다.
+    trace["stage"] = "gate"
+    _resolved_map = (precision_output.get("resolved", {})
+                     if isinstance(precision_output, dict) else {})
+    _binding = _live_binding(_resolved_map, ir, connected_devices)
+    gate = _run_gate(ir, _binding, connected_devices, joi_json)
+    trace["gate"] = gate
+    log_buf.append(f"🚧 gate: {gate['verdict']} ({gate['seconds']}s) "
+                   f"binding={json.dumps(_binding, ensure_ascii=False)}")
+    for _n in gate["notes"]:
+        log_buf.append(f"     · {_n}")
+    if gate["counterexample"]:
+        _ce = gate["counterexample"]
         log_buf.append(
-            f"🏁 Verifier: {'accepted' if v_result.accepted else 'fail (kept last attempt)'}"
-        )
-        joi_json = v_result.final_joi or {}
-
-        # Structured verifier decision trace for post-hoc confusion-matrix
-        # aggregation (paper §7.5 / §8.5). We dump each attempt's parsed
-        # joi_block so the eval grader can score attempt-1 vs final against
-        # ir_gt without re-invoking the LLM — this is what separates the
-        # detector matrix (did the internal verifier flag a wrong attempt-1?)
-        # from the outcome matrix (did retry recover / regress?).
-        verifier_trace = {
-            "enabled": True,
-            "accepted": v_result.accepted,
-            "n_attempts": len(v_result.attempts),
-            "attempts": [
-                {
-                    "attempt": rec.attempt,
-                    "l1_count": len(rec.l1),
-                    "l1_kinds": [v.kind for v in rec.l1],
-                    "l2_count": len(rec.l2),
-                    "l2_kinds": [v.kind for v in rec.l2],
-                    "joi_block": rec.joi_block,
-                }
-                for rec in v_result.attempts
-            ],
-        }
-        code_plan = ""
-    else:
-        raw = infer(prompt_key, joi_input, system=system_prompt)
-        joi_json = _finalize(raw)
-        code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
-        verifier_trace = {"enabled": False}
+            f"     반례 depth={_ce['depth']} input={_ce['input']} "
+            f"dwell={_ce['dwell_ms']}ms | IR {_ce['ir_actions']} vs "
+            f"JoI {_ce['joi_actions']} | 재생 {'확인' if _ce['replay_confirmed'] else '미확인'}")
+    trace["stage"] = "naming"
 
     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
 
@@ -1538,6 +1534,9 @@ def generate_joi_code_ir(
             pass
 
     elapsed = time.perf_counter() - start
+    trace["code"] = code_pretty
+    trace["elapsed_sec"] = round(elapsed, 3)
+    trace["stage"] = "done"
 
     return {
         "code": code_pretty,
@@ -1546,7 +1545,7 @@ def generate_joi_code_ir(
         "ir_readable_scoped": ir_readable_scoped,
         "precision": precision_output.get("selectors", {}) if isinstance(precision_output, dict) else {},
         "precision_reasoning": precision_output.get("reasoning", "") if isinstance(precision_output, dict) else "",
-        "verifier_trace": verifier_trace,
+        "gate": gate,
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "translated_sentence": translated_sentence_kor or translated_sentence,

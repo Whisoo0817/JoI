@@ -112,7 +112,7 @@ def gen(args) -> None:
             json.dump(json.loads(r["ir_gt"]), f, ensure_ascii=False)
         out_path = os.path.join(out_dir, key + ".json")
         env = os.environ.copy()
-        env.update(JOI_ROOT=ROOT, JOI_VERIFY="0", JOI_SKIP_NAME="1",
+        env.update(JOI_ROOT=ROOT, JOI_SKIP_NAME="1", JOI_TRACE="0",
                    JOI_GT_IR_PATH=gt_path)
         env.pop("JOI_IR_ONLY", None)
         t0 = time.perf_counter()
