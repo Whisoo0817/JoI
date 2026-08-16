@@ -159,12 +159,14 @@ def gate(args) -> None:
     from collections import Counter
 
     from explorer.gate import GateResult, gate_pair
+    from explorer.e3_classify import classify
 
     tag = args.tag or model_tag()
     out_dir = os.path.join(CAND_BASE, tag)
     rows = {key_of(r): r for r in load_rows()}
     res, gen_err = Counter(), Counter()
     diverged, unconfirmed, refused = [], [], Counter()
+    classes = Counter()
     lines = []
     files = sorted(glob.glob(os.path.join(out_dir, "*.json")))
     for f in files:
@@ -192,11 +194,15 @@ def gate(args) -> None:
         note = ""
         if g.verdict == "DIVERGE":
             diverged.append(key)
+            cls, why = classify(json.loads(r["ir_gt"]),
+                                json.loads(r.get("binding_gt") or "{}"),
+                                json.loads(r["connected_devices"]),
+                                d["joi_block"], key=key)
+            classes[cls] += 1
+            note = f"[{cls}] {why}"
             if not g.confirmed:
                 unconfirmed.append(key)
-                note = "재생 미확인!"
-            else:
-                note = "재생 확인"
+                note += " (재생 미확인!)"
         if g.verdict == "REFUSED":
             note = (g.notes[-1] if g.notes else "")[:80]
             refused[note[:60]] += 1
@@ -207,6 +213,7 @@ def gate(args) -> None:
     if diverged:
         print(f"DIVERGE {len(diverged)}: {diverged[:30]}")
         print(f"  그중 재생 미확인: {unconfirmed[:10] or '없음'}")
+        print("  DIVERGE 분류:", dict(classes.most_common()))
     for k, v in gen_err.most_common():
         print(f"  [생성실패 {v}] {k}")
     for k, v in refused.most_common(10):
@@ -221,6 +228,11 @@ def gate(args) -> None:
         for k in ("EQUIV", "DIVERGE", "REFUSED", "GEN_ERROR"):
             if res.get(k):
                 f.write(f"| {k} | {res[k]} |\n")
+        if classes:
+            f.write("\n## DIVERGE 분류 (수량 정책은 보류 — whisoo 결정 08-14)\n\n"
+                    "| 분류 | 행 수 |\n|---|---|\n")
+            for k, v in classes.most_common():
+                f.write(f"| {k} | {v} |\n")
         f.write("\n## 행별 판정\n\n| 행 | 판정 | 비고 |\n|---|---|---|\n")
         for key, v, note in lines:
             f.write(f"| {key} | {v} | {note} |\n")
