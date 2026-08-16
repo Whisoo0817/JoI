@@ -148,9 +148,39 @@ def _run_gate(ir: dict, binding: dict, connected_devices: dict,
             "binding": binding, "seconds": round(time.perf_counter() - t0, 3)}
 
 
+# 책임 분리(attribution): 실패·갈림이 어느 단계 몫인지 한 줄로.
+#   mapping  — 기기/서비스 매핑에서 막힘 (device_not_connected 등)
+#   ir       — IR 추출·검증·feasibility에서 막힘
+#   lowering — 게이트 DIVERGE: 확인된 IR과 코드가 다름 (반례 있음)
+#   gate     — 게이트 REFUSED: 조각 밖이라 판정 불가 (fail-closed 사유)
+#   none     — EQUIV: 코드가 IR과 같음
+_STAGE_BLAME = {"start": "input", "mapping": "mapping", "ir": "ir",
+                "lowering": "lowering", "gate": "gate", "naming": "naming"}
+
+
+def _attribution(trace: dict) -> dict:
+    err = trace.get("error")
+    if err:
+        return {"blame": _STAGE_BLAME.get(err.get("stage"), err.get("stage")),
+                "why": f"{err.get('code')}: {err.get('message', '')[:160]}"}
+    g = trace.get("gate") or {}
+    v = g.get("verdict")
+    if v == "EQUIV":
+        return {"blame": "none", "why": "코드가 IR과 같음"}
+    if v == "DIVERGE":
+        ce = g.get("counterexample") or {}
+        return {"blame": "lowering",
+                "why": f"반례 input={ce.get('input')} IR={ce.get('ir_actions')} "
+                       f"JoI={ce.get('joi_actions')}"}
+    if v == "REFUSED":
+        return {"blame": "gate", "why": "; ".join(g.get("notes") or [])[:160]}
+    return {"blame": "unknown", "why": ""}
+
+
 def _write_trace(trace: dict) -> str:
     if os.environ.get("JOI_TRACE", "1") == "0":
         return ""
+    trace["attribution"] = _attribution(trace)
     try:
         os.makedirs(_TRACE_DIR, exist_ok=True)
         ts = time.strftime("%Y%m%d_%H%M%S")
@@ -1417,6 +1447,8 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
             f"     반례 depth={_ce['depth']} input={_ce['input']} "
             f"dwell={_ce['dwell_ms']}ms | IR {_ce['ir_actions']} vs "
             f"JoI {_ce['joi_actions']} | 재생 {'확인' if _ce['replay_confirmed'] else '미확인'}")
+    _att = _attribution(trace)
+    log_buf.append(f"🧾 책임: {_att['blame']} — {_att['why']}")
     trace["stage"] = "naming"
 
     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
@@ -1546,6 +1578,7 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
         "precision": precision_output.get("selectors", {}) if isinstance(precision_output, dict) else {},
         "precision_reasoning": precision_output.get("reasoning", "") if isinstance(precision_output, dict) else "",
         "gate": gate,
+        "attribution": _att,
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "translated_sentence": translated_sentence_kor or translated_sentence,

@@ -883,3 +883,12 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   EQUIV), 오류 경로(no_devices → trace.error 기록).
 - **다음 후보**: 서빙 API의 IR 확인 2단계화 여부(현 /generate_joi_code는
   단일 호출), HA lowering LLM arm + gate_ha 연결.
+- **whisoo 결정(08-14 밤)**: IR을 보고 수정하는 단계도, 매번 승인할 수도
+  없으니 **승인 없이 바로 만들고 만들어진 대로 사용**한다. 대신 오류가
+  어디서 났는지 확인 가능하게 해서 **책임을 분리**한다. **HA는 잠시 보류.**
+- **책임 분리 구현**: 흔적·로그·반환값에 `attribution{blame, why}` —
+  input(기기 없음) / mapping(매핑 실현 불가) / ir(추출·검증·feasibility) /
+  lowering(게이트 DIVERGE = 확인된 IR과 코드가 다름, 반례 첨부) / gate
+  (REFUSED = 조각 밖 판정 불가, 사유) / none(EQUIV). 로그 줄 `🧾 책임: …`.
+  FastAPI `/generate_joi_code` 끝단 확인(성공 EQUIV·매핑 실패 1201, 흔적
+  파일 생성).
