@@ -850,3 +850,9 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
     (C05_001 `(#PresenceSensor).speaker_speak`).
   - 로직·인자 43: 지속(for) 관용구(C20 다수), 반복 횟수(C24), 타임아웃
     (C26), 중복 발화(C01_010), 시간 창 표현(C16/C18 clock 가드).
+- **whisoo 결정(08-14 저녁)**: ① 조명 "켜줘"는 **Switch 기능이 있으면
+  Switch.On, 없으면 Light.MoveToBrightness**가 맞다(매핑 규칙이 정답) —
+  GT IR 쪽이 문제. 해당 6행 GT IR 정정은 **나중에**(todo). ② 지금은
+  논문용 실험 수치를 뽑을 때가 아니라 **시스템 전체 파이프라인을 다
+  구성하는 게 우선**. Quantifier·서비스·디바이스 매핑의 판정·정답·규칙
+  정리는 그 뒤로 미룬다.
