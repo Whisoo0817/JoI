@@ -8,8 +8,7 @@
 import json, os
 import numpy as np
 import torch
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
-from transformers.utils.quantization_config import CompressedTensorsConfig
+from transformers import AutoConfig, AutoTokenizer, Qwen3_5ForConditionalGeneration
 
 torch.set_num_threads(28)
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -23,11 +22,13 @@ cfg = AutoConfig.from_pretrained(MODEL)
 q = dict(cfg.quantization_config)
 q["ignore"] = list(q.get("ignore", [])) + ["re:.*in_proj_a$", "re:.*in_proj_b$"]
 cfg.quantization_config = q
-model = AutoModelForCausalLM.from_pretrained(
-    MODEL, config=cfg, dtype=torch.bfloat16, attn_implementation="eager",
-    device_map="cpu", quantization_config=CompressedTensorsConfig(run_compressed=True))
+# Qwen3.5는 복합(vision+text) 모델이라 AutoModelForCausalLM은 text_config만 받아
+# quantization_config를 잃는다(패킹 가중치 미적재) → 전체 클래스로 적재해야 압축 해제가 걸린다.
+DEV = "cuda" if torch.cuda.is_available() else "cpu"
+model = Qwen3_5ForConditionalGeneration.from_pretrained(
+    MODEL, config=cfg, dtype=torch.bfloat16, attn_implementation="eager", device_map=DEV)
 model.eval()
-NL = model.config.num_hidden_layers
+NL = model.config.text_config.num_hidden_layers
 LAYERS = sorted(set([2, NL // 4, NL // 2, (3 * NL) // 4, NL - 1]))
 print("층 수:", NL, "→ 저장 층:", LAYERS)
 
@@ -53,9 +54,9 @@ for ci, it in enumerate(items):
         print("skip:", text)
         continue
     with torch.no_grad():
-        out = model(**enc, output_hidden_states=True)
+        out = model(**{k: v.to(DEV) for k, v in enc.items()}, output_hidden_states=True)
     hs = out.hidden_states
-    f = np.stack([hs[L + 1][0, last_tok].float().numpy() for L in LAYERS], axis=1)
+    f = np.stack([hs[L + 1][0, last_tok].float().cpu().numpy() for L in LAYERS], axis=1)
     del out, hs
     X.append(f.astype(np.float16))
     cmd_idx += [ci] * len(words)
