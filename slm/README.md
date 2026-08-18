@@ -744,3 +744,19 @@ L6 절 끝 표현(PCA256) 위 로지스틱 3개 + 결정론적 선형화. 데이
 - 예시(`ir_pred.json`): "버튼1이 눌리면 밝기가 80 이상이면 10으로, 아니면 80으로" → wait(Button1=="pushed") → if(Light.CurrentBrightness>=80){MoveToBrightness 10}{80} — gold와 read 접기 외 동일.
 
 다음: (1) 조건 절을 값 표현 단위로 재질의 + 연결 기기 조인한 값 서비스 선택, (2) 예측 경계·타입으로 종단 IR, (3) explorer(EQUIV)로 실행 동치 평가(문자열 비교의 가짜 오답 제거).
+
+### 25.1 조건 절 재질의 + 카탈로그 정합 gold (`map/cond_parts.py`)
+
+- **gold 정정**: type_labels의 ir_gt는 구버전 카탈로그(Door.DoorState·RainSensor.Rain·Safe.* — 현 카탈로그·effects.json에 없음, gold 슬롯 ~75회)라 매핑이 맞힐 수 없는 자리였음. 매핑 있는 327명령은 **paper 브랜치 ir_gt(카탈로그 정합)** 를 gold로(32명령이 구버전과 다름). `GOLD=old`로 되돌릴 수 있음.
+- **재질의**: COND/TRIG 절을 접속어미로 값 표현 단위 분할(용언 어간 뒤 '고'만 분할 — "차고/창고" 보호, "고 있" 제외) → 부분마다 값 서비스(role=read)만 검색, 연결 기기 카테고리 조인 필터, 조건 전용 지시문, 별칭·트리거 **최장 일치 보너스**(초미세먼지>미세먼지) → `cond_parts.json`(305 부분). build_ir는 부분별 top-1을 and/or로 결합.
+- 함께: cron "N시부터 …까지"는 시작 시각, enum 사전 보강(제습/건조/AI건조/멈춰), Volume 최대→100.
+
+| 매핑 있는 327 | 재질의 전 (paper gold) | **재질의 후** |
+|---|---|---|
+| cond 속성 선택 | 0.785 | **0.818** |
+| cond 식 전체 | 0.634 | 0.667 |
+| S+T+C 조건식까지 | 0.612 | 0.636 |
+| **완전 IR (S+T+C+V+A)** | 0.498 | **0.541** (전체 380: 0.482) |
+
+슬롯별(재질의 후): cron **1.000** · period/until/for/edge 1.000 · duration 0.933 · count 0.800 · target 0.878 · **args 0.947** · cond 0.667(속성 0.818 × op/값 0.830).
+잔여 조건 오류: 값 관례("세번 눌리면"=`pushed_3x`, `!= "emergency"`, 전압 단위 V→mV), 미세/초미세 혼동 일부, 얼굴인식 "꺼져 있으면"=Switch.Switch 관례. 서비스 오류는 형제 선택(SetLevel vs UpOrOpen 등) — 매핑 단계 재정렬 규칙 몫.

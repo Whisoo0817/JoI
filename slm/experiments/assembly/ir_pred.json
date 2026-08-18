@@ -478,7 +478,7 @@
     },
     {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 26 and WindowCovering.CurrentPosition == ?",
+     "cond": "AirConditioner.TargetTemperature >= 26 and WindowCovering.CurrentPosition == ?",
      "then": [
       {
        "op": "call",
@@ -532,7 +532,7 @@
     },
     {
      "op": "if",
-     "cond": "MotionSensor.Motion == true and Switch.Switch == true",
+     "cond": "MotionSensor.Motion == true and Siren.SirenMode == ?",
      "then": [
       {
        "op": "call",
@@ -1633,7 +1633,7 @@
     },
     {
      "op": "call",
-     "target": "Safe.Lock",
+     "target": "DoorLock.Lock",
      "args": {}
     }
    ]
@@ -1715,7 +1715,9 @@
     {
      "op": "call",
      "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
-     "args": {}
+     "args": {
+      "Mode": "stop"
+     }
     }
    ]
   },
@@ -1781,7 +1783,9 @@
     {
      "op": "call",
      "target": "Speaker.SetVolume",
-     "args": {}
+     "args": {
+      "Volume": 100
+     }
     }
    ]
   },
@@ -1907,7 +1911,9 @@
     {
      "op": "call",
      "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {}
+     "args": {
+      "Mode": "drying"
+     }
     }
    ]
   },
@@ -2151,7 +2157,7 @@
     },
     {
      "op": "call",
-     "target": "Safe.Unlock",
+     "target": "DoorLock.Unlock",
      "args": {}
     }
    ]
@@ -2405,7 +2411,7 @@
     },
     {
      "op": "call",
-     "target": "Safe.Lock",
+     "target": "DoorLock.Lock",
      "args": {}
     }
    ]
@@ -2715,7 +2721,9 @@
     {
      "op": "call",
      "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
-     "args": {}
+     "args": {
+      "Mode": "stop"
+     }
     }
    ]
   },
@@ -2801,7 +2809,9 @@
     {
      "op": "call",
      "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {}
+     "args": {
+      "Mode": "dehumidifying"
+     }
     }
    ]
   },
@@ -2911,8 +2921,14 @@
      "anchor": "now"
     },
     {
+     "op": "call",
+     "target": "CloudServiceProvider.IsAvailable",
+     "args": {},
+     "var": "IsAvailable"
+    },
+    {
      "op": "if",
-     "cond": "CloudServiceProvider.IsAvailable == true",
+     "cond": "$IsAvailable == true",
      "then": [
       {
        "op": "call",
@@ -3684,7 +3700,9 @@
       {
        "op": "call",
        "target": "Dehumidifier.SetDehumidifierMode",
-       "args": {}
+       "args": {
+        "Mode": "drying"
+       }
       }
      ],
      "else": []
@@ -3699,7 +3717,7 @@
     },
     {
      "op": "if",
-     "cond": "RainSensor.Rain == true",
+     "cond": "WeatherProvider.Weather == \"rain\"",
      "then": [
       {
        "op": "call",
@@ -4132,7 +4150,7 @@
     },
     {
      "op": "wait",
-     "cond": "RainSensor.Rain == true",
+     "cond": "WeatherProvider.Weather == \"rain\"",
      "edge": "none"
     },
     {
@@ -4429,7 +4447,7 @@
     },
     {
      "op": "wait",
-     "cond": "Safe.SafeState == \"open\"",
+     "cond": "DoorLock.DoorLockState == \"open\"",
      "edge": "none"
     },
     {
@@ -4839,7 +4857,7 @@
     },
     {
      "op": "wait",
-     "cond": "AirQualitySensor.VeryFineDustLevel >= 30",
+     "cond": "AirQualitySensor.Temperature >= 30",
      "edge": "none"
     },
     {
@@ -4973,7 +4991,7 @@
     },
     {
      "op": "wait",
-     "cond": "ContactSensor.Contact == true and Camera.CameraState == ?",
+     "cond": "ContactSensor.Contact == true",
      "edge": "none"
     },
     {
@@ -4991,7 +5009,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\" or Door.DoorState == \"opening\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none"
     },
     {
@@ -5013,7 +5031,7 @@
     },
     {
      "op": "wait",
-     "cond": "Speaker.PlaybackState == ?",
+     "cond": "SoundSensor.Sound > 40",
      "edge": "none"
     },
     {
@@ -5099,7 +5117,7 @@
     },
     {
      "op": "wait",
-     "cond": "TemperatureSensor.Temperature == ? and AirConditioner.TargetTemperature >= 25",
+     "cond": "TemperatureSensor.Temperature >= 25",
      "edge": "none"
     },
     {
@@ -5145,7 +5163,9 @@
     {
      "op": "call",
      "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {}
+     "args": {
+      "Mode": "dehumidifying"
+     }
     }
    ]
   },
@@ -6129,7 +6149,9 @@
     {
      "op": "call",
      "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {}
+     "args": {
+      "Mode": "drying"
+     }
     },
     {
      "op": "delay",
@@ -6884,7 +6906,7 @@
     },
     {
      "op": "if",
-     "cond": "AirConditioner.TargetTemperature >= 28 and HumiditySensor.Humidity >= 70",
+     "cond": "TemperatureSensor.Temperature >= 28 and HumiditySensor.Humidity >= 70",
      "then": [
       {
        "op": "call",
@@ -6946,7 +6968,7 @@
     },
     {
      "op": "if",
-     "cond": "AirQualitySensor.CarbonDioxide >= 1200 and AirQualitySensor.FineDustLevel == ?",
+     "cond": "AirQualitySensor.CarbonDioxide >= 1200 and PresenceSensor.Presence == true",
      "then": [
       {
        "op": "call",
@@ -7006,12 +7028,14 @@
     },
     {
      "op": "if",
-     "cond": "Dehumidifier.DehumidifierMode == ? and WeatherProvider.HumidityWeather >= 80",
+     "cond": "HumiditySensor.Humidity == ? and HumiditySensor.Humidity >= 80",
      "then": [
       {
        "op": "call",
        "target": "Dehumidifier.SetDehumidifierMode",
-       "args": {}
+       "args": {
+        "Mode": "drying"
+       }
       },
       {
        "op": "call",
@@ -7033,7 +7057,7 @@
     },
     {
      "op": "if",
-     "cond": "RainSensor.Rain == true and HumiditySensor.Humidity >= 80",
+     "cond": "WeatherProvider.Weather == \"rain\" and HumiditySensor.Humidity >= 80",
      "then": [
       {
        "op": "call",
@@ -7240,7 +7264,7 @@
     },
     {
      "op": "if",
-     "cond": "WeatherProvider.Weather == \"rain\" and PresenceSensor.Presence == true",
+     "cond": "PresenceSensor.Presence == true and PresenceSensor.Presence == true",
      "then": [
       {
        "op": "call",
@@ -7410,7 +7434,7 @@
     },
     {
      "op": "if",
-     "cond": "AirQualitySensor.CarbonDioxide >= 1500 and AirPurifier.AirPurifierMode == ?",
+     "cond": "AirQualitySensor.CarbonDioxide >= 1500 and WindowCovering.CurrentPosition == ?",
      "then": [
       {
        "op": "call",
@@ -7729,7 +7753,7 @@
     },
     {
      "op": "if",
-     "cond": "MotionSensor.Motion == false and Door.DoorState == \"open\"",
+     "cond": "MotionSensor.Motion == false and ContactSensor.Contact == false",
      "then": [
       {
        "op": "call",
@@ -7933,7 +7957,7 @@
     },
     {
      "op": "if",
-     "cond": "LightSensor.Brightness < 50 and Switch.Switch == true",
+     "cond": "LightSensor.Brightness < 50 and Light.CurrentBrightness == ?",
      "then": [
       {
        "op": "call",
@@ -7992,7 +8016,7 @@
     },
     {
      "op": "if",
-     "cond": "WeatherProvider.Weather == \"rain\" and WindowCovering.CurrentPosition == ?",
+     "cond": "Dehumidifier.DehumidifierMode == ? and WindowCovering.CurrentPosition == ?",
      "then": [
       {
        "op": "call",
@@ -8002,7 +8026,9 @@
       {
        "op": "call",
        "target": "Dehumidifier.SetDehumidifierMode",
-       "args": {}
+       "args": {
+        "Mode": "dehumidifying"
+       }
       }
      ],
      "else": []
@@ -8017,7 +8043,7 @@
     },
     {
      "op": "if",
-     "cond": "RainSensor.Rain == true and WindowCovering.CurrentPosition > 0",
+     "cond": "WeatherProvider.Weather == \"rain\" and WindowCovering.CurrentPosition > 0",
      "then": [
       {
        "op": "call",
@@ -8048,7 +8074,7 @@
     },
     {
      "op": "if",
-     "cond": "Speaker.Volume >= 50 and Speaker.PlaybackState == ?",
+     "cond": "SoundSensor.Sound >= 50 and Speaker.PlaybackState == ?",
      "then": [
       {
        "op": "call",
@@ -8278,7 +8304,7 @@
     },
     {
      "op": "if",
-     "cond": "AirQualitySensor.VeryFineDustLevel == ? and AirQualitySensor.CarbonDioxide >= 100 and AirPurifier.AirPurifierMode == \"auto\"",
+     "cond": "AirQualitySensor.CarbonDioxide >= 100 and AirPurifier.AirPurifierMode == \"auto\"",
      "then": [
       {
        "op": "call",
@@ -8718,7 +8744,7 @@
     {
      "op": "start_at",
      "anchor": "cron",
-     "cron": "0 0 * * *"
+     "cron": "0 22 * * *"
     },
     {
      "op": "cycle",
@@ -8768,7 +8794,7 @@
     {
      "op": "start_at",
      "anchor": "cron",
-     "cron": "0 0 * * 1-5"
+     "cron": "0 8 * * 1-5"
     },
     {
      "op": "cycle",
@@ -9001,7 +9027,7 @@
     },
     {
      "op": "if",
-     "cond": "Safe.SafeState == \"closed\" and DoorLock.DoorLockState == \"closed\"",
+     "cond": "DoorLock.DoorLockState == \"closed\" and DoorLock.DoorLockState == \"closed\"",
      "then": [
       {
        "op": "call",
@@ -9209,7 +9235,7 @@
     },
     {
      "op": "if",
-     "cond": "Safe.SafeState == \"open\" or DoorLock.DoorLockState == \"open\"",
+     "cond": "DoorLock.DoorLockState == \"open\" or DoorLock.DoorLockState == \"open\"",
      "then": [
       {
        "op": "call",
@@ -9434,7 +9460,7 @@
      "body": [
       {
        "op": "if",
-       "cond": "AirQualitySensor.FineDustLevel >= 200",
+       "cond": "AirQualitySensor.CarbonDioxide >= 200",
        "then": [
         {
          "op": "call",
@@ -9447,7 +9473,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "AirQualitySensor.VeryFineDustLevel <= 100",
+         "cond": "AirQualitySensor.CarbonDioxide <= 100",
          "then": [
           {
            "op": "call",
@@ -9659,8 +9685,7 @@
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "cron",
-     "cron": "0 15 * * *"
+     "anchor": "now"
     },
     {
      "op": "cycle",
@@ -9738,7 +9763,9 @@
         {
          "op": "call",
          "target": "Dehumidifier.SetDehumidifierMode",
-         "args": {}
+         "args": {
+          "Mode": "dehumidifying"
+         }
         }
        ],
        "else": []
@@ -9967,11 +9994,6 @@
      "until": null,
      "period": "1 HOUR",
      "body": [
-      {
-       "op": "call",
-       "target": "DoorLock.DoorLockState",
-       "args": {}
-      },
       {
        "op": "if",
        "cond": "DoorLock.DoorLockState == \"open\"",
@@ -10312,7 +10334,7 @@
      "body": [
       {
        "op": "if",
-       "cond": "Door.DoorState == \"open\" or Door.DoorState == \"open\"",
+       "cond": "ContactSensor.Contact == false",
        "then": [
         {
          "op": "call",
@@ -10480,7 +10502,7 @@
     },
     {
      "op": "if",
-     "cond": "WindowCovering.CurrentPosition == ? and WindowCovering.WindowCoveringType == ?",
+     "cond": "WindowCovering.CurrentPosition == ? and WindowCovering.CurrentPosition == ?",
      "then": [
       {
        "op": "call",
@@ -10566,7 +10588,7 @@
      "body": [
       {
        "op": "if",
-       "cond": "RainSensor.Rain == true",
+       "cond": "WeatherProvider.Weather == \"rain\"",
        "then": [
         {
          "op": "call",
@@ -11217,7 +11239,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "WeatherProvider.Weather == ?",
+       "cond": "WindowCovering.CurrentPosition == ?",
        "edge": "rising"
       },
       {
@@ -11242,7 +11264,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "RainSensor.Rain == false",
+       "cond": "WeatherProvider.Weather != \"rain\"",
        "edge": "rising"
       },
       {
@@ -11756,7 +11778,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none"
     },
     {
@@ -11877,7 +11899,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none"
     },
     {
@@ -11887,7 +11909,7 @@
      "body": [
       {
        "op": "if",
-       "cond": "Safe.SafeState != \"locked\"",
+       "cond": "DoorLock.DoorLockState != \"closed\"",
        "then": [
         {
          "op": "call",
@@ -12387,7 +12409,9 @@
       {
        "op": "call",
        "target": "Dehumidifier.SetDehumidifierMode",
-       "args": {}
+       "args": {
+        "Mode": "drying"
+       }
       }
      ]
     }
@@ -12551,7 +12575,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "Light.CurrentBrightness == ?",
+       "cond": "Button.Button == \"pushed\"",
        "edge": "rising"
       },
       {
@@ -12694,7 +12718,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "Door.DoorState == \"open\"",
+       "cond": "ContactSensor.Contact == false",
        "edge": "rising"
       },
       {
@@ -12723,7 +12747,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "Light.CurrentBrightness == ?",
+       "cond": "Button.Button == \"pushed\"",
        "edge": "rising"
       },
       {
@@ -13051,7 +13075,9 @@
     {
      "op": "call",
      "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {}
+     "args": {
+      "Mode": "dehumidifying"
+     }
     },
     {
      "op": "cycle",
@@ -13936,7 +13962,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "Door.DoorState == \"open\"",
+       "cond": "ContactSensor.Contact == false",
        "edge": "rising"
       },
       {
@@ -15053,7 +15079,7 @@
     },
     {
      "op": "if",
-     "cond": "DoorLock.DoorLockState == \"open\" and Switch.Switch == true",
+     "cond": "DoorLock.DoorLockState == \"open\" and Light.CurrentBrightness >= 10",
      "then": [
       {
        "op": "call",
@@ -15113,7 +15139,9 @@
       {
        "op": "call",
        "target": "Dehumidifier.SetDehumidifierMode",
-       "args": {}
+       "args": {
+        "Mode": "drying"
+       }
       }
      ],
      "else": []
@@ -15409,7 +15437,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "TemperatureSensor.Temperature == ? and Switch.Switch == true",
+         "cond": "Switch.Switch == true and TemperatureSensor.Temperature <= 25",
          "then": [
           {
            "op": "call",
@@ -15493,7 +15521,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "HumiditySensor.Humidity == ? and Plug.Power <= 50",
+         "cond": "Switch.Switch == true and HumiditySensor.Humidity <= 50",
          "then": [
           {
            "op": "call",
@@ -15577,7 +15605,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "LightSensor.Brightness == ? and Plug.Power >= 500",
+         "cond": "Switch.Switch == true and LightSensor.Brightness >= 500",
          "then": [
           {
            "op": "call",
@@ -15661,7 +15689,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "TemperatureSensor.Temperature == ? and Switch.Switch == true",
+         "cond": "Switch.Switch == true and TemperatureSensor.Temperature >= 22",
          "then": [
           {
            "op": "call",
@@ -15745,7 +15773,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "HumiditySensor.Humidity == ? and Switch.Switch == true",
+         "cond": "Switch.Switch == true and HumiditySensor.Humidity >= 55",
          "then": [
           {
            "op": "call",
@@ -15874,7 +15902,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none",
      "for": "5 SEC"
     },
@@ -16000,7 +16028,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"closed\"",
+     "cond": "ContactSensor.Contact == true",
      "edge": "none",
      "for": "1 MIN"
     },
@@ -16087,7 +16115,7 @@
     },
     {
      "op": "if",
-     "cond": "Door.DoorState == \"closed\" and Door.DoorState == \"closed\"",
+     "cond": "ContactSensor.Contact == true and ContactSensor.Contact == true",
      "then": [
       {
        "op": "call",
@@ -16452,7 +16480,7 @@
     },
     {
      "op": "if",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "then": [
       {
        "op": "call",
@@ -16834,7 +16862,7 @@
     },
     {
      "op": "if",
-     "cond": "HumiditySensor.Humidity >= 10",
+     "cond": "Plug.Power >= 10",
      "then": [
       {
        "op": "call",
@@ -16968,7 +16996,7 @@
     },
     {
      "op": "if",
-     "cond": "DoorLock.DoorLockState == ?",
+     "cond": "LightSensor.Brightness >= 200",
      "then": [
       {
        "op": "call",
@@ -17361,7 +17389,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "TemperatureSensor.Temperature == ? and Switch.Switch == true",
+         "cond": "Switch.Switch == true and TemperatureSensor.Temperature <= 23",
          "then": [
           {
            "op": "call",
@@ -17445,7 +17473,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "TemperatureSensor.Temperature == ? and Switch.Switch == true",
+         "cond": "Switch.Switch == true and TemperatureSensor.Temperature <= 28",
          "then": [
           {
            "op": "call",
@@ -17529,7 +17557,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "HumiditySensor.Humidity == ? and Switch.Switch == true",
+         "cond": "Switch.Switch == true and HumiditySensor.Humidity <= 55",
          "then": [
           {
            "op": "call",
@@ -17658,7 +17686,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none",
      "for": "10 MIN"
     },
@@ -18341,7 +18369,7 @@
     },
     {
      "op": "wait",
-     "cond": "ContactSensor.Contact == true and Switch.Switch == true",
+     "cond": "ContactSensor.Contact == true",
      "edge": "none",
      "for": "30 SEC"
     },
@@ -18360,7 +18388,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none",
      "for": "30 SEC"
     },
@@ -18444,7 +18472,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"closed\"",
+     "cond": "ContactSensor.Contact == true",
      "edge": "none",
      "for": "3 MIN"
     },
@@ -18570,7 +18598,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none",
      "for": "45 SEC"
     },
@@ -18771,7 +18799,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none",
      "for": "1 MIN"
     },
@@ -19024,7 +19052,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"open\"",
+     "cond": "ContactSensor.Contact == false",
      "edge": "none",
      "for": "1 MIN"
     },
@@ -19243,7 +19271,7 @@
     },
     {
      "op": "wait",
-     "cond": "ContactSensor.Contact == true and Camera.MicrophoneMuted == true",
+     "cond": "ContactSensor.Contact == true",
      "edge": "none",
      "for": "30 SEC"
     },
@@ -19270,7 +19298,7 @@
     },
     {
      "op": "wait",
-     "cond": "Door.DoorState == \"closed\"",
+     "cond": "ContactSensor.Contact == true",
      "edge": "none",
      "for": "30 SEC"
     },

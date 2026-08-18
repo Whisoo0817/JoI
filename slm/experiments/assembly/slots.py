@@ -65,6 +65,7 @@ def _hour(text):
     if amb == "밤" and h == 12: h = 0
     return h, mi
 def cron(text):
+    if "부터" in text: text = text.split("부터")[0] + "부터"      # 시작 시각만 ("밤10시부터 자정까지")
     if "새해" in text or "1월 1일" in text: return "0 0 1 1 *"
     if "크리스마스" in text: return "0 0 25 12 *"
     hm = _hour(text)
@@ -133,7 +134,8 @@ def bool_state(text, vtype, members):
         return None
     return None
 
-ENUM_KO = {"cool": ["냉방", "쿨", "시원"], "heat": ["난방", "히터", "따뜻"], "auto": ["자동", "오토", "AI"], "dry": ["제습", "건조", "드라이"], "fan": ["송풍", "팬"], "sleep": ["수면", "취침"],
+ENUM_KO = {"dehumidifying": ["제습"], "drying": ["건조"], "AIDrying": ["AI건조", "AI 건조", "에이아이 건조"], "stop": ["멈춰", "멈추", "정지", "중지"], "start": ["시작"], "pause": ["일시정지"],
+           "cool": ["냉방", "쿨", "시원"], "heat": ["난방", "히터", "따뜻"], "auto": ["자동", "오토", "AI"], "dry": ["제습", "건조", "드라이"], "fan": ["송풍", "팬"], "sleep": ["수면", "취침"],
            "emergency": ["응급", "긴급", "비상"], "fire": ["화재", "불"], "police": ["경찰"], "ambulance": ["구급", "앰뷸런스"], "high": ["강풍", "강하게", "세게", "강"], "low": ["약풍", "약하게", "약"], "medium": ["중간", "보통"],
            "quiet": ["조용", "저소음"], "turbo": ["터보"], "normal": ["노말", "일반", "보통", "표준"], "maximum": ["맥시멈", "최대"], "minimum": ["미니멈", "최소"], "eco": ["에코", "절전"], "wash": ["세척", "세탁"],
            "cooking": ["조리", "취사"], "warm": ["보온"], "bake": ["굽", "베이크"], "grill": ["그릴"], "roast": ["로스트"], "spot": ["스팟", "집중"], "repeat": ["반복"], "edge": ["엣지", "가장자리"], "map": ["맵"], "silent": ["무음"],

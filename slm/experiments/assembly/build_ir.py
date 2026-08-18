@@ -16,6 +16,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 T = json.load(open(os.path.join(HERE, "..", "type", "type_labels.json")))
 R = json.load(open(os.path.join(HERE, "..", "map", "ranked.json")))
 MAP = {(r["cmd"], s["j"]): s["ranked"] for r in R for s in r["segs"]}
+import pandas as pd
+_P = pd.read_csv(os.path.join(HERE, "..", "map", "dataset_paper.csv"))
+PAPER_GT = {r.command_kor: json.loads(r.ir_gt) for r in _P.itertuples() if isinstance(r.ir_gt, str)}   # 카탈로그 정합 gold (매핑과 같은 버전)
+def gold_of(o):
+    return PAPER_GT.get(o["cmd"], o["ir_gt"]) if os.environ.get("GOLD", "paper") == "paper" else o["ir_gt"]
 
 def svc_info(svc):
     """서비스 → (kind, spec) — value(values 항목) 또는 function(functions 항목)"""
@@ -46,8 +51,19 @@ def _lex_score(part, svc):
     doc = " ".join(AL.get(cat, []) + EFF.get(svc, {}).get("ko_triggers", []) + [cat])
     return len(_bigrams(part) & _bigrams(doc))
 CONJ_SPLIT = re.compile(r"(?<=[가-힣])(고|거나|이고|이거나|며|이며|는데|은데)[,\s]+(?!있|않|없)")
+CP_PATH = os.path.join(HERE, "..", "map", "cond_parts.json")
+CP = json.load(open(CP_PATH)) if os.path.exists(CP_PATH) and os.environ.get("COND_PARTS", "1") == "1" else {}
 def cond_expr(cmd, j, text):
-    """조건 절 → '속성 op 값' 문자열. 절 안에 접속어미로 묶인 복합 조건이면 부분별로 값 서비스를 배정해 and/or 결합."""
+    """조건 절 → '속성 op 값' 문자열. 절 안에 접속어미로 묶인 복합 조건이면 부분별로 값 서비스를 배정해 and/or 결합.
+    COND_PARTS=1이면 부분 단위 재질의 결과(cond_parts.json: 조인 필터 + 조건 지시문)를 값 서비스로 사용."""
+    cp = CP.get(cmd, {}).get(str(j))
+    if cp:
+        conns = CONJ_SPLIT.findall(text)
+        exprs = [_one_cond(x["ranked"][0] if x["ranked"] else None, x["part"]) for x in cp]
+        out = exprs[0]
+        for k, e in enumerate(exprs[1:]):
+            out += (" or " if k < len(conns) and conns[k] in ("거나", "이거나") else " and ") + e
+        return out
     parts = [p for p in CONJ_SPLIT.split(text) if p and p not in ("고", "거나", "이고", "이거나", "며", "이며", "는데", "은데")]
     if len(parts) >= 2:
         conns = CONJ_SPLIT.findall(text)
@@ -124,6 +140,8 @@ def call_node(cmd, j, text):
             elif aid == "TransitionTime": args[aid] = 0.0
             else:
                 n = slots.number(text)
+                if n is None and aid == "Volume" and re.search(r"최대|끝까지", text): n = 100
+                if n is None and aid == "Volume" and re.search(r"최소|음소거", text): n = 0
                 if n is not None: args[aid] = int(n) if at in ("INT", "INTEGER", "LONG") else float(n)
         else:
             q = slots.quoted(text)
@@ -239,10 +257,11 @@ if __name__ == "__main__":
     for o in T:
         if not o["ir_gt"]: continue
         if MAPPED_ONLY and (o["cmd"], 0) not in MAP: continue
-        ir = build(o); out.append({"i": o["i"], "cmd": o["cmd"], "ir_pred": ir, "ir_gt": o["ir_gt"]})
-        if skeleton(ir) != skeleton(o["ir_gt"]): continue
+        G = gold_of(o)
+        ir = build(o); out.append({"i": o["i"], "cmd": o["cmd"], "ir_pred": ir, "ir_gt": G})
+        if skeleton(ir) != skeleton(G): continue
         n_struct += 1
-        pf, gf = flat(ir["timeline"]), flat(o["ir_gt"]["timeline"])
+        pf, gf = flat(ir["timeline"]), flat(G["timeline"])
         if len(pf) != len(gf): continue
         okT = okC = okV = okA = True
         for (po, pd), (go, gd) in zip(pf, gf):
