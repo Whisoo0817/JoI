@@ -4,6 +4,7 @@ G/G 조건(gold 경계·타입·mods, 매핑은 ranked.json top-1). 출력 ir_pr
   S 구조(뼈대) → +T 시간 슬롯(cron/period/until/count/duration/for/edge) → +C 조건식 → +V 서비스 → +A 인자(enum·숫자; 문자열 인자는 제외)
 """
 import json, os, sys, re, collections
+import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
 sys.path.insert(0, ROOT)
@@ -236,16 +237,63 @@ def slot_mods(t, text, mods):
     if t == "ACT" and (TOGGLE_RE.search(text) or re.search(r"반복", text)): m.add("repeat")
     if t in ("ACT", "STOP") and slots.count(text) is not None: m.add("count")
     return sorted(m)
+sys.path.insert(0, os.path.join(HERE, "..", "graph"))
+from normalize import normalize as graph_normalize
+LAST_GRAPH = {}
+_HS = {}
+def _attach_h6(o, S):
+    """원본 382 명령은 head/states.npz(층 6, 절 끝 단어)에서 절 벡터를 붙임. 이미 h6가 있으면 그대로."""
+    if all("h6" in s for s in S): return S
+    if "X" not in _HS:
+        try:
+            H = np.load(os.path.join(HERE, "..", "head", "states.npz")); _HS["X"] = H["X"]; _HS["L"] = list(H["layers"]).index(6)
+            _HS["row"] = {(int(c), int(w)): r for r, (c, w) in enumerate(zip(H["cmd_idx"], H["word_pos"]))}
+        except Exception: _HS["X"] = None
+    if _HS["X"] is None or o.get("source"): return S
+    out = []; k = 0
+    for s in S:
+        k += len(s["text"].split()); r = _HS["row"].get((o["i"], k - 1))
+        if r is None: return S
+        out.append({**s, "h6": _HS["X"][r, _HS["L"]].astype(np.float32).tolist()})
+    return out
+COUNT_ONLY = re.compile(r"^(그리고 |그렇게 |이걸 )?(모두|전부|총|딱|최대)?\s*(\d+|[일이삼사오육칠팔구십]+)\s*(번|회|차례)\s*(만|까지|까지만|반복)?(요|만요|이요|해줘|이야|이에요)?[.!]?$")
+SPLIT_TG1 = re.compile(r"(켜고|열고|올리고|내리고|닫고|잠그고)[,.]?\s*$"); SPLIT_TG2 = re.compile(r"^(끄|닫|내리|올리|열|잠그)(는|기)\s*(것을|걸|를)?\s*(반복|번갈아)")
+SUSTAIN_ONLY = re.compile(r"^(그\s*상태로|그대로|그 상태가)?\s*(\d+|[일이삼사오육칠팔구십한두세네]+)\s*(초|분|시간)\s*(이상|넘게|넘도록|동안|째)\s*(이어지면|지속되면|계속되면|유지되면|계속이면|간다면|가면|지나면|되면)[.,]?$")
+TIME_TOK = re.compile(r"(오전|오후|아침|저녁|밤|새벽|낮|정오|자정|야간|매일|평일|주말|월요일|화요일|수요일|목요일|금요일|토요일|일요일|\d+\s*시(\s*\d+\s*분)?|\d+\s*분|\d+\s*초|한|두|세|부터|까지|사이에|에는|에서|에|가|이|되면|됐을|되었을|될|때|이면|면|\(|\)|,|\.)")
+def _time_only_seg(t):
+    """시각 표현·조사·"되면/때"만 남는 절 ("오후 10시가 됐을 때", "밤 10시에")"""
+    return slots._hour(t) is not None and TIME_TOK.sub("", t).strip() == ""
+def seg_fix(S):
+    """표면 규칙 일반형(§28.2): (a) 수량만 있는 꼬리 절("모두 5번만요")은 STOP/count로 (b) 시각뿐인 COND/TRIG("오후 10시가 됐을 때")는 TIME으로
+    (c) 조건 절 + "N분 넘게 이어지면"(지속만) 두 절 → 한 조건 절(sustain) (d) "…올리고 ‖ 내리기를 반복" 두 행동 절 → 한 토글 절"""
+    out = []
+    for s in S:
+        t = s["text"].strip()
+        if s["type"] == "ACT" and COUNT_ONLY.match(t): out.append({**s, "type": "STOP", "mods": sorted(set(s["mods"]) | {"count"})}); continue
+        if s["type"] in ("COND", "TRIG") and _time_only_seg(t): out.append({**s, "type": "TIME", "mods": sorted(set(s["mods"]) | {"time"})}); continue
+        if out and s["type"] == "COND" and SUSTAIN_ONLY.match(t) and out[-1]["type"] in ("COND", "TRIG"):
+            p = out[-1]; out[-1] = {**p, "text": p["text"].rstrip(",. ") + " " + t, "mods": sorted(set(p["mods"]) | {"sustain"})}; continue
+        if out and s["type"] == "ACT" and out[-1]["type"] == "ACT" and SPLIT_TG1.search(out[-1]["text"]) and SPLIT_TG2.match(t):
+            p = out[-1]; out[-1] = {**p, "text": p["text"].rstrip(", ") + " " + t, "mods": sorted(set(p["mods"]) | set(s["mods"]) | {"repeat"})}; continue
+        out.append(s)
+    return out
 def build(o):
     cmd = o["cmd"]; S = o["segments"]
     if os.environ.get("SLOT_MODS", "1") == "1":
         S = [{**s, "mods": slot_mods(s["type"], s["text"], s["mods"])} for s in S]
-    if os.environ.get("POSTPOSE", "1") == "1" and len(S) >= 2:
+    if os.environ.get("SEGFIX", "1") == "1" and len(S) >= 2: S = seg_fix(S)
+    GD = None
+    if os.environ.get("GRAPH", "1") == "1" and len(S) >= 2:
+        S = _attach_h6(o, S)
+        S, GD = graph_normalize(S)                                # §23–24 파서 head: 필러 탈락·참조 이동·후치 범위 절 앞으로
+        if GD: LAST_GRAPH[cmd] = GD
+    if os.environ.get("POSTPOSE", "1") == "1" and len(S) >= 2 and not (GD and (GD["moved"] or GD["drop"])):
         # 후치 절 이동: 마지막 ACT 뒤에 오는 COND/TRIG/TIME 절("…해줘, …이면.")은 문두 위치의 조건·시각 → 앞으로 옮김(그래프 파서의 후치 처리 간이판)
         last_act = max((i for i, s in enumerate(S) if s["type"] == "ACT"), default=-1)
         tail = [s for s in S[last_act + 1:] if s["type"] in ("COND", "TRIG", "TIME")] if last_act >= 0 else []
         if tail and len(tail) == len(S) - last_act - 1 and any(s["type"] in ("COND", "TRIG", "TIME") for s in S[:last_act + 1]) is False:
             S = tail + S[:last_act + 1]
+    OJ = [s.get("j", k) for k, s in enumerate(S)]           # 재배열 후에도 매핑(MAP/CP)은 원래 절 번호로 조회
     segs3 = [(s["type"], s["mods"], s["text"]) for s in S]
     root = assemble_tree(segs3, False, [])
     # 배치된 절 집합(상자 머리 + 잎 소유자)
@@ -262,7 +310,7 @@ def build(o):
         while k < len(S) and S[k]["type"] in ("COND", "TRIG") and k not in placed and "sustain" not in S[k]["mods"]:
             if not FILLER_PART.match(S[k]["text"].strip()): js.append(k)
             k += 1
-        parts = [cond_expr(cmd, j, S[j]["text"], mixed="mixed" in S[j]["mods"]) for j in js]
+        parts = [cond_expr(cmd, OJ[j], S[j]["text"], mixed="mixed" in S[j]["mods"]) for j in js]
         joiner = " or " if any(re.search(r"거나|또는|이거나", S[j]["text"]) for j in js[:-1]) else " and "
         return joiner.join(parts)
     # 시각(cron)은 모든 절에서 찾는다(첫 time 절만 보던 규칙 폐기): 시각이 있는 절 우선, 그다음 요일·날짜만 있는 절
@@ -282,14 +330,14 @@ def build(o):
             if isinstance(x, Box):
                 if x.kind == "IF":
                     if x.seg is not None and S[x.seg]["type"] in ("COND", "TRIG"): cond = merged_text(x.seg)
-                    elif x.seg is not None and S[x.seg]["type"] == "STOP": cond = cond_expr(cmd, x.seg, S[x.seg]["text"])
+                    elif x.seg is not None and S[x.seg]["type"] == "STOP": cond = cond_expr(cmd, OJ[x.seg], S[x.seg]["text"])
                     elif x.seg is not None and S[x.seg]["type"] == "ACT" and TOGGLE_RE.search(S[x.seg]["text"]) and rerank.ON: cond = "n % 2 == 0"
                     elif x.seg is not None and S[x.seg]["type"] == "ACT" and "mixed" in S[x.seg]["mods"] and rerank.ON:
                         # ACT/mixed 뒤 STOP: "최대 밝기가 되면 그만해" → 절 뒷부분 조건 (값 서비스는 그 절의 후보에서)
                         tail = re.split(r"[.!] ", S[x.seg]["text"])[-1]
                         if re.search(r"최대 밝기", tail): cond = "Light.CurrentBrightness >= 100"
                         elif re.search(r"최소 밝기", tail): cond = "Light.CurrentBrightness <= 0"
-                        else: cond = _cond_expr(cmd, x.seg, tail)
+                        else: cond = _cond_expr(cmd, OJ[x.seg], tail)
                     else: cond = "?"
                     if x.seg is not None and rerank.ON and re.search(r"(떨어졌|올랐|내려갔|올라갔|변했|차이)", S[x.seg]["text"]) and any(n.get("op") == "read" for n in out):
                         # B14: "확인하고 … 다시 확인해서 M 이상 떨어졌으면" → 두 번째 읽기 + 차이 조건
@@ -327,7 +375,7 @@ def build(o):
                     force = None
                     if rerank.ON and MODE_ON_RE.search(s["text"]) and ncall[j] == 1: force = "Switch.On"          # A4 첫 호출 = 켜기
                     elif rerank.ON and MODE_TEMP_RE.search(s["text"]):                                          # "냉방 모드로 18도로": 1=Mode 2=TargetTemperature
-                        fs = [f for f in MAP.get((cmd, j), []) if svc_info(f)[0] == "function"]
+                        fs = [f for f in MAP.get((cmd, OJ[j]), []) if svc_info(f)[0] == "function"]
                         want = [f for f in fs if ("Mode" in f) == (ncall[j] == 1) and ("Temperature" in f) == (ncall[j] == 2)]
                         if want: force = want[0]
                     elif rerank.ON and PULSE_RE.search(s["text"]) and ncall[j] == 2: force = "Switch.Off"          # 펄스 두 번째 CALL = 끄기
@@ -343,15 +391,15 @@ def build(o):
                     elif rerank.ON and "else" in s["mods"] and ELSE_SPLIT.search(txt):
                         parts = re.split(r"[,\s](?:그 외에는|그 외에|아니면|그렇지 않으면) ", txt, maxsplit=1)
                         txt = parts[min(ncall[j] - 1, len(parts) - 1)] + (" 설정해줘" if ncall[j] == 1 else "")
-                    out.append(call_node(cmd, j, txt, force=force, hint=hint))
+                    out.append(call_node(cmd, OJ[j], txt, force=force, hint=hint))
                 elif leaf == "READ":
-                    getf = next((f for f in MAP.get((cmd, j), []) if svc_info(f)[0] == "function" and not f.startswith("Speaker.")), None)
-                    hasv = top(cmd, j, "value") is not None
+                    getf = next((f for f in MAP.get((cmd, OJ[j]), []) if svc_info(f)[0] == "function" and not f.startswith("Speaker.")), None)
+                    hasv = top(cmd, OJ[j], "value") is not None
                     param = re.search(r'\d+\s*동|식당|["“]', s["text"]) is not None      # "301동 점심 메뉴"처럼 인자가 필요한 조회
                     if rerank.ON and getf and (not hasv or param) and not re.search(r"온도|습도|조도|농도|상태|값|수치", s["text"]):   # 값 서비스가 있으면 read, 없거나 인자 필요하면 함수 call (사용자 결정: 서비스 종류 따라)
-                        out.append(call_node(cmd, j, s["text"], force=getf))
+                        out.append(call_node(cmd, OJ[j], s["text"], force=getf))
                     else:
-                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(cmd, j, "value") or "?"})
+                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(cmd, OJ[j], "value") or "?"})
                 elif leaf == "DELAY": out.append({"op": "delay", "duration": slots.duration(s["text"]) or "?"})
                 elif leaf.startswith("WAIT"):
                     node = {"op": "wait", "cond": merged_text(j) if s["type"] in ("COND", "TRIG") else "?", "edge": "rising" if "every" in s["mods"] else "none"}
@@ -363,7 +411,7 @@ def build(o):
     conv(root, tl)
     if rerank.ON:
         _walk_nodes(tl, _collapse_complement)
-        if "주말" in cmd and tl and tl[0].get("cron", "").endswith("* * 6,7") and len(tl) > 1 and tl[1].get("op") == "cycle" and tl[1].get("until") is None:
+        if "주말" in " ".join(s["text"] for s in S) and tl and tl[0].get("cron", "").endswith("* * 6,7") and len(tl) > 1 and tl[1].get("op") == "cycle" and tl[1].get("until") is None:
             tl[0]["cron"] = tl[0]["cron"][:-3] + "6"; tl[1]["until"] = 'Clock.Weekday == "monday"'          # "주말 동안/에 N마다" = 토요일 0시 시작, 월요일까지(사용자 결정: 기간은 start+until)
     return {"timeline": tl}
 

@@ -91,7 +91,7 @@ def segment(text):
             if pr[r] < TAU:
                 t2 = mcq_type(text, segs[r]); GATE_LOG.append((segs[r], ty[r], float(pr[r]), t2)); gated.append(r)
                 if t2: ty[r] = t2
-    return [{"text": s, "type": t, "mods": [MODS[k] for k in range(len(MODS)) if md[r, k]], "gated": r in gated, "p": float(pr[r])} for r, (s, t) in enumerate(zip(segs, ty))]
+    return [{"j": r, "text": s, "type": t, "mods": [MODS[k] for k in range(len(MODS)) if md[r, k]], "gated": r in gated, "p": float(pr[r]), "h6": F[ends[r], LT].astype(np.float32).tolist()} for r, (s, t) in enumerate(zip(segs, ty))]
 
 # ── 타입 객관식 게이트(저확신 절만 9B에게) ──
 TAU = float(os.environ.get("TAU", "0")); GATE_LOG = []
@@ -183,11 +183,11 @@ def evaluate(o, o2, G):
 res = collections.defaultdict(collections.Counter); fails = []; out = []
 for key, text, o in items:
     segs = SEG[(key, o["i"])]; ck = f"{key}#{o['i']}"
-    for j in range(len(segs)): B.MAP[(ck, j)] = MAP2.get((key, o["i"], j), [])
+    for j in range(len(segs)): B.MAP[(ck, j)] = MAP2.get((key, o["i"], j), []); B.SEGTXT[(ck, j)] = segs[j]["text"]
     B.CP[ck] = dict(CP2.get((key, o["i"]), {}))
     o2 = {"i": o["i"], "cmd": ck, "ir_gt": o["ir_gt"], "segments": segs}
     r, ir = evaluate(o, o2, B.gold_of(o)); grp = "orig" if key == "orig" else "para"; res[grp][r] += 1
-    out.append({"grp": grp, "i": o["i"], "text": text, "segs": segs, "result": r, "ir": ir})
+    out.append({"grp": grp, "i": o["i"], "text": text, "segs": [{k: v for k, v in s_.items() if k != "h6"} for s_ in segs], "result": r, "ir": ir, "graph": B.LAST_GRAPH.get(ck)})
     if grp == "para" and r != "OK": fails.append((r, text, " ‖ ".join(f"[{s['type']}{'/'+'+'.join(s['mods']) if s['mods'] else ''}] {s['text']}" for s in segs)))
 json.dump(out, open(os.path.join(HERE, f"fresh_out{'_' + '_'.join(AUG) if AUG else ''}.json"), "w"), ensure_ascii=False, indent=1)
 def cum(c):

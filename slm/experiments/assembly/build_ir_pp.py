@@ -21,7 +21,7 @@ def make_pred_cmd(o):
     """예측 절로 명령 사본을 만들고 MAP/CP 항목을 사본 키로 등록"""
     key = o["cmd"] + "​"; segs = PT[str(o["i"])]["pred"]
     gold_segs = o["segments"]
-    o2 = {"i": o["i"], "cmd": key, "ir_gt": o["ir_gt"], "cat": o.get("cat"), "segments": [{"text": s["text"], "type": s["type"], "mods": sorted(s["mods"])} for s in segs]}
+    o2 = {"i": o["i"], "cmd": key, "ir_gt": o["ir_gt"], "cat": o.get("cat"), "segments": [{"j": k, "text": s["text"], "type": s["type"], "mods": sorted(s["mods"])} for k, s in enumerate(segs)]}
     B.CP[key] = {}
     for j, s in enumerate(segs):
         ns = norm(s["text"]); ov = []
