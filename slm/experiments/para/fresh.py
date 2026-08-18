@@ -75,9 +75,31 @@ def states(text):
         last.append(l)
     with torch.no_grad(): hs = model(**{k: v.to("cuda") for k, v in enc.items()}, output_hidden_states=True).hidden_states
     return words, np.stack([hs[L + 1][0, last].float().cpu().numpy() for L in LAYERS], axis=1)
+BTAU = float(os.environ.get("BTAU", "0")); BGATE_LOG = []
+def mcq_boundary(text, words, t):
+    """저확신 경계: 9B에게 두 어절 사이가 절 경계인지 2지선다"""
+    import urllib.request
+    left = " ".join(words[:t]); right = " ".join(words[t:])
+    p = (f"사용자 명령: \"{text}\"\n이 명령을 의미 단위(조건/행동/시각/지연 절)로 나눌 때, 아래 두 부분 사이에서 나누는 것이 맞는가?\n"
+         f"앞: \"{left}\"\n뒤: \"{right}\"\n\nA. 나눈다 (뒤 부분이 새 절의 시작)\nB. 나누지 않는다 (같은 절이 이어짐)\n\n답:")
+    req = json.dumps({"model": "cyankiwi/Qwen3.5-9B-AWQ-4bit", "prompt": p, "max_tokens": 1, "temperature": 0, "logprobs": 20}).encode()
+    try:
+        r = urllib.request.Request("http://localhost:8002/v1/completions", data=req, headers={"Content-Type": "application/json"})
+        top = json.loads(urllib.request.urlopen(r, timeout=120).read())["choices"][0]["logprobs"]["top_logprobs"][0]
+    except Exception: return None
+    a = max([v for k, v in top.items() if k.strip() == "A"] or [-30.0]); b = max([v for k, v in top.items() if k.strip() == "B"] or [-30.0])
+    return int(a > b)
 def segment(text):
     words, F = states(text)
-    lab = [1] + [int(clf_b.predict(scb.transform(np.concatenate([F[t - 1, LB], F[t, LB]])[None]))[0]) for t in range(1, len(words))]
+    pb = [1.0] + [float(clf_b.predict_proba(scb.transform(np.concatenate([F[t - 1, LB], F[t, LB]])[None]))[0, 1]) for t in range(1, len(words))]
+    lab = [int(p >= 0.5) for p in pb]
+    for t in range(1, len(words)):                                     # 표면 제약: 한글 수사 + 단위("한 ‖ 시간") 사이는 경계가 아님
+        if re.fullmatch(r"(한|두|세|네|다섯|여섯|일곱|여덟|아홉|열|스무|서른|반)", words[t - 1]) and re.match(r"(시간|시|분|초|번|회|개|장|컷|도|층)", words[t]): lab[t] = 0; pb[t] = 0.0
+    if BTAU > 0:
+        for t in range(1, len(words)):
+            if abs(pb[t] - 0.5) < BTAU:
+                g = mcq_boundary(text, words, t); BGATE_LOG.append((text, t, words[t], round(pb[t], 2), g))
+                if g is not None: lab[t] = g
     segs, cur, ends = [], [], []
     for i, (w, l) in enumerate(zip(words, lab)):
         if l == 1 and cur: segs.append(" ".join(cur)); ends.append(i - 1); cur = []
@@ -198,6 +220,10 @@ for g in ("orig", "para"): print(g, cum(res[g]), dict(res[g]))
 okI = {x["i"] for x in out if x["grp"] == "orig" and x["result"] == "OK"}
 sub = collections.Counter(x["result"] for x in out if x["grp"] == "para" and x["i"] in okI)
 print("para|orig OK", cum(sub))
+if BGATE_LOG:
+    chb = sum(1 for x in BGATE_LOG if x[4] is not None and x[4] != int(x[3] >= 0.5))
+    print(f"경계 게이트: 저확신 {len(BGATE_LOG)}개, 9B가 바꾼 것 {chb}개 (BTAU={BTAU})")
+    for x in BGATE_LOG[:60]: print(f"   p={x[3]:.2f} head={int(x[3]>=0.5)} 9B={x[4]} | …|{x[2]}… | {x[0][:70]}")
 if GATE_LOG:
     ch = sum(1 for g in GATE_LOG if g[3] and g[3] != g[1]); print(f"게이트: 저확신 절 {len(GATE_LOG)}개, 객관식이 타입을 바꾼 것 {ch}개 (TAU={TAU})")
     for g in GATE_LOG[:25]: print(f"   p={g[2]:.2f} head={g[1]:5s} 9B={g[3]}  | {g[0]}")

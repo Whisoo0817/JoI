@@ -263,7 +263,23 @@ TIME_TOK = re.compile(r"(오전|오후|아침|저녁|밤|새벽|낮|정오|자�
 def _time_only_seg(t):
     """시각 표현·조사·"되면/때"만 남는 절 ("오후 10시가 됐을 때", "밤 10시에")"""
     return slots._hour(t) is not None and TIME_TOK.sub("", t).strip() == ""
+TWO_READ = re.compile(r"^(?P<r1>(지금\s+)?\S+(\s+\S+){0,3}?\s*(재고|보고|확인하고|측정하고|체크하고|읽고))\s+(?P<d>(\d+|한|두|세|네|반)\s*(분|시간|초)\s*(뒤에|후에|후|뒤|지나서|지나고|있다가))\s+(?P<r2>(다시|또|한 번 더|재차)\s*(\S+\s+)?(재서|봐서|확인해서|측정해서|체크해서|읽어서|재고|보고|확인하고)[, ]*)\s*(?P<c>\S+(\s+\S+){0,3}?\s*(올라갔으면|내려갔으면|올랐으면|떨어졌으면|차이가 나면|차이 나면|변했으면|달라졌으면|올라가면|내려가면|높아졌으면|낮아졌으면)[, ]*)\s*(?P<a>.+)$")
+def _two_read(S):
+    """"X를 재고 T 뒤에 다시 재서 D 이상 올라갔으면 A" 관용구 → READ DELAY READ COND + (나머지 절) 로 재분할(경계·타입 head가 흔들리는 자리)"""
+    full = " ".join(s["text"] for s in S); m = TWO_READ.match(full)
+    if not m: return S
+    j0 = S[0].get("j", 0); a_start = m.start("a")
+    # 나머지: 원 절 중 시작 위치가 a_start 이상인 것(정렬되면 그대로), 아니면 한 ACT
+    pos = 0; tail = []
+    for s in S:
+        if pos >= a_start: tail.append(s)
+        pos += len(s["text"]) + 1
+    if not tail or " ".join(t["text"] for t in tail) != m.group("a"): tail = [{"j": S[-1].get("j", len(S) - 1), "text": m.group("a"), "type": "ACT", "mods": []}]
+    head = [{"j": j0, "text": m.group("r1").strip(), "type": "READ", "mods": ["read"]}, {"j": j0, "text": m.group("d").strip(), "type": "DELAY", "mods": []},
+            {"j": j0, "text": m.group("r2").strip(), "type": "READ", "mods": ["read"]}, {"j": j0, "text": m.group("c").strip(), "type": "COND", "mods": []}]
+    return head + tail
 def seg_fix(S):
+    S = _two_read(S)
     """표면 규칙 일반형(§28.2): (a) 수량만 있는 꼬리 절("모두 5번만요")은 STOP/count로 (b) 시각뿐인 COND/TRIG("오후 10시가 됐을 때")는 TIME으로
     (c) 조건 절 + "N분 넘게 이어지면"(지속만) 두 절 → 한 조건 절(sustain) (d) "…올리고 ‖ 내리기를 반복" 두 행동 절 → 한 토글 절"""
     out = []
@@ -399,7 +415,7 @@ def build(o):
                     if rerank.ON and getf and (not hasv or param) and not re.search(r"온도|습도|조도|농도|상태|값|수치", s["text"]):   # 값 서비스가 있으면 read, 없거나 인자 필요하면 함수 call (사용자 결정: 서비스 종류 따라)
                         out.append(call_node(cmd, OJ[j], s["text"], force=getf))
                     else:
-                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(cmd, OJ[j], "value") or "?"})
+                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(cmd, OJ[j], "value") or pick_value(s["text"], []) or "?"})   # 매핑 없으면 센서 어휘 사전(rerank)로
                 elif leaf == "DELAY": out.append({"op": "delay", "duration": slots.duration(s["text"]) or "?"})
                 elif leaf.startswith("WAIT"):
                     node = {"op": "wait", "cond": merged_text(j) if s["type"] in ("COND", "TRIG") else "?", "edge": "rising" if "every" in s["mods"] else "none"}

@@ -503,14 +503,22 @@
   "segs": [
    {
     "j": 0,
-    "text": "비가 내리고 있고 집에 아무도 없다면",
+    "text": "비가 내리고 있고",
+    "type": "COND",
+    "mods": [],
+    "gated": false,
+    "p": 0.9998915225716739
+   },
+   {
+    "j": 1,
+    "text": "집에 아무도 없다면",
     "type": "COND",
     "mods": [],
     "gated": false,
     "p": 0.9999972478272213
    },
    {
-    "j": 1,
+    "j": 2,
     "text": "도어락을 잠그고",
     "type": "ACT",
     "mods": [],
@@ -518,7 +526,7 @@
     "p": 0.9999999860112168
    },
    {
-    "j": 2,
+    "j": 3,
     "text": "밸브를 잠가 주세요.",
     "type": "ACT",
     "mods": [],
@@ -554,19 +562,22 @@
   },
   "graph": {
    "role": [
+    "scope",
     "cont",
     "act",
     "act"
    ],
    "p": [
+    0.99,
     0.85,
     1.0,
     1.0
    ],
    "parent": [
     -1,
-    -1,
-    -1
+    0,
+    0,
+    0
    ],
    "anchors": {},
    "drop": [],
@@ -574,7 +585,8 @@
    "order": [
     0,
     1,
-    2
+    2,
+    3
    ]
   }
  },
@@ -1876,10 +1888,12 @@
    "role": [
     "act",
     "delay",
+    "delay",
     "scope",
     "act"
    ],
    "p": [
+    1.0,
     1.0,
     0.99,
     1.0,
@@ -1889,7 +1903,8 @@
     -1,
     -1,
     -1,
-    2
+    -1,
+    3
    ],
    "anchors": {},
    "drop": [],
@@ -1898,7 +1913,8 @@
     0,
     1,
     2,
-    3
+    3,
+    4
    ]
   }
  },
@@ -2125,7 +2141,7 @@
    "p": [
     1.0,
     1.0,
-    0.98,
+    0.99,
     1.0,
     1.0
    ],
@@ -3306,22 +3322,14 @@
   "segs": [
    {
     "j": 0,
-    "text": "한",
+    "text": "한 시간 간격으로 스피커 음량을 10만큼 키워줘.",
     "type": "ACT",
     "mods": [],
     "gated": false,
-    "p": 0.9448462930557079
-   },
-   {
-    "j": 1,
-    "text": "시간 간격으로 스피커 음량을 10만큼 키워줘.",
-    "type": "ACT",
-    "mods": [],
-    "gated": false,
-    "p": 0.9999997612994652
+    "p": 0.9999997612994532
    }
   ],
-  "result": "S",
+  "result": "V",
   "ir": {
    "timeline": [
     {
@@ -3329,38 +3337,20 @@
      "anchor": "now"
     },
     {
-     "op": "call",
-     "target": "Speaker.Speak",
-     "args": {}
-    },
-    {
-     "op": "call",
-     "target": "Speaker.VolumeUp",
-     "args": {}
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.VolumeUp",
+       "args": {}
+      }
+     ]
     }
    ]
   },
-  "graph": {
-   "role": [
-    "ref",
-    "act"
-   ],
-   "p": [
-    0.27,
-    0.8
-   ],
-   "parent": [
-    -1,
-    -1
-   ],
-   "anchors": {},
-   "drop": [],
-   "moved": [],
-   "order": [
-    0,
-    1
-   ]
-  }
+  "graph": null
  },
  {
   "grp": "orig",
@@ -6498,22 +6488,14 @@
    },
    {
     "j": 1,
-    "text": "한",
-    "type": "TIME",
-    "mods": [],
-    "gated": true,
-    "p": 0.5772446314024617
-   },
-   {
-    "j": 2,
-    "text": "시간 후에",
+    "text": "한 시간 후에",
     "type": "DELAY",
     "mods": [],
     "gated": false,
     "p": 0.9993028124195406
    },
    {
-    "j": 3,
+    "j": 2,
     "text": "리프레쉬 모드로 전환해 주세요.",
     "type": "ACT",
     "mods": [],
@@ -6542,7 +6524,7 @@
     },
     {
      "op": "delay",
-     "duration": "?"
+     "duration": "1 HOUR"
     },
     {
      "op": "call",
@@ -6556,18 +6538,15 @@
   "graph": {
    "role": [
     "act",
-    "filler",
     "delay",
     "act"
    ],
    "p": [
     1.0,
-    0.38,
     0.92,
     1.0
    ],
    "parent": [
-    -1,
     -1,
     -1,
     -1
@@ -6578,8 +6557,7 @@
    "order": [
     0,
     1,
-    2,
-    3
+    2
    ]
   }
  },
@@ -6977,10 +6955,12 @@
    "role": [
     "act",
     "delay",
+    "delay",
     "scope",
     "act"
    ],
    "p": [
+    1.0,
     1.0,
     1.0,
     1.0,
@@ -6990,7 +6970,8 @@
     -1,
     -1,
     -1,
-    2
+    -1,
+    3
    ],
    "anchors": {},
    "drop": [],
@@ -6999,7 +6980,8 @@
     0,
     1,
     2,
-    3
+    3,
+    4
    ]
   }
  },
@@ -7018,14 +7000,22 @@
    },
    {
     "j": 1,
-    "text": "다시 재서 2도 이상 내려갔으면",
+    "text": "다시 재서",
+    "type": "ACT",
+    "mods": [],
+    "gated": false,
+    "p": 0.9745404738872874
+   },
+   {
+    "j": 2,
+    "text": "2도 이상 내려갔으면",
     "type": "COND",
     "mods": [],
     "gated": false,
     "p": 0.9968990059964585
    },
    {
-    "j": 2,
+    "j": 3,
     "text": "거실 히터 플러그를 켜 주세요.",
     "type": "ACT",
     "mods": [],
@@ -7033,7 +7023,7 @@
     "p": 0.9999982903739963
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir": {
    "timeline": [
     {
@@ -7041,12 +7031,22 @@
      "anchor": "now"
     },
     {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "delay",
      "duration": "1 HOUR"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 2",
+     "cond": "$v1 - $v2 >= 2",
      "then": [
       {
        "op": "call",
@@ -7058,31 +7058,7 @@
     }
    ]
   },
-  "graph": {
-   "role": [
-    "delay",
-    "scope",
-    "act"
-   ],
-   "p": [
-    1.0,
-    0.91,
-    1.0
-   ],
-   "parent": [
-    -1,
-    -1,
-    1
-   ],
-   "anchors": {},
-   "drop": [],
-   "moved": [],
-   "order": [
-    0,
-    1,
-    2
-   ]
-  }
+  "graph": null
  },
  {
   "grp": "para",
@@ -7165,13 +7141,15 @@
   "graph": {
    "role": [
     "act",
-    "act",
+    "delay",
+    "delay",
     "scope",
     "act"
    ],
    "p": [
     1.0,
-    0.84,
+    1.0,
+    1.0,
     1.0,
     1.0
    ],
@@ -7179,7 +7157,8 @@
     -1,
     -1,
     -1,
-    2
+    -1,
+    3
    ],
    "anchors": {},
    "drop": [],
@@ -7188,7 +7167,8 @@
     0,
     1,
     2,
-    3
+    3,
+    4
    ]
   }
  },
@@ -9803,14 +9783,22 @@
    },
    {
     "j": 1,
-    "text": "거실 조명을 30%로 줄이고 5분 후에",
+    "text": "거실 조명을 30%로 줄이고",
+    "type": "ACT",
+    "mods": [],
+    "gated": false,
+    "p": 0.9999982657925447
+   },
+   {
+    "j": 2,
+    "text": "5분 후에",
     "type": "DELAY",
     "mods": [],
     "gated": false,
     "p": 0.9999978710673545
    },
    {
-    "j": 2,
+    "j": 3,
     "text": "꺼 주세요.",
     "type": "ACT",
     "mods": [],
@@ -9818,7 +9806,7 @@
     "p": 0.9999298039460187
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir": {
    "timeline": [
     {
@@ -9830,6 +9818,14 @@
      "cond": "MotionSensor.Motion == false",
      "edge": "none",
      "for": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 30.0,
+      "Rate": 0.0
+     }
     },
     {
      "op": "delay",
@@ -9845,15 +9841,18 @@
   "graph": {
    "role": [
     "wait",
+    "act",
     "delay",
     "act"
    ],
    "p": [
     1.0,
     1.0,
+    1.0,
     1.0
    ],
    "parent": [
+    -1,
     -1,
     -1,
     -1
@@ -9864,7 +9863,8 @@
    "order": [
     0,
     1,
-    2
+    2,
+    3
    ]
   }
  },
@@ -10683,14 +10683,22 @@
   "segs": [
    {
     "j": 0,
-    "text": "와인 셀러의 온도가 15도 이상이면서 습도도 60% 이상이면",
+    "text": "와인 셀러의 온도가 15도 이상이면서",
+    "type": "COND",
+    "mods": [],
+    "gated": false,
+    "p": 0.9987853304859765
+   },
+   {
+    "j": 1,
+    "text": "습도도 60% 이상이면",
     "type": "COND",
     "mods": [],
     "gated": false,
     "p": 0.9999999500801093
    },
    {
-    "j": 1,
+    "j": 2,
     "text": "에어컨을 켜고",
     "type": "ACT",
     "mods": [],
@@ -10698,7 +10706,7 @@
     "p": 0.9999999695735022
    },
    {
-    "j": 2,
+    "j": 3,
     "text": "가습기를 꺼 주세요.",
     "type": "ACT",
     "mods": [],
@@ -10706,7 +10714,7 @@
     "p": 0.999992249013227
    }
   ],
-  "result": "C",
+  "result": "OK",
   "ir": {
    "timeline": [
     {
@@ -10715,7 +10723,7 @@
     },
     {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 15 and TemperatureSensor.Temperature >= 60",
+     "cond": "TemperatureSensor.Temperature >= 15 and HumiditySensor.Humidity >= 60",
      "then": [
       {
        "op": "call",
@@ -10734,19 +10742,22 @@
   },
   "graph": {
    "role": [
+    "scope",
     "cont",
     "act",
     "act"
    ],
    "p": [
+    1.0,
     0.56,
     1.0,
     1.0
    ],
    "parent": [
     -1,
-    -1,
-    -1
+    0,
+    0,
+    0
    ],
    "anchors": {},
    "drop": [],
@@ -10754,7 +10765,8 @@
    "order": [
     0,
     1,
-    2
+    2,
+    3
    ]
   }
  },
@@ -11604,22 +11616,14 @@
    },
    {
     "j": 1,
-    "text": "한",
-    "type": "ACT",
-    "mods": [],
-    "gated": false,
-    "p": 0.9311016548734558
-   },
-   {
-    "j": 2,
-    "text": "시간 후에는",
+    "text": "한 시간 후에는",
     "type": "DELAY",
     "mods": [],
     "gated": false,
     "p": 0.9999305817837565
    },
    {
-    "j": 3,
+    "j": 2,
     "text": "26도로 바꿔 주세요.",
     "type": "ACT",
     "mods": [],
@@ -11627,7 +11631,7 @@
     "p": 0.9999933510740066
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir": {
    "timeline": [
     {
@@ -11642,13 +11646,8 @@
      }
     },
     {
-     "op": "call",
-     "target": "Switch.Toggle",
-     "args": {}
-    },
-    {
      "op": "delay",
-     "duration": "?"
+     "duration": "1 HOUR"
     },
     {
      "op": "call",
@@ -11662,18 +11661,15 @@
   "graph": {
    "role": [
     "act",
-    "filler",
     "delay",
     "act"
    ],
    "p": [
     1.0,
-    0.67,
     1.0,
     1.0
    ],
    "parent": [
-    -1,
     -1,
     -1,
     -1
@@ -11684,8 +11680,7 @@
    "order": [
     0,
     1,
-    2,
-    3
+    2
    ]
   }
  },
@@ -11953,14 +11948,22 @@
    },
    {
     "j": 1,
-    "text": "집안 재실 센서가 어느 하나라도 감지되고 10초 뒤에.",
+    "text": "집안 재실 센서가 어느 하나라도 감지되고",
+    "type": "TRIG",
+    "mods": [],
+    "gated": false,
+    "p": 0.8337264441532946
+   },
+   {
+    "j": 2,
+    "text": "10초 뒤에.",
     "type": "DELAY",
     "mods": [],
     "gated": false,
     "p": 0.9981169420505358
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir": {
    "timeline": [
     {
@@ -11968,38 +11971,50 @@
      "anchor": "now"
     },
     {
-     "op": "delay",
-     "duration": "10 SEC"
-    },
-    {
-     "op": "call",
-     "target": "Siren.SetSirenMode",
-     "args": {
-      "Mode": "emergency"
-     }
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true",
+     "then": [
+      {
+       "op": "delay",
+       "duration": "10 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
     }
    ]
   },
   "graph": {
    "role": [
     "act",
+    "scope",
     "scope"
    ],
    "p": [
     1.0,
+    1.0,
     0.99
    ],
    "parent": [
-    1,
-    -1
+    2,
+    -1,
+    1
    ],
    "anchors": {},
    "drop": [],
    "moved": [
-    1
+    1,
+    2
    ],
    "order": [
     1,
+    2,
     0
    ]
   }
@@ -12086,10 +12101,12 @@
    "role": [
     "act",
     "delay",
+    "delay",
     "scope",
     "act"
    ],
    "p": [
+    1.0,
     1.0,
     1.0,
     1.0,
@@ -12099,7 +12116,8 @@
     -1,
     -1,
     -1,
-    2
+    -1,
+    3
    ],
    "anchors": {},
    "drop": [],
@@ -12108,7 +12126,8 @@
     0,
     1,
     2,
-    3
+    3,
+    4
    ]
   }
  },
@@ -12127,14 +12146,22 @@
    },
    {
     "j": 1,
-    "text": "다시 재서 3도 이상 내려갔으면",
+    "text": "다시 재서",
+    "type": "ACT",
+    "mods": [],
+    "gated": false,
+    "p": 0.9685208816186964
+   },
+   {
+    "j": 2,
+    "text": "3도 이상 내려갔으면",
     "type": "COND",
     "mods": [],
     "gated": false,
     "p": 0.9931131833367577
    },
    {
-    "j": 2,
+    "j": 3,
     "text": "침실 히터 플러그를 켜 주세요.",
     "type": "ACT",
     "mods": [],
@@ -12142,7 +12169,7 @@
     "p": 0.9999981624093163
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir": {
    "timeline": [
     {
@@ -12150,12 +12177,22 @@
      "anchor": "now"
     },
     {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "delay",
      "duration": "30 MIN"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 3",
+     "cond": "$v1 - $v2 >= 3",
      "then": [
       {
        "op": "call",
@@ -12167,31 +12204,7 @@
     }
    ]
   },
-  "graph": {
-   "role": [
-    "delay",
-    "scope",
-    "act"
-   ],
-   "p": [
-    1.0,
-    0.83,
-    1.0
-   ],
-   "parent": [
-    -1,
-    -1,
-    1
-   ],
-   "anchors": {},
-   "drop": [],
-   "moved": [],
-   "order": [
-    0,
-    1,
-    2
-   ]
-  }
+  "graph": null
  },
  {
   "grp": "para",
@@ -12200,14 +12213,24 @@
   "segs": [
    {
     "j": 0,
-    "text": "지금 침실 온도 보고 30분 뒤 또 봐서",
+    "text": "지금 침실 온도 보고",
+    "type": "READ",
+    "mods": [
+     "read"
+    ],
+    "gated": true,
+    "p": 0.5152199699480078
+   },
+   {
+    "j": 1,
+    "text": "30분 뒤 또 봐서",
     "type": "READ",
     "mods": [],
     "gated": false,
     "p": 0.9664260816889585
    },
    {
-    "j": 1,
+    "j": 2,
     "text": "3도 넘게 떨어졌으면",
     "type": "COND",
     "mods": [],
@@ -12215,7 +12238,7 @@
     "p": 0.9997625447843064
    },
    {
-    "j": 2,
+    "j": 3,
     "text": "침실 히터 플러그 켜줘.",
     "type": "ACT",
     "mods": [],
@@ -12223,7 +12246,7 @@
     "p": 0.9999894962964985
    }
   ],
-  "result": "S",
+  "result": "C",
   "ir": {
    "timeline": [
     {
@@ -12231,8 +12254,22 @@
      "anchor": "now"
     },
     {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "delay",
+     "duration": "30 MIN"
+    },
+    {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature > 3",
+     "cond": "$v1 - $v2 > 3",
      "then": [
       {
        "op": "call",
@@ -12246,19 +12283,25 @@
   },
   "graph": {
    "role": [
+    "act",
+    "delay",
     "delay",
     "scope",
     "act"
    ],
    "p": [
-    0.95,
+    1.0,
+    1.0,
+    1.0,
     1.0,
     1.0
    ],
    "parent": [
     -1,
     -1,
-    1
+    -1,
+    -1,
+    3
    ],
    "anchors": {},
    "drop": [],
@@ -12266,7 +12309,9 @@
    "order": [
     0,
     1,
-    2
+    2,
+    3,
+    4
    ]
   }
  },
@@ -15535,22 +15580,14 @@
   "segs": [
    {
     "j": 0,
-    "text": "온도가 28도 이상이면서",
-    "type": "COND",
-    "mods": [],
-    "gated": false,
-    "p": 0.986248185070172
-   },
-   {
-    "j": 1,
-    "text": "습도가 70% 이상이면",
+    "text": "온도가 28도 이상이면서 습도가 70% 이상이면",
     "type": "COND",
     "mods": [],
     "gated": false,
     "p": 0.9999999538744343
    },
    {
-    "j": 2,
+    "j": 1,
     "text": "에어컨을 냉방 모드로 하고",
     "type": "ACT",
     "mods": [],
@@ -15558,7 +15595,7 @@
     "p": 0.9999996161995043
    },
    {
-    "j": 3,
+    "j": 2,
     "text": "온도는 24도로 설정해 주세요.",
     "type": "ACT",
     "mods": [],
@@ -15566,7 +15603,7 @@
     "p": 0.999964259032611
    }
   ],
-  "result": "OK",
+  "result": "C",
   "ir": {
    "timeline": [
     {
@@ -15575,7 +15612,7 @@
     },
     {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 28 and HumiditySensor.Humidity >= 70",
+     "cond": "TemperatureSensor.Temperature >= 28 and TemperatureSensor.Temperature >= 70",
      "then": [
       {
        "op": "call",
@@ -15598,22 +15635,19 @@
   },
   "graph": {
    "role": [
-    "scope",
     "cont",
     "act",
     "act"
    ],
    "p": [
-    1.0,
     0.51,
     1.0,
     1.0
    ],
    "parent": [
     -1,
-    0,
-    0,
-    0
+    -1,
+    -1
    ],
    "anchors": {},
    "drop": [],
@@ -15621,8 +15655,7 @@
    "order": [
     0,
     1,
-    2,
-    3
+    2
    ]
   }
  },
@@ -15848,7 +15881,15 @@
    },
    {
     "j": 2,
-    "text": "50%로, 나머지 경우에는",
+    "text": "50%로,",
+    "type": "ACT",
+    "mods": [],
+    "gated": false,
+    "p": 0.9989518300570888
+   },
+   {
+    "j": 3,
+    "text": "나머지 경우에는",
     "type": "ELSE",
     "mods": [
      "mixed"
@@ -15857,7 +15898,7 @@
     "p": 0.5070476193903074
    },
    {
-    "j": 3,
+    "j": 4,
     "text": "20%로 맞춰 주세요.",
     "type": "ACT",
     "mods": [
@@ -15867,7 +15908,7 @@
     "p": 0.9999973808985702
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir": {
    "timeline": [
     {
@@ -15891,7 +15932,16 @@
       {
        "op": "if",
        "cond": "LightSensor.Brightness <= 300",
-       "then": [],
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 50.0,
+          "Rate": 0.0
+         }
+        }
+       ],
        "else": [
         {
          "op": "call",
@@ -15911,12 +15961,14 @@
    "role": [
     "scope",
     "scope",
+    "act",
     "scope",
     "act"
    ],
    "p": [
     0.95,
     1.0,
+    0.89,
     0.71,
     1.0
    ],
@@ -15924,7 +15976,8 @@
     -1,
     0,
     0,
-    2
+    -1,
+    3
    ],
    "anchors": {},
    "drop": [],
@@ -15933,7 +15986,8 @@
     0,
     1,
     2,
-    3
+    3,
+    4
    ]
   }
  },
@@ -15952,15 +16006,7 @@
    },
    {
     "j": 1,
-    "text": "100%, 300lux 이하일 땐",
-    "type": "COND",
-    "mods": [],
-    "gated": false,
-    "p": 0.9985471630662006
-   },
-   {
-    "j": 2,
-    "text": "50%, 그 밖에는 20%로 설정해줘.",
+    "text": "100%, 300lux 이하일 땐 50%, 그 밖에는 20%로 설정해줘.",
     "type": "ACT",
     "mods": [
      "else"
@@ -15979,50 +16025,39 @@
     {
      "op": "if",
      "cond": "LightSensor.Brightness <= 100",
-     "then": [
+     "then": [],
+     "else": [
       {
-       "op": "if",
-       "cond": "LightSensor.Brightness <= 100",
-       "then": [],
-       "else": [
-        {
-         "op": "call",
-         "target": "Light.MoveToBrightness",
-         "args": {
-          "Brightness": 50.0,
-          "Rate": 0.0
-         }
-        }
-       ]
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
       }
-     ],
-     "else": []
+     ]
     }
    ]
   },
   "graph": {
    "role": [
     "scope",
-    "scope",
     "act"
    ],
    "p": [
     1.0,
-    0.84,
     1.0
    ],
    "parent": [
     -1,
-    0,
-    1
+    0
    ],
    "anchors": {},
    "drop": [],
    "moved": [],
    "order": [
     0,
-    1,
-    2
+    1
    ]
   }
  },
@@ -17016,10 +17051,12 @@
    "role": [
     "act",
     "delay",
+    "delay",
     "scope",
     "act"
    ],
    "p": [
+    1.0,
     1.0,
     1.0,
     1.0,
@@ -17029,7 +17066,8 @@
     -1,
     -1,
     -1,
-    2
+    -1,
+    3
    ],
    "anchors": {},
    "drop": [],
@@ -17038,7 +17076,8 @@
     0,
     1,
     2,
-    3
+    3,
+    4
    ]
   }
  },
@@ -17072,7 +17111,7 @@
     "p": 0.9999991809507505
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir": {
    "timeline": [
     {
@@ -17080,12 +17119,22 @@
      "anchor": "now"
     },
     {
+     "op": "read",
+     "var": "v1",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
      "op": "delay",
      "duration": "30 MIN"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
      "op": "if",
-     "cond": "HumiditySensor.Humidity >= 15",
+     "cond": "$v2 - $v1 >= 15",
      "then": [
       {
        "op": "call",
@@ -17097,31 +17146,7 @@
     }
    ]
   },
-  "graph": {
-   "role": [
-    "delay",
-    "scope",
-    "act"
-   ],
-   "p": [
-    1.0,
-    0.96,
-    1.0
-   ],
-   "parent": [
-    -1,
-    -1,
-    1
-   ],
-   "anchors": {},
-   "drop": [],
-   "moved": [],
-   "order": [
-    0,
-    1,
-    2
-   ]
-  }
+  "graph": null
  },
  {
   "grp": "para",
@@ -17157,7 +17182,7 @@
     "p": 0.9999904541268737
    }
   ],
-  "result": "S",
+  "result": "C",
   "ir": {
    "timeline": [
     {
@@ -17165,8 +17190,22 @@
      "anchor": "now"
     },
     {
+     "op": "read",
+     "var": "v1",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "delay",
+     "duration": "30 MIN"
+    },
+    {
+     "op": "read",
+     "var": "v2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
      "op": "if",
-     "cond": "HumiditySensor.Humidity > 15",
+     "cond": "$v2 - $v1 > 15",
      "then": [
       {
        "op": "call",
@@ -17180,19 +17219,25 @@
   },
   "graph": {
    "role": [
+    "act",
+    "delay",
     "delay",
     "scope",
     "act"
    ],
    "p": [
-    0.96,
-    0.99,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
     1.0
    ],
    "parent": [
     -1,
     -1,
-    1
+    -1,
+    -1,
+    3
    ],
    "anchors": {},
    "drop": [],
@@ -17200,7 +17245,9 @@
    "order": [
     0,
     1,
-    2
+    2,
+    3,
+    4
    ]
   }
  },
