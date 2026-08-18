@@ -962,7 +962,7 @@ P/P 실패 33 = 규칙(G/G도 실패) 14 · 타입/mods 12(mixed·sustain·else 
 | 상보 조건 | "25도 이상이면 A, 25도 미만이면 B" / "꺼져 있으면 켜고, 켜져 있으면 꺼줘"는 **else-if가 아니라 ELSE** | `_collapse_complement`: `if A{X} else{if ¬A{Y}}` → `if A{X} else{Y}` (같은 속성·같은 값의 ≥/<, ≤/>, true/false) |
 | "주말 동안/에 N마다" | 기간은 duration이 아니라 **토요일 0시 시작 + `until Clock.Weekday == "monday"`** (cycle에 duration 슬롯 없음) | `build` 후처리: cron `6,7`→`6`, until 채움 |
 | "X를 스피커로 알려줘" | **서비스 종류 따라**: 값 서비스가 있으면 `read` + Speak(`$var`), 함수뿐이거나 인자가 필요하면("301동 점심 메뉴") 함수 call + Speak | READ 잎: 값 후보 있으면 read; `\d+동|식당|따옴표` 있으면 함수 |
-| "야간 모드(밝기 10%)" | 명령문에 괄호 표기는 부적절 → **데이터셋에서 문장 수정 권장**; gold는 밝기 10 한 호출로(빨간색 호출 근거 없음) | gold 편집 1건 |
+| "야간 모드(밝기 10%)" | 명령문에 괄호 표기 불가 → **문장을 "모든 조명 밝기를 10%로 설정해줘"로 수정**(dataset.csv·dataset_paper.csv·labels·type_labels), gold는 밝기 10 한 호출(빨간색 호출 근거 없음) | 데이터 수정 + `states.npz` 재추출 + 매핑 재생성 |
 | "켜진 펌프가 하나라도 있으면" | 켜짐 상태 = Switch.Switch (B4) | `STATE` 정규식에 "켜진 X가 (하나라도) 있" |
 
 → 380 G/G **0.989(376/380)**, P/P **0.929**, 패러 160 0.562(변화 없음). 잔여 4: 녹음→저장(gold 한 호출·composite 대상), "활성화되어있으면"(gold가 IsAvailable call 후 if), 25→50→75 순환, "재실 센서 하나라도 감지되면"(gold가 cycle+wait rising).

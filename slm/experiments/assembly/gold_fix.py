@@ -31,7 +31,6 @@ EDITS["20초마다 부엌 라이트를 toggle 해줘. 8번만."] = lambda tl: _r
 EDITS["비가 오고 문이 잠겨 있지 않으면, 문을 잠그고 제습기를 건조 모드로 설정해줘."] = lambda tl: _replace_call(tl, "Dehumidifier.SetDehumidifierMode", [{"op": "call", "target": "Dehumidifier.SetDehumidifierMode", "args": {"Mode": "drying"}}])   # "건조 모드" = drying (gold internalCare는 재작성 전 잔여)
 EDITS["오후 1시부터 3시까지 5분마다 벨브를 열었다 닫았다 반복해줘."] = lambda tl: [tl[0], {**tl[1], "body": [{"op": "if", "cond": "n % 2 == 0", "then": [tl[1]["body"][0]], "else": [tl[1]["body"][1]]}]}]   # 토글 = n%2 (사용자 결정; Toggle 함수 없는 밸브)
 EDITS["멀티버튼의 버튼3이 눌릴 때마다 주방 조명을 켜고 끄는 것을 반복해줘."] = lambda tl: [tl[0], {**tl[1], "body": [tl[1]["body"][0], {"op": "call", "target": "Switch.Toggle", "args": {}}]}]   # 켜고 끄기 = Switch.Toggle 한 호출(사용자 결정)
-EDITS["멀티버튼의 버튼4가 눌리면 모든 조명을 야간 모드(밝기 10%)로 설정해줘."] = lambda tl: [n for n in tl if not (n.get("op") == "call" and n["target"] == "Light.MoveToColor")]   # "야간 모드(밝기 10%)" = 밝기 10 한 호출 (gold의 빨간색은 근거 없음; 명령문 괄호 표기는 데이터셋에서 수정 권장)
 PERIOD_EDITS = {   # C1: 시간창 안 상태 감시 명령에 주기 표현이 없으면 폴링 기본 100 MSEC (gold "1 HOUR"는 임의값)
     "오후 6시부터 8시까지 1층에 사람이 감지되면 1층 불을 다 켜줘.": "100 MSEC",
 }
