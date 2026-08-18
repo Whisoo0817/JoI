@@ -38,16 +38,20 @@ def lines_to_graph(L, segs):
     """줄 목록 → parent/role. 줄 순서 = 실행 순서(잎), 범위 머리는 scope."""
     n = len(segs); parent = [-1] * n; role = ["act"] * n; stack = []   # (seg, depth)
     exec_order = []
+    last_scope_at = {}   # depth → 마지막 범위 절 (머리 없는 [아니면]은 그 IF에 귀속)
     for seg, d, mk in L:
         while stack and stack[-1][1] >= d: stack.pop()
         p = stack[-1][0] if stack else -1
-        if seg is None: continue
+        if seg is None:                                   # 머리 없는 [아니면]: 직전 같은 깊이 범위(IF)의 가지
+            if mk == "아니면" and d in last_scope_at: stack.append((last_scope_at[d], d))
+            continue
         parent[seg] = p
         if mk in ("반복", "조건", "아니면", "시각"):
-            role[seg] = "scope" if mk != "시각" else "time"; stack.append((seg, d))
+            role[seg] = "scope" if mk != "시각" else "time"; stack.append((seg, d)); last_scope_at[d] = seg
         else:
-            role[seg] = {"지연": "delay", "읽기": "act", "대기": "act", "참조": "ref", "무시": "filler", "": "act", "종료": "act"}[mk]
-            if role[seg] in ("act", "delay"): exec_order.append(seg)
+            role[seg] = {"지연": "delay", "읽기": "act", "대기": "wait", "참조": "ref", "무시": "filler", "": "act", "종료": "act"}[mk]
+            if role[seg] == "act" and segs[seg][0] in ("COND", "TRIG"): role[seg] = "cont"   # 병합 조건의 뒷부분
+            if role[seg] in ("act", "delay", "wait"): exec_order.append(seg)
     return parent, role, exec_order
 
 def base_items():
