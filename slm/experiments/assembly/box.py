@@ -22,6 +22,9 @@ import json, os, sys, collections, re
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from skeleton import skeleton
 
+class Leaf(str):
+    """잎(CALL/READ/DELAY/WAIT…) — 소유 절 추적을 위해 개별 객체""" 
+_CUR = [None]                      # 조립 중인 절 번호 (후보 생성·렌더링용 소유 정보)
 class Box:
     def __init__(self, kind, flags=""):
         self.kind = kind          # ROOT / IF / ELSE / CYC
@@ -29,8 +32,12 @@ class Box:
         self.items = []           # 문자열 잎 또는 Box
         self.else_items = None    # IF일 때 else 목록(활성화 시 list)
         self.in_else = False
+        self.seg = _CUR[0]        # 이 상자를 연 절
+        self.owner = {}           # id(item) → 절 번호
     def add(self, x):
+        if isinstance(x, str) and not isinstance(x, Leaf): x = Leaf(x)
         (self.else_items if self.in_else else self.items).append(x)
+        self.owner[id(x)] = _CUR[0]
     def render(self):
         inner = " ".join(x.render() if isinstance(x, Box) else x for x in self.items)
         if self.kind == "ROOT": return inner
@@ -88,6 +95,7 @@ def assemble(segs, cron, cyc_flags):
     i = 0
     pending_cond = None   # 병합 중인 조건 상자 종류: "IF" 열림 대기
     while i < n:
+        _CUR[0] = i
         t, m = segs[i]
         nxt = segs[i + 1] if i + 1 < n else (None, [])
         # 시간 표지: period가 있으면(=gold cycle 플래그가 남아 있고 그 다음 cycle이 every용이 아님) CYC 열기
@@ -155,7 +163,22 @@ def assemble(segs, cron, cyc_flags):
                 b = Box("IF"); b.items = ["BREAK"]; cur().add(b)
             i += 1; continue
         i += 1
+    root.prefix = out_prefix
     return out_prefix + (" " + root.render() if root.render() else "")
+
+def assemble_tree(segs, cron, cyc_flags):
+    """뼈대 문자열 대신 Box 트리(절 소유 정보 포함) 반환."""
+    holder = {}
+    _orig = Box.__init__
+    def _init(self, kind, flags=""):
+        _orig(self, kind, flags)
+        if kind == "ROOT": holder["root"] = self
+    Box.__init__ = _init
+    try:
+        assemble(segs, cron, cyc_flags)
+    finally:
+        Box.__init__ = _orig
+    return holder["root"]
 
 def lenient(sk):
     """관대 동치: (1) CALL/READ 잎 연속 → A  (2) 최상위 WAIT:none X ≡ IF[X] (gold 혼용)  """
