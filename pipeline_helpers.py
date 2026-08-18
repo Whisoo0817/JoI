@@ -151,24 +151,6 @@ def extract_service_details(selected_services, full_service_data):
     return extracted
 
 
-# "볼륨 10 높여줘" -> Need Volume value
-_VALUE_SERVICE_MAP = {
-    "SetSpinSpeed": "SpinSpeed", "SetVolume": "Volume", "SetChannel": "Channel",
-    "MoveToBrightness": "CurrentBrightness", "MoveToLevel": "CurrentLevel",
-}
-
-def inject_value_service(selected_services):
-    for s in list(selected_services):
-        if '.' not in s:
-            continue
-        dev, svc = s.split('.', 1)
-        if svc in _VALUE_SERVICE_MAP:
-            companion = f"{dev}.{_VALUE_SERVICE_MAP[svc]}"
-            if companion not in selected_services:
-                selected_services.append(companion)
-    return selected_services
-
-
 # SERVICE_DATA 순회 -> { 서비스명: 카테고리 } 역방향 맵.
 # Sub-skill 카테고리(Switch / LevelControl / ColorControl / RotaryControl)가
 # primary 매핑을 덮어써 공유 서비스명이 sub-skill prefix로 해석되게 한다.

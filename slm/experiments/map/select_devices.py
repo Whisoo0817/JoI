@@ -17,7 +17,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 from embed import embed
 ROOT = os.path.join(HERE, "..", "..", "..")
-TAGLEX = json.load(open(os.path.join(ROOT, "mapping_v2", "tag_lexicon.json")))["tags"]
+TAGLEX = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "tag_lexicon.json")))["tags"]
 TAGKO = json.load(open(os.path.join(HERE, "tag_ko.json")))          # 컴파일된 태그 한국어 어휘 (9B, 1회)
 TAGKO.setdefault("Bedroom", []).append("안방")
 TAGKO.setdefault("Shade", []).extend(["쉐이드", "셰이드"])
@@ -35,7 +35,7 @@ for _t, _v in list(TAGKO.items()):                 # "1 구역" ↔ "구역1" �
         m = re.match(r"^(\S+?)\s*(\d+)$", _tr)
         if m: _v.append(m.group(2) + m.group(1))
 USE_EMB = os.environ.get("EMB", "0") == "1"
-AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
+AL = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "category_aliases.json")))["aliases"]
 R = json.load(open(os.path.join(HERE, "ranked.json")))
 P = pd.read_csv(os.path.join(HERE, "dataset_paper.csv"))
 prow = {r.command_kor: r for r in P.itertuples()}

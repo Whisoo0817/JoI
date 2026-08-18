@@ -67,31 +67,26 @@ Generation reads `connected_devices` to resolve phrases → tags/categories.
 
 ---
 
-## 3. Joi Code Generation Pipeline (device-first, IR-mediated)
-The active pipeline lives in `joi/generate.py` (`generate_joi_code`). It compiles a Korean/English command into a Joi block through a **Timeline IR**. LLM stages are interleaved with **deterministic Python** steps (grounding resolution, selector-tag minimization, quantifier choice) so small local models never decide what code can compute exactly.
+## 3. Joi Code Generation Pipeline (sLM head → Timeline IR → lowering)
+The active pipeline lives in `joi/generate.py` (`generate_joi_code`). It compiles a Korean command into a Joi block through a **Timeline IR**. The IR is built by `joi_slm/` — a 2B model's hidden states plus small linear heads and deterministic rules, with **no LLM text generation** — and only lowering/naming use the 9B LLM.
 
-### Stage 1 — Targeting
-1.  **`device_retrieve`** (LLM, command only — does NOT see devices): parses the command into target groups, one per line: `role=<condition|read|action|notify> | by=label:<verbatim phrase>|channel:<speaker,toast> | scope=<all|any|one|auto>`.
-2.  **`ground_targets`** (LLM, sees devices): maps each label phrase to a **criterion** (tag/category/nickname tokens; `+`=AND, `;`=OR-cluster) — not a raw device list.
-3.  **`resolve_criterion` + `minimal_tags_for`** (Python): resolve the criterion to exact device sets and derive the tightest selector tag(s).
-4.  **`device_resolve`** (LLM): pick the service per group and echo the given tags → `(#Tag).Category.Method`. It does NOT choose the quantifier.
-5.  **`quantifier_for`** (Python): add `all`/`any`/`one` deterministically from scope + role + match count.
+### Stage 1 — Command → Timeline IR (`joi_slm.CommandToIR`)
+1.  **WordEncoder** (Qwen3.5-2B-AWQ, one prefill): per-word hidden states (layers 2 and 6).
+2.  **Segmenter** (linear heads): clause boundaries → clauses; clause type (ACT/COND/TRIG/TIME/DELAY/READ/STOP/ELSE) and mods. Low-confidence spots only are re-asked as a 1-token multiple-choice question to the 9B server (`JOI_SLM_GATES=0` disables).
+3.  **graph.normalize** (linear heads): clause role / parent / anchor → drop fillers, move references, pull postposed clauses forward.
+4.  **Retriever** (Qwen3-Embedding-0.6B): clause → service candidates (catalog docs + corpus examples), joined on the categories of `connected_devices`; condition clauses re-queried per value expression.
+5.  **builder.build** (rules): boxes (structure) + slots (cron/period/until/count/duration/for) + top-1 rerank + argument/condition rules → IR JSON. See `joi_slm/README.md`.
 
-### Stage 2 — Translation
-The command is translated to English for the IR/lowering prompts; the original Korean is retained for human-facing arg text (Speaker/Toast/Email).
+### Stage 2 — Selectors (`joi/devices.py`, Python)
+Each `Category.Method` in the IR is joined to the connected devices by category → `(#Category)`; quantifier `all` for actions / `any` for condition-reads when more than one device, none for a single device. A service with no connected device fails the request (`no_suitable_device`). Which device *within* a category is meant is not yet chosen (TODO).
 
-### Stage 3 — Resolve + IR extraction (parallel branches)
-*   **Branch A**: `enum_cond_check` → `enum_resolve` → `arg_resolve` (fill argument values) → `ir_extract` (the LLM emits the selector-free Timeline IR; validated against devices + catalog with a bounded retry).
-*   **Branch B**: the precision selectors produced in Stage 1.
-The IR is selector-free, so the two branches are independent.
+### Stage 3 — Lowering (`joi_from_ir`)
+Feasibility check, then the Timeline IR + selectors are mechanically lowered to a Joi block `{cron, period, script}`, routed by structural bucket (`noncycle` / `cycle`). Lowering is a lossless 1:1 translation — it adds no control flow not present in the IR.
 
-### Stage 4 — Lowering (`joi_from_ir`)
-The Timeline IR + precision selectors are mechanically lowered to a Joi block `{cron, period, script}`, routed by structural bucket (`noncycle` / `cycle`). Lowering is a lossless 1:1 translation — it adds no control flow not present in the IR.
-
-### Stage 5 — Naming
+### Stage 4 — Naming
 `re_translate` (code → English NL) → `re_translate_kor` (→ Korean NL for Korean input) → `scenario_name` (short label used as `name`).
 
-**Timeline IR** is the pipeline's pivot: temporal/trigger logic is resolved into IR ops (`start_at`, `wait`, `cycle`, `if`, `call`, `read`, `delay`, `break`), then lowering picks the Joi idiom. See `files/ir_extractor.md`, `files/joi_common.md`, `files/joi_noncycle.md`, `files/joi_cycle.md`.
+**Timeline IR** is the pipeline's pivot: temporal/trigger logic is resolved into IR ops (`start_at`, `wait`, `cycle`, `if`, `call`, `read`, `delay`, `break`), then lowering picks the Joi idiom. See `joi_slm/README.md`, `files/joi_common.md`, `files/joi_noncycle.md`, `files/joi_cycle.md`.
 
 ---
 
@@ -115,11 +110,10 @@ Response is a `JoiLLMResponse` (`schemas.py`): `success`, `error_code`/`error_me
 
 Other endpoints: **`GET /health`**.
 
-**Backend LLM**: an OpenAI-compatible endpoint set by `LLM_BASE_URL` (default `http://localhost:8002/v1`); the model id is auto-discovered. Tuned for local 8–9B models (currently Ornith-1.0-9B / Qwen-9B class).
+**Backend LLM**: an OpenAI-compatible endpoint set by `LLM_BASE_URL` (default `http://localhost:8002/v1`); the model id is auto-discovered. Tuned for local 8–9B models (currently Qwen3.5-9B class); Stage 1 additionally loads the 2B encoder + embedder in-process on the GPU.
 
 ---
 
 ## 5. Design Notes
-*   **Deterministic where it counts**: grounding resolution, selector-tag minimization, and quantifier choice are pure Python — the LLM never re-decides them, keeping output stable across runs.
-*   **Context filtering (lost-in-the-middle)**: each stage sees only the device schemas/rules relevant to its targets (`files/devices/device_rules_<cat>.md`, section-scoped).
-*   **Validation + bounded retry**: the IR is checked against connected devices and the service catalog; on violation the extract stage retries with a typed hint.
+*   **Deterministic where it counts**: IR structure, slots, service top-1, selectors and quantifiers are heads + pure Python — the LLM never decides them, keeping output stable across runs.
+*   **No approval, no retry**: the IR is used as built; every stage's product (`segments`, `ir`, `precision`, log) is returned so a failure can be traced to its stage.

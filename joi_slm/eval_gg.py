@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """G/G 평가 — gold 경계·타입·mods + experiments 매핑(ranked.json·cond_parts.json, 5-fold 예문 확장) → 380 명령 계층 채점.
-    python -m joi_slm.eval_gg      (slm/ 에서)"""
+    python -m joi_slm.eval_gg      (리포 루트에서)"""
 import os, json, collections
 import numpy as np
 from .train import EXP, labels

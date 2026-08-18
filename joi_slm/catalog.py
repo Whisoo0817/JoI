@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
-"""서비스 카탈로그 접근 — service_list(SERVICE_DATA), effects.json(문서·역할), category_aliases.json.
+"""서비스 카탈로그 접근 — service_list(loader.SERVICE_DATA), assets/effects.json(문서·역할·한국어 표지), assets/category_aliases.json.
 사용자 결정: *Control 계열(LevelControl·ColorControl·RotaryControl)은 쓰지 않는다."""
 import json, os, sys
-ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))   # joi/
+ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))          # joi/ (리포 루트)
+ASSETS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets")
 if ROOT not in sys.path: sys.path.insert(0, ROOT)
 from loader import SERVICE_DATA                                                # files/service_list_ver*.json
 
 NO_CAT = ("ColorControl", "LevelControl", "RotaryControl")
 def allowed(svc): return svc.split(".")[0] not in NO_CAT
-AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
-SERVICES = [s for s in json.load(open(os.path.join(ROOT, "mapping_v2", "effects.json")))["services"] if allowed(s["svc"])]
+AL = json.load(open(os.path.join(ASSETS, "category_aliases.json")))["aliases"]
+SERVICES = [s for s in json.load(open(os.path.join(ASSETS, "effects.json")))["services"] if allowed(s["svc"])]
 EFF = {s["svc"]: s for s in SERVICES}
 ROLE = {s["svc"]: s["role"] for s in SERVICES}
 

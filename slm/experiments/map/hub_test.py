@@ -10,8 +10,8 @@ from embed import embed
 import run as R
 DEV = R.CONNECTED_DEVICES
 ROOT = os.path.join(HERE, "..", "..", "..")
-E = json.load(open(os.path.join(ROOT, "mapping_v2", "effects.json")))["services"]
-AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
+E = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "effects.json")))["services"]
+AL = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "category_aliases.json")))["aliases"]
 TAGKO = json.load(open(os.path.join(HERE, "tag_ko.json")))
 TAGKO.setdefault("Tuya", []).extend(["투야", "tuya"]); TAGKO.setdefault("Section3", []).extend(["구역 3", "구역3"])
 RK = json.load(open(os.path.join(HERE, "ranked.json")))     # 코퍼스 예문 (절 텍스트 + gold)
@@ -58,7 +58,7 @@ def hit_text(text, triggers):
     tn = norm(text)
     return any(len(norm(tr)) >= 2 and norm(tr) in tn for tr in triggers)
 CAT_TAGS = set(AL.keys()) | {"Switch", "Light"}
-TAGLEX = json.load(open(os.path.join(ROOT, "mapping_v2", "tag_lexicon.json")))["tags"]
+TAGLEX = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "tag_lexicon.json")))["tags"]
 GENERIC = {"NoneNecessary", "Main"} | {t for t, v in TAGLEX.items() if v.get("kind") == "affordance"}   # 능력 태그는 한정어 아님
 BRAND_TAGS = {t for t, v in TAGLEX.items() if v.get("kind") == "brand"}
 BRAND_KO = {"삼성": ["삼성", "samsung"], "kt": ["kt", "케이티"], "lg": ["lg", "엘지"], "미로": ["미로"], "hue": ["휴", "hue", "필립스"],

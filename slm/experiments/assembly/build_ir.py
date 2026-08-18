@@ -50,8 +50,8 @@ def top(cmd, j, want=None):
         if want is None or k == want: return s
     return ranked[0] if ranked else None
 
-AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
-EFF = {s["svc"]: s for s in json.load(open(os.path.join(ROOT, "mapping_v2", "effects.json")))["services"]}
+AL = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "category_aliases.json")))["aliases"]
+EFF = {s["svc"]: s for s in json.load(open(os.path.join(ROOT, "joi_slm", "assets", "effects.json")))["services"]}
 def _bigrams(t):
     t = re.sub(r"[\s.,]", "", t); return {t[i:i + 2] for i in range(len(t) - 1)}
 def _lex_score(part, svc):

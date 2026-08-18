@@ -8,8 +8,8 @@ import numpy as np, pandas as pd
 HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 from embed import embed
 ROOT = os.path.join(HERE, "..", "..", "..")
-E = json.load(open(os.path.join(ROOT, "mapping_v2", "effects.json")))["services"]
-AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
+E = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "effects.json")))["services"]
+AL = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "category_aliases.json")))["aliases"]
 R = json.load(open(os.path.join(HERE, "ranked.json")))
 P = pd.read_csv(os.path.join(HERE, "dataset_paper.csv")); prow = {r.command_kor: r for r in P.itertuples()}
 def svc_doc(s):

@@ -6,7 +6,7 @@
 환경 RERANK=0 이면 전부 비활성."""
 import os, re, json
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
-AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
+AL = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "category_aliases.json")))["aliases"]
 ON = os.environ.get("RERANK", "1") == "1"
 
 SPEECH = re.compile(r"라고|말해|알려|출력해|안내해|방송해|안내(?![가-힣])")

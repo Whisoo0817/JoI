@@ -3,7 +3,7 @@
 
 데이터: slm 절 라벨(type_labels.json)의 gold 절 × paper 브랜치 dataset(카탈로그 정합 ir_gt, binding_gt).
   두 데이터에 같은 문장으로 있는 353행만 사용.
-문서: mapping_v2/effects.json 서비스 247개 — "카테고리 한글별칭 | svc | ko_triggers | effects".
+문서: joi_slm/assets/effects.json 서비스 247개 — "카테고리 한글별칭 | svc | ko_triggers | effects".
 질의: 절 텍스트 (ACT/COND/TRIG/READ만; TIME/DELAY/STOP/ELSE는 서비스 없음).
 역할 필터: ACT → role∈{action, read_action} / COND·TRIG·READ → role∈{read, read_action}.
 지표:
@@ -18,9 +18,9 @@ sys.path.insert(0, HERE)
 from embed import embed
 ROOT = os.path.join(HERE, "..", "..", "..")
 
-E = [s for s in json.load(open(os.path.join(ROOT, "mapping_v2", "effects.json")))["services"]
+E = [s for s in json.load(open(os.path.join(ROOT, "joi_slm", "assets", "effects.json")))["services"]
      if not s["svc"].split(".")[0].endswith("Control")]   # *Control 계열 제외(사용자 결정)
-AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
+AL = json.load(open(os.path.join(ROOT, "joi_slm", "assets", "category_aliases.json")))["aliases"]
 T = json.load(open(os.path.join(HERE, "..", "type", "type_labels.json")))
 if os.environ.get("EXTRA", "1") == "1":   # paper 재작성 명령 29개(기기 교체분, 직접 라벨) 포함
     T = T + json.load(open(os.path.join(HERE, "..", "type", "type_labels_extra.json")))

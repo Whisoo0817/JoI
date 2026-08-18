@@ -1,6 +1,6 @@
 # sLM 절 분할 연구 노트 — Streaming Typed Segmentation
 
-> **런타임 패키지: [`joi_slm/`](joi_slm/README.md)** — 명령어 → Timeline IR (`CommandToIR`). 이 문서는 연구 노트(§1–29), `experiments/`는 실험 스크립트·데이터.
+> **런타임 패키지: [`../joi_slm/`](../joi_slm/README.md)** (리포 루트로 이식됨, `joi/generate.py` Stage 1) — 명령어 → Timeline IR (`CommandToIR`). 이 문서는 연구 노트(§1–29), `experiments/`는 실험 스크립트·데이터.
 > **현재 상태(2026-08-19, §29)** — 380 G/G 완전 IR **0.989**, 텍스트만 넣는 종단: 원문 80 **0.963**, 직접 작성 패러프레이즈 160 **0.738**.
 > 남은 것: 표현 변화에 대한 경계·타입 head(§27–28), 합성 호출·순환 구조 등 소수 구조(§28.1 잔여 4).
 
@@ -1000,5 +1000,5 @@ P/P 실패 33 = 규칙(G/G도 실패) 14 · 타입/mods 12(mixed·sustain·else 
 실험 코드(`experiments/assembly·map·graph·para·head·type`)에서 런타임에 필요한 것만 떼어 패키지로 정리: `encoder`(2B 단어 상태·임베더) → `segment`(경계·타입 head + MCQ 게이트) → `graph`(정규화기) → `mapping`(문서+예문 검색·조인) → `builder`(규칙 조립) / `evaluate`(채점·gold 정정). 전역 dict 대신 명령별 `Mapping` 컨텍스트, 환경변수 스위치 제거, 학습 자산은 `assets/`(`train.py`로 재생성).
 - 동치 확인: `eval_gg` 380 G/G **0.989**(376/380, experiments 결과와 동일).
 - 텍스트만 넣는 종단(`eval_para`, 매핑에 코퍼스 예문 + 연결 기기 조인, 자기 명령 예문 제외): 원문 80 **0.963**(신선 파이프라인 0.900→; 예문 확장·조인 효과), 패러 160 **0.738**(0.675→). 추가 규칙: 시각창 TIME 절 + 주기 ACT 절 병합.
-- paper 파이프라인 연결: `paper/run_local_ir.py`의 `ir_extract` 자리에 `CommandToIR()(sentence, connected_devices)["ir"]` (joi_slm/README 참고).
+- 서빙 파이프라인 이식(2026-08-19): 패키지를 리포 루트 `joi_slm/`로 옮기고 `joi/generate.py` Stage 1을 `CommandToIR`로 교체. 옛 LLM 매핑(mapping_v2)·IR 추출(joi/ir.py, ir_extractor.md)·기기 규칙(files/devices) 제거, effects/category_aliases/tag_lexicon은 `joi_slm/assets/`로. 셀렉터는 `joi/devices.py` 카테고리 조인.
 

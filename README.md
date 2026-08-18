@@ -1,12 +1,13 @@
 # JoI — Natural Language → IoT Automation Code
 
-JoI translates natural-language commands into a custom DSL (**JoI Code**) optimized for persistent, ticking IoT environments. It uses a multi-stage LLM pipeline — interleaved with deterministic Python steps — to compile a command into a `{name, cron, period, code}` automation block with high precision on small local models.
+JoI translates natural-language commands into a custom DSL (**JoI Code**) optimized for persistent, ticking IoT environments. A command is turned into a **Timeline IR** by `joi_slm/` (a 2B model's hidden states + linear heads + deterministic rules — no LLM text generation), then lowered to a `{name, cron, period, code}` automation block by a 9B LLM.
 
 This repo covers the **JoI language** and our **code-generation API** only.
 
 ---
 
 ## 📢 Latest Updates
+- **[2026/08/19]** Command → Timeline IR is now `joi_slm/` (2B word states + linear heads + rules; service mapping by embedding retrieval joined on connected categories). The former LLM device-mapping / IR-extraction stages and their prompts and device rule files were removed. Selectors are a category join (`joi/devices.py`).
 - **[2026/07/14]** Service catalog upgraded to `service_list_ver2.0.7` (added microservice provider skills: `ChatProvider` — AI chat Q&A; `NewsProvider` — news digest; `MessageSender` — SMS/KakaoTalk sending).
 - **[2026/07/14]** Service catalog upgraded to `service_list_ver2.0.6` (added `ArmRobotDetail`: fine-grained arm-robot control — per-axis / absolute-angle moves, home, saved-motion add/get/list/play, speed, parameterized greet/refuse).
 - **[2026/06/23]** Backend switched to `Ornith-1.0-9B` (OpenAI-compatible vLLM endpoint); model id auto-discovered.
@@ -26,7 +27,7 @@ Python 3.9+ and a local OpenAI-compatible LLM server (vLLM).
 pip install -r requirements.txt
 
 # 2. Start the LLM server (vLLM)
-bash start_qwen36_5090.sh    # serves on http://localhost:8002/v1 by default
+bash start_qwen35_9b_5090.sh # serves on http://localhost:8002/v1 by default (lowering/naming + sLM gates)
 
 # 3. Start the generation API
 python app.py                # FastAPI on port 49999
@@ -42,7 +43,7 @@ The backend endpoint is configured via `LLM_BASE_URL` (default `http://localhost
 ## 🛠 Generation API
 
 ### `generate_joi_code(sentence, connected_devices, other_params, base_url=None, current_code=None)`
-The core engine (`joi/generate.py`). Analyzes the command and returns the JoI block plus a per-stage reasoning log.
+The core engine (`joi/generate.py`). Builds the Timeline IR (`joi_slm`), joins selectors, lowers to JoI and names it; returns the block plus `ir`, `segments`, `precision` and a per-stage log.
 - `sentence` (str): the raw natural-language command.
 - `connected_devices` (dict): metadata of currently connected IoT devices (`category`, `tags`, optional `nickname`).
 - `other_params` (dict): optional generation parameters.
@@ -62,11 +63,11 @@ Request body:
 ```
 `current_code` is optional. When it carries a previously generated JoI block,
 `sentence` is read as an edit request against that block instead of a fresh command.
-Response (`JoiLLMResponse`, see `schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs`). Errors are typed (e.g. `no_suitable_device`, `reasoning_failed`, `ir_catalog_*`).
+Response (`JoiLLMResponse`, see `schemas.py`): `success`, `error_code`/`error_message`, `details`, `command`, `code` (list of `{name, cron, period, code}`), and `log` (`response_time`, `translated_sentence`, `logs`). Errors are typed (e.g. `no_suitable_device`, `reasoning_failed`, `ir_failed`, `ir_infeasible`).
 
 Other endpoints: `GET /health`.
 
 ---
 
 ## ⚛️ JoI Code Specification
-JoI is a DSL for IoT automation. For the syntax and pipeline (state `:=` vs `=`, tag selectors `(#Tag)` / `all` / `any`, quantifier comparisons `==|`/`>=|`, the device-first IR generation pipeline, and the API), see [JOI_SPEC.md](JOI_SPEC.md).
+JoI is a DSL for IoT automation. For the syntax and pipeline (state `:=` vs `=`, tag selectors `(#Tag)` / `all` / `any`, quantifier comparisons `==|`/`>=|`, the sLM → Timeline IR → lowering pipeline, and the API), see [JOI_SPEC.md](JOI_SPEC.md).

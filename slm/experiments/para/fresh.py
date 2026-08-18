@@ -140,7 +140,7 @@ del model; torch.cuda.empty_cache()
 # ── 2. 매핑 (문서 유사도 + 역할·조인 필터) + 조건 부분 재질의 ──
 from embed import embed
 import pandas as pd
-E = [s for s in json.load(open(os.path.join(B.ROOT, "mapping_v2", "effects.json")))["services"] if not s["svc"].split(".")[0].endswith("Control")]   # svc_docs.npy와 정렬(*Control 제외)
+E = [s for s in json.load(open(os.path.join(B.ROOT, "joi_slm", "assets", "effects.json")))["services"] if not s["svc"].split(".")[0].endswith("Control")]   # svc_docs.npy와 정렬(*Control 제외)
 D = np.load(os.path.join(EXP, "map", "svc_docs.npy"))
 SVCS = [s["svc"] for s in E]; ROLE = {s["svc"]: s["role"] for s in E}; ES = {s["svc"]: s for s in E}
 OK = {"ACT": {"action", "read_action"}, "COND": {"read", "read_action"}, "TRIG": {"read", "read_action"}, "READ": {"read", "read_action"}}

@@ -1,6 +1,6 @@
 """Structural feasibility check for the Timeline IR (grammar G membership).
 
-`validate_ir` (joi/ir.py) checks per-step SHAPE. This module checks the
+joi_slm builds each step's SHAPE by rule. This module checks the
 context-sensitive STRUCTURAL rules that decide whether an IR can be lowered to
 executable JoI at all. Two families:
 

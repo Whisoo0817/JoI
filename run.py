@@ -1,15 +1,9 @@
 """Minimal E2E runner for generate_joi_code.
 
-Runs every command in COMMANDS through the full IR -> JoI pipeline and prints
-ONLY the final JoI code. No verifier, no IR/selector rendering.
+Runs every command in COMMANDS through the full pipeline (joi_slm IR → selectors →
+lowering → naming) and prints the reasoning log and the final JoI code.
 
-    python3 run.py         # v1 — 현행 매핑 (retrieve → ground → resolve)
-    python3 run.py v2      # v2 — mapping_v2/ 의 제약추출 + 접지선택 매핑
-
-두 경로는 매핑 단계에서만 갈라지고 그 하류(IR/lowering/naming)는 공유한다.
-스위치는 JOI_MAPPING 환경변수 하나뿐이며, 아래 __main__ 에서 그것만 세팅한다.
-(mapping_v2 하네스들이 CONNECTED_DEVICES 를 쓰려고 이 파일을 import 하므로,
- 인자 파싱은 반드시 __main__ 안에 있어야 한다.)
+    python3 run.py
 """
 # 바이스 타겟 목록: AirConditioner, AirPurifier, AirQualitySensor,
 # Button, Camera, ContactSensor, Humidifier, HumiditySensor,
@@ -208,25 +202,13 @@ def run(command: str) -> None:
             print(f"\n----- reasoning log -----\n{logs}")
         return
     log = result.get("log", {})
-    # 단계별 추론 트레이스 (translation / extractor / mapping / lowering ...)
+    # 단계별 추론 트레이스 (segments / IR / selectors / lowering / naming)
     print(f"----- reasoning log -----\n{log.get('logs', '')}")
     print(f"\n----- code -----\n{_format_code(result.get('code', ''))}")
     print(f"\nresponse_time : {log.get('response_time', '')}")
 
 
-def _mapping_version_from_argv(argv) -> str:
-    version = "v1"
-    for arg in argv:
-        if arg.lower() in ("v1", "v2"):
-            version = arg.lower()
-        else:
-            sys.exit(f"사용법: python3 run.py [v1|v2]   (알 수 없는 인자: {arg!r})")
-    return version
-
-
 if __name__ == "__main__":
-    version = _mapping_version_from_argv(sys.argv[1:])
-    os.environ["JOI_MAPPING"] = version
-    print(f"■ mapping={version}  ({len(COMMANDS)} commands)")
+    print(f"■ {len(COMMANDS)} commands")
     for command in COMMANDS:
         run(command)

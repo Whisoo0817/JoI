@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """자산 학습/생성 — 절 분할 head(seg_heads.pkl), 그래프 head(graph_heads.pkl), 코퍼스 예문(examples.json).
-    python -m joi_slm.train [seg|graph|examples|all]   (slm/ 에서 실행; experiments/ 의 상태 파일 필요)"""
+    python -m joi_slm.train [seg|graph|examples|all]   (리포 루트에서 실행; slm/experiments/ 의 상태 파일 필요)"""
 import os, sys, json
 import pandas as pd
-EXP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "experiments")
+EXP = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "slm", "experiments")
 def labels():
     T = json.load(open(os.path.join(EXP, "type", "type_labels.json"))) + json.load(open(os.path.join(EXP, "type", "type_labels_extra.json")))
     P = pd.read_csv(os.path.join(EXP, "map", "dataset_paper.csv")); G = {r.command_kor: json.loads(r.ir_gt) for r in P.itertuples() if isinstance(r.ir_gt, str)}
