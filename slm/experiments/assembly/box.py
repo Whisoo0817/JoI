@@ -141,7 +141,7 @@ def assemble(segs, cron, cyc_flags):
         if t == "ACT":
             if "read" in m: cur().add("READ")
             if TOGGLE_RE.search(texts[i]):
-                b = Box("IF"); b.items = ["CALL"]; b.else_items = ["CALL"]; cur().add(b)
+                b = Box("IF"); b.add("CALL"); b.in_else = True; b.else_items = []; b.add("CALL"); b.in_else = False; cur().add(b)
             elif "유지하다가" in texts[i]:               # "…로 10초 유지하다가" = 켜기·지연 (끄기는 다음 절)
                 cur().add("CALL"); cur().add("DELAY")
             elif PULSE_RE.search(texts[i]):
@@ -160,7 +160,7 @@ def assemble(segs, cron, cyc_flags):
             cur().add("DELAY"); i += 1; continue
         if t == "STOP":
             if "count" not in m and STOPCOND_RE.search(texts[i]):
-                b = Box("IF"); b.items = ["BREAK"]; cur().add(b)
+                b = Box("IF"); b.add("BREAK"); cur().add(b)
             i += 1; continue
         i += 1
     root.prefix = out_prefix
