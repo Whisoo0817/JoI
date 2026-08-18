@@ -1,0 +1,575 @@
+[
+ {
+  "kind": "cond",
+  "cmd": "안방의 온도가 26도 이상이고 창문이 열려 있으면, 창문을 닫고 에어컨을 켜줘.",
+  "text": "안방의 온도가 26도 이상이이면",
+  "pred": "ContactSensor.Contact",
+  "gold": "WindowCovering.CurrentPosition",
+  "gold_rank": 3,
+  "group": "other_cat",
+  "ranked": [
+   "AirConditioner.TargetTemperature",
+   "TemperatureSensor.Temperature",
+   "Switch.Switch",
+   "WindowCovering.CurrentPosition",
+   "AirConditioner.AirConditionerMode"
+  ],
+  "pcond": "TemperatureSensor.Temperature >= 26 and ContactSensor.Contact == false",
+  "gcond": "TemperatureSensor.Temperature >= 26 and WindowCovering.CurrentPosition > 0"
+ },
+ {
+  "kind": "cond",
+  "cmd": "차고에서 움직임이 감지되고 있고 메인 사이렌이 꺼져있으면, 비상 사이렌을 울리고 차고 사진을 찍어줘.",
+  "text": "차고에서 움직임이 감지되고 있이면",
+  "pred": "Switch.Switch",
+  "gold": "Siren.SirenMode",
+  "gold_rank": 4,
+  "group": "other_cat",
+  "ranked": [
+   "MotionSensor.Motion",
+   "Camera.RecordingActive",
+   "Camera.CameraState",
+   "Switch.Switch",
+   "Siren.SirenMode"
+  ],
+  "pcond": "MotionSensor.Motion == true and Switch.Switch == false",
+  "gcond": "MotionSensor.Motion == true and Siren.SirenMode != \"emergency\""
+ },
+ {
+  "kind": "target",
+  "cmd": "오후 6시에 벽에 있는 홀수 태그가 붙은 블라인드 높이를 모두 50%로 조절해줘.",
+  "text": "오후 6시에 벽에 있는 홀수 태그가 붙은 블라인드 높이를 모두 50%로 조절해줘.",
+  "pred": "WindowCovering.UpOrOpen",
+  "gold": "WindowCovering.SetLevel",
+  "gold_rank": 2,
+  "group": "same_cat",
+  "ranked": [
+   "WindowCovering.UpOrOpen",
+   "WindowCovering.DownOrClose",
+   "WindowCovering.SetLevel",
+   "WindowCovering.Stop"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "TV 채널을 하나 내려줘.",
+  "text": "TV 채널을 하나 내려줘.",
+  "pred": "Television.ChannelDown",
+  "gold": "Television.SetChannel",
+  "gold_rank": 0,
+  "group": "same_cat",
+  "ranked": [
+   "Television.SetChannel",
+   "Television.ChannelUp",
+   "Television.ChannelDown",
+   "Switch.On",
+   "Switch.Off"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "클라우드로 고양이 사진을 생성하고 \"cat.png\"로 저장해줘.",
+  "text": "\"cat.png\"로 저장해줘.",
+  "pred": "CloudServiceProvider.UploadFile",
+  "gold": "CloudServiceProvider.SaveToFile",
+  "gold_rank": 3,
+  "group": "same_cat",
+  "ranked": [
+   "CloudServiceProvider.UploadFile",
+   "CloudServiceProvider.IsAvailable",
+   "CloudServiceProvider.ChatWithAI",
+   "CloudServiceProvider.SaveToFile",
+   "CloudServiceProvider.ExplainImage"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "거실 조명의 색조는 240, 채도는 80으로 맞춰줘.",
+  "text": "거실 조명의 색조는 240, 채도는 80으로 맞춰줘.",
+  "pred": "Light.MoveToColor",
+  "gold": "Light.MoveToHueAndSaturation",
+  "gold_rank": -1,
+  "group": "not_in_top5",
+  "ranked": [
+   "Light.StepHue",
+   "Light.MoveToColor",
+   "Light.EnhancedMoveToHue",
+   "ColorControl.SetColor",
+   "Light.EnhancedMoveToHueAndSaturation"
+  ]
+ },
+ {
+  "kind": "cond",
+  "cmd": "충전기의 전류가 10암페어 이상이면, 긴급 사이렌을 울려줘.",
+  "text": "충전기의 전류가 10암페어 이상이면,",
+  "pred": "Charger.ChargingState",
+  "gold": "Charger.Current",
+  "gold_rank": 0,
+  "group": "same_cat",
+  "ranked": [
+   "Charger.Current",
+   "Charger.ChargingState",
+   "Charger.Power",
+   "Charger.Voltage",
+   "Switch.Switch"
+  ],
+  "pcond": "Charger.ChargingState == ?",
+  "gcond": "Charger.Current >= 10"
+ },
+ {
+  "kind": "target",
+  "cmd": "비가 오면 제습기를 켜줘.",
+  "text": "제습기를 켜줘.",
+  "pred": "Dehumidifier.SetDehumidifierMode",
+  "gold": "Switch.On",
+  "gold_rank": 2,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.Off",
+   "Dehumidifier.SetDehumidifierMode",
+   "Switch.On",
+   "Switch.Toggle",
+   "WeatherProvider.GetWeatherInfo"
+  ]
+ },
+ {
+  "kind": "cond",
+  "cmd": "이산화탄소 농도가 1000ppm 이상이 되면 긴급 사이렌을 울려줘.",
+  "text": "이산화탄소 농도가 1000ppm 이상이 되면",
+  "pred": "AirQualitySensor.CarbonDioxide",
+  "gold": "CarbonDioxideSensor.CarbonDioxide",
+  "gold_rank": 0,
+  "group": "other_cat",
+  "ranked": [
+   "CarbonDioxideSensor.CarbonDioxide",
+   "Siren.SirenMode",
+   "Switch.Switch",
+   "AirQualitySensor.CarbonDioxide",
+   "AirQualitySensor.VeryFineDustLevel"
+  ],
+  "pcond": "AirQualitySensor.CarbonDioxide >= 1000",
+  "gcond": "CarbonDioxideSensor.CarbonDioxide >= 1000"
+ },
+ {
+  "kind": "target",
+  "cmd": "서재 미세먼지 농도가 30 이상이 되면 서재 공기청정기를 켜줘.",
+  "text": "서재 공기청정기를 켜줘.",
+  "pred": "AirPurifier.SetAirPurifierMode",
+  "gold": "Switch.On",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "AirPurifier.SetAirPurifierMode",
+   "Switch.On",
+   "Switch.Off",
+   "Switch.Toggle"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "멀티버튼의 버튼3이 눌리면 회의실 조명을 파란색으로 변경해줘.",
+  "text": "회의실 조명을 파란색으로 변경해줘.",
+  "pred": "Light.MoveToHue",
+  "gold": "Light.MoveToColor",
+  "gold_rank": -1,
+  "group": "not_in_top5",
+  "ranked": [
+   "Light.MoveToHue",
+   "Light.MoveToBrightness",
+   "Light.MoveHue",
+   "Light.MoveToColorTemperature",
+   "Light.MoveToHueAndSaturation"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "로봇 청소기를 자동 모드로 시작하고 30분 뒤에 수동 모드로 바꿔줘.",
+  "text": "수동 모드로 바꿔줘.",
+  "pred": "RobotVacuumCleaner.SetRobotVacuumCleanerRunMode",
+  "gold": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+  "gold_rank": 0,
+  "group": "same_cat",
+  "ranked": [
+   "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+   "RobotVacuumCleaner.SetRobotVacuumCleanerRunMode"
+  ]
+ },
+ {
+  "kind": "cond",
+  "cmd": "복도의 조명이 하나라도 켜지면 5분 뒤에 거실의 모든 조명을 꺼줘.",
+  "text": "복도의 조명이 하나라도 켜지면",
+  "pred": "Switch.Switch",
+  "gold": "Light.CurrentBrightness",
+  "gold_rank": 0,
+  "group": "other_cat",
+  "ranked": [
+   "Light.CurrentBrightness",
+   "Light.CurrentSaturation",
+   "Light.ColorMode",
+   "Light.CurrentHue",
+   "Light.EnhancedCurrentHue"
+  ],
+  "pcond": "Switch.Switch == true",
+  "gcond": "Light.CurrentBrightness > 0"
+ },
+ {
+  "kind": "target",
+  "cmd": "복도의 조명이 하나라도 켜지면 5분 뒤에 거실의 모든 조명을 꺼줘.",
+  "text": "거실의 모든 조명을 꺼줘.",
+  "pred": "Switch.Off",
+  "gold": "Light.MoveToBrightness",
+  "gold_rank": 0,
+  "group": "other_cat",
+  "ranked": [
+   "Light.MoveToBrightness",
+   "Switch.Off",
+   "Switch.On",
+   "Light.MoveToColor",
+   "Light.StepHue"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "연구실의 모든 제습기를 켜고 4시간 뒤에 꺼줘.",
+  "text": "꺼줘.",
+  "pred": "Dehumidifier.SetDehumidifierMode",
+  "gold": "Switch.On",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.Off",
+   "Switch.On",
+   "Dehumidifier.SetDehumidifierMode",
+   "Switch.Toggle"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "사무실의 공기청정기가 하나라도 수면모드로 바뀌면 10분 뒤에 조명을 꺼줘.",
+  "text": "조명을 꺼줘.",
+  "pred": "Switch.Off",
+  "gold": "Light.MoveToBrightness",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.Off",
+   "Light.MoveToBrightness",
+   "Switch.On",
+   "Light.MoveToColor",
+   "Light.StepHue"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "주방 조명을 켜고 10초 뒤에 주방 제습기를 켜줘.",
+  "text": "주방 제습기를 켜줘.",
+  "pred": "Switch.On",
+  "gold": "Dehumidifier.SetDehumidifierMode",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.On",
+   "Dehumidifier.SetDehumidifierMode",
+   "Switch.Off",
+   "Light.MoveToBrightness",
+   "Light.MoveToColor"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "서재 이산화탄소가 1000ppm 이상이고 공기청정기가 수면 모드이면, 자동 모드로 바꾸고 스피커로 \"공기청정기를 자동모드로 변경합니다\"라고 말해줘.",
+  "text": "스피커로 \"공기청정기를 자동모드로 변경합니다\"라고 말해줘.",
+  "pred": "AirPurifier.SetAirPurifierMode",
+  "gold": "Speaker.Speak",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "AirPurifier.SetAirPurifierMode",
+   "Speaker.Speak",
+   "Speaker.Stop",
+   "Speaker.SetVolume",
+   "Speaker.Play"
+  ]
+ },
+ {
+  "kind": "cond",
+  "cmd": "비가 오고 거실 창문이 열려 있으면, 창문을 닫고 제습기를 제습 모드로 설정해줘.",
+  "text": "비가 오고",
+  "pred": "ContactSensor.Contact",
+  "gold": "WindowCovering.CurrentPosition",
+  "gold_rank": 4,
+  "group": "other_cat",
+  "ranked": [
+   "Dehumidifier.DehumidifierMode",
+   "WeatherProvider.Weather",
+   "WeatherProvider.HumidityWeather",
+   "WeatherProvider.Pm25Weather",
+   "WindowCovering.CurrentPosition"
+  ],
+  "pcond": "WeatherProvider.Weather == \"rain\" and ContactSensor.Contact == false",
+  "gcond": "WeatherProvider.Weather == \"rain\" and WindowCovering.CurrentPosition > 0"
+ },
+ {
+  "kind": "target",
+  "cmd": "서버실 온도가 30도 이상이고 에어컨이 꺼져 있으면, 에어컨을 냉방 모드로 켜고 메인 사이렌을 긴급 모드로 울려줘.",
+  "text": "메인 사이렌을 긴급 모드로 울려줘.",
+  "pred": "AirConditioner.SetAirConditionerMode",
+  "gold": "Switch.On",
+  "gold_rank": 2,
+  "group": "other_cat",
+  "ranked": [
+   "Siren.SetSirenMode",
+   "Switch.Off",
+   "Switch.On",
+   "AirConditioner.SetAirConditionerMode",
+   "AirConditioner.SetTargetTemperature"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "창고 미세먼지가 100 이상이고 공기청정기가 자동 모드이면, 모드를 강풍 모드로 바꾸고 창고 스피커로 \"강풍 모드로 전환합니다\"라고 말해줘.",
+  "text": "창고 스피커로 \"강풍 모드로 전환합니다\"라고 말해줘.",
+  "pred": "AirPurifier.SetAirPurifierMode",
+  "gold": "Speaker.Speak",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "AirPurifier.SetAirPurifierMode",
+   "Speaker.Speak",
+   "Speaker.SetVolume",
+   "Speaker.Play",
+   "Speaker.Stop"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "오전 8시에 고효율 태그가 붙은 공기청정기를 켜고 자동모드로 설정해줘.",
+  "text": "자동모드로 설정해줘.",
+  "pred": "AirPurifier.SetAirPurifierMode",
+  "gold": "Switch.On",
+  "gold_rank": 0,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.On",
+   "Switch.Off",
+   "AirPurifier.SetAirPurifierMode",
+   "Switch.Toggle"
+  ]
+ },
+ {
+  "kind": "cond",
+  "cmd": "창문이 열릴 때마다 스피커로 '창문이 열렸습니다'라고 말해줘.",
+  "text": "창문이 열릴 때마다",
+  "pred": "ContactSensor.Contact",
+  "gold": "WindowCovering.CurrentPosition",
+  "gold_rank": 0,
+  "group": "other_cat",
+  "ranked": [
+   "WindowCovering.CurrentPosition",
+   "WindowCovering.WindowCoveringType",
+   "Speaker.Volume",
+   "Speaker.PlaybackState",
+   "ContactSensor.Contact"
+  ],
+  "pcond": "ContactSensor.Contact == false",
+  "gcond": "WindowCovering.CurrentPosition > 0"
+ },
+ {
+  "kind": "target",
+  "cmd": "창문이 열릴 때마다 스피커로 '창문이 열렸습니다'라고 말해줘.",
+  "text": "스피커로 '창문이 열렸습니다'라고 말해줘.",
+  "pred": "WindowCovering.UpOrOpen",
+  "gold": "Speaker.Speak",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "WindowCovering.UpOrOpen",
+   "Speaker.Speak",
+   "WindowCovering.DownOrClose",
+   "Speaker.SetVolume",
+   "WindowCovering.SetLevel"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "현관문이 열리면 그 후부터 5분마다 금고를 체크해서 잠겨있지 않으면 스피커로 금고가 열려있다고 출력해줘.",
+  "text": "스피커로 금고가 열려있다고 출력해줘.",
+  "pred": "DoorLock.Unlock",
+  "gold": "Speaker.Speak",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "DoorLock.Unlock",
+   "Speaker.Speak",
+   "DoorLock.Lock",
+   "Speaker.SetVolume",
+   "Speaker.VolumeUp"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "조명 태그가 붙은 버튼이 눌릴때마다, 홀수 태그가 붙은 모든 조명의 밝기를 최대로 밝혀줘.",
+  "text": "홀수 태그가 붙은 모든 조명의 밝기를 최대로 밝혀줘.",
+  "pred": "Light.MoveToBrightness",
+  "gold": "LevelControl.MoveToLevel",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Light.MoveToBrightness",
+   "LevelControl.MoveToLevel",
+   "Light.MoveToColor",
+   "Light.StepHue",
+   "Light.MoveHue"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "문이 열릴 때마다, 복도와 거실의 조명을 모두 켜줘.",
+  "text": "복도와 거실의 조명을 모두 켜줘.",
+  "pred": "Light.MoveToBrightness",
+  "gold": "Switch.On",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Light.MoveToBrightness",
+   "Switch.On",
+   "Switch.Off",
+   "Light.MoveToColor",
+   "Light.MoveToHueAndSaturation"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "도어락이 잠길때마다 입구의 조명을 최대밝기로 10초 유지하다가 꺼줘.",
+  "text": "꺼줘.",
+  "pred": "Switch.Off",
+  "gold": "Light.MoveToBrightness",
+  "gold_rank": 2,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.On",
+   "Switch.Off",
+   "Light.MoveToBrightness",
+   "DoorLock.Lock",
+   "LevelControl.MoveToLevel"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "회의실 문이 열릴 때마다, 조명의 밝기를 최대밝기로 켰다가 10초뒤에 꺼줘.",
+  "text": "꺼줘.",
+  "pred": "Switch.Off",
+  "gold": "Light.MoveToBrightness",
+  "gold_rank": 2,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.Off",
+   "Switch.On",
+   "Light.MoveToBrightness",
+   "LevelControl.MoveToLevel",
+   "Light.MoveToColor"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "복도에 있는 모든 조명을 켜줘.",
+  "text": "복도에 있는 모든 조명을 켜줘.",
+  "pred": "Light.MoveToBrightness",
+  "gold": "Switch.On",
+  "gold_rank": 0,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.On",
+   "Light.MoveToBrightness",
+   "Switch.Off",
+   "Light.MoveToColor",
+   "Light.MoveToHueAndSaturation"
+  ]
+ },
+ {
+  "kind": "target",
+  "cmd": "거실에 사람이 감지되면 거실 메인 조명을 켜고, 아니면 꺼줘.",
+  "text": "아니면 꺼줘.",
+  "pred": "Light.MoveToBrightness",
+  "gold": "Switch.On",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Switch.Off",
+   "Switch.On",
+   "Light.MoveToBrightness",
+   "Light.MoveToColor",
+   "Camera.CaptureImage"
+  ]
+ },
+ {
+  "kind": "cond",
+  "cmd": "지금 거실 습도를 확인하고 20분 뒤 다시 확인해서 10% 이상 떨어졌으면 거실 가습기 플러그를 켜줘.",
+  "text": "10% 이상 떨어졌으면",
+  "pred": "Plug.Power",
+  "gold": "HumiditySensor.Humidity",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Plug.Power",
+   "HumiditySensor.Humidity",
+   "Switch.Switch",
+   "Plug.Current",
+   "Plug.Voltage"
+  ],
+  "pcond": "Plug.Power >= 10",
+  "gcond": "(HumiditySensor.Humidity - HumiditySensor.Humidity) >= 10"
+ },
+ {
+  "kind": "cond",
+  "cmd": "지금 거실 습도를 확인하고 20분 뒤 다시 확인해서 10% 이상 떨어졌으면 거실 가습기 플러그를 켜줘.",
+  "text": "10% 이상 떨어졌으면",
+  "pred": "Plug.Power",
+  "gold": "HumiditySensor.Humidity",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Plug.Power",
+   "HumiditySensor.Humidity",
+   "Switch.Switch",
+   "Plug.Current",
+   "Plug.Voltage"
+  ],
+  "pcond": "Plug.Power >= 10",
+  "gcond": "(HumiditySensor.Humidity - HumiditySensor.Humidity) >= 10"
+ },
+ {
+  "kind": "target",
+  "cmd": "멀티버튼의 버튼4가 눌릴 때마다 거실 조명 밝기를 15씩 낮춰줘. 최소 10까지.",
+  "text": "거실 조명 밝기를 15씩 낮춰줘. 최소 10까지.",
+  "pred": "Light.MoveToBrightness",
+  "gold": "LevelControl.MoveToLevel",
+  "gold_rank": 1,
+  "group": "other_cat",
+  "ranked": [
+   "Light.MoveToBrightness",
+   "LevelControl.MoveToLevel",
+   "Light.MoveToColor",
+   "Light.MoveToSaturation",
+   "Light.StepHue"
+  ]
+ },
+ {
+  "kind": "cond",
+  "cmd": "사람이 감지될 때마다 부엌 조명 밝기를 20씩 높여줘. 최대 100까지.",
+  "text": "사람이 감지될 때마다",
+  "pred": "PresenceSensor.Presence",
+  "gold": "MotionSensor.Motion",
+  "gold_rank": 0,
+  "group": "other_cat",
+  "ranked": [
+   "MotionSensor.Motion",
+   "LevelControl.CurrentLevel",
+   "LevelControl.MinLevel",
+   "LevelControl.MaxLevel",
+   "Light.CurrentBrightness"
+  ],
+  "pcond": "PresenceSensor.Presence == true",
+  "gcond": "MotionSensor.Motion == true"
+ }
+]

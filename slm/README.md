@@ -760,3 +760,34 @@ L6 절 끝 표현(PCA256) 위 로지스틱 3개 + 결정론적 선형화. 데이
 
 슬롯별(재질의 후): cron **1.000** · period/until/for/edge 1.000 · duration 0.933 · count 0.800 · target 0.878 · **args 0.947** · cond 0.667(속성 0.818 × op/값 0.830).
 잔여 조건 오류: 값 관례("세번 눌리면"=`pushed_3x`, `!= "emergency"`, 전압 단위 V→mV), 미세/초미세 혼동 일부, 얼굴인식 "꺼져 있으면"=Switch.Switch 관례. 서비스 오류는 형제 선택(SetLevel vs UpOrOpen 등) — 매핑 단계 재정렬 규칙 몫.
+
+## 26. top-1 선택 개선 — 재정렬 규칙 vs 객관식 선택기 (`assembly/rerank.py`, `sel_failures.py`, `sel_mcq.py`, `sel_sft.py`)
+
+§25.1의 병목(형제 후보 중 top-1 고르기 + gold 값 관례)을 세 단계로 다뤘다: ① 실패 분류 → ② 규칙 → ③ 모델 객관식.
+
+**① 실패 분류** (`sel_failures.py`, 매핑 327·구조 일치 명령의 절 단위): 62 실패 절 = target 45(같은 카테고리 형제 10 / 다른 카테고리 33 / top-5 밖 2) + cond 속성 17.
+빈발 쌍: Switch.On↔Light.MoveToBrightness(12), Switch.On→*Mode(제습기 건조 모드…)(7), 스피커 발화→Speaker.Speak(6), "꺼져 있으면"→Switch.Switch(5), 비/날씨→WeatherProvider(4), 초미세/미세.
+gold 관례 발견: **조명 켜기 = MoveToBrightness(15) vs Switch.On(7), 끄기 = Switch.Off(8) vs MoveToBrightness(6)** — 주석 자체가 비일관(어느 선택기도 못 맞히는 잔여). 조건 값 관례: ContactSensor.Contact는 열림=false, 잠김=`"closed"`, 블라인드 열림=`CurrentPosition > 0`, 조명 켜짐 사건=`CurrentBrightness > 0`, 전압 V→mV, "세번 눌리면"=`pushed_3x`, count 슬롯은 리터럴 `"n"`.
+
+**② 재정렬 규칙** (`rerank.py`, `RERANK=1` 기본): 함수 — 발화어(라고/말해/출력)→Speak +8(인용문 안 기기·모드어는 무시), "모드"·모드어→*Mode +4, 조명 켜→MoveToBrightness / 끄→Switch.Off +4, 사이렌 울려→SetSirenMode, 카테고리 별칭 일치 +2; 펄스("5초간 울렸다 꺼줘") 두 번째 CALL = Switch.Off. 값 — 상태("켜져 있으면")→Switch.Switch 강제, 사건("켜지면")→조명이면 CurrentBrightness, 센서 어휘 사전(초미세>미세, 비/날씨, 온도(목표 제외), 습도, 조도, 움직임, 재실, 연기, 소리, 누수, 문 열림, 전압/전류) + 서비스별 값 관례 표(`value_conv`) + 단위 관례. 덤: "N초간" 지속이 주기보다 우선, count `"n"`, `_CUR` 초기화 버그(이전 명령 절 번호가 ROOT에 남아 병합 조건이 빠지던 것) 수정.
+
+| 매핑 327 | §25.1 | 규칙 전(버그 수정만) | **규칙 후** |
+|---|---|---|---|
+| target | 0.878 | 0.878 | **0.940** |
+| cond 속성 | 0.818 | 0.828 | **0.861** |
+| cond 식 전체 | 0.667 | 0.681 | **0.836** |
+| S+T (시간 슬롯까지) | 0.847 | 0.856 | **0.896** |
+| S+T+C | 0.636 | 0.654 | **0.786** |
+| **완전 IR (S+T+C+V+A)** | 0.541 | 0.547 | **0.700** |
+
+**③ 객관식 선택기** (`sel_mcq.py`): 선택 지점 579개(함수 363·값 216; gold∈후보 0.997)마다 후보(top-5 + 규칙 추가) = "서비스(별칭) — 한글 트리거 — 인자/값 스키마" 보기, 기호 1토큰 로짓(셔플 2회 평균). (a) 규칙만 (b) 객관식만 (c) 규칙 + 게이트(규칙 점수 차 ≤1이면 객관식, 63개 발동).
+
+| 절 단위 선택 정확도 | 함수 | 값 | 전체 | 완전 IR |
+|---|---|---|---|---|
+| (a) 규칙 | 0.939 | 0.972 | **0.952** | **0.697** |
+| (b) 9B zero-shot 객관식 | 0.873 | 0.912 | 0.888 | 0.593 |
+| (b') 9B + kNN few-shot 4예(다른 명령, 문자 2-gram 최근접) | 0.909 | 0.921 | 0.914 | 0.639 |
+| (c) 규칙 + 게이트 9B few-shot | 0.942 | 0.963 | 0.950 | 0.694 |
+| (b'') 2B LoRA 객관식 (OOF, `sel_sft.py`) | 2B_FUNC | 2B_VAL | 2B_ALL | 2B_IR |
+
+판정: **규칙이 이긴다.** 규칙 잔여 28/579 중 ~15는 gold 비일관 쌍(조명 On/MoveToBrightness, 기기 켜기 vs *Mode, 창문 열림 = ContactSensor vs WindowCovering.CurrentPosition)이라 어떤 선택기도 상한이 ~0.975. 9B는 관례를 모르므로 few-shot을 줘도 그 비일관 쌍에서 규칙보다 더 자주 틀리고(예: 조명 켜기를 Switch.On으로 8회), 게이트도 규칙 오답 자리와 모델 정답 자리가 어긋나 이득이 없다. → 서비스 top-1은 **매핑 top-5 + 규칙 재정렬**로 확정하고, 모델은 구조 판정(§21)에만 쓴다.

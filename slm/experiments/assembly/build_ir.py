@@ -11,6 +11,7 @@ os.environ.setdefault("SLOT", "1")
 from box import Box, assemble_tree
 from skeleton import skeleton, canon
 import slots
+import rerank
 from loader import SERVICE_DATA
 HERE = os.path.dirname(os.path.abspath(__file__))
 T = json.load(open(os.path.join(HERE, "..", "type", "type_labels.json")))
@@ -53,13 +54,27 @@ def _lex_score(part, svc):
 CONJ_SPLIT = re.compile(r"(?<=[가-힣])(고|거나|이고|이거나|며|이며|는데|은데)[,\s]+(?!있|않|없)")
 CP_PATH = os.path.join(HERE, "..", "map", "cond_parts.json")
 CP = json.load(open(CP_PATH)) if os.path.exists(CP_PATH) and os.environ.get("COND_PARTS", "1") == "1" else {}
+TRACE = []          # 선택 기록 [(kind, text, cands, chosen, margin)] — 객관식 선택기 실험용
+OVERRIDE = {}       # (kind, text) → 강제 선택(객관식 결과 주입)
+def _choose(kind, text, cands, sc):
+    order = sorted(range(len(cands)), key=lambda k: -sc[k])
+    margin = sc[order[0]] - (sc[order[1]] if len(order) > 1 else -99)
+    ch = OVERRIDE.get((kind, text), cands[order[0]])
+    TRACE.append((kind, text, list(cands), cands[order[0]], margin)); return ch
+def pick_value(text, vals):
+    """값 서비스 후보(순위순) → 어휘 중복·순위·재정렬 보너스로 top-1"""
+    bon, extra = rerank.value_bonus(text, vals); vals = list(vals) + [e for e in extra if svc_info(e)[0] == "value"]
+    if not vals: return None
+    W = float(os.environ.get("LEXW", "1.0"))
+    return _choose("value", text, vals, [W * _lex_score(text, vals[k]) - k + bon.get(vals[k], 0) for k in range(len(vals))])
+
 def cond_expr(cmd, j, text):
     """조건 절 → '속성 op 값' 문자열. 절 안에 접속어미로 묶인 복합 조건이면 부분별로 값 서비스를 배정해 and/or 결합.
     COND_PARTS=1이면 부분 단위 재질의 결과(cond_parts.json: 조인 필터 + 조건 지시문)를 값 서비스로 사용."""
     cp = CP.get(cmd, {}).get(str(j))
     if cp:
         conns = CONJ_SPLIT.findall(text)
-        exprs = [_one_cond(x["ranked"][0] if x["ranked"] else None, x["part"]) for x in cp]
+        exprs = [_one_cond(pick_value(x["part"], [s_ for s_ in x["ranked"] if svc_info(s_)[0] == "value"]) , x["part"]) for x in cp]
         out = exprs[0]
         for k, e in enumerate(exprs[1:]):
             out += (" or " if k < len(conns) and conns[k] in ("거나", "이거나") else " and ") + e
@@ -78,19 +93,18 @@ def cond_expr(cmd, j, text):
             out += (" or " if k < len(conns) and conns[k] in ("거나", "이거나") else " and ") + e
         return out
     vals = [s_ for s_ in MAP.get((cmd, j), []) if svc_info(s_)[0] == "value"]
-    if not vals: return "?"
-    W = float(os.environ.get("LEXW", "1.0"))
-    best = max(range(len(vals)), key=lambda k: W * _lex_score(text, vals[k]) - k)   # 어휘 중복 + 순위
-    return _one_cond(vals[best], text)
+    return _one_cond(pick_value(text, vals), text)
 
 def _one_cond(svc, text):
     if not svc: return "?"
     k, spec = svc_info(svc); cat = svc.split(".")[0]
     vt = spec.get("type") if spec else None
+    cv = rerank.value_conv(svc, text)
+    if cv and (vt not in ("DOUBLE", "INT", "INTEGER", "FLOAT", "LONG") or slots.comparator(text) is None): return f"{svc} {cv}"
     if vt in ("DOUBLE", "INT", "INTEGER", "FLOAT", "LONG"):
         c = slots.comparator(text)
         if c: 
-            v = c[1]; v = int(v) if float(v).is_integer() else v
+            v = rerank.unit_scale(svc, text, c[1]); v = int(v) if float(v).is_integer() else v
             return f"{svc} {c[0]} {v}"
         return f"{svc} == ?"
     if vt == "BOOL": return f"{svc} == {slots.bool_state(text, 'BOOL', [])}"
@@ -104,11 +118,12 @@ NAME_POL = {"open": ["Open", "Unlock", "UpOrOpen"], "close": ["Close", "Lock", "
 def pick_function(cmd, j, text):
     """top-5 함수 후보 중 형제 서비스(Open/Close, On/Off, Up/Down, Set vs Step) 극성·숫자 규칙으로 선택."""
     cands = [s_ for s_ in MAP.get((cmd, j), []) if svc_info(s_)[0] == "function"]
+    bon, extra = rerank.func_bonus(text, cands); cands = cands + [e for e in extra if svc_info(e)[0] == "function"]
     if not cands: return None
     pol = [p for p, rx in POS.items() if re.search(rx, text)]
     has_num = slots.number(text) is not None
     def score(k, s_):
-        name = s_.split(".", 1)[1]; sc = -k
+        name = s_.split(".", 1)[1]; sc = -k + bon.get(s_, 0)
         for p in pol:
             if any(name.startswith(w) or name.endswith(w) for w in NAME_POL[p]): sc += 3
             opp = {"open": "close", "close": "open", "on": "off", "off": "on", "up": "down", "down": "up"}[p]
@@ -117,10 +132,10 @@ def pick_function(cmd, j, text):
         if has_num and nargs and name.startswith(("Set", "MoveTo")): sc += 2
         if not has_num and name.startswith(("Set", "MoveTo")) and nargs and not spec.get("arguments", [{}])[0].get("type") == "ENUM" and not re.search(r"켜|꺼|끄|최대|최소", text): sc -= 1
         return sc
-    return max(enumerate(cands), key=lambda kv: score(*kv))[1]
+    return _choose("func", text, cands, [score(k, s_) for k, s_ in enumerate(cands)])
 
-def call_node(cmd, j, text):
-    svc = pick_function(cmd, j, text)
+def call_node(cmd, j, text, force=None):
+    svc = force or pick_function(cmd, j, text)
     if not svc: return {"op": "call", "target": "?", "args": {}}
     k, spec = svc_info(svc); cat = svc.split(".")[0]; args = {}
     for a in spec.get("arguments", []):
@@ -175,7 +190,7 @@ def build(o):
     ts = time_seg()
     cr = slots.cron(ts) if ts and not slots.period(ts) else (slots.cron(ts) if ts else None)
     tl = [{"op": "start_at", "anchor": "cron" if cr else "now", **({"cron": cr} if cr else {})}]
-    counter = [0]
+    counter = [0]; ncall = collections.Counter()
     def conv(b, out):
         for x in b.items:
             if isinstance(x, Box):
@@ -197,11 +212,13 @@ def build(o):
                         if cnt is None and ("count" in s["mods"] or s["type"] == "STOP"): cnt = slots.count(s["text"])
                     unt = slots.until(txt) or (f"n >= {cnt}" if cnt else None)
                     node = {"op": "cycle", "until": unt, "period": per, "body": []}
-                    if cnt: node["count"] = cnt
+                    if cnt: node["count"] = "n" if rerank.ON else cnt   # gold 관례: count 슬롯은 변수명 "n", until에 "n >= N"
                     conv(x, node["body"]); out.append(node)
             else:
                 j = b.owner[id(x)]; s = S[j]; leaf = str(x)
-                if leaf == "CALL": out.append(call_node(cmd, j, s["text"]))
+                if leaf == "CALL":
+                    ncall[j] += 1   # 펄스("5초간 울렸다 꺼줘")의 두 번째 CALL = 끄기
+                    out.append(call_node(cmd, j, s["text"], force="Switch.Off" if ncall[j] == 2 and rerank.ON else None))
                 elif leaf == "READ":
                     counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(cmd, j, "value") or "?"})
                 elif leaf == "DELAY": out.append({"op": "delay", "duration": slots.duration(s["text"]) or "?"})

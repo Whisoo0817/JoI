@@ -72,7 +72,7 @@ def assemble(segs, cron, cyc_flags):
     cyc_flags = list(cyc_flags)
     texts = [x[2] if len(x) > 2 else "" for x in segs]
     segs = [(x[0], x[1]) for x in segs]
-    root = Box("ROOT"); stack = [root]
+    _CUR[0] = None; root = Box("ROOT"); stack = [root]
     out_prefix = "SA:cron" if cron else "SA"
     n = len(segs)
     def cur(): return stack[-1]
