@@ -788,6 +788,6 @@ gold 관례 발견: **조명 켜기 = MoveToBrightness(15) vs Switch.On(7), 끄�
 | (b) 9B zero-shot 객관식 | 0.873 | 0.912 | 0.888 | 0.593 |
 | (b') 9B + kNN few-shot 4예(다른 명령, 문자 2-gram 최근접) | 0.909 | 0.921 | 0.914 | 0.639 |
 | (c) 규칙 + 게이트 9B few-shot | 0.942 | 0.963 | 0.950 | 0.694 |
-| (b'') 2B LoRA 객관식 (OOF, `sel_sft.py`) | 2B_FUNC | 2B_VAL | 2B_ALL | 2B_IR |
+| (b'') 2B LoRA 객관식 (`sel_sft.py`, 폴드 0·1 OOF 227지점, 1 epoch·16분/폴드; 같은 지점 규칙 0.960) | 0.945 | 0.976 | 0.956 | 0.697(=규칙) |
 
-판정: **규칙이 이긴다.** 규칙 잔여 28/579 중 ~15는 gold 비일관 쌍(조명 On/MoveToBrightness, 기기 켜기 vs *Mode, 창문 열림 = ContactSensor vs WindowCovering.CurrentPosition)이라 어떤 선택기도 상한이 ~0.975. 9B는 관례를 모르므로 few-shot을 줘도 그 비일관 쌍에서 규칙보다 더 자주 틀리고(예: 조명 켜기를 Switch.On으로 8회), 게이트도 규칙 오답 자리와 모델 정답 자리가 어긋나 이득이 없다. → 서비스 top-1은 **매핑 top-5 + 규칙 재정렬**로 확정하고, 모델은 구조 판정(§21)에만 쓴다.
+판정: **규칙이 이긴다(학습 선택기는 동률).** 2B LoRA는 gold 관례를 학습해 9B few-shot을 넘어 규칙과 같은 수준(0.956 vs 0.960)에 닿지만 넘지는 못한다 — 남은 오답이 gold 비일관 쌍이기 때문. 규칙 잔여 28/579 중 ~15는 gold 비일관 쌍(조명 On/MoveToBrightness, 기기 켜기 vs *Mode, 창문 열림 = ContactSensor vs WindowCovering.CurrentPosition)이라 어떤 선택기도 상한이 ~0.975. 9B는 관례를 모르므로 few-shot을 줘도 그 비일관 쌍에서 규칙보다 더 자주 틀리고(예: 조명 켜기를 Switch.On으로 8회), 게이트도 규칙 오답 자리와 모델 정답 자리가 어긋나 이득이 없다. → 서비스 top-1은 **매핑 top-5 + 규칙 재정렬**로 확정하고, 모델은 구조 판정(§21)에만 쓴다.
