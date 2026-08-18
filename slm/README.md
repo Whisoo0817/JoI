@@ -721,3 +721,26 @@ L6 절 끝 표현(PCA256) 위 로지스틱 3개 + 결정론적 선형화. 데이
 - 한계: 전부 합성 템플릿 안 평가. 자연 발화 확대 세트가 다음 검증.
 
 **요약(§20–24)**: 조립 = 상자 규칙 + 얕은 층 head 3개(역할·부모·앵커) + 문법 제약 선형화. 학습형 조립기·생성 없이 abnormal 4종까지 텍스트만으로 0.935(분할 포함), 구조만 0.986.
+
+## 25. 슬롯 값 규칙 + 실제 IR JSON (`assembly/slots.py`, `build_ir.py` → `ir_pred.json`)
+
+구조(상자 기계) + 슬롯 규칙(값) + 매핑 top-5(`map/ranked.json`) → **timeline IR JSON**. 모델 생성 0. 조건: gold 경계·타입·mods(G/G), 매핑은 §19 결과 그대로.
+- `slots.py`: duration("1시간 반"→90 MIN) · period("N분마다") · count("총 N번") · cron("평일 오전 8시"→`0 8 * * 1-5`, 정오/자정/새해/요일) · until("오후 3시까지"→`clock.time >= 1500`, 오전/오후 상속) · comparator(이상/이하/미만/초과/넘/떨어지/보다 크 → op, 단위·비교어 앞 숫자 우선) · bool/enum 상태 사전(감지/없/열/닫/눌/잠/켜/꺼/완충/재생중…) · enum 인자 사전(냉방→cool, 응급→emergency, 강풍→high…) · 인용문.
+- `build_ir.py`: Box 트리 → IR 노드. IF/WAIT cond = 값 서비스(top-5 중 어휘 중복+순위) + comparator/상태; **절 안 복합 조건**은 접속어미로 나눠 부분별 값 서비스 배정("사람이 있고 연기가 감지되고 있으면" → and). CALL = 함수 후보 중 **형제 극성 규칙**(열/닫·켜/끄·올/내, 숫자 있으면 Set/MoveTo 우선) + 인자(enum 사전, Brightness 켜→100/꺼→0, 숫자, Rate 0). CYC = period/until/count, TRIG/every → 100 MSEC+rising. READ → read(var). 
+- 평가: 뼈대 일치 명령 안에서 노드별 슬롯 비교(gold의 read+$var는 속성으로 접음, 문자열 인자 제외), 누적 완전일치 S(구조)→+T(시간)→+C(조건식)→+V(서비스)→+A(인자).
+
+| | 전체 380 | 매핑 있는 327 |
+|---|---|---|
+| S 구조 | 0.892 | 0.896 |
+| S+T 시간 슬롯 | 0.832 | 0.844 |
+| S+T+C 조건식 | 0.558 | 0.593 |
+| S+T+C+V 서비스 | 0.458 | 0.514 |
+| **S+T+C+V+A 인자까지 = 완전 IR** | **0.421** | **0.474** |
+
+슬롯별(매핑 있는 327, 구조 일치 내): cron 0.993 · period/until/for/edge **1.000** · duration 0.955 · count 0.797(gold가 `count:"n"`인 6건) · **target 0.870**(극성 규칙 전 0.815) · args 0.880 · **cond 0.603** = 속성 선택 0.686 × (속성 맞을 때 op/값 0.896).
+
+**병목 = 조건식의 값 서비스 매핑**(0.686): 실패 56건 중 28은 top-5 안에 있는데 선택 오류(TargetTemperature vs Temperature, Fine vs VeryFineDust, "에어컨이 꺼져 있으면"=Switch.Switch 관례), 28은 top-5에 없음(복합 조건 절을 통째로 질의 — §14의 "값 표현 단위로 내려 질의" 미적용; 비 오면=RainSensor vs WeatherProvider는 연결 기기 조인 문제). 시간 슬롯·인자·구조는 규칙으로 거의 해결.
+- 구조 0.892(§20의 0.934보다 낮음)는 cron/cycle을 gold 플래그 대신 텍스트 규칙으로 정하면서 생긴 차이(예: "주말에 5초마다" gold until=`Clock.Weekday=="monday"` 같은 관례).
+- 예시(`ir_pred.json`): "버튼1이 눌리면 밝기가 80 이상이면 10으로, 아니면 80으로" → wait(Button1=="pushed") → if(Light.CurrentBrightness>=80){MoveToBrightness 10}{80} — gold와 read 접기 외 동일.
+
+다음: (1) 조건 절을 값 표현 단위로 재질의 + 연결 기기 조인한 값 서비스 선택, (2) 예측 경계·타입으로 종단 IR, (3) explorer(EQUIV)로 실행 동치 평가(문자열 비교의 가짜 오답 제거).
