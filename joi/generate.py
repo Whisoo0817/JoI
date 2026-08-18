@@ -1,13 +1,16 @@
 """JoI generation pipeline: Korean command → Timeline IR (joi_slm) → JoI code.
 
+One model (engine.py, in-process vLLM, default Qwen3.5-2B-AWQ) does everything:
+word states for the sLM heads, the MCQ gates, lowering and naming.
+
     [Stage 0] (optional) feedback edit: current_code → NL (re_translate) → feedback_edit
     [Stage 1] command → Timeline IR : joi_slm.CommandToIR
               2B word states + linear heads (clause boundary / type / mods, graph),
               embedding service mapping joined on connected categories, rule assembly.
               No LLM text generation; approval-free — the IR is used as built.
     [Stage 2] IR services × connected devices → selectors (joi/devices.py, Python)
-    [Stage 3] feasibility → joi_from_ir lowering (LLM, bucket-routed prompt)
-    [Stage 4] naming: re_translate → re_translate_kor → scenario_name (LLM)
+    [Stage 3] feasibility → joi_from_ir lowering (same model, bucket-routed prompt)
+    [Stage 4] naming: re_translate → re_translate_kor → scenario_name (same model)
 
 Every stage's product is kept on the result (`ir`, `segments`, `precision`, ...)
 so a failure can be traced to the stage that produced it.
@@ -22,7 +25,7 @@ import re
 import threading
 import time
 
-from config import get_client, get_model_id
+from engine import get_engine, MODEL_ID
 from loader import SERVICE_DATA, PROMPTS
 from parser.validator import validate_joi
 
@@ -43,38 +46,27 @@ from joi.devices import build_selectors, render_selectors, MissingDevices
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Stage 1 backend — joi_slm (loaded once per process, lazily on first call).
-# The 2B encoder + embedder live on the GPU next to the vLLM server; the
-# low-confidence MCQ gates use the same vLLM endpoint as the lowering LLM.
+# Stage 1 backend — joi_slm on the single in-process engine (engine.py):
+# the same 2B model gives the word states (layer hooks), the low-confidence
+# MCQ gates, and — below — lowering and naming. Built once per process.
 # ─────────────────────────────────────────────────────────────────────────────
-_SLM = {"pipe": None, "key": None}
+_SLM = {"pipe": None}
 _SLM_LOCK = threading.Lock()
 
 
-def _slm_pipe(base_url: str | None):
+def _slm_pipe():
     """Return the process-wide CommandToIR (built on first use)."""
     from joi_slm import CommandToIR
-    client = get_client(base_url)
-    root = str(client.base_url).rstrip("/")
-    key = root
     with _SLM_LOCK:
-        if _SLM["pipe"] is None or _SLM["key"] != key:
+        if _SLM["pipe"] is None:
             gates = os.environ.get("JOI_SLM_GATES", "1") != "0"
-            mcq_model = None
-            if gates:
-                try:
-                    mcq_model = get_model_id(client)
-                except Exception:
-                    gates = False
-            _SLM["pipe"] = CommandToIR(mcq_url=f"{root}/completions",
-                                       mcq_model=mcq_model or "", gates=gates)
-            _SLM["key"] = key
+            _SLM["pipe"] = CommandToIR(engine=get_engine(), gates=gates)
     return _SLM["pipe"]
 
 
-def command_to_ir(sentence: str, connected_devices: dict, base_url: str | None = None) -> dict:
+def command_to_ir(sentence: str, connected_devices: dict) -> dict:
     """Stage 1 alone: → {"ir", "segments", "mapping", "graph"} (for tools/tests)."""
-    return _slm_pipe(base_url)(sentence, connected_devices)
+    return _slm_pipe()(sentence, connected_devices)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -232,19 +224,18 @@ def generate_joi_code_ir(
 
     `current_code` (optional): an already-generated JoI block the user wants to
     EDIT; `sentence` is then the edit request and Stage 0 rewrites it into one
-    complete standalone command before the normal pipeline runs."""
+    complete standalone command before the normal pipeline runs.
+    `base_url` is accepted for backward compatibility and ignored — there is one
+    in-process model (engine.py)."""
     connected_devices = _parse_dict_input(connected_devices, None)
     other_params = _parse_dict_input(other_params, {})
 
     start = time.perf_counter()
-    client = get_client(base_url)
-    model = get_model_id(client)
-
     log_buf = []
 
     def infer(key, user_input, *, system=None, enable_thinking=False, max_tokens=512, prefill=None):
         sys_content = system or PROMPTS.get(key, "")
-        content, log_line = run_llm_inference(model, client, key, [
+        content, log_line = run_llm_inference(key, [
             {"role": "system", "content": sys_content},
             {"role": "user", "content": user_input}
         ], enable_thinking=enable_thinking, max_tokens=max_tokens, prefill=prefill)
@@ -286,7 +277,7 @@ def generate_joi_code_ir(
     # ── Stage 1: command → Timeline IR (joi_slm; no approval, used as built) ──
     _t = time.perf_counter()
     try:
-        slm_out = _slm_pipe(base_url)(sentence, connected_devices)
+        slm_out = _slm_pipe()(sentence, connected_devices)
     except Exception as e:
         log_buf.append(f"⛔ ir (joi_slm): {type(e).__name__}: {e}")
         raise JoiGenerationError(f"IR build failed: {e}", "\n".join(log_buf), error_code="ir_failed")

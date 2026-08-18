@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-"""절 분할기 — 단어 상태 → 경계 → 절 타입·mods (+ 저확신 자리만 9B 객관식 게이트).
+"""절 분할기 — 단어 상태 → 경계 → 절 타입·mods (+ 저확신 자리만 같은 모델 1토큰 객관식 게이트).
 출력 절: {j, text, type, mods, p, h6}  (h6 = 층 6 절 끝 벡터, 그래프 정규화기 입력)"""
-import json, re, urllib.request
+import re
 import numpy as np
 from .heads import SegHeads, MODS
 
@@ -11,15 +11,11 @@ TYPE_OPTS = [("ACT", "행동 — 기기를 켜라/꺼라/설정하라 등 실행
              ("STOP", "중지 — 반복을 끝내라/그만"), ("ELSE", "아니면 — 앞 조건이 아닐 때")]
 
 class MCQ:
-    """OpenAI 호환 completions(vLLM)로 1토큰 객관식. 실패하면 None."""
-    def __init__(self, url="http://localhost:8002/v1/completions", model="cyankiwi/Qwen3.5-9B-AWQ-4bit"): self.url, self.model = url, model
+    """단일 엔진으로 1토큰 객관식. 실패하면 None."""
+    def __init__(self, engine): self.engine = engine
     def _logits(self, prompt, letters):
-        req = json.dumps({"model": self.model, "prompt": prompt, "max_tokens": 1, "temperature": 0, "logprobs": 20}).encode()
-        try:
-            r = urllib.request.Request(self.url, data=req, headers={"Content-Type": "application/json"})
-            top = json.loads(urllib.request.urlopen(r, timeout=120).read())["choices"][0]["logprobs"]["top_logprobs"][0]
+        try: return self.engine.choice(prompt, letters)
         except Exception: return None
-        return [max([v for t, v in top.items() if t.strip() == L] or [-30.0]) for L in letters]
     def seg_type(self, cmd, seg):
         letters = "ABCDEFGH"; body = "\n".join(f"{letters[i]}. {d}" for i, (_, d) in enumerate(TYPE_OPTS))
         sc = self._logits(f"사용자 명령: \"{cmd}\"\n이 명령을 절 단위로 나눴을 때 다음 절의 역할을 고르시오.\n절: \"{seg}\"\n\n{body}\n\n답:", letters)

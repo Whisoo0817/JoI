@@ -24,8 +24,8 @@ def render(command: str) -> str:
 with open(OUT, "w", encoding="utf-8") as f:
     # 어떤 백엔드/모델로 돌렸는지 헤더에 박아둔다.
     try:
-        from config import get_client, get_model_id
-        f.write(f"# backend model: {get_model_id(get_client())}\n")
+        from config import get_model_id
+        f.write(f"# backend model: {get_model_id()}\n")
     except Exception as e:
         f.write(f"# backend model: (unknown: {e})\n")
     for gname, commands in GROUPS:

@@ -68,11 +68,11 @@ Generation reads `connected_devices` to resolve phrases → tags/categories.
 ---
 
 ## 3. Joi Code Generation Pipeline (sLM head → Timeline IR → lowering)
-The active pipeline lives in `joi/generate.py` (`generate_joi_code`). It compiles a Korean command into a Joi block through a **Timeline IR**. The IR is built by `joi_slm/` — a 2B model's hidden states plus small linear heads and deterministic rules, with **no LLM text generation** — and only lowering/naming use the 9B LLM.
+The active pipeline lives in `joi/generate.py` (`generate_joi_code`). It compiles a Korean command into a Joi block through a **Timeline IR**. The IR is built by `joi_slm/` — a 2B model's hidden states plus small linear heads and deterministic rules, with **no LLM text generation**. **One model** (`engine.py`: vLLM loaded in-process) serves the hidden states (layer hooks), the MCQ gates, lowering and naming.
 
 ### Stage 1 — Command → Timeline IR (`joi_slm.CommandToIR`)
 1.  **WordEncoder** (Qwen3.5-2B-AWQ, one prefill): per-word hidden states (layers 2 and 6).
-2.  **Segmenter** (linear heads): clause boundaries → clauses; clause type (ACT/COND/TRIG/TIME/DELAY/READ/STOP/ELSE) and mods. Low-confidence spots only are re-asked as a 1-token multiple-choice question to the 9B server (`JOI_SLM_GATES=0` disables).
+2.  **Segmenter** (linear heads): clause boundaries → clauses; clause type (ACT/COND/TRIG/TIME/DELAY/READ/STOP/ELSE) and mods. Low-confidence spots only are re-asked as a 1-token multiple-choice question to the same model (`JOI_SLM_GATES=0` disables).
 3.  **graph.normalize** (linear heads): clause role / parent / anchor → drop fillers, move references, pull postposed clauses forward.
 4.  **Retriever** (Qwen3-Embedding-0.6B): clause → service candidates (catalog docs + corpus examples), joined on the categories of `connected_devices`; condition clauses re-queried per value expression.
 5.  **builder.build** (rules): boxes (structure) + slots (cron/period/until/count/duration/for) + top-1 rerank + argument/condition rules → IR JSON. See `joi_slm/README.md`.
@@ -97,7 +97,7 @@ FastAPI service wrapping `generate_joi_code`. Prompts and the service catalog lo
 ```json
 {
   "sentence": "불이 켜져있으면 모두 꺼줘",
-  "model": "cyankiwi/Ornith-1.0-9B-AWQ-FP8",
+  "model": "cyankiwi/Qwen3.5-2B-AWQ-4bit",
   "connected_devices": { "...": { "category": [], "tags": [] } },
   "current_time": "2026-06-23T02:13:31",
   "other_params": null,
@@ -110,7 +110,7 @@ Response is a `JoiLLMResponse` (`schemas.py`): `success`, `error_code`/`error_me
 
 Other endpoints: **`GET /health`**.
 
-**Backend LLM**: an OpenAI-compatible endpoint set by `LLM_BASE_URL` (default `http://localhost:8002/v1`); the model id is auto-discovered. Tuned for local 8–9B models (currently Qwen3.5-9B class); Stage 1 additionally loads the 2B encoder + embedder in-process on the GPU.
+**Model**: one in-process vLLM engine (`engine.py`, `LLM_MODEL`, default `cyankiwi/Qwen3.5-2B-AWQ-4bit`) plus the Qwen3-Embedding-0.6B retriever for service mapping. No HTTP LLM server.
 
 ---
 

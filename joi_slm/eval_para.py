@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """텍스트만 입력하는 종단 평가 — 원문 80 + 직접 작성 패러프레이즈 160(experiments/para/para_claude.json), 매핑 예문은 같은 원본 명령 제외(held-out).
-    python -m joi_slm.eval_para [--no-gates]     (리포 루트에서; 게이트는 vLLM 9B 필요)"""
+    python -m joi_slm.eval_para [--no-gates]     (리포 루트에서; 게이트는 엔진의 2B 객관식)"""
 import os, sys, json, collections
 from .train import EXP, labels
 from .pipeline import CommandToIR

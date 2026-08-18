@@ -1,12 +1,13 @@
 # JoI — Natural Language → IoT Automation Code
 
-JoI translates natural-language commands into a custom DSL (**JoI Code**) optimized for persistent, ticking IoT environments. A command is turned into a **Timeline IR** by `joi_slm/` (a 2B model's hidden states + linear heads + deterministic rules — no LLM text generation), then lowered to a `{name, cron, period, code}` automation block by a 9B LLM.
+JoI translates natural-language commands into a custom DSL (**JoI Code**) optimized for persistent, ticking IoT environments. **One 2B model** (`cyankiwi/Qwen3.5-2B-AWQ-4bit`, vLLM in-process — `engine.py`) does everything: its hidden states feed the linear heads of `joi_slm/` that build a **Timeline IR** (no text generation), and the same model lowers the IR to a `{name, cron, period, code}` automation block and names it.
 
 This repo covers the **JoI language** and our **code-generation API** only.
 
 ---
 
 ## 📢 Latest Updates
+- **[2026/08/19]** Single-model runtime: the 9B vLLM HTTP server is gone. `engine.py` loads one 2B model in-process (vLLM as a library) and serves word states (layer-2/6 hooks), MCQ gates, lowering and naming. `LLM_MODEL` / `LLM_GPU_MEM` / `LLM_MAX_LEN` configure it.
 - **[2026/08/19]** Command → Timeline IR is now `joi_slm/` (2B word states + linear heads + rules; service mapping by embedding retrieval joined on connected categories). The former LLM device-mapping / IR-extraction stages and their prompts and device rule files were removed. Selectors are a category join (`joi/devices.py`).
 - **[2026/07/14]** Service catalog upgraded to `service_list_ver2.0.7` (added microservice provider skills: `ChatProvider` — AI chat Q&A; `NewsProvider` — news digest; `MessageSender` — SMS/KakaoTalk sending).
 - **[2026/07/14]** Service catalog upgraded to `service_list_ver2.0.6` (added `ArmRobotDetail`: fine-grained arm-robot control — per-axis / absolute-angle moves, home, saved-motion add/get/list/play, speed, parameterized greet/refuse).
@@ -20,23 +21,20 @@ This repo covers the **JoI language** and our **code-generation API** only.
 ## 🚀 Getting Started
 
 ### Prerequisites
-Python 3.9+ and a local OpenAI-compatible LLM server (vLLM).
+Python 3.12, a CUDA GPU, and the packages in `requirements.txt` (vLLM, torch, transformers, scikit-learn). No separate LLM server — the model is loaded in-process.
 
 ```bash
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Start the LLM server (vLLM)
-bash start_qwen35_9b_5090.sh # serves on http://localhost:8002/v1 by default (lowering/naming + sLM gates)
-
-# 3. Start the generation API
+# 2. Start the generation API (loads the 2B model + sLM heads at startup, ~2 min)
 python app.py                # FastAPI on port 49999
 
-# 4. Quick local run (edit the COMMANDS list in run.py)
+# 3. Quick local run (edit the COMMANDS list in run.py)
 python run.py
 ```
 
-The backend endpoint is configured via `LLM_BASE_URL` (default `http://localhost:8002/v1`).
+Model / memory: `LLM_MODEL` (default `cyankiwi/Qwen3.5-2B-AWQ-4bit`), `LLM_GPU_MEM` (vLLM fraction, default 0.5), `LLM_MAX_LEN` (default 16384). `JOI_SLM_GATES=0` turns the MCQ gates off.
 
 ---
 
@@ -54,7 +52,7 @@ Request body:
 ```json
 {
   "sentence": "불이 켜져있으면 모두 꺼줘",
-  "model": "cyankiwi/Ornith-1.0-9B-AWQ-FP8",
+  "model": "cyankiwi/Qwen3.5-2B-AWQ-4bit",
   "connected_devices": { "...": { "category": [], "tags": [] } },
   "current_time": "2026-06-23T02:13:31",
   "other_params": null,

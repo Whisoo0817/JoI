@@ -18,10 +18,14 @@ from schemas import (
 
 import uvicorn
 
-# ── vLLM 엔드포인트 ──────────────────────────────────────
-SLLM_LOCAL_BASE_URL = os.environ.get("LLM_BASE_URL", "http://localhost:8002/v1")
-
 app = FastAPI()
+
+
+@app.on_event("startup")
+def _preload_engine():
+    """모델(엔진)과 sLM 파이프라인을 서버 시작 때 올린다 — 첫 요청이 적재를 기다리지 않도록."""
+    from joi.generate import _slm_pipe
+    _slm_pipe()
 
 app.add_middleware(
     CORSMiddleware,
@@ -245,7 +249,6 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
             sentence=request.sentence,
             connected_devices=request.connected_devices,
             other_params=request.other_params,
-            base_url=SLLM_LOCAL_BASE_URL,
             current_code=_pick_current_code(request),
         )
         response = _success_response(result, request.sentence)
@@ -273,9 +276,7 @@ async def generate_joi_code_endpoint(request: GenerateJOICodeRequest):
 
 
 if __name__ == "__main__":
-    print(f"[app] vLLM backend: {SLLM_LOCAL_BASE_URL}")
-    # Watch .md prompts too (not just .py) so editing files/*.md hot-reloads the
-    # server. Prompts are loaded once at import (~0.5ms) so a full restart is cheap
-    # (~0.24s); without this, .md edits would need a manual restart to take effect.
-    uvicorn.run("app:app", host="0.0.0.0", port=49999, reload=True,
-                reload_includes=["*.py", "*.md"])
+    from engine import MODEL_ID
+    print(f"[app] model: {MODEL_ID} (in-process vLLM engine)")
+    # 모델을 프로세스 안에 올리므로 자동 리로드는 끈다(리로드마다 모델 재적재). 프롬프트(.md) 수정은 재시작.
+    uvicorn.run("app:app", host="0.0.0.0", port=49999)

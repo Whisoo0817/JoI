@@ -1,4 +1,3 @@
-import time
 import ast
 import json
 import re
@@ -15,78 +14,24 @@ class JoiGenerationError(ValueError):
         self.error_code = error_code
 
 
-def run_llm_inference(model, client, inference_type, messages, *, enable_thinking=False,
+def run_llm_inference(inference_type, messages, *, enable_thinking=False,
                       max_tokens=512, prefill=None):
-    start_inference = time.perf_counter()
-    # `prefill`: force the response to START with this exact text (e.g.
-    # "<Reasoning>\n") by appending it as an unfinished assistant turn and asking
-    # vLLM to continue it. The model can no longer emit a rival format (a JSON
-    # array, a bare answer, a runaway <think>) — capable models otherwise imitate
-    # in-context examples and skip the required header. The prefill text is NOT
-    # returned by the server, so we prepend it below to hand callers the full,
-    # contract-shaped output.
-    extra_body = {"chat_template_kwargs": {"enable_thinking": enable_thinking}}
-    if prefill:
-        messages = list(messages) + [{"role": "assistant", "content": prefill}]
-        extra_body["add_generation_prompt"] = False
-        extra_body["continue_final_message"] = True
-    stream = client.chat.completions.create(
-        messages=messages,
-        model=model,
-        temperature=0.1,
-        max_tokens=max_tokens,
-        stream=True,
-        stream_options={"include_usage": True},
-        extra_body=extra_body,
-    )
-    chunks = []
-    usage = None
-    finish_reason = None
-    first_token_time = None
-    for chunk in stream:
-        if chunk.usage:
-            usage = chunk.usage
-        if chunk.choices:
-            if chunk.choices[0].delta.content:
-                if first_token_time is None:
-                    first_token_time = time.perf_counter()
-                chunks.append(chunk.choices[0].delta.content)
-            if chunk.choices[0].finish_reason:
-                finish_reason = chunk.choices[0].finish_reason
-    elapsed = time.perf_counter() - start_inference
-    content = "".join(chunks)
-    # Some backends (e.g. Ornith) emit a <think>…</think> block even when
-    # enable_thinking=False is requested. Strip it unconditionally so it never
-    # leaks into a stage's parsed output (it polluted scenario names and could
-    # fill the token budget). A truncated/unclosed <think> (no </think>) means
-    # the answer never arrived → leave content for the length-truncation check
-    # below to surface as a reasoning overflow.
+    """단일 엔진(engine.get_engine)으로 채팅 생성 → (content, log_line).
+    prefill: 응답이 이 텍스트로 시작하도록 강제(예: "<Reasoning>\n") — 미완성 assistant 턴 이어쓰기."""
+    from engine import get_engine
+    content, prompt_tokens, completion_tokens, finish_reason, elapsed = get_engine().chat(
+        messages, max_tokens=max_tokens, enable_thinking=enable_thinking, prefill=prefill)
+    # A <think>…</think> block may still appear even with enable_thinking=False; strip it
+    # so it never leaks into a stage's parsed output. An unclosed <think> is left for the
+    # truncation check below.
     content = re.sub(r'<think>.*?</think>\s*', '', content, flags=re.DOTALL).strip()
-    # The server omits the prefill from its completion; prepend it so callers get
-    # the full contract-shaped text (e.g. the leading "<Reasoning>").
-    if prefill:
-        content = prefill + content
-
-    prompt_tokens = usage.prompt_tokens if usage else 0
-    completion_tokens = usage.completion_tokens if usage else 0
-    # TTFT = prefill latency (time to first generated token). tg = pure decode
-    # rate = generated tokens / (elapsed - TTFT), so the prefill of a large
-    # prompt no longer drags the reported generation speed down.
-    ttft = (first_token_time - start_inference) if first_token_time else elapsed
-    gen_elapsed = elapsed - ttft
-    tg_tps = completion_tokens / gen_elapsed if gen_elapsed > 0 and completion_tokens else 0
+    tg_tps = completion_tokens / elapsed if elapsed > 0 and completion_tokens else 0
     log_line = (
-        f"➡️ {inference_type}({prompt_tokens}) | TTFT: {ttft:.4f}s | "
-        f"tg: {tg_tps:.1f} t/s | Total: {elapsed:.4f}s\n"
+        f"➡️ {inference_type}({prompt_tokens}) | tg: {tg_tps:.1f} t/s | Total: {elapsed:.4f}s\n"
         f"===================================================\n"
         f"{content}"
     )
-    # finish_reason == "length" → the model hit max_tokens mid-output (reasoning
-    # runaway), so the result is TRUNCATED, not a real answer. This is distinct
-    # from a clean finish that happens to be empty/unparseable: the latter is a
-    # stage-specific failure, this is a reasoning overflow. Raise stage-agnostically
-    # so it surfaces as a reasoning error, not (mis)attributed to the stage's
-    # normal failure mode.
+    # finish_reason == "length" → the model hit max_tokens mid-output: TRUNCATED, not an answer.
     if finish_reason == "length":
         raise JoiGenerationError(
             f"{inference_type}: generation truncated at token budget (reasoning overflow).",
