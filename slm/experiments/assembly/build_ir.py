@@ -199,8 +199,19 @@ def call_node(cmd, j, text, force=None, hint=None):
             if q: args[aid] = q
     return {"op": "call", "target": svc, "args": args}
 
+def slot_mods(t, text, mods):
+    """슬롯 주도 mods 보강(예측 mods 누락 대비): time(시각·주기·시간창), sustain(N분 이상 지속), every(때마다), repeat(토글/반복), count(N번)"""
+    m = set(mods)
+    if t != "STOP" and (slots.cron(text) or slots.period(text) or slots.until(text)): m.add("time")
+    if t in ("COND", "TRIG") and re.search(r"\d+\s*(초|분|시간)\s*(이상|넘게|동안|째)", text) and "sustain" not in m: m.add("sustain")
+    if t == "TRIG" and re.search(r"때마다", text): m.add("every")
+    if t == "ACT" and (TOGGLE_RE.search(text) or re.search(r"반복", text)): m.add("repeat")
+    if t in ("ACT", "STOP") and slots.count(text) is not None: m.add("count")
+    return sorted(m)
 def build(o):
     cmd = o["cmd"]; S = o["segments"]
+    if os.environ.get("SLOT_MODS", "1") == "1":
+        S = [{**s, "mods": slot_mods(s["type"], s["text"], s["mods"])} for s in S]
     segs3 = [(s["type"], s["mods"], s["text"]) for s in S]
     root = assemble_tree(segs3, False, [])
     # 배치된 절 집합(상자 머리 + 잎 소유자)
