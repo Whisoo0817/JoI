@@ -136,7 +136,7 @@ def bool_state(text, vtype, members):
         return None
     return None
 
-ENUM_KO = {"dehumidifying": ["제습"], "drying": ["건조"], "AIDrying": ["AI건조", "AI 건조", "에이아이 건조"], "stop": ["멈춰", "멈추", "정지", "중지"], "start": ["시작"], "pause": ["일시정지"],
+ENUM_KO = {"dehumidifying": ["제습"], "drying": ["건조"], "AIDrying": ["AI건조", "AI 건조", "에이아이 건조"], "freezeProtection": ["동결 방지", "동결방지", "결빙 방지"], "refreshing": ["리프레쉬", "리프레시", "환기"], "stop": ["멈춰", "멈추", "정지", "중지"], "start": ["시작"], "pause": ["일시정지"],
            "cool": ["냉방", "쿨", "시원"], "heat": ["난방", "히터", "따뜻"], "auto": ["자동", "오토", "AI"], "dry": ["제습", "건조", "드라이"], "fan": ["송풍", "팬"], "sleep": ["수면", "취침"],
            "emergency": ["응급", "긴급", "비상"], "fire": ["화재", "불"], "police": ["경찰"], "ambulance": ["구급", "앰뷸런스"], "high": ["강풍", "강하게", "세게", "강"], "low": ["약풍", "약하게", "약"], "medium": ["중간", "보통"],
            "quiet": ["조용", "저소음"], "turbo": ["터보"], "normal": ["노말", "일반", "보통", "표준"], "maximum": ["맥시멈", "최대"], "minimum": ["미니멈", "최소"], "eco": ["에코", "절전"], "wash": ["세척", "세탁"],
@@ -147,7 +147,7 @@ def enum_arg(text, members):
     for m_ in members:
         key = m_.split(" - ")[0].strip()
         for w in ENUM_KO.get(key, []) + [key.lower()]:
-            if w and w in text.lower() and (best is None or len(w) > best[1]): best = (key, len(w))
+            if w and w.lower() in text.lower() and (best is None or len(w) > best[1]): best = (key, len(w))
     return best[0] if best else None
 
 def quoted(text):

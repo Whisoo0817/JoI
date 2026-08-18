@@ -73,8 +73,6 @@ for mode in ("rule", "mcq", "gated"):
                 if key in gd: okT &= str(pd.get(key)) == str(gd.get(key))
             if "cond" in gd: okC &= pd["cond"] == gd["cond"]
             if "target" in gd:
-                okV &= pd["target"] == gd["target"]
-                if pd["target"] == gd["target"]:
-                    a, b = B.cmp_args(pd["args"], gd["args"], gd["target"]); okA &= a == b
+                v_, a_ = B.call_ok(pd, gd); okV &= v_; okA &= a_
         lvl["V"] += okT and okC and okV; lvl["A"] += okT and okC and okV and okA
     print(f"  완전 IR [{mode}] S+T+C+V {lvl['V']}/{N} = {lvl['V']/N:.3f}   +A {lvl['A']}/{N} = {lvl['A']/N:.3f}")

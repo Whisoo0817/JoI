@@ -159,11 +159,8 @@
     },
     {
      "op": "call",
-     "target": "Light.MoveToBrightness",
-     "args": {
-      "Brightness": 0.0,
-      "Rate": 0.0
-     }
+     "target": "Switch.Off",
+     "args": {}
     }
    ]
   },
@@ -384,7 +381,7 @@
     },
     {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 26 and ContactSensor.Contact == false",
+     "cond": "TemperatureSensor.Temperature >= 26 and WindowCovering.CurrentPosition > 0",
      "then": [
       {
        "op": "call",
@@ -465,7 +462,7 @@
     },
     {
      "op": "if",
-     "cond": "MotionSensor.Motion == true and Siren.SirenMode != \"emergency\"",
+     "cond": "MotionSensor.Motion == true and Switch.Switch == false",
      "then": [
       {
        "op": "call",
@@ -497,8 +494,10 @@
     },
     {
      "op": "call",
-     "target": "WindowCovering.UpOrOpen",
-     "args": {}
+     "target": "WindowCovering.SetLevel",
+     "args": {
+      "Level": 50
+     }
     }
    ]
   },
@@ -583,7 +582,7 @@
        "then": [
         {
          "op": "call",
-         "target": "Valve.Open",
+         "target": "Switch.On",
          "args": {}
         }
        ],
@@ -655,8 +654,10 @@
        "else": [
         {
          "op": "call",
-         "target": "Switch.Off",
-         "args": {}
+         "target": "AirPurifier.SetAirPurifierMode",
+         "args": {
+          "Mode": "auto"
+         }
         }
        ]
       }
@@ -727,11 +728,8 @@
     },
     {
      "op": "call",
-     "target": "Television.SetChannel",
-     "args": {
-      "Channel": "$Television.Channel - 1"
-     },
-     "var": "Television.Channel"
+     "target": "Television.ChannelDown",
+     "args": {}
     }
    ]
   }
@@ -1080,9 +1078,10 @@
     },
     {
      "op": "call",
-     "target": "CloudServiceProvider.UploadFile",
+     "target": "CloudServiceProvider.SaveToFile",
      "args": {
-      "File": "cat.png"
+      "Data": "cat.png",
+      "FilePath": "cat.png"
      }
     }
    ]
@@ -1652,7 +1651,7 @@
      "op": "call",
      "target": "Dehumidifier.SetDehumidifierMode",
      "args": {
-      "Mode": "drying"
+      "Mode": "AIDrying"
      }
     }
    ]
@@ -1684,10 +1683,10 @@
     },
     {
      "op": "call",
-     "target": "Light.MoveToColor",
+     "target": "Light.MoveToHueAndSaturation",
      "args": {
-      "ColorX": 80.0,
-      "ColorY": 80.0,
+      "Hue": 240,
+      "Saturation": 80,
       "TransitionTime": 0.0
      }
     }
@@ -1919,7 +1918,7 @@
     },
     {
      "op": "call",
-     "target": "AudioRecorder.RecordStart",
+     "target": "CloudServiceProvider.SaveToFile",
      "args": {}
     }
    ]
@@ -2097,11 +2096,8 @@
     },
     {
      "op": "call",
-     "target": "Light.MoveToBrightness",
-     "args": {
-      "Brightness": 0.0,
-      "Rate": 0.0
-     }
+     "target": "Switch.Off",
+     "args": {}
     }
    ]
   },
@@ -2249,11 +2245,8 @@
     },
     {
      "op": "call",
-     "target": "Light.MoveToBrightness",
-     "args": {
-      "Brightness": 0.0,
-      "Rate": 0.0
-     }
+     "target": "Switch.Off",
+     "args": {}
     }
    ]
   },
@@ -2307,11 +2300,8 @@
     },
     {
      "op": "call",
-     "target": "Light.MoveToBrightness",
-     "args": {
-      "Brightness": 0.0,
-      "Rate": 0.0
-     }
+     "target": "Switch.Off",
+     "args": {}
     }
    ]
   },
@@ -2503,11 +2493,8 @@
     },
     {
      "op": "call",
-     "target": "Light.MoveToBrightness",
-     "args": {
-      "Brightness": 0.0,
-      "Rate": 0.0
-     }
+     "target": "Switch.Off",
+     "args": {}
     }
    ]
   },
@@ -2646,7 +2633,7 @@
      "then": [
       {
        "op": "call",
-       "target": "CloudServiceProvider.UploadToCloudStorage",
+       "target": "CloudServiceProvider.UploadFile",
        "args": {}
       }
      ],
@@ -3359,7 +3346,7 @@
        "op": "call",
        "target": "Light.MoveToBrightness",
        "args": {
-        "Brightness": 100.0,
+        "Brightness": "min($Light.CurrentBrightness + 10, 100)",
         "Rate": 0.0
        }
       }
@@ -3516,7 +3503,7 @@
        "op": "call",
        "target": "Light.MoveToBrightness",
        "args": {
-        "Brightness": 0.0,
+        "Brightness": "max($Light.CurrentBrightness - 10, 0)",
         "Rate": 0.0
        }
       }
@@ -3630,11 +3617,8 @@
       },
       {
        "op": "call",
-       "target": "Light.MoveToBrightness",
-       "args": {
-        "Brightness": 0.0,
-        "Rate": 0.0
-       }
+       "target": "Switch.Off",
+       "args": {}
       }
      ]
     }
@@ -3697,10 +3681,8 @@
     },
     {
      "op": "call",
-     "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {
-      "Mode": "dehumidifying"
-     }
+     "target": "Switch.On",
+     "args": {}
     }
    ]
   },
@@ -4428,7 +4410,7 @@
     },
     {
      "op": "call",
-     "target": "AirPurifier.SetAirPurifierMode",
+     "target": "Switch.On",
      "args": {}
     }
    ]
@@ -4688,7 +4670,7 @@
      "op": "call",
      "target": "Dehumidifier.SetDehumidifierMode",
      "args": {
-      "Mode": "dehumidifying"
+      "Mode": "freezeProtection"
      }
     }
    ]
@@ -5285,7 +5267,7 @@
     },
     {
      "op": "call",
-     "target": "Light.MoveToHue",
+     "target": "Light.MoveToColor",
      "args": {
       "TransitionTime": 0.0
      }
@@ -5326,8 +5308,10 @@
     },
     {
      "op": "call",
-     "target": "RobotVacuumCleaner.SetRobotVacuumCleanerRunMode",
-     "args": {}
+     "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+     "args": {
+      "Mode": "auto"
+     }
     },
     {
      "op": "delay",
@@ -5448,7 +5432,9 @@
     {
      "op": "call",
      "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {}
+     "args": {
+      "Mode": "refreshing"
+     }
     }
    ]
   },
@@ -5693,7 +5679,7 @@
     },
     {
      "op": "wait",
-     "cond": "Light.CurrentBrightness > 0",
+     "cond": "Switch.Switch == true",
      "edge": "none"
     },
     {
@@ -5715,7 +5701,7 @@
     },
     {
      "op": "wait",
-     "cond": "Light.CurrentBrightness > 0",
+     "cond": "Switch.Switch == true",
      "edge": "none"
     },
     {
@@ -5744,10 +5730,8 @@
     },
     {
      "op": "call",
-     "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {
-      "Mode": "dehumidifying"
-     }
+     "target": "Switch.On",
+     "args": {}
     },
     {
      "op": "delay",
@@ -6034,10 +6018,8 @@
     },
     {
      "op": "call",
-     "target": "Dehumidifier.SetDehumidifierMode",
-     "args": {
-      "Mode": "dehumidifying"
-     }
+     "target": "Switch.On",
+     "args": {}
     }
    ]
   }
@@ -6571,6 +6553,11 @@
      "then": [
       {
        "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      },
+      {
+       "op": "call",
        "target": "AirPurifier.SetAirPurifierMode",
        "args": {
         "Mode": "auto"
@@ -6596,6 +6583,11 @@
      "op": "if",
      "cond": "AirQualitySensor.CarbonDioxide >= 1500 and WindowCovering.CurrentPosition == 0",
      "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      },
       {
        "op": "call",
        "target": "AirPurifier.SetAirPurifierMode",
@@ -6991,7 +6983,7 @@
     },
     {
      "op": "if",
-     "cond": "WeatherProvider.Weather == \"rain\" and ContactSensor.Contact == false",
+     "cond": "WeatherProvider.Weather == \"rain\" and WindowCovering.CurrentPosition > 0",
      "then": [
       {
        "op": "call",
@@ -7113,6 +7105,11 @@
      "then": [
       {
        "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      },
+      {
+       "op": "call",
        "target": "AirConditioner.SetAirConditionerMode",
        "args": {
         "Mode": "cool"
@@ -7144,6 +7141,13 @@
        "op": "call",
        "target": "Switch.On",
        "args": {}
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "cool"
+       }
       },
       {
        "op": "call",
@@ -7736,7 +7740,7 @@
     },
     {
      "op": "if",
-     "cond": "DoorLock.DoorLockState == \"closed\"",
+     "cond": "DoorLock.DoorLockState == \"closed\" and DoorLock.DoorLockState == \"closed\"",
      "then": [
       {
        "op": "call",
@@ -8365,7 +8369,7 @@
        "else": []
       }
      ],
-     "count": "n"
+     "count": 1
     }
    ]
   },
@@ -8487,7 +8491,7 @@
     },
     {
      "op": "if",
-     "cond": "WindowCovering.CurrentPosition == ? and ContactSensor.Contact == true",
+     "cond": "WindowCovering.CurrentPosition == 0",
      "then": [
       {
        "op": "call",
@@ -8540,7 +8544,7 @@
     },
     {
      "op": "call",
-     "target": "AirPurifier.SetAirPurifierMode",
+     "target": "Switch.On",
      "args": {}
     },
     {
@@ -8586,7 +8590,7 @@
     },
     {
      "op": "if",
-     "cond": "WindowCovering.CurrentPosition == 6",
+     "cond": "WindowCovering.CurrentPosition > 0",
      "then": [
       {
        "op": "call",
@@ -8738,7 +8742,7 @@
        "then": [
         {
          "op": "call",
-         "target": "WindowCovering.DownOrClose",
+         "target": "Switch.On",
          "args": {}
         }
        ],
@@ -8818,8 +8822,10 @@
        "else": [
         {
          "op": "call",
-         "target": "Switch.Off",
-         "args": {}
+         "target": "AirPurifier.SetAirPurifierMode",
+         "args": {
+          "Mode": "sleep"
+         }
         }
        ]
       }
@@ -9106,7 +9112,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "ContactSensor.Contact == false",
+       "cond": "WindowCovering.CurrentPosition > 0",
        "edge": "rising"
       },
       {
@@ -9171,7 +9177,7 @@
        "op": "call",
        "target": "Light.MoveToBrightness",
        "args": {
-        "Brightness": 100.0,
+        "Brightness": "$Light.CurrentBrightness + 10",
         "Rate": 0.0
        }
       }
@@ -10096,7 +10102,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "Light.CurrentBrightness > 0",
+       "cond": "Switch.Switch == true",
        "edge": "rising"
       },
       {
@@ -10124,7 +10130,7 @@
      "body": [
       {
        "op": "wait",
-       "cond": "Light.CurrentBrightness > 0",
+       "cond": "Switch.Switch == true",
        "edge": "rising"
       },
       {
@@ -10615,10 +10621,8 @@
        "then": [
         {
          "op": "call",
-         "target": "Dehumidifier.SetDehumidifierMode",
-         "args": {
-          "Mode": "dehumidifying"
-         }
+         "target": "Switch.Off",
+         "args": {}
         }
        ],
        "else": []
@@ -11123,7 +11127,7 @@
        "then": [
         {
          "op": "call",
-         "target": "WindowCovering.UpOrOpen",
+         "target": "Switch.On",
          "args": {}
         }
        ],
@@ -11195,7 +11199,7 @@
        "then": [
         {
          "op": "call",
-         "target": "WindowCovering.DownOrClose",
+         "target": "Switch.On",
          "args": {}
         }
        ],
@@ -11267,17 +11271,17 @@
        "then": [
         {
          "op": "call",
-         "target": "AirConditioner.SetTargetTemperature",
-         "args": {
-          "Temperature": 20.0
-         }
+         "target": "Switch.On",
+         "args": {}
         }
        ],
        "else": [
         {
          "op": "call",
-         "target": "Switch.Off",
-         "args": {}
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 20.0
+         }
         }
        ]
       }
@@ -12733,8 +12737,13 @@
      "duration": "1 HOUR"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 2",
+     "cond": "$v1 - $v2 >= 2",
      "then": [
       {
        "op": "call",
@@ -12808,7 +12817,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "Switch.Switch == true and TemperatureSensor.Temperature <= 25",
+         "cond": "TemperatureSensor.Temperature <= 25",
          "then": [
           {
            "op": "call",
@@ -12892,7 +12901,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "Switch.Switch == true and HumiditySensor.Humidity <= 50",
+         "cond": "HumiditySensor.Humidity <= 50",
          "then": [
           {
            "op": "call",
@@ -12976,7 +12985,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "Switch.Switch == true and LightSensor.Brightness >= 500",
+         "cond": "LightSensor.Brightness >= 500",
          "then": [
           {
            "op": "call",
@@ -13060,7 +13069,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "Switch.Switch == true and TemperatureSensor.Temperature >= 22",
+         "cond": "TemperatureSensor.Temperature >= 22",
          "then": [
           {
            "op": "call",
@@ -13144,7 +13153,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "Switch.Switch == true and HumiditySensor.Humidity >= 55",
+         "cond": "HumiditySensor.Humidity >= 55",
          "then": [
           {
            "op": "call",
@@ -13422,7 +13431,7 @@
     },
     {
      "op": "if",
-     "cond": "PresenceSensor.Presence == false",
+     "cond": "PresenceSensor.Presence == false and PresenceSensor.Presence == false",
      "then": [
       {
        "op": "call",
@@ -13466,7 +13475,7 @@
     },
     {
      "op": "if",
-     "cond": "ContactSensor.Contact == true",
+     "cond": "ContactSensor.Contact == true and ContactSensor.Contact == true",
      "then": [
       {
        "op": "call",
@@ -13510,7 +13519,7 @@
     },
     {
      "op": "wait",
-     "cond": "MotionSensor.Motion == true",
+     "cond": "MotionSensor.Motion == true or MotionSensor.Motion == true",
      "edge": "none"
     },
     {
@@ -13554,7 +13563,7 @@
     },
     {
      "op": "if",
-     "cond": "LightSensor.Brightness <= 100",
+     "cond": "LightSensor.Brightness <= 100 and LightSensor.Brightness <= 100",
      "then": [
       {
        "op": "call",
@@ -13598,7 +13607,7 @@
     },
     {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 25",
+     "cond": "TemperatureSensor.Temperature >= 25 and TemperatureSensor.Temperature >= 25",
      "then": [
       {
        "op": "call",
@@ -14168,8 +14177,13 @@
      "duration": "30 MIN"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 3",
+     "cond": "$v1 - $v2 >= 3",
      "then": [
       {
        "op": "call",
@@ -14235,8 +14249,13 @@
      "duration": "20 MIN"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
      "op": "if",
-     "cond": "Plug.Power >= 10",
+     "cond": "$v1 - $v2 >= 10",
      "then": [
       {
        "op": "call",
@@ -14302,8 +14321,13 @@
      "duration": "15 MIN"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 5",
+     "cond": "abs($v1 - $v2) >= 5",
      "then": [
       {
        "op": "call",
@@ -14369,8 +14393,13 @@
      "duration": "1 HOUR"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "LightSensor.Brightness"
+    },
+    {
      "op": "if",
-     "cond": "LightSensor.Brightness >= 200",
+     "cond": "$v1 - $v2 >= 200",
      "then": [
       {
        "op": "call",
@@ -14436,8 +14465,13 @@
      "duration": "30 MIN"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
      "op": "if",
-     "cond": "HumiditySensor.Humidity >= 15",
+     "cond": "$v2 - $v1 >= 15",
      "then": [
       {
        "op": "call",
@@ -14503,8 +14537,13 @@
      "duration": "1 HOUR"
     },
     {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 2",
+     "cond": "$v2 - $v1 >= 2",
      "then": [
       {
        "op": "call",
@@ -14576,7 +14615,7 @@
        "op": "call",
        "target": "Light.MoveToBrightness",
        "args": {
-        "Brightness": 80.0,
+        "Brightness": "min($Light.CurrentBrightness + 5, 80)",
         "Rate": 0.0
        }
       }
@@ -14637,7 +14676,7 @@
        "op": "call",
        "target": "Light.MoveToBrightness",
        "args": {
-        "Brightness": 10.0,
+        "Brightness": "max($Light.CurrentBrightness - 15, 10)",
         "Rate": 0.0
        }
       }
@@ -14698,7 +14737,7 @@
        "op": "call",
        "target": "Light.MoveToBrightness",
        "args": {
-        "Brightness": 100.0,
+        "Brightness": "min($Light.CurrentBrightness + 20, 100)",
         "Rate": 0.0
        }
       }
@@ -14763,7 +14802,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "Switch.Switch == true and TemperatureSensor.Temperature <= 23",
+         "cond": "TemperatureSensor.Temperature <= 23",
          "then": [
           {
            "op": "call",
@@ -14847,7 +14886,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "Switch.Switch == true and TemperatureSensor.Temperature <= 28",
+         "cond": "TemperatureSensor.Temperature <= 28",
          "then": [
           {
            "op": "call",
@@ -14931,7 +14970,7 @@
        "else": [
         {
          "op": "if",
-         "cond": "Switch.Switch == true and HumiditySensor.Humidity <= 55",
+         "cond": "HumiditySensor.Humidity <= 55",
          "then": [
           {
            "op": "call",
@@ -15083,7 +15122,7 @@
     },
     {
      "op": "if",
-     "cond": "LightSensor.Brightness <= 50",
+     "cond": "LightSensor.Brightness <= 50 and LightSensor.Brightness <= 50",
      "then": [
       {
        "op": "call",
@@ -15127,7 +15166,7 @@
     },
     {
      "op": "if",
-     "cond": "TemperatureSensor.Temperature >= 30",
+     "cond": "TemperatureSensor.Temperature >= 30 or TemperatureSensor.Temperature >= 30",
      "then": [
       {
        "op": "call",
@@ -15180,7 +15219,7 @@
        "args": {}
       }
      ],
-     "count": "n"
+     "count": 10
     }
    ]
   },
@@ -15194,7 +15233,7 @@
      "op": "cycle",
      "until": "n >= 10",
      "period": "5 MIN",
-     "count": "n",
+     "count": 10,
      "body": [
       {
        "op": "call",
@@ -15229,7 +15268,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 4
     }
    ]
   },
@@ -15243,7 +15282,7 @@
      "op": "cycle",
      "until": "n >= 4",
      "period": "30 SEC",
-     "count": "n",
+     "count": 4,
      "body": [
       {
        "op": "call",
@@ -15280,7 +15319,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 3
     }
    ]
   },
@@ -15294,7 +15333,7 @@
      "op": "cycle",
      "until": "n >= 3",
      "period": "1 MIN",
-     "count": "n",
+     "count": 3,
      "body": [
       {
        "op": "call",
@@ -15328,7 +15367,7 @@
        "args": {}
       }
      ],
-     "count": "n"
+     "count": 6
     }
    ]
   },
@@ -15342,7 +15381,7 @@
      "op": "cycle",
      "until": "n >= 6",
      "period": "2 MIN",
-     "count": "n",
+     "count": 6,
      "body": [
       {
        "op": "call",
@@ -15370,13 +15409,13 @@
      "body": [
       {
        "op": "call",
-       "target": "Speaker.SetVolume",
+       "target": "Speaker.Speak",
        "args": {
-        "Volume": 5
+        "Text": "회의 알림"
        }
       }
      ],
-     "count": "n"
+     "count": 5
     }
    ]
   },
@@ -15390,7 +15429,7 @@
      "op": "cycle",
      "until": "n >= 5",
      "period": "20 MIN",
-     "count": "n",
+     "count": 5,
      "body": [
       {
        "op": "call",
@@ -15426,7 +15465,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 6
     }
    ]
   },
@@ -15440,7 +15479,7 @@
      "op": "cycle",
      "until": "n >= 6",
      "period": "10 SEC",
-     "count": "n",
+     "count": 6,
      "body": [
       {
        "op": "call",
@@ -15475,7 +15514,7 @@
        "args": {}
       }
      ],
-     "count": "n"
+     "count": 5
     }
    ]
   },
@@ -15489,7 +15528,7 @@
      "op": "cycle",
      "until": "n >= 5",
      "period": "1 HOUR",
-     "count": "n",
+     "count": 5,
      "body": [
       {
        "op": "call",
@@ -15523,7 +15562,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 4
     }
    ]
   },
@@ -15537,7 +15576,7 @@
      "op": "cycle",
      "until": "n >= 4",
      "period": "15 MIN",
-     "count": "n",
+     "count": 4,
      "body": [
       {
        "op": "call",
@@ -15573,7 +15612,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 8
     }
    ]
   },
@@ -15587,7 +15626,7 @@
      "op": "cycle",
      "until": "n >= 8",
      "period": "20 SEC",
-     "count": "n",
+     "count": 8,
      "body": [
       {
        "op": "call",
@@ -16368,7 +16407,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 3
     }
    ]
   },
@@ -16388,7 +16427,7 @@
      "op": "cycle",
      "until": "n >= 3",
      "period": "30 SEC",
-     "count": "n",
+     "count": 3,
      "body": [
       {
        "op": "call",
@@ -16430,7 +16469,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 3
     }
    ]
   },
@@ -16450,7 +16489,7 @@
      "op": "cycle",
      "until": "n >= 3",
      "period": "1 MIN",
-     "count": "n",
+     "count": 3,
      "body": [
       {
        "op": "call",
@@ -16492,7 +16531,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 3
     }
    ]
   },
@@ -16512,7 +16551,7 @@
      "op": "cycle",
      "until": "n >= 3",
      "period": "2 MIN",
-     "count": "n",
+     "count": 3,
      "body": [
       {
        "op": "call",
@@ -16554,7 +16593,7 @@
        }
       }
      ],
-     "count": "n"
+     "count": 4
     }
    ]
   },
@@ -16574,7 +16613,7 @@
      "op": "cycle",
      "until": "n >= 4",
      "period": "15 SEC",
-     "count": "n",
+     "count": 4,
      "body": [
       {
        "op": "call",
@@ -16614,7 +16653,7 @@
        "args": {}
       }
      ],
-     "count": "n"
+     "count": 5
     }
    ]
   },
@@ -16634,7 +16673,7 @@
      "op": "cycle",
      "until": "n >= 5",
      "period": "30 SEC",
-     "count": "n",
+     "count": 5,
      "body": [
       {
        "op": "call",

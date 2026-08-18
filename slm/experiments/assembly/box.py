@@ -64,6 +64,7 @@ CONJ_RE = re.compile(r"(고|거나|이거나|며|이며|는데|은데|면서),?\
 PERIOD_RE = re.compile(r"\d+\s*(초|분|시간)\s*(마다|간격|주기)")   # 시각+마다(정오마다)는 cron, 기간+마다는 period               # 반복 주기 → CYC
 UNTIL_RE = re.compile(r"(\d+\s*시|정오|자정|밤|아침|저녁|오후|오전|새벽)\S*까지")   # 시각까지 = 시간창 → CYC(until) ("최대 100까지"는 값 상한)
 TOGGLE_RE = re.compile(r"(였다 .*?[았었]다|번갈아|사이에서 전환|켜고 끄는|켰다 껐다|올렸다 내렸다|열었다 닫았다)")
+MODE_ON_RE = re.compile(r"모드로 (켜|켜서|켠)")                     # A4: "냉방 모드로 켜고" = Switch.On + SetMode 두 호출
 PULSE_RE = re.compile(r"(\d+\s*(초|분|시간)간 |유지하다가)")   # "5초간 울려줘/울렸다 꺼줘" = 켜기·지연·끄기
 SLOT_DRIVEN = os.environ.get("SLOT", "1") == "1"   # 기본: 어휘 표지로 CYC 열기(mods 의존 안 함)
 STOPCOND_RE = re.compile(r"(되면|이면|하면) ?(그만|멈춰|중단)")
@@ -146,6 +147,8 @@ def assemble(segs, cron, cyc_flags):
                 cur().add("CALL"); cur().add("DELAY")
             elif PULSE_RE.search(texts[i]):
                 cur().add("CALL"); cur().add("DELAY"); cur().add("CALL")
+            elif MODE_ON_RE.search(texts[i]):
+                cur().add("CALL"); cur().add("CALL")
             else:
                 cur().add("CALL")
             i += 1; continue

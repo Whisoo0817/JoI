@@ -791,3 +791,38 @@ gold 관례 발견: **조명 켜기 = MoveToBrightness(15) vs Switch.On(7), 끄�
 | (b'') 2B LoRA 객관식 (`sel_sft.py`, 폴드 0·1 OOF 227지점, 1 epoch·16분/폴드; 같은 지점 규칙 0.960) | 0.945 | 0.976 | 0.956 | 0.697(=규칙) |
 
 판정: **규칙이 이긴다(학습 선택기는 동률).** 2B LoRA는 gold 관례를 학습해 9B few-shot을 넘어 규칙과 같은 수준(0.956 vs 0.960)에 닿지만 넘지는 못한다 — 남은 오답이 gold 비일관 쌍이기 때문. 규칙 잔여 28/579 중 ~15는 gold 비일관 쌍(조명 On/MoveToBrightness, 기기 켜기 vs *Mode, 창문 열림 = ContactSensor vs WindowCovering.CurrentPosition)이라 어떤 선택기도 상한이 ~0.975. 9B는 관례를 모르므로 few-shot을 줘도 그 비일관 쌍에서 규칙보다 더 자주 틀리고(예: 조명 켜기를 Switch.On으로 8회), 게이트도 규칙 오답 자리와 모델 정답 자리가 어긋나 이득이 없다. → 서비스 top-1은 **매핑 top-5 + 규칙 재정렬**로 확정하고, 모델은 구조 판정(§21)에만 쓴다.
+
+### 26.1 서비스·값 관례 검토 반영 (사용자 결정, `gold_fix.py` + `rerank.py`)
+
+애매한 서비스 선택·값 관례 30항목을 사용자가 직접 판정 → 규칙/평가/gold에 반영. 결정 요약:
+
+| 항목 | 결정 | 반영 위치 |
+|---|---|---|
+| A1/A2 조명 켜기·끄기 | `Switch.On/Off` ≡ `Light.MoveToBrightness(100/0)` **둘 다 정답**(연결 기기에 있는 것만) | 평가 동치 `call_ok` |
+| A3 기기 켜기("제습기를 켜줘") | `Switch.On` (모드에 on은 없음) | 규칙 + gold 1건 정정 |
+| A4 "냉방 모드로 켜고" | `Switch.On` + `SetMode` **두 호출** | box `MODE_ON_RE` → CALL CALL, gold 2건 정정 |
+| A5/A6/A7 | 모드어→*Mode, 사이렌 기본 emergency, 펄스 끄기=Switch.Off | 그대로 |
+| A8 "채널 하나 내려" | `ChannelDown` (gold의 SetChannel 수식 → 정정) | gold 정정 + 채널 규칙 |
+| A9/A10/A13 | %수치→Set*/MoveTo*, 색상어→MoveToColor·색조/채도→MoveToHueAndSaturation(Hue/Saturation 숫자), 저장→SaveToFile·업로드→UploadFile(→ composite service로 묶어 관리 예정) | 규칙 |
+| A11 수식 인자 | `min($Light.CurrentBrightness + N, M)` 생성(max/min/avg는 IR에서 허용) | `call_node` |
+| A14 로봇청소기 모드 | 해당 enum 멤버가 있는 Mode 함수면 정답 | 규칙(멤버 보유 +2) + 평가 동치 |
+| B1 창문 vs 문 | 창문=`WindowCovering.CurrentPosition`(열림 >0), 문=`ContactSensor.Contact`(닫힘=true), 금고·도어락=`DoorLock.DoorLockState` | 사전 |
+| B2/B3/B4 켜짐·꺼짐 | 상태든 사건이든 **Switch.Switch 우선**; gold "메인 사이렌 꺼져있으면"=`Switch.Switch == false`, "조명이 켜지면"=`Switch.Switch == true` 정정 | 규칙 + gold 정정 |
+| B8 실내/실외 | 바깥·외부·실외 → `WeatherProvider.Pm25/Pm10/Temperature/HumidityWeather`; AirQualitySensor·CarbonDioxideSensor는 실내(동치) | 사전 + 평가 동치 |
+| B10/B11 | 전압 V→mV, 전류 A 그대로, `pushed_3x`/`held` | 그대로 |
+| B12 count | 숫자(gold `"n"` → until의 N으로 정정) | gold 정정 |
+| B14 두 번 읽고 비교 | "확인하고 … 다시 확인해서 M 이상 떨어졌/올랐/차이" → 두 번째 read + `$v1 - $v2 >= M` / `abs(...)`(가능함 — 이제 생성) | `build` |
+| C2 enum | AI건조→AIDrying(대소문자 버그 수정), 동결 방지→freezeProtection, 리프레쉬→refreshing | 사전 |
+| 그 외 | "그렇지 않고/그리고" 접속 부분은 조건 아님, "A와 B 모두 X"→`e and e`, "A나 B 중 한 곳이라도"→`e or e`, gold 괄호 비일관 정규화 | `cond_expr`/`norm_cond` |
+
+| 매핑 327 (검토 반영 후) | 규칙 OFF | **규칙 ON** |
+|---|---|---|
+| target (동치 포함) | — | **1.000** (371/371) |
+| args | — | 0.995 |
+| cond 속성 / 식 | — | **0.990 / 0.962** |
+| S+T+C+V | 0.636 | **0.872** |
+| **완전 IR (S+T+C+V+A)** | 0.618 | **0.865** (283/327; 구조 일치 293 중 **0.966**) |
+
+잔여 8 조건식: gold 자유 변수명(`living_temp`, `brightness`, `livingRoomHumidity`), `not (...) or ...` 표기, "야간(오후 10시)이 되면"(시간 조건이 절 안), "멈춘 상태" — 모두 gold 표기 문제 또는 극소수. 완전 IR의 상한은 이제 **구조 0.896**(34명령: 상자 규칙이 못 다루는 배치) — 다음 병목.
+
+검토 대기(내가 임시로 정한 것): LevelControl.MoveToLevel ≡ Light.MoveToBrightness(밝기, `$LevelControl.CurrentLevel`≡`$Light.CurrentBrightness`)로 동치 처리; "사람이 감지될 때마다"는 Presence(gold Motion 1건).

@@ -9,19 +9,24 @@ ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."
 AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
 ON = os.environ.get("RERANK", "1") == "1"
 
-SPEECH = re.compile(r"라고|말해|알려|출력해|안내해|방송해|안내\.?$|안내,")
+SPEECH = re.compile(r"라고|말해|알려|출력해|안내해|방송해|안내(?![가-힣])")
 QUOTED = re.compile(r"[\"'“‘].+[\"'”’]")
 LIGHT = re.compile(r"조명|전등|램프|라이트|(?<![가-힣])불(?![가-힣])|불을|불도|불만")
 BRIGHT_NUM = re.compile(r"\d+\s*(%|퍼센트|으로|로)|밝기|밝게|어둡|색")
 MODE = re.compile(r"모드|냉방|난방|송풍|자동|수동|건조|강풍|약풍|터보|절전|취침|긴급|응급|급속|표준|강력|조용|강하게|약하게|세게")
-SENSOR_LEX = [   # (정규식, 서비스) — 앞이 우선(초미세 > 미세)
+OUTDOOR = re.compile(r"바깥|외부|실외|밖의|밖에|야외")
+SENSOR_LEX = [   # (정규식, 서비스) — 앞이 우선(초미세 > 미세). B8: 바깥/외부는 WeatherProvider, 실내는 AirQualitySensor
+    (r"(바깥|외부|실외|밖의|밖에|야외).*초미세", "WeatherProvider.Pm25Weather"), (r"(바깥|외부|실외|밖의|밖에|야외).*미세", "WeatherProvider.Pm10Weather"),
+    (r"(바깥|외부|실외|밖의|밖에|야외).*온도", "WeatherProvider.TemperatureWeather"), (r"(바깥|외부|실외|밖의|밖에|야외).*습도", "WeatherProvider.HumidityWeather"),
     (r"초미세", "AirQualitySensor.VeryFineDustLevel"), (r"미세\s*먼지|미세먼지|먼지", "AirQualitySensor.FineDustLevel"),
     (r"이산화탄소|CO2|co2", "AirQualitySensor.CarbonDioxide"), (r"비가|비 오|비오|눈이|날씨|맑|흐리|폭우|폭설", "WeatherProvider.Weather"),
     (r"(?<!목표 )(?<!설정 )온도", "TemperatureSensor.Temperature"), (r"습도", "HumiditySensor.Humidity"),
     (r"조도|럭스|lux", "LightSensor.Brightness"), (r"움직임|동작|모션|인기척", "MotionSensor.Motion"),
     (r"사람|재실|아무도|누군가|누가", "PresenceSensor.Presence"), (r"연기", "SmokeDetector.Smoke"),
     (r"소리|소음|시끄", "SoundSensor.Sound"), (r"누수|물이 새|침수", "LeakSensor.Leakage"),
-    (r"(문|창문|창|뚜껑)(이|가)? ?(열|닫)", "ContactSensor.Contact"), (r"전압", "Charger.Voltage"), (r"전류", "Charger.Current"), (r"충전", "Charger.ChargingState"),
+    (r"(창문|창)(이|가|은|는|도)? ?(하나라도 )?(열|닫)", "WindowCovering.CurrentPosition"),   # B1: 창문=WindowCovering
+    (r"(금고|도어락|자물쇠)(이|가|은|는|도)? ?(하나라도 |모두 )?(열|잠|풀)", "DoorLock.DoorLockState"),   #     금고·도어락=DoorLock
+    (r"(문|뚜껑|서랍)(이|가|은|는|도)? ?(하나라도 )?(열|닫)", "ContactSensor.Contact"),                #     문=ContactSensor (r"전압", "Charger.Voltage"), (r"전류", "Charger.Current"), (r"충전", "Charger.ChargingState"),
 ]
 STATE = re.compile(r"(켜|꺼|끄)(져 ?있|진 상태|져만|짐 상태)|(작동|가동)(하고 있|중이|되고 있|되어 있)")   # 상태(있으면) → Switch.Switch
 EVENT_ON = re.compile(r"(켜|꺼|끄)(지면|질 때|지는|졌|지고)")                                          # 사건(켜지면) → 조명이면 CurrentBrightness
@@ -41,9 +46,23 @@ def func_bonus(text, cands):
         if re.search(r"켜|점등", text): add("Light.MoveToBrightness", 4)
         elif re.search(r"꺼|끄|소등", text): add("Switch.Off", 4)
     if re.search(r"사이렌", text) and re.search(r"울려|울리|작동|켜", text): add("Siren.SetSirenMode", 4)
+    if LIGHT.search(text) and re.search(r"색조|채도|Hue|hue", text): add("Light.MoveToHueAndSaturation", 6)          # A10
+    elif LIGHT.search(text) and re.search(r"(빨간|파란|초록|노란|보라|주황|분홍|흰|하얀|빨강|파랑|노랑|녹)색?으?로|색(으로|을|깔)", text): add("Light.MoveToColor", 6)
+    if re.search(r"저장", text): add("CloudServiceProvider.SaveToFile", 5)                                          # A13
+    if re.search(r"업로드|올려\s*줘$", text) and re.search(r"클라우드|파일|사진", text): add("CloudServiceProvider.UploadFile", 5)
     if MODE.search(text):
         for s in cands:
             if "Mode" in s.split(".")[1]: b[s] = b.get(s, 0) + 4
+    if re.search(r"채널", text):
+        for s in cands:
+            if s.endswith("SetChannel") and re.search(r"\d+\s*번", text): b[s] = b.get(s, 0) + 6
+            if s.endswith(("ChannelUp", "ChannelDown")) and re.search(r"하나|한 ?칸|다음|이전|올려|내려", text) and not re.search(r"\d+\s*번", text): b[s] = b.get(s, 0) + 6
+    elif not LIGHT.search(text) and not MODE.search(text):                   # A3: 모드어 없는 기기 켜기/끄기 = Switch.On/Off
+        if re.search(r"켜|틀어|가동", text) and not re.search(r"꺼|끄", text): add("Switch.On", 4)
+        elif re.search(r"꺼|끄", text): add("Switch.Off", 4)
+    if re.search(r"\d+\s*(%|퍼센트)", text):                                # A9: 수치(%) 지정은 Set*/MoveTo* (극성어 무시)
+        for s in cands:
+            if s.split(".")[1].startswith(("Set", "MoveTo")): b[s] = b.get(s, 0) + 4
     for s in cands:
         cat = s.split(".")[0]
         if cat in ("Switch", "Speaker", "LevelControl"): continue
@@ -56,8 +75,7 @@ def value_bonus(text, cands):
     def add(s, v):
         b[s] = b.get(s, 0) + v
         if s not in cands and s not in extra: extra.append(s)
-    if STATE.search(text): add("Switch.Switch", 8)
-    elif EVENT_ON.search(text): add("Light.CurrentBrightness" if LIGHT.search(text) else "Switch.Switch", 8)
+    if STATE.search(text) or EVENT_ON.search(text): add("Switch.Switch", 8)     # B4: 켜짐/꺼짐 상태·사건은 Switch 우선
     else:
         for rx, s in SENSOR_LEX:
             if re.search(rx, text): add(s, 5); break
