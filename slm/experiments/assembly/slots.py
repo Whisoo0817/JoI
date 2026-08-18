@@ -23,7 +23,7 @@ def _fmt(n, unit):
 def duration(text):
     """'N시간 M분' / 'N시간 반' / 'N분' → 단일 단위 문자열(gold 관례: 정수+단위)."""
     t = text
-    m = re.search(_num + r"\s*(초|분|시간)간(?![가-힣])", t)          # "5초간" 지속이 주기("1분마다")보다 우선
+    m = re.search(_num + r"\s*(초|분|시간)(간|씩)(?![가-힣])", t)          # "5초간/5초씩" 지속이 주기("1분마다")보다 우선
     if m: return _fmt(_n(m.group(1)), UNIT[m.group(2)])
     m = re.search(_num + r"\s*시간\s*반", t)
     if m: return _fmt(_n(m.group(1)) * 60 + 30, "MIN")
@@ -87,8 +87,8 @@ def cron(text):
 
 def until(text):
     """'…부터 N시까지' — 마지막 '시까지' 앞의 시각."""
-    m = re.search(r"(오전|오후|아침|저녁|밤|새벽|낮)?\s*(\d{1,2})\s*시\s*(?:(\d{1,2})\s*분)?\s*까지", text)
-    if "자정까지" in text: return "clock.time >= 2400"
+    m = re.search(r"(오전|오후|아침|저녁|밤|새벽|낮)?\s*(\d{1,2})\s*시\s*(?:(\d{1,2})\s*분)?\s*(까지|사이에)", text)
+    if re.search(r"자정\s*(까지|사이에)", text): return "clock.time >= 2400"
     if not m:
         if re.search(r"오후에|오후 (?!\d)", text): return "clock.time >= 1800"    # "주말 오후에 30분마다" = 오후 창(12~18시)
         if re.search(r"오전에|아침에", text): return "clock.time >= 1200"

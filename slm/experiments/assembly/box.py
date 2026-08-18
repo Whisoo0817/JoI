@@ -60,15 +60,16 @@ def gold_flags(ir):
                 walk(n.get("then") or []); walk(n.get("else") or [])
     walk(ir["timeline"]); return cron, cyc
 
-CONJ_RE = re.compile(r"(고|거나|이거나|며|이며|는데|은데|면서),?\.?$")          # 접속어미(조건 병합)
-PERIOD_RE = re.compile(r"\d+\s*(초|분|시간)\s*(마다|간격|주기)")   # 시각+마다(정오마다)는 cron, 기간+마다는 period               # 반복 주기 → CYC
-UNTIL_RE = re.compile(r"(\d+\s*시|정오|자정|밤|아침|저녁|오후|오전|새벽)\S*까지")   # 시각까지 = 시간창 → CYC(until) ("최대 100까지"는 값 상한)
-TOGGLE_RE = re.compile(r"(였다 .*?[았었]다|번갈아|사이에서 전환|켜고 끄는|켰다 껐다|올렸다 내렸다|열었다 닫았다)")
+CONJ_RE = re.compile(r"(고|거나|이거나|며|이며|는데|은데|면서|또는|이나|그리고),?\.?$")          # 접속어미(조건 병합)
+PERIOD_RE = re.compile(r"(?:\d+|한|두|세|네|다섯|여섯|열|삼십|십|이십)\s*(초|분|시간)\s*(마다|간격|주기)")   # 시각+마다(정오마다)는 cron, 기간+마다는 period               # 반복 주기 → CYC
+UNTIL_RE = re.compile(r"(\d+\s*시|정오|자정|밤|아침|저녁|오후|오전|새벽)\S*(까지|사이에)")   # 시각까지 = 시간창 → CYC(until) ("최대 100까지"는 값 상한)
+TOGGLE_RE = re.compile(r"(였다 .*?[았었]다|번갈아|사이에서 전환|켜고 끄는|켰다 껐다|올렸다 내렸다|열었다 닫았다|열고 닫기|올리고 내리기|켜고 끄기|열었다가 닫)")
+FILLER_ONLY_RE = re.compile(r"^(그리고|그리|그렇지 않고|그렇지 않으면|아니면|아니면서|그게 아니고|그 외에는|그리고 나서|또는|그때부터|그 이후로|그 뒤로|이후|그 후|그런 다음)[,.]?$")
 ELSE_SPLIT = re.compile(r".+[,\s](그 외에는|그 외에|아니면|그렇지 않으면) ")   # 한 절 안의 else 분기
 MODE_TEMP_RE = re.compile(r"모드로 \d+\s*도로|\d+\s*도로 \S*모드로")
-DELAY_LEAD_RE = re.compile(r"^(그리고 |그 뒤에? |이후 |그 이후로 )?\d+\s*(초|분|시간)\s*(뒤|후|이후|지나면|지나서|있다가)(에|에는|로|엔|서)?\s")   # ACT 안에 앞선 지연("5분 뒤 조명을 꺼줘")
+DELAY_LEAD_RE = re.compile(r"^(그리고 |그 뒤에? |이후 |그 이후로 )?(?:\d+|한|두|세|네|다섯|열|삼십)\s*(초|분|시간)\s*(뒤|후|이후|지나면|지나서|있다가)(에|에는|로|엔|서)?\s")   # ACT 안에 앞선 지연("5분 뒤 조명을 꺼줘")
 MODE_ON_RE = re.compile(r"모드로 (켜|켜서|켠)")                     # A4: "냉방 모드로 켜고" = Switch.On + SetMode 두 호출
-PULSE_RE = re.compile(r"(\d+\s*(초|분|시간)간 |유지하다가)")   # "5초간 울려줘/울렸다 꺼줘" = 켜기·지연·끄기
+PULSE_RE = re.compile(r"(\d+\s*(초|분|시간)(간|씩) |유지하다가)")   # "5초간 울려줘/울렸다 꺼줘" = 켜기·지연·끄기
 SLOT_DRIVEN = os.environ.get("SLOT", "1") == "1"   # 기본: 어휘 표지로 CYC 열기(mods 의존 안 함)
 STOPCOND_RE = re.compile(r"(되면|이면|하면) ?(그만|멈춰|중단)")
 
@@ -98,10 +99,20 @@ def assemble(segs, cron, cyc_flags):
         return False
     i = 0
     pending_cond = None   # 병합 중인 조건 상자 종류: "IF" 열림 대기
+    pend_else = False
     while i < n:
         _CUR[0] = i
         t, m = segs[i]
         nxt = segs[i + 1] if i + 1 < n else (None, [])
+        if SLOT_DRIVEN and t in ("COND", "TRIG", "TIME") and FILLER_ONLY_RE.match(texts[i].strip()):
+            # 접속·지시 부분만 있는 절("아니면서", "그때부터"): 조건이 아님. else 표지면 다음 조건 절에 else를 넘기고, 다음이 행동이면 ELSE로
+            if re.match(r"^(아니면서|그게 아니고|그렇지 않고|아니면|그렇지 않으면)", texts[i].strip()):
+                if nxt[0] in ("COND", "TRIG"): pend_else = True; i += 1; continue
+                t = "ELSE"
+            else:
+                i += 1; continue
+        if pend_else and t in ("COND", "TRIG"):
+            m = list(m) + ["else"]; pend_else = False
         # 시간 표지: period가 있으면(=gold cycle 플래그가 남아 있고 그 다음 cycle이 every용이 아님) CYC 열기
         opened_cyc = False
         # 주기/시간창 표지는 어휘적(슬롯 추출이 어차피 잡음) → SLOT_DRIVEN이면 mods 없이도 CYC 열기

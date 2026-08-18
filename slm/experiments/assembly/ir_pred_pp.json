@@ -424,12 +424,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 18 * * *"
     },
     {
      "op": "call",
@@ -3051,7 +3052,7 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
@@ -3077,19 +3078,12 @@
        ],
        "else": [
         {
-         "op": "if",
-         "cond": "?",
-         "then": [
-          {
-           "op": "call",
-           "target": "Light.MoveToBrightness",
-           "args": {
-            "Brightness": 80.0,
-            "Rate": 0.0
-           }
-          }
-         ],
-         "else": []
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 80.0,
+          "Rate": 0.0
+         }
         }
        ]
       }
@@ -6534,12 +6528,13 @@
     ]
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 12 * * *"
     },
     {
      "op": "call",
@@ -6610,12 +6605,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 23 * * *"
     },
     {
      "op": "if",
@@ -6767,12 +6763,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 19 * * *"
     },
     {
      "op": "if",
@@ -6820,12 +6817,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 18 * * 1-5"
     },
     {
      "op": "if",
@@ -6947,12 +6945,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 0 * * *"
     },
     {
      "op": "if",
@@ -6987,12 +6986,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "C",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 22 * * *"
     },
     {
      "op": "cycle",
@@ -7095,7 +7095,8 @@
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 8 * * *"
     },
     {
      "op": "if",
@@ -7127,12 +7128,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 8 * * *"
     },
     {
      "op": "call",
@@ -7164,12 +7166,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 18 * * *"
     },
     {
      "op": "if",
@@ -7229,12 +7232,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "T",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 18 * * *"
     },
     {
      "op": "cycle",
@@ -8373,7 +8377,7 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
@@ -8381,9 +8385,15 @@
      "anchor": "now"
     },
     {
-     "op": "if",
-     "cond": "Switch.Switch == true",
-     "then": [
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Switch.Switch == true",
+       "edge": "rising"
+      },
       {
        "op": "call",
        "target": "Light.MoveToBrightness",
@@ -8392,8 +8402,7 @@
         "Rate": 0.0
        }
       }
-     ],
-     "else": []
+     ]
     }
    ]
   }
@@ -9838,12 +9847,13 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
      "op": "start_at",
-     "anchor": "now"
+     "anchor": "cron",
+     "cron": "0 0 * * *"
     },
     {
      "op": "call",
@@ -13553,7 +13563,7 @@
     "mods": []
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
@@ -13561,25 +13571,24 @@
      "anchor": "now"
     },
     {
-     "op": "if",
+     "op": "wait",
      "cond": "TemperatureSensor.Temperature > 28",
-     "then": [
-      {
-       "op": "call",
-       "target": "Switch.On",
-       "args": {}
-      },
-      {
-       "op": "delay",
-       "duration": "20 MIN"
-      },
-      {
-       "op": "call",
-       "target": "Switch.Off",
-       "args": {}
-      }
-     ],
-     "else": []
+     "edge": "none",
+     "for": "5 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "20 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
     }
    ]
   }
@@ -13764,7 +13773,7 @@
     ]
    }
   ],
-  "result": "S",
+  "result": "OK",
   "ir_pred": {
    "timeline": [
     {
@@ -13772,26 +13781,25 @@
      "anchor": "now"
     },
     {
-     "op": "if",
+     "op": "wait",
      "cond": "Plug.Power < 5",
-     "then": [
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "2 MIN",
+     "body": [
       {
-       "op": "cycle",
-       "until": "n >= 3",
-       "period": "2 MIN",
-       "body": [
-        {
-         "op": "call",
-         "target": "Speaker.Speak",
-         "args": {
-          "Text": "기기가 유휴 상태입니다"
-         }
-        }
-       ],
-       "count": 3
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "기기가 유휴 상태입니다"
+       }
       }
      ],
-     "else": []
+     "count": 3
     }
    ]
   }

@@ -71,8 +71,9 @@ def pick_value(text, vals):
     W = float(os.environ.get("LEXW", "1.0"))
     return _choose("value", text, vals, [W * _lex_score(text, vals[k]) - k + bon.get(vals[k], 0) for k in range(len(vals))])
 
-FILLER_PART = re.compile(r"^(그리고|그리|그렇지 않고|그렇지 않|그렇지 않으면|아니면|그 외에는|그리고 나서|또는)(이면|면)?[,\s]*$")
-def cond_expr(cmd, j, text):
+FILLER_PART = re.compile(r"^(그리고|그리|그렇지 않고|그렇지 않|그렇지 않으면|아니면|아니면서|그게 아니고|그 외에는|그리고 나서|또는|그때부터|그 이후로|그 뒤로|이후)(이면|면)?[,\s]*$")
+def cond_expr(cmd, j, text, mixed=False):
+    if mixed and "," in text: text = text.rsplit(",", 1)[-1].strip()      # COND/mixed("등을 100%로, 500lux 이상이면") → 조건은 쉼표 뒤
     e = _cond_expr(cmd, j, text)
     if " and " in e or " or " in e or not rerank.ON: return e
     if re.search(r"(과|와|랑|및) .*(모두|둘 다|전부)", text): return f"{e} and {e}"          # "거실과 침실 모두 X" = 같은 조건 두 기기
@@ -84,6 +85,7 @@ def _cond_expr(cmd, j, text):
     cp = CP.get(cmd, {}).get(str(j))
     if cp:
         cp = [x for x in cp if not FILLER_PART.match(x["part"])] or cp     # "그리고"/"그렇지 않고" 같은 접속 부분은 조건이 아님
+        cp = [{**x, "part": text} if text in x["part"] and x["part"] != text else x for x in cp]   # mixed 절: 부분 텍스트를 잘라낸 조건으로
         conns = CONJ_SPLIT.findall(text)
         exprs = [_one_cond(pick_value(x["part"], [s_ for s_ in x["ranked"] if svc_info(s_)[0] == "value"]) , x["part"]) for x in cp]
         out = exprs[0]
@@ -131,9 +133,9 @@ def cat_of(s_): return s_.split(".")[0]
 def pick_function(cmd, j, text):
     """top-5 함수 후보 중 형제 서비스(Open/Close, On/Off, Up/Down, Set vs Step) 극성·숫자 규칙으로 선택."""
     cands = [s_ for s_ in MAP.get((cmd, j), []) if svc_info(s_)[0] == "function"]
-    jj = j - 1
-    while not cands and jj >= 0:                       # 절에 함수 후보가 없으면(else 분기 절 등) 앞 절의 후보를 빌림
-        cands = [s_ for s_ in MAP.get((cmd, jj), []) if svc_info(s_)[0] == "function"]; jj -= 1
+    for jj in list(range(j - 1, -1, -1)) + list(range(j + 1, j + 4)):      # 절에 함수 후보가 없으면(mixed·else 분기 절) 이웃 절 후보를 빌림
+        if cands: break
+        cands = [s_ for s_ in MAP.get((cmd, jj), []) if svc_info(s_)[0] == "function"]
     bon, extra = rerank.func_bonus(text, cands); n0 = len(cands); cands = cands + [e for e in extra if svc_info(e)[0] == "function"]
     if not cands: return None
     pol = [p for p, rx in POS.items() if re.search(rx, text)]
@@ -226,8 +228,9 @@ def build(o):
         """조건 상자 머리 절 + 뒤따르는 미배치 COND/TRIG 절 → (표현, 절 목록)"""
         js = [seg]; k = seg + 1
         while k < len(S) and S[k]["type"] in ("COND", "TRIG") and k not in placed and "sustain" not in S[k]["mods"]:
-            js.append(k); k += 1
-        parts = [cond_expr(cmd, j, S[j]["text"]) for j in js]
+            if not FILLER_PART.match(S[k]["text"].strip()): js.append(k)
+            k += 1
+        parts = [cond_expr(cmd, j, S[j]["text"], mixed="mixed" in S[j]["mods"]) for j in js]
         joiner = " or " if any(re.search(r"거나|또는|이거나", S[j]["text"]) for j in js[:-1]) else " and "
         return joiner.join(parts)
     def time_seg():
