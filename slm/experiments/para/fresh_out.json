@@ -1,0 +1,8524 @@
+[
+ {
+  "grp": "orig",
+  "i": 30,
+  "text": "충전기의 전력소모량을 스피커로 출력해줘.",
+  "segs": [
+   {
+    "text": "충전기의 전력소모량을 스피커로 출력해줘.",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 30,
+  "text": "충전기의 전력 소모량을 스피커를 통해 출력해 주세요.",
+  "segs": [
+   {
+    "text": "충전기의 전력 소모량을 스피커를 통해 출력해 주세요.",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 30,
+  "text": "스피커로 충전기의 전력 소모량 값을 알려주세요.",
+  "segs": [
+   {
+    "text": "스피커로 충전기의 전력 소모량 값을 알려주세요.",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.SetVolume"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 280,
+  "text": "창고에 있는 모든 공기청정기를 강풍 모드로 설정해줘.",
+  "segs": [
+   {
+    "text": "창고에 있는 모든 공기청정기를 강풍 모드로 설정해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirPurifier.SetAirPurifierMode",
+     "args": {
+      "Mode": "high"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 280,
+  "text": "창고에 있는 모든 공기청정기를 강풍 모드로 설정해 주세요.",
+  "segs": [
+   {
+    "text": "창고에 있는 모든 공기청정기를 강풍 모드로 설정해",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirPurifier.SetAirPurifierMode",
+     "args": {
+      "Mode": "high"
+     }
+    },
+    {
+     "op": "call",
+     "target": "AirPurifier.SetAirPurifierMode",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 75,
+  "text": "바깥의 초미세먼지 농도가 15 이상이면, 긴급 사이렌을 울려줘.",
+  "segs": [
+   {
+    "text": "바깥의 초미세먼지 농도가 15 이상이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "긴급 사이렌을 울려줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Pm25Weather >= 15",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 75,
+  "text": "바깥 초미세먼지 농도가 15 이상이 될 경우에는 긴급 사이렌을 울려주세요.",
+  "segs": [
+   {
+    "text": "바깥 초미세먼지 농도가 15 이상이 될 경우에는",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "긴급 사이렌을 울려주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Pm25Weather >= 15",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 75,
+  "text": "긴급 사이렌을 울려달라, 바깥의 초미세먼지 농도가 15 이상인 상황을 감지될 때.",
+  "segs": [
+   {
+    "text": "긴급 사이렌을 울려달라,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "바깥의 초미세먼지 농도가 15 이상인 상황을 감지될 때.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Siren.SetSirenMode",
+     "args": {
+      "Mode": "emergency"
+     }
+    },
+    {
+     "op": "call",
+     "target": "Siren.SetSirenMode",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 160,
+  "text": "비가 오고 아무도 없는 상태면, 도어락을 잠그고 밸브를 차단해줘.",
+  "segs": [
+   {
+    "text": "비가 오고",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "아무도 없는 상태면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "도어락을 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "밸브를 차단해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Weather == \"rain\" and PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 160,
+  "text": "아무도 안 계시고 비가 오면 도어락을 잠그고 밸브를 차단해 주세요.",
+  "segs": [
+   {
+    "text": "아무도 안 계시고 비가 오면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "도어락을 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "밸브를 차단해",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == false and WeatherProvider.Weather == \"rain\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "DoorLock.Unlock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 160,
+  "text": "비 내리는 상태와 사람이 없는 경우라면 밸브를 막고 도어락을 잠가 yourself 해 주실 수 있나요?",
+  "segs": [
+   {
+    "text": "비 내리는 상태와 사람이 없는 경우라면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "밸브를 막고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "도어락을 잠가 yourself 해 주실 수 있나요?",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "Valve.Open",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 328,
+  "text": "거실 습도가 30% 이하이거나 침실 습도가 30% 이하이면 거실 가습기 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "거실 습도가 30% 이하이거나",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "침실 습도가 30% 이하이면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 가습기 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "HumiditySensor.Humidity <= 30 or HumiditySensor.Humidity <= 30",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 112,
+  "text": "서재 미세먼지 농도가 30 이상이 되면 서재 공기청정기를 켜줘.",
+  "segs": [
+   {
+    "text": "서재 미세먼지 농도가 30 이상이 되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "서재 공기청정기를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.FineDustLevel >= 30",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 112,
+  "text": "서재의 미세먼지 농도가 30 이상일 경우, 서재 공기청정기를 켜주세요.",
+  "segs": [
+   {
+    "text": "서재의 미세먼지 농도가 30 이상일 경우,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "서재 공기청정기를 켜주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.FineDustLevel >= 30",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 112,
+  "text": "서재 공기청정기를 켜주려면, 서재 미세먼지 농도가 30 이상이어야 합니다.",
+  "segs": [
+   {
+    "text": "서재 공기청정기를 켜주려면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "서재 미세먼지 농도가 30 이상이어야",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "합니다.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirPurifier.AirPurifierMode == ?",
+     "then": [
+      {
+       "op": "if",
+       "cond": "AirQualitySensor.FineDustLevel >= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Toggle",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 238,
+  "text": "온도가 30도 이상이 될 때마다 블라인드를 닫아줘.",
+  "segs": [
+   {
+    "text": "온도가 30도 이상이 될 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "블라인드를 닫아줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "TemperatureSensor.Temperature >= 30",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 238,
+  "text": "30도를 넘으면 블라인드를 내려주시고.",
+  "segs": [
+   {
+    "text": "30도를 넘으면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "블라인드를 내려주시고.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature > 30",
+     "then": [
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 151,
+  "text": "욕실 조명을 끄고 5분 뒤에 켜줘.",
+  "segs": [
+   {
+    "text": "욕실 조명을 끄고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "5분 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "5 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 151,
+  "text": "욕실 조명을 껐다가 5분 후에 켜주세요.",
+  "segs": [
+   {
+    "text": "욕실 조명을 껐다가",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "5분 후에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "켜주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "5 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 148,
+  "text": "데이터 센터의 어느 온도 센서라도 30도 이상이 되면 1분 뒤에 모든 에어컨을 냉방 모드로 작동시켜줘.",
+  "segs": [
+   {
+    "text": "데이터 센터의 어느 온도 센서라도 30도 이상이 되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "1분 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "모든 에어컨을 냉방 모드로 작동시켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 30",
+     "then": [
+      {
+       "op": "delay",
+       "duration": "1 MIN"
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "cool"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 336,
+  "text": "지금 와인셀러 온도를 확인하고 1시간 뒤 다시 확인해서 2도 이상 올랐으면 거실 스피커로 알려줘.",
+  "segs": [
+   {
+    "text": "지금 와인셀러 온도를 확인하고",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "1시간 뒤 다시 확인해서",
+    "type": "READ",
+    "mods": [
+     "read",
+     "delay"
+    ]
+   },
+   {
+    "text": "2도 이상 올랐으면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 스피커로 알려줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "if",
+     "cond": "$v2 - $v1 >= 2",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 336,
+  "text": "지금 와인셀러 온도를 확인한 뒤 1시간 후 다시 체크하여 2도 이상 상승한 경우 거실 스피커로 알려주세요.",
+  "segs": [
+   {
+    "text": "지금 와인셀러 온도를 확인한 뒤",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "1시간 후",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "다시 체크하여",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "2도 이상 상승한 경우",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 스피커로 알려주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 2",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 336,
+  "text": "와인셀러 온도를 지금 측정한 후 1시간 뒤 재확인해 2도 이상 오르면 거실 스피커에 알림을 주십시오.",
+  "segs": [
+   {
+    "text": "와인셀러 온도를 지금 측정한 후",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "1시간 뒤 재확인해",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "2도 이상 오르면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 스피커에 알림을 주십시오.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 2",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 243,
+  "text": "연기가 감지되면, 그 이후로 1분마다 긴급 사이렌을 5초간 울려줘.",
+  "segs": [
+   {
+    "text": "연기가 감지되면,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "그 이후로 1분마다 긴급 사이렌을 5초간 울려줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "1 MIN",
+       "body": [
+        {
+         "op": "call",
+         "target": "Siren.SetSirenMode",
+         "args": {
+          "Mode": "emergency"
+         }
+        },
+        {
+         "op": "delay",
+         "duration": "5 SEC"
+        },
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 243,
+  "text": "연기가 감지될 경우, 그 이후 1분마다 5초간 긴급 사이렌을 울려주세요.",
+  "segs": [
+   {
+    "text": "연기가 감지될 경우,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "그 이후 1분마다 5초간 긴급 사이렌을 울려주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "1 MIN",
+       "body": [
+        {
+         "op": "call",
+         "target": "Siren.SetSirenMode",
+         "args": {
+          "Mode": "emergency"
+         }
+        },
+        {
+         "op": "delay",
+         "duration": "5 SEC"
+        },
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 243,
+  "text": "연기 감지 후 1분 간격으로 5초 비상 사이렌을 울려주셔야 합니다.",
+  "segs": [
+   {
+    "text": "연기 감지 후 1분 간격으로 5초 비상 사이렌을 울려주셔야",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "합니다.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "SmokeDetector.Smoke == true",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Toggle",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 269,
+  "text": "거실 블라인드를 1시간 간격으로 올렸다 내렸다 반복해줘.",
+  "segs": [
+   {
+    "text": "거실 블라인드를 1시간 간격으로 올렸다 내렸다 반복해줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "repeat"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "WindowCovering.SetLevel",
+         "args": {
+          "Level": 1
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "WindowCovering.DownOrClose",
+         "args": {}
+        }
+       ]
+      }
+     ],
+     "count": "n"
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 269,
+  "text": "1시간마다 거실 블라인드를 상하 반복해서 작동시키세요.",
+  "segs": [
+   {
+    "text": "1시간마다 거실 블라인드를 상하 반복해서",
+    "type": "TIME",
+    "mods": [
+     "time",
+     "read",
+     "repeat"
+    ]
+   },
+   {
+    "text": "작동시키세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 106,
+  "text": "멀티버튼의 버튼4가 눌릴 때마다 거실 조명 밝기를 25→50→75 순서로 반복 변경해줘.",
+  "segs": [
+   {
+    "text": "멀티버튼의 버튼4가 눌릴 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "거실 조명 밝기를 25→50→75 순서로 반복 변경해줘.",
+    "type": "ACT",
+    "mods": [
+     "repeat"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button4 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 106,
+  "text": "멀티버튼 4번 버튼이 감지될 경우 거실 조명 밝기를 25 에서 50 로, 다시 75 로 순환해 주세요.",
+  "segs": [
+   {
+    "text": "멀티버튼 4번 버튼이 감지될 경우",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "거실 조명 밝기를 25 에서 50 로,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "다시 75 로 순환해 주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "MultiButton.Button4 == ?",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 50.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveHue",
+       "args": {
+        "Rate": 0.0
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 106,
+  "text": "각 매번 멀티버튼 4번을 누르면 거실 조명의 밝기를 25→50→75 로 순서대로 변경하여 반복시키세요.",
+  "segs": [
+   {
+    "text": "각 매번 멀티버튼 4번을 누르면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "거실 조명의 밝기를 25→50→75 로 순서대로 변경하여",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "반복시키세요.",
+    "type": "ACT",
+    "mods": [
+     "repeat"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "MultiButton.Button4 == \"pushed\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 75.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveHue",
+       "args": {
+        "Rate": 0.0
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 195,
+  "text": "오후 6시에 학생 식당의 저녁 메뉴를 스피커로 알려줘.",
+  "segs": [
+   {
+    "text": "오후 6시에 학생 식당의 저녁 메뉴를 스피커로 알려줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 18 * * *"
+    },
+    {
+     "op": "call",
+     "target": "MenuProvider.GetMenu",
+     "args": {}
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 195,
+  "text": "오후 6시가 되면 학생 식당의 저녁 메뉴를 스피커로 알려주세요.",
+  "segs": [
+   {
+    "text": "오후 6시가 되면",
+    "type": "TIME",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "학생 식당의 저녁 메뉴를 스피커로 알려주세요.",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 18 * * *"
+    },
+    {
+     "op": "call",
+     "target": "MenuProvider.GetMenu",
+     "args": {}
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 195,
+  "text": "학생 식당의 저녁 메뉴는 오후 6시에 스피커로 읽어서 알려줘.",
+  "segs": [
+   {
+    "text": "학생 식당의 저녁 메뉴는 오후 6시에 스피커로 읽어서",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "read"
+    ]
+   },
+   {
+    "text": "알려줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "read"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 18 * * *"
+    },
+    {
+     "op": "call",
+     "target": "MenuProvider.GetMenu",
+     "args": {}
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Play",
+     "args": {}
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 301,
+  "text": "회의실 도어락이 열려있고 야간(오후 10시)이 되면, 회의실 도어락을 잠그고 회의실 조명을 꺼줘.",
+  "segs": [
+   {
+    "text": "회의실 도어락이 열려있고 야간(오후 10시)이 되면,",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "회의실 도어락을 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "회의실 조명을 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "if",
+     "cond": "DoorLock.DoorLockState == \"open\" and Light.CurrentBrightness >= 10",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 301,
+  "text": "야간이 오후 10시에 되면 회의실 도어락이 열려 있는 상태라면 도어락을 잠그고 조명을 끄세요.",
+  "segs": [
+   {
+    "text": "야간이 오후 10시에 되면",
+    "type": "TRIG",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "회의실 도어락이 열려 있는 상태라면",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "도어락을 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "조명을 끄세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "if",
+     "cond": "Light.CurrentBrightness >= 10",
+     "then": [
+      {
+       "op": "if",
+       "cond": "DoorLock.DoorLockState == \"open\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "DoorLock.Lock",
+         "args": {}
+        },
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 191,
+  "text": "1시간마다 스피커 볼륨을 10씩 올려줘.",
+  "segs": [
+   {
+    "text": "1시간마다 스피커 볼륨을 10씩 올려줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.SetVolume",
+       "args": {
+        "Volume": "$Speaker.Volume + 10"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 191,
+  "text": "1시간마다 스피커 볼륨을 10씩 높여주세요.",
+  "segs": [
+   {
+    "text": "1시간마다 스피커 볼륨을 10씩 높여주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.SetVolume",
+       "args": {
+        "Volume": "$Speaker.Volume + 10"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 191,
+  "text": "스피커 볼륨을 10씩 늘려 1시간마다 해주세요.",
+  "segs": [
+   {
+    "text": "스피커 볼륨을 10씩 늘려 1시간마다 해주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "A",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.SetVolume",
+       "args": {
+        "Volume": 1
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 186,
+  "text": "밤10시부터 자정까지 10분마다 긴급 사이렌을 울려줘.",
+  "segs": [
+   {
+    "text": "밤10시부터 자정까지 10분마다 긴급 사이렌을 울려줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2400",
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 186,
+  "text": "밤 10시에서 자정까지 10분 간격으로 긴급 사이렌을 울려주세요.",
+  "segs": [
+   {
+    "text": "밤 10시에서 자정까지 10분 간격으로 긴급 사이렌을 울려주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "T",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2400",
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 186,
+  "text": "긴급 사이렌을 울리게 해줘: 밤 10시부터 자정까지, 10분마다.",
+  "segs": [
+   {
+    "text": "긴급 사이렌을 울리게 해줘: 밤 10시부터 자정까지, 10분마다.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2400",
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 309,
+  "text": "1초마다 거실 조도가 200lux 이하이면 스탠드 플러그를 켜고, 그렇지 않고 500lux 이상이면 꺼줘.",
+  "segs": [
+   {
+    "text": "1초마다 거실 조도가 200lux 이하이면",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "스탠드 플러그를 켜고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "그렇지 않고 500lux 이상이면",
+    "type": "COND",
+    "mods": [
+     "else"
+    ]
+   },
+   {
+    "text": "꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "LightSensor.Brightness <= 200",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "LightSensor.Brightness >= 500",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 309,
+  "text": "거실 조도 200lux 미만으로 1초마다 감지될 때 스탠드 플러그를 켜고, 500lux 이상일 때는 꺼줘.",
+  "segs": [
+   {
+    "text": "거실 조도 200lux 미만으로 1초마다 감지될 때",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "스탠드 플러그를 켜고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "500lux 이상일 때는",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "LightSensor.Brightness < 200",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "LightSensor.Brightness >= 500",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 315,
+  "text": "프린터 플러그 사용 전력이 5W 미만으로 10분 이상 유지되면 프린터 플러그를 꺼줘.",
+  "segs": [
+   {
+    "text": "프린터 플러그 사용 전력이 5W 미만으로 10분 이상 유지되면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "프린터 플러그를 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Plug.Power < 5",
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 315,
+  "text": "프린터 플러그의 전력이 5W 미만으로 10분 이상 지속될 때면 플러그를 꺼주세요.",
+  "segs": [
+   {
+    "text": "프린터 플러그의 전력이 5W 미만으로 10분 이상 지속될 때면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "플러그를 꺼주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Plug.Power < 5",
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 321,
+  "text": "거실과 침실 온도가 모두 25도 이상이면 거실 선풍기 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "거실과 침실 온도가 모두 25도 이상이면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 선풍기 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 25 and TemperatureSensor.Temperature >= 25",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 321,
+  "text": "거실과 침실 온도가 25도를 넘을 때 거실 선풍기 플러그를 켜주시기 바랍니다.",
+  "segs": [
+   {
+    "text": "거실과 침실 온도가 25도를 넘을 때",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 선풍기 플러그를 켜주시기 바랍니다.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature > 25",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 321,
+  "text": "거실과 침실 온도가 모두 25도 넘으면 거실 선풍기 플러그를 켜주게 해주세요.",
+  "segs": [
+   {
+    "text": "거실과 침실 온도가 모두 25도 넘으면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 선풍기 플러그를 켜주게 해주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature > 25 and TemperatureSensor.Temperature > 25",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 351,
+  "text": "20분마다 스피커로 \"회의 알림\" 안내. 총 5번.",
+  "segs": [
+   {
+    "text": "20분마다 스피커로 \"회의 알림\" 안내. 총 5번.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "20 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "회의 알림"
+       }
+      }
+     ],
+     "count": 5
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 351,
+  "text": "회의 알림을 스피커에서 20분마다 총 5회 재생해 주세요.",
+  "segs": [
+   {
+    "text": "회의 알림을 스피커에서 20분마다 총 5회 재생해 주세요.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "20 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.SetVolume",
+       "args": {
+        "Volume": 5
+       }
+      }
+     ],
+     "count": 5
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 351,
+  "text": "스피커로 20분마다 5회 \"회의 알림\"을 읽어주세요.",
+  "segs": [
+   {
+    "text": "스피커로 20분마다 5회 \"회의 알림\"을 읽어주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "20 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "회의 알림"
+       }
+      }
+     ],
+     "count": 5
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 371,
+  "text": "복도에 3분 이상 동작이 없으면 복도 조명을 50%로 낮추고, 2분 뒤에 꺼줘.",
+  "segs": [
+   {
+    "text": "복도에 3분 이상 동작이 없으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "복도 조명을 50%로 낮추고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "2분 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "MotionSensor.Motion == false",
+     "edge": "none",
+     "for": "3 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 50.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "2 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 371,
+  "text": "복도에서 3분 이상 움직임이 감지되지 않을 때, 복도 조명을 50%로 줄이고 2분 후로 끄세요.",
+  "segs": [
+   {
+    "text": "복도에서 3분 이상 움직임이 감지되지 않을 때,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "복도 조명을 50%로 줄이고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "2분 후로 끄세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "MotionSensor.Motion == false",
+     "edge": "none",
+     "for": "3 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 50.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 371,
+  "text": "3분 이상 복도에 활동이 없을 경우 복도 조명을 50%로 낮추어 2분 뒤 자동으로 끄도록 해주세요.",
+  "segs": [
+   {
+    "text": "3분 이상 복도에 활동이 없을 경우",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "복도 조명을 50%로 낮추어 2분 뒤 자동으로 끄도록 해주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "MotionSensor.Motion == true",
+     "edge": "none",
+     "for": "3 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 50.0,
+      "Rate": 0.0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 376,
+  "text": "금고 문이 30초 이상 닫혀 있으면 30초마다 카메라로 사진을 최대 5번 찍어줘.",
+  "segs": [
+   {
+    "text": "금고 문이 30초 이상 닫혀 있으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "30초마다 카메라로 사진을 최대 5번 찍어줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == true",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "30 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ],
+     "count": 5
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 376,
+  "text": "금고 문이 30초 이상 닫혀 있을 때 30초마다 카메라로 최대 5 장씩 사진을 찍어주세요.",
+  "segs": [
+   {
+    "text": "금고 문이 30초 이상 닫혀 있을 때",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "30초마다 카메라로 최대 5 장씩 사진을 찍어주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == true",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.CaptureImage",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 376,
+  "text": "30초 이상 금고 문이 닫혀 있으면 30초 주기로 카메라를 통해 최대 5회 사진 촬영을 해주세요.",
+  "segs": [
+   {
+    "text": "30초 이상 금고 문이 닫혀 있으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "30초 주기로 카메라를 통해 최대 5회 사진 촬영을 해주세요.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == true",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "30 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ],
+     "count": 5
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 22,
+  "text": "실내 온도를 스피커로 알려줘.",
+  "segs": [
+   {
+    "text": "실내 온도를 스피커로 알려줘.",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 22,
+  "text": "스피커 통해 현재 실내 온도를 알려줘.",
+  "segs": [
+   {
+    "text": "스피커 통해 현재 실내 온도를 알려줘.",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 53,
+  "text": "회의실 녹음기로 10초 동안 녹음해서 test.wav로 저장해줘.",
+  "segs": [
+   {
+    "text": "회의실 녹음기로 10초 동안 녹음해서",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "test.wav로 저장해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AudioRecorder.RecordStart",
+     "args": {}
+    },
+    {
+     "op": "call",
+     "target": "CloudServiceProvider.SaveToFile",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 53,
+  "text": "회의실 녹음기는 10초간 녹음된 뒤 test.wav 파일로 저장을 해주세요.",
+  "segs": [
+   {
+    "text": "회의실 녹음기는 10초간 녹음된 뒤",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "test.wav 파일로 저장을 해주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AudioRecorder.RecordWithDuration",
+     "args": {
+      "Duration": 10.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "10 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    },
+    {
+     "op": "call",
+     "target": "CloudServiceProvider.SaveToFile",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 78,
+  "text": "스피커가 재생중이면, 멈춰줘.",
+  "segs": [
+   {
+    "text": "스피커가 재생중이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "멈춰줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "Speaker.PlaybackState == \"playing\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Stop",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 78,
+  "text": "스피커가 재생 중일 때 멈춰주세요.",
+  "segs": [
+   {
+    "text": "스피커가 재생 중일 때",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "멈춰주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "Speaker.PlaybackState == \"playing\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Stop",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 78,
+  "text": "재생 상태인 스피커는 바로 정지시키세요.",
+  "segs": [
+   {
+    "text": "재생 상태인 스피커는 바로 정지시키세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Stop",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 180,
+  "text": "거실 조명이 켜져 있고 조도가 50 럭스 이상이면, 거실 블라인드를 닫고 에어컨을 자동 모드로 설정해줘.",
+  "segs": [
+   {
+    "text": "거실 조명이 켜져 있고 조도가 50 럭스 이상이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 블라인드를 닫고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "에어컨을 자동 모드로 설정해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "Switch.Switch == true and LightSensor.Brightness >= 50",
+     "then": [
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "auto"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 180,
+  "text": "거실 조도가 50럭스 이상이고 조명이 켜져 있을 때, 거실 블라인드를 닫고 에어컨을 자동 모드로 걸erate해 주세요.",
+  "segs": [
+   {
+    "text": "거실 조도가 50럭스 이상이고 조명이 켜져 있을 때,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 블라인드를 닫고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "에어컨을 자동 모드로 걸erate해 주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LightSensor.Brightness >= 50 and Switch.Switch == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "auto"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 304,
+  "text": "거실 온도가 28도 이상이거나 침실 온도가 30도 이상이면 거실 에어컨을 켜줘.",
+  "segs": [
+   {
+    "text": "거실 온도가 28도 이상이거나",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "침실 온도가 30도 이상이면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 에어컨을 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 28 or TemperatureSensor.Temperature >= 30",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 304,
+  "text": "거실 온도가 28도 이상이거나 침실 온도가 30도가 넘을 때는 거실 에어컨을 틀어주세요.",
+  "segs": [
+   {
+    "text": "거실 온도가 28도 이상이거나",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "침실 온도가 30도가 넘을 때는",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 에어컨을 틀어주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 28 or TemperatureSensor.Temperature > 30",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 296,
+  "text": "서버실 온도가 35도를 초과하면, 서버실 에어컨을 냉방 모드로 18도로 설정해줘.",
+  "segs": [
+   {
+    "text": "서버실 온도가 35도를 초과하면,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "서버실 에어컨을 냉방 모드로 18도로 설정해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature > 35",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "cool"
+       }
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": 18.0
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 296,
+  "text": "서버실 온도가 35도를 넘을 경우라면 서버실 에어컨을 18도로 냉방 모드로 설정해 주세요.",
+  "segs": [
+   {
+    "text": "서버실 온도가 35도를 넘을 경우라면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "서버실 에어컨을 18도로 냉방 모드로 설정해",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature > 35",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "cool"
+       }
+      },
+      {
+       "op": "call",
+       "target": "Switch.Toggle",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 233,
+  "text": "창문이 열릴 때마다 스피커로 '창문이 열렸습니다'라고 말해줘.",
+  "segs": [
+   {
+    "text": "창문이 열릴 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "스피커로 '창문이 열렸습니다'라고 말해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "WindowCovering.CurrentPosition > 0",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "창문이 열렸습니다"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 233,
+  "text": "창문이 열릴 시 스피커가 '창문이 열렸습니다'를 말해 줘",
+  "segs": [
+   {
+    "text": "창문이 열릴 시 스피커가 '창문이 열렸습니다'를 말해 줘",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {
+      "Text": "창문이 열렸습니다"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 233,
+  "text": "창문이 열리는 순간 스피커에 '창문이 열렸습니다'라고 알려줘",
+  "segs": [
+   {
+    "text": "창문이 열리는 순간 스피커에 '창문이 열렸습니다'라고 알려줘",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {
+      "Text": "창문이 열렸습니다"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 138,
+  "text": "제습기를 건조 모드로 작동시키고 1시간 뒤에 리프레쉬 모드로 바꿔줘.",
+  "segs": [
+   {
+    "text": "제습기를 건조 모드로 작동시키고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "1시간 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "리프레쉬 모드로 바꿔줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Dehumidifier.SetDehumidifierMode",
+     "args": {
+      "Mode": "drying"
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "call",
+     "target": "Dehumidifier.SetDehumidifierMode",
+     "args": {
+      "Mode": "refreshing"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 145,
+  "text": "사무실의 공기청정기가 하나라도 수면모드로 바뀌면 10분 뒤에 조명을 꺼줘.",
+  "segs": [
+   {
+    "text": "사무실의 공기청정기가 하나라도 수면모드로 바뀌면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "10분 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "조명을 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirPurifier.AirPurifierMode == \"sleep\"",
+     "then": [
+      {
+       "op": "delay",
+       "duration": "10 MIN"
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 145,
+  "text": "사무실 공기청정기가 수면모드로 변경될 경우, 10분 뒤에는 조명을 꺼주세요.",
+  "segs": [
+   {
+    "text": "사무실 공기청정기가 수면모드로 변경될 경우,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "10분 뒤에는 조명을 꺼주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirPurifier.AirPurifierMode == \"sleep\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 306,
+  "text": "지금 거실 온도를 확인하고 1시간 뒤 다시 확인해서 2도 이상 떨어졌으면 거실 히터 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "지금 거실 온도를 확인하고",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "1시간 뒤 다시 확인해서",
+    "type": "READ",
+    "mods": [
+     "read",
+     "delay"
+    ]
+   },
+   {
+    "text": "2도 이상 떨어졌으면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 히터 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "if",
+     "cond": "$v1 - $v2 >= 2",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 306,
+  "text": "지금 거실 온도를 먼저 확인한 뒤 1시간 후 재확인하여 2도 이상 내렸을 때 거실 히터 플러그를 켜주세요.",
+  "segs": [
+   {
+    "text": "지금 거실 온도를 먼저 확인한 뒤",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "1시간 후 재확인하여",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "2도 이상 내렸을 때",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 히터 플러그를 켜주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 2",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 246,
+  "text": "연기가 감지되면 스피커로 화재를 알리고, 그 이후로 5분마다 test@example.com으로 \"화재 경고\"라는 제목과 \"화재가 발생했습니다. 대피하세요\"라는 내용의 이메일을 보내줘.",
+  "segs": [
+   {
+    "text": "연기가 감지되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "스피커로 화재를 알리고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "그 이후로 5분마다 test@example.com으로 \"화재 경고\"라는 제목과 \"화재가 발생했습니다. 대피하세요\"라는 내용의 이메일을 보내줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {}
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "5 MIN",
+       "body": [
+        {
+         "op": "call",
+         "target": "EmailProvider.SendMail",
+         "args": {
+          "ToAddress": "화재 경고",
+          "Title": "화재 경고",
+          "Body": "화재 경고"
+         }
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 246,
+  "text": "연기가 감지될 경우 스피커에서 화재 경보를 울린 후, 5분마다 '화재 경고' 제목과 '화재가 발생했습니다. 대피하세요' 내용으로 test@example.com 으로 이메일을 보내주세요.",
+  "segs": [
+   {
+    "text": "연기가 감지될 경우",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "스피커에서 화재 경보를 울린 후,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "5분마다 '화재 경고' 제목과 '화재가 발생했습니다. 대피하세요' 내용으로 test@example.com 으로 이메일을 보내주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "wait",
+       "cond": "Speaker.Volume == ?",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "5 MIN",
+       "body": [
+        {
+         "op": "call",
+         "target": "EmailProvider.SendMail",
+         "args": {
+          "ToAddress": "화재 경고",
+          "Title": "화재 경고",
+          "Body": "화재 경고"
+         }
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 270,
+  "text": "안방 창문을 2시간마다 열었다 닫았다 반복해줘.",
+  "segs": [
+   {
+    "text": "안방 창문을 2시간마다 열었다 닫았다 반복해줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "repeat"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "2 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "WindowCovering.SetLevel",
+         "args": {
+          "Level": 2
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "WindowCovering.SetLevel",
+         "args": {
+          "Level": 2
+         }
+        }
+       ]
+      }
+     ],
+     "count": "n"
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 270,
+  "text": "2시간마다 안방 창문을 열고 닫아주는 걸 반복해줘.",
+  "segs": [
+   {
+    "text": "2시간마다 안방 창문을 열고",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "닫아주는 걸 반복해줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "repeat"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "2 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {
+        "Level": 2
+       }
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 234,
+  "text": "움직임이 감지될 때마다 조명의 밝기를 10씩 높여줘. 최대 밝기가 되면 그만해.",
+  "segs": [
+   {
+    "text": "움직임이 감지될 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "조명의 밝기를 10씩 높여줘. 최대 밝기가 되면",
+    "type": "ACT",
+    "mods": [
+     "mixed"
+    ]
+   },
+   {
+    "text": "그만해.",
+    "type": "STOP",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MotionSensor.Motion == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": "min($Light.CurrentBrightness + 10, 100)",
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness >= 100",
+       "then": [
+        {
+         "op": "break"
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 234,
+  "text": "움직임 감지될 경우 조명 밝기를 10만큼 늘려주세요, 최대치 도달하면 멈춰.",
+  "segs": [
+   {
+    "text": "움직임 감지될 경우",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "조명 밝기를 10만큼 늘려주세요, 최대치 도달하면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "멈춰.",
+    "type": "STOP",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "MotionSensor.Motion == true",
+     "then": [
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness == 10",
+       "then": [],
+       "else": []
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 216,
+  "text": "아침 9시에 3층의 짝수 태그가 붙은 블라인드를 모두 올려줘.",
+  "segs": [
+   {
+    "text": "아침 9시에 3층의 짝수 태그가 붙은 블라인드를 모두 올려줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 9 * * *"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.SetLevel",
+     "args": {
+      "Level": 3
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 216,
+  "text": "아침 9시에 3층의 짝수 태그가 달린 블라인드를 다 올려주세요.",
+  "segs": [
+   {
+    "text": "아침 9시에 3층의 짝수 태그가 달린 블라인드를 다 올려주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 9 * * *"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.SetLevel",
+     "args": {
+      "Level": 3
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 209,
+  "text": "평일 오후 6시에 사무실의 재실 센서가 부재 상태를 나타내면 사무실 에어컨과 가습기를 전부 꺼줘.",
+  "segs": [
+   {
+    "text": "평일 오후 6시에 사무실의 재실 센서가 부재 상태를 나타내면",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "사무실 에어컨과 가습기를 전부 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 18 * * 1-5"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 209,
+  "text": "평일 오후 6시 사무실 재실 센서가 부재 상태를 감지할 경우, 사무실 에어컨과 가습기는 모두 꺼주시고.",
+  "segs": [
+   {
+    "text": "평일 오후 6시 사무실 재실 센서가 부재 상태를 감지할 경우,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "사무실 에어컨과 가습기는 모두 꺼주시고.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 18 * * 1-5"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 272,
+  "text": "주차장의 차량 충전기가 완충될때마다, 스피커로 \"충전이 완료되었습니다\"라고 말해줘.",
+  "segs": [
+   {
+    "text": "주차장의 차량 충전기가 완충될때마다,",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "스피커로 \"충전이 완료되었습니다\"라고 말해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Charger.ChargingState == \"fullyCharged\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "충전이 완료되었습니다"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 272,
+  "text": "차량 충전기가 완충될 때마다 스피커로 \"충전이 완료되었습니다\"라고 알려주세요.",
+  "segs": [
+   {
+    "text": "차량 충전기가 완충될 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "스피커로 \"충전이 완료되었습니다\"라고 알려주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Charger.ChargingState == \"fullyCharged\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "충전이 완료되었습니다"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 272,
+  "text": "충전이 완료되었습니다\"라고 스피커에 알려줄게요. 충전기가 완충되면 Trigger 가 되는 거고요.",
+  "segs": [
+   {
+    "text": "충전이 완료되었습니다\"라고 스피커에 알려줄게요. 충전기가 완충되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "Trigger 가 되는 거고요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "Charger.ChargingState == \"fullyCharged\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Play",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 215,
+  "text": "밤 10시부터 11시까지 움직임이 한번도 감지되지 않았으면, 모든 도어락을 잠궈줘.",
+  "segs": [
+   {
+    "text": "밤 10시부터 11시까지 움직임이 한번도 감지되지 않았으면,",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "모든 도어락을 잠궈줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2300",
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "MotionSensor.Motion == false",
+       "then": [
+        {
+         "op": "call",
+         "target": "DoorLock.Lock",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 215,
+  "text": "밤 10시부터 11시 사이 움직임이 한 번도 감지될 경우 모든 도어락을 잠가주세요.",
+  "segs": [
+   {
+    "text": "밤 10시부터 11시 사이 움직임이 한 번도 감지될 경우",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "모든 도어락을 잠가주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "if",
+     "cond": "MotionSensor.Motion == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 342,
+  "text": "1초마다 욕실 습도가 75% 이상이면 욕실 환기팬 플러그를 켜고, 그렇지 않고 55% 이하이면 꺼줘.",
+  "segs": [
+   {
+    "text": "1초마다 욕실 습도가 75% 이상이면",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "욕실 환기팬 플러그를 켜고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "그렇지 않고 55% 이하이면",
+    "type": "COND",
+    "mods": [
+     "else"
+    ]
+   },
+   {
+    "text": "꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "HumiditySensor.Humidity >= 75",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "HumiditySensor.Humidity <= 55",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 342,
+  "text": "욕실 습도가 1초마다 75% 이상일 때는 환기팬 플러그를 켜고, 55% 미만일 때는 꺼주세요.",
+  "segs": [
+   {
+    "text": "욕실 습도가 1초마다 75% 이상일 때는",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "환기팬 플러그를 켜고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "55% 미만일 때는",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "꺼주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "HumiditySensor.Humidity >= 75",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "HumiditySensor.Humidity < 55",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 359,
+  "text": "차고 문이 30초 이상 열려 있으면 차고 조명을 켜줘.",
+  "segs": [
+   {
+    "text": "차고 문이 30초 이상 열려 있으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "차고 조명을 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 100.0,
+      "Rate": 0.0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 359,
+  "text": "차고 문이 30초 이상 열려 있을 경우에 차고 조명을 켜주세요.",
+  "segs": [
+   {
+    "text": "차고 문이 30초 이상 열려 있을 경우에",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "차고 조명을 켜주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 100.0,
+      "Rate": 0.0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 359,
+  "text": "차고 조명을 켜주시되, 차고 문이 30초 넘게 열려 있었을 때로 해 주세요.",
+  "segs": [
+   {
+    "text": "차고 조명을 켜주시되,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "차고 문이 30초 넘게 열려 있었을 때로 해 주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 100.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "call",
+     "target": "Switch.Toggle",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 317,
+  "text": "거실과 침실에 모두 사람이 감지되지 않으면 거실 멀티탭 플러그를 꺼줘.",
+  "segs": [
+   {
+    "text": "거실과 침실에 모두 사람이 감지되지 않으면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 멀티탭 플러그를 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == false and PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 317,
+  "text": "거실과 침실 모두에서 사람이 없다면 거실 멀티탭 플러그를 꺼줘.",
+  "segs": [
+   {
+    "text": "거실과 침실 모두에서 사람이 없다면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 멀티탭 플러그를 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == false and PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 347,
+  "text": "5분마다 회의실 카메라로 사진을 찍어줘. 총 10번만.",
+  "segs": [
+   {
+    "text": "5분마다 회의실 카메라로 사진을 찍어줘. 총 10번만.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 10",
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ],
+     "count": 10
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 347,
+  "text": "10회만 찍어주세요. 5분마다 회의실 카메라로 사진을 촬영해 주십시오.",
+  "segs": [
+   {
+    "text": "10회만 찍어주세요. 5분마다 회의실 카메라로 사진을 촬영해",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "주십시오.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 10",
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Camera.SetMicrophoneMuted",
+       "args": {}
+      }
+     ],
+     "count": 10
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 347,
+  "text": "회의실 카메라로 사진을 5분 간격으로 총 10 장만 촬영해 주세요.",
+  "segs": [
+   {
+    "text": "회의실 카메라로 사진을 5분 간격으로 총 10 장만 촬영해",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Camera.SetMicrophoneMuted",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 367,
+  "text": "거실에 10분 이상 동작이 없으면 거실 조명을 30%로 낮추고, 5분 뒤에 꺼줘.",
+  "segs": [
+   {
+    "text": "거실에 10분 이상 동작이 없으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "거실 조명을 30%로 낮추고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "5분 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "MotionSensor.Motion == false",
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 30.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "5 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 367,
+  "text": "거실의 동작이 10분 넘게 없으면 조명을 30%로 감쇄시키고, 5분 뒤에는 끌어드려야 해.",
+  "segs": [
+   {
+    "text": "거실의 동작이 10분 넘게 없으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "조명을 30%로 감쇄시키고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "5분 뒤에는 끌어드려야",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "해.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "MotionSensor.Motion == false",
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 30.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "call",
+     "target": "Switch.Toggle",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 375,
+  "text": "로비에 1분 이상 사람이 없으면 15초마다 스피커로 \"누구 있나요\"라고 최대 4번 알려줘.",
+  "segs": [
+   {
+    "text": "로비에 1분 이상 사람이 없으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "15초마다 스피커로 \"누구 있나요\"라고 최대 4번 알려줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 4",
+     "period": "15 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "누구 있나요"
+       }
+      }
+     ],
+     "count": 4
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 375,
+  "text": "로비에 사람이 1분 이상 안 오면 15초 마다 스피커를 통해 '누구 있나요'를 최대 4회 나오게 해줘.",
+  "segs": [
+   {
+    "text": "로비에 사람이 1분 이상 안 오면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "15초 마다 스피커를 통해 '누구 있나요'를 최대 4회 나오게 해줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 4",
+     "period": "15 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "누구 있나요"
+       }
+      }
+     ],
+     "count": 4
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 375,
+  "text": "로비에 1분 넘게 사람이 없을 때 15초 간격으로 4회까지 스피커로'누구 있나요'를 말하게 해.",
+  "segs": [
+   {
+    "text": "로비에 1분 넘게 사람이 없을 때",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "15초 간격으로 4회까지 스피커로'누구 있나요'를 말하게 해.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 4",
+     "period": "15 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "누구 있나요"
+       }
+      }
+     ],
+     "count": 4
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 44,
+  "text": "TV 30번 채널 틀어줘.",
+  "segs": [
+   {
+    "text": "TV 30번 채널 틀어줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Television.SetChannel",
+     "args": {
+      "Channel": 30
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 44,
+  "text": "TV 30번채널을 켜주세요.",
+  "segs": [
+   {
+    "text": "TV 30번채널을 켜주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Television.SetChannel",
+     "args": {
+      "Channel": 30
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 275,
+  "text": "사무실에 있는 모든 에어컨을 냉방 모드로 설정해줘.",
+  "segs": [
+   {
+    "text": "사무실에 있는 모든 에어컨을 냉방 모드로 설정해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetAirConditionerMode",
+     "args": {
+      "Mode": "cool"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 275,
+  "text": "사무실 내 모든 에어컨을 냉방 모드로 틀어주세요.",
+  "segs": [
+   {
+    "text": "사무실 내 모든 에어컨을 냉방 모드로 틀어주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetAirConditionerMode",
+     "args": {
+      "Mode": "cool"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 72,
+  "text": "클라우드 서비스가 활성화되어있으면, test.png 파일을 클라우드에 업로드해줘.",
+  "segs": [
+   {
+    "text": "클라우드 서비스가 활성화되어있으면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "test.png 파일을 클라우드에 업로드해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "CloudServiceProvider.UploadedFile == ?",
+     "then": [
+      {
+       "op": "call",
+       "target": "CloudServiceProvider.UploadFile",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 72,
+  "text": "클라우드가 활성화된 상태라면 test.png 파일을 업로드해 주시고",
+  "segs": [
+   {
+    "text": "클라우드가 활성화된 상태라면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "test.png 파일을 업로드해",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주시고",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "CloudServiceProvider.UploadedFile == ?",
+     "then": [
+      {
+       "op": "call",
+       "target": "CloudServiceProvider.UploadFile",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "CloudServiceProvider.IsAvailable",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 72,
+  "text": "클라우드 서비스 작동 중일 때 test.png 파일을 클라우드에 올려주세요",
+  "segs": [
+   {
+    "text": "클라우드 서비스 작동 중일 때",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "test.png 파일을 클라우드에 올려주세요",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "CloudServiceProvider.UploadedFile == ?",
+     "then": [
+      {
+       "op": "call",
+       "target": "CloudServiceProvider.UploadToCloudStorage",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 176,
+  "text": "와인 셀러 온도가 15도 이상이고 습도가 60% 이상이면, 에어컨을 켜고 가습기를 꺼줘.",
+  "segs": [
+   {
+    "text": "와인 셀러 온도가 15도 이상이고 습도가 60% 이상이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "에어컨을 켜고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "가습기를 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 15 and HumiditySensor.Humidity >= 60",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 329,
+  "text": "부엌 온도가 35도 이상이거나 거실 온도가 33도 이상이면 부엌 환기팬 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "부엌 온도가 35도 이상이거나",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 온도가 33도 이상이면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "부엌 환기팬 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 35 or TemperatureSensor.Temperature >= 33",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 329,
+  "text": "부엌 온도가 35도 이상이거나, 거실 온도가 33도 이상일 경우엔 부엌 환기팬 플러그를 켜주세요.",
+  "segs": [
+   {
+    "text": "부엌 온도가 35도 이상이거나,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 온도가 33도 이상일 경우엔",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "부엌 환기팬 플러그를 켜주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 35 or TemperatureSensor.Temperature >= 33",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 329,
+  "text": "부엌이 35도 넘거나 거실이 33도가 되면 부엌 환기팬 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "부엌이 35도 넘거나",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실이 33도가 되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "부엌 환기팬 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature > 35 or TemperatureSensor.Temperature >= 33",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 292,
+  "text": "주방에서 연기가 감지되면, 주방 사이렌을 화재 모드로 울려줘.",
+  "segs": [
+   {
+    "text": "주방에서 연기가 감지되면,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "주방 사이렌을 화재 모드로 울려줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "fire"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 292,
+  "text": "주방에 연기가 감지될 경우 주방 사이렌을 화재 모드로 울려주세요.",
+  "segs": [
+   {
+    "text": "주방에 연기가 감지될 경우",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "주방 사이렌을 화재 모드로 울려주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "fire"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 292,
+  "text": "연기가 감지되면 주방에서 주방 사이렌을 화재 모드로 조작해.",
+  "segs": [
+   {
+    "text": "연기가 감지되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "주방에서 주방 사이렌을 화재 모드로 조작해.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "SmokeDetector.Smoke == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "fire"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 235,
+  "text": "조도가 100룩스 미만이 될 때마다 조명을 켜줘.",
+  "segs": [
+   {
+    "text": "조도가 100룩스 미만이 될 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "조명을 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "LightSensor.Brightness < 100",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 235,
+  "text": "조도가 100 룭스를 밑돌 때마다 조명을 켜주세요.",
+  "segs": [
+   {
+    "text": "조도가 100 룭스를 밑돌 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "조명을 켜주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "LightSensor.Brightness == 100",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 235,
+  "text": "조도 100 룭스 미만의 경우마다 조명을 켜보라.",
+  "segs": [
+   {
+    "text": "조도 100 룭스 미만의 경우마다 조명을 켜보라.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 100.0,
+      "Rate": 0.0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 127,
+  "text": "에어컨 온도를 24도로 설정하고 1시간 뒤에 26도로 설정해줘.",
+  "segs": [
+   {
+    "text": "에어컨 온도를 24도로 설정하고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "1시간 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "26도로 설정해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetTargetTemperature",
+     "args": {
+      "Temperature": 24.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetTargetTemperature",
+     "args": {
+      "Temperature": 26.0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 127,
+  "text": "에어컨을 24도로 설정해 주고, 1시간 뒤에는 26도로 바꿔주세요.",
+  "segs": [
+   {
+    "text": "에어컨을 24도로 설정해",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "1시간 뒤에는 26도로 바꿔주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetTargetTemperature",
+     "args": {
+      "Temperature": 24.0
+     }
+    },
+    {
+     "op": "call",
+     "target": "Switch.Toggle",
+     "args": {}
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetTargetTemperature",
+     "args": {
+      "Temperature": 26.0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 140,
+  "text": "집안의 재실 센서가 하나라도 감지되면 10초 뒤에 모든 긴급 사이렌을 울려줘.",
+  "segs": [
+   {
+    "text": "집안의 재실 센서가 하나라도 감지되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "10초 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "모든 긴급 사이렌을 울려줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true",
+     "then": [
+      {
+       "op": "delay",
+       "duration": "10 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 140,
+  "text": "집안에 재실 센서로 한 명이라도 감지될 경우 10초 뒤 모든 긴급 사이렌을 작동시켜 주세요.",
+  "segs": [
+   {
+    "text": "집안에 재실 센서로 한 명이라도 감지될 경우",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "10초 뒤 모든 긴급 사이렌을 작동시켜",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      },
+      {
+       "op": "call",
+       "target": "Switch.Toggle",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 140,
+  "text": "재실 센서가 집안에서 하나라도 감지되면 10초 후 모든 긴급 사이렌을 울리도록 해줘요.",
+  "segs": [
+   {
+    "text": "재실 센서가 집안에서 하나라도 감지되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "10초 후 모든 긴급 사이렌을 울리도록 해줘요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 331,
+  "text": "지금 침실 온도를 확인하고 30분 뒤 다시 확인해서 3도 이상 떨어졌으면 침실 히터 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "지금 침실 온도를 확인하고",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "30분 뒤 다시 확인해서",
+    "type": "READ",
+    "mods": [
+     "read",
+     "delay"
+    ]
+   },
+   {
+    "text": "3도 이상 떨어졌으면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "침실 히터 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "delay",
+     "duration": "30 MIN"
+    },
+    {
+     "op": "read",
+     "var": "v2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "if",
+     "cond": "$v1 - $v2 >= 3",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 331,
+  "text": "침실 온도를 지금과 30분 뒤로 확인하고, 3도 이상 감소하면 히터 플러그를 켜는 작업을 해줘.",
+  "segs": [
+   {
+    "text": "침실 온도를 지금과 30분 뒤로 확인하고,",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "3도 이상 감소하면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "히터 플러그를 켜는",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "작업을 해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Switch.Toggle"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Toggle",
+     "args": {}
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 3",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Switch.Toggle",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 242,
+  "text": "누수가 감지되면 즉시 밸브를 잠그고, 그 이후로 1분마다 스피커로 \"누수가 감지되었습니다. 대피하세요\"라고 출력해줘.",
+  "segs": [
+   {
+    "text": "누수가 감지되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "즉시 밸브를 잠그고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "그 이후로 1분마다 스피커로 \"누수가 감지되었습니다. 대피하세요\"라고 출력해줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LeakSensor.Leakage == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "1 MIN",
+       "body": [
+        {
+         "op": "call",
+         "target": "Speaker.Speak",
+         "args": {
+          "Text": "누수가 감지되었습니다. 대피하세요"
+         }
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 242,
+  "text": "누수가 감지될 경우 밸브를 바로 잠그고 1분마다 스피커에 \"누수가 감지되었습니다. 대피하세요\"라는 문구를 출력해주세요.",
+  "segs": [
+   {
+    "text": "누수가 감지될 경우",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "밸브를 바로 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "1분마다 스피커에 \"누수가 감지되었습니다. 대피하세요\"라는 문구를 출력해주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LeakSensor.Leakage == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "1 MIN",
+       "body": [
+        {
+         "op": "call",
+         "target": "Speaker.Speak",
+         "args": {
+          "Text": "누수가 감지되었습니다. 대피하세요"
+         }
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 227,
+  "text": "10분마다 창문을 열었다 닫았다 반복해줘.",
+  "segs": [
+   {
+    "text": "10분마다 창문을 열었다 닫았다 반복해줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "repeat"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "WindowCovering.SetLevel",
+         "args": {
+          "Level": 10
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "WindowCovering.SetLevel",
+         "args": {
+          "Level": 10
+         }
+        }
+       ]
+      }
+     ],
+     "count": "n"
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 227,
+  "text": "10분마다 창문을 열어 줄게와 닫아 주세요.",
+  "segs": [
+   {
+    "text": "10분마다 창문을 열어 줄게와 닫아",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {
+        "Level": 10
+       }
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 227,
+  "text": "창문을 10분 주기로 열었다가 닫아 주는 방식으로 해 주세요.",
+  "segs": [
+   {
+    "text": "창문을 10분 주기로 열었다가 닫아",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주는 방식으로 해 주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {
+        "Level": 10
+       }
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 94,
+  "text": "멀티버튼의 버튼2가 눌릴 때마다 복도 조명 밝기를 10씩 낮춰줘. 최소 0까지.",
+  "segs": [
+   {
+    "text": "멀티버튼의 버튼2가 눌릴 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "복도 조명 밝기를 10씩 낮춰줘. 최소 0까지.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button2 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": "max($Light.CurrentBrightness - 10, 0)",
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 94,
+  "text": "멀티버튼의 2번 버튼 감지될 시 복도 조명 밝기 10 단위씩 줄이시고, 0 까지 하세요.",
+  "segs": [
+   {
+    "text": "멀티버튼의 2번 버튼 감지될 시 복도 조명 밝기 10 단위씩 줄이시고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "0 까지 하세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 0.0,
+      "Rate": 0.0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 94,
+  "text": "복도 조명이 10 씩 어두워지도록 멀티버튼 2번 누르면 실행되고, 최저 0 까지 제한합니다.",
+  "segs": [
+   {
+    "text": "복도 조명이 10 씩 어두워지도록 멀티버튼 2번 누르면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "실행되고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "최저 0 까지 제한합니다.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "MultiButton.Button2 == \"pushed_2x\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 0.0,
+        "Rate": 0.0
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 288,
+  "text": "매일 자정에 주차장에 있는 모든 카메라로 사진을 찍어줘.",
+  "segs": [
+   {
+    "text": "매일 자정에 주차장에 있는 모든 카메라로 사진을 찍어줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "call",
+     "target": "Camera.StartRecording",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 288,
+  "text": "매일 자정이 되면 주차장에 있는 모든 카메라로 사진을 찍어주세요.",
+  "segs": [
+   {
+    "text": "매일 자정이 되면",
+    "type": "TIME",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "주차장에 있는 모든 카메라로 사진을 찍어주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "call",
+     "target": "Camera.CaptureImage",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 196,
+  "text": "오후 11시에 금고가 열려있거나 도어락이 열려있으면, 스피커로 \"금고와 도어락을 확인하세요\"라고 말해줘.",
+  "segs": [
+   {
+    "text": "오후 11시에 금고가 열려있거나",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "도어락이 열려있으면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "스피커로 \"금고와 도어락을 확인하세요\"라고 말해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 23 * * *"
+    },
+    {
+     "op": "if",
+     "cond": "DoorLock.DoorLockState == \"open\" or DoorLock.DoorLockState == \"open\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "금고와 도어락을 확인하세요"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 196,
+  "text": "오후 11시에 금고나 도어락이 열려있는 경우라면 스피커를 통해 금고와 도어락을 확인해 달라고 말해주세요.",
+  "segs": [
+   {
+    "text": "오후 11시에 금고나 도어락이 열려있는 경우라면",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "스피커를 통해 금고와 도어락을 확인해 달라고 말해주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 23 * * *"
+    },
+    {
+     "op": "if",
+     "cond": "DoorLock.DoorLockState == \"open\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "스피커를 통해 금고와 도어락을 확인해 달"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 196,
+  "text": "금고와 도어락이 오후 11시에 열려있을 때에는 스피커로 '금고와 도어락을 확인하세요'라고 말씀해 주십시오.",
+  "segs": [
+   {
+    "text": "금고와 도어락이 오후 11시에 열려있을 때에는",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "스피커로 '금고와 도어락을 확인하세요'라고 말씀해 주십시오.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 23 * * *"
+    },
+    {
+     "op": "if",
+     "cond": "DoorLock.DoorLockState == \"open\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "금고와 도어락을 확인하세요"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 226,
+  "text": "오후 6시부터 8시까지 1층에 사람이 감지되면 1층 불을 다 켜줘.",
+  "segs": [
+   {
+    "text": "오후 6시부터 8시까지 1층에 사람이 감지되면",
+    "type": "TRIG",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "1층 불을 다 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "T",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 18 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2000",
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "PresenceSensor.Presence == true",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 100.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 226,
+  "text": "오후 6시에서 8시까지 1층 사람 감지될 경우 1층 전등 모두 켜주세요",
+  "segs": [
+   {
+    "text": "오후 6시에서 8시까지 1층 사람 감지될 경우",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "1층 전등 모두 켜주세요",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "T",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 18 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2000",
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "PresenceSensor.Presence == true",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 100.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 307,
+  "text": "1초마다 거실 온도가 28도 이상이면 에어컨 플러그를 켜고, 그렇지 않고 25도 이하이면 꺼줘.",
+  "segs": [
+   {
+    "text": "1초마다 거실 온도가 28도 이상이면",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "에어컨 플러그를 켜고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "그렇지 않고 25도 이하이면",
+    "type": "COND",
+    "mods": [
+     "else"
+    ]
+   },
+   {
+    "text": "꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 28",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "TemperatureSensor.Temperature <= 25",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 307,
+  "text": "1초마다 거실 온도가 28도 이상인 경우엔 에어컨 플러그를 켜고, 25도 미만이 되면 꺼주세요.",
+  "segs": [
+   {
+    "text": "1초마다 거실 온도가 28도 이상인 경우엔",
+    "type": "COND",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "에어컨 플러그를 켜고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "25도 미만이 되면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "꺼주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 28",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "TemperatureSensor.Temperature < 25",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 307,
+  "text": "거실 온도가 1초마다 28도를 초과하거나 25도 밑으로 떨어질 때 각각 에어컨 플러그를 켜거나 꺼달라는 요청입니다.",
+  "segs": [
+   {
+    "text": "거실 온도가 1초마다 28도를 초과하거나",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "25도 밑으로 떨어질 때",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "각각 에어컨 플러그를 켜거나",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "꺼달라는 요청입니다.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature > 28 or TemperatureSensor.Temperature < 25",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        },
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 313,
+  "text": "현관문이 5초 이상 열려있으면 환기팬 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "현관문이 5초 이상 열려있으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "환기팬 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "5 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 313,
+  "text": "현관문이 5초 이상 열려 있는 상황일 때 환기팬 플러그를 켜주세요.",
+  "segs": [
+   {
+    "text": "현관문이 5초 이상 열려 있는 상황일 때",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "환기팬 플러그를 켜주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "5 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 313,
+  "text": "환기팬 플러그를 켜달라, 현관문 열림 상태를 5초 넘긴다면 감지했을 때.",
+  "segs": [
+   {
+    "text": "환기팬 플러그를 켜달라,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "현관문 열림 상태를 5초 넘긴다면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "감지했을 때.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "5 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Toggle",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 320,
+  "text": "거실과 침실 조도가 모두 100lux 이하이면 거실 무드등 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "거실과 침실 조도가 모두 100lux 이하이면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "거실 무드등 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LightSensor.Brightness <= 100 and LightSensor.Brightness <= 100",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 353,
+  "text": "1시간마다 침실 블라인드를 열어줘. 5번 반복하고 끝.",
+  "segs": [
+   {
+    "text": "1시간마다 침실 블라인드를 열어줘. 5번 반복하고",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count",
+     "repeat"
+    ]
+   },
+   {
+    "text": "끝.",
+    "type": "STOP",
+    "mods": []
+   }
+  ],
+  "result": "V",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {
+        "Level": 5
+       }
+      }
+     ],
+     "count": 5
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 353,
+  "text": "1시간마다 침실 블라인드를 열도록 설정하고 5회 반복해 주세요.",
+  "segs": [
+   {
+    "text": "1시간마다 침실 블라인드를 열도록 설정하고",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "text": "5회 반복해 주세요.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {
+        "Level": 1
+       }
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.SetLevel",
+       "args": {
+        "Level": 5
+       }
+      }
+     ],
+     "count": 5
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 369,
+  "text": "서재에 15분 이상 사람이 없으면 조명을 20%로 낮추고, 10분 뒤에 꺼줘.",
+  "segs": [
+   {
+    "text": "서재에 15분 이상 사람이 없으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "조명을 20%로 낮추고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "10분 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "15 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 20.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 369,
+  "text": "서재에 15분 넘게 사람 없을 때 조명을 20%로 줄이고 10분 후엔 꺼줘.",
+  "segs": [
+   {
+    "text": "서재에 15분 넘게 사람 없을 때",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "조명을 20%로 줄이고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "10분 후엔 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "15 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 20.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 372,
+  "text": "현관문이 1분 이상 열려 있으면 30초마다 스피커로 \"문을 닫아주세요\"라고 최대 3번 알려줘.",
+  "segs": [
+   {
+    "text": "현관문이 1분 이상 열려 있으면",
+    "type": "COND",
+    "mods": [
+     "sustain"
+    ]
+   },
+   {
+    "text": "30초마다 스피커로 \"문을 닫아주세요\"라고 최대 3번 알려줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "count"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "30 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "문을 닫아주세요"
+       }
+      }
+     ],
+     "count": 3
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 372,
+  "text": "현관문이 1분 이상 열려 있는 상태라면 30초마다 최대 3회까지 스피커로 '문을 닫아주세요'를 말해주세요.",
+  "segs": [
+   {
+    "text": "현관문이 1분 이상 열려 있는 상태라면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "30초마다 최대 3회까지 스피커로 '문을 닫아주세요'를 말해주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "30 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "문을 닫아주세요"
+       }
+      }
+     ],
+     "count": 3
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 28,
+  "text": "외부 미세먼지 농도를 스피커로 알려줘.",
+  "segs": [
+   {
+    "text": "외부 미세먼지 농도를 스피커로 알려줘.",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 28,
+  "text": "외부 미세먼지 농도를 스피커로 알려주실래요?",
+  "segs": [
+   {
+    "text": "외부 미세먼지 농도를 스피커로 알려주실래요?",
+    "type": "ACT",
+    "mods": [
+     "read"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 70,
+  "text": "창고의 모든 도어락을 잠궈줘.",
+  "segs": [
+   {
+    "text": "창고의 모든 도어락을 잠궈줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 70,
+  "text": "창고의 모든 도어락이 잠겨지도록 해주세요.",
+  "segs": [
+   {
+    "text": "창고의 모든 도어락이 잠겨지도록 해주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 87,
+  "text": "집에 있는 재실 센서중 하나라도 감지 상태이면, 긴급 사이렌을 울려줘.",
+  "segs": [
+   {
+    "text": "집에 있는 재실 센서중 하나라도 감지 상태이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "긴급 사이렌을 울려줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 87,
+  "text": "집에 설치된 재실 센서들 중 하나라도 감지가 되면 긴급 사이렌을 울려주세요.",
+  "segs": [
+   {
+    "text": "집에 설치된 재실 센서들 중 하나라도 감지가 되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "긴급 사이렌을 울려주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "PresenceSensor.Presence == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 154,
+  "text": "온도가 28도 이상이고 습도가 70% 이상이면, 에어컨을 냉방 모드로 설정하고 온도를 24도로 맞춰줘.",
+  "segs": [
+   {
+    "text": "온도가 28도 이상이고 습도가 70% 이상이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "에어컨을 냉방 모드로 설정하고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "온도를 24도로 맞춰줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 28 and HumiditySensor.Humidity >= 70",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "cool"
+       }
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": 24.0
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 154,
+  "text": "온도가 28도 이상이 되고 습도가 70% 보다 넘을 때, 에어컨을 냉방 모드에 맞춰서 온도를 24도로 조절해 주세요.",
+  "segs": [
+   {
+    "text": "온도가 28도 이상이 되고 습도가 70% 보다 넘을 때,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "에어컨을 냉방 모드에 맞춰서",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "온도를 24도로 조절해",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 28 and HumiditySensor.Humidity > 70",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "cool"
+       }
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": 24.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "Switch.Toggle",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 154,
+  "text": "28도 이상의 온도와 70% 이상의 습도가 감지되면 에어컨을 냉방 모드로 하고 온도를 24도로 설정해 주시겠어요.",
+  "segs": [
+   {
+    "text": "28도 이상의 온도와 70% 이상의 습도가 감지되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "에어컨을 냉방 모드로 하고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "온도를 24도로 설정해",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주시겠어요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "TemperatureSensor.Temperature >= 28",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "cool"
+       }
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": 24.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 327,
+  "text": "침실 조도가 100lux 이하면 침실 등을 100% 밝기로, 300lux 이하면 50%로, 그 외에는 20%로 설정해줘.",
+  "segs": [
+   {
+    "text": "침실 조도가 100lux 이하면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "침실 등을 100% 밝기로, 300lux 이하면",
+    "type": "COND",
+    "mods": [
+     "mixed"
+    ]
+   },
+   {
+    "text": "50%로, 그 외에는 20%로 설정해줘.",
+    "type": "ACT",
+    "mods": [
+     "else"
+    ]
+   }
+  ],
+  "result": "C",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LightSensor.Brightness <= 100",
+     "then": [
+      {
+       "op": "call",
+       "target": "?",
+       "args": {}
+      }
+     ],
+     "else": [
+      {
+       "op": "if",
+       "cond": "LightSensor.Brightness <= 100",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 50.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 20.0,
+          "Rate": 0.0
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 293,
+  "text": "지하에서 누수가 감지되면, 지하 밸브를 잠가줘.",
+  "segs": [
+   {
+    "text": "지하에서 누수가 감지되면,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "지하 밸브를 잠가줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LeakSensor.Leakage == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 293,
+  "text": "지하에 누수가 감지될 경우 지하 밸브를 잠그세요.",
+  "segs": [
+   {
+    "text": "지하에 누수가 감지될 경우",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "지하 밸브를 잠그세요.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "LeakSensor.Leakage == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 268,
+  "text": "멀티버튼의 버튼2가 눌릴 때마다 거실의 창문을 모두 열어줘.",
+  "segs": [
+   {
+    "text": "멀티버튼의 버튼2가 눌릴 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "text": "거실의 창문을 모두 열어줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button2 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 268,
+  "text": "멀티버튼 2번 클릭 시 거실 창문 모두 열기",
+  "segs": [
+   {
+    "text": "멀티버튼 2번 클릭 시 거실 창문 모두 열기",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.SetLevel",
+     "args": {
+      "Level": 2
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 134,
+  "text": "사이렌을 응급 모드로 울리고 5초 뒤에 사이렌 모드를 화재 모드로 바꿔줘.",
+  "segs": [
+   {
+    "text": "사이렌을 응급 모드로 울리고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "5초 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "사이렌 모드를 화재 모드로 바꿔줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Siren.SetSirenMode",
+     "args": {
+      "Mode": "emergency"
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "5 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Siren.SetSirenMode",
+     "args": {
+      "Mode": "fire"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 143,
+  "text": "복도의 조명이 하나라도 켜지면 5분 뒤에 거실의 모든 조명을 꺼줘.",
+  "segs": [
+   {
+    "text": "복도의 조명이 하나라도 켜지면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "5분 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "text": "거실의 모든 조명을 꺼줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "Switch.Switch == true",
+     "then": [
+      {
+       "op": "delay",
+       "duration": "5 MIN"
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 143,
+  "text": "복도 조명 중 하나로 켜져있는 상태라면 5분 뒤 거실 조명 모두를 껐으면 좋겠습니다.",
+  "segs": [
+   {
+    "text": "복도 조명 중 하나로 켜져있는 상태라면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "5분 뒤 거실 조명 모두를 껐으면",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "좋겠습니다.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "Switch.Switch == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "Switch.Toggle",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 335,
+  "text": "지금 침실 습도를 확인하고 30분 뒤 다시 확인해서 15 이상 올랐으면 침실 제습기 플러그를 켜줘.",
+  "segs": [
+   {
+    "text": "지금 침실 습도를 확인하고",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "text": "30분 뒤 다시 확인해서",
+    "type": "READ",
+    "mods": [
+     "read",
+     "delay"
+    ]
+   },
+   {
+    "text": "15 이상 올랐으면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "text": "침실 제습기 플러그를 켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "v1",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "delay",
+     "duration": "30 MIN"
+    },
+    {
+     "op": "read",
+     "var": "v2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "if",
+     "cond": "$v2 - $v1 >= 15",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 240,
+  "text": "접촉센서가 닫히면, 그 이후로 10초마다 경찰 사이렌을 울려줘.",
+  "segs": [
+   {
+    "text": "접촉센서가 닫히면,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "그 이후로 10초마다 경찰 사이렌을 울려줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "ContactSensor.Contact == true",
+     "then": [
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "10 SEC",
+       "body": [
+        {
+         "op": "call",
+         "target": "Siren.SetSirenMode",
+         "args": {
+          "Mode": "police"
+         }
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 240,
+  "text": "접촉센서가 닫힌 이후 10초마다 경찰 사이렌을 울려주세요.",
+  "segs": [
+   {
+    "text": "접촉센서가 닫힌 이후 10초마다 경찰 사이렌을 울려주세요.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "police"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 240,
+  "text": "접촉센서가 닫히면 그로부터 10초 간격으로 경찰 사이렌을 울려드리죠.",
+  "segs": [
+   {
+    "text": "접촉센서가 닫히면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "text": "그로부터 10초 간격으로 경찰 사이렌을 울려드리죠.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "ContactSensor.Contact == true",
+     "then": [
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "10 SEC",
+       "body": [
+        {
+         "op": "call",
+         "target": "Siren.SetSirenMode",
+         "args": {
+          "Mode": "police"
+         }
+        }
+       ]
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "grp": "orig",
+  "i": 271,
+  "text": "회의실 에어컨의 목표 온도를 1시간마다 25와 20으로 번갈아 설정해줘.",
+  "segs": [
+   {
+    "text": "회의실 에어컨의 목표 온도를 1시간마다 25와 20으로 번갈아 설정해줘.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "repeat"
+    ]
+   }
+  ],
+  "result": "OK",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 25.0
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 20.0
+         }
+        }
+       ]
+      }
+     ],
+     "count": "n"
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 271,
+  "text": "1시간마다 회의실 에어컨 목표 온도를 25 와 20 으로 번갈아 설정해 주세요.",
+  "segs": [
+   {
+    "text": "1시간마다 회의실 에어컨 목표 온도를 25 와 20 으로 번갈아 설정해 주세요.",
+    "type": "ACT",
+    "mods": [
+     "time",
+     "repeat"
+    ]
+   }
+  ],
+  "result": "A",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 20.0
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 20.0
+         }
+        }
+       ]
+      }
+     ],
+     "count": "n"
+    }
+   ]
+  }
+ },
+ {
+  "grp": "para",
+  "i": 271,
+  "text": "25 와 20 으로 번갈아 회의실 에어컨의 목표 온도를 1시간 주기로 설정해 주시죠.",
+  "segs": [
+   {
+    "text": "25 와 20 으로 번갈아 회의실 에어컨의 목표 온도를 1시간 주기로 설정해",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "text": "주시죠.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "result": "S",
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 20.0
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 20.0
+         }
+        }
+       ]
+      },
+      {
+       "op": "call",
+       "target": "Switch.Toggle",
+       "args": {}
+      }
+     ],
+     "count": "n"
+    }
+   ]
+  }
+ }
+]
