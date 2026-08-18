@@ -114,7 +114,7 @@ if __name__ == "__main__":
                 if po != go: okT = False; continue
                 for key in ("cron", "period", "until", "count", "duration", "for", "edge"):
                     if key in gd: okT &= str(pd.get(key)) == str(gd.get(key))
-                if "cond" in gd: okC &= pd["cond"] == gd["cond"]
+                if "cond" in gd: okC &= B.cond_ok(pd["cond"], gd["cond"], o["cmd"])
                 if "target" in gd:
                     okV &= pd["target"] == gd["target"]
                     if pd["target"] == gd["target"]:

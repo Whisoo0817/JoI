@@ -42,7 +42,7 @@ def alias_hit(part, s):
 queries, meta = [], []
 for r in R:
     row = prow.get(r["cmd"])
-    conn = {c for d in json.loads(row.connected_devices).values() for c in d["category"]} if row is not None else None
+    conn = {c for d in json.loads(row.connected_devices).values() for c in d["category"] if not c.endswith("Control")} if row is not None else None   # *Control 제외
     for s in r["segs"]:
         if s["type"] not in ("COND", "TRIG"): continue
         for p in parts_of(s["text"]):

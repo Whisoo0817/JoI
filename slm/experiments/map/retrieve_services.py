@@ -29,7 +29,7 @@ def svc_doc(s):
     al = " ".join(AL.get(cat, [])[:4])
     return f"{al} | {s['svc']} | " + " / ".join(s.get("ko_triggers", [])) + " | " + "; ".join(s.get("effects", []))
 DOCS = [svc_doc(s) for s in E]
-SVCS = [s["svc"] for s in E]
+SVCS = [s["svc"] for s in E if not s["svc"].split(".")[0].endswith("Control")]   # *Control 계열 제외(사용자 결정)
 ROLE = {s["svc"]: s["role"] for s in E}
 OK = {"ACT": {"action", "read_action"}, "COND": {"read", "read_action"}, "TRIG": {"read", "read_action"}, "READ": {"read", "read_action"}}
 
@@ -40,7 +40,7 @@ for o in T:
         continue
     gold = set(re.findall(r"\b([A-Z][A-Za-z]+\.[A-Za-z0-9]+)", r.ir_gt)) & set(SVCS)
     devs = json.loads(r.connected_devices)
-    conn = {c for d in devs.values() for c in d["category"]}
+    conn = {c for d in devs.values() for c in d["category"] if not c.endswith("Control")}   # *Control 계열 제외(사용자 결정)
     segs = [s for s in o["segments"] if s["type"] in OK]
     items.append(dict(cmd=o["cmd"], gold=gold, conn=conn, segs=segs, cat=o["cat"]))
 print("명령", len(items), "질의 절", sum(len(i["segs"]) for i in items))

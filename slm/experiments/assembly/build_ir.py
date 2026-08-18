@@ -16,7 +16,8 @@ from loader import SERVICE_DATA
 HERE = os.path.dirname(os.path.abspath(__file__))
 T = json.load(open(os.path.join(HERE, "..", "type", "type_labels.json")))
 R = json.load(open(os.path.join(HERE, "..", "map", "ranked.json")))
-MAP = {(r["cmd"], s["j"]): s["ranked"] for r in R for s in r["segs"]}
+NO_CAT = ("ColorControl", "LevelControl", "RotaryControl")   # 사용자 결정: *Control 계열은 연결 기기 카테고리·스킬에서 제외
+MAP = {(r["cmd"], s["j"]): [x for x in s["ranked"] if x.split(".")[0] not in NO_CAT] for r in R for s in r["segs"]}
 import pandas as pd
 _P = pd.read_csv(os.path.join(HERE, "..", "map", "dataset_paper.csv"))
 PAPER_GT = {r.command_kor: json.loads(r.ir_gt) for r in _P.itertuples() if isinstance(r.ir_gt, str)}   # 카탈로그 정합 gold (매핑과 같은 버전)
@@ -302,7 +303,6 @@ def flat(nodes, reads=None, acc=None):
 
 EQ_VALUE = {"CarbonDioxideSensor.CarbonDioxide": "AirQualitySensor.CarbonDioxide"}   # B8: 둘 다 실내 CO2 → 동치
 def _onoff(t, args):
-    if t == "LevelControl.MoveToLevel": t, args = "Light.MoveToBrightness", {"Brightness": args.get("Level")}   # (검토 대기) 조명 밝기 = LevelControl ≡ Light.MoveToBrightness
     if t == "Switch.On": return "ON"
     if t == "Switch.Off": return "OFF"
     if t == "Light.MoveToBrightness":
@@ -318,11 +318,16 @@ def call_ok(pd, gd):
     if pt == gt:
         a, b = cmp_args(pd.get("args", {}), gd.get("args", {}), gt); return True, a == b
     if _onoff(pt, pd.get("args", {})) == _onoff(gt, gd.get("args", {})) and _onoff(gt, gd.get("args", {})) in ("ON", "OFF"): return True, True
-    if {pt, gt} == {"LevelControl.MoveToLevel", "Light.MoveToBrightness"}:
-        pv, gv = pd.get("args", {}).get("Brightness", pd.get("args", {}).get("Level")), gd.get("args", {}).get("Brightness", gd.get("args", {}).get("Level"))
-        return True, str(pv).replace("LevelControl.CurrentLevel", "Light.CurrentBrightness") == str(gv).replace("LevelControl.CurrentLevel", "Light.CurrentBrightness")
     if pt.split(".")[0] == gt.split(".")[0] and "Mode" in pt and "Mode" in gt and pd.get("args", {}).get("Mode") is not None and pd["args"].get("Mode") == gd.get("args", {}).get("Mode"): return True, True
     return False, False
+
+def cond_ok(pc, gc, cmd=""):
+    """조건식 일치. 사용자 결정: "사람이 감지" 류는 PresenceSensor.Presence ≡ MotionSensor.Motion 둘 다 정답."""
+    if pc == gc: return True
+    if "사람" in cmd:
+        f = lambda c: c.replace("MotionSensor.Motion", "PresenceSensor.Presence")
+        return f(pc) == f(gc)
+    return False
 
 def cmp_args(pa, ga, svc):
     """enum·숫자 인자만 비교(문자열 인자 제외). 반환 (맞은 수, 비교 수)"""
@@ -355,7 +360,7 @@ if __name__ == "__main__":
                     slot[key][1] += 1; hit = str(pd.get(key)) == str(gd.get(key)); slot[key][0] += hit; okT &= hit
                     if not hit and len(ex_fail[key]) < 6: ex_fail[key].append((o["cmd"], pd.get(key), gd.get(key)))
             if "cond" in gd:
-                slot["cond"][1] += 1; hit = pd["cond"] == gd["cond"]; slot["cond"][0] += hit; okC &= hit
+                slot["cond"][1] += 1; hit = cond_ok(pd["cond"], gd["cond"], o["cmd"]); slot["cond"][0] += hit; okC &= hit
                 ga = re.findall(r"[A-Z][A-Za-z]+\.[A-Za-z0-9]+", gd["cond"]); pa = re.findall(r"[A-Z][A-Za-z]+\.[A-Za-z0-9]+", pd["cond"])
                 if ga:
                     slot["cond.attr"][1] += 1; slot["cond.attr"][0] += (sorted(ga) == sorted(pa))

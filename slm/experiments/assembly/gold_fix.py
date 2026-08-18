@@ -33,8 +33,19 @@ COND_EDITS = {   # 부분 문자열 치환 (cond 안)
     "Light.CurrentBrightness == 0": "Switch.Switch == false",
 }
 
+LEVEL_MAP = {"LevelControl.MoveToLevel": "Light.MoveToBrightness", "LevelControl.CurrentLevel": "Light.CurrentBrightness", "ColorControl.SetColor": "Light.MoveToColor"}
+def _no_control(n):
+    """사용자 결정: *Control 계열 서비스는 쓰지 않음 → 조명 서비스로 정규화(Level→Brightness)"""
+    if n.get("op") == "call" and n["target"] in LEVEL_MAP:
+        n["target"] = LEVEL_MAP[n["target"]]
+        if "Level" in n.get("args", {}): n["args"]["Brightness"] = n["args"].pop("Level")
+        n["args"] = {k: (v.replace("LevelControl.CurrentLevel", "Light.CurrentBrightness") if isinstance(v, str) else v) for k, v in n.get("args", {}).items()}
+    if n.get("op") == "read" and n.get("src") in LEVEL_MAP: n["src"] = LEVEL_MAP[n["src"]]
+    if n.get("op") in ("if", "wait") and isinstance(n.get("cond"), str):
+        for a, b in LEVEL_MAP.items(): n["cond"] = n["cond"].replace(a, b)
 def fix(cmd, ir):
     ir = copy.deepcopy(ir); tl = ir["timeline"]
+    _walk(tl, _no_control)
     if cmd in EDITS: tl = EDITS[cmd](tl)
     def f(n):
         if n.get("op") in ("if", "wait") and isinstance(n.get("cond"), str):

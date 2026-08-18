@@ -825,4 +825,4 @@ gold 관례 발견: **조명 켜기 = MoveToBrightness(15) vs Switch.On(7), 끄�
 
 잔여 8 조건식: gold 자유 변수명(`living_temp`, `brightness`, `livingRoomHumidity`), `not (...) or ...` 표기, "야간(오후 10시)이 되면"(시간 조건이 절 안), "멈춘 상태" — 모두 gold 표기 문제 또는 극소수. 완전 IR의 상한은 이제 **구조 0.896**(34명령: 상자 규칙이 못 다루는 배치) — 다음 병목.
 
-검토 대기(내가 임시로 정한 것): LevelControl.MoveToLevel ≡ Light.MoveToBrightness(밝기, `$LevelControl.CurrentLevel`≡`$Light.CurrentBrightness`)로 동치 처리; "사람이 감지될 때마다"는 Presence(gold Motion 1건).
+추가 결정: **\*Control 계열(LevelControl·ColorControl·RotaryControl)은 쓰지 않음** — 검색 대상(`retrieve_services.py` SVCS)·연결 기기 카테고리(`retrieve_services.py`/`cond_parts.py` conn)·후보(`build_ir.NO_CAT`)에서 제외, gold의 LevelControl.MoveToLevel/CurrentLevel·ColorControl.SetColor는 Light.MoveToBrightness/CurrentBrightness/MoveToColor로 정규화(`gold_fix._no_control`). "사람이 감지"류는 **Presence ≡ Motion 둘 다 정답**(`cond_ok`). → 완전 IR **0.869**(284/327), cond 0.967.
