@@ -649,8 +649,7 @@
         }
        ]
       }
-     ],
-     "count": "n"
+     ]
     }
    ]
   },
@@ -667,14 +666,22 @@
      "period": "5 MIN",
      "body": [
       {
-       "op": "call",
-       "target": "Valve.Open",
-       "args": {}
-      },
-      {
-       "op": "call",
-       "target": "Valve.Close",
-       "args": {}
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "Valve.Open",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "Valve.Close",
+         "args": {}
+        }
+       ]
       }
      ]
     }
@@ -1220,9 +1227,9 @@
      "anchor": "now"
     },
     {
-     "op": "call",
-     "target": "MenuProvider.GetMenu",
-     "args": {}
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
     },
     {
      "op": "call",
@@ -3666,15 +3673,7 @@
       },
       {
        "op": "call",
-       "target": "Light.MoveToBrightness",
-       "args": {
-        "Brightness": 100.0,
-        "Rate": 0.0
-       }
-      },
-      {
-       "op": "call",
-       "target": "Switch.Off",
+       "target": "Switch.Toggle",
        "args": {}
       }
      ]
@@ -3699,23 +3698,8 @@
       },
       {
        "op": "call",
-       "target": "Light.MoveToBrightness",
-       "args": {
-        "Brightness": 100.0,
-        "Rate": 0.0
-       }
-      },
-      {
-       "op": "delay",
-       "duration": "1 SEC"
-      },
-      {
-       "op": "call",
-       "target": "Light.MoveToBrightness",
-       "args": {
-        "Brightness": 0.0,
-        "Rate": 0.0
-       }
+       "target": "Switch.Toggle",
+       "args": {}
       }
      ]
     }
@@ -5560,15 +5544,6 @@
      "op": "wait",
      "cond": "MultiButton.Button4 == \"pushed\"",
      "edge": "none"
-    },
-    {
-     "op": "call",
-     "target": "Light.MoveToColor",
-     "args": {
-      "ColorX": 0.675,
-      "ColorY": 0.322,
-      "TransitionTime": 0.0
-     }
     },
     {
      "op": "call",
@@ -7885,11 +7860,9 @@
      "cron": "0 6 * * 1,3"
     },
     {
-     "op": "call",
-     "target": "WeatherProvider.Forecast",
-     "args": {
-      "Hour": 6
-     }
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
     },
     {
      "op": "call",
@@ -9061,16 +9034,16 @@
     {
      "op": "start_at",
      "anchor": "cron",
-     "cron": "0 0 * * 6,7"
+     "cron": "0 0 * * 6"
     },
     {
      "op": "cycle",
-     "until": null,
+     "until": "Clock.Weekday == \"monday\"",
      "period": "30 MIN",
      "body": [
       {
        "op": "if",
-       "cond": "Pump.PumpMode == ?",
+       "cond": "Switch.Switch == true",
        "then": [
         {
          "op": "call",
@@ -9559,11 +9532,11 @@
     {
      "op": "start_at",
      "anchor": "cron",
-     "cron": "0 0 * * 6,7"
+     "cron": "0 0 * * 6"
     },
     {
      "op": "cycle",
-     "until": null,
+     "until": "Clock.Weekday == \"monday\"",
      "period": "5 SEC",
      "body": [
       {
@@ -9578,16 +9551,9 @@
        ],
        "else": [
         {
-         "op": "if",
-         "cond": "Switch.Switch == true",
-         "then": [
-          {
-           "op": "call",
-           "target": "Switch.Off",
-           "args": {}
-          }
-         ],
-         "else": []
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
         }
        ]
       }
@@ -9663,16 +9629,9 @@
        ],
        "else": [
         {
-         "op": "if",
-         "cond": "TemperatureSensor.Temperature < 25",
-         "then": [
-          {
-           "op": "call",
-           "target": "Switch.Off",
-           "args": {}
-          }
-         ],
-         "else": []
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
         }
        ]
       }

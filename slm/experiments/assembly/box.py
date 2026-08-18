@@ -63,6 +63,8 @@ def gold_flags(ir):
 CONJ_RE = re.compile(r"(고|거나|이거나|며|이며|는데|은데|면서|또는|이나|그리고),?\.?$")          # 접속어미(조건 병합)
 PERIOD_RE = re.compile(r"(?:\d+|한|두|세|네|다섯|여섯|열|삼십|십|이십)\s*(초|분|시간)\s*(마다|간격|주기)")   # 시각+마다(정오마다)는 cron, 기간+마다는 period               # 반복 주기 → CYC
 UNTIL_RE = re.compile(r"(\d+\s*시|정오|자정|밤|아침|저녁|오후|오전|새벽)\S*(까지|사이에)")   # 시각까지 = 시간창 → CYC(until) ("최대 100까지"는 값 상한)
+SPLIT_TOGGLE_RE = re.compile(r"켜고[,.]?\s*$"); SPLIT_TOGGLE2_RE = re.compile(r"끄(는|기)\s*(것을|를)?\s*반복")
+TOGGLE_ONOFF_RE = re.compile(r"켜고 끄|켰다 껐다|toggle|토글", re.I)
 TOGGLE_RE = re.compile(r"(였다 .*?[았었]다|번갈아|사이에서 전환|켜고 끄는|켰다 껐다|올렸다 내렸다|열었다 닫았다|열었다 잠갔다|잠갔다 열었다|내렸다 올렸다|닫았다 열었다|열고 닫기|올리고 내리기|켜고 끄기|열었다가 닫)")
 FILLER_ONLY_RE = re.compile(r"^(그리고|그리|그렇지 않고|그렇지 않으면|아니면|아니면서|그게 아니고|그 외에는|그리고 나서|또는|그때부터|그 이후로|그 뒤로|이후|그 후|그런 다음)[,.]?$")
 ELSE_SPLIT = re.compile(r".+[,\s](그 외에는|그 외에|아니면|그렇지 않으면) ")   # 한 절 안의 else 분기
@@ -161,7 +163,11 @@ def assemble(segs, cron, cyc_flags):
                 cur().add("CALL"); b = Box("IF"); b.add("BREAK"); cur().add(b); i += 2; continue
             if MODE_TEMP_RE.search(texts[i]):           # "냉방 모드로 18도로 설정" = SetMode + SetTargetTemperature
                 cur().add("CALL"); cur().add("CALL"); i += 1; continue
-            if TOGGLE_RE.search(texts[i]):
+            if TOGGLE_RE.search(texts[i]) and TOGGLE_ONOFF_RE.search(texts[i]):   # 켜고 끄기 = Switch.Toggle 한 호출(사용자 결정)
+                cur().add("CALL")
+            elif SPLIT_TOGGLE_RE.search(texts[i]) and nxt[0] == "ACT" and i + 1 < n and SPLIT_TOGGLE2_RE.match(texts[i + 1]):   # "…켜고 ‖ 끄는 것을 반복" 두 절 = Toggle 한 호출
+                cur().add("CALL"); i += 2; continue
+            elif TOGGLE_RE.search(texts[i]):
                 b = Box("IF"); b.add("CALL"); b.in_else = True; b.else_items = []; b.add("CALL"); b.in_else = False; cur().add(b)
             elif "유지하다가" in texts[i]:               # "…로 10초 유지하다가" = 켜기·지연 (끄기는 다음 절)
                 cur().add("CALL"); cur().add("DELAY")

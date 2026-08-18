@@ -28,7 +28,7 @@ SENSOR_LEX = [   # (정규식, 서비스) — 앞이 우선(초미세 > 미세).
     (r"(금고|도어락|자물쇠)(이|가|은|는|도)? ?(하나라도 |모두 )?(열|잠|풀)", "DoorLock.DoorLockState"),   #     금고·도어락=DoorLock
     (r"(문|뚜껑|서랍)(이|가|은|는|도)? ?(하나라도 )?(열|닫)", "ContactSensor.Contact"),                #     문=ContactSensor (r"전압", "Charger.Voltage"), (r"전류", "Charger.Current"), (r"충전", "Charger.ChargingState"),
 ]
-STATE = re.compile(r"(켜|꺼|끄)(져 ?있|진 상태|져만|짐 상태)|(작동|가동)(하고 있|중이|되고 있|되어 있)")   # 상태(있으면) → Switch.Switch
+STATE = re.compile(r"(켜|꺼|끄)(져 ?있|진 상태|져만|짐 상태|진 \S+가 (하나라도 )?있)|(작동|가동)(하고 있|중이|되고 있|되어 있)")   # 상태(있으면) → Switch.Switch
 EVENT_ON = re.compile(r"(켜|꺼|끄)(지면|질 때|지는|졌|지고)")                                          # 사건(켜지면) → 조명이면 CurrentBrightness
 
 def func_bonus(text, cands):
@@ -39,7 +39,7 @@ def func_bonus(text, cands):
         b[s] = b.get(s, 0) + v
         if s not in cands and s not in extra: extra.append(s)
     if re.search(r"\d+\s*(초|분|시간)\s*(짜리|동안|간)\s*\S*\s*(영상|녹화|촬영)", text): add("Camera.CaptureVideo", 6)   # "5분짜리 영상을 녹화" = 길이 지정 녹화
-    if re.search(r"toggle|토글", text, re.I): add("Switch.Toggle", 8)
+    if re.search(r"toggle|토글|켜고 끄|켰다 껐다", text, re.I): add("Switch.Toggle", 8)
     if re.search(r"(사진|이미지|그림)\S*\s*(생성|만들)", text): add("CloudServiceProvider.GenerateImage", 8)
     if SPEECH.search(text): add("Speaker.Speak", 8)
     if SPEECH.search(text) or QUOTED.search(text): text = QUOTED.sub("\"…\"", text)      # 인용문 안의 기기·모드어는 무시
@@ -79,7 +79,7 @@ def value_bonus(text, cands):
         b[s] = b.get(s, 0) + v
         if s not in cands and s not in extra: extra.append(s)
     if re.search(r"\d+\s*(초|분|시간)\s*(짜리|동안|간)\s*\S*\s*(영상|녹화|촬영)", text): add("Camera.CaptureVideo", 6)   # "5분짜리 영상을 녹화" = 길이 지정 녹화
-    if re.search(r"toggle|토글", text, re.I): add("Switch.Toggle", 8)
+    if re.search(r"toggle|토글|켜고 끄|켰다 껐다", text, re.I): add("Switch.Toggle", 8)
     if re.search(r"(사진|이미지|그림)\S*\s*(생성|만들)", text): add("CloudServiceProvider.GenerateImage", 8)
     if STATE.search(text) or EVENT_ON.search(text): add("Switch.Switch", 8)     # B4: 켜짐/꺼짐 상태·사건은 Switch 우선
     else:

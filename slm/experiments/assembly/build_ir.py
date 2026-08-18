@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
 sys.path.insert(0, ROOT)
 os.environ.setdefault("SLOT", "1")
-from box import Box, assemble_tree, MODE_ON_RE, PULSE_RE, TOGGLE_RE, MODE_TEMP_RE, ELSE_SPLIT
+from box import Box, assemble_tree, MODE_ON_RE, PULSE_RE, TOGGLE_RE, TOGGLE_ONOFF_RE, SPLIT_TOGGLE_RE, SPLIT_TOGGLE2_RE, MODE_TEMP_RE, ELSE_SPLIT
 from skeleton import skeleton, canon
 import slots
 import rerank
@@ -318,7 +318,7 @@ def build(o):
                     if rerank.ON and per is None and unt and any(isinstance(y, Box) and y.kind == "IF" for y in x.items): per = "100 MSEC"   # 시간창 + 조건 = 폴링
                     node = {"op": "cycle", "until": unt, "period": per, "body": []}
                     if cnt: node["count"] = cnt
-                    elif rerank.ON and any(isinstance(y, Box) and y.kind == "IF" and y.seg is not None and S[y.seg]["type"] == "ACT" and TOGGLE_RE.search(S[y.seg]["text"]) for y in x.items): node["count"] = "n"   # 토글: n%2
+                    elif rerank.ON and unt is None and any(isinstance(y, Box) and y.kind == "IF" and y.seg is not None and S[y.seg]["type"] == "ACT" and TOGGLE_RE.search(S[y.seg]["text"]) for y in x.items): node["count"] = "n"   # 토글: n%2 (until 있으면 count 생략 = gold 표기)
                     conv(x, node["body"]); out.append(node)
             else:
                 j = b.owner[id(x)]; s = S[j]; leaf = str(x)
@@ -332,7 +332,9 @@ def build(o):
                         if want: force = want[0]
                     elif rerank.ON and PULSE_RE.search(s["text"]) and ncall[j] == 2: force = "Switch.Off"          # 펄스 두 번째 CALL = 끄기
                     hint = None; txt = s["text"]
-                    if rerank.ON and TOGGLE_RE.search(txt):
+                    if rerank.ON and TOGGLE_RE.search(txt) and TOGGLE_ONOFF_RE.search(txt): force = "Switch.Toggle"     # 켜고 끄기 = Switch.Toggle 한 호출
+                    elif rerank.ON and SPLIT_TOGGLE_RE.search(txt) and j + 1 < len(S) and SPLIT_TOGGLE2_RE.match(S[j + 1]["text"]): force = "Switch.Toggle"
+                    elif rerank.ON and TOGGLE_RE.search(txt):
                         mm = re.search(r"(\S+?)(와|과|이랑|랑) (\S+?)(을|를|으로|로)? ?(사이에서|번갈아)", txt)
                         if mm: txt = txt[:mm.start()] + (mm.group(1) if ncall[j] == 1 else mm.group(3)) + "으로 " + txt[mm.end():]   # "A와 B 사이에서 전환" → 1번째 A, 2번째 B
                         else:
@@ -344,7 +346,9 @@ def build(o):
                     out.append(call_node(cmd, j, txt, force=force, hint=hint))
                 elif leaf == "READ":
                     getf = next((f for f in MAP.get((cmd, j), []) if svc_info(f)[0] == "function" and not f.startswith("Speaker.")), None)
-                    if rerank.ON and top(cmd, j) and svc_info(top(cmd, j))[0] == "function" and getf and not re.search(r"온도|습도|조도|농도|상태|값|수치", s["text"]):   # 읽을 것이 함수(GetMenu 등)면 call
+                    hasv = top(cmd, j, "value") is not None
+                    param = re.search(r'\d+\s*동|식당|["“]', s["text"]) is not None      # "301동 점심 메뉴"처럼 인자가 필요한 조회
+                    if rerank.ON and getf and (not hasv or param) and not re.search(r"온도|습도|조도|농도|상태|값|수치", s["text"]):   # 값 서비스가 있으면 read, 없거나 인자 필요하면 함수 call (사용자 결정: 서비스 종류 따라)
                         out.append(call_node(cmd, j, s["text"], force=getf))
                     else:
                         counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(cmd, j, "value") or "?"})
@@ -357,7 +361,29 @@ def build(o):
                     out.append(node)
                 elif leaf == "BREAK": out.append({"op": "break"})
     conv(root, tl)
+    if rerank.ON:
+        _walk_nodes(tl, _collapse_complement)
+        if "주말" in cmd and tl and tl[0].get("cron", "").endswith("* * 6,7") and len(tl) > 1 and tl[1].get("op") == "cycle" and tl[1].get("until") is None:
+            tl[0]["cron"] = tl[0]["cron"][:-3] + "6"; tl[1]["until"] = 'Clock.Weekday == "monday"'          # "주말 동안/에 N마다" = 토요일 0시 시작, 월요일까지(사용자 결정: 기간은 start+until)
     return {"timeline": tl}
+
+_CMP_INV = {">=": "<", "<": ">=", ">": "<=", "<=": ">"}
+def _complement(a, b):
+    """같은 속성의 상보 조건: (>= v, < v), (== true, == false) 등"""
+    ma = re.fullmatch(r"(\S+) (>=|<=|>|<|==|!=) (\S+)", a or ""); mb = re.fullmatch(r"(\S+) (>=|<=|>|<|==|!=) (\S+)", b or "")
+    if not ma or not mb or ma.group(1) != mb.group(1): return False
+    if ma.group(3) == mb.group(3) and _CMP_INV.get(ma.group(2)) == mb.group(2): return True
+    if ma.group(2) == mb.group(2) == "==" and {ma.group(3), mb.group(3)} == {"true", "false"}: return True
+    return False
+def _walk_nodes(nodes, fn):
+    for n in nodes:
+        fn(n)
+        for k in ("then", "else", "body"):
+            if n.get(k): _walk_nodes(n[k], fn)
+def _collapse_complement(n):
+    """if A {X} else { if ¬A {Y} } → if A {X} else {Y} (사용자 결정: 상보 조건은 ELSE)"""
+    if n.get("op") == "if" and len(n.get("else", [])) == 1 and n["else"][0].get("op") == "if" and not n["else"][0].get("else") and _complement(n["cond"], n["else"][0]["cond"]):
+        n["else"] = n["else"][0]["then"]
 
 # ── 평가 ──
 def canon_ir(ir):
