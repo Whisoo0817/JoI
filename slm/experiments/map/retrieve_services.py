@@ -18,9 +18,12 @@ sys.path.insert(0, HERE)
 from embed import embed
 ROOT = os.path.join(HERE, "..", "..", "..")
 
-E = json.load(open(os.path.join(ROOT, "mapping_v2", "effects.json")))["services"]
+E = [s for s in json.load(open(os.path.join(ROOT, "mapping_v2", "effects.json")))["services"]
+     if not s["svc"].split(".")[0].endswith("Control")]   # *Control 계열 제외(사용자 결정)
 AL = json.load(open(os.path.join(ROOT, "mapping_v2", "category_aliases.json")))["aliases"]
 T = json.load(open(os.path.join(HERE, "..", "type", "type_labels.json")))
+if os.environ.get("EXTRA", "1") == "1":   # paper 재작성 명령 29개(기기 교체분, 직접 라벨) 포함
+    T = T + json.load(open(os.path.join(HERE, "..", "type", "type_labels_extra.json")))
 P = pd.read_csv(os.path.join(HERE, "dataset_paper.csv"))
 prow = {r.command_kor: r for r in P.itertuples()}
 
@@ -29,7 +32,7 @@ def svc_doc(s):
     al = " ".join(AL.get(cat, [])[:4])
     return f"{al} | {s['svc']} | " + " / ".join(s.get("ko_triggers", [])) + " | " + "; ".join(s.get("effects", []))
 DOCS = [svc_doc(s) for s in E]
-SVCS = [s["svc"] for s in E if not s["svc"].split(".")[0].endswith("Control")]   # *Control 계열 제외(사용자 결정)
+SVCS = [s["svc"] for s in E]
 ROLE = {s["svc"]: s["role"] for s in E}
 OK = {"ACT": {"action", "read_action"}, "COND": {"read", "read_action"}, "TRIG": {"read", "read_action"}, "READ": {"read", "read_action"}}
 

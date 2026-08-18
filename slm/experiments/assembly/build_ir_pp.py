@@ -63,7 +63,7 @@ def evaluate(o, o2, G):
 if __name__ == "__main__":
     res = collections.Counter(); resG = collections.Counter(); N = 0; cause = collections.Counter(); ex = collections.defaultdict(list); out = []
     for o in B.T:
-        if not o["ir_gt"] or (o["cmd"], 0) not in B.MAP or str(o["i"]) not in PT: continue
+        if not o["ir_gt"] or o["cmd"] not in B.RC or str(o["i"]) not in PT: continue
         N += 1; G = B.gold_of(o)
         rG, _ = evaluate(o, o, G); resG[rG] += 1
         o2 = make_pred_cmd(o); r, ir = evaluate(o, o2, G); res[r] += 1

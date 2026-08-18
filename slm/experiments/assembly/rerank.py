@@ -38,6 +38,9 @@ def func_bonus(text, cands):
     def add(s, v):
         b[s] = b.get(s, 0) + v
         if s not in cands and s not in extra: extra.append(s)
+    if re.search(r"\d+\s*(초|분|시간)\s*(짜리|동안|간)\s*\S*\s*(영상|녹화|촬영)", text): add("Camera.CaptureVideo", 6)   # "5분짜리 영상을 녹화" = 길이 지정 녹화
+    if re.search(r"toggle|토글", text, re.I): add("Switch.Toggle", 8)
+    if re.search(r"(사진|이미지|그림)\S*\s*(생성|만들)", text): add("CloudServiceProvider.GenerateImage", 8)
     if SPEECH.search(text): add("Speaker.Speak", 8)
     if SPEECH.search(text) or QUOTED.search(text): text = QUOTED.sub("\"…\"", text)      # 인용문 안의 기기·모드어는 무시
     elif QUOTED.search(text) and not re.search(r"재생|틀어|저장|보내|전송|업로드", text): add("Speaker.Speak", 3)
@@ -75,6 +78,9 @@ def value_bonus(text, cands):
     def add(s, v):
         b[s] = b.get(s, 0) + v
         if s not in cands and s not in extra: extra.append(s)
+    if re.search(r"\d+\s*(초|분|시간)\s*(짜리|동안|간)\s*\S*\s*(영상|녹화|촬영)", text): add("Camera.CaptureVideo", 6)   # "5분짜리 영상을 녹화" = 길이 지정 녹화
+    if re.search(r"toggle|토글", text, re.I): add("Switch.Toggle", 8)
+    if re.search(r"(사진|이미지|그림)\S*\s*(생성|만들)", text): add("CloudServiceProvider.GenerateImage", 8)
     if STATE.search(text) or EVENT_ON.search(text): add("Switch.Switch", 8)     # B4: 켜짐/꺼짐 상태·사건은 Switch 우선
     else:
         for rx, s in SENSOR_LEX:

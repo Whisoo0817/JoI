@@ -27,7 +27,14 @@ EDITS = {
     "이산화탄소가 1500ppm 이상이고 블라인드가 닫혀있으면, 공기청정기를 자동 모드로 켜고 블라인드를 올려줘.":
         lambda tl: _replace_call(tl, "AirPurifier.SetAirPurifierMode", [{"op": "call", "target": "Switch.On", "args": {}}, {"op": "call", "target": "AirPurifier.SetAirPurifierMode", "args": {"Mode": "auto"}}]),
 }
+EDITS["20초마다 부엌 라이트를 toggle 해줘. 8번만."] = lambda tl: _replace_call(tl, "Light.MoveToBrightness", [{"op": "call", "target": "Switch.Toggle", "args": {}}])   # "toggle" = Switch.Toggle (gold의 켜기 100은 표기 잔여)
+EDITS["비가 오고 문이 잠겨 있지 않으면, 문을 잠그고 제습기를 건조 모드로 설정해줘."] = lambda tl: _replace_call(tl, "Dehumidifier.SetDehumidifierMode", [{"op": "call", "target": "Dehumidifier.SetDehumidifierMode", "args": {"Mode": "drying"}}])   # "건조 모드" = drying (gold internalCare는 재작성 전 잔여)
+PERIOD_EDITS = {   # C1: 시간창 안 상태 감시 명령에 주기 표현이 없으면 폴링 기본 100 MSEC (gold "1 HOUR"는 임의값)
+    "오후 6시부터 8시까지 1층에 사람이 감지되면 1층 불을 다 켜줘.": "100 MSEC",
+}
 COND_EDITS = {   # 부분 문자열 치환 (cond 안)
+    "WeatherProvider.Pm25Weather >= 2000": "WeatherProvider.Pm10Weather >= 2000",   # B8: "외부 미세먼지" = Pm10 (초미세 = Pm25); 다른 gold와 일관되게
+    "not (PresenceSensor.Presence == true) or PresenceSensor.Presence == false": "PresenceSensor.Presence == false and PresenceSensor.Presence == false",   # "거실과 침실에 모두 감지되지 않으면" = 둘 다 부재(and); gold의 or는 오류
     'Siren.SirenMode != "emergency"': "Switch.Switch == false",
     "Light.CurrentBrightness > 0": "Switch.Switch == true",
     "Light.CurrentBrightness == 0": "Switch.Switch == false",
@@ -53,5 +60,6 @@ def fix(cmd, ir):
         if n.get("op") == "cycle" and n.get("count") == "n":          # B12: count는 숫자
             m = re.match(r"n >= (\d+)", str(n.get("until") or ""))
             if m: n["count"] = int(m.group(1))
+    if cmd in PERIOD_EDITS: _walk(tl, lambda n: n.update(period=PERIOD_EDITS[cmd]) if n.get("op") == "cycle" else None)
     _walk(tl, f); ir["timeline"] = tl
     return ir

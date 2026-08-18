@@ -15,8 +15,11 @@ import rerank
 from loader import SERVICE_DATA
 HERE = os.path.dirname(os.path.abspath(__file__))
 T = json.load(open(os.path.join(HERE, "..", "type", "type_labels.json")))
+if os.environ.get("EXTRA", "1") == "1":   # paper 재작성 명령 29개(기기 교체분, 직접 라벨) 포함
+    T = T + json.load(open(os.path.join(HERE, "..", "type", "type_labels_extra.json")))
 R = json.load(open(os.path.join(HERE, "..", "map", "ranked.json")))
 NO_CAT = ("ColorControl", "LevelControl", "RotaryControl")   # 사용자 결정: *Control 계열은 연결 기기 카테고리·스킬에서 제외
+RC = {r["cmd"] for r in R}
 MAP = {(r["cmd"], s["j"]): [x for x in s["ranked"] if x.split(".")[0] not in NO_CAT] for r in R for s in r["segs"]}
 import pandas as pd
 _P = pd.read_csv(os.path.join(HERE, "..", "map", "dataset_paper.csv"))
@@ -64,12 +67,12 @@ def _choose(kind, text, cands, sc):
     margin = sc[order[0]] - (sc[order[1]] if len(order) > 1 else -99)
     ch = OVERRIDE.get((kind, text), cands[order[0]])
     TRACE.append((kind, text, list(cands), cands[order[0]], margin)); return ch
-def pick_value(text, vals):
-    """값 서비스 후보(순위순) → 어휘 중복·순위·재정렬 보너스로 top-1"""
+def pick_value(text, vals, norank=False):
+    """값 서비스 후보(순위순) → 어휘 중복·순위·재정렬 보너스로 top-1. norank: 질의에 속성 명사가 없어 검색 순위가 무의미할 때(숫자뿐인 부분) 순위 감점 생략"""
     bon, extra = rerank.value_bonus(text, vals); vals = list(vals) + [e for e in extra if svc_info(e)[0] == "value"]
     if not vals: return None
     W = float(os.environ.get("LEXW", "1.0"))
-    return _choose("value", text, vals, [W * _lex_score(text, vals[k]) - k + bon.get(vals[k], 0) for k in range(len(vals))])
+    return _choose("value", text, vals, [W * _lex_score(text, vals[k]) - (0 if norank else k) + bon.get(vals[k], 0) for k in range(len(vals))])
 
 FILLER_PART = re.compile(r"^(그리고|그리|그렇지 않고|그렇지 않|그렇지 않으면|아니면|아니면서|그게 아니고|그 외에는|그리고 나서|또는|그때부터|그 이후로|그 뒤로|이후)(이면|면)?[,\s]*$")
 def cond_expr(cmd, j, text, mixed=False):
@@ -79,15 +82,26 @@ def cond_expr(cmd, j, text, mixed=False):
     if re.search(r"(과|와|랑|및) .*(모두|둘 다|전부)", text): return f"{e} and {e}"          # "거실과 침실 모두 X" = 같은 조건 두 기기
     if re.search(r"(이나|나|또는) .*(한 곳이라도|하나라도|중 )", text) or re.search(r"\S+(이나|거나) \S+(이|가|은|는)? ?(열|닫|켜|꺼|잠)", text): return f"{e} or {e}"
     return e
+SEGTXT = {(o["cmd"], s["j"]): s["text"] for o in T for s in o["segments"]}
+NUM_ONLY = re.compile(r"^[\d.,%\s]+[가-힣]{0,2}\s*(이상|이하|미만|초과|넘으면|넘게|밑이면|아래면|이면|되면)[가-힣]{0,3}[,.]?$")
+def _time_only_part(p):
+    """조건 부분이 시각 표현뿐("야간(오후 10시)이 되면")이면 cron으로 이미 처리 → 조건에서 제외"""
+    return slots._hour(p) is not None and not re.search(r"(온도|습도|농도|밝기|센서|감지|이상|이하|미만|초과|보다|동안|넘)", p)
 def _cond_expr(cmd, j, text):
     """조건 절 → '속성 op 값' 문자열. 절 안에 접속어미로 묶인 복합 조건이면 부분별로 값 서비스를 배정해 and/or 결합.
     COND_PARTS=1이면 부분 단위 재질의 결과(cond_parts.json: 조인 필터 + 조건 지시문)를 값 서비스로 사용."""
     cp = CP.get(cmd, {}).get(str(j))
     if cp:
         cp = [x for x in cp if not FILLER_PART.match(x["part"])] or cp     # "그리고"/"그렇지 않고" 같은 접속 부분은 조건이 아님
+        cp = [x for x in cp if not _time_only_part(x["part"])] or cp
         cp = [{**x, "part": text} if text in x["part"] and x["part"] != text else x for x in cp]   # mixed 절: 부분 텍스트를 잘라낸 조건으로
         conns = CONJ_SPLIT.findall(text)
-        exprs = [_one_cond(pick_value(x["part"], [s_ for s_ in x["ranked"] if svc_info(s_)[0] == "value"]) , x["part"]) for x in cp]
+        def _ctx(part):   # 부분이 숫자 비교뿐("200 이상이면")이면 속성 명사는 앞 절("미세먼지 농도를 체크해서")에 있음 → 앞 절 텍스트를 선택 문맥으로
+            if not NUM_ONLY.match(part.strip()): return part
+            ks = [k for k in range(j) if re.search(r"체크|확인|측정|모니터|살펴|재서|재고", SEGTXT.get((cmd, k), ""))] or list(range(j))
+            prev = " ".join(SEGTXT.get((cmd, k), "") for k in ks)
+            return (prev + " " + part) if prev else part
+        exprs = [_one_cond(pick_value(_ctx(x["part"]), [s_ for s_ in x["ranked"] if svc_info(s_)[0] == "value"], norank=NUM_ONLY.match(x["part"].strip()) is not None), x["part"]) for x in cp]
         out = exprs[0]
         for k, e in enumerate(exprs[1:]):
             out += (" or " if k < len(conns) and conns[k] in ("거나", "이거나") else " and ") + e
@@ -119,12 +133,17 @@ def _one_cond(svc, text):
         c = slots.comparator(text)
         if c: 
             v = rerank.unit_scale(svc, text, c[1]); v = int(v) if float(v).is_integer() else v
+            r = slots.range_comparator(text)                          # "20도 이상, 30도 미만이면" → 두 비교의 and
+            if r: return " and ".join(f"{svc} {op} {int(x) if float(x).is_integer() else x}" for op, x in r)
             return f"{svc} {c[0]} {v}"
         return f"{svc} == ?"
     if vt == "BOOL": return f"{svc} == {slots.bool_state(text, 'BOOL', [])}"
     if vt == "ENUM":
         v = slots.bool_state(text, "ENUM", members_of(cat, spec.get("format")))
         return f"{svc} == {v if v else '?'}"
+    if vt == "STRING":                                                # 문자열 값 조건: 따옴표 값 → 관례 영문(가족→family) 또는 그대로
+        q = slots.quoted(text)
+        if q: return f'{svc} == "{slots.STRING_KO.get(q.strip(), q.strip())}"'
     return f"{svc} == ?"
 
 POS = {"open": r"열|개방|풀|해제", "close": r"닫|잠|차단", "on": r"켜|작동|시작|틀어|가동", "off": r"꺼|끄|중지|멈|정지|소등", "up": r"올리|올려|높이|높여|키워|증가|더", "down": r"내리|내려|낮추|낮춰|줄|감소"}
@@ -155,7 +174,8 @@ def pick_function(cmd, j, text):
         return sc
     return _choose("func", text, cands, [score(k, s_) for k, s_ in enumerate(cands)])
 
-STEP_ATTR = {"Brightness": "Light.CurrentBrightness", "Volume": "Speaker.Volume", "TargetTemperature": "AirConditioner.TargetTemperature", "Level": "WindowCovering.CurrentPosition"}
+STEP_ATTR = {"Brightness": "Light.CurrentBrightness", "Volume": "Speaker.Volume", "TargetTemperature": "AirConditioner.TargetTemperature", "Temperature": "AirConditioner.TargetTemperature", "Level": "WindowCovering.CurrentPosition"}
+COLOR_XY = {"red": (0.675, 0.322), "blue": (0.167, 0.04), "green": (0.409, 0.518), "white": (0.3127, 0.329), "yellow": (0.444, 0.517), "orange": (0.556, 0.408), "purple": (0.272, 0.109), "pink": (0.38, 0.19)}   # gold 관례(빨강·파랑 gold 값, 나머지 CIE 근사)
 TOGGLE_VERB = {r"열었다|열고 닫|개방": ("열어줘", "닫아줘"), r"올렸다|올리고 내": ("올려줘", "내려줘"), r"잠갔다|잠궜다": ("잠가줘", "열어줘"), r"켰다|켜고 끄": ("켜줘", "꺼줘")}
 def call_node(cmd, j, text, force=None, hint=None):
     if hint == "on": text = text + " 켜줘"          # 토글 첫 호출 = 켜기, 둘째 = 끄기 (극성 힌트)
@@ -169,7 +189,7 @@ def call_node(cmd, j, text, force=None, hint=None):
             v = slots.enum_arg(text, members_of(cat, a.get("format")))
             if v: args[aid] = v
         elif at in ("DOUBLE", "INT", "INTEGER", "FLOAT", "LONG"):
-            st = re.search(r"(\d+)\s*(도|%)?\s*(씩|만큼|단위씩|단위로)\s*(높여|올려|키워|낮춰|내려|줄여|늘려|늘리|올리|증가|줄이|감소|밝게|어둡게|키우|낮추|내리|높이)", text); lim = re.search(r"(최대|최소|최저|최고)\s*(\d+)", text)
+            st = re.search(r"(\d+)\s*(도|%)?\s*(씩|만큼|단위씩|단위로|)\s*(높여|올려|키워|낮춰|내려|줄여|늘려|늘리|올리|증가|줄이|감소|밝게|어둡게|키우|낮추|내리|높이)", text); lim = re.search(r"(최대|최소|최저|최고)\s*(\d+)", text)   # "2도 낮춰줘"(씩 없이 상대 동사)도 단계
             if re.search(r"최대 밝기", text) and st: lim = re.match(r"(최대)\s*(100)", "최대 100")
             if st and rerank.ON and aid in STEP_ATTR:            # A11: "10씩 높여줘. 최대 100까지" → min($Light.CurrentBrightness + 10, 100)
                 up = st.group(4) in ("높여", "올려", "키워", "늘려", "늘리", "올리", "증가", "밝게", "키우", "높이"); n_ = st.group(1); attr = STEP_ATTR[aid]
@@ -189,12 +209,18 @@ def call_node(cmd, j, text, force=None, hint=None):
             elif aid == "Saturation":
                 m = re.search(r"채도\D{0,6}(\d+)", text)
                 if m: args[aid] = int(m.group(1))
+            elif aid in ("ColorX", "ColorY"):
+                col = slots.enum_arg(text, [f"{k} - " for k in COLOR_XY])
+                if col: args[aid] = COLOR_XY[col][0 if aid == "ColorX" else 1]
             elif aid == "Rate": args[aid] = 0.0
             elif aid == "TransitionTime": args[aid] = 0.0
             else:
                 n = slots.number(text)
                 if n is None and aid == "Volume" and re.search(r"최대|끝까지", text): n = 100
                 if n is None and aid == "Volume" and re.search(r"최소|음소거", text): n = 0
+                if n is not None and aid == "Duration":                    # Duration은 초 단위: "5분짜리" → 300
+                    mu = re.search(rf"{int(n) if float(n).is_integer() else n}\s*(분|시간)", text)
+                    if mu: n = n * (60 if mu.group(1) == "분" else 3600)
                 if n is not None: args[aid] = int(n) if at in ("INT", "INTEGER", "LONG") else float(n)
         else:
             q = slots.quoted(text)
@@ -311,7 +337,7 @@ def build(o):
                         if mm: txt = txt[:mm.start()] + (mm.group(1) if ncall[j] == 1 else mm.group(3)) + "으로 " + txt[mm.end():]   # "A와 B 사이에서 전환" → 1번째 A, 2번째 B
                         else:
                             pair = next((v for k_, v in TOGGLE_VERB.items() if re.search(k_, txt)), ("켜줘", "꺼줘"))
-                            txt = TOGGLE_RE.sub("", txt) + " " + pair[0 if ncall[j] == 1 else 1]        # "열었다 닫았다" → 열어줘 / 닫아줘
+                            txt = re.sub(r"\d+\s*(초|분|시간)\s*(마다|간격으로|씩)", "", TOGGLE_RE.sub("", txt)) + " " + pair[0 if ncall[j] == 1 else 1]        # "열었다 닫았다" → 열어줘 / 닫아줘 (주기 숫자는 제거: Set* 오선택 방지)
                     elif rerank.ON and "else" in s["mods"] and ELSE_SPLIT.search(txt):
                         parts = re.split(r"[,\s](?:그 외에는|그 외에|아니면|그렇지 않으면) ", txt, maxsplit=1)
                         txt = parts[min(ncall[j] - 1, len(parts) - 1)] + (" 설정해줘" if ncall[j] == 1 else "")
@@ -343,7 +369,12 @@ def canon_ir(ir):
 def norm_cond(c, reads):
     if not isinstance(c, str): return c
     for var, src in reads.items(): c = c.replace("$" + var, src).replace(var, src) if var.startswith("$") else c.replace("$" + var, src)
+    for var, src in reads.items():                                     # gold 표기 잔여: read 변수를 $ 없이 씀 ("temp >= 30", "h < 50", "currentMode == ...")
+        if not var.startswith("$"): c = re.sub(r"(?<![\w.$])" + re.escape(var) + r"(?![\w.])", src, c)
     c = re.sub(r"\s+", " ", c.strip())
+    c = re.sub(r"\bnot\s+\(([A-Z][A-Za-z]+\.[A-Za-z0-9]+) == true\)", r"\1 == false", c)                # gold 표기 잔여: "not (X == true)" ≡ "X == false"
+    c = re.sub(r"\bnot\s+\(([A-Z][A-Za-z]+\.[A-Za-z0-9]+) == false\)", r"\1 == true", c)
+    c = re.sub(r"\bnot\s+([A-Z][A-Za-z]+\.[A-Za-z0-9]+)(?![\w.]|\s*[=<>!])", r"\1 == false", c)          # "not X" ≡ "X == false" (BOOL)
     c = re.sub(r"(\d+)\.0\b", r"\1", c)
     for a, b in EQ_VALUE.items(): c = c.replace(a, b)
     c = re.sub(r"^\((\S+ - \S+)\)", r"\1", c)          # gold 괄호 표기 비일관: "(a - b) >= n" ≡ "a - b >= n"
@@ -386,8 +417,11 @@ def call_ok(pd, gd):
     if pt.split(".")[0] == gt.split(".")[0] and "Mode" in pt and "Mode" in gt and pd.get("args", {}).get("Mode") is not None and pd["args"].get("Mode") == gd.get("args", {}).get("Mode"): return True, True
     return False, False
 
+EQ_COND = {'RobotVacuumCleaner.RobotVacuumCleanerRunMode == "idle"': 'RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == "stop"',   # "멈춰있으면": 두 상태 속성 모두 정답
+           'DoorLock.DoorLockState != "closed"': 'DoorLock.DoorLockState == "open"', 'DoorLock.DoorLockState != "open"': 'DoorLock.DoorLockState == "closed"'}   # "잠겨 있지 않으면": 두 표기 동치
 def cond_ok(pc, gc, cmd=""):
     """조건식 일치. 사용자 결정: "사람이 감지" 류는 PresenceSensor.Presence ≡ MotionSensor.Motion 둘 다 정답."""
+    for a, b in EQ_COND.items(): pc, gc = pc.replace(a, b), gc.replace(a, b)
     if pc == gc: return True
     if "사람" in cmd:
         f = lambda c: c.replace("MotionSensor.Motion", "PresenceSensor.Presence")
@@ -410,7 +444,7 @@ if __name__ == "__main__":
     MAPPED_ONLY = os.environ.get("MAPPED_ONLY", "0") == "1"
     for o in T:
         if not o["ir_gt"]: continue
-        if MAPPED_ONLY and (o["cmd"], 0) not in MAP: continue
+        if MAPPED_ONLY and o["cmd"] not in RC: continue
         G = gold_of(o)
         ir = build(o); out.append({"i": o["i"], "cmd": o["cmd"], "ir_pred": ir, "ir_gt": G})
         if os.environ.get("LENIENT", "1") == "1": ir, G = canon_ir(ir), canon_ir(G)

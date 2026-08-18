@@ -483,6 +483,68 @@
   }
  },
  {
+  "i": 14,
+  "cmd": "10분마다 확인해서 온도가 30도 이상이면 에어컨을 쿨모드로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
   "i": 15,
   "cmd": "오후 6시에 벽에 있는 홀수 태그가 붙은 블라인드 높이를 모두 50%로 조절해줘.",
   "ir_pred": {
@@ -941,9 +1003,9 @@
      "anchor": "now"
     },
     {
-     "op": "call",
-     "target": "WeatherProvider.GetWeatherInfo",
-     "args": {}
+     "op": "read",
+     "var": "v1",
+     "src": "Speaker.Speak"
     },
     {
      "op": "call",
@@ -4749,6 +4811,8 @@
      "op": "call",
      "target": "Light.MoveToColor",
      "args": {
+      "ColorX": 0.272,
+      "ColorY": 0.109,
       "TransitionTime": 0.0
      }
     }
@@ -5264,6 +5328,8 @@
      "op": "call",
      "target": "Light.MoveToColor",
      "args": {
+      "ColorX": 0.167,
+      "ColorY": 0.04,
       "TransitionTime": 0.0
      }
     }
@@ -7036,7 +7102,7 @@
     },
     {
      "op": "if",
-     "cond": "SoundSensor.Sound >= 50 and Speaker.PlaybackState == ?",
+     "cond": "SoundSensor.Sound >= 50 and Speaker.PlaybackState == \"stopped\"",
      "then": [
       {
        "op": "call",
@@ -7452,6 +7518,103 @@
   }
  },
  {
+  "i": 181,
+  "cmd": "30분마다 체크해서 온도가 20도 이상, 30도 미만이면 에어컨을 자동모드로 설정하고, 30도 이상이면 쿨모드로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 20 and TemperatureSensor.Temperature < 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "TemperatureSensor.Temperature >= 30",
+         "then": [
+          {
+           "op": "call",
+           "target": "AirConditioner.SetAirConditionerMode",
+           "args": {
+            "Mode": "cool"
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "read",
+       "var": "temp",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "$temp >= 20 and $temp < 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "$temp >= 30",
+         "then": [
+          {
+           "op": "call",
+           "target": "AirConditioner.SetAirConditionerMode",
+           "args": {
+            "Mode": "cool"
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
   "i": 182,
   "cmd": "매일 자정에 도어락을 잠궈줘.",
   "ir_pred": {
@@ -7479,6 +7642,56 @@
      "op": "call",
      "target": "DoorLock.Lock",
      "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "i": 183,
+  "cmd": "주말 오후 3시에 누수를 체크해서 감지되면 긴급 사이렌을 울려줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 15 * * 6,7"
+    },
+    {
+     "op": "if",
+     "cond": "LeakSensor.Leakage == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 15 * * 6,7"
+    },
+    {
+     "op": "if",
+     "cond": "LeakSensor.Leakage == true",
+     "then": [
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "emergency"
+       }
+      }
+     ],
+     "else": []
     }
    ]
   }
@@ -7630,6 +7843,38 @@
   }
  },
  {
+  "i": 188,
+  "cmd": "새해가 되면 로봇팔로 인사해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 1 1 *"
+    },
+    {
+     "op": "call",
+     "target": "ArmRobot.Hello",
+     "args": {}
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 1 1 *"
+    },
+    {
+     "op": "call",
+     "target": "ArmRobot.Hello",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
   "i": 190,
   "cmd": "월요일과 수요일 오전 6시에 날씨 정보를 스피커로 알려줘.",
   "ir_pred": {
@@ -7770,6 +8015,70 @@
       }
      ],
      "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 193,
+  "cmd": "저녁 7시부터 10시까지 30분마다 로봇청소기를 체크해서 멈춰있으면 자동 모드로 실행시켜줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 19 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2200",
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "RobotVacuumCleaner.RobotVacuumCleanerRunMode == \"idle\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 19 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2200",
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"stop\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
     }
    ]
   }
@@ -7919,6 +8228,396 @@
   }
  },
  {
+  "i": 197,
+  "cmd": "30분마다 체크해서 온도가 30도 이상이면 목표 온도를 25도로 설정하고, 23도 미만이면 26도로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 25.0
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "TemperatureSensor.Temperature < 23",
+         "then": [
+          {
+           "op": "call",
+           "target": "AirConditioner.SetTargetTemperature",
+           "args": {
+            "Temperature": 26.0
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "read",
+       "var": "temp",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "temp >= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetTargetTemperature",
+         "args": {
+          "Temperature": 25.0
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "temp < 23",
+         "then": [
+          {
+           "op": "call",
+           "target": "AirConditioner.SetTargetTemperature",
+           "args": {
+            "Temperature": 26.0
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 198,
+  "cmd": "10분마다 습도를 체크해서 50 이상이면 가습기를 끄고 20 이하면 가습기를 켜고 자동모드로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "HumiditySensor.Humidity >= 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "HumiditySensor.Humidity <= 20",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.On",
+           "args": {}
+          },
+          {
+           "op": "call",
+           "target": "Humidifier.SetHumidifierMode",
+           "args": {
+            "Mode": "auto"
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "HumiditySensor.Humidity >= 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "HumiditySensor.Humidity <= 20",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.On",
+           "args": {}
+          },
+          {
+           "op": "call",
+           "target": "Humidifier.SetHumidifierMode",
+           "args": {
+            "Mode": "auto"
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 199,
+  "cmd": "1시간마다 미세먼지 농도를 체크해서 200 이상이면 공기청정기를 강풍모드로 설정하고 100 이하이면 미풍모드로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "AirQualitySensor.FineDustLevel >= 200",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirPurifier.SetAirPurifierMode",
+         "args": {
+          "Mode": "high"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "AirQualitySensor.FineDustLevel <= 100",
+         "then": [
+          {
+           "op": "call",
+           "target": "AirPurifier.SetAirPurifierMode",
+           "args": {
+            "Mode": "low"
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "read",
+       "var": "fd",
+       "src": "AirQualitySensor.FineDustLevel"
+      },
+      {
+       "op": "if",
+       "cond": "$fd >= 200",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirPurifier.SetAirPurifierMode",
+         "args": {
+          "Mode": "high"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "$fd <= 100",
+         "then": [
+          {
+           "op": "call",
+           "target": "AirPurifier.SetAirPurifierMode",
+           "args": {
+            "Mode": "low"
+           }
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 200,
+  "cmd": "5분마다 체크해서 충전기가 완충됐으면 충전기를 꺼줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Charger.ChargingState == \"fullyCharged\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Charger.ChargingState == \"fullyCharged\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 201,
+  "cmd": "크리스마스가 되면 불을 빨간색으로 바꿔줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 25 12 *"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToColor",
+     "args": {
+      "ColorX": 0.675,
+      "ColorY": 0.322,
+      "TransitionTime": 0.0
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 25 12 *"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToColor",
+     "args": {
+      "ColorX": 0.675,
+      "ColorY": 0.322,
+      "TransitionTime": 0.0
+     }
+    }
+   ]
+  }
+ },
+ {
   "i": 202,
   "cmd": "크리스마스에 1시간마다 스피커로 \"Christmas.mp3\"을 재생해줘.",
   "ir_pred": {
@@ -8014,6 +8713,68 @@
        "op": "call",
        "target": "Switch.Off",
        "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 204,
+  "cmd": "그룹 2에 속한 습도 센서들을 1분마다 체크해서 모두 50% 이상이면, 모든 제습기를 리프레쉬 모드로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "HumiditySensor.Humidity >= 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Dehumidifier.SetDehumidifierMode",
+         "args": {
+          "Mode": "refreshing"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "HumiditySensor.Humidity >= 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Dehumidifier.SetDehumidifierMode",
+         "args": {
+          "Mode": "refreshing"
+         }
+        }
+       ],
+       "else": []
       }
      ]
     }
@@ -8131,6 +8892,72 @@
   }
  },
  {
+  "i": 208,
+  "cmd": "섹터1의 모든 도어락을 1시간마다 확인해서, 하나라도 열려 있으면 해당 섹터의 모든 조명을 빨간색으로 바꿔줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "DoorLock.DoorLockState == \"open\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToColor",
+         "args": {
+          "ColorX": 0.675,
+          "ColorY": 0.322,
+          "TransitionTime": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "DoorLock.DoorLockState == \"open\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToColor",
+         "args": {
+          "ColorX": 0.675,
+          "ColorY": 0.322,
+          "TransitionTime": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
   "i": 209,
   "cmd": "평일 오후 6시에 사무실의 재실 센서가 부재 상태를 나타내면 사무실 에어컨과 가습기를 전부 꺼줘.",
   "ir_pred": {
@@ -8222,6 +9049,84 @@
      "op": "call",
      "target": "WindowCovering.UpOrOpen",
      "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "i": 211,
+  "cmd": "주말 동안 공장의 모든 펌프를 30분마다 확인해서, 켜진 펌프가 하나라도 있으면 모두 꺼주고 \"test@example.com\"에게 \"위험\" 제목으로 \"펌프가 켜졌습니다\"라는 내용의 메일 보내줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * 6,7"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Pump.PumpMode == ?",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        },
+        {
+         "op": "call",
+         "target": "EmailProvider.SendMail",
+         "args": {
+          "ToAddress": "test@example.com",
+          "Title": "test@example.com",
+          "Body": "test@example.com"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * 6"
+    },
+    {
+     "op": "cycle",
+     "until": "Clock.Weekday == \"monday\"",
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Switch.Switch == true",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        },
+        {
+         "op": "call",
+         "target": "EmailProvider.SendMail",
+         "args": {
+          "ToAddress": "test@example.com",
+          "Title": "Risk",
+          "Body": "A pump is turned on"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
     }
    ]
   }
@@ -8326,6 +9231,72 @@
       }
      ],
      "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 214,
+  "cmd": "자정부터 오전 5시까지 1시간마다 체크해서 문이 하나라도 열려있으면, 복도의 조명을 모두 50%로 켜줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 0500",
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "ContactSensor.Contact == false",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 50.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 0500",
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "ContactSensor.Contact == false",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Rate": 0.0,
+          "Brightness": 50.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
     }
    ]
   }
@@ -8521,6 +9492,301 @@
   }
  },
  {
+  "i": 219,
+  "cmd": "오후 10시부터 11시까지 30초마다 비를 감지해서 비가 오면 창문을 닫아줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2300",
+     "period": "30 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "WeatherProvider.Weather == \"rain\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "WindowCovering.DownOrClose",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2300",
+     "period": "30 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "WeatherProvider.Weather == \"rain\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "WindowCovering.DownOrClose",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 220,
+  "cmd": "주말에 5초마다 체크해서 펌프가 꺼져 있으면 켜고, 켜져 있으면 꺼줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * 6,7"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "5 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Switch.Switch == false",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "Switch.Switch == true",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * 6"
+    },
+    {
+     "op": "cycle",
+     "until": "Clock.Weekday == \"monday\"",
+     "period": "5 SEC",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Switch.Switch == false",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 221,
+  "cmd": "15분마다 온도를 측정해서 25도 이상이면 에어컨을 냉방 모드로 켜고, 25도 미만이면 꺼줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "15 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 25",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        },
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "TemperatureSensor.Temperature < 25",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ],
+         "else": []
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "15 MIN",
+     "body": [
+      {
+       "op": "read",
+       "var": "temp",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "temp >= 25",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.On",
+         "args": {}
+        },
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 222,
+  "cmd": "오후 10시부터 11시까지 5분마다 체크해서 충전이 완료되면 꺼줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2300",
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Charger.ChargingState == \"fullyCharged\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 22 * * *"
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 2300",
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Charger.ChargingState == \"fullyCharged\"",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
   "i": 223,
   "cmd": "오전 8시에 고효율 태그가 붙은 공기청정기를 켜고 자동모드로 설정해줘.",
   "ir_pred": {
@@ -8688,7 +9954,7 @@
     {
      "op": "cycle",
      "until": "clock.time >= 2000",
-     "period": "1 HOUR",
+     "period": "100 MSEC",
      "body": [
       {
        "op": "if",
@@ -12454,6 +13720,67 @@
   }
  },
  {
+  "i": 300,
+  "cmd": "30분마다 체크해서 복도의 모든 조명의 밝기가 하나라도 50% 이상이면 모두 꺼줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness >= 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness >= 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
   "i": 301,
   "cmd": "회의실 도어락이 열려있고 야간(오후 10시)이 되면, 회의실 도어락을 잠그고 회의실 조명을 꺼줘.",
   "ir_pred": {
@@ -12465,7 +13792,7 @@
     },
     {
      "op": "if",
-     "cond": "DoorLock.DoorLockState == \"open\" and Light.CurrentBrightness >= 10",
+     "cond": "DoorLock.DoorLockState == \"open\"",
      "then": [
       {
        "op": "call",
@@ -13471,7 +14798,7 @@
     },
     {
      "op": "if",
-     "cond": "not (PresenceSensor.Presence == true) or PresenceSensor.Presence == false",
+     "cond": "PresenceSensor.Presence == false and PresenceSensor.Presence == false",
      "then": [
       {
        "op": "call",
@@ -15637,10 +16964,8 @@
      "body": [
       {
        "op": "call",
-       "target": "Light.MoveToBrightness",
-       "args": {
-        "Rate": 0.0
-       }
+       "target": "Switch.Toggle",
+       "args": {}
       }
      ],
      "count": 8
@@ -15661,11 +16986,8 @@
      "body": [
       {
        "op": "call",
-       "target": "Light.MoveToBrightness",
-       "args": {
-        "Brightness": 100.0,
-        "Rate": 0.0
-       }
+       "target": "Switch.Toggle",
+       "args": {}
       }
      ]
     }
@@ -16709,6 +18031,1885 @@
       {
        "op": "call",
        "target": "Camera.CaptureImage",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 377,
+  "cmd": "5분마다 거실 온도를 확인해서 28도 이상이면 에어컨을 냉방으로, 아니면 자동으로 설정하고, 6번 후 멈춰줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 6",
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 28",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ],
+     "count": 6
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 6",
+     "period": "5 MIN",
+     "count": 6,
+     "body": [
+      {
+       "op": "read",
+       "var": "v",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "v >= 28",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 378,
+  "cmd": "10분마다 침실 온도를 확인해서 20도 미만이면 에어컨을 난방으로, 아니면 자동으로 설정하고, 4번 후 멈춰줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 4",
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature < 20",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "heat"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ],
+     "count": 4
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 4",
+     "period": "10 MIN",
+     "count": 4,
+     "body": [
+      {
+       "op": "read",
+       "var": "v",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "v < 20",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "heat"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 379,
+  "cmd": "1분마다 서버실 온도를 확인해서 30도 이상이면 에어컨을 냉방으로, 아니면 자동으로 설정하고, 10번 후 멈춰줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 10",
+     "period": "1 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ],
+     "count": 10
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 10",
+     "period": "1 MIN",
+     "count": 10,
+     "body": [
+      {
+       "op": "read",
+       "var": "v",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "v >= 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 380,
+  "cmd": "30분마다 사무실 온도를 확인해서 26도 이상이면 에어컨을 냉방으로, 아니면 자동으로 설정하고, 5번 후 멈춰줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "30 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature >= 26",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ],
+     "count": 5
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "30 MIN",
+     "count": 5,
+     "body": [
+      {
+       "op": "read",
+       "var": "v",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "v >= 26",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "cool"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 381,
+  "cmd": "15분마다 거실 온도를 확인해서 18도 미만이면 에어컨을 난방으로, 아니면 자동으로 설정하고, 3번 후 멈춰줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "15 MIN",
+     "body": [
+      {
+       "op": "if",
+       "cond": "TemperatureSensor.Temperature < 18",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "heat"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ],
+     "count": 3
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "15 MIN",
+     "count": 3,
+     "body": [
+      {
+       "op": "read",
+       "var": "v",
+       "src": "TemperatureSensor.Temperature"
+      },
+      {
+       "op": "if",
+       "cond": "v < 18",
+       "then": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "heat"
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "AirConditioner.SetAirConditionerMode",
+         "args": {
+          "Mode": "auto"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 1000,
+  "cmd": "제습기를 건조 모드로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Dehumidifier.SetDehumidifierMode",
+     "args": {
+      "Mode": "drying"
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Dehumidifier.SetDehumidifierMode",
+     "args": {
+      "Mode": "drying"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "i": 1001,
+  "cmd": "카메라로 5분짜리 영상을 녹화해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Camera.CaptureVideo",
+     "args": {
+      "Duration": 300.0
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Camera.CaptureVideo",
+     "args": {
+      "Duration": 300.0
+     }
+    }
+   ]
+  }
+ },
+ {
+  "i": 1002,
+  "cmd": "블라인드를 50퍼센트로 맞춰줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.SetLevel",
+     "args": {
+      "Level": 50
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.SetLevel",
+     "args": {
+      "Level": 50
+     }
+    }
+   ]
+  }
+ },
+ {
+  "i": 1003,
+  "cmd": "1시간마다 수도 밸브를 열었다 잠갔다 반복해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "Valve.Open",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "Valve.Close",
+         "args": {}
+        }
+       ]
+      }
+     ],
+     "count": "n"
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "count": "n",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "Valve.Open",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "Valve.Close",
+         "args": {}
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 1004,
+  "cmd": "문을 잠가줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "i": 1005,
+  "cmd": "에어컨이 냉방 모드이면, 설정 온도를 2도 낮춰줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirConditioner.AirConditionerMode == \"cool\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": "$AirConditioner.TargetTemperature - 2"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirConditioner.AirConditionerMode == \"cool\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": "$AirConditioner.TargetTemperature - 2"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1006,
+  "cmd": "로봇청소기가 수동 모드이면, 자동 모드로 변경해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"manual\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+       "args": {
+        "Mode": "auto"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"manual\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+       "args": {
+        "Mode": "auto"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1007,
+  "cmd": "공기청정기가 저소음 모드이면, 강풍 모드로 바꿔줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirPurifier.AirPurifierMode == \"quiet\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "high"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirPurifier.AirPurifierMode == \"quiet\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "high"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1008,
+  "cmd": "회의실 온도가 20도 미만이면, 회의실 문을 잠가줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.Temperature < 20",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.Temperature < 20",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1009,
+  "cmd": "세탁실 환풍기 속도가 5 이하가 되면 거실 스피커로 환풍기가 느려졌다고 알려줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.Speed <= 5",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {
+      "Text": "거실 스피커로 환풍기가 느려졌"
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.Speed <= 5",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {
+      "Text": "The fan has slowed down"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "i": 1010,
+  "cmd": "에어컨을 냉방 모드로 설정하고 10분 뒤에 자동 모드로 바꿔줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetAirConditionerMode",
+     "args": {
+      "Mode": "cool"
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetAirConditionerMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetAirConditionerMode",
+     "args": {
+      "Mode": "cool"
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetAirConditionerMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "i": 1011,
+  "cmd": "선풍기가 강풍 모드가 되면 3초 뒤에 약풍 모드로 바꿔줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.FanMode == \"high\"",
+     "edge": "none"
+    },
+    {
+     "op": "delay",
+     "duration": "3 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Fan.SetFanMode",
+     "args": {
+      "Mode": "low"
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.FanMode == \"high\"",
+     "edge": "none"
+    },
+    {
+     "op": "delay",
+     "duration": "3 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Fan.SetFanMode",
+     "args": {
+      "Mode": "low"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "i": 1012,
+  "cmd": "비가 오면 창문을 닫고 1시간 뒤에 체크해서 비가 안오면 창문을 다시 열어줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "WeatherProvider.Weather == \"rain\"",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.DownOrClose",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Weather != \"rain\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "WeatherProvider.Weather == \"rain\"",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.DownOrClose",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Weather != \"rain\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1013,
+  "cmd": "외부 미세먼지 농도가 2000 이상이면 문을 잠그고 4시간 뒤에 밸브를 잠궈줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Pm10Weather >= 2000",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "delay",
+       "duration": "4 HOUR"
+      },
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Pm10Weather >= 2000",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "delay",
+       "duration": "4 HOUR"
+      },
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1014,
+  "cmd": "회의실 문을 잠그고 3초 뒤에 회의실 카메라로 촬영해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "3 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Camera.CaptureImage",
+     "args": {}
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "3 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Camera.CaptureImage",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "i": 1015,
+  "cmd": "미세먼지 농도가 150 이상이고 문이 잠겨 있지 않으면, 문을 잠그고 공기청정기를 강풍으로 작동시켜줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.FineDustLevel >= 150 and DoorLock.DoorLockState != \"closed\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "high"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.FineDustLevel >= 150 and DoorLock.DoorLockState == \"open\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "high"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1016,
+  "cmd": "에어컨이 난방 중이고 아무도 없으면, 에어컨을 자동 모드로 변경하고 스피커로 자동 모드로 변경했다고 알려줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirConditioner.AirConditionerMode == \"heat\" and PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "auto"
+       }
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "스피커로 자동 모드로 변경했"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirConditioner.AirConditionerMode == \"heat\" and PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "auto"
+       }
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "The air conditioner mode has been changed to auto."
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1017,
+  "cmd": "비가 오고 문이 잠겨 있지 않으면, 문을 잠그고 제습기를 건조 모드로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Weather == \"rain\" and DoorLock.DoorLockState != \"closed\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Dehumidifier.SetDehumidifierMode",
+       "args": {
+        "Mode": "drying"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Weather == \"rain\" and DoorLock.DoorLockState == \"open\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Dehumidifier.SetDehumidifierMode",
+       "args": {
+        "Mode": "drying"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1018,
+  "cmd": "욕실 습도가 85% 이상이고 욕실 창문이 닫혀 있으면, 조명을 켜고 창문을 열어줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "HumiditySensor.Humidity >= 85 and WindowCovering.CurrentPosition == 0",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "HumiditySensor.Humidity >= 85 and WindowCovering.CurrentPosition == 0",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1019,
+  "cmd": "현관에서 인식된 얼굴 ID가 \"가족\"이고 도어락이 잠겨 있으면, 도어락을 풀어줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "FaceRecognizer.RecognizedResult == \"family\" and DoorLock.DoorLockState == \"closed\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Unlock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "FaceRecognizer.RecognizedResult == \"family\" and DoorLock.DoorLockState == \"closed\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Unlock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1020,
+  "cmd": "매일 아침 7시에 가습기를 자동 모드로 설정해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 7 * * *"
+    },
+    {
+     "op": "call",
+     "target": "Humidifier.SetHumidifierMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 7 * * *"
+    },
+    {
+     "op": "call",
+     "target": "Humidifier.SetHumidifierMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "i": 1021,
+  "cmd": "평일 오전 7시에 로봇청소기를 자동 모드로 작동해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 7 * * 1-5"
+    },
+    {
+     "op": "call",
+     "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 7 * * 1-5"
+    },
+    {
+     "op": "call",
+     "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  }
+ },
+ {
+  "i": 1022,
+  "cmd": "밤 11시에 짝수 태그가 붙은 모든 문을 잠가줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 23 * * *"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 23 * * *"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    }
+   ]
+  }
+ },
+ {
+  "i": 1023,
+  "cmd": "자정이 되면 문을 잠그고, 오전 6시까지 한 시간마다 조명을 체크해서 밝기가 30보다 크면 10으로 낮춰줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 0600",
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness > 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 10.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 0600",
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness > 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Rate": 0.0,
+          "Brightness": 10.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 1024,
+  "cmd": "환풍기 속도가 0이 되면, 그 이후로 10분마다 '환풍기를 확인하세요'라고 스피커로 말해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.Speed == 0",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "환풍기를 확인하세요"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.Speed == 0",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Please check the fan"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 1025,
+  "cmd": "비가 올때마다, 모든 창문을 닫고 모든 문을 잠가줘",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "WeatherProvider.Weather == \"rain\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "WeatherProvider.Weather == \"rain\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 1026,
+  "cmd": "주방의 누수 센서가 감지될 때마다 주방 카메라로 녹화를 시작해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "LeakSensor.Leakage == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "LeakSensor.Leakage == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  }
+ },
+ {
+  "i": 1027,
+  "cmd": "현관에서 인식된 얼굴이 \"방문자\"이면, 현관 카메라로 녹화를 시작해줘.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "FaceRecognizer.RecognizedResult == \"visitor\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "FaceRecognizer.RecognizedResult == \"visitor\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  }
+ },
+ {
+  "i": 1028,
+  "cmd": "3분마다 차고 문 잠금을 해제해줘. 3번만 반복.",
+  "ir_pred": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "3 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "DoorLock.Unlock",
+       "args": {}
+      }
+     ],
+     "count": 3
+    }
+   ]
+  },
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "3 MIN",
+     "count": 3,
+     "body": [
+      {
+       "op": "call",
+       "target": "DoorLock.Unlock",
        "args": {}
       }
      ]

@@ -122,8 +122,20 @@ def comparator(text):
     if v is None: return None
     for pat, op in CMP:
         if re.search(pat, t): return op, v
-    if re.search(r"(이|가) 되면|되면", t): return ">=", v         # "35도가 되면" 관례
+    if re.search(r"(이|가) 되면|되면", t): return ("==" if v == 0 else ">="), v         # "35도가 되면" 관례(≥); "0이 되면"은 ==
     return "==", v
+
+def range_comparator(text):
+    """같은 속성에 두 숫자 비교가 나란히 있으면(“20도 이상, 30도 미만”) [(op, v), (op, v)]; 아니면 None."""
+    t = re.sub(r"\d+\s*(분|초|시간)\s*(이상|동안|간|넘게)", "", text)
+    ms = list(re.finditer(r"(\d+(?:\.\d+)?)\s*[가-힣%]*\s*(이상|이하|미만|초과|넘으면|넘게|보다 (?:높|크|많)|보다 (?:낮|작|적))", t))
+    if len(ms) != 2: return None
+    OP = {"이상": ">=", "이하": "<=", "미만": "<", "초과": ">", "넘으면": ">", "넘게": ">"}
+    out = []
+    for m in ms:
+        w = m.group(2); op = OP.get(w) or (">" if "높" in w or "크" in w or "많" in w else "<")
+        out.append((op, float(m.group(1))))
+    return out
 
 NEG = r"(않으면|없으면|안 ?오면|안 ?하면|아니면|없을 때|않을 때|없고|않고|되지 않)"
 def bool_state(text, vtype, members):
@@ -132,9 +144,10 @@ def bool_state(text, vtype, members):
     if vtype == "BOOL": return "false" if neg else "true"
     if vtype == "ENUM":
         lex = {"open": ["열리", "열려", "열림", "개방"], "closed": ["닫히", "닫혀", "닫힘"], "locked": ["잠기", "잠겨", "잠김", "잠금"], "unlocked": ["풀리", "해제", "열리", "열려"],
-               "pushed": ["눌", "누르", "누름"], "on": ["켜지", "켜져", "켜짐", "켜면"], "off": ["꺼지", "꺼져", "꺼짐"], "rain": ["비가 오", "비 오", "비가 내"],
+               "pushed": ["눌", "누르", "누름"], "on": ["켜지", "켜져", "켜짐", "켜면"], "off": ["꺼지", "꺼져", "꺼짐"], "rain": ["비가 오", "비 오", "비가 내", "비가 올", "비 올", "우천"],
                "fullyCharged": ["완료", "충전이 끝", "다 되", "완충"], "playing": ["재생 중", "재생중", "틀어져"], "paused": ["일시정지"], "stopped": ["멈춰", "멈춘", "정지"], "sleep": ["수면", "취침"], "keepWarm": ["보온"], "lownoise": ["저소음"], "quick": ["퀵", "빠른"], "grill": ["그릴"], "cooking": ["조리", "취사"], "charging": ["충전 중", "충전중"], "normal": ["노말", "일반"], "maximum": ["맥시멈", "최대"], "cool": ["냉방", "쿨"], "heat": ["난방", "히트"], "auto": ["자동", "오토"],
-               "idle": ["멈춰", "정지", "유휴"], "cleaning": ["청소 중"], "docked": ["도킹", "충전기에"], "running": ["작동 중", "돌아가", "동작 중"], "stopped": ["멈춰", "정지"],
+               "idle": ["멈춰", "정지", "유휴"], "cleaning": ["청소 중"], "docked": ["도킹", "충전기에"], "running": ["작동 중", "돌아가", "동작 중"],
+               "manual": ["수동"], "quiet": ["조용", "저소음"], "high": ["강풍", "강하게", "세게"], "low": ["약풍", "약하게", "미풍"], "medium": ["중간", "보통"], "windFree": ["무풍"], "family": ["가족"], "visitor": ["방문자", "손님"], "stranger": ["낯선", "모르는"],
                "sunny": ["맑"], "cloudy": ["흐리"], "snow": ["눈이 오", "눈 오"], "clear": ["맑"], "monday": ["월요일"], "weekend": ["주말"]}
         best = None
         for m_ in members:
@@ -148,7 +161,7 @@ def bool_state(text, vtype, members):
 
 ENUM_KO = {"dehumidifying": ["제습"], "drying": ["건조"], "AIDrying": ["AI건조", "AI 건조", "에이아이 건조"], "freezeProtection": ["동결 방지", "동결방지", "결빙 방지"], "refreshing": ["리프레쉬", "리프레시", "환기"], "stop": ["멈춰", "멈추", "정지", "중지"], "start": ["시작"], "pause": ["일시정지"],
            "cool": ["냉방", "쿨", "시원"], "heat": ["난방", "히터", "따뜻"], "auto": ["자동", "오토", "AI"], "dry": ["제습", "건조", "드라이"], "fan": ["송풍", "팬"], "sleep": ["수면", "취침"],
-           "emergency": ["응급", "긴급", "비상"], "fire": ["화재", "불"], "police": ["경찰"], "ambulance": ["구급", "앰뷸런스"], "high": ["강풍", "강하게", "세게", "강"], "low": ["약풍", "약하게", "약"], "medium": ["중간", "보통"],
+           "emergency": ["응급", "긴급", "비상"], "fire": ["화재", "불"], "police": ["경찰"], "ambulance": ["구급", "앰뷸런스"], "high": ["강풍", "강하게", "세게", "강"], "low": ["약풍", "약하게", "미풍", "약"], "medium": ["중간", "보통"],
            "quiet": ["조용", "저소음"], "turbo": ["터보"], "normal": ["노말", "일반", "보통", "표준"], "maximum": ["맥시멈", "최대"], "minimum": ["미니멈", "최소"], "eco": ["에코", "절전"], "wash": ["세척", "세탁"],
            "cooking": ["조리", "취사"], "warm": ["보온"], "bake": ["굽", "베이크"], "grill": ["그릴"], "roast": ["로스트"], "spot": ["스팟", "집중"], "repeat": ["반복"], "edge": ["엣지", "가장자리"], "map": ["맵"], "silent": ["무음"],
            "manual": ["수동"], "night": ["야간", "밤"], "day": ["주간"], "off": ["끄", "꺼", "off"], "on": ["켜", "on"], "cold": ["찬", "냉"], "hot": ["뜨거", "온"], "black": ["검"], "white": ["흰", "하양"], "red": ["빨"], "purple": ["보라"], "blue": ["파"], "green": ["초록", "녹"], "yellow": ["노랑", "노란"], "pink": ["분홍"], "orange": ["주황"]}
@@ -160,6 +173,7 @@ def enum_arg(text, members):
             if w and w.lower() in text.lower() and (best is None or len(w) > best[1]): best = (key, len(w))
     return best[0] if best else None
 
+STRING_KO = {"가족": "family", "방문자": "visitor", "손님": "guest", "낯선 사람": "stranger", "모르는 사람": "stranger"}   # 문자열 값 관례(gold)
 def quoted(text):
     m = re.search(r"[\"'“‘]([^\"'”’]+)[\"'”’]", text)
     if m: return m.group(1)

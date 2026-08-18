@@ -1,0 +1,2426 @@
+[
+ {
+  "i": 1000,
+  "index": 1,
+  "cat": "C01",
+  "cmd": "제습기를 건조 모드로 설정해줘.",
+  "words": [
+   "제습기를",
+   "건조",
+   "모드로",
+   "설정해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "제습기를 건조 모드로 설정해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "제습기를 건조 모드로 설정해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Dehumidifier.SetDehumidifierMode",
+     "args": {
+      "Mode": "drying"
+     }
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1001,
+  "index": 2,
+  "cat": "C01",
+  "cmd": "카메라로 5분짜리 영상을 녹화해줘.",
+  "words": [
+   "카메라로",
+   "5분짜리",
+   "영상을",
+   "녹화해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "카메라로 5분짜리 영상을 녹화해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "카메라로 5분짜리 영상을 녹화해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "Camera.CaptureVideo",
+     "args": {
+      "Duration": 300.0
+     }
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1002,
+  "index": 3,
+  "cat": "C01",
+  "cmd": "블라인드를 50퍼센트로 맞춰줘.",
+  "words": [
+   "블라인드를",
+   "50퍼센트로",
+   "맞춰줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "블라인드를 50퍼센트로 맞춰줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "블라인드를 50퍼센트로 맞춰줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.SetLevel",
+     "args": {
+      "Level": 50
+     }
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1003,
+  "index": 1,
+  "cat": "C13",
+  "cmd": "1시간마다 수도 밸브를 열었다 잠갔다 반복해줘.",
+  "words": [
+   "1시간마다",
+   "수도",
+   "밸브를",
+   "열었다",
+   "잠갔다",
+   "반복해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "1시간마다 수도 밸브를 열었다 잠갔다 반복해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "1시간마다 수도 밸브를 열었다 잠갔다 반복해줘.",
+    "type": "ACT",
+    "mods": [
+     "repeat",
+     "time"
+    ]
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "count": "n",
+     "body": [
+      {
+       "op": "if",
+       "cond": "n % 2 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "Valve.Open",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "call",
+         "target": "Valve.Close",
+         "args": {}
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1004,
+  "index": 21,
+  "cat": "C01",
+  "cmd": "문을 잠가줘.",
+  "words": [
+   "문을",
+   "잠가줘."
+  ],
+  "gold_labels": [
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0
+  ],
+  "pred_segs": [
+   "문을 잠가줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "문을 잠가줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1005,
+  "index": 3,
+  "cat": "C03",
+  "cmd": "에어컨이 냉방 모드이면, 설정 온도를 2도 낮춰줘.",
+  "words": [
+   "에어컨이",
+   "냉방",
+   "모드이면,",
+   "설정",
+   "온도를",
+   "2도",
+   "낮춰줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "에어컨이 냉방 모드이면,",
+   "설정 온도를 2도 낮춰줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "에어컨이 냉방 모드이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "설정 온도를 2도 낮춰줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirConditioner.AirConditionerMode == \"cool\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": "$AirConditioner.TargetTemperature - 2"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1006,
+  "index": 4,
+  "cat": "C03",
+  "cmd": "로봇청소기가 수동 모드이면, 자동 모드로 변경해줘.",
+  "words": [
+   "로봇청소기가",
+   "수동",
+   "모드이면,",
+   "자동",
+   "모드로",
+   "변경해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "로봇청소기가 수동 모드이면,",
+   "자동 모드로 변경해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "로봇청소기가 수동 모드이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "자동 모드로 변경해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"manual\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+       "args": {
+        "Mode": "auto"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1007,
+  "index": 9,
+  "cat": "C03",
+  "cmd": "공기청정기가 저소음 모드이면, 강풍 모드로 바꿔줘.",
+  "words": [
+   "공기청정기가",
+   "저소음",
+   "모드이면,",
+   "강풍",
+   "모드로",
+   "바꿔줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "공기청정기가 저소음 모드이면,",
+   "강풍 모드로 바꿔줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "공기청정기가 저소음 모드이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "강풍 모드로 바꿔줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirPurifier.AirPurifierMode == \"quiet\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "high"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1008,
+  "index": 22,
+  "cat": "C03",
+  "cmd": "회의실 온도가 20도 미만이면, 회의실 문을 잠가줘.",
+  "words": [
+   "회의실",
+   "온도가",
+   "20도",
+   "미만이면,",
+   "회의실",
+   "문을",
+   "잠가줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "회의실 온도가 20도 미만이면,",
+   "회의실 문을 잠가줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "회의실 온도가 20도 미만이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "회의실 문을 잠가줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.Temperature < 20",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1009,
+  "index": 20,
+  "cat": "C07",
+  "cmd": "세탁실 환풍기 속도가 5 이하가 되면 거실 스피커로 환풍기가 느려졌다고 알려줘.",
+  "words": [
+   "세탁실",
+   "환풍기",
+   "속도가",
+   "5",
+   "이하가",
+   "되면",
+   "거실",
+   "스피커로",
+   "환풍기가",
+   "느려졌다고",
+   "알려줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "세탁실 환풍기 속도가 5 이하가 되면",
+   "거실 스피커로 환풍기가 느려졌다고 알려줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "세탁실 환풍기 속도가 5 이하가 되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "거실 스피커로 환풍기가 느려졌다고 알려줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.Speed <= 5",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {
+      "Text": "The fan has slowed down"
+     }
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1010,
+  "index": 5,
+  "cat": "C09",
+  "cmd": "에어컨을 냉방 모드로 설정하고 10분 뒤에 자동 모드로 바꿔줘.",
+  "words": [
+   "에어컨을",
+   "냉방",
+   "모드로",
+   "설정하고",
+   "10분",
+   "뒤에",
+   "자동",
+   "모드로",
+   "바꿔줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "에어컨을 냉방 모드로 설정하고",
+   "10분 뒤에",
+   "자동 모드로 바꿔줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "에어컨을 냉방 모드로 설정하고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "10분 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "자동 모드로 바꿔줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetAirConditionerMode",
+     "args": {
+      "Mode": "cool"
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "AirConditioner.SetAirConditionerMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1011,
+  "index": 2,
+  "cat": "C10",
+  "cmd": "선풍기가 강풍 모드가 되면 3초 뒤에 약풍 모드로 바꿔줘.",
+  "words": [
+   "선풍기가",
+   "강풍",
+   "모드가",
+   "되면",
+   "3초",
+   "뒤에",
+   "약풍",
+   "모드로",
+   "바꿔줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "선풍기가 강풍 모드가 되면",
+   "3초 뒤에",
+   "약풍 모드로 바꿔줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "선풍기가 강풍 모드가 되면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "3초 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "약풍 모드로 바꿔줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.FanMode == \"high\"",
+     "edge": "none"
+    },
+    {
+     "op": "delay",
+     "duration": "3 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Fan.SetFanMode",
+     "args": {
+      "Mode": "low"
+     }
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1012,
+  "index": 4,
+  "cat": "C10",
+  "cmd": "비가 오면 창문을 닫고 1시간 뒤에 체크해서 비가 안오면 창문을 다시 열어줘.",
+  "words": [
+   "비가",
+   "오면",
+   "창문을",
+   "닫고",
+   "1시간",
+   "뒤에",
+   "체크해서",
+   "비가",
+   "안오면",
+   "창문을",
+   "다시",
+   "열어줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   1,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   1,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "비가 오면",
+   "창문을 닫고",
+   "1시간 뒤에",
+   "체크해서",
+   "비가 안오면",
+   "창문을 다시 열어줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "비가 오면",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "창문을 닫고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "1시간 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "j": 3,
+    "text": "체크해서",
+    "type": "READ",
+    "mods": [
+     "read"
+    ]
+   },
+   {
+    "j": 4,
+    "text": "비가 안오면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 5,
+    "text": "창문을 다시 열어줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "WeatherProvider.Weather == \"rain\"",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "WindowCovering.DownOrClose",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Weather != \"rain\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1013,
+  "index": 6,
+  "cat": "C09",
+  "cmd": "외부 미세먼지 농도가 2000 이상이면 문을 잠그고 4시간 뒤에 밸브를 잠궈줘.",
+  "words": [
+   "외부",
+   "미세먼지",
+   "농도가",
+   "2000",
+   "이상이면",
+   "문을",
+   "잠그고",
+   "4시간",
+   "뒤에",
+   "밸브를",
+   "잠궈줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   1,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   1,
+   0
+  ],
+  "pred_segs": [
+   "외부 미세먼지 농도가 2000 이상이면",
+   "문을 잠그고",
+   "4시간 뒤에",
+   "밸브를 잠궈줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "외부 미세먼지 농도가 2000 이상이면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "문을 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "4시간 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "j": 3,
+    "text": "밸브를 잠궈줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Pm25Weather >= 2000",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "delay",
+       "duration": "4 HOUR"
+      },
+      {
+       "op": "call",
+       "target": "Valve.Close",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1014,
+  "index": 18,
+  "cat": "C09",
+  "cmd": "회의실 문을 잠그고 3초 뒤에 회의실 카메라로 촬영해줘.",
+  "words": [
+   "회의실",
+   "문을",
+   "잠그고",
+   "3초",
+   "뒤에",
+   "회의실",
+   "카메라로",
+   "촬영해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "회의실 문을 잠그고",
+   "3초 뒤에",
+   "회의실 카메라로 촬영해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "회의실 문을 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "3초 뒤에",
+    "type": "DELAY",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "회의실 카메라로 촬영해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "3 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Camera.CaptureImage",
+     "args": {}
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1015,
+  "index": 9,
+  "cat": "C05",
+  "cmd": "미세먼지 농도가 150 이상이고 문이 잠겨 있지 않으면, 문을 잠그고 공기청정기를 강풍으로 작동시켜줘.",
+  "words": [
+   "미세먼지",
+   "농도가",
+   "150",
+   "이상이고",
+   "문이",
+   "잠겨",
+   "있지",
+   "않으면,",
+   "문을",
+   "잠그고",
+   "공기청정기를",
+   "강풍으로",
+   "작동시켜줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "미세먼지 농도가 150 이상이고 문이 잠겨 있지 않으면,",
+   "문을 잠그고",
+   "공기청정기를 강풍으로 작동시켜줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "미세먼지 농도가 150 이상이고 문이 잠겨 있지 않으면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "문을 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "공기청정기를 강풍으로 작동시켜줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirQualitySensor.FineDustLevel >= 150 and DoorLock.DoorLockState == \"open\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "high"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1016,
+  "index": 11,
+  "cat": "C05",
+  "cmd": "에어컨이 난방 중이고 아무도 없으면, 에어컨을 자동 모드로 변경하고 스피커로 자동 모드로 변경했다고 알려줘.",
+  "words": [
+   "에어컨이",
+   "난방",
+   "중이고",
+   "아무도",
+   "없으면,",
+   "에어컨을",
+   "자동",
+   "모드로",
+   "변경하고",
+   "스피커로",
+   "자동",
+   "모드로",
+   "변경했다고",
+   "알려줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "에어컨이 난방 중이고 아무도 없으면,",
+   "에어컨을 자동 모드로 변경하고",
+   "스피커로 자동 모드로 변경했다고 알려줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "에어컨이 난방 중이고 아무도 없으면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "에어컨을 자동 모드로 변경하고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "스피커로 자동 모드로 변경했다고 알려줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "AirConditioner.AirConditionerMode == \"heat\" and PresenceSensor.Presence == false",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetAirConditionerMode",
+       "args": {
+        "Mode": "auto"
+       }
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "The air conditioner mode has been changed to auto."
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1017,
+  "index": 15,
+  "cat": "C05",
+  "cmd": "비가 오고 문이 잠겨 있지 않으면, 문을 잠그고 제습기를 건조 모드로 설정해줘.",
+  "words": [
+   "비가",
+   "오고",
+   "문이",
+   "잠겨",
+   "있지",
+   "않으면,",
+   "문을",
+   "잠그고",
+   "제습기를",
+   "건조",
+   "모드로",
+   "설정해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "비가 오고",
+   "문이 잠겨 있지 않으면,",
+   "문을 잠그고",
+   "제습기를 건조 모드로 설정해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "비가 오고",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "문이 잠겨 있지 않으면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "문을 잠그고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 3,
+    "text": "제습기를 건조 모드로 설정해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "WeatherProvider.Weather == \"rain\" and DoorLock.DoorLockState == \"open\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "Dehumidifier.SetDehumidifierMode",
+       "args": {
+        "Mode": "internalCare"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1018,
+  "index": 20,
+  "cat": "C05",
+  "cmd": "욕실 습도가 85% 이상이고 욕실 창문이 닫혀 있으면, 조명을 켜고 창문을 열어줘.",
+  "words": [
+   "욕실",
+   "습도가",
+   "85%",
+   "이상이고",
+   "욕실",
+   "창문이",
+   "닫혀",
+   "있으면,",
+   "조명을",
+   "켜고",
+   "창문을",
+   "열어줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   1,
+   0
+  ],
+  "pred_segs": [
+   "욕실 습도가 85% 이상이고 욕실 창문이 닫혀 있으면,",
+   "조명을 켜고",
+   "창문을 열어줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "욕실 습도가 85% 이상이고 욕실 창문이 닫혀 있으면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "조명을 켜고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "창문을 열어줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "HumiditySensor.Humidity >= 85 and WindowCovering.CurrentPosition == 0",
+     "then": [
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1019,
+  "index": 21,
+  "cat": "C05",
+  "cmd": "현관에서 인식된 얼굴 ID가 \"가족\"이고 도어락이 잠겨 있으면, 도어락을 풀어줘.",
+  "words": [
+   "현관에서",
+   "인식된",
+   "얼굴",
+   "ID가",
+   "\"가족\"이고",
+   "도어락이",
+   "잠겨",
+   "있으면,",
+   "도어락을",
+   "풀어줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0
+  ],
+  "pred_segs": [
+   "현관에서 인식된 얼굴 ID가 \"가족\"이고 도어락이 잠겨 있으면,",
+   "도어락을 풀어줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "현관에서 인식된 얼굴 ID가 \"가족\"이고 도어락이 잠겨 있으면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "도어락을 풀어줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "FaceRecognizer.RecognizedResult == \"family\" and DoorLock.DoorLockState == \"closed\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "DoorLock.Unlock",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1020,
+  "index": 4,
+  "cat": "C15",
+  "cmd": "매일 아침 7시에 가습기를 자동 모드로 설정해줘.",
+  "words": [
+   "매일",
+   "아침",
+   "7시에",
+   "가습기를",
+   "자동",
+   "모드로",
+   "설정해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "매일 아침 7시에 가습기를 자동 모드로 설정해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "매일 아침 7시에 가습기를 자동 모드로 설정해줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 7 * * *"
+    },
+    {
+     "op": "call",
+     "target": "Humidifier.SetHumidifierMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1021,
+  "index": 7,
+  "cat": "C15",
+  "cmd": "평일 오전 7시에 로봇청소기를 자동 모드로 작동해줘.",
+  "words": [
+   "평일",
+   "오전",
+   "7시에",
+   "로봇청소기를",
+   "자동",
+   "모드로",
+   "작동해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "평일 오전 7시에 로봇청소기를 자동 모드로 작동해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "평일 오전 7시에 로봇청소기를 자동 모드로 작동해줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 7 * * 1-5"
+    },
+    {
+     "op": "call",
+     "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+     "args": {
+      "Mode": "auto"
+     }
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1022,
+  "index": 13,
+  "cat": "C15",
+  "cmd": "밤 11시에 짝수 태그가 붙은 모든 문을 잠가줘.",
+  "words": [
+   "밤",
+   "11시에",
+   "짝수",
+   "태그가",
+   "붙은",
+   "모든",
+   "문을",
+   "잠가줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "밤 11시에 짝수 태그가 붙은 모든 문을 잠가줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "밤 11시에 짝수 태그가 붙은 모든 문을 잠가줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 23 * * *"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1023,
+  "index": 10,
+  "cat": "C18",
+  "cmd": "자정이 되면 문을 잠그고, 오전 6시까지 한 시간마다 조명을 체크해서 밝기가 30보다 크면 10으로 낮춰줘.",
+  "words": [
+   "자정이",
+   "되면",
+   "문을",
+   "잠그고,",
+   "오전",
+   "6시까지",
+   "한",
+   "시간마다",
+   "조명을",
+   "체크해서",
+   "밝기가",
+   "30보다",
+   "크면",
+   "10으로",
+   "낮춰줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   1,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   1,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   1,
+   0
+  ],
+  "pred_segs": [
+   "자정이 되면",
+   "문을 잠그고,",
+   "오전 6시까지 한 시간마다 조명을 체크해서",
+   "밝기가 30보다 크면",
+   "10으로 낮춰줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "자정이 되면",
+    "type": "TIME",
+    "mods": [
+     "time"
+    ]
+   },
+   {
+    "j": 1,
+    "text": "문을 잠그고,",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "오전 6시까지 한 시간마다 조명을 체크해서",
+    "type": "TIME",
+    "mods": [
+     "read",
+     "time"
+    ]
+   },
+   {
+    "j": 3,
+    "text": "밝기가 30보다 크면",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 4,
+    "text": "10으로 낮춰줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 0600",
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "LevelControl.CurrentLevel > 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "LevelControl.MoveToLevel",
+         "args": {
+          "Level": 10.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1024,
+  "index": 8,
+  "cat": "C12",
+  "cmd": "환풍기 속도가 0이 되면, 그 이후로 10분마다 '환풍기를 확인하세요'라고 스피커로 말해줘.",
+  "words": [
+   "환풍기",
+   "속도가",
+   "0이",
+   "되면,",
+   "그",
+   "이후로",
+   "10분마다",
+   "'환풍기를",
+   "확인하세요'라고",
+   "스피커로",
+   "말해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "환풍기 속도가 0이 되면,",
+   "그 이후로 10분마다 '환풍기를 확인하세요'라고 스피커로 말해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "환풍기 속도가 0이 되면,",
+    "type": "TRIG",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "그 이후로 10분마다 '환풍기를 확인하세요'라고 스피커로 말해줘.",
+    "type": "ACT",
+    "mods": [
+     "time"
+    ]
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Fan.Speed == 0",
+     "edge": "none"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Please check the fan"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1025,
+  "index": 34,
+  "cat": "C08",
+  "cmd": "비가 올때마다, 모든 창문을 닫고 모든 문을 잠가줘",
+  "words": [
+   "비가",
+   "올때마다,",
+   "모든",
+   "창문을",
+   "닫고",
+   "모든",
+   "문을",
+   "잠가줘"
+  ],
+  "gold_labels": [
+   0,
+   0,
+   1,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   1,
+   0,
+   0,
+   1,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "비가 올때마다,",
+   "모든 창문을 닫고",
+   "모든 문을 잠가줘"
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "비가 올때마다,",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "j": 1,
+    "text": "모든 창문을 닫고",
+    "type": "ACT",
+    "mods": []
+   },
+   {
+    "j": 2,
+    "text": "모든 문을 잠가줘",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "WeatherProvider.Weather == \"rain\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1026,
+  "index": 38,
+  "cat": "C08",
+  "cmd": "주방의 누수 센서가 감지될 때마다 주방 카메라로 녹화를 시작해줘.",
+  "words": [
+   "주방의",
+   "누수",
+   "센서가",
+   "감지될",
+   "때마다",
+   "주방",
+   "카메라로",
+   "녹화를",
+   "시작해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "주방의 누수 센서가 감지될 때마다",
+   "주방 카메라로 녹화를 시작해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "주방의 누수 센서가 감지될 때마다",
+    "type": "TRIG",
+    "mods": [
+     "every"
+    ]
+   },
+   {
+    "j": 1,
+    "text": "주방 카메라로 녹화를 시작해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "LeakSensor.Leakage == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1027,
+  "index": 29,
+  "cat": "C03",
+  "cmd": "현관에서 인식된 얼굴이 \"방문자\"이면, 현관 카메라로 녹화를 시작해줘.",
+  "words": [
+   "현관에서",
+   "인식된",
+   "얼굴이",
+   "\"방문자\"이면,",
+   "현관",
+   "카메라로",
+   "녹화를",
+   "시작해줘."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "현관에서 인식된 얼굴이 \"방문자\"이면,",
+   "현관 카메라로 녹화를 시작해줘."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "현관에서 인식된 얼굴이 \"방문자\"이면,",
+    "type": "COND",
+    "mods": []
+   },
+   {
+    "j": 1,
+    "text": "현관 카메라로 녹화를 시작해줘.",
+    "type": "ACT",
+    "mods": []
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "if",
+     "cond": "FaceRecognizer.RecognizedResult == \"visitor\"",
+     "then": [
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ },
+ {
+  "i": 1028,
+  "index": 9,
+  "cat": "C22",
+  "cmd": "3분마다 차고 문 잠금을 해제해줘. 3번만 반복.",
+  "words": [
+   "3분마다",
+   "차고",
+   "문",
+   "잠금을",
+   "해제해줘.",
+   "3번만",
+   "반복."
+  ],
+  "gold_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_labels": [
+   0,
+   0,
+   0,
+   0,
+   0,
+   0,
+   0
+  ],
+  "pred_segs": [
+   "3분마다 차고 문 잠금을 해제해줘. 3번만 반복."
+  ],
+  "seg_match": true,
+  "segments": [
+   {
+    "j": 0,
+    "text": "3분마다 차고 문 잠금을 해제해줘. 3번만 반복.",
+    "type": "ACT",
+    "mods": [
+     "count",
+     "repeat",
+     "time"
+    ]
+   }
+  ],
+  "ir_gt": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "3 MIN",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "DoorLock.Unlock",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "source": "paper 재작성 명령(직접 라벨)"
+ }
+]

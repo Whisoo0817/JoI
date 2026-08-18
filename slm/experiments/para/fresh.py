@@ -38,7 +38,7 @@ def add_item(get, labels, types, mods):
     for t in range(1, n): Xb.append(np.concatenate([get(t - 1)[LB], get(t)[LB]])); yb.append(labels[t])
     starts = [k for k, l in enumerate(labels) if l == 1 or k == 0]; ends = starts[1:] + [n]
     for ty, md, e in zip(types, mods, ends): Xt.append(get(e - 1)[LT]); yt.append(ty); ym.append([int(m in md) for m in MODS])
-for ci, it in enumerate(B.T):
+for ci, it in enumerate([o for o in B.T if o.get("source") is None]):   # 상태가 있는 원본 382만(extra 라벨 제외)
     add_item(lambda t, ci=ci: HX[row_of[(ci, t)]], it["gold_labels"], [s["type"] for s in it["segments"]], [s["mods"] for s in it["segments"]])
 AUG = [a for a in os.environ.get("AUG", "").split(",") if a]      # polite,nominal — 증강 세트를 head 학습에 추가
 TI = {o["i"]: o for o in B.T}
@@ -118,7 +118,7 @@ del model; torch.cuda.empty_cache()
 # ── 2. 매핑 (문서 유사도 + 역할·조인 필터) + 조건 부분 재질의 ──
 from embed import embed
 import pandas as pd
-E = json.load(open(os.path.join(B.ROOT, "mapping_v2", "effects.json")))["services"]
+E = [s for s in json.load(open(os.path.join(B.ROOT, "mapping_v2", "effects.json")))["services"] if not s["svc"].split(".")[0].endswith("Control")]   # svc_docs.npy와 정렬(*Control 제외)
 D = np.load(os.path.join(EXP, "map", "svc_docs.npy"))
 SVCS = [s["svc"] for s in E]; ROLE = {s["svc"]: s["role"] for s in E}; ES = {s["svc"]: s for s in E}
 OK = {"ACT": {"action", "read_action"}, "COND": {"read", "read_action"}, "TRIG": {"read", "read_action"}, "READ": {"read", "read_action"}}
