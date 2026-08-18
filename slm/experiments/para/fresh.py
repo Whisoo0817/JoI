@@ -83,9 +83,34 @@ def segment(text):
         if l == 1 and cur: segs.append(" ".join(cur)); ends.append(i - 1); cur = []
         cur.append(w)
     segs.append(" ".join(cur)); ends.append(len(words) - 1)
-    V = ft(F[ends, LT]); ty = clf_t.predict(V)
+    V = ft(F[ends, LT]); ty = list(map(str, clf_t.predict(V))); pr = clf_t.predict_proba(V).max(1)
     md = np.stack([m.predict(V) if m is not None else np.zeros(len(V), int) for m in clf_m], 1)
-    return [{"text": s, "type": str(t), "mods": [MODS[k] for k in range(len(MODS)) if md[r, k]]} for r, (s, t) in enumerate(zip(segs, ty))]
+    gated = []
+    if TAU > 0:
+        for r in range(len(segs)):
+            if pr[r] < TAU:
+                t2 = mcq_type(text, segs[r]); GATE_LOG.append((segs[r], ty[r], float(pr[r]), t2)); gated.append(r)
+                if t2: ty[r] = t2
+    return [{"text": s, "type": t, "mods": [MODS[k] for k in range(len(MODS)) if md[r, k]], "gated": r in gated, "p": float(pr[r])} for r, (s, t) in enumerate(zip(segs, ty))]
+
+# ── 타입 객관식 게이트(저확신 절만 9B에게) ──
+TAU = float(os.environ.get("TAU", "0")); GATE_LOG = []
+TYPE_OPTS = [("ACT", "행동 — 기기를 켜라/꺼라/설정하라 등 실행 명령"), ("COND", "조건 — 어떤 상태가 …이면/일 때(상태 검사)"), ("TRIG", "사건 — 무엇이 감지되면/눌리면/될 때마다(사건 발생 시)"),
+             ("TIME", "시각·기간 — 언제 할지만 말함(오후 6시에, 매일 아침, 밤 10시부터 자정까지)"), ("DELAY", "지연 — N초/분/시간 뒤에"), ("READ", "값 확인 — 온도·습도 등을 읽거나 확인하라"),
+             ("STOP", "중지 — 반복을 끝내라/그만"), ("ELSE", "아니면 — 앞 조건이 아닐 때")]
+def mcq_type(cmd, seg):
+    import urllib.request
+    letters = "ABCDEFGH"
+    body = "\n".join(f"{letters[i]}. {d}" for i, (_, d) in enumerate(TYPE_OPTS))
+    p = (f"사용자 명령: \"{cmd}\"\n이 명령을 절 단위로 나눴을 때 다음 절의 역할을 고르시오.\n절: \"{seg}\"\n\n{body}\n\n답:")
+    req = json.dumps({"model": "cyankiwi/Qwen3.5-9B-AWQ-4bit", "prompt": p, "max_tokens": 1, "temperature": 0, "logprobs": 20}).encode()
+    try:
+        r = urllib.request.Request("http://localhost:8002/v1/completions", data=req, headers={"Content-Type": "application/json"})
+        top = json.loads(urllib.request.urlopen(r, timeout=120).read())["choices"][0]["logprobs"]["top_logprobs"][0]
+    except Exception as e:
+        return None
+    sc = [max([v for t, v in top.items() if t.strip() == letters[k]] or [-30.0]) for k in range(len(TYPE_OPTS))]
+    return TYPE_OPTS[int(np.argmax(sc))][0]
 SEG = {}
 for key, text, o in items: SEG[(key, o["i"])] = segment(text)
 del model; torch.cuda.empty_cache()
@@ -173,5 +198,8 @@ for g in ("orig", "para"): print(g, cum(res[g]), dict(res[g]))
 okI = {x["i"] for x in out if x["grp"] == "orig" and x["result"] == "OK"}
 sub = collections.Counter(x["result"] for x in out if x["grp"] == "para" and x["i"] in okI)
 print("para|orig OK", cum(sub))
+if GATE_LOG:
+    ch = sum(1 for g in GATE_LOG if g[3] and g[3] != g[1]); print(f"게이트: 저확신 절 {len(GATE_LOG)}개, 객관식이 타입을 바꾼 것 {ch}개 (TAU={TAU})")
+    for g in GATE_LOG[:25]: print(f"   p={g[2]:.2f} head={g[1]:5s} 9B={g[3]}  | {g[0]}")
 print("\n[para 실패 예]")
 for r, t, s in fails[:40]: print(" ", r, t); print("     ", s)

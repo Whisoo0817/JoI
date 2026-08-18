@@ -214,6 +214,12 @@ def build(o):
     cmd = o["cmd"]; S = o["segments"]
     if os.environ.get("SLOT_MODS", "1") == "1":
         S = [{**s, "mods": slot_mods(s["type"], s["text"], s["mods"])} for s in S]
+    if os.environ.get("POSTPOSE", "1") == "1" and len(S) >= 2:
+        # 후치 절 이동: 마지막 ACT 뒤에 오는 COND/TRIG/TIME 절("…해줘, …이면.")은 문두 위치의 조건·시각 → 앞으로 옮김(그래프 파서의 후치 처리 간이판)
+        last_act = max((i for i, s in enumerate(S) if s["type"] == "ACT"), default=-1)
+        tail = [s for s in S[last_act + 1:] if s["type"] in ("COND", "TRIG", "TIME")] if last_act >= 0 else []
+        if tail and len(tail) == len(S) - last_act - 1 and any(s["type"] in ("COND", "TRIG", "TIME") for s in S[:last_act + 1]) is False:
+            S = tail + S[:last_act + 1]
     segs3 = [(s["type"], s["mods"], s["text"]) for s in S]
     root = assemble_tree(segs3, False, [])
     # 배치된 절 집합(상자 머리 + 잎 소유자)
@@ -233,12 +239,16 @@ def build(o):
         parts = [cond_expr(cmd, j, S[j]["text"], mixed="mixed" in S[j]["mods"]) for j in js]
         joiner = " or " if any(re.search(r"거나|또는|이거나", S[j]["text"]) for j in js[:-1]) else " and "
         return joiner.join(parts)
-    def time_seg():
-        for i, s in enumerate(S):
-            if "time" in s["mods"] or s["type"] == "TIME": return s["text"]
-        return None
-    ts = time_seg()
-    cr = slots.cron(ts) if ts and not slots.period(ts) else (slots.cron(ts) if ts else None)
+    # 시각(cron)은 모든 절에서 찾는다(첫 time 절만 보던 규칙 폐기): 시각이 있는 절 우선, 그다음 요일·날짜만 있는 절
+    cr = None
+    for s in S:
+        if s["type"] == "STOP": continue
+        c = slots.cron(s["text"])
+        if c and (slots._hour(s["text"]) or re.search(r"크리스마스|새해|정오|자정", s["text"])): cr = c; break
+    if cr is None:
+        for s in S:
+            c = slots.cron(s["text"]) if s["type"] != "STOP" else None
+            if c: cr = c; break
     tl = [{"op": "start_at", "anchor": "cron" if cr else "now", **({"cron": cr} if cr else {})}]
     counter = [0]; ncall = collections.Counter()
     def conv(b, out):
