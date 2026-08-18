@@ -43,7 +43,7 @@ def period(text):
     return None
 
 def count(text):
-    m = re.search(r"(총|최대|딱)?\s*" + _num + r"\s*(번|회|차례)", text)
+    m = re.search(r"(총|최대|딱)?\s*" + _num + r"\s*(번|회|차례)(?!도)", text)     # "한번도"는 횟수 아님
     if m and not re.search(_num + r"\s*번\s*(으로|채널)", text):
         return int(_n(m.group(2)))
     return None
@@ -59,7 +59,7 @@ def _hour(text):
     """'오후 3시', '밤 10시', '아침 7시', '새벽 2시', '정오', '자정', '12시 30분' → (H, M)"""
     if "정오" in text: return 12, 0
     if "자정" in text or "밤 12시" in text: return 0, 0
-    m = re.search(r"(오전|오후|아침|저녁|밤|새벽|낮)?\s*(\d{1,2})\s*시\s*(?:(\d{1,2})\s*분|반)?", text)
+    m = re.search(r"(오전|오후|아침|저녁|밤|새벽|낮)?\s*(\d{1,2})\s*시(?!간)\s*(?:(\d{1,2})\s*분|반)?", text)
     if not m: return None
     h = int(m.group(2)); mi = int(m.group(3)) if m.group(3) else (30 if "반" in m.group(0) else 0)
     amb = m.group(1)
@@ -69,11 +69,17 @@ def _hour(text):
 def cron(text):
     if "부터" in text: text = text.split("부터")[0] + "부터"      # 시작 시각만 ("밤10시부터 자정까지")
     if "새해" in text or "1월 1일" in text: return "0 0 1 1 *"
-    if "크리스마스" in text: return "0 0 25 12 *"
+    day = any(k in text for k in ("매일", "평일", "주말")) or any(k in text for k in DOW)
+    pm = re.search(_num + r"\s*시간\s*(마다|간격)", text)                     # 날짜/요일 범위 + N시간마다 = cron 시(step) ("주말에 2시간마다"→"0 */2 * * 6,7")
+    if "크리스마스" in text:
+        return f"0 {'*' if pm and _n(pm.group(1)) == 1 else ('*/' + str(int(_n(pm.group(1)))) if pm else '0')} 25 12 *"
     hm = _hour(text)
     if hm is None:
+        if day and pm: return f"0 {'*' if _n(pm.group(1)) == 1 else '*/' + str(int(_n(pm.group(1))))} * * {_dow(text)}"
+        if day and re.search(r"오후에|오후 ", text): return f"0 12 * * {_dow(text)}"       # "주말 오후에" = 정오 시작
+        if day and re.search(r"오전에|아침에", text): return f"0 6 * * {_dow(text)}"
         # 시각 없이 요일/매일만: 자정 기준
-        if any(k in text for k in ("매일", "평일", "주말")) or any(k in text for k in DOW): return f"0 0 * * {_dow(text)}"
+        if day: return f"0 0 * * {_dow(text)}"
         return None
     h, mi = hm
     return f"{mi} {h} * * {_dow(text)}"
@@ -82,7 +88,10 @@ def until(text):
     """'…부터 N시까지' — 마지막 '시까지' 앞의 시각."""
     m = re.search(r"(오전|오후|아침|저녁|밤|새벽|낮)?\s*(\d{1,2})\s*시\s*(?:(\d{1,2})\s*분)?\s*까지", text)
     if "자정까지" in text: return "clock.time >= 2400"
-    if not m: return None
+    if not m:
+        if re.search(r"오후에|오후 (?!\d)", text): return "clock.time >= 1800"    # "주말 오후에 30분마다" = 오후 창(12~18시)
+        if re.search(r"오전에|아침에", text): return "clock.time >= 1200"
+        return None
     h = int(m.group(2)); mi = int(m.group(3)) if m.group(3) else 0; amb = m.group(1)
     if amb is None:                                  # 앞쪽 시각의 오전/오후를 상속 ("오후 1시부터 3시까지")
         pm = re.search(r"(오전|오후|아침|저녁|밤|새벽)", text[: m.start()])

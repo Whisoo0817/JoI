@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..")
 sys.path.insert(0, ROOT)
 os.environ.setdefault("SLOT", "1")
-from box import Box, assemble_tree, MODE_ON_RE, PULSE_RE, TOGGLE_RE
+from box import Box, assemble_tree, MODE_ON_RE, PULSE_RE, TOGGLE_RE, MODE_TEMP_RE, ELSE_SPLIT
 from skeleton import skeleton, canon
 import slots
 import rerank
@@ -131,6 +131,9 @@ def cat_of(s_): return s_.split(".")[0]
 def pick_function(cmd, j, text):
     """top-5 함수 후보 중 형제 서비스(Open/Close, On/Off, Up/Down, Set vs Step) 극성·숫자 규칙으로 선택."""
     cands = [s_ for s_ in MAP.get((cmd, j), []) if svc_info(s_)[0] == "function"]
+    jj = j - 1
+    while not cands and jj >= 0:                       # 절에 함수 후보가 없으면(else 분기 절 등) 앞 절의 후보를 빌림
+        cands = [s_ for s_ in MAP.get((cmd, jj), []) if svc_info(s_)[0] == "function"]; jj -= 1
     bon, extra = rerank.func_bonus(text, cands); n0 = len(cands); cands = cands + [e for e in extra if svc_info(e)[0] == "function"]
     if not cands: return None
     pol = [p for p, rx in POS.items() if re.search(rx, text)]
@@ -150,6 +153,8 @@ def pick_function(cmd, j, text):
         return sc
     return _choose("func", text, cands, [score(k, s_) for k, s_ in enumerate(cands)])
 
+STEP_ATTR = {"Brightness": "Light.CurrentBrightness", "Volume": "Speaker.Volume", "TargetTemperature": "AirConditioner.TargetTemperature", "Level": "WindowCovering.CurrentPosition"}
+TOGGLE_VERB = {r"열었다|열고 닫|개방": ("열어줘", "닫아줘"), r"올렸다|올리고 내": ("올려줘", "내려줘"), r"잠갔다|잠궜다": ("잠가줘", "열어줘"), r"켰다|켜고 끄": ("켜줘", "꺼줘")}
 def call_node(cmd, j, text, force=None, hint=None):
     if hint == "on": text = text + " 켜줘"          # 토글 첫 호출 = 켜기, 둘째 = 끄기 (극성 힌트)
     if hint == "off": text = text + " 꺼줘"
@@ -162,14 +167,16 @@ def call_node(cmd, j, text, force=None, hint=None):
             v = slots.enum_arg(text, members_of(cat, a.get("format")))
             if v: args[aid] = v
         elif at in ("DOUBLE", "INT", "INTEGER", "FLOAT", "LONG"):
+            st = re.search(r"(\d+)\s*(도|%)?\s*씩\s*(높여|올려|키워|낮춰|내려|줄여)", text); lim = re.search(r"(최대|최소)\s*(\d+)", text)
+            if re.search(r"최대 밝기", text) and st: lim = re.match(r"(최대)\s*(100)", "최대 100")
+            if st and rerank.ON and aid in STEP_ATTR:            # A11: "10씩 높여줘. 최대 100까지" → min($Light.CurrentBrightness + 10, 100)
+                up = st.group(3) in ("높여", "올려", "키워"); n_ = st.group(1); attr = STEP_ATTR[aid]
+                if lim: args[aid] = f"{'min' if up else 'max'}(${attr} {'+' if up else '-'} {n_}, {lim.group(2)})"
+                else: args[aid] = f"${attr} {'+' if up else '-'} {n_}"
+                continue
             if aid == "Brightness":
-                st = re.search(r"(\d+)\s*씩\s*(높여|올려|키워|낮춰|내려|줄여)", text); lim = re.search(r"(최대|최소)\s*(\d+)", text)
                 m = re.search(r"(\d+)\s*(%|퍼센트|으로|로|까지)", text)
-                if st and rerank.ON:                       # A11: "10씩 높여줘. 최대 100까지" → min($Light.CurrentBrightness + 10, 100)
-                    up = st.group(2) in ("높여", "올려", "키워"); n_ = st.group(1)
-                    if lim: v = f"{'min' if up else 'max'}($Light.CurrentBrightness {'+' if up else '-'} {n_}, {lim.group(2)})"
-                    else: v = f"$Light.CurrentBrightness {'+' if up else '-'} {n_}"
-                elif m: v = float(m.group(1))
+                if m: v = float(m.group(1))
                 elif re.search(r"켜|최대|밝게", text): v = 100.0
                 elif re.search(r"꺼|끄|소등", text): v = 0.0
                 else: v = None
@@ -226,6 +233,13 @@ def build(o):
                 if x.kind == "IF":
                     if x.seg is not None and S[x.seg]["type"] in ("COND", "TRIG"): cond = merged_text(x.seg)
                     elif x.seg is not None and S[x.seg]["type"] == "STOP": cond = cond_expr(cmd, x.seg, S[x.seg]["text"])
+                    elif x.seg is not None and S[x.seg]["type"] == "ACT" and TOGGLE_RE.search(S[x.seg]["text"]) and rerank.ON: cond = "n % 2 == 0"
+                    elif x.seg is not None and S[x.seg]["type"] == "ACT" and "mixed" in S[x.seg]["mods"] and rerank.ON:
+                        # ACT/mixed 뒤 STOP: "최대 밝기가 되면 그만해" → 절 뒷부분 조건 (값 서비스는 그 절의 후보에서)
+                        tail = re.split(r"[.!] ", S[x.seg]["text"])[-1]
+                        if re.search(r"최대 밝기", tail): cond = "Light.CurrentBrightness >= 100"
+                        elif re.search(r"최소 밝기", tail): cond = "Light.CurrentBrightness <= 0"
+                        else: cond = _cond_expr(cmd, x.seg, tail)
                     else: cond = "?"
                     if x.seg is not None and rerank.ON and re.search(r"(떨어졌|올랐|내려갔|올라갔|변했|차이)", S[x.seg]["text"]) and any(n.get("op") == "read" for n in out):
                         # B14: "확인하고 … 다시 확인해서 M 이상 떨어졌으면" → 두 번째 읽기 + 차이 조건
@@ -243,14 +257,18 @@ def build(o):
                     out.append(node)
                 elif x.kind == "CYC":
                     txt = S[x.seg]["text"] if x.seg is not None else ""
+                    if rerank.ON and cr and re.match(r"^\d+ (\*|\*/\d+) ", cr) and slots.period(txt) and "시간" in txt:
+                        conv(x, out); continue                        # "주말에 2시간마다" = cron 시 step이 주기를 흡수 → cycle 없음
                     per = slots.period(txt) or ("100 MSEC" if S[x.seg]["type"] == "TRIG" and "every" in S[x.seg]["mods"] else None)
                     # count: 상자 머리 절 또는 STOP/count·ACT/count 절
                     cnt = slots.count(txt)
                     for j, s in enumerate(S):
                         if cnt is None and ("count" in s["mods"] or s["type"] == "STOP"): cnt = slots.count(s["text"])
                     unt = slots.until(txt) or (f"n >= {cnt}" if cnt else None)
+                    if rerank.ON and per is None and unt and any(isinstance(y, Box) and y.kind == "IF" for y in x.items): per = "100 MSEC"   # 시간창 + 조건 = 폴링
                     node = {"op": "cycle", "until": unt, "period": per, "body": []}
                     if cnt: node["count"] = cnt
+                    elif rerank.ON and any(isinstance(y, Box) and y.kind == "IF" and y.seg is not None and S[y.seg]["type"] == "ACT" and TOGGLE_RE.search(S[y.seg]["text"]) for y in x.items): node["count"] = "n"   # 토글: n%2
                     conv(x, node["body"]); out.append(node)
             else:
                 j = b.owner[id(x)]; s = S[j]; leaf = str(x)
@@ -258,11 +276,28 @@ def build(o):
                     ncall[j] += 1
                     force = None
                     if rerank.ON and MODE_ON_RE.search(s["text"]) and ncall[j] == 1: force = "Switch.On"          # A4 첫 호출 = 켜기
+                    elif rerank.ON and MODE_TEMP_RE.search(s["text"]):                                          # "냉방 모드로 18도로": 1=Mode 2=TargetTemperature
+                        fs = [f for f in MAP.get((cmd, j), []) if svc_info(f)[0] == "function"]
+                        want = [f for f in fs if ("Mode" in f) == (ncall[j] == 1) and ("Temperature" in f) == (ncall[j] == 2)]
+                        if want: force = want[0]
                     elif rerank.ON and PULSE_RE.search(s["text"]) and ncall[j] == 2: force = "Switch.Off"          # 펄스 두 번째 CALL = 끄기
-                    hint = ("on" if ncall[j] == 1 else "off") if rerank.ON and TOGGLE_RE.search(s["text"]) else None
-                    out.append(call_node(cmd, j, s["text"], force=force, hint=hint))
+                    hint = None; txt = s["text"]
+                    if rerank.ON and TOGGLE_RE.search(txt):
+                        mm = re.search(r"(\S+?)(와|과|이랑|랑) (\S+?)(을|를|으로|로)? ?(사이에서|번갈아)", txt)
+                        if mm: txt = txt[:mm.start()] + (mm.group(1) if ncall[j] == 1 else mm.group(3)) + "으로 " + txt[mm.end():]   # "A와 B 사이에서 전환" → 1번째 A, 2번째 B
+                        else:
+                            pair = next((v for k_, v in TOGGLE_VERB.items() if re.search(k_, txt)), ("켜줘", "꺼줘"))
+                            txt = TOGGLE_RE.sub("", txt) + " " + pair[0 if ncall[j] == 1 else 1]        # "열었다 닫았다" → 열어줘 / 닫아줘
+                    elif rerank.ON and "else" in s["mods"] and ELSE_SPLIT.search(txt):
+                        parts = re.split(r"[,\s](?:그 외에는|그 외에|아니면|그렇지 않으면) ", txt, maxsplit=1)
+                        txt = parts[min(ncall[j] - 1, len(parts) - 1)] + (" 설정해줘" if ncall[j] == 1 else "")
+                    out.append(call_node(cmd, j, txt, force=force, hint=hint))
                 elif leaf == "READ":
-                    counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(cmd, j, "value") or "?"})
+                    getf = next((f for f in MAP.get((cmd, j), []) if svc_info(f)[0] == "function" and not f.startswith("Speaker.")), None)
+                    if rerank.ON and top(cmd, j) and svc_info(top(cmd, j))[0] == "function" and getf and not re.search(r"온도|습도|조도|농도|상태|값|수치", s["text"]):   # 읽을 것이 함수(GetMenu 등)면 call
+                        out.append(call_node(cmd, j, s["text"], force=getf))
+                    else:
+                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(cmd, j, "value") or "?"})
                 elif leaf == "DELAY": out.append({"op": "delay", "duration": slots.duration(s["text"]) or "?"})
                 elif leaf.startswith("WAIT"):
                     node = {"op": "wait", "cond": merged_text(j) if s["type"] in ("COND", "TRIG") else "?", "edge": "rising" if "every" in s["mods"] else "none"}
@@ -275,6 +310,12 @@ def build(o):
     return {"timeline": tl}
 
 # ── 평가 ──
+def canon_ir(ir):
+    """관례 정규화(§20 lenient): 최상위 첫 노드가 wait(edge none, for 없음)이면 if{then: 나머지}와 동치 (gold가 두 표기를 섞어 씀)."""
+    tl = ir["timeline"]
+    if len(tl) >= 2 and tl[1].get("op") == "wait" and tl[1].get("edge", "none") == "none" and not tl[1].get("for"):
+        return {"timeline": [tl[0], {"op": "if", "cond": tl[1]["cond"], "then": tl[2:], "else": []}]}
+    return ir
 def norm_cond(c, reads):
     if not isinstance(c, str): return c
     for var, src in reads.items(): c = c.replace("$" + var, src).replace(var, src) if var.startswith("$") else c.replace("$" + var, src)
@@ -348,6 +389,7 @@ if __name__ == "__main__":
         if MAPPED_ONLY and (o["cmd"], 0) not in MAP: continue
         G = gold_of(o)
         ir = build(o); out.append({"i": o["i"], "cmd": o["cmd"], "ir_pred": ir, "ir_gt": G})
+        if os.environ.get("LENIENT", "1") == "1": ir, G = canon_ir(ir), canon_ir(G)
         if skeleton(ir) != skeleton(G): continue
         n_struct += 1
         pf, gf = flat(ir["timeline"]), flat(G["timeline"])

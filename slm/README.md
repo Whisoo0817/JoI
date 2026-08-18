@@ -826,3 +826,28 @@ gold 관례 발견: **조명 켜기 = MoveToBrightness(15) vs Switch.On(7), 끄�
 잔여 8 조건식: gold 자유 변수명(`living_temp`, `brightness`, `livingRoomHumidity`), `not (...) or ...` 표기, "야간(오후 10시)이 되면"(시간 조건이 절 안), "멈춘 상태" — 모두 gold 표기 문제 또는 극소수. 완전 IR의 상한은 이제 **구조 0.896**(34명령: 상자 규칙이 못 다루는 배치) — 다음 병목.
 
 추가 결정: **\*Control 계열(LevelControl·ColorControl·RotaryControl)은 쓰지 않음** — 검색 대상(`retrieve_services.py` SVCS)·연결 기기 카테고리(`retrieve_services.py`/`cond_parts.py` conn)·후보(`build_ir.NO_CAT`)에서 제외, gold의 LevelControl.MoveToLevel/CurrentLevel·ColorControl.SetColor는 Light.MoveToBrightness/CurrentBrightness/MoveToColor로 정규화(`gold_fix._no_control`). "사람이 감지"류는 **Presence ≡ Motion 둘 다 정답**(`cond_ok`). → 완전 IR **0.869**(284/327), cond 0.967.
+
+### 26.2 구조 불일치 34명령 분류 + 규칙 확장
+
+| 부류 | 수 | 원인 | 처치 |
+|---|---|---|---|
+| 순수 주기 "1시간마다"에 cron이 붙음 | 6 | `_hour`가 "1시간"의 "1시"를 시각으로 봄 | `시(?!간)`; 날짜/요일 없는 주기는 cron 없음 |
+| TRIG 단독: gold가 `IF` vs `WAIT:none` 혼용 | 7 | gold 표기 비일관(§20의 관대 동치) | 평가 `canon_ir`: 최상위 첫 wait(none)≡if{then} (`LENIENT=1`) |
+| 토글 `CYC:pc` (count "n", `n % 2 == 0`) | 6 | 토글은 반복 변수 n 사용 | 토글 상자 → count "n", IF cond `n % 2 == 0`, 1·2번째 CALL = A/B(열어/닫아, 모드A/B, 값A/B) |
+| 날짜·요일 + N시간마다 = cron step | 3 | gold: "주말에 2시간마다"=`0 */2 * * 6,7`, "크리스마스에 1시간마다"=`0 * 25 12 *`, "주말 오후에 30분마다"=cron 12시 + cycle until 18시 | `slots.cron` step, "오후에"→12시/until 1800; cron이 주기를 흡수하면 cycle 생략 |
+| 시간창 + 조건 → 폴링 period | 2 | gold `100 MSEC`(1건은 1 HOUR) | until 있고 period 없으면 100 MSEC; "한번도"는 count 아님 |
+| READ가 실제로는 함수 호출(GetMenu) | 3 | ACT/read의 대상이 값이 아니라 함수 | 후보 top-1이 함수(Speaker 제외)면 call |
+| mixed·else 절 관례 | 4 | COND/mixed = 앞 조건의 CALL + else-if; ACT/mixed+STOP = CALL + IF[BREAK]("최대 밝기가 되면"→`CurrentBrightness >= 100`); ACT/else 안 "그 외에는" = CALL + else CALL | box 규칙 3종 + 절 후보 없으면 앞 절 후보 차용 |
+| "냉방 모드로 18도로" | 1 | Mode + TargetTemperature 두 호출 | `MODE_TEMP_RE` → CALL CALL |
+| 남음(gold 특이/희귀) | 10 | 벨브 토글을 CALL CALL로, 녹음 단일 호출, IsAvailable call+var, "켜고 끄는" 사이 DELAY 1초, 25→50→75 IF 체인, "하나라도 감지되면"의 every, "야간 모드(밝기 10%)" 2호출, period 1 HOUR | 보류 |
+
+인자 확장: "N씩 올려/낮춰 (최대/최소 M)" → `min/max($Attr ± N, M)`를 Brightness·Volume·TargetTemperature·Level에 일반화(`STEP_ATTR`).
+
+| 매핑 327 | §26.1 | **§26.2** |
+|---|---|---|
+| 구조 S | 0.896 | **0.969** (317/327) |
+| S+T+C | 0.875 | 0.933 |
+| target / args / cond | 1.000 / 0.995 / 0.967 | 0.995 / 0.995 / 0.949 |
+| **완전 IR** | 0.869 | **0.927** (303/327) |
+
+부수: box 관례 변경으로 §20 종단(380, 구 gold) G/G 관대 0.968→**0.976**, P/P 0.934 유지(회귀 없음).

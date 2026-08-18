@@ -64,6 +64,8 @@ CONJ_RE = re.compile(r"(고|거나|이거나|며|이며|는데|은데|면서),?\
 PERIOD_RE = re.compile(r"\d+\s*(초|분|시간)\s*(마다|간격|주기)")   # 시각+마다(정오마다)는 cron, 기간+마다는 period               # 반복 주기 → CYC
 UNTIL_RE = re.compile(r"(\d+\s*시|정오|자정|밤|아침|저녁|오후|오전|새벽)\S*까지")   # 시각까지 = 시간창 → CYC(until) ("최대 100까지"는 값 상한)
 TOGGLE_RE = re.compile(r"(였다 .*?[았었]다|번갈아|사이에서 전환|켜고 끄는|켰다 껐다|올렸다 내렸다|열었다 닫았다)")
+ELSE_SPLIT = re.compile(r".+[,\s](그 외에는|그 외에|아니면|그렇지 않으면) ")   # 한 절 안의 else 분기
+MODE_TEMP_RE = re.compile(r"모드로 \d+\s*도로")
 MODE_ON_RE = re.compile(r"모드로 (켜|켜서|켠)")                     # A4: "냉방 모드로 켜고" = Switch.On + SetMode 두 호출
 PULSE_RE = re.compile(r"(\d+\s*(초|분|시간)간 |유지하다가)")   # "5초간 울려줘/울렸다 꺼줘" = 켜기·지연·끄기
 SLOT_DRIVEN = os.environ.get("SLOT", "1") == "1"   # 기본: 어휘 표지로 CYC 열기(mods 의존 안 함)
@@ -112,13 +114,13 @@ def assemble(segs, cron, cyc_flags):
             cur().add("WAIT:none:for"); i += 1; continue
         if t in ("TRIG", "COND"):
             merged_next = bool(CONJ_RE.search(texts[i]))   # 현재 절 어미만으로 결정(lookahead 없음)
-            if "else" in m or "mixed" in m:       # COND/else, COND/mixed(조건+행동 한 절) = else-if
+            if "else" in m or "mixed" in m:       # COND/else = else-if; COND/mixed("등을 100%로, 500lux 이상이면") = 앞 조건의 행동 + else-if
+                if "mixed" in m: cur().add("CALL")
                 b = innermost_if()
                 if b is not None:
                     while stack[-1] is not b: stack.pop()
                     b.in_else = True; b.else_items = b.else_items or []
                 nb = Box("IF"); open_box(nb)
-                if "mixed" in m: cur().add("CALL")
                 i += 1; continue
             if pending_cond is None:
                 # 조건 상자 열기: 직전 상자가 내용 있는 IF(닫히지 않음)이면 else-if
@@ -134,6 +136,7 @@ def assemble(segs, cron, cyc_flags):
                 pending_cond = None
             i += 1; continue
         if t == "ELSE" or (t == "ACT" and "else" in m):
+            if t == "ACT" and ELSE_SPLIT.search(texts[i]): cur().add("CALL")     # "30%로, 그 외에는 60%로" = 앞 조건의 행동 + else 행동
             b = innermost_if()
             if b is not None:
                 while stack[-1] is not b: stack.pop()
@@ -141,6 +144,10 @@ def assemble(segs, cron, cyc_flags):
             if t == "ELSE": i += 1; continue
         if t == "ACT":
             if "read" in m: cur().add("READ")
+            if "mixed" in m and nxt[0] == "STOP":       # ACT/mixed("10씩 높여줘. 최대 밝기가 되면") + STOP = CALL + IF[BREAK]
+                cur().add("CALL"); b = Box("IF"); b.add("BREAK"); cur().add(b); i += 2; continue
+            if MODE_TEMP_RE.search(texts[i]):           # "냉방 모드로 18도로 설정" = SetMode + SetTargetTemperature
+                cur().add("CALL"); cur().add("CALL"); i += 1; continue
             if TOGGLE_RE.search(texts[i]):
                 b = Box("IF"); b.add("CALL"); b.in_else = True; b.else_items = []; b.add("CALL"); b.in_else = False; cur().add(b)
             elif "유지하다가" in texts[i]:               # "…로 10초 유지하다가" = 켜기·지연 (끄기는 다음 절)
