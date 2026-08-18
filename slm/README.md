@@ -1,8 +1,8 @@
 # sLM 절 분할 연구 노트 — Streaming Typed Segmentation
 
-> **현재 상태(2026-08-18, §28)** — 선형 head(경계 L2·타입/mods L6) + 상자 규칙 조립 + 임베딩 매핑(top-5) + 재정렬·값 규칙 → Timeline IR.
-> paper 데이터셋 380명령(C26 6개·gold 없는 2개 제외) **G/G 완전 IR 0.989(376/380)**, P/P(예측 경계·타입·mods, 351) **0.929**, 직접 작성 패러프레이즈 160(신선 파이프라인) **0.562**(원문 80: 0.900).
-> 남은 실패: G/G 4개(녹음→저장 합성 호출, 활성화 read, 25→50→75 순환, "하나라도 감지되면" cycle 표기). 병목은 표현 변화에 대한 경계·타입 head(§27), 그래프 파서 통합(§23–24)이 다음 단계.
+> **런타임 패키지: [`joi_slm/`](joi_slm/README.md)** — 명령어 → Timeline IR (`CommandToIR`). 이 문서는 연구 노트(§1–29), `experiments/`는 실험 스크립트·데이터.
+> **현재 상태(2026-08-19, §29)** — 380 G/G 완전 IR **0.989**, 텍스트만 넣는 종단: 원문 80 **0.963**, 직접 작성 패러프레이즈 160 **0.738**.
+> 남은 것: 표현 변화에 대한 경계·타입 head(§27–28), 합성 호출·순환 구조 등 소수 구조(§28.1 잔여 4).
 
 > 2026-08-11 논의 정리. 대상 모델: `cyankiwi/Qwen3.5-2B-AWQ-4bit` (연구 목표는 1–2B sLLM).
 > 데이터: 루트의 `dataset.csv` (382개 유니크 명령어, `ir_gt` timeline JSON + JOILang gold).
@@ -994,4 +994,11 @@ P/P 실패 33 = 규칙(G/G도 실패) 14 · 타입/mods 12(mixed·sustain·else 
 | + 두 번 읽기 관용구 재분할 + READ 어휘 fallback | 0.825 | 0.750 | **0.675** (108/160) |
 
 원문 80은 0.900, 380 G/G 0.989 유지. 잔여 52: S 28(경계·타입 head — "연기가 감지된 뒤로는 …" 한 절, "감지되고 5분 뒤에"를 ACT로, 25→50→75 순환, 녹음→저장 합성), V 12(스피커 "멈춰/정지"→Stop vs Pause, 카메라 count 꼬리 등), C 12(패러프레이즈가 뜻을 바꾼 "2도 넘게(>)" vs 원문 "이상(>=)", 두 기기 and 조건).
+
+## 29. 런타임 패키지 `joi_slm/` (2026-08-19)
+
+실험 코드(`experiments/assembly·map·graph·para·head·type`)에서 런타임에 필요한 것만 떼어 패키지로 정리: `encoder`(2B 단어 상태·임베더) → `segment`(경계·타입 head + MCQ 게이트) → `graph`(정규화기) → `mapping`(문서+예문 검색·조인) → `builder`(규칙 조립) / `evaluate`(채점·gold 정정). 전역 dict 대신 명령별 `Mapping` 컨텍스트, 환경변수 스위치 제거, 학습 자산은 `assets/`(`train.py`로 재생성).
+- 동치 확인: `eval_gg` 380 G/G **0.989**(376/380, experiments 결과와 동일).
+- 텍스트만 넣는 종단(`eval_para`, 매핑에 코퍼스 예문 + 연결 기기 조인, 자기 명령 예문 제외): 원문 80 **0.963**(신선 파이프라인 0.900→; 예문 확장·조인 효과), 패러 160 **0.738**(0.675→). 추가 규칙: 시각창 TIME 절 + 주기 ACT 절 병합.
+- paper 파이프라인 연결: `paper/run_local_ir.py`의 `ir_extract` 자리에 `CommandToIR()(sentence, connected_devices)["ir"]` (joi_slm/README 참고).
 
