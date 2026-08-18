@@ -85,6 +85,18 @@ np.save(os.path.join(HERE, "svc_docs.npy"), D)
 # ── 2. 코퍼스 예문 확장 (5조각 교차검증, 다른 조각의 명령에서만 수집) ─────
 print("\n== 코퍼스 예문 확장 (fold 밖 명령의 절을 서비스별 예문으로, max-sim) ==")
 from sklearn.model_selection import GroupKFold
+EXPEN = float(os.environ.get("EXPEN", "0")); LEXB = float(os.environ.get("LEXB", "0"))
+def lex_words(s):
+    cat = s["svc"].split(".")[0]
+    ws = set()
+    for tr in AL.get(cat, []) + s.get("ko_triggers", []):
+        for w in re.split(r"[\s,./]+", tr):
+            w = re.sub(r"(을|를|이|가|은|는|의|로|으로|에|도)$", "", w)
+            if len(w) >= 2 and not re.fullmatch(r"[\d.]+", w): ws.add(w)
+    return ws
+LEXW = [lex_words(s) for s in E]
+LEXQ = np.stack([np.array([min(2, sum(1 for w in ws if w in re.sub(r"\s", "", s["text"]))) for ws in LEXW], dtype=np.float32)
+                 for it in items for s in it["segs"]]) * LEXB
 seg_rows = [(ci, si) for ci, it in enumerate(items) for si in range(len(it["segs"]))]
 groups = np.array([ci for ci, _ in seg_rows])
 svc_idx = {s: j for j, s in enumerate(SVCS)}
@@ -120,10 +132,10 @@ def run_multi(join, KS=(1, 3, 5, 10)):
             union = {k: set() for k in KS}
             for si, s in enumerate(it["segs"]):
                 q = row_of[(ci, si)]
-                sc = S[q].copy()
+                sc = S[q] + LEXQ[q]
                 for g, rows in ex.items():
                     if rows:
-                        sc[svc_idx[g]] = max(sc[svc_idx[g]], float((Q[rows] @ Q[q]).max()))
+                        sc[svc_idx[g]] = max(sc[svc_idx[g]], float((Q[rows] @ Q[q]).max()) - EXPEN)
                 order = np.argsort(-sc)
                 ranked = [SVCS[j] for j in order if ROLE[SVCS[j]] in OK[s["type"]]
                           and (not join or SVCS[j].split(".")[0] in it["conn"])]
