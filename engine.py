@@ -5,8 +5,8 @@
   3. choice(prompt, letters): 1토큰 객관식 로그확률 (joi_slm 저확신 게이트)
 
 모델은 `LLM_MODEL`(기본 cyankiwi/Qwen3.5-2B-AWQ-4bit) 하나. 프로세스당 한 번 적재(`get_engine()`),
-호출은 잠금으로 직렬화한다(hook 이 잡는 상태가 그 호출의 것이도록). prefix caching 은 끈다(캐시된 앞부분은
-층 출력이 안 나오므로).
+호출은 잠금으로 직렬화한다(hook 이 잡는 상태가 그 호출의 것이도록). prefix caching 은 켜 두되(긴 lowering
+프롬프트 재사용), 은닉 상태 요청만 요청별 cache_salt 로 캐시를 비켜 간다 — 캐시된 앞부분은 층 출력이 안 나오므로.
 """
 
 from __future__ import annotations
@@ -14,6 +14,7 @@ from __future__ import annotations
 import os
 import threading
 import time
+import uuid
 
 os.environ.setdefault("VLLM_ENABLE_V1_MULTIPROCESSING", "0")   # 엔진을 이 프로세스 안에 (모델 모듈에 접근하려고)
 
@@ -31,7 +32,7 @@ class Engine:
         self.model_id = model_id
         self.layers = tuple(layers)
         self.llm = LLM(model=model_id, max_model_len=_MAX_LEN, gpu_memory_utilization=_GPU_MEM,
-                       enforce_eager=True, enable_prefix_caching=False, max_num_seqs=8)
+                       enforce_eager=True, enable_prefix_caching=True, max_num_seqs=8)
         self.tok = self.llm.get_tokenizer()
         self._lock = threading.RLock()
         self._cap: dict[int, np.ndarray] = {}
@@ -73,7 +74,7 @@ class Engine:
                 for ws, we in spans]
         with self._lock:
             self._cap.clear()
-            self.llm.generate([TokensPrompt(prompt_token_ids=ids)],
+            self.llm.generate([TokensPrompt(prompt_token_ids=ids, cache_salt=uuid.uuid4().hex)],   # 캐시 우회: 모든 토큰이 층을 지나야 hook 이 다 잡힘
                               SamplingParams(max_tokens=1, temperature=0), use_tqdm=False)
             cap = {i: self._cap[i] for i in self.layers}
         for i in self.layers:
