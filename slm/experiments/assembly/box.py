@@ -65,7 +65,8 @@ PERIOD_RE = re.compile(r"\d+\s*(초|분|시간)\s*(마다|간격|주기)")   # �
 UNTIL_RE = re.compile(r"(\d+\s*시|정오|자정|밤|아침|저녁|오후|오전|새벽)\S*까지")   # 시각까지 = 시간창 → CYC(until) ("최대 100까지"는 값 상한)
 TOGGLE_RE = re.compile(r"(였다 .*?[았었]다|번갈아|사이에서 전환|켜고 끄는|켰다 껐다|올렸다 내렸다|열었다 닫았다)")
 ELSE_SPLIT = re.compile(r".+[,\s](그 외에는|그 외에|아니면|그렇지 않으면) ")   # 한 절 안의 else 분기
-MODE_TEMP_RE = re.compile(r"모드로 \d+\s*도로")
+MODE_TEMP_RE = re.compile(r"모드로 \d+\s*도로|\d+\s*도로 \S*모드로")
+DELAY_LEAD_RE = re.compile(r"^(그리고 |그 뒤에? |이후 |그 이후로 )?\d+\s*(초|분|시간)\s*(뒤|후|이후|지나면|지나서|있다가)(에|에는|로|엔|서)?\s")   # ACT 안에 앞선 지연("5분 뒤 조명을 꺼줘")
 MODE_ON_RE = re.compile(r"모드로 (켜|켜서|켠)")                     # A4: "냉방 모드로 켜고" = Switch.On + SetMode 두 호출
 PULSE_RE = re.compile(r"(\d+\s*(초|분|시간)간 |유지하다가)")   # "5초간 울려줘/울렸다 꺼줘" = 켜기·지연·끄기
 SLOT_DRIVEN = os.environ.get("SLOT", "1") == "1"   # 기본: 어휘 표지로 CYC 열기(mods 의존 안 함)
@@ -144,6 +145,7 @@ def assemble(segs, cron, cyc_flags):
             if t == "ELSE": i += 1; continue
         if t == "ACT":
             if "read" in m: cur().add("READ")
+            if SLOT_DRIVEN and DELAY_LEAD_RE.search(texts[i]) and not PERIOD_RE.search(texts[i]): cur().add("DELAY")   # 절 안 지연 → DELAY + CALL
             if "mixed" in m and nxt[0] == "STOP":       # ACT/mixed("10씩 높여줘. 최대 밝기가 되면") + STOP = CALL + IF[BREAK]
                 cur().add("CALL"); b = Box("IF"); b.add("BREAK"); cur().add(b); i += 2; continue
             if MODE_TEMP_RE.search(texts[i]):           # "냉방 모드로 18도로 설정" = SetMode + SetTargetTemperature

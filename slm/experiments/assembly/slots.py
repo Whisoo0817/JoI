@@ -43,7 +43,7 @@ def period(text):
     return None
 
 def count(text):
-    m = re.search(r"(총|최대|딱)?\s*" + _num + r"\s*(번|회|차례)(?!도)", text)     # "한번도"는 횟수 아님
+    m = re.search(r"(총|최대|딱)?\s*" + _num + r"\s*(번|회|차례|장|컷)(?!도)", text)     # "한번도"는 횟수 아님
     if m and not re.search(_num + r"\s*번\s*(으로|채널)", text):
         return int(_n(m.group(2)))
     return None
@@ -68,6 +68,7 @@ def _hour(text):
     return h, mi
 def cron(text):
     if "부터" in text: text = text.split("부터")[0] + "부터"      # 시작 시각만 ("밤10시부터 자정까지")
+    elif re.search(r"\d\s*시에서 ", text): text = text.split("에서")[0] + "부터"      # "N시에서 M시까지"
     if "새해" in text or "1월 1일" in text: return "0 0 1 1 *"
     day = any(k in text for k in ("매일", "평일", "주말")) or any(k in text for k in DOW)
     pm = re.search(_num + r"\s*시간\s*(마다|간격)", text)                     # 날짜/요일 범위 + N시간마다 = cron 시(step) ("주말에 2시간마다"→"0 */2 * * 6,7")
@@ -112,7 +113,7 @@ def number(text):
 
 CMP = [  # (정규식, 연산자)  — 값 뒤에 붙는 표현
     (r"이상", ">="), (r"이하", "<="), (r"미만|아래로|밑이면|보다 (낮|작|떨어)", "<"), (r"초과|넘|보다 (높|커|크|많)|위로|올랐", ">"),
-    (r"떨어졌|떨어지|내려가|낮아|밑으로", "<"), (r"올라가|높아", ">"),
+    (r"떨어졌|떨어지|내려가|낮아|밑으로|밑돌|하회|미달", "<"), (r"올라가|높아|상회|웃돌|넘길|넘을", ">"),
 ]
 def comparator(text):
     """숫자 비교 조건 → (op, value). 값은 문장의 첫 숫자(단위 제거)."""

@@ -33,13 +33,24 @@ H = np.load(os.path.join(EXP, "head", "states.npz")); HX = H["X"]; LAYERS = list
 row_of = {(c, t): i for i, (c, t) in enumerate(zip(H["cmd_idx"], H["word_pos"]))}
 MODS = ["time", "read", "every", "sustain", "count", "else", "repeat", "delay", "mixed"]
 Xb, yb, Xt, yt, ym = [], [], [], [], []
+def add_item(get, labels, types, mods):
+    n = len(labels)
+    for t in range(1, n): Xb.append(np.concatenate([get(t - 1)[LB], get(t)[LB]])); yb.append(labels[t])
+    starts = [k for k, l in enumerate(labels) if l == 1 or k == 0]; ends = starts[1:] + [n]
+    for ty, md, e in zip(types, mods, ends): Xt.append(get(e - 1)[LT]); yt.append(ty); ym.append([int(m in md) for m in MODS])
 for ci, it in enumerate(B.T):
-    for t in range(1, len(it["words"])):
-        Xb.append(np.concatenate([HX[row_of[(ci, t - 1)], LB], HX[row_of[(ci, t)], LB]])); yb.append(it["gold_labels"][t])
-    starts = [k for k, l in enumerate(it["gold_labels"]) if l == 1 or k == 0]; ends = starts[1:] + [len(it["words"])]
-    for s, e in zip(it["segments"], ends):
-        Xt.append(HX[row_of[(ci, e - 1)], LT]); yt.append(s["type"]); ym.append([int(m in s["mods"]) for m in MODS])
-Xb, yb, Xt, yt, ym = map(np.array, (Xb, yb, Xt, yt, ym))
+    add_item(lambda t, ci=ci: HX[row_of[(ci, t)]], it["gold_labels"], [s["type"] for s in it["segments"]], [s["mods"] for s in it["segments"]])
+AUG = [a for a in os.environ.get("AUG", "").split(",") if a]      # polite,nominal — 증강 세트를 head 학습에 추가
+TI = {o["i"]: o for o in B.T}
+for name in AUG:
+    A = json.load(open(os.path.join(EXP, "type", f"aug_{name}.json")))
+    Z = np.load(os.path.join(EXP, "type", "aug_states.npz" if name == "nominal" else f"aug_{name}_states.npz")); ZX = Z["X"]; zrow = {(c, t): i for i, (c, t) in enumerate(map(tuple, Z["idx"]))}
+    for ai, x in enumerate(A):
+        mods = x.get("mods") or [s["mods"] for s in TI[x["src"]]["segments"]]
+        if len(mods) != len(x["types"]): continue
+        add_item(lambda t, ai=ai: ZX[zrow[(ai, t)]].astype(np.float32), x["labels"], x["types"], mods)
+    print("증강", name, len(A))
+Xb, yb, Xt, yt, ym = map(np.array, (Xb, yb, Xt, yt, ym)); print("경계 학습 행", len(Xb), "절", len(Xt))
 scb = StandardScaler().fit(Xb); clf_b = LogisticRegression(max_iter=2000, C=1.0).fit(scb.transform(Xb), yb)
 sct = StandardScaler().fit(Xt); pca = PCA(256, random_state=0).fit(sct.transform(Xt)); ft = lambda A: pca.transform(sct.transform(A))
 clf_t = LogisticRegression(max_iter=1000, C=0.5).fit(ft(Xt), yt)
@@ -153,7 +164,7 @@ for key, text, o in items:
     r, ir = evaluate(o, o2, B.gold_of(o)); grp = "orig" if key == "orig" else "para"; res[grp][r] += 1
     out.append({"grp": grp, "i": o["i"], "text": text, "segs": segs, "result": r, "ir": ir})
     if grp == "para" and r != "OK": fails.append((r, text, " ‖ ".join(f"[{s['type']}{'/'+'+'.join(s['mods']) if s['mods'] else ''}] {s['text']}" for s in segs)))
-json.dump(out, open(os.path.join(HERE, "fresh_out.json"), "w"), ensure_ascii=False, indent=1)
+json.dump(out, open(os.path.join(HERE, f"fresh_out{'_' + '_'.join(AUG) if AUG else ''}.json"), "w"), ensure_ascii=False, indent=1)
 def cum(c):
     n = sum(c.values()); okS = n - c["S"]; okT = okS - c["T"]; okC = okT - c["C"]; okV = okC - c["V"]; okA = okV - c["A"]
     return f"n={n}  S {okS/n:.3f}  S+T {okT/n:.3f}  S+T+C {okC/n:.3f}  S+T+C+V {okV/n:.3f}  완전 {okA/n:.3f}"

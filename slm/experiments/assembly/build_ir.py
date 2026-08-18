@@ -76,7 +76,7 @@ def cond_expr(cmd, j, text):
     e = _cond_expr(cmd, j, text)
     if " and " in e or " or " in e or not rerank.ON: return e
     if re.search(r"(과|와|랑|및) .*(모두|둘 다|전부)", text): return f"{e} and {e}"          # "거실과 침실 모두 X" = 같은 조건 두 기기
-    if re.search(r"(이나|나|또는) .*(한 곳이라도|하나라도|중 )", text): return f"{e} or {e}"
+    if re.search(r"(이나|나|또는) .*(한 곳이라도|하나라도|중 )", text) or re.search(r"\S+(이나|거나) \S+(이|가|은|는)? ?(열|닫|켜|꺼|잠)", text): return f"{e} or {e}"
     return e
 def _cond_expr(cmd, j, text):
     """조건 절 → '속성 op 값' 문자열. 절 안에 접속어미로 묶인 복합 조건이면 부분별로 값 서비스를 배정해 and/or 결합.
@@ -167,10 +167,10 @@ def call_node(cmd, j, text, force=None, hint=None):
             v = slots.enum_arg(text, members_of(cat, a.get("format")))
             if v: args[aid] = v
         elif at in ("DOUBLE", "INT", "INTEGER", "FLOAT", "LONG"):
-            st = re.search(r"(\d+)\s*(도|%)?\s*씩\s*(높여|올려|키워|낮춰|내려|줄여)", text); lim = re.search(r"(최대|최소)\s*(\d+)", text)
+            st = re.search(r"(\d+)\s*(도|%)?\s*(씩|만큼|단위씩|단위로)\s*(높여|올려|키워|낮춰|내려|줄여|늘려|늘리|올리|증가|줄이|감소|밝게|어둡게|키우|낮추|내리|높이)", text); lim = re.search(r"(최대|최소|최저|최고)\s*(\d+)", text)
             if re.search(r"최대 밝기", text) and st: lim = re.match(r"(최대)\s*(100)", "최대 100")
             if st and rerank.ON and aid in STEP_ATTR:            # A11: "10씩 높여줘. 최대 100까지" → min($Light.CurrentBrightness + 10, 100)
-                up = st.group(3) in ("높여", "올려", "키워"); n_ = st.group(1); attr = STEP_ATTR[aid]
+                up = st.group(4) in ("높여", "올려", "키워", "늘려", "늘리", "올리", "증가", "밝게", "키우", "높이"); n_ = st.group(1); attr = STEP_ATTR[aid]
                 if lim: args[aid] = f"{'min' if up else 'max'}(${attr} {'+' if up else '-'} {n_}, {lim.group(2)})"
                 else: args[aid] = f"${attr} {'+' if up else '-'} {n_}"
                 continue
