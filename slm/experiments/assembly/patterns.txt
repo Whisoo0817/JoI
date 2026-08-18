@@ -1,0 +1,200 @@
+타입열 종류 57 / 뼈대 종류 58
+
+[47] ACT
+    47  SA CALL    | 식기세척기를 건조 모드로 설정해줘.
+
+[42] TRIG ACT  ← 뼈대 5종
+    33  SA WAIT:none CALL    | 멀티버튼의 버튼1이 눌리면 침실 조명을 모두 켜줘.
+     6  SA IF[CALL]    | 1층의 재실 센서 중 하나라도 감지되면 1층의 모든 조명을 켜줘.
+     1  SA CYC:p[WAIT:rising CALL]    | 복도에 재실 센서가 하나라도 감지되면 모든 복도 조명을 보라색으로 설정해줘.
+     1  SA WAIT:none CALL CALL    | 멀티버튼의 버튼4가 눌리면 모든 조명을 야간 모드(밝기 10%)로 설정해줘.
+     1  SA IF[CALL CALL]    | 서버실 온도가 35도를 초과하면, 서버실 에어컨을 냉방 모드로 18도로 설정해줘.
+
+[36] COND ACT  ← 뼈대 3종
+    34  SA IF[CALL]    | 클라우드 서비스가 활성화되어있으면, test.png 파일을 클라우드에 업로드해줘.
+     1  SA READ IF[CALL]    | 펌프가 노말 모드이면 맥시멈 모드로 설정해줘.
+     1  SA READ READ IF[CALL]    | 거실과 침실 온도가 모두 25도 이상이면 거실 선풍기 플러그를 켜줘.
+
+[27] TRIG/every ACT  ← 뼈대 2종
+    26  SA CYC:p[WAIT:rising CALL]    | 멀티버튼의 버튼1이 눌릴 때마다 복도 조명 밝기를 10씩 높여줘. 최대 100까지.
+     1  SA CYC:p[WAIT:rising CALL CALL]    | 비가 올때마다, 모든 창문과 문을 닫아줘
+
+[25] COND ACT ACT
+    25  SA IF[CALL CALL]    | 거실에 사람이 있고 주방에서 연기가 감지되고 있으면, 거실 스피커로 주방에 연기가 감지되었다고 출력하고 주방 밸브를 잠궈줘.
+
+[17] ACT/time  ← 뼈대 3종
+    13  SA:cron CALL    | 오후 6시에 벽에 있는 홀수 태그가 붙은 블라인드 높이를 모두 50%로 조절해줘.
+     3  SA:cron CYC:pu[CALL]    | 주말 오후에 30분마다 로봇청소기를 자동모드로 작동시켜줘.
+     1  SA CYC:p[CALL]    | 1시간마다 스피커 볼륨을 10씩 올려줘.
+
+[17] ACT DELAY ACT
+    17  SA CALL DELAY CALL    | TV 채널을 7번으로 바꾸고 1시간 뒤에 11번으로 바꿔줘.
+
+[17] COND/sustain ACT
+    17  SA WAIT:none:for CALL    | 거실에 30초 이상 사람이 감지되지 않으면 거실 멀티탭 플러그를 꺼줘.
+
+[10] TIME/read,time COND ACT  ← 뼈대 4종
+     4  SA CYC:p[IF[CALL]]    | 10분마다 확인해서 온도가 30도 이상이면 에어컨을 쿨모드로 설정해줘.
+     4  SA:cron CYC:pu[IF[CALL]]    | 저녁 7시부터 10시까지 30분마다 로봇청소기를 체크해서 멈춰있으면 자동 모드로 실행시켜줘.
+     1  SA:cron IF[CALL]    | 주말 오후 3시에 누수를 체크해서 감지되면 긴급 사이렌을 울려줘.
+     1  SA CYC:p[CALL IF[CALL]]    | 섹터1의 모든 도어락을 1시간마다 확인해서, 하나라도 열려 있으면 해당 섹터의 모든 조명을 빨간색으로 바꿔줘.
+
+[10] ACT/read  ← 뼈대 2종
+     9  SA READ CALL    | 실내 온도를 스피커로 알려줘.
+     1  SA CALL CALL    | 오늘의 301동 점심 메뉴를 스피커로 알려줘.
+
+[9] ACT/repeat,time  ← 뼈대 3종
+     7  SA CYC:pc[IF[CALL]{CALL}]    | 1시간마다 문을 열었다 닫았다 반복해줘.
+     1  SA:cron CYC:pu[CALL CALL]    | 오후 1시부터 3시까지 5분마다 벨브를 열었다 닫았다 반복해줘.
+     1  SA CYC:pu[CALL DELAY CALL]    | 지금부터 오후 3시까지 10분마다 긴급 사이렌을 5초간 울렸다 꺼줘.
+
+[9] TRIG DELAY ACT
+     9  SA WAIT:none DELAY CALL    | 멀티버튼의 버튼3이 눌리면 1시간 후에 모든 조명을 꺼줘.
+
+[9] TRIG ACT/time  ← 뼈대 2종
+     8  SA WAIT:none CYC:p[CALL]    | 문이 열리면 이후에 1분마다 스피커로 "어서오세요"를 출력해줘.
+     1  SA WAIT:none CYC:p[CALL DELAY CALL]    | 연기가 감지되면, 그 이후로 1분마다 긴급 사이렌을 5초간 울려줘.
+
+[8] COND/time ACT COND/else ACT
+     8  SA CYC:p[IF[CALL]{IF[CALL]}]    | 1초마다 거실 온도가 28도 이상이면 에어컨 플러그를 켜고, 그렇지 않고 25도 이하이면 꺼줘.
+
+[7] READ/read READ/delay,read COND ACT
+     7  SA READ DELAY IF[CALL]    | 지금 거실 온도를 확인하고 1시간 뒤 다시 확인해서 2도 이상 떨어졌으면 거실 히터 플러그를 켜줘.
+
+[5] COND COND ACT ACT
+     5  SA IF[CALL CALL]    | 비가 오고 아무도 없는 상태면, 도어락을 잠그고 밸브를 차단해줘.
+
+[5] TIME/read,time COND ACT COND ACT  ← 뼈대 4종
+     2  SA CYC:p[IF[CALL]{IF[CALL]}]    | 30분마다 체크해서 온도가 20도 이상, 30도 미만이면 에어컨을 자동모드로 설정하고, 30도 이상이면 쿨모드로 설정해줘.
+     1  SA CYC:p[READ IF[CALL]{IF[CALL]}]    | 30분마다 체크해서 온도가 30도 이상이면 목표 온도를 25도로 설정하고, 23도 미만이면 26도로 설정해줘.
+     1  SA:cron CYC:pu[IF[CALL]{CALL}]    | 주말에 5초마다 체크해서 펌프가 꺼져 있으면 켜고, 켜져 있으면 꺼줘.
+     1  SA CYC:p[READ IF[CALL CALL]{CALL}]    | 15분마다 온도를 측정해서 25도 이상이면 에어컨을 냉방 모드로 켜고, 25도 미만이면 꺼줘.
+
+[5] ACT/count,time
+     5  SA CYC:puc[CALL]    | 5분마다 회의실 카메라로 사진을 찍어줘. 총 10번만.
+
+[5] COND/sustain ACT DELAY ACT
+     5  SA WAIT:none:for CALL DELAY CALL    | 거실에 10분 이상 동작이 없으면 거실 조명을 30%로 낮추고, 5분 뒤에 꺼줘.
+
+[5] COND/sustain ACT/count,time
+     5  SA WAIT:none:for CYC:puc[CALL]    | 현관문이 1분 이상 열려 있으면 30초마다 스피커로 "문을 닫아주세요"라고 최대 3번 알려줘.
+
+[5] TIME/read,time COND ACT ACT/else STOP/count
+     5  SA CYC:puc[READ IF[CALL]{CALL}]    | 5분마다 거실 온도를 확인해서 28도 이상이면 에어컨을 냉방으로, 아니면 자동으로 설정하고, 6번 후 멈춰줘.
+
+[4] COND/time ACT  ← 뼈대 2종
+     3  SA:cron IF[CALL]    | 월요일 아침 8시마다 금고와 도어락이 모두 잠겨있으면 스피커로 "안전합니다"라고 말해줘.
+     1  SA:cron CYC:pu[IF[CALL]]    | 밤 10시부터 11시까지 움직임이 한번도 감지되지 않았으면, 모든 도어락을 잠궈줘.
+
+[4] COND COND ACT  ← 뼈대 2종
+     3  SA IF[CALL]    | 거실 온도가 28도 이상이거나 침실 온도가 30도 이상이면 거실 에어컨을 켜줘.
+     1  SA READ READ IF[CALL]    | 거실 습도가 30% 이하이거나 침실 습도가 30% 이하이면 거실 가습기 플러그를 켜줘.
+
+[3] ACT ACT  ← 뼈대 2종
+     2  SA CALL CALL    | 클라우드로 고양이 사진을 생성하고 "cat.png"로 저장해줘.
+     1  SA CALL    | 회의실 녹음기로 10초 동안 녹음해서 test.wav로 저장해줘.
+
+[3] ACT/read,time  ← 뼈대 2종
+     2  SA:cron CALL CALL    | 정오마다 301동 식당의 점심 메뉴를 스피커로 말해줘.
+     1  SA:cron READ CALL    | 월요일과 수요일 오전 6시에 날씨 정보를 스피커로 알려줘.
+
+[3] TRIG/time ACT  ← 뼈대 2종
+     2  SA:cron IF[CALL]    | 밤 10시에 거실에 사람이 감지되면, 모든 불을 켜줘.
+     1  SA:cron CYC:pu[IF[CALL]]    | 오후 6시부터 8시까지 1층에 사람이 감지되면 1층 불을 다 켜줘.
+
+[3] TRIG ACT ACT/time
+     3  SA WAIT:none CALL CYC:p[CALL]    | 누수가 감지되면 즉시 밸브를 잠그고, 그 이후로 1분마다 스피커로 "누수가 감지되었습니다. 대피하세요"라고 출력해줘.
+
+[3] COND ACT ACT/else  ← 뼈대 2종
+     2  SA IF[CALL]{CALL}    | 거실 온도가 26도 이상이면 거실 에어컨 플러그를 켜고, 아니면 꺼줘.
+     1  SA READ IF[CALL]{CALL}    | 침실 조도가 100lux 이하면 침실 스탠드 플러그를 켜고, 아니면 꺼줘.
+
+[3] ACT/count,repeat,time STOP
+     3  SA CYC:puc[CALL]    | 30초마다 거실 라이트를 켜줘. 4번만 반복하고 멈춰.
+
+[2] TRIG ACT DELAY ACT
+     2  SA WAIT:none CALL DELAY CALL    | 멀티버튼의 버튼1이 눌리면 현관 조명을 켜고 5분 후에 꺼줘.
+
+[2] TRIG TRIG ACT
+     2  SA IF[CALL]    | 멀티버튼의 버튼1이 눌리고 침실에 동작이 감지되면 침실 조명을 최대 밝기로 켜줘.
+
+[2] TIME/time ACT
+     2  SA:cron CALL    | 새해가 되면 로봇팔로 인사해줘.
+
+[2] TRIG/every ACT DELAY ACT
+     2  SA CYC:p[WAIT:rising CALL DELAY CALL]    | 입구에 움직임이 감지될 때마다 입구 조명을 최대밝기로 켰다가 3초 뒤에 꺼줘.
+
+[2] COND COND/mixed ACT/else  ← 뼈대 2종
+     1  SA READ IF[CALL]{IF[CALL]{CALL}}    | 거실 조도가 200lux 이하면 거실 등을 100% 밝기로, 500lux 이상이면 30%로, 그 외에는 60%로 설정해줘.
+     1  SA IF[CALL]{IF[CALL]{CALL}}    | 침실 조도가 100lux 이하면 침실 등을 100% 밝기로, 300lux 이하면 50%로, 그 외에는 20%로 설정해줘.
+
+[2] ACT/count,repeat,time
+     2  SA CYC:puc[CALL]    | 3분마다 차고 문을 열어줘. 3번만 반복.
+
+[1] TRIG/every ACT ACT/repeat
+     1  SA CYC:p[WAIT:rising CALL DELAY CALL]    | 멀티버튼의 버튼3이 눌릴 때마다 주방 조명을 켜고 끄는 것을 반복해줘.
+
+[1] TRIG COND ACT ELSE ACT
+     1  SA WAIT:none IF[CALL]{CALL}    | 멀티버튼의 버튼1이 눌리면 침실 조명 밝기가 80 이상이면 10으로, 그렇지 않으면 80으로 설정해줘.
+
+[1] TRIG/count ACT
+     1  SA WAIT:none CALL    | 버튼이 세번 눌리면 벨브를 열어줘.
+
+[1] TRIG/every ACT/repeat
+     1  SA CYC:pc[WAIT:rising IF[CALL]{IF[CALL]{CALL}}]    | 멀티버튼의 버튼4가 눌릴 때마다 거실 조명 밝기를 25→50→75 순서로 반복 변경해줘.
+
+[1] TRIG COND ACT
+     1  SA IF[CALL]    | 멀티버튼의 버튼2가 눌리고 거실 조도가 50 미만이면 거실 조명을 모두 켜줘.
+
+[1] TRIG ACT DELAY READ/read COND ACT
+     1  SA WAIT:none CALL DELAY IF[CALL]    | 비가 오면 문을 닫고 1시간 뒤에 체크해서 비가 안오면 문을 다시 열어줘.
+
+[1] COND ACT DELAY ACT
+     1  SA IF[CALL DELAY CALL]    | 외부 미세먼지 농도가 2000 이상이면 문을 닫고 4시간 뒤에 밸브를 잠궈줘.
+
+[1] COND/time COND ACT
+     1  SA:cron IF[CALL]    | 오후 11시에 금고가 열려있거나 도어락이 열려있으면, 스피커로 "금고와 도어락을 확인하세요"라고 말해줘.
+
+[1] TIME/read,time COND ACT COND ACT ACT
+     1  SA CYC:p[IF[CALL]{IF[CALL CALL]}]    | 10분마다 습도를 체크해서 50 이상이면 가습기를 끄고 20 이하면 가습기를 켜고 자동모드로 설정해줘.
+
+[1] COND/time ACT DELAY COND ACT
+     1  SA:cron IF[CALL] DELAY IF[CALL]    | 밤 7시에 1층에 사람이 없으면 1층 불을 다 꺼주고, 1시간 뒤에 2층에 사람이 없으면 2층 불을 다 꺼줘.
+
+[1] ACT/time DELAY ACT
+     1  SA:cron CALL DELAY CALL    | 매일 아침 8시에 홀수 태그 블라인드를 다 열어주고, 1시간 뒤에 짝수 태그 블라인드를 다 열어줘.
+
+[1] TIME/read,time COND ACT ACT
+     1  SA:cron CYC:pu[IF[CALL CALL]]    | 주말 동안 공장의 모든 펌프를 30분마다 확인해서, 켜진 펌프가 하나라도 있으면 모두 꺼주고 "test@example.com"에게 "위험" 제목으로 "펌프가 켜졌습니다"라는 내용의 메일 보내줘.
+
+[1] ACT/time COND ACT
+     1  SA:cron CALL IF[CALL]    | 매일 아침 8시에 스피커로 '일어나세요'라고 말해 줘. 그리고 창문이 닫혀있으면 열어줘.
+
+[1] ACT/time ACT
+     1  SA:cron CALL CALL    | 오전 8시에 고효율 태그가 붙은 공기청정기를 켜고 자동모드로 설정해줘.
+
+[1] TRIG/every ACT/mixed STOP
+     1  SA CYC:p[WAIT:rising CALL IF[BREAK]]    | 움직임이 감지될 때마다 조명의 밝기를 10씩 높여줘. 최대 밝기가 되면 그만해.
+
+[1] TRIG TIME/read,time COND ACT
+     1  SA WAIT:none CYC:p[IF[CALL]]    | 현관문이 열리면 그 후부터 5분마다 금고를 체크해서 잠겨있지 않으면 스피커로 금고가 열려있다고 출력해줘.
+
+[1] TIME/time ACT TIME/read,time COND ACT
+     1  SA:cron CALL CYC:pu[IF[CALL]]    | 자정이 되면 문을 닫고, 오전 6시까지 한 시간마다 조명을 체크해서 밝기가 30보다 크면 10으로 낮춰줘.
+
+[1] TRIG/every ACT ACT
+     1  SA CYC:p[WAIT:rising CALL DELAY CALL]    | 도어락이 잠길때마다 입구의 조명을 최대밝기로 10초 유지하다가 꺼줘.
+
+[1] TRIG ACT TIME/read,time COND ACT
+     1  SA WAIT:none CALL CYC:p[READ IF[CALL]]    | 서버 랙 습도가 70%보다 높아지면 연구실 제습기를 제습모드로 설정하고 1시간마다 습도를 다시 체크해서 50% 밑이면 제습기를 꺼줘.
+
+[1] TRIG ACT/repeat,time
+     1  SA WAIT:none CYC:p[CALL DELAY CALL]    | 1층에서 재실센서가 하나라도 감지되면, 그 이후로 1분마다 모든 긴급 사이렌을 3초간 울렸다 꺼줘.
+
+[1] COND/time ACT ACT
+     1  SA:cron IF[CALL CALL]    | 회의실 도어락이 열려있고 야간(오후 10시)이 되면, 회의실 도어락을 잠그고 회의실 조명을 꺼줘.
+
+[1] TRIG ACT ACT/else
+     1  SA IF[CALL]{CALL}    | 거실에 사람이 감지되면 거실 메인 조명을 켜고, 아니면 꺼줘.
+
+타입열 같은데 뼈대 다른 경우: 16

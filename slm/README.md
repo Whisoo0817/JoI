@@ -560,3 +560,40 @@ hub_test에 20케이스 추가(총 45): "toya 기기", "삼성 공기청정 젤 
 - 명사형: 수기 20문에서 재현율 0.19→0.94, 명령 완전일치 0.25→0.90. 합성 규칙 밖 표현("~인 경우", "지속 시", "시마다",
   "및", "후 소등")까지 잡힘 → head가 "시/경우/후" 체언 종결 경계를 일반화해 배움. §18.2의 진단(표지 미학습)이 맞았음.
 - 타입은 증강 전에도 0.96(명사형 절 끝 "시/경우"가 조건임은 표현에 이미 있음) — 부족했던 건 **경계**뿐.
+
+## 20. IR Assembly — 상자 규칙 전수 검증 (2026-08-18, `experiments/assembly/`)
+
+§15의 미완 TODO. **학습 0, 모델 호출 0**: gold 타입·mods 열(+절 텍스트의 어휘 표지, gold 슬롯 플래그) → 상자 규칙 → 뼈대를
+382개 gold IR의 뼈대와 전수 비교. 이후 상류를 예측치로 바꿔 종단 수치.
+
+- `skeleton.py` — gold IR → 뼈대 정규화. 값(cond·args·duration)은 버리고 op·중첩·edge·슬롯 유무만:
+  `SA[:cron] / CALL / READ / WAIT:edge[:for] / IF[then]{else} / CYC:puc[body] / DELAY / BREAK`. 조건 절의 값 읽기(read → if가 그 변수 사용)는 if에 흡수.
+  타입열 57종 ↔ 뼈대 58종. **타입열만으로 뼈대가 안 정해지는 열 12개** → 원인은 (a) 슬롯 유무(cron/period/until/count),
+  (b) 절 내부 실현("열었다 닫았다"=IF/else 토글, "5초간 울려줘"=CALL DELAY CALL), (c) gold 표기 흔들림(같은 "감지되면"이 wait/if 혼용 6:33).
+- `box.py` — 상자 기계. §15 규칙에 실측으로 보강한 것: TRIG는 기본 WAIT:none이나 **접속어미(-고/-거나/-는데)면 다음 조건과 병합해 IF**,
+  **시각(cron)·시간창 아래의 TRIG는 IF**(그 시점에 점검), **뒤에 else가 붙는 TRIG는 IF**(wait엔 else 없음); COND가 내용 있는 IF 바로 뒤면 else-if,
+  사이에 DELAY가 있으면 IF를 닫고 형제; COND/sustain=WAIT:for; TRIG/every=CYC[WAIT:rising …]; READ 뒤가 COND면 생략(조건의 값 읽기), READ/delay=DELAY;
+  STOP은 count면 cycle 플래그, 조건 달리면 IF[BREAK]; 절 내부 템플릿 toggle/pulse는 어휘 표지 regex(head mod 후보).
+  주기/시간창 표지("N분마다", "N시까지")는 mods head 대신 **어휘 표지로 직접**(슬롯 추출이 어차피 잡는 정보; `SLOT=0`이면 mods 의존).
+- 관대 동치 2개(둘 다 조립 밖의 문제): CALL/READ 잎 다중도(1절→2 call은 매핑 몫), 최상위 WAIT:none X ≡ IF[X](gold 혼용).
+
+| 상류 조건 | 뼈대 완전일치 | 관대 일치 | 실패 원인 |
+|---|---|---|---|
+| G/G gold 경계 + gold 타입·mods | **355/380 = 0.934** | **0.968** | 규칙 12 |
+| G/P gold 경계 + OOF 예측 타입·mods | 343/380 = 0.903 | 0.950 | 규칙 7 + 타입/mods 12 |
+| P/P 예측 경계 + 예측 타입·mods (텍스트만 입력) | 335/380 = 0.882 | 0.934 | 규칙 7 + 타입/mods 12 + 경계 6 |
+
+G/G 잔여 12 = gold 노이즈 5("2시간마다"가 cron에 접힘 2, 토글이 CALL CALL 1, "감지되면"이 every 1, "확인해서"가 CALL 1)
++ 보완조건 축약 2("꺼져 있으면 켜고, 켜져 있으면 꺼줘" → gold는 else-if 대신 else; 의미 동치)
++ 절 내부 템플릿 2("켜고 끄는 것 반복"에 DELAY 삽입, "25→50→75 순환")
++ 분할 라벨의 혼합 절 3(COND/mixed·ACT/mixed — 절 하나에 조건+행동이 붙은 라벨, 재분할 대상).
+→ **진짜 "관계 판단"이 필요한 실패는 0.** 20패턴 가설 성립.
+
+상류 오류(P/P) 12+6: TRIG↔COND 혼동 4("회전 속도가 0이 되면", "비가 오면 … 체크해서"), mods 놓침 6(sustain 2, every 1, repeat 2, mixed 1),
+ELSE→COND 1("그렇지 않으면"), 경계 6(예: "열고 5분 뒤에" 첫 경계 못 잡음). 조립 규칙이 아니라 head 재현율 문제.
+
+**스트리밍 함의**: 절 하나 lookahead가 필요한 지점은 3종뿐 — TRIG 뒤 else(wait→if 전환) 1건, DELAY 뒤 새 조건(DELAY를 부모로) 1건,
+READ 뒤 COND(생략) 1건 = 382개 중 3개. 나머지는 현재 절까지의 정보로 결정. 접속어미 병합은 현재 절 어미만으로 결정(lookahead 0).
+
+**결론**: 조립은 규칙으로 충분(학습형 조립기 불필요). 남은 일감은 조립이 아니라 (1) mods/타입 head 재현율(sustain·repeat·every·mixed),
+(2) 혼합 절 재분할, (3) 슬롯 추출(cron/period/until/count 값 — 지금은 gold 플래그), (4) REF/DROP: 데이터에 0건이라 별도 challenge set + pointer 판단(codex 판정: REF는 타입이 아니라 관계).
