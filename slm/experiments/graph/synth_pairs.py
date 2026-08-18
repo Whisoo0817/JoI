@@ -63,11 +63,12 @@ def base_items():
         if assemble(segs, cron, cyc) != skeleton(o["ir_gt"]): continue
         L = tree_to_lines(assemble_tree(segs, cron, cyc), segs)
         parent, role, ex = lines_to_graph(L, segs)
-        out.append(dict(src=o["i"], kind="normal", segs=[s[2] for s in segs], types=[s[0] for s in segs], parent=parent, role=role, anchor={}, exec=ex, lines=L))
+        out.append(dict(src=o["i"], kind="normal", segs=[s[2] for s in segs], types=[s[0] for s in segs], mods=[s[1] for s in segs], parent=parent, role=role, anchor={}, exec=ex, lines=L))
     return out
 
-def mk(src, kind, segs, types, parent, role, anchor, ex):
-    return dict(src=src, kind=kind, segs=segs, types=types, parent=parent, role=role, anchor={str(k): v for k, v in anchor.items()}, exec=ex, cmd=" ".join(segs))
+def mk(src, kind, segs, types, parent, role, anchor, ex, mods=None):
+    mods = mods if mods is not None else [[] for _ in segs]
+    return dict(src=src, kind=kind, segs=segs, types=types, mods=mods, parent=parent, role=role, anchor={str(k): v for k, v in anchor.items()}, exec=ex, cmd=" ".join(segs))
 
 def synth_post(it):
     # 조건 절이 첫 절이고 나머지가 그 자식 잎들뿐
@@ -75,8 +76,8 @@ def synth_post(it):
     if any(p != 0 for p in it["parent"][1:]) or any(r not in ("act", "delay") for r in it["role"][1:]): return None
     cond = it["segs"][0].rstrip(".,") + "."; acts = list(it["segs"][1:]); acts[-1] = acts[-1].rstrip(".") + ","
     segs = acts + [cond]; n = len(segs)
-    parent = [n - 1] * (n - 1) + [-1]; role = it["role"][1:] + ["scope"]; types = it["types"][1:] + ["COND"]
-    return mk(it["src"], "post", segs, types, parent, role, {}, list(range(n - 1)))
+    parent = [n - 1] * (n - 1) + [-1]; role = it["role"][1:] + ["scope"]; types = it["types"][1:] + ["COND"]; mods = it["mods"][1:] + [it["mods"][0]]
+    return mk(it["src"], "post", segs, types, parent, role, {}, list(range(n - 1)), mods)
 
 def _last_act(it):
     """앵커 = 최상위 행동 절 중 무작위(직전 절 편향 제거). 명사화 가능한 것만."""
@@ -89,13 +90,13 @@ def synth_after(it, pool):
     ref = nominal(it["segs"][c], CONJ)
     if not ref: return None
     ref += " 나서"
-    segs = list(it["segs"]) + [ref]; types = it["types"] + ["ACT"]; parent = it["parent"] + [-1]; role = it["role"] + ["ref"]
+    segs = list(it["segs"]) + [ref]; types = it["types"] + ["ACT"]; parent = it["parent"] + [-1]; role = it["role"] + ["ref"]; mods = it["mods"] + [[]]
     anchor = {len(segs) - 1: [c, "after"]}; ex = list(it["exec"]); ins = []
     if random.random() < 0.6:
-        segs.append(random.choice(DELAYS)); types.append("DELAY"); parent.append(-1); role.append("delay"); ins.append(len(segs) - 1)
-    segs.append(random.choice(pool)); types.append("ACT"); parent.append(-1); role.append("act"); ins.append(len(segs) - 1)
+        segs.append(random.choice(DELAYS)); types.append("DELAY"); parent.append(-1); role.append("delay"); ins.append(len(segs) - 1); mods.append([])
+    segs.append(random.choice(pool)); types.append("ACT"); parent.append(-1); role.append("act"); ins.append(len(segs) - 1); mods.append([])
     k = ex.index(c) + 1; ex[k:k] = ins                     # 앵커 바로 뒤에 삽입
-    return mk(it["src"], "after", segs, types, parent, role, anchor, ex)
+    return mk(it["src"], "after", segs, types, parent, role, anchor, ex, mods)
 
 def synth_before(it, pool):
     c = _last_act(it)
@@ -103,11 +104,11 @@ def synth_before(it, pool):
     ref = nominal(it["segs"][c], NOMIN)
     if not ref: return None
     ref += " 전에"
-    segs = list(it["segs"]) + [ref]; types = it["types"] + ["ACT"]; parent = it["parent"] + [-1]; role = it["role"] + ["ref"]
+    segs = list(it["segs"]) + [ref]; types = it["types"] + ["ACT"]; parent = it["parent"] + [-1]; role = it["role"] + ["ref"]; mods = it["mods"] + [[]]
     anchor = {len(segs) - 1: [c, "before"]}
-    segs.append(random.choice(pool)); types.append("ACT"); parent.append(-1); role.append("act")
+    segs.append(random.choice(pool)); types.append("ACT"); parent.append(-1); role.append("act"); mods.append([])
     d = len(segs) - 1; ex = list(it["exec"]); ex.insert(ex.index(c), d)          # D를 C 앞에
-    return mk(it["src"], "before", segs, types, parent, role, anchor, ex)
+    return mk(it["src"], "before", segs, types, parent, role, anchor, ex, mods)
 
 def synth_before0(it):
     # 형태 "A하고 B해줘" (ACT ACT, 최상위) → "B하기 전에 A해줘"
@@ -144,24 +145,24 @@ def synth_event(pool):
 def synth_filler(it):
     kind = random.choice(["pre", "post", "mid", "both"])
     if kind == "mid" and len(it["segs"]) < 2: kind = "pre"
-    segs = list(it["segs"]); types = list(it["types"]); parent = list(it["parent"]); role = list(it["role"]); ex = list(it["exec"])
+    segs = list(it["segs"]); types = list(it["types"]); parent = list(it["parent"]); role = list(it["role"]); ex = list(it["exec"]); mods = list(it["mods"])
     def shift(k):
         nonlocal parent, ex
         parent = [p + 1 if p >= k else p for p in parent]; ex = [e + 1 if e >= k else e for e in ex]
     if kind in ("pre", "both"):
-        segs.insert(0, random.choice(FILL_PRE)); types.insert(0, "ACT"); shift(0); parent.insert(0, -1); role.insert(0, "filler")
+        segs.insert(0, random.choice(FILL_PRE)); types.insert(0, "ACT"); shift(0); parent.insert(0, -1); role.insert(0, "filler"); mods.insert(0, [])
     if kind == "mid" and len(segs) >= 2:
-        pos = random.randrange(1, len(segs)); segs.insert(pos, random.choice(FILL_MID)); types.insert(pos, "ACT"); shift(pos); parent.insert(pos, -1); role.insert(pos, "filler")
+        pos = random.randrange(1, len(segs)); segs.insert(pos, random.choice(FILL_MID)); types.insert(pos, "ACT"); shift(pos); parent.insert(pos, -1); role.insert(pos, "filler"); mods.insert(pos, [])
     if kind in ("post", "both"):
-        segs.append(random.choice(FILL_POST)); types.append("ACT"); parent.append(-1); role.append("filler")
-    return mk(it["src"], "filler", segs, types, parent, role, {}, ex)
+        segs.append(random.choice(FILL_POST)); types.append("ACT"); parent.append(-1); role.append("filler"); mods.append([])
+    return mk(it["src"], "filler", segs, types, parent, role, {}, ex, mods)
 
 if __name__ == "__main__":
     base = base_items()
     pool = [it["segs"][0] for it in base if len(it["segs"]) == 1 and it["types"] == ["ACT"] and not re.search(r"\d+\s*시|마다|매일|주말|오전|오후|정오|자정", it["segs"][0])]
     out = []
     for it in base:
-        out.append(mk(it["src"], "normal", it["segs"], it["types"], it["parent"], it["role"], {}, it["exec"]))
+        out.append(mk(it["src"], "normal", it["segs"], it["types"], it["parent"], it["role"], {}, it["exec"], it["mods"]))
         for f in (synth_post, lambda x: synth_after(x, pool), lambda x: synth_before(x, pool), synth_before0, synth_filler):
             r = f(it)
             if r: out.append(r)
