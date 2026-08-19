@@ -4,6 +4,9 @@
   2. chat(messages, ...) : 채팅 생성 (lowering · 이름 짓기)
   3. choice(prompt, letters): 1토큰 객관식 로그확률 (joi_slm 저확신 게이트)
 
+엔진 서버(engine_server.py)를 띄워 두고 `JOI_ENGINE_URL` 을 주면 `get_engine()` 이 대신 RemoteEngine(프록시)을
+돌려준다 — 같은 세 메서드라 호출부는 그대로. 환경변수가 없으면 지금처럼 이 프로세스에 직접 적재한다.
+
 모델은 `LLM_MODEL`(기본 cyankiwi/Qwen3.5-2B-AWQ-4bit) 하나. 프로세스당 한 번 적재(`get_engine()`),
 호출은 잠금으로 직렬화한다(hook 이 잡는 상태가 그 호출의 것이도록). prefix caching 은 켜 두되(긴 lowering
 프롬프트 재사용), 은닉 상태 요청만 요청별 cache_salt 로 캐시를 비켜 간다 — 캐시된 앞부분은 층 출력이 안 나오므로.
@@ -116,12 +119,55 @@ class Engine:
         return [sc.get(L, -30.0) for L in letters]
 
 
+# ── 배열 운반 (JSON 에 실을 base64 float32) ──
+def to_b64(a) -> str:
+    """np.float32 배열 → base64 문자열."""
+    import base64
+    return base64.b64encode(np.ascontiguousarray(a, np.float32).tobytes()).decode()
+
+
+def from_b64(s: str, shape) -> np.ndarray:
+    """base64 문자열 → np.float32 배열 (shape 로 복원)."""
+    import base64
+    return np.frombuffer(base64.b64decode(s), np.float32).reshape(shape).copy()
+
+
+class RemoteEngine:
+    """엔진 서버(engine_server.py) 프록시 — Engine 과 같은 세 메서드를 HTTP 로 대신 부른다.
+    반환 모양은 Engine 과 동일해서 호출부는 로컬/원격을 구분하지 않는다."""
+
+    def __init__(self, url: str):
+        import requests
+        self.url = url.rstrip("/")
+        self.http = requests.Session()
+
+    def _post(self, path, body, timeout=600):
+        r = self.http.post(self.url + path, json=body, timeout=timeout)
+        r.raise_for_status()
+        return r.json()
+
+    def word_states(self, text: str):
+        o = self._post("/word_states", {"text": text})
+        return o["words"], from_b64(o["states"], o["shape"])
+
+    def chat(self, messages, *, max_tokens=512, temperature=0.1, enable_thinking=False, prefill=None):
+        o = self._post("/chat", {"messages": list(messages), "max_tokens": max_tokens,
+                                 "temperature": temperature, "enable_thinking": enable_thinking,
+                                 "prefill": prefill})
+        return o["text"], o["prompt_tokens"], o["completion_tokens"], o["finish_reason"], o["seconds"]
+
+    def choice(self, prompt: str, letters: str):
+        return self._post("/choice", {"prompt": prompt, "letters": letters})["scores"]
+
+
 _ENGINE = {"e": None}
 _ENGINE_LOCK = threading.Lock()
 
 
-def get_engine() -> Engine:
+def get_engine():
+    """JOI_ENGINE_URL 이 있으면 그 엔진 서버의 프록시, 없으면 이 프로세스에 적재한 Engine."""
     with _ENGINE_LOCK:
         if _ENGINE["e"] is None:
-            _ENGINE["e"] = Engine()
+            url = os.environ.get("JOI_ENGINE_URL")
+            _ENGINE["e"] = RemoteEngine(url) if url else Engine()
         return _ENGINE["e"]

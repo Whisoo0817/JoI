@@ -21,6 +21,27 @@ class WordEncoder:
     def __call__(self, text):
         return self.engine.word_states(text)
 
+class RemoteEmbedder:
+    """엔진 서버(engine_server.py)의 /embed 프록시 — Embedder 와 호출 모양이 같다."""
+    def __init__(self, url):
+        import requests
+        self.url = url.rstrip("/")
+        self.http = requests.Session()
+    def __call__(self, texts, instruct=None, batch=32):
+        from engine import from_b64
+        texts = list(texts)
+        if not texts: return np.zeros((0, 1024), np.float32)
+        r = self.http.post(self.url + "/embed",
+                           json={"texts": texts, "instruct": instruct, "batch": batch}, timeout=600)
+        r.raise_for_status()
+        o = r.json()
+        return from_b64(o["vectors"], o["shape"])
+
+def make_embedder(model_id=None):
+    """JOI_ENGINE_URL 이 있으면 서버 임베딩, 없으면 이 프로세스에 0.6B 적재."""
+    url = os.environ.get("JOI_ENGINE_URL")
+    return RemoteEmbedder(url) if url else Embedder(model_id or EMB_ID)
+
 class Embedder:
     """Qwen3-Embedding-0.6B: 마지막 토큰 풀링 + 정규화. instruct가 있으면 질의 형식."""
     def __init__(self, model_id=EMB_ID):

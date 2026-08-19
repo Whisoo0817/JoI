@@ -1,0 +1,349 @@
+# -*- coding: utf-8 -*-
+"""test.py — 데이터셋 카테고리를 골라 파이프라인 단계별 결과를 본다.
+
+2B 한 대(engine.py)로 절 나누기 → 그래프 정리 → 서비스 후보 → Timeline IR 을 만들고,
+이어서 기기 고르기·수량·셀렉터(바인딩)까지 보여준다. 정답(ir_gt, binding_gt)이 있으면 나란히 댄다.
+
+    ~/temp/bin/python test.py                 # 카테고리 목록
+    ~/temp/bin/python test.py C01             # C01 전부
+    ~/temp/bin/python test.py C01 -n 5        # 앞 5개만
+    ~/temp/bin/python test.py C01 -i 3 7      # 그 카테고리의 index 3, 7 만
+    ~/temp/bin/python test.py C01 --code      # 코드 생성(lowering·이름)까지
+    ~/temp/bin/python test.py C01 --no-gates  # 객관식 게이트 끄고 head 만
+
+엔진 서버(engine_server.py)를 띄워 두고 JOI_ENGINE_URL 을 주면 모델 적재 38초가 사라진다:
+    JOI_ENGINE_URL=http://localhost:49998 ~/temp/bin/python test.py C01
+"""
+import argparse
+import csv
+import json
+import os
+import re
+import sys
+import time
+from collections import Counter, OrderedDict
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+
+DATASET = os.path.join(HERE, "dataset.csv")
+BINDING_CSV = os.path.join(HERE, "slm", "experiments", "map", "dataset_paper.csv")
+
+BAR = "═" * 78
+SUB = "─" * 78
+
+
+# ── 데이터 읽기 ────────────────────────────────────────────────────────────
+def load_rows():
+    """dataset.csv + (명령이 같을 때만) dataset_paper.csv 의 binding_gt 를 붙인다."""
+    rows = list(csv.DictReader(open(DATASET, encoding="utf-8")))
+    binding = {}
+    if os.path.exists(BINDING_CSV):
+        for r in csv.DictReader(open(BINDING_CSV, encoding="utf-8")):
+            binding[(r["category_v2"], r["index"], r["command_kor"].strip())] = r.get("binding_gt", "")
+    for r in rows:
+        r["binding_gt"] = binding.get(
+            (r["category_v2"], r["index"], r["command_kor"].strip()), "")
+    return rows
+
+
+def show_categories(rows):
+    cnt = Counter(r["category_v2"] for r in rows)
+    print(f"■ dataset.csv {len(rows)}행 / 카테고리 {len(cnt)}종\n")
+    for cat in sorted(cnt):
+        sample = next(r["command_kor"] for r in rows if r["category_v2"] == cat)
+        print(f"  {cat}  {cnt[cat]:>3}행   예: {sample[:52]}")
+    print("\n  사용법: ~/temp/bin/python test.py C01 [-n 5] [-i 3 7] [--code]")
+
+
+def jload(s, default=None):
+    try:
+        return json.loads(s) if s else (default if default is not None else {})
+    except Exception:
+        return default if default is not None else {}
+
+
+# ── 보기 좋게 찍기 ─────────────────────────────────────────────────────────
+def show_devices(devs):
+    print(f"연결 기기 {len(devs)}대")
+    for did, info in devs.items():
+        cats = "/".join(info.get("category", []))
+        tags = [t for t in info.get("tags", []) if t != did and t not in info.get("category", [])]
+        nick = info.get("nickname", "")
+        nick = f' "{nick}"' if nick else ""
+        print(f"   · {did}{nick}  [{cats}]" + (f"  태그 {tags}" if tags else ""))
+
+
+def show_segments(segs, title):
+    print(f"\n{title}")
+    for s in segs:
+        mods = s.get("mods")
+        mods = f"  mods={mods}" if mods else ""
+        p = s.get("p")
+        p = f"  p={p:.2f}" if isinstance(p, float) else ""
+        print(f"   {s['j']}. [{s['type']:<5}] {s['text']}{mods}{p}")
+
+
+def show_graph(gd, final_segs, raw_segs):
+    print("\n[2단계] 그래프 정리 (필러 탈락·참조 이동·후치 절 앞으로)")
+    order_before = [s["j"] for s in raw_segs]
+    order_after = [s["j"] for s in final_segs]
+    if gd:
+        role, prob = gd.get("role") or [], gd.get("p") or []
+        if role:
+            print("   절 역할: " + "  ".join(
+                f"{j}={r}" + (f"({prob[j]:.2f})" if j < len(prob) else "")
+                for j, r in enumerate(role)))
+        parent = gd.get("parent") or []
+        deps = [f"{i}←{pj}" for i, pj in enumerate(parent) if pj not in (-1, None)]
+        if deps:
+            print("   딸린 절: " + "  ".join(deps))
+        if gd.get("anchors"):
+            print(f"   참조 절: {gd['anchors']}")
+        if gd.get("drop"):
+            print(f"   버린 절: {sorted(gd['drop'])}")
+        if gd.get("moved"):
+            print(f"   옮긴 절: {gd['moved']}")
+    if order_before != order_after:
+        print(f"   절 순서: {order_before} → {order_after}")
+    elif not (gd and (gd.get("drop") or gd.get("moved"))):
+        print("   (순서·구성 그대로)")
+
+
+def show_mapping(M, segs_by_j):
+    print("\n[3단계] 서비스 후보 (임베딩 매핑, 연결 카테고리로 거름)")
+    if not M.r and not M.p:
+        print("   (후보 없음)")
+    for j in sorted(M.r):
+        cands = M.r[j]
+        text = segs_by_j.get(j, "")
+        top = cands[0] if cands else "(없음)"
+        rest = ", ".join(cands[1:5])
+        print(f"   절{j} \"{text}\"")
+        print(f"       → {top}" + (f"   (다음 후보: {rest})" if rest else ""))
+    for j in sorted(M.p):
+        for item in M.p[j]:
+            top = item["ranked"][0] if item["ranked"] else "(없음)"
+            rest = ", ".join(item["ranked"][1:4])
+            print(f"   절{j} 조건조각 \"{item['part']}\"")
+            print(f"       → {top}" + (f"   (다음 후보: {rest})" if rest else ""))
+
+
+def services_of(ir):
+    return sorted(set(re.findall(r"\b([A-Z][A-Za-z]+\.[A-Za-z0-9]+)", json.dumps(ir, ensure_ascii=False))))
+
+
+def show_ir(ir, title="[4단계] Timeline IR"):
+    print(f"\n{title}")
+    for line in json.dumps(ir, ensure_ascii=False, indent=2).split("\n"):
+        print("   " + line)
+
+
+def gt_devices(binding, cat, used):
+    """binding_gt 에서 cat(또는 cat#2 …) 자리를 순서대로 하나 꺼낸다 → (기기집합, 수량어)."""
+    for k in [cat] + [f"{cat}#{n}" for n in range(2, 6)]:
+        if k in binding and k not in used:
+            used.add(k)
+            v = binding[k]
+            if isinstance(v, dict):
+                q = "any" if "any" in v else ("all" if "all" in v else "")
+                return set(v.get("any") or v.get("all") or []), q
+            return set(v), ""
+    return None, ""
+
+
+def show_binding(selection, binding_gt):
+    print("\n[5단계] 기기 고르기 + 수량 + 셀렉터  (joi/devices.py)")
+    if selection["swaps"]:
+        print("   능력 검사 교체: " + ", ".join(f"{a} → {b}" for a, b in selection["swaps"]))
+    resolved = selection["resolved"]
+    if not resolved:
+        print("   (기기가 붙는 서비스 없음)")
+    used, hit, tot = set(), 0, 0
+    for svc, info in resolved.items():
+        sel = " / ".join(selection["selectors"].get(svc, []))
+        print(f"   {svc}")
+        print(f"       근거 절 : \"{info['text']}\"")
+        print(f"       수량    : {info['q']}")
+        print(f"       기기    : {info['devices']}")
+        print(f"       태그    : {info['tags']}")
+        print(f"       셀렉터  : {sel}")
+        if binding_gt:
+            gt, gq = gt_devices(binding_gt, svc.split(".", 1)[0], used)
+            if gt is not None:
+                tot += 1
+                ok = gt == set(info["devices"])
+                hit += ok
+                mark = "✅" if ok else "❌"
+                extra = ""
+                if gq:
+                    extra = f"   수량 정답={gq} {'✅' if gq == info['q'] else '❌'}"
+                print(f"       정답    : {mark} {sorted(gt)}{extra}")
+    return hit, tot
+
+
+def show_gt(ir, ir_gt):
+    print("\n[정답 대조] ir_gt")
+    if not ir_gt:
+        print("   (정답 없음)")
+        return None, None
+    same = json.dumps(ir, ensure_ascii=False, sort_keys=True) == json.dumps(ir_gt, ensure_ascii=False, sort_keys=True)
+    got, want = services_of(ir), services_of(ir_gt)
+    svc_same = got == want
+    print(f"   IR 완전일치   : {'✅' if same else '❌'}")
+    print(f"   서비스 일치   : {'✅' if svc_same else '❌'}  예측={got}  정답={want}")
+    if not same:
+        for line in json.dumps(ir_gt, ensure_ascii=False, indent=2).split("\n"):
+            print("   │ " + line)
+    return same, svc_same
+
+
+# ── 한 줄(시나리오) 돌리기 ─────────────────────────────────────────────────
+def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
+    devs = jload(row["connected_devices"], {})
+    cmd = row["command_kor"]
+    print(f"\n{BAR}\n▶ {row['category_v2']} #{row['index']}   {cmd}\n{BAR}")
+    show_devices(devs)
+    if row.get("notes"):
+        print(f"메모: {row['notes']}")
+    print(SUB)
+
+    stat = {"ir": None, "svc": None, "dev_hit": 0, "dev_tot": 0, "error": None}
+
+    # ── 1~4단계: 명령 → Timeline IR (2B 단어상태 + head, LLM 생성 없음)
+    t0 = time.perf_counter()
+    try:
+        segs = pipe.seg(cmd.strip())
+    except Exception as e:
+        print(f"⛔ 절 나누기 실패: {type(e).__name__}: {e}")
+        stat["error"] = "seg"
+        return stat
+    t_seg = time.perf_counter() - t0
+    raw_segs = [{k: v for k, v in s.items() if k != "h6"} for s in segs]
+    show_segments(raw_segs, f"[1단계] 절 나누기 ({t_seg:.2f}s)")
+
+    t0 = time.perf_counter()
+    M = pipe.map(segs, devs)
+    t_map = time.perf_counter() - t0
+
+    t0 = time.perf_counter()
+    ir = build(segs, M)
+    t_build = time.perf_counter() - t0
+    final_segs = [{k: v for k, v in s.items() if k != "h6"} for s in build.last["segments"]]
+
+    show_graph(build.last.get("graph"), final_segs, raw_segs)
+    if [s["j"] for s in final_segs] != [s["j"] for s in raw_segs]:
+        show_segments(final_segs, "   정리 후 절 순서")
+    print(f"\n   (매핑 {t_map:.2f}s, 조립 {t_build:.2f}s)")
+    show_mapping(M, {s["j"]: s["text"] for s in raw_segs})
+    show_ir(ir)
+
+    slm_out = {"ir": ir, "segments": final_segs,
+               "mapping": {"ranked": M.r, "parts": M.p}, "graph": build.last.get("graph")}
+
+    # ── 5단계: 기기 고르기 + 수량 + 셀렉터
+    binding_gt = jload(row.get("binding_gt", ""), {})
+    try:
+        selection = build_selectors(ir, devs, slm_out)
+    except MissingDevices as e:
+        print(f"\n[5단계] ⛔ 붙일 기기가 없음: {e}")
+        selection = None
+        stat["error"] = "no_device"
+    if selection:
+        ir = selection["ir"]
+        hit, tot = show_binding(selection, binding_gt)
+        stat["dev_hit"], stat["dev_tot"] = hit, tot
+        if binding_gt and not tot:
+            print("   (정답 자리와 서비스가 안 맞아 기기 대조 못 함)")
+    elif binding_gt:
+        print(f"   바인딩 정답: {json.dumps(binding_gt, ensure_ascii=False)}")
+
+    same, svc_same = show_gt(ir, jload(row.get("ir_gt", ""), None))
+    stat["ir"], stat["svc"] = same, svc_same
+
+    # ── 6단계(선택): 코드 생성
+    if want_code:
+        print("\n[6단계] JoI 코드 (lowering + 이름)")
+        from joi import generate_joi_code
+        try:
+            t0 = time.perf_counter()
+            result = generate_joi_code(cmd, devs, {})
+            code = result.get("code", "")
+            code = code if isinstance(code, str) else json.dumps(code, ensure_ascii=False)
+            for line in code.replace("\\n", "\n").split("\n"):
+                print("   " + line)
+            print(f"   ({time.perf_counter() - t0:.2f}s)")
+        except Exception as e:
+            print(f"   ⛔ {type(e).__name__}: {e}")
+        if row.get("joi_code"):
+            print("\n   ── 정답 코드 ──")
+            for line in row["joi_code"].replace("\\n", "\n").split("\n"):
+                print("   │ " + line)
+    return stat
+
+
+def main():
+    ap = argparse.ArgumentParser(description="카테고리별 시나리오 단계별 실행")
+    ap.add_argument("category", nargs="?", help="카테고리 (예: C01). 빼면 목록만 본다")
+    ap.add_argument("-n", "--num", type=int, default=0, help="앞에서 N개만")
+    ap.add_argument("-i", "--index", nargs="+", default=None, help="그 카테고리 안의 index 만")
+    ap.add_argument("--code", action="store_true", help="코드 생성(lowering·이름)까지")
+    ap.add_argument("--no-gates", action="store_true", help="객관식 게이트 끄고 head 만")
+    ap.add_argument("-v", "--verbose", action="store_true", help="vLLM 적재 로그까지 보기")
+    args = ap.parse_args()
+
+    rows = load_rows()
+    if not args.category:
+        show_categories(rows)
+        return
+
+    cat = args.category.upper()
+    picked = [r for r in rows if r["category_v2"] == cat]
+    if not picked:
+        print(f"카테고리 {cat} 없음.\n")
+        show_categories(rows)
+        return
+    if args.index:
+        want = set(args.index)
+        picked = [r for r in picked if r["index"] in want]
+    if args.num:
+        picked = picked[:args.num]
+    if not picked:
+        print("고른 조건에 맞는 행이 없음.")
+        return
+
+    print(f"■ {cat} {len(picked)}행 — 모델 올리는 중 …")
+    if not args.verbose:
+        os.environ.setdefault("VLLM_LOGGING_LEVEL", "WARNING")
+    if args.no_gates:
+        os.environ["JOI_SLM_GATES"] = "0"
+    from joi.generate import _slm_pipe
+    from joi_slm.builder import build
+    from joi.devices import build_selectors, MissingDevices
+    t0 = time.perf_counter()
+    pipe = _slm_pipe()
+    print(f"■ 준비 완료 ({time.perf_counter() - t0:.1f}s)")
+
+    stats = []
+    for row in picked:
+        stats.append(run_row(row, pipe, build, build_selectors, MissingDevices, args.code))
+
+    ir_ok = sum(1 for s in stats if s["ir"])
+    ir_n = sum(1 for s in stats if s["ir"] is not None)
+    svc_ok = sum(1 for s in stats if s["svc"])
+    dev_hit = sum(s["dev_hit"] for s in stats)
+    dev_tot = sum(s["dev_tot"] for s in stats)
+    err = Counter(s["error"] for s in stats if s["error"])
+    print(f"\n{BAR}\n■ {cat} 요약 — {len(stats)}행")
+    if ir_n:
+        print(f"   IR 완전일치 {ir_ok}/{ir_n}   서비스 일치 {svc_ok}/{ir_n}")
+    if dev_tot:
+        print(f"   기기 일치   {dev_hit}/{dev_tot} 자리 (binding 정답 있는 것만)")
+    if err:
+        print(f"   실패        {dict(err)}")
+    print(BAR)
+
+
+if __name__ == "__main__":
+    main()
