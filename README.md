@@ -8,7 +8,7 @@ This repo covers the **JoI language** and our **code-generation API** only.
 
 ## 📢 Latest Updates
 - **[2026/08/19]** Single-model runtime: the 9B vLLM HTTP server is gone. `engine.py` loads one 2B model in-process (vLLM as a library) and serves word states (layer-2/6 hooks), MCQ gates, lowering and naming. `LLM_MODEL` / `LLM_GPU_MEM` / `LLM_MAX_LEN` configure it.
-- **[2026/08/19]** Command → Timeline IR is now `joi_slm/` (2B word states + linear heads + rules; service mapping by embedding retrieval joined on connected categories). The former LLM device-mapping / IR-extraction stages and their prompts and device rule files were removed. Selectors are a category join (`joi/devices.py`).
+- **[2026/08/19]** Command → Timeline IR is now `joi_slm/` (2B word states + linear heads + rules; service mapping by embedding retrieval joined on connected categories). The former LLM device-mapping / IR-extraction stages and their prompts and device rule files were removed. Device picking (nouns/tags/nicknames), quantifier (all/any), and selectors are a lexical join in `joi/devices.py` (mapping_v2's method moved into the runtime; dataset 0.983 / quantifier 0.996).
 - **[2026/07/14]** Service catalog upgraded to `service_list_ver2.0.7` (added microservice provider skills: `ChatProvider` — AI chat Q&A; `NewsProvider` — news digest; `MessageSender` — SMS/KakaoTalk sending).
 - **[2026/07/14]** Service catalog upgraded to `service_list_ver2.0.6` (added `ArmRobotDetail`: fine-grained arm-robot control — per-axis / absolute-angle moves, home, saved-motion add/get/list/play, speed, parameterized greet/refuse).
 - **[2026/06/23]** Backend switched to `Ornith-1.0-9B` (OpenAI-compatible vLLM endpoint); model id auto-discovered.

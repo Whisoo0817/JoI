@@ -77,8 +77,14 @@ The active pipeline lives in `joi/generate.py` (`generate_joi_code`). It compile
 4.  **Retriever** (Qwen3-Embedding-0.6B): clause → service candidates (catalog docs + corpus examples), joined on the categories of `connected_devices`; condition clauses re-queried per value expression.
 5.  **builder.build** (rules): boxes (structure) + slots (cron/period/until/count/duration/for) + top-1 rerank + argument/condition rules → IR JSON. See `joi_slm/README.md`.
 
-### Stage 2 — Selectors (`joi/devices.py`, Python)
-Each `Category.Method` in the IR is joined to the connected devices by category → `(#Category)`; quantifier `all` for actions / `any` for condition-reads when more than one device, none for a single device. A service with no connected device fails the request (`no_suitable_device`). Which device *within* a category is meant is not yet chosen (TODO).
+### Stage 2 — Device picking + quantifier + selectors (`joi/devices.py`, Python)
+For each `Category.Method` in the IR, the clause text that produced it (traced back through the mapping) picks the devices — mapping_v2's lexical join, moved into the runtime (validated on the 388-command dataset: device slots 0.983, quantifier 0.996; hub nickname cases):
+1. candidates = connected devices with the service's category;
+2. device nouns ("에어컨", "불", "문") matched via category aliases + affordance/fixture tags (a tag set that is a proper subset of the alias set wins; disjoint sets union — "불" = Light ∪ LightSwitch);
+3. qualifiers (place/zone/brand tags via the compiled `tag_ko.json` vocabulary + nickname word matching, jamo-fuzzy for typos; inherited from the whole command when the clause has none);
+4. quantifier: explicit words win (모두→`all`, 하나라도→`any`, 하나만→one), else 1 device→none / condition→`any` (absence conditions on presence/motion sensors→`all`) / action→`all`;
+5. selector = smallest tag combination that selects exactly the chosen set → `all(#거실 #Light)`; an un-taggable single device uses its id tag; a union that no single combination captures is split per noun bucket (`all(#Light) / all(#LightSwitch)`).
+A capability check also fixes power-intent calls whose referent devices lack the service's category ("전등 스위치 6구 3번 켜줘" → `Switch.On`, not `Light.MoveToBrightness`). A service with no connected device fails the request (`no_suitable_device`).
 
 ### Stage 3 — Lowering (`joi_from_ir`)
 Feasibility check, then the Timeline IR + selectors are mechanically lowered to a Joi block `{cron, period, script}`, routed by structural bucket (`noncycle` / `cycle`). Lowering is a lossless 1:1 translation — it adds no control flow not present in the IR.

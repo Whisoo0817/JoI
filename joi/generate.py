@@ -287,15 +287,18 @@ def generate_joi_code_ir(
                    + " | ".join(f"[{s.get('type')}] {s.get('text')}" for s in segments))
     log_buf.append(f"🧱 IR: {json.dumps(ir, ensure_ascii=False)}")
 
-    # ── Stage 2: IR services × connected devices → selectors (Python) ──
+    # ── Stage 2: IR services × connected devices → 기기 고르기 + 수량 + selectors (Python) ──
     try:
-        selection = build_selectors(ir, connected_devices)
+        selection = build_selectors(ir, connected_devices, slm_out)
     except MissingDevices as e:
         log_buf.append(f"⛔ devices: {e}")
         raise JoiGenerationError(f"Cannot fulfill command — {e}", "\n".join(log_buf),
                                  error_code="no_suitable_device")
+    ir = selection["ir"]                                   # 능력 검사가 call 을 고쳤을 수 있음
+    if selection["swaps"]:
+        log_buf.append("🔧 능력 검사: " + ", ".join(f"{a}→{b}" for a, b in selection["swaps"]))
     precision_output = {"selectors": selection["selectors"], "resolved": selection["resolved"],
-                        "reasoning": "category join (joi/devices.py)"}
+                        "reasoning": "명사·태그·닉네임 어휘 조인 + 수량 정책 (joi/devices.py)"}
     selected_services = selection["selected_services"]
     service_details = extract_service_details(selected_services, SERVICE_DATA)
     log_buf.append(f"🎯 selectors: {selection['selectors']}")
