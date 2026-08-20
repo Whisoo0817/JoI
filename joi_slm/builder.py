@@ -149,6 +149,8 @@ def pick_function(M, j, text, avoid=()):
         return sc
     return _choose(cands, [score(k, s_) for k, s_ in enumerate(cands)])
 
+UNIT_SEC = {"seconds": 1, "minutes": 60}                     # 카탈로그 시간 단위 → 초
+KO_SEC = {"초": 1, "분": 60, "시간": 3600}                   # 말한 단위 → 초
 STEP_ATTR = {"Brightness": "Light.CurrentBrightness", "Volume": "Speaker.Volume", "TargetTemperature": "AirConditioner.TargetTemperature", "Temperature": "AirConditioner.TargetTemperature", "Level": "WindowCovering.CurrentPosition"}
 COLOR_XY = {"red": (0.675, 0.322), "blue": (0.167, 0.04), "green": (0.409, 0.518), "white": (0.3127, 0.329), "yellow": (0.444, 0.517), "orange": (0.556, 0.408), "purple": (0.272, 0.109), "pink": (0.38, 0.19)}
 TOGGLE_VERB = {r"열었다|열고 닫|개방": ("열어줘", "닫아줘"), r"올렸다|올리고 내": ("올려줘", "내려줘"), r"잠갔다|잠궜다": ("잠가줘", "열어줘"), r"켰다|켜고 끄": ("켜줘", "꺼줘")}
@@ -184,9 +186,9 @@ def call_node(M, j, text, force=None, avoid=()):
             else:
                 n = slots.number(text)
                 if n is None and aid == "Volume": n = 100 if re.search(r"최대|끝까지", text) else 0 if re.search(r"최소|음소거", text) else None
-                if n is not None and aid == "Duration":                    # Duration은 초: "5분짜리" → 300
-                    mu = re.search(rf"{int(n) if float(n).is_integer() else n}\s*(분|시간)", text)
-                    if mu: n = n * (60 if mu.group(1) == "분" else 3600)
+                if n is not None and a.get("unit") in UNIT_SEC:            # 카탈로그 시간 단위에 맞춰 환산: "1시간"→60(minutes), "5분"→300(seconds)
+                    mu = re.search(rf"{int(n) if float(n).is_integer() else n}\s*(초|분|시간)", text)
+                    if mu: n = n * KO_SEC[mu.group(1)] / UNIT_SEC[a["unit"]]
                 if n is not None: args[aid] = int(n) if at in ("INT", "INTEGER", "LONG") else float(n)
         elif at == "STRING":
             v = slots.string_arg(aid, text)
