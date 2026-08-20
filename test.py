@@ -14,8 +14,9 @@
     ~/temp/bin/python test.py C01 --code      # 코드 생성(lowering·이름)까지
     ~/temp/bin/python test.py C01 --no-gates  # 객관식 게이트 끄고 head 만
 
-엔진 서버(engine_server.py)를 띄워 두고 JOI_ENGINE_URL 을 주면 모델 적재 38초가 사라진다:
-    JOI_ENGINE_URL=http://localhost:49998 ~/temp/bin/python test.py C01
+엔진 서버(engine_server.py)가 떠 있으면 알아서 붙는다(모델 적재 38초가 사라진다). 아무것도 안 적어도 된다.
+서버가 없으면 이 프로세스에 모델을 올린다. 다른 곳에 띄웠으면 아래 ENGINE_URL 만 고치거나
+JOI_ENGINE_URL 을 주면 되고, 서버를 쓰기 싫으면 --no-server.
 """
 import argparse
 import csv
@@ -31,6 +32,22 @@ if HERE not in sys.path:
     sys.path.insert(0, HERE)
 
 from joi_slm import compare
+
+ENGINE_URL = "http://localhost:49998"      # 엔진 서버(engine_server.py) 주소. 안 떠 있으면 그냥 무시된다
+
+
+def use_engine_server(url=None):
+    """엔진 서버가 살아 있으면 거기에 붙는다 → True. 없으면 이 프로세스에 모델을 올린다 → False."""
+    import urllib.request
+    url = url or os.environ.get("JOI_ENGINE_URL") or ENGINE_URL
+    try:
+        with urllib.request.urlopen(url.rstrip("/") + "/health", timeout=1.5) as r:
+            if r.status != 200: return False
+    except Exception:
+        return False
+    os.environ["JOI_ENGINE_URL"] = url
+    return True
+
 
 DATASET = os.path.join(HERE, "dataset.csv")
 BINDING_CSV = os.path.join(HERE, "slm", "experiments", "map", "dataset_paper.csv")
@@ -334,6 +351,7 @@ def main():
     ap.add_argument("--code", action="store_true", help="코드 생성(lowering·이름)까지")
     ap.add_argument("--no-gates", action="store_true", help="객관식 게이트 끄고 head 만")
     ap.add_argument("-v", "--verbose", action="store_true", help="vLLM 적재 로그까지 보기")
+    ap.add_argument("--no-server", action="store_true", help="엔진 서버를 쓰지 않고 이 프로세스에 모델을 올린다")
     ap.add_argument("-q", "--quiet", action="store_true", help="행마다 한 줄 + 요약만")
     args = ap.parse_args()
 
@@ -361,7 +379,13 @@ def main():
         print("고른 조건에 맞는 행이 없음.")
         return
 
-    print(f"■ {cat} {len(picked)}행 — 모델 올리는 중 …")
+    if args.no_server:
+        os.environ.pop("JOI_ENGINE_URL", None)
+        print(f"■ {cat} {len(picked)}행 — 이 프로세스에 모델 올리는 중 …")
+    elif use_engine_server():
+        print(f"■ {cat} {len(picked)}행 — 엔진 서버({os.environ['JOI_ENGINE_URL']}) 에 붙었다")
+    else:
+        print(f"■ {cat} {len(picked)}행 — 엔진 서버가 없어 이 프로세스에 모델 올리는 중 …")
     if not args.verbose:
         os.environ.setdefault("VLLM_LOGGING_LEVEL", "WARNING")
     if args.no_gates:
