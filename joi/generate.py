@@ -11,6 +11,7 @@ word states for the sLM heads, the MCQ gates, lowering and naming.
     [Stage 2] IR services × connected devices → selectors (joi/devices.py, Python)
     [Stage 3] feasibility → joi_from_ir lowering (same model, bucket-routed prompt)
     [Stage 4] naming: re_translate → re_translate_kor → scenario_name (same model)
+              — 지금은 기본으로 건너뛴다. 켜려면 JOI_NAME=1.
 
 Every stage's product is kept on the result (`ir`, `segments`, `precision`, ...)
 so a failure can be traced to the stage that produced it.
@@ -372,7 +373,8 @@ def generate_joi_code_ir(
     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
     code_pretty = _unescape_script(joi_code_raw)
 
-    # ── Stage 4: naming — code → EN NL → KO NL → short label (JOI_SKIP_NAME=1 skips).
+    # ── Stage 4: 이름 짓기 — code → EN NL → KO NL → 짧은 이름.
+    # 기본은 안 돌린다(코드 만들기와 상관없는 단계라 시간만 먹는다). 켜려면 JOI_NAME=1.
     _id2nick = {rid: info["nickname"] for rid, info in (connected_devices or {}).items()
                 if isinstance(info, dict) and info.get("nickname")}
 
@@ -383,7 +385,7 @@ def generate_joi_code_ir(
 
     translated_sentence = ""
     translated_sentence_kor = ""
-    if os.environ.get("JOI_SKIP_NAME") != "1":
+    if os.environ.get("JOI_NAME") == "1":
         is_korean = bool(re.search(r"[가-힣]", original_sentence))
         try:
             _eng_plan = f"\n\n[Code Plan]\n{code_plan}" if code_plan else ""

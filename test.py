@@ -286,7 +286,7 @@ def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
 
     # ── 6단계(선택): 코드 생성
     if want_code:
-        print("\n[6단계] JoI 코드 (lowering + 이름)")
+        print("\n[6단계] JoI 코드 (lowering)")
         from joi import generate_joi_code
         try:
             t0 = time.perf_counter()
@@ -383,7 +383,7 @@ def main():
         os.environ.pop("JOI_ENGINE_URL", None)
         print(f"■ {cat} {len(picked)}행 — 이 프로세스에 모델 올리는 중 …")
     elif use_engine_server():
-        print(f"■ {cat} {len(picked)}행 — 엔진 서버({os.environ['JOI_ENGINE_URL']}) 에 붙었다")
+        print(f"■ {cat} {len(picked)}행 — 엔진 서버({os.environ['JOI_ENGINE_URL']}) 에 붙음")
     else:
         print(f"■ {cat} {len(picked)}행 — 엔진 서버가 없어 이 프로세스에 모델 올리는 중 …")
     if not args.verbose:
