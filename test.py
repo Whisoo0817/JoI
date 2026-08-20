@@ -4,6 +4,9 @@
 2B 한 대(engine.py)로 절 나누기 → 그래프 정리 → 서비스 후보 → Timeline IR 을 만들고,
 이어서 기기 고르기·수량·셀렉터(바인딩)까지 보여준다. 정답(ir_gt, binding_gt)이 있으면 나란히 댄다.
 
+채점은 joi_slm/compare.py 기준 — "뜻이 같다"(변수 이름·괄호·말 문구 표기는 눈감음)를 본 점수로 쓰고,
+"말 문구까지"·"글자까지 같다"를 괄호 안에 함께 적는다.
+
     ~/temp/bin/python test.py                 # 카테고리 목록
     ~/temp/bin/python test.py C01             # C01 전부
     ~/temp/bin/python test.py C01 -n 5        # 앞 5개만
@@ -26,6 +29,8 @@ from collections import Counter, OrderedDict
 HERE = os.path.dirname(os.path.abspath(__file__))
 if HERE not in sys.path:
     sys.path.insert(0, HERE)
+
+from joi_slm import compare
 
 DATASET = os.path.join(HERE, "dataset.csv")
 BINDING_CSV = os.path.join(HERE, "slm", "experiments", "map", "dataset_paper.csv")
@@ -187,16 +192,17 @@ def show_gt(ir, ir_gt):
     print("\n[정답 대조] ir_gt")
     if not ir_gt:
         print("   (정답 없음)")
-        return None, None
-    same = json.dumps(ir, ensure_ascii=False, sort_keys=True) == json.dumps(ir_gt, ensure_ascii=False, sort_keys=True)
+        return {}
+    v = compare.verdict(ir, ir_gt)
     got, want = services_of(ir), services_of(ir_gt)
-    svc_same = got == want
-    print(f"   IR 완전일치   : {'✅' if same else '❌'}")
-    print(f"   서비스 일치   : {'✅' if svc_same else '❌'}  예측={got}  정답={want}")
-    if not same:
+    print(f"   뜻이 같다     : {'✅' if v['same'] else '❌'}   (변수 이름·괄호·말 문구 표기는 눈감고 본 것)")
+    print(f"   말 문구까지   : {'✅' if v['text'] else '❌'}")
+    print(f"   글자까지 같다 : {'✅' if v['strict'] else '❌'}")
+    print(f"   서비스 일치   : {'✅' if v['svc'] else '❌'}  예측={got}  정답={want}")
+    if not v["same"]:
         for line in json.dumps(ir_gt, ensure_ascii=False, indent=2).split("\n"):
             print("   │ " + line)
-    return same, svc_same
+    return v
 
 
 # ── 한 줄(시나리오) 돌리기 ─────────────────────────────────────────────────
@@ -209,7 +215,7 @@ def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
         print(f"메모: {row['notes']}")
     print(SUB)
 
-    stat = {"ir": None, "svc": None, "dev_hit": 0, "dev_tot": 0, "error": None}
+    stat = {"same": None, "text": None, "strict": None, "svc": None, "dev_hit": 0, "dev_tot": 0, "error": None}
 
     # ── 1~4단계: 명령 → Timeline IR (2B 단어상태 + head, LLM 생성 없음)
     t0 = time.perf_counter()
@@ -259,8 +265,7 @@ def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
     elif binding_gt:
         print(f"   바인딩 정답: {json.dumps(binding_gt, ensure_ascii=False)}")
 
-    same, svc_same = show_gt(ir, jload(row.get("ir_gt", ""), None))
-    stat["ir"], stat["svc"] = same, svc_same
+    stat.update(show_gt(ir, jload(row.get("ir_gt", ""), None)))
 
     # ── 6단계(선택): 코드 생성
     if want_code:
@@ -286,7 +291,7 @@ def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
 def run_row_quiet(row, pipe, build, build_selectors, MissingDevices):
     """행마다 한 줄만 — 대량 측정용. run_row 와 같은 통계를 돌려준다."""
     devs = jload(row["connected_devices"], {})
-    stat = {"ir": None, "svc": None, "dev_hit": 0, "dev_tot": 0, "error": None}
+    stat = {"same": None, "text": None, "strict": None, "svc": None, "dev_hit": 0, "dev_tot": 0, "error": None}
     tag = f"{row['category_v2']} #{row['index']:>3}"
     try:
         segs = pipe.seg(row["command_kor"].strip())
@@ -314,10 +319,8 @@ def run_row_quiet(row, pipe, build, build_selectors, MissingDevices):
         stat["error"] = "no_device"
         note = f"  기기없음({e})"
     ir_gt = jload(row.get("ir_gt", ""), None)
-    if ir_gt:
-        stat["ir"] = json.dumps(ir, ensure_ascii=False, sort_keys=True) == json.dumps(ir_gt, ensure_ascii=False, sort_keys=True)
-        stat["svc"] = services_of(ir) == services_of(ir_gt)
-    mark = ("✅" if stat["ir"] else ("△" if stat["svc"] else "❌")) if ir_gt else "·"
+    stat.update(compare.verdict(ir, ir_gt))
+    mark = ("✅" if stat["same"] else ("△" if stat["svc"] else "❌")) if ir_gt else "·"
     dev = f"  기기 {stat['dev_hit']}/{stat['dev_tot']}" if stat["dev_tot"] else ""
     print(f"{tag}  {mark}{dev}  {row['command_kor'][:44]}{note}")
     return stat
@@ -377,15 +380,18 @@ def main():
         else:
             stats.append(run_row(row, pipe, build, build_selectors, MissingDevices, args.code))
 
-    ir_ok = sum(1 for s in stats if s["ir"])
-    ir_n = sum(1 for s in stats if s["ir"] is not None)
+    ir_n = sum(1 for s in stats if s["same"] is not None)
+    same_ok = sum(1 for s in stats if s["same"])
+    text_ok = sum(1 for s in stats if s["text"])
+    strict_ok = sum(1 for s in stats if s["strict"])
     svc_ok = sum(1 for s in stats if s["svc"])
     dev_hit = sum(s["dev_hit"] for s in stats)
     dev_tot = sum(s["dev_tot"] for s in stats)
     err = Counter(s["error"] for s in stats if s["error"])
     print(f"\n{BAR}\n■ {cat} 요약 — {len(stats)}행")
     if ir_n:
-        print(f"   IR 완전일치 {ir_ok}/{ir_n}   서비스 일치 {svc_ok}/{ir_n}")
+        print(f"   뜻이 같다   {same_ok}/{ir_n}   (말 문구까지 {text_ok}, 글자까지 {strict_ok})")
+        print(f"   서비스 일치 {svc_ok}/{ir_n}")
     if dev_tot:
         print(f"   기기 일치   {dev_hit}/{dev_tot} 자리 (binding 정답 있는 것만)")
     if err:

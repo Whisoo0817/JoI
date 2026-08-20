@@ -3,7 +3,7 @@
 조건 절은 값 표현 단위(접속어미 분할)로 재질의(값 서비스만, 어휘·별칭 보너스). 결과는 builder.Mapping."""
 import json, os, re
 import numpy as np
-from .catalog import SERVICES, EFF, ROLE, AL, svc_doc, svc_info, conn_categories
+from .catalog import SERVICES, EFF, ROLE, AL, svc_doc, svc_info, conn_categories, switch_categories
 from .builder import Mapping
 
 ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "examples.json")
@@ -13,9 +13,24 @@ OK = {"ACT": {"action", "read_action"}, "COND": {"read", "read_action"}, "TRIG":
 SVCS = [s["svc"] for s in SERVICES]; VAL = [s["svc"] for s in SERVICES if s["role"] == "read"]
 CONJ_SPLIT = re.compile(r"(?<=[가-힣])((?<=[있없되하이않크작높낮많적리히지오가주시밝덥춥])고|거나|이거나|며|이며|는데|은데)[,\s]+(?!있|않|없)")
 TOK = {"고", "거나", "이고", "이거나", "며", "이며", "는데", "은데"}
+NOUN_PAIR = re.compile(r"(\S+?)(?:와|과)\s*(\S+)(?:이|가|은|는|도)\s*(?:모두|둘 다|다)?\s*([^,]*(?:면|때|경우))")
+def _noun_pair(text):
+    """"금고와 도어락이 모두 잠겨있으면" 처럼 기기 두 개를 한 번에 부른 조건 → 둘로 나눈다.
+    두 낱말이 서로 다른 기기 종류를 가리킬 때만 나눈다(그냥 나열이면 그대로 둔다)."""
+    m = NOUN_PAIR.search(text.strip())
+    if not m: return None
+    def cat_of(w):
+        return {c for c, al in AL.items() if any(len(a) >= 2 and a in w for a in al)}
+    a, b_ = cat_of(m.group(1)), cat_of(m.group(2))
+    if not a or not b_ or a == b_: return None
+    def josa(w): return "이" if (ord(w[-1]) - 0xAC00) % 28 else "가"          # 받침 있으면 "이", 없으면 "가"
+    return [f"{m.group(1)}{josa(m.group(1))} {m.group(3)}", f"{m.group(2)}{josa(m.group(2))} {m.group(3)}"]
+
 def parts_of(text):
     ps = [p for p in CONJ_SPLIT.split(text) if p and p not in TOK]
-    return [p + ("이면" if not re.search(r"(면|때|경우)[,.]?$", p) else "") for p in ps] if len(ps) >= 2 else [text]
+    if len(ps) >= 2:
+        return [p + ("이면" if not re.search(r"(면|때|경우)[,.]?$", p) else "") for p in ps]
+    return _noun_pair(text) or [text]
 def _bg(t): t = re.sub(r"[\s.,]", "", t); return {t[i:i + 2] for i in range(len(t) - 1)}
 def _lex(part, s):
     cat = s["svc"].split(".")[0]; return len(_bg(part) & _bg(" ".join(AL.get(cat, []) + s.get("ko_triggers", []) + [cat])))
@@ -34,7 +49,7 @@ class Retriever:
         self.EX = embedder([e["text"] for e in ex], instruct=INSTRUCT) if ex else None
     def __call__(self, segs, connected_devices=None, exclude=()):
         """segs: [{j, text, type}] → Mapping. exclude: 예문에서 뺄 원본 명령 i(held-out 평가용)."""
-        conn = conn_categories(connected_devices)
+        conn = conn_categories(connected_devices); sw = switch_categories(connected_devices)
         q = [(s["j"], s["text"], s["type"]) for s in segs if s["type"] in OK]
         ranked = {}
         if q:
@@ -56,7 +71,7 @@ class Retriever:
                     if conn is not None and v.split(".")[0] not in conn: sc[k] = -9
                     else: sc[k] += 0.02 * _lex(p, EFF[v]) + 0.08 * _alias(p, EFF[v])
                 parts.setdefault(j, []).append({"part": p, "ranked": [VAL[k] for k in np.argsort(-sc)[:5]]})
-        return Mapping(ranked, parts, {s["j"]: s["text"] for s in segs})
+        return Mapping(ranked, parts, {s["j"]: s["text"] for s in segs}, conn, sw)
 
 def build_examples(labels, gold_of, embedder, out=ASSET):
     """코퍼스 예문: 명령의 gold 서비스마다 역할이 맞는 절 중 문서 유사도 최고인 절을 예문으로. labels: type_labels 항목들, gold_of(o)→IR."""

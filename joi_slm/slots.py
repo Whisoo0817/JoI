@@ -145,14 +145,14 @@ def bool_state(text, vtype, members):
     if vtype == "ENUM":
         lex = {"open": ["열리", "열려", "열림", "개방"], "closed": ["닫히", "닫혀", "닫힘"], "locked": ["잠기", "잠겨", "잠김", "잠금"], "unlocked": ["풀리", "해제", "열리", "열려"],
                "pushed": ["눌", "누르", "누름"], "on": ["켜지", "켜져", "켜짐", "켜면"], "off": ["꺼지", "꺼져", "꺼짐"], "rain": ["비가 오", "비 오", "비가 내", "비가 올", "비 올", "우천"],
-               "fullyCharged": ["완료", "충전이 끝", "다 되", "완충"], "playing": ["재생 중", "재생중", "틀어져"], "paused": ["일시정지"], "stopped": ["멈춰", "멈춘", "정지"], "sleep": ["수면", "취침"], "keepWarm": ["보온"], "lownoise": ["저소음"], "quick": ["퀵", "빠른"], "grill": ["그릴"], "cooking": ["조리", "취사"], "charging": ["충전 중", "충전중"], "normal": ["노말", "일반"], "maximum": ["맥시멈", "최대"], "cool": ["냉방", "쿨"], "heat": ["난방", "히트"], "auto": ["자동", "오토"],
-               "idle": ["멈춰", "정지", "유휴"], "cleaning": ["청소 중"], "docked": ["도킹", "충전기에"], "running": ["작동 중", "돌아가", "동작 중"],
-               "manual": ["수동"], "quiet": ["조용", "저소음"], "high": ["강풍", "강하게", "세게"], "low": ["약풍", "약하게", "미풍"], "medium": ["중간", "보통"], "windFree": ["무풍"], "family": ["가족"], "visitor": ["방문자", "손님"], "stranger": ["낯선", "모르는"],
+               "fullyCharged": ["완료", "충전이 끝", "다 되", "완충"], "playing": ["재생 중", "재생중", "틀어져"], "paused": ["일시정지"], "stopped": ["멈춰", "멈춘", "정지"], "sleep": ["수면", "취침"], "keepWarm": ["보온"], "lownoise": ["저소음"], "quick": ["퀵", "빠른"], "heating": ["가열"], "warming": ["데우"], "grill": ["그릴"], "cooking": ["조리", "취사"], "charging": ["충전 중", "충전중"], "normal": ["노말", "일반"], "maximum": ["맥시멈", "최대"], "cool": ["냉방", "쿨"], "heat": ["난방", "히트"], "auto": ["자동", "오토"],
+               "idle": ["유휴"], "stop": ["멈춰", "멈춘", "멈춰있", "정지", "중지"], "cleaning": ["청소 중"], "docked": ["도킹", "충전기에"], "running": ["작동 중", "돌아가", "동작 중"],
+               "manual": ["수동"], "quiet": ["조용"], "high": ["강풍", "강하게", "세게"], "low": ["약풍", "약하게", "미풍"], "medium": ["중간", "보통"], "windFree": ["무풍"], "family": ["가족"], "visitor": ["방문자", "손님"], "stranger": ["낯선", "모르는"],
                "sunny": ["맑"], "cloudy": ["흐리"], "snow": ["눈이 오", "눈 오"], "clear": ["맑"], "monday": ["월요일"], "weekend": ["주말"]}
         best = None
         for m_ in members:
             key = m_.split(" - ")[0].strip()
-            for w in lex.get(key, []) + [key.lower()]:
+            for w in lex.get(key.lower(), lex.get(key, [])) + [key.lower()]:
                 if w and w in text.lower():
                     if best is None or len(w) > best[1]: best = (key, len(w))
         if best: return f'"{best[0]}"'
@@ -163,17 +163,38 @@ ENUM_KO = {"dehumidifying": ["제습"], "drying": ["건조"], "AIDrying": ["AI�
            "cool": ["냉방", "쿨", "시원"], "heat": ["난방", "히터", "따뜻"], "auto": ["자동", "오토", "AI"], "dry": ["제습", "건조", "드라이"], "fan": ["송풍", "팬"], "sleep": ["수면", "취침"],
            "emergency": ["응급", "긴급", "비상"], "fire": ["화재", "불"], "police": ["경찰"], "ambulance": ["구급", "앰뷸런스"], "high": ["강풍", "강하게", "세게", "강"], "low": ["약풍", "약하게", "미풍", "약"], "medium": ["중간", "보통"],
            "quiet": ["조용", "저소음"], "turbo": ["터보"], "normal": ["노말", "일반", "보통", "표준"], "maximum": ["맥시멈", "최대"], "minimum": ["미니멈", "최소"], "eco": ["에코", "절전"], "wash": ["세척", "세탁"],
-           "cooking": ["조리", "취사"], "warm": ["보온"], "bake": ["굽", "베이크"], "grill": ["그릴"], "roast": ["로스트"], "spot": ["스팟", "집중"], "repeat": ["반복"], "edge": ["엣지", "가장자리"], "map": ["맵"], "silent": ["무음"],
+           "cooking": ["조리", "취사"], "warm": ["보온"], "keepwarm": ["보온"], "reheating": ["재가열", "다시 데우"],
+           "autoclean": ["자동청소", "자동 청소"], "soakinnerpot": ["불림", "불리기"], "heating": ["가열"], "warming": ["데우"],
+           "quick": ["퀵", "빠른", "급속"], "delicate": ["섬세", "델리케이트"], "whites": ["흰옷", "흰 옷"], "heavy": ["강력", "헤비"], "bake": ["굽", "베이크"], "grill": ["그릴"], "roast": ["로스트"], "spot": ["스팟", "집중"], "repeat": ["반복"], "edge": ["엣지", "가장자리"], "map": ["맵"], "silent": ["무음"],
            "manual": ["수동"], "night": ["야간", "밤"], "day": ["주간"], "off": ["끄", "꺼", "off"], "on": ["켜", "on"], "cold": ["찬", "냉"], "hot": ["뜨거", "온"], "black": ["검"], "white": ["흰", "하양"], "red": ["빨"], "purple": ["보라"], "blue": ["파"], "green": ["초록", "녹"], "yellow": ["노랑", "노란"], "pink": ["분홍"], "orange": ["주황"]}
 def enum_arg(text, members):
     best = None
     for m_ in members:
         key = m_.split(" - ")[0].strip()
-        for w in ENUM_KO.get(key, []) + [key.lower()]:
+        for w in ENUM_KO.get(key.lower(), ENUM_KO.get(key, [])) + [key.lower()]:
             if w and w.lower() in text.lower() and (best is None or len(w) > best[1]): best = (key, len(w))
     return best[0] if best else None
 
 STRING_KO = {"가족": "family", "방문자": "visitor", "손님": "guest", "낯선 사람": "stranger", "모르는 사람": "stranger"}   # 문자열 값 관례(gold)
+MAIL = re.compile(r"[\w.+-]+@[\w-]+\.[\w.]+")
+FILE = re.compile(r"[\w.\-/]+\.(png|jpg|jpeg|gif|mp3|mp4|wav|txt|csv|json|pdf|wma|avi)", re.I)
+TAIL = re.compile(r"\s*(스피커로|방송으로|음성으로|메일로|이메일로|알려줘|말해줘|출력해줘|안내해줘|방송해줘|알려|말해|출력해|보내줘|전송해줘)[.!]?$")
+
+def string_arg(aid, text):
+    """문자열 인자 자리에 맞는 값 — 주소 자리엔 주소를, 파일 자리엔 파일 이름을, 나머지는 따옴표 안의 말을."""
+    if aid in ("ToAddress",):
+        m = MAIL.search(text); return m.group(0) if m else None
+    if aid in ("File", "FilePath", "AudioFile", "MediaSource"):
+        m = FILE.search(text)
+        if m: return m.group(0)
+        return quoted(text)
+    return quoted(text)
+
+def message(text):
+    """말할 문구가 따로 없을 때 — 그 절의 말에서 군더더기를 떼어 쓴다."""
+    t = re.sub(r"^(그리고|그러면|그 ?다음|이어서)\s*", "", (text or "").strip())
+    t = TAIL.sub("", t).strip(" ,.")
+    return t or (text or "").strip()
 def quoted(text):
     m = re.search(r"[\"'“‘]([^\"'”’]+)[\"'”’]", text)
     if m: return m.group(1)

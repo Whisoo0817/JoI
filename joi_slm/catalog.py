@@ -33,6 +33,16 @@ def svc_info(svc):
 def members_of(cat, fmt):
     return SERVICE_DATA.get(cat, {}).get("enums_map", {}).get(fmt, [])
 
+def switch_categories(connected_devices):
+    """켜고 끄기를 Switch 로 할 수 있는 기기 종류 — 같은 기기에 Switch 가 함께 붙어 있는 것들.
+    (집에 스위치 달린 기기가 하나 있다고 제습기까지 Switch.On 으로 켤 수 있는 건 아니다.)"""
+    if not connected_devices: return None
+    out = set()
+    for d in connected_devices.values():
+        cats = d.get("category", [])
+        if "Switch" in cats: out |= set(cats)
+    return out
+
 def conn_categories(connected_devices):
     """connected_devices dict → 연결 기기 카테고리 집합(*Control 제외). None이면 조인 필터 없음."""
     if not connected_devices: return None

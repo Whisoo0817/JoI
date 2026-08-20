@@ -1,52 +1,89 @@
 # -*- coding: utf-8 -*-
 """② top-1 재정렬 규칙 (preference 사전) — 매핑 top-5 안에서 형제 후보를 고를 때 텍스트 단서로 보너스를 준다.
-함수(ACT):  발화("…라고 말해/출력") → Speaker.Speak | "모드"·모드어 → *Mode 함수 | 조명 켜→Light.MoveToBrightness, 끄→Switch.Off
+함수(ACT):  발화("…라고 말해/출력") → Speaker.Speak | "모드"·모드어 → *Mode 함수 | 조명 켜/끄 → Switch.On/Off(Switch 가 없는 조명만 밝기)
             | 사이렌 울려 → Siren.SetSirenMode | 카테고리 별칭이 텍스트에 있으면 그 카테고리 +2
-값(COND):   "켜져/꺼져 있" 상태 → Switch.Switch (강제) | 센서 어휘 사전(초미세>미세, 비/날씨→Weather, 온도→TemperatureSensor …)
+값(COND):   "켜져/꺼져 있" 상태 → Switch.Switch | 센서 어휘 사전(초미세>미세, 비/날씨→Weather, 온도→TemperatureSensor …)
+형제 후보는 연결된 기기(conn)에 있는 쪽을 먼저 쓴다 — 예: "문이 열리면" 은 Door 가 붙어 있으면 Door.DoorState, 없으면 ContactSensor.Contact.
 """
 import re
 from .catalog import AL
 ON = True
 
+def pick(conn, *svcs):
+    """형제 후보를 앞에서부터 보며 연결된 기기에 있는 첫 서비스를 고른다. 연결 정보가 없으면 맨 앞."""
+    if conn:
+        for s_ in svcs:
+            if s_.split(".")[0] in conn: return s_
+        return None
+    return svcs[0]
+
 SPEECH = re.compile(r"라고|말해|알려|출력해|안내해|방송해|안내(?![가-힣])")
 QUOTED = re.compile(r"[\"'“‘].+[\"'”’]")
 LIGHT = re.compile(r"조명|전등|램프|라이트|(?<![가-힣])불(?![가-힣])|불을|불도|불만")
 BRIGHT_NUM = re.compile(r"\d+\s*(%|퍼센트|으로|로)|밝기|밝게|어둡|색")
-MODE = re.compile(r"모드|냉방|난방|송풍|자동|수동|건조|강풍|약풍|터보|절전|취침|긴급|응급|급속|표준|강력|조용|강하게|약하게|세게")
+MODE = re.compile(r"모드|냉방|난방|송풍|자동|수동|건조|강풍|약풍|터보|절전|취침|긴급|응급|급속|표준|강력|조용|강하게|약하게|세게|가열|보온")
 OUTDOOR = re.compile(r"바깥|외부|실외|밖의|밖에|야외")
-SENSOR_LEX = [   # (정규식, 서비스) — 앞이 우선(초미세 > 미세). B8: 바깥/외부는 WeatherProvider, 실내는 AirQualitySensor
+SENSOR_LEX = [   # (정규식, 서비스…) — 규칙은 앞이 우선(초미세 > 미세), 서비스도 앞이 우선(연결된 기기에 있는 첫 서비스). B8: 바깥/외부는 WeatherProvider, 실내는 AirQualitySensor
     (r"(바깥|외부|실외|밖의|밖에|야외).*초미세", "WeatherProvider.Pm25Weather"), (r"(바깥|외부|실외|밖의|밖에|야외).*미세", "WeatherProvider.Pm10Weather"),
     (r"(바깥|외부|실외|밖의|밖에|야외).*온도", "WeatherProvider.TemperatureWeather"), (r"(바깥|외부|실외|밖의|밖에|야외).*습도", "WeatherProvider.HumidityWeather"),
     (r"초미세", "AirQualitySensor.VeryFineDustLevel"), (r"미세\s*먼지|미세먼지|먼지", "AirQualitySensor.FineDustLevel"),
-    (r"이산화탄소|CO2|co2", "AirQualitySensor.CarbonDioxide"), (r"비가|비 오|비오|눈이|날씨|맑|흐리|폭우|폭설", "WeatherProvider.Weather"),
+    (r"이산화탄소|CO2|co2", "CarbonDioxideSensor.CarbonDioxide", "AirQualitySensor.CarbonDioxide"), (r"비가|비 오|비오|비 그|비가 그", "RainSensor.Rain", "WeatherProvider.Weather"),
+    (r"눈이|날씨|맑|흐리|폭우|폭설", "WeatherProvider.Weather"),
     (r"(?<!목표 )(?<!설정 )온도", "TemperatureSensor.Temperature"), (r"습도", "HumiditySensor.Humidity"),
-    (r"조도|럭스|lux", "LightSensor.Brightness"), (r"움직임|동작|모션|인기척", "MotionSensor.Motion"),
-    (r"사람|재실|아무도|누군가|누가", "PresenceSensor.Presence"), (r"연기", "SmokeDetector.Smoke"),
-    (r"소리|소음|시끄", "SoundSensor.Sound"), (r"누수|물이 새|침수", "LeakSensor.Leakage"),
+    (r"조도|럭스|lux", "LightSensor.Brightness"), (r"움직임|동작|모션|인기척", "MotionSensor.Motion", "PresenceSensor.Presence"),
+    (r"사람|재실|아무도|누군가|누가", "PresenceSensor.Presence", "MotionSensor.Motion"), (r"연기", "SmokeDetector.Smoke"),
+    (r"스피커.{0,10}(멈|정지|재생|일시)", "Speaker.PlaybackState"), (r"소리|소음|시끄", "SoundSensor.Sound"), (r"누수|물이 새|침수", "LeakSensor.Leakage"),
     (r"(창문|창)(이|가|은|는|도)? ?(하나라도 )?(열|닫)", "WindowCovering.CurrentPosition"),   # B1: 창문=WindowCovering
-    (r"(금고|도어락|자물쇠)(이|가|은|는|도)? ?(하나라도 |모두 )?(열|잠|풀)", "DoorLock.DoorLockState"),   #     금고·도어락=DoorLock
-    (r"(문|뚜껑|서랍)(이|가|은|는|도)? ?(하나라도 )?(열|닫)", "ContactSensor.Contact"),                #     문=ContactSensor (r"전압", "Charger.Voltage"), (r"전류", "Charger.Current"), (r"충전", "Charger.ChargingState"),
+    (r"금고.{0,12}(열|잠|풀)", "Safe.SafeState", "DoorLock.LockState"),      #     금고=Safe(없으면 도어락)
+    (r"(도어락|자물쇠).{0,12}(열|잠|풀)", "DoorLock.LockState"),
+    (r"(문|뚜껑|서랍)(이|가|은|는|도)? ?(하나라도 )?(열|닫)", "Door.DoorState", "ContactSensor.Contact"),   #     문=Door(없으면 접촉 센서)
+    (r"전압", "Charger.Voltage"), (r"전류", "Charger.Current"),
+    (r"전력|소비\s*전력|전력\s*소모|와트", "Charger.Power"), (r"충전", "Charger.ChargingState"),
 ]
 STATE = re.compile(r"(켜|꺼|끄)(져 ?있|진 상태|져만|짐 상태|진 \S+가 (하나라도 )?있)|(작동|가동)(하고 있|중이|되고 있|되어 있)")   # 상태(있으면) → Switch.Switch
 EVENT_ON = re.compile(r"(켜|꺼|끄)(지면|질 때|지는|졌|지고)")                                          # 사건(켜지면) → 조명이면 CurrentBrightness
 
-def func_bonus(text, cands):
-    """→ (bonus dict svc→score, extra 후보 목록)"""
+JOSA = r"(을|를|이|가|은|는|도|의|만|과|와|랑|이랑)"
+def _alias_in(alias, text):
+    """별칭이 텍스트에 나오나. 한 글자 별칭(문·불)은 앞뒤가 다른 한글에 붙어 있지 않을 때만 (창문·눈불 오인 방지)."""
+    a = alias.strip()
+    if len(a) >= 2: return a in text
+    return len(a) == 1 and re.search(r"(?<![가-힣])" + re.escape(a) + JOSA, text) is not None
+
+def named_categories(text, cands):
+    """절이 이름을 대고 부른 기기 종류 — 후보들의 카테고리 별칭이 텍스트에 나오는 것."""
+    out = set()
+    for s_ in cands:
+        cat = s_.split(".")[0]
+        if cat in ("Switch", "LevelControl"): continue          # 능력 이름이지 기기 이름이 아니다
+        if any(_alias_in(a, text) for a in AL.get(cat, [])): out.add(cat)
+    return out
+
+def switchable(text, sw):
+    """이 절이 부른 기기를 Switch 로 켜고 끌 수 있나.
+    sw 가 None 이면 기기 정보가 없다는 뜻이라 막지 않는다. 빈 집합이면 Switch 달린 기기가 하나도 없다는 뜻."""
+    if sw is None: return True
+    named = {c for c in AL if c not in ("Switch", "LevelControl") and any(_alias_in(a, text) for a in AL[c])}
+    return bool(named & sw) if named else bool(sw)
+
+def func_bonus(text, cands, conn=None, sw=None):
+    """→ (bonus dict svc→score, extra 후보 목록). conn: 연결된 기기 카테고리, sw: 그중 Switch 로 켜고 끌 수 있는 종류"""
     if not ON: return {}, []
     b = {}; extra = []
     def add(s, v):
         b[s] = b.get(s, 0) + v
         if s not in cands and s not in extra: extra.append(s)
     if re.search(r"\d+\s*(초|분|시간)\s*(짜리|동안|간)\s*\S*\s*(영상|녹화|촬영)", text): add("Camera.CaptureVideo", 6)   # "5분짜리 영상을 녹화" = 길이 지정 녹화
-    if re.search(r"toggle|토글|켜고 끄|켰다 껐다", text, re.I): add("Switch.Toggle", 8)
+    if re.search(r"toggle|토글|켜고 끄|켰다 껐다", text, re.I) and pick(conn, "Switch.Toggle") and switchable(text, sw): add("Switch.Toggle", 8)
     if re.search(r"(사진|이미지|그림)\S*\s*(생성|만들)", text): add("CloudServiceProvider.GenerateImage", 8)
     if SPEECH.search(text): add("Speaker.Speak", 8)
     if SPEECH.search(text) or QUOTED.search(text): text = QUOTED.sub("\"…\"", text)      # 인용문 안의 기기·모드어는 무시
     elif QUOTED.search(text) and not re.search(r"재생|틀어|저장|보내|전송|업로드", text): add("Speaker.Speak", 3)
     if re.search(r"재생|틀어", text) and QUOTED.search(text): add("Speaker.Play", 4)
-    if LIGHT.search(text) and not BRIGHT_NUM.search(text):
-        if re.search(r"켜|점등", text): add("Light.MoveToBrightness", 4)
-        elif re.search(r"꺼|끄|소등", text): add("Switch.Off", 4)
+    if LIGHT.search(text) and not BRIGHT_NUM.search(text):      # 사용자 결정: 조명도 켜고 끄는 건 Switch 가 우선, Switch 가 없는 조명만 밝기로
+        on_off = pick(conn, "Switch.On", "Light.MoveToBrightness") if switchable(text, sw) else "Light.MoveToBrightness"
+        if re.search(r"켜|점등", text): add(on_off or "Light.MoveToBrightness", 4)
+        elif re.search(r"꺼|끄|소등", text): add(("Switch.Off" if on_off == "Switch.On" else "Light.MoveToBrightness"), 4)
     if re.search(r"사이렌", text) and re.search(r"울려|울리|작동|켜", text): add("Siren.SetSirenMode", 4)
     if LIGHT.search(text) and re.search(r"색조|채도|Hue|hue", text): add("Light.MoveToHueAndSaturation", 6)          # A10
     elif LIGHT.search(text) and re.search(r"(빨간|파란|초록|노란|보라|주황|분홍|흰|하얀|빨강|파랑|노랑|녹)색?으?로|색(으로|을|깔)", text): add("Light.MoveToColor", 6)
@@ -59,31 +96,50 @@ def func_bonus(text, cands):
         for s in cands:
             if s.endswith("SetChannel") and re.search(r"\d+\s*번", text): b[s] = b.get(s, 0) + 6
             if s.endswith(("ChannelUp", "ChannelDown")) and re.search(r"하나|한 ?칸|다음|이전|올려|내려", text) and not re.search(r"\d+\s*번", text): b[s] = b.get(s, 0) + 6
-    elif not LIGHT.search(text) and not MODE.search(text):                   # A3: 모드어 없는 기기 켜기/끄기 = Switch.On/Off
+    elif not LIGHT.search(text) and not MODE.search(text) and switchable(text, sw):   # A3: 모드어 없는 기기 켜기/끄기 = Switch.On/Off
         if re.search(r"켜|틀어|가동", text) and not re.search(r"꺼|끄", text): add("Switch.On", 4)
         elif re.search(r"꺼|끄", text): add("Switch.Off", 4)
     if re.search(r"\d+\s*(%|퍼센트)", text):                                # A9: 수치(%) 지정은 Set*/MoveTo* (극성어 무시)
         for s in cands:
             if s.split(".")[1].startswith(("Set", "MoveTo")): b[s] = b.get(s, 0) + 4
-    for s in cands:
+    named = named_categories(text, cands + extra)
+    can_switch = switchable(text, sw)
+    for s in cands + extra:
         cat = s.split(".")[0]
-        if cat in ("Switch", "Speaker", "LevelControl"): continue
-        if any(len(a) >= 2 and a in text for a in AL.get(cat, [])): b[s] = b.get(s, 0) + 2
+        if cat == "Switch":
+            if not can_switch: b[s] = b.get(s, 0) - 4                  # 이 기기는 스위치로 켜고 끌 수 없다
+            continue
+        if cat == "LevelControl": continue
+        if cat in named: b[s] = b.get(s, 0) + 2
+        elif named: b[s] = b.get(s, 0) - 2                     # 다른 기기를 이름 대고 불렀다
     return b, extra
 
-def value_bonus(text, cands):
+def value_bonus(text, cands, conn=None):
     if not ON: return {}, []
     b = {}; extra = []
     def add(s, v):
         b[s] = b.get(s, 0) + v
         if s not in cands and s not in extra: extra.append(s)
     if re.search(r"\d+\s*(초|분|시간)\s*(짜리|동안|간)\s*\S*\s*(영상|녹화|촬영)", text): add("Camera.CaptureVideo", 6)   # "5분짜리 영상을 녹화" = 길이 지정 녹화
-    if re.search(r"toggle|토글|켜고 끄|켰다 껐다", text, re.I): add("Switch.Toggle", 8)
+    if re.search(r"toggle|토글|켜고 끄|켰다 껐다", text, re.I) and pick(conn, "Switch.Toggle") and switchable(text, sw): add("Switch.Toggle", 8)
     if re.search(r"(사진|이미지|그림)\S*\s*(생성|만들)", text): add("CloudServiceProvider.GenerateImage", 8)
-    if STATE.search(text) or EVENT_ON.search(text): add("Switch.Switch", 8)     # B4: 켜짐/꺼짐 상태·사건은 Switch 우선
+    if STATE.search(text) or EVENT_ON.search(text):                             # B4: 켜짐/꺼짐 상태·사건은 Switch 우선
+        add(pick(conn, "Switch.Switch", "Light.CurrentBrightness") or "Switch.Switch", 8)
     else:
-        for rx, s in SENSOR_LEX:
-            if re.search(rx, text): add(s, 5); break
+        if MODE.search(text):                                                   # "가열 중이면" 같은 모드 이야기는 그 기기의 모드 값
+            for s_ in cands:
+                if s_.split(".")[1].endswith("Mode"): b[s_] = b.get(s_, 0) + 3
+        named = named_categories(text, cands)
+        for s_ in cands:
+            cat = s_.split(".")[0]
+            if cat in ("Switch", "LevelControl"): continue
+            if cat in named: b[s_] = b.get(s_, 0) + 2
+            elif named: b[s_] = b.get(s_, 0) - 2
+        for rx, *sib in SENSOR_LEX:
+            if re.search(rx, text):
+                s_ = pick(conn, *sib)
+                if s_: add(s_, 5)
+                break
     return b, extra
 
 # ── 값 표현 관례(gold 관례 사전): 서비스별 상태어 → 연산자·값 ──
@@ -106,9 +162,12 @@ def value_conv(svc, text):
     if svc == "Light.CurrentBrightness":
         if re.search(r"켜", text): return "== 0" if neg else "> 0"
         if re.search(r"꺼|끄", text): return "> 0" if neg else "== 0"
-    if svc == "DoorLock.DoorLockState":
-        if re.search(r"잠기|잠겨|잠금|잠길|잠갔", text): return ('!= "closed"' if neg else '== "closed"')
-        if re.search(r"열|풀|해제", text): return ('!= "open"' if neg else '== "open"')
+    if svc == "DoorLock.LockState":
+        if re.search(r"잠기|잠겨|잠금|잠길|잠갔", text): return ('!= "locked"' if neg else '== "locked"')
+        if re.search(r"열|풀|해제", text): return ('!= "unlocked"' if neg else '== "unlocked"')
+    if svc in ("Door.DoorState", "Safe.SafeState"):
+        if re.search(r"열", text): return ('!= "open"' if neg else '== "open"')
+        if re.search(r"닫|잠", text): return ('!= "closed"' if neg else '== "closed"')
     if svc == "PresenceSensor.Presence":
         if re.search(r"부재|아무도|비어|없", text): return "== false"
     if svc.startswith(("Button.", "MultiButton.")):
@@ -117,6 +176,9 @@ def value_conv(svc, text):
         if re.search(r"길게|꾹|오래", text): return '== "held"'
     if svc == "WeatherProvider.Weather":
         if re.search(r"그치|그칠|그쳤|멈추|안 ?오|오지 않", text): return '!= "rain"'
+    if svc == "RainSensor.Rain":
+        if re.search(r"그치|그칠|그쳤|멈추|안 ?오|오지 않", text): return "== false"
+        if re.search(r"비", text): return "== " + ("false" if neg else "true")
     return None
 def unit_scale(svc, text, v):
     """단위 관례: Charger.Voltage는 mV, Current는 A 그대로"""

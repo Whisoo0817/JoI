@@ -3,15 +3,18 @@
   구조: 상자 규칙(box.py) / 시간·수량 슬롯: slots.py / 서비스 top-1: 매핑 top-5 + 재정렬 규칙(rerank.py) / 인자·조건식: 규칙
 입력 매핑(Mapping): 절 j → 서비스 후보 top-5(ranked), 조건 부분 → 값 서비스 후보(parts), 절 텍스트(text).
 """
-import re, collections
+import re, collections, json
 from .box import Box, assemble_tree, MODE_ON_RE, PULSE_RE, TOGGLE_RE, TOGGLE_ONOFF_RE, SPLIT_TOGGLE_RE, SPLIT_TOGGLE2_RE, MODE_TEMP_RE, ELSE_SPLIT
 from .catalog import AL, EFF, svc_info, members_of, allowed
 from . import slots, rerank
 from .graph import normalize as graph_normalize
 
 class Mapping:
-    """명령 하나의 매핑 결과. ranked: {j: [svc top-5]}, parts: {j: [{"part": text, "ranked": [값 svc top-5]}]}, texts: {j: 절 텍스트}"""
-    def __init__(self, ranked=None, parts=None, texts=None):
+    """명령 하나의 매핑 결과. ranked: {j: [svc top-5]}, parts: {j: [{"part": text, "ranked": [값 svc top-5]}]}, texts: {j: 절 텍스트},
+    conn: 연결된 기기 카테고리 집합(형제 후보 중 실제로 붙어 있는 것을 고르는 데 쓴다. None 이면 안 거른다),
+    sw: 그중 Switch 를 같이 가진 종류(켜기/끄기를 Switch 로 할 수 있는 기기)"""
+    def __init__(self, ranked=None, parts=None, texts=None, conn=None, sw=None):
+        self.conn = conn; self.sw = sw
         self.r = {int(k): [x for x in v if allowed(x)] for k, v in (ranked or {}).items()}
         self.p = {int(k): v for k, v in (parts or {}).items()}
         self.t = {int(k): v for k, v in (texts or {}).items()}
@@ -20,9 +23,11 @@ class Mapping:
     def text(self, j): return self.t.get(j, "")
 
 def top(M, j, want=None):
+    """절 j 의 top-1. want 를 주면 그 종류(value/function)만 — 없으면 None(아무거나 돌려주지 않는다)."""
     for s in M.ranked(j):
         k, _ = svc_info(s)
         if want is None or k == want: return s
+    if want is not None: return None
     r = M.ranked(j); return r[0] if r else None
 
 # ── 값 서비스 선택 ──
@@ -32,9 +37,10 @@ def _lex_score(part, svc):
     cat = svc.split(".")[0]
     return len(_bigrams(part) & _bigrams(" ".join(AL.get(cat, []) + EFF.get(svc, {}).get("ko_triggers", []) + [cat])))
 def _choose(cands, sc): return cands[max(range(len(cands)), key=lambda k: sc[k])]
-def pick_value(text, vals, norank=False):
+def pick_value(text, vals, norank=False, conn=None):
     """값 서비스 후보(순위순) → 어휘 중복·순위·재정렬 보너스로 top-1. norank: 숫자뿐인 질의(검색 순위 무의미)면 순위 감점 생략"""
-    bon, extra = rerank.value_bonus(text, vals); vals = list(vals) + [e for e in extra if svc_info(e)[0] == "value"]
+    bon, extra = rerank.value_bonus(text, vals, conn)
+    vals = list(vals) + [e for e in extra if svc_info(e)[0] == "value" and (conn is None or e.split(".")[0] in conn)]
     if not vals: return None
     return _choose(vals, [_lex_score(text, vals[k]) - (0 if norank else k) + bon.get(vals[k], 0) for k in range(len(vals))])
 
@@ -53,6 +59,10 @@ def cond_expr(M, j, text, mixed=False):
     if re.search(r"(이나|나|또는) .*(한 곳이라도|하나라도|중 )", text) or re.search(r"\S+(이나|거나) \S+(이|가|은|는)? ?(열|닫|켜|꺼|잠)", text): return f"{e} or {e}"
     return e
 
+def _no_device_word(part):
+    """그 부분에 기기를 가리키는 말이 하나도 없나 — 있으면 그 부분만 보고 값을 고르면 된다."""
+    return not any(len(a) >= 2 and a in part for al in AL.values() for a in al)
+
 def _cond_expr(M, j, text):
     """조건 절 → '속성 op 값'. 접속어미로 묶인 복합 조건은 부분별로 값 서비스를 배정해 and/or 결합(부분 재질의 결과 우선)."""
     cp = M.parts(j)
@@ -61,12 +71,14 @@ def _cond_expr(M, j, text):
         cp = [x for x in cp if not _time_only_part(x["part"])] or cp
         cp = [{**x, "part": text} if text in x["part"] and x["part"] != text else x for x in cp]   # mixed 절: 잘라낸 조건 텍스트로
         conns = CONJ_SPLIT.findall(text)
-        def _ctx(part):   # 숫자 비교뿐인 부분("200 이상이면")의 속성 명사는 앞의 확인 절("미세먼지 농도를 체크해서")에 있음
-            if not NUM_ONLY.match(part.strip()): return part
-            ks = [k for k in range(j) if re.search(r"체크|확인|측정|모니터|살펴|재서|재고", M.text(k))] or list(range(j))
+        def _ctx(part):   # 무엇을 재는지가 그 부분에 없으면("200 이상이면", "잠겨있지 않으면") 앞의 확인 절에서 가져온다
+            check = [k for k in range(j) if re.search(r"체크|확인|측정|모니터|살펴|재서|재고", M.text(k))]
+            if NUM_ONLY.match(part.strip()): ks = check or list(range(j))
+            elif _no_device_word(part) and check: ks = check      # 기기 이름이 아예 없을 땐 "…를 체크해서" 절이 있을 때만 빌린다
+            else: return part
             prev = " ".join(M.text(k) for k in ks)
             return (prev + " " + part) if prev else part
-        exprs = [_one_cond(pick_value(_ctx(x["part"]), [s_ for s_ in x["ranked"] if svc_info(s_)[0] == "value"], norank=NUM_ONLY.match(x["part"].strip()) is not None), x["part"]) for x in cp]
+        exprs = [_one_cond(pick_value(_ctx(x["part"]), [s_ for s_ in x["ranked"] if svc_info(s_)[0] == "value"], norank=NUM_ONLY.match(x["part"].strip()) is not None, conn=M.conn), x["part"]) for x in cp]
         out = exprs[0]
         for k, e in enumerate(exprs[1:]): out += (" or " if k < len(conns) and conns[k] in ("거나", "이거나") else " and ") + e
         return out
@@ -81,7 +93,7 @@ def _cond_expr(M, j, text):
         out = exprs[0]
         for k, e in enumerate(exprs[1:]): out += (" or " if k < len(conns) and conns[k] in ("거나", "이거나") else " and ") + e
         return out
-    return _one_cond(pick_value(text, vals), text)
+    return _one_cond(pick_value(text, vals, conn=M.conn), text)
 
 NUM_T = ("DOUBLE", "INT", "INTEGER", "FLOAT", "LONG")
 def _one_cond(svc, text):
@@ -105,16 +117,21 @@ def _one_cond(svc, text):
     return f"{svc} == ?"
 
 # ── 함수 서비스 선택 + 인자 ──
-POS = {"open": r"열|개방|풀|해제", "close": r"닫|잠|차단", "on": r"켜|작동|시작|틀어|가동", "off": r"꺼|끄|중지|멈|정지|소등", "up": r"올리|올려|높이|높여|키워|증가|더", "down": r"내리|내려|낮추|낮춰|줄|감소"}
+POS = {"open": r"열|개방|풀|해제", "close": r"닫|잠|차단", "on": r"켜|작동|시작|틀어|가동", "off": r"꺼|끄|중지|멈|정지|소등", "up": r"올리|올려|높이|높여|키워|증가|늘려|늘리|연장|더", "down": r"내리|내려|낮추|낮춰|줄|감소"}
 NAME_POL = {"open": ["Open", "Unlock", "UpOrOpen"], "close": ["Close", "Lock", "DownOrClose"], "on": ["On", "Start", "Play", "TurnOn"], "off": ["Off", "Stop", "Pause", "TurnOff"], "up": ["Up", "Increase", "Raise", "AddMore"], "down": ["Down", "Decrease", "Lower"]}
 OPP = {"open": "close", "close": "open", "on": "off", "off": "on", "up": "down", "down": "up"}
-def pick_function(M, j, text):
-    """top-5 함수 후보 중 형제(Open/Close, On/Off, Up/Down, Set vs Step)를 극성·숫자·모드 enum 규칙으로 선택."""
+def pick_function(M, j, text, avoid=()):
+    """top-5 함수 후보 중 형제(Open/Close, On/Off, Up/Down, Set vs Step)를 극성·숫자·모드 enum 규칙으로 선택.
+    avoid: 같은 절에서 이미 쓴 서비스(한 절이 두 가지 동작을 시킬 때 같은 걸 두 번 고르지 않게)."""
     cands = [s_ for s_ in M.ranked(j) if svc_info(s_)[0] == "function"]
     for jj in list(range(j - 1, -1, -1)) + list(range(j + 1, j + 4)):      # 후보 없는 절(mixed·else 분기)은 이웃 절 후보를 빌림
         if cands: break
         cands = [s_ for s_ in M.ranked(jj) if svc_info(s_)[0] == "function"]
-    bon, extra = rerank.func_bonus(text, cands); n0 = len(cands); cands = cands + [e for e in extra if svc_info(e)[0] == "function"]
+    bon, extra = rerank.func_bonus(text, cands, M.conn, M.sw); n0 = len(cands)
+    cands = cands + [e for e in extra if svc_info(e)[0] == "function" and (M.conn is None or e.split(".")[0] in M.conn)]
+    if avoid:
+        keep = [c for c in cands if c not in avoid]
+        n0 = len([c for c in cands[:n0] if c not in avoid]); cands = keep
     if not cands: return None
     pol = [p for p, rx in POS.items() if re.search(rx, text)]; has_num = slots.number(text) is not None
     def score(k, s_):
@@ -124,7 +141,7 @@ def pick_function(M, j, text):
             if any(name.startswith(w) or name.endswith(w) for w in NAME_POL[OPP[p]]): sc -= 3
         spec = svc_info(s_)[1]; nargs = [a for a in spec.get("arguments", []) if a.get("type") in NUM_T]
         if has_num and nargs and name.startswith(("Set", "MoveTo")): sc += 2
-        if "Mode" in name:                                                    # A14: 해당 enum 멤버가 있는 Mode 함수 우선
+        if "Mode" in name or any(a.get("type") == "ENUM" for a in spec.get("arguments", [])):   # A14: 해당 enum 멤버가 있는 모드 설정 함수 우선
             for a in spec.get("arguments", []):
                 if a.get("type") == "ENUM": sc += 2 if slots.enum_arg(text, members_of(s_.split(".")[0], a.get("format"))) else -1
         if not has_num and name.startswith(("Set", "MoveTo")) and nargs and not spec.get("arguments", [{}])[0].get("type") == "ENUM" and not re.search(r"켜|꺼|끄|최대|최소", text): sc -= 1
@@ -136,8 +153,8 @@ COLOR_XY = {"red": (0.675, 0.322), "blue": (0.167, 0.04), "green": (0.409, 0.518
 TOGGLE_VERB = {r"열었다|열고 닫|개방": ("열어줘", "닫아줘"), r"올렸다|올리고 내": ("올려줘", "내려줘"), r"잠갔다|잠궜다": ("잠가줘", "열어줘"), r"켰다|켜고 끄": ("켜줘", "꺼줘")}
 STEP_RE = re.compile(r"(\d+)\s*(도|%)?\s*(씩|만큼|단위씩|단위로|)\s*(높여|올려|키워|낮춰|내려|줄여|늘려|늘리|올리|증가|줄이|감소|밝게|어둡게|키우|낮추|내리|높이)")
 UP_WORDS = ("높여", "올려", "키워", "늘려", "늘리", "올리", "증가", "밝게", "키우", "높이")
-def call_node(M, j, text, force=None):
-    svc = force or pick_function(M, j, text)
+def call_node(M, j, text, force=None, avoid=()):
+    svc = force or pick_function(M, j, text, avoid or ())
     if not svc: return {"op": "call", "target": "?", "args": {}}
     k, spec = svc_info(svc); cat = svc.split(".")[0]; args = {}
     for a in spec.get("arguments", []):
@@ -170,10 +187,10 @@ def call_node(M, j, text, force=None):
                     mu = re.search(rf"{int(n) if float(n).is_integer() else n}\s*(분|시간)", text)
                     if mu: n = n * (60 if mu.group(1) == "분" else 3600)
                 if n is not None: args[aid] = int(n) if at in ("INT", "INTEGER", "LONG") else float(n)
-        else:
-            q = slots.quoted(text)
-            if q: args[aid] = q
-    return {"op": "call", "target": svc, "args": args}
+        elif at == "STRING":
+            v = slots.string_arg(aid, text)
+            if v is not None: args[aid] = v
+    return {"op": "call", "target": svc, "args": args, "_text": text}
 
 # ── 절 전처리: 슬롯 주도 mods, 표면 규칙 일반형, 관용구 ──
 def slot_mods(t, text, mods):
@@ -263,7 +280,7 @@ def build(segments, M, graph=True):
         if c and (slots._hour(s["text"]) or re.search(r"크리스마스|새해|정오|자정", s["text"])): cr = c; break
     if cr is None: cr = next((slots.cron(s["text"]) for s in S if s["type"] != "STOP" and slots.cron(s["text"])), None)
     tl = [{"op": "start_at", "anchor": "cron" if cr else "now", **({"cron": cr} if cr else {})}]
-    counter = [0]; ncall = collections.Counter()
+    counter = [0]; ncall = collections.Counter(); usedf = collections.defaultdict(set)
     def conv(b, out):
         for x in b.items:
             if isinstance(x, Box):
@@ -298,38 +315,46 @@ def build(segments, M, graph=True):
                     unt = slots.until(txt) or (f"n >= {cnt}" if cnt else None)
                     if per is None and unt and any(isinstance(y, Box) and y.kind == "IF" for y in x.items): per = "100 MSEC"   # 시간창 + 조건 = 폴링
                     node = {"op": "cycle", "until": unt, "period": per, "body": []}
-                    if cnt: node["count"] = cnt
+                    if cnt: node["count"] = "n"                                                          # count 칸은 횟수가 아니라 반복 변수 이름(횟수는 until 에 들어간다)
                     elif unt is None and any(isinstance(y, Box) and y.kind == "IF" and y.seg is not None and S[y.seg]["type"] == "ACT" and TOGGLE_RE.search(S[y.seg]["text"]) for y in x.items): node["count"] = "n"
-                    conv(x, node["body"]); out.append(node)
+                    conv(x, node["body"])
+                    if "count" not in node and re.search(r"\bn\b", json.dumps(node, ensure_ascii=False)): node["count"] = "n"
+                    out.append(node)
             else:
                 j = b.owner[id(x)]; s = S[j]; leaf = str(x)
                 if leaf == "CALL":
-                    ncall[j] += 1; force = None; txt = s["text"]
-                    if MODE_ON_RE.search(txt) and ncall[j] == 1: force = "Switch.On"                       # A4: "모드로 켜고" 첫 호출 = 켜기
+                    ncall[j] += 1; force = None; txt = s["text"]; same_svc = False
+                    if MODE_ON_RE.search(txt) and ncall[j] == 1 and rerank.switchable(txt, M.sw): force = "Switch.On"   # A4: "모드로 켜고" 첫 호출 = 켜기(스위치 달린 기기일 때)
                     elif MODE_TEMP_RE.search(txt):                                                          # "냉방 모드로 18도로": 1=Mode 2=Temperature
                         fs = [f for f in M.ranked(OJ[j]) if svc_info(f)[0] == "function"]
                         want = [f for f in fs if ("Mode" in f) == (ncall[j] == 1) and ("Temperature" in f) == (ncall[j] == 2)]
                         if want: force = want[0]
                     elif PULSE_RE.search(txt) and ncall[j] == 2: force = "Switch.Off"                        # 펄스 두 번째 호출 = 끄기
-                    if TOGGLE_RE.search(txt) and TOGGLE_ONOFF_RE.search(txt): force = "Switch.Toggle"        # 켜고 끄기 = Switch.Toggle 한 호출
-                    elif SPLIT_TOGGLE_RE.search(txt) and j + 1 < len(S) and SPLIT_TOGGLE2_RE.match(S[j + 1]["text"]): force = "Switch.Toggle"
+                    if TOGGLE_RE.search(txt) and TOGGLE_ONOFF_RE.search(txt) and rerank.switchable(txt, M.sw): force = "Switch.Toggle"   # 켜고 끄기 = Switch.Toggle 한 호출
+                    elif SPLIT_TOGGLE_RE.search(txt) and j + 1 < len(S) and SPLIT_TOGGLE2_RE.match(S[j + 1]["text"]) and rerank.switchable(txt, M.sw): force = "Switch.Toggle"
                     elif TOGGLE_RE.search(txt):
                         mm = re.search(r"(\S+?)(와|과|이랑|랑) (\S+?)(을|를|으로|로)? ?(사이에서|번갈아)", txt)
+                        same_svc = True
                         if mm: txt = txt[:mm.start()] + (mm.group(1) if ncall[j] == 1 else mm.group(3)) + "으로 " + txt[mm.end():]   # "A와 B 사이에서 전환"
                         else:
                             pair = next((v for k_, v in TOGGLE_VERB.items() if re.search(k_, txt)), ("켜줘", "꺼줘"))
                             txt = re.sub(r"\d+\s*(초|분|시간)\s*(마다|간격으로|씩)", "", TOGGLE_RE.sub("", txt)) + " " + pair[0 if ncall[j] == 1 else 1]   # "열었다 닫았다" → 열어줘 / 닫아줘
                     elif "else" in s["mods"] and ELSE_SPLIT.search(txt):
+                        same_svc = True
                         parts = re.split(r"[,\s](?:그 외에는|그 외에|아니면|그렇지 않으면) ", txt, maxsplit=1)
                         txt = parts[min(ncall[j] - 1, len(parts) - 1)] + (" 설정해줘" if ncall[j] == 1 else "")
-                    out.append(call_node(M, OJ[j], txt, force=force))
+                    node = call_node(M, OJ[j], txt, force=force, avoid=() if (force or same_svc) else usedf[j])
+                    if node["target"] == "?" and out and out[-1].get("op") == "call":
+                        out[-1]["args"].update(node["args"])                     # 더 고를 서비스가 없으면 한 호출의 인자였던 셈
+                    else:
+                        usedf[j].add(node["target"]); out.append(node)
                 elif leaf == "READ":
                     getf = next((f for f in M.ranked(OJ[j]) if svc_info(f)[0] == "function" and not f.startswith("Speaker.")), None)
                     param = re.search(r'\d+\s*동|식당|["“]', s["text"]) is not None      # 인자가 필요한 조회("301동 점심 메뉴")
                     if getf and (top(M, OJ[j], "value") is None or param) and not re.search(r"온도|습도|조도|농도|상태|값|수치", s["text"]):
                         out.append(call_node(M, OJ[j], s["text"], force=getf))            # 값 서비스가 없거나 인자 필요 → 함수 call
                     else:
-                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(M, OJ[j], "value") or pick_value(s["text"], []) or "?"})
+                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(M, OJ[j], "value") or pick_value(s["text"], [], conn=M.conn) or "?"})
                 elif leaf == "DELAY": out.append({"op": "delay", "duration": slots.duration(s["text"]) or "?"})
                 elif leaf.startswith("WAIT"):
                     node = {"op": "wait", "cond": merged_text(j) if s["type"] in ("COND", "TRIG") else "?", "edge": "rising" if "every" in s["mods"] else "none"}
@@ -337,11 +362,31 @@ def build(segments, M, graph=True):
                     out.append(node)
                 elif leaf == "BREAK": out.append({"op": "break"})
     conv(root, tl)
+    _fill_message(tl)
     _walk(tl, _collapse_complement)
     if "주말" in " ".join(s["text"] for s in S) and tl[0].get("cron", "").endswith("* * 6,7") and len(tl) > 1 and tl[1].get("op") == "cycle" and tl[1].get("until") is None:
         tl[0]["cron"] = tl[0]["cron"][:-3] + "6"; tl[1]["until"] = 'Clock.Weekday == "monday"'          # "주말 동안 N마다" = 토 0시 시작 + 월요일까지
     return {"timeline": tl}
 build.last = None
+
+MSG_ARGS = ("Text", "Prompt", "Body", "Message", "Command")     # 사람이 읽을 문구가 들어가는 자리
+def _fill_message(tl):
+    """말하기·알림 호출의 문구 자리를 비워 두지 않는다.
+    바로 앞에서 값을 읽었으면 그 값을 말하는 것으로 보고 "$변수", 아니면 그 절의 말을 그대로 쓴다."""
+    last_read = [None]
+    def go(nodes):
+        for n in nodes:
+            if n.get("op") == "read" and n.get("var"): last_read[0] = n["var"]
+            if n.get("op") == "call":
+                text = n.pop("_text", "")
+                spec = svc_info(n.get("target"))[1] or {}
+                for a in spec.get("arguments", []):
+                    if a["id"] in MSG_ARGS and a.get("type") == "STRING" and a["id"] not in n["args"]:
+                        n["args"][a["id"]] = f"${last_read[0]}" if last_read[0] else slots.message(text)
+            n.pop("_text", None)
+            for k in ("then", "else", "body"):
+                if n.get(k): go(n[k])
+    go(tl)
 
 _CMP_INV = {">=": "<", "<": ">=", ">": "<=", "<=": ">"}
 def _complement(a, b):
