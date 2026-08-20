@@ -18,7 +18,7 @@ if __name__ == "__main__":
         train_graph_heads(os.path.join(EXP, "graph", "pairs.json"), os.path.join(EXP, "graph", "pairs_words.npz")); print("graph_heads.pkl")
     if what in ("examples", "all"):
         from .mapping import build_examples
-        from .encoder import Embedder
+        from .encoder import make_embedder
         from .evaluate import gold_fix
         T, G = labels()
-        ex = build_examples([o for o in T if o["cmd"] in G], lambda o: gold_fix(o["cmd"], G[o["cmd"]]), Embedder()); print("examples.json:", len(ex))
+        ex = build_examples([o for o in T if o["cmd"] in G], lambda o: gold_fix(o["cmd"], G[o["cmd"]]), make_embedder()); print("examples.json:", len(ex))

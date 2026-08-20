@@ -82,7 +82,7 @@ When `cron` + `period` + `break` appear together (DURATION pattern):
 - `Shade` → "shade"
 - `WeatherProvider` properties (Temperature, Humidity, Pm10Weather, etc.) → "outdoor temperature", "outdoor humidity", "outdoor fine dust", etc.
 
-## Light Colors (light_moveToColor)
+## Light Colors (light_moveToXY)
 Interpret coordinates as English color names (approximate):
 - **Blue**: x < 0.2, y < 0.15 (e.g., 0.167, 0.040)
 - **Red**: x > 0.6, y > 0.3
@@ -92,7 +92,8 @@ Interpret coordinates as English color names (approximate):
 - **Purple**: 0.2 < x < 0.3, y < 0.2
 - **Orange**: 0.5 < x < 0.6, y ≈ 0.4
 - **Pink**: 0.3 < x < 0.5, y < 0.3
-Action `light_moveToColor(x, y, ...)` → "set the color to [Color Name]"
+Action `light_moveToXY(x, y)` → "set the color to [Color Name]"
+Action `light_moveToRGB(r, g, b)` → "set the color to [Color Name]" (0-255 per channel)
 
 ## Comparison Operators
 - `>` → "above" / `>=` → "or above" / `<` → "below" / `<=` → "or below"

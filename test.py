@@ -283,14 +283,55 @@ def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
     return stat
 
 
+def run_row_quiet(row, pipe, build, build_selectors, MissingDevices):
+    """행마다 한 줄만 — 대량 측정용. run_row 와 같은 통계를 돌려준다."""
+    devs = jload(row["connected_devices"], {})
+    stat = {"ir": None, "svc": None, "dev_hit": 0, "dev_tot": 0, "error": None}
+    tag = f"{row['category_v2']} #{row['index']:>3}"
+    try:
+        segs = pipe.seg(row["command_kor"].strip())
+        M = pipe.map(segs, devs)
+        ir = build(segs, M)
+    except Exception as e:
+        print(f"{tag}  ⛔ {type(e).__name__}: {e}")
+        stat["error"] = "ir"
+        return stat
+    slm_out = {"ir": ir,
+               "segments": [{k: v for k, v in s.items() if k != "h6"} for s in build.last["segments"]],
+               "mapping": {"ranked": M.r, "parts": M.p}, "graph": build.last.get("graph")}
+    binding_gt = jload(row.get("binding_gt", ""), {})
+    note = ""
+    try:
+        sel = build_selectors(ir, devs, slm_out)
+        ir = sel["ir"]
+        used = set()
+        for svc, info in sel["resolved"].items():
+            gt, gq = gt_devices(binding_gt, svc.split(".", 1)[0], used) if binding_gt else (None, "")
+            if gt is not None:
+                stat["dev_tot"] += 1
+                stat["dev_hit"] += gt == set(info["devices"])
+    except MissingDevices as e:
+        stat["error"] = "no_device"
+        note = f"  기기없음({e})"
+    ir_gt = jload(row.get("ir_gt", ""), None)
+    if ir_gt:
+        stat["ir"] = json.dumps(ir, ensure_ascii=False, sort_keys=True) == json.dumps(ir_gt, ensure_ascii=False, sort_keys=True)
+        stat["svc"] = services_of(ir) == services_of(ir_gt)
+    mark = ("✅" if stat["ir"] else ("△" if stat["svc"] else "❌")) if ir_gt else "·"
+    dev = f"  기기 {stat['dev_hit']}/{stat['dev_tot']}" if stat["dev_tot"] else ""
+    print(f"{tag}  {mark}{dev}  {row['command_kor'][:44]}{note}")
+    return stat
+
+
 def main():
     ap = argparse.ArgumentParser(description="카테고리별 시나리오 단계별 실행")
-    ap.add_argument("category", nargs="?", help="카테고리 (예: C01). 빼면 목록만 본다")
+    ap.add_argument("category", nargs="*", help="카테고리 (예: C01 C07). all 이면 전부. 빼면 목록만 본다")
     ap.add_argument("-n", "--num", type=int, default=0, help="앞에서 N개만")
     ap.add_argument("-i", "--index", nargs="+", default=None, help="그 카테고리 안의 index 만")
     ap.add_argument("--code", action="store_true", help="코드 생성(lowering·이름)까지")
     ap.add_argument("--no-gates", action="store_true", help="객관식 게이트 끄고 head 만")
     ap.add_argument("-v", "--verbose", action="store_true", help="vLLM 적재 로그까지 보기")
+    ap.add_argument("-q", "--quiet", action="store_true", help="행마다 한 줄 + 요약만")
     args = ap.parse_args()
 
     rows = load_rows()
@@ -298,8 +339,12 @@ def main():
         show_categories(rows)
         return
 
-    cat = args.category.upper()
-    picked = [r for r in rows if r["category_v2"] == cat]
+    cats = [c.upper() for c in args.category]
+    if "ALL" in cats:
+        cat, picked = "전체", list(rows)
+    else:
+        cat = " ".join(cats)
+        picked = [r for r in rows if r["category_v2"] in cats]
     if not picked:
         print(f"카테고리 {cat} 없음.\n")
         show_categories(rows)
@@ -327,7 +372,10 @@ def main():
 
     stats = []
     for row in picked:
-        stats.append(run_row(row, pipe, build, build_selectors, MissingDevices, args.code))
+        if args.quiet:
+            stats.append(run_row_quiet(row, pipe, build, build_selectors, MissingDevices))
+        else:
+            stats.append(run_row(row, pipe, build, build_selectors, MissingDevices, args.code))
 
     ir_ok = sum(1 for s in stats if s["ir"])
     ir_n = sum(1 for s in stats if s["ir"] is not None)

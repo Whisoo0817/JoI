@@ -29,8 +29,6 @@ This is analysis, not translation. Do NOT compress the scenario into one sentenc
 
 **Common services**
 - `(#Clock).clock_hour` / `clock_minute` / `clock_timestamp` / `clock_isHoliday` — time reads.
-- `(#GlobalVariable).globalVariable_getBoolean("k")` / `setBoolean("k", v)` — cross-scenario shared state.
-- `(#ToastPublisher).toastPublisher_publish("type","title","body")` — on-screen notification.
 - `(#Speaker).speaker_speak("...")` / `speaker_setVolume(n)` / `speaker_volume`.
 
 # What to analyze (read the WHOLE code before writing)
@@ -61,7 +59,7 @@ warned := false
 pm = any(#AirQualitySensor #Office).airQualitySensor_fineDustLevel
 if (pm > 35.0 and warned == false) {
   (#AirPurifier #Office).switch_on()
-  (#ToastPublisher).toastPublisher_publish("warning", "미세먼지 경보", "사무실 미세먼지가 높습니다.")
+  (#Speaker #Office).speaker_speak("사무실 미세먼지가 높습니다.")
   warned = true
 }
 if (pm <= 35.0) { warned = false }
@@ -84,7 +82,6 @@ Output:
 ## 기기·서비스
 - `(#AirQualitySensor #Office)` — 사무실 공기질 센서(교집합 태그) → `airQualitySensor_fineDustLevel`.
 - `(#AirPurifier #Office)` — 사무실 공기청정기 → `switch_on`.
-- `(#ToastPublisher)` — 화면 경고 알림.
 
 ## 임계값·상수·문구
 - `35.0` — PM2.5 경고 임계값.

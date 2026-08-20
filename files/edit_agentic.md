@@ -8,7 +8,7 @@ Work directly. Do NOT re-read the script line by line or second-guess with "Wait
 - **period (ms)**: `0` one-shot; `N>0` re-runs every N ms (polling tick). `:=` initializes once and persists across ticks; `=` re-evaluates every tick.
 - **selectors**: `(#Tag)` one device; `all(#Tag)` every; `any(#Tag)` at least one; `(#A #B)` intersection (one device with BOTH tags).
 - **flow**: `if/else if/else`, `wait until(...)`, `delay(N UNIT)`, `for (v : all(#Tag).svc){...}`, `break`; logic `and/or/not`; quantifier `==|`/`>=|`.
-- **services**: `(#Clock).clock_hour|clock_minute|clock_timestamp|clock_isHoliday`, `(#GlobalVariable).globalVariable_getBoolean/setBoolean`, `(#ToastPublisher).toastPublisher_publish(type,title,body)`, `(#Speaker).speaker_speak/speaker_setVolume/speaker_volume`, `switch_on/off/switch`.
+- **services**: `(#Clock).clock_hour|clock_minute|clock_timestamp|clock_isHoliday`, `(#Speaker).speaker_speak/speaker_setVolume/speaker_volume`, `switch_on/off/switch`.
 
 # Decide the edit scope, change only that
 - **Schedule** (요일·시각·매일·평일·"N시에") → change `cron` only. Script unchanged.

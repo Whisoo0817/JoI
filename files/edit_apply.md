@@ -12,7 +12,7 @@ You may reason step by step first. The final answer MUST be only the output bloc
 
 # Hard rules
 - **Preserve everything you are not explicitly changing — byte for byte.** Keep every variable, comment (`// …`), blank line, indentation, operator, threshold, and quoted string exactly as-is. Do NOT reformat, reorder, rename, re-indent, translate, or "improve" anything.
-- Keep the code **valid JoI** (`:=` vs `=`, `if/else if/else`, `wait until`, `for (v : all(...))`, `all`/`any`, `==|`, services like `(#Clock).clock_hour`, `(#GlobalVariable)`, `(#ToastPublisher)`, `(#Speaker)`).
+- Keep the code **valid JoI** (`:=` vs `=`, `if/else if/else`, `wait until`, `for (v : all(...))`, `all`/`any`, `==|`, services like `(#Clock).clock_hour`, `(#Speaker)`).
 - **cron**: 5 fields `minute hour day-of-month month day-of-week`; day-of-week `1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat 7=Sun`. Empty cron = leave empty.
 - **period is in milliseconds**: 1초=1000, 0.5초=500, 1분=60000. Leave the value untouched unless the edit changes the interval.
 - Use the `[Analysis]` to locate what to change and to avoid breaking related logic (e.g. a threshold referenced in several branches).

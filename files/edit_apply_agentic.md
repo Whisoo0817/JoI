@@ -23,7 +23,7 @@ Prefer the narrowest tool. Do not fetch what the current script already contains
 
 # Hard rules
 - **Preserve everything you are not explicitly changing — byte for byte.** Keep every variable, comment (`// …`), blank line, indentation, operator, threshold and quoted string exactly. Do NOT reformat, reorder, rename, re-indent or "improve" anything.
-- Keep valid JoI (`:=` vs `=`, `if/else if/else`, `wait until`, `for (v : all(...))`, `all`/`any`, `==|`, services like `(#Clock).clock_hour`, `(#GlobalVariable)`, `(#ToastPublisher)`, `(#Speaker)`).
+- Keep valid JoI (`:=` vs `=`, `if/else if/else`, `wait until`, `for (v : all(...))`, `all`/`any`, `==|`, services like `(#Clock).clock_hour`, `(#Speaker)`).
 - A **new** device selector must use a tag returned by `find_devices`; a **new** action must use a method returned by `get_services`.
 - **cron**: 5 fields `minute hour day-of-month month day-of-week`; day-of-week `1=Mon 2=Tue 3=Wed 4=Thu 5=Fri 6=Sat 7=Sun`; empty = leave empty.
 - **period is milliseconds**: 1초=1000, 0.5초=500, 1분=60000. Untouched unless the edit changes the interval.
