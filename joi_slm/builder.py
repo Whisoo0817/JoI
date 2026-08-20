@@ -133,7 +133,7 @@ def pick_function(M, j, text, avoid=()):
         keep = [c for c in cands if c not in avoid]
         n0 = len([c for c in cands[:n0] if c not in avoid]); cands = keep
     if not cands: return None
-    pol = [p for p, rx in POS.items() if re.search(rx, text)]; has_num = slots.number(text) is not None
+    pol = [p for p, rx in POS.items() if re.search(rx, text)]; has_num = slots.number_arg(text) is not None
     def score(k, s_):
         name = s_.split(".", 1)[1]; sc = -(k if k < n0 else 1) + bon.get(s_, 0)      # 규칙 추가 후보는 순위 벌점 1
         for p in pol:
@@ -144,6 +144,7 @@ def pick_function(M, j, text, avoid=()):
         if "Mode" in name or any(a.get("type") == "ENUM" for a in spec.get("arguments", [])):   # A14: 해당 enum 멤버가 있는 모드 설정 함수 우선
             for a in spec.get("arguments", []):
                 if a.get("type") == "ENUM": sc += 2 if slots.enum_arg(text, members_of(s_.split(".")[0], a.get("format"))) else -1
+        if rerank.sets_mode(s_) and nargs and not has_num: sc -= 3   # 모드만 말한 명령에 시간까지 달라는 함수는 뒤로
         if not has_num and name.startswith(("Set", "MoveTo")) and nargs and not spec.get("arguments", [{}])[0].get("type") == "ENUM" and not re.search(r"켜|꺼|끄|최대|최소", text): sc -= 1
         return sc
     return _choose(cands, [score(k, s_) for k, s_ in enumerate(cands)])

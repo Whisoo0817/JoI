@@ -6,7 +6,7 @@
 형제 후보는 연결된 기기(conn)에 있는 쪽을 먼저 쓴다 — 예: "문이 열리면" 은 Door 가 붙어 있으면 Door.DoorState, 없으면 ContactSensor.Contact.
 """
 import re
-from .catalog import AL
+from .catalog import AL, svc_info
 ON = True
 
 def pick(conn, *svcs):
@@ -66,6 +66,13 @@ def switchable(text, sw):
     named = {c for c in AL if c not in ("Switch", "LevelControl") and any(_alias_in(a, text) for a in AL[c])}
     return bool(named & sw) if named else bool(sw)
 
+def sets_mode(svc):
+    """모드를 정해주는 함수인가 — 이름에 Mode 가 있거나, Mode 라는 골라 쓰는 인자를 받거나.
+    (RiceCooker.SetCookingParameters 처럼 이름엔 Mode 가 없어도 모드를 정하는 함수가 있다.)"""
+    if "Mode" in svc.split(".", 1)[1]: return True
+    spec = svc_info(svc)[1] or {}
+    return any(a.get("type") == "ENUM" and "Mode" in a.get("id", "") for a in spec.get("arguments", []))
+
 def func_bonus(text, cands, conn=None, sw=None):
     """→ (bonus dict svc→score, extra 후보 목록). conn: 연결된 기기 카테고리, sw: 그중 Switch 로 켜고 끌 수 있는 종류"""
     if not ON: return {}, []
@@ -91,7 +98,7 @@ def func_bonus(text, cands, conn=None, sw=None):
     if re.search(r"업로드|올려\s*줘$", text) and re.search(r"클라우드|파일|사진", text): add("CloudServiceProvider.UploadFile", 5)
     if MODE.search(text):
         for s in cands:
-            if "Mode" in s.split(".")[1]: b[s] = b.get(s, 0) + 4
+            if sets_mode(s): b[s] = b.get(s, 0) + 4
     if re.search(r"채널", text):
         for s in cands:
             if s.endswith("SetChannel") and re.search(r"\d+\s*번", text): b[s] = b.get(s, 0) + 6
