@@ -10,6 +10,28 @@ TYPE_OPTS = [("ACT", "행동 — 기기를 켜라/꺼라/설정하라 등 실행
              ("TIME", "시각·기간 — 언제 할지만 말함(오후 6시에, 매일 아침, 밤 10시부터 자정까지)"), ("DELAY", "지연 — N초/분/시간 뒤에"), ("READ", "값 확인 — 온도·습도 등을 읽거나 확인하라"),
              ("STOP", "중지 — 반복을 끝내라/그만"), ("ELSE", "아니면 — 앞 조건이 아닐 때")]
 
+ELSE_HEAD = re.compile(r"^(아니면|아니라면|그렇지 않으면|그 외에는|그외에는)")
+FRAG_RO = re.compile(r"(으로|로)[.,]?$")
+DELAY_TAIL = re.compile(r"((\d+(?:\.\d+)?|한|두|세|네|다섯|반)\s*(밀리초|초|분|시간|일)\s*(뒤에|후에|뒤|후|있다가|지나서|지나고))[.,]?\s*$")
+def stitch(segs):
+    """나뉜 절 꿰매기(경계 head 실수 복구) — 매핑 전에 돌아서 서비스 후보도 온전한 절로 뽑힌다.
+    ① 서술어 없이 '~로'로 끝나는 절("밥솥을 조리 모드로")은 다음 절을 꾸미는 조각 → 다음 절 앞에 붙인다.
+       (단, 다음 절이 "아니면 …"이면 동사를 나눠 쓰는 if/else 관용구("냉방으로, 아니면 자동으로 설정")라 그대로 둔다)
+    ② DELAY 절이 시간말 앞에 딴 말을 달고 있으면("밥솥을 조리 모드로 30분 뒤에") 그 말을 다음 행동 절로 넘긴다."""
+    out = [dict(s) for s in segs]
+    for i in range(len(out) - 2, -1, -1):                                    # ① 뒤에서부터: 조각이 이어져도 한 번에 붙는다
+        s, nx = out[i], out[i + 1]
+        if FRAG_RO.search(s["text"].strip()) and nx["type"] != "ELSE" and not ELSE_HEAD.match(nx["text"].strip()):
+            out[i:i + 2] = [{**nx, "text": s["text"].rstrip(" ,.") + " " + nx["text"], "mods": sorted(set(s["mods"]) | set(nx["mods"]))}]
+    for i, s in enumerate(out[:-1]):                                         # ② 시간말만 DELAY 에 남긴다
+        if s["type"] == "DELAY" and out[i + 1]["type"] == "ACT":
+            m = DELAY_TAIL.search(s["text"])
+            pre = s["text"][:m.start()].strip(" ,.") if m else ""
+            if pre and re.search(r"(을|를|으로|로)$", pre):                  # 딴 말 = 목적어·부사어 조각일 때만 (동사로 끝나면 관용구일 수 있어 안 건드림)
+                s["text"] = m.group(1); out[i + 1]["text"] = pre + " " + out[i + 1]["text"]
+    for r, s in enumerate(out): s["j"] = r
+    return out
+
 class MCQ:
     """단일 엔진으로 1토큰 객관식. 실패하면 None."""
     def __init__(self, engine): self.engine = engine
@@ -45,4 +67,4 @@ class Segmenter:
             if self.mcq and pr[r] < self.tau_t:
                 t2 = self.mcq.seg_type(text, segs[r]); self.log.append(("type", segs[r], ty[r], float(pr[r]), t2))
                 if t2: ty[r] = t2
-        return [{"j": r, "text": s, "type": ty[r], "mods": md[r], "p": float(pr[r]), "h6": F[ends[r] - 1, 1].astype(np.float32).tolist()} for r, s in enumerate(segs)]
+        return stitch([{"j": r, "text": s, "type": ty[r], "mods": md[r], "p": float(pr[r]), "h6": F[ends[r] - 1, 1].astype(np.float32).tolist()} for r, s in enumerate(segs)])
