@@ -295,9 +295,15 @@ def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
             code = code if isinstance(code, str) else json.dumps(code, ensure_ascii=False)
             for line in code.replace("\\n", "\n").split("\n"):
                 print("   " + line)
+            g = result.get("gate") or {}
+            if g.get("verdict"):
+                print(f"   🚧 게이트: {g['verdict']}  {g.get('note', '')}".rstrip()
+                      + f"  (lowering={result.get('lowering', '?')})")
             print(f"   ({time.perf_counter() - t0:.2f}s)")
+            stat["gate"] = g.get("verdict", "")
         except Exception as e:
             print(f"   ⛔ {type(e).__name__}: {e}")
+            stat["gate"] = getattr(e, "error_code", "") or type(e).__name__
         if row.get("joi_code"):
             print("\n   ── 정답 코드 ──")
             for line in row["joi_code"].replace("\\n", "\n").split("\n"):
@@ -420,6 +426,9 @@ def main():
         print(f"   기기 일치   {dev_hit}/{dev_tot} 자리 (binding 정답 있는 것만)")
     if err:
         print(f"   실패        {dict(err)}")
+    gates = Counter(s.get("gate") for s in stats if s.get("gate"))
+    if gates:
+        print(f"   코드 게이트 {dict(gates)}")
     print(BAR)
 
 

@@ -9,7 +9,12 @@ word states for the sLM heads, the MCQ gates, lowering and naming.
               embedding service mapping joined on connected categories, rule assembly.
               No LLM text generation; approval-free — the IR is used as built.
     [Stage 2] IR services × connected devices → selectors (joi/devices.py, Python)
-    [Stage 3] feasibility → joi_from_ir lowering (same model, bucket-routed prompt)
+    [Stage 3] feasibility → lowering → 게이트
+              기본: LLM 없이 규칙으로 IR 을 코드로 옮기고(joi/lower_rules.py),
+              게이트(joi/gate)가 IR 과 코드를 나란히 돌려 같은지 확인한다.
+              같을 때(EQUIV)만 내보내고, 규칙 밖 모양·DIVERGE·REFUSED 는
+              폴백 없이 거절한다. 옛 LLM lowering 은 JOI_LOWER=llm 로만 켠다
+              (기준선 측정용; 이때 게이트는 판정만 기록하고 거르지 않는다).
     [Stage 4] naming: re_translate → re_translate_kor → scenario_name (same model)
               — 지금은 기본으로 건너뛴다. 켜려면 JOI_NAME=1.
 
@@ -44,6 +49,11 @@ from pipeline_helpers import (
 )
 from joi.feasibility import check_feasibility, FeasibilityError, lowering_bucket
 from joi.devices import build_selectors, render_selectors, MissingDevices
+from joi.lower_rules import lower_ir, CantLower
+from joi.gate import gate_row
+
+# lowering 방식: "rules"(기본) | "llm"(옛 LLM lowering, 기준선 측정용)
+LOWER_MODE = os.environ.get("JOI_LOWER", "rules").strip().lower() or "rules"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -211,6 +221,85 @@ def _duration_hints(code_obj) -> str:
     return "\n\n[Duration Hints] (already computed — use verbatim, do NOT recompute)\n" + "\n".join(seen)
 
 
+def _lower_by_llm(ir, sentence, selection, service_details, connected_devices, infer, log_buf):
+    """옛 LLM lowering (JOI_LOWER=llm). (joi_json, code_plan) 을 돌려준다."""
+    precision_output = {"selectors": selection["selectors"]}
+    ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
+    bucket = classify_ir(ir)
+    log_buf.append(f"📦 IR bucket: {bucket}")
+    prompt_key = f"joi_from_ir_{bucket}"
+    try:
+        system_prompt = _load_lowering_prompt(bucket, ir=ir)
+    except FileNotFoundError as e:
+        raise JoiGenerationError(f"Lowering prompt missing: {e}", "\n".join(log_buf),
+                                 error_code="missing_lowering_prompt")
+
+    joi_input = (
+        f"[Command]\n{sentence}\n\n"
+        f"[Timeline IR]\n{ir_json_str}\n\n"
+        f"[Precision Selectors]\n{render_selectors(precision_output['selectors'])}\n\n"
+        f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+    )
+
+    def _finalize(raw: str) -> dict:
+        """Parse + post-process raw LLM output into the final joi_block dict."""
+        script = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
+        joi_json = {}
+        try:
+            m = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
+            if m:
+                fixed_inner = m.group(1).replace('\n', '\\n')
+                script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
+            joi_json = json.loads(script)
+            if "script" in joi_json:
+                joi_json["script"] = _strip_selector_extra_parens(joi_json["script"])
+                joi_json["script"] = _apply_service_prefix(joi_json["script"])
+                joi_json["script"] = _normalize_script_newlines(joi_json["script"])
+            joi_json.setdefault("name", "Scenario")  # overwritten by naming stage below
+            joi_json = {"name": joi_json.pop("name"), **joi_json}
+        except (json.JSONDecodeError, TypeError):
+            body = _apply_service_prefix(_strip_selector_extra_parens(script))
+            joi_json = {"name": "Scenario", "cron": "", "period": 0,
+                        "script": _normalize_script_newlines(body)}
+
+        try:
+            _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
+        except Exception as e:
+            log_buf.append(f"⚠️ validate_joi warning: {e}")
+
+        _override_ms = _wrapper_period_from_ir(ir)
+        if _override_ms is not None and joi_json.get("period") != _override_ms:
+            log_buf.append(f"🔧 wrapper.period override: {joi_json.get('period')} → {_override_ms} (from IR cycle.period)")
+            joi_json["period"] = _override_ms
+
+        if "script" in joi_json:
+            # Re-apply any/all the lowering LLM may have dropped, THEN canonicalize
+            # `any(...) ==` → `all(...) ==|`.
+            joi_json["script"] = _reapply_precision_quantifiers(joi_json["script"], precision_output["selectors"])
+            joi_json["script"] = _post_process_joi_any_quantifiers(joi_json["script"])
+        return joi_json
+
+    raw = infer(prompt_key, joi_input, system=system_prompt)
+    joi_json = _finalize(raw)
+    code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
+    return joi_json, code_plan
+
+
+def _run_gate(ir, jb, connected_devices, selection, log_buf):
+    """게이트: IR 과 코드 블록을 나란히 돌려 같은지 본다. (verdict, note) 를 돌려준다."""
+    _t = time.perf_counter()
+    try:
+        g = gate_row(ir, jb, connected_devices, selection)
+        verdict, note = g.verdict, ((g.notes or [""])[-1] if g.notes else "")
+        if verdict == "DIVERGE" and g.product and g.product.divergences:
+            d = g.product.divergences[0]
+            note = (note + f" | 첫 갈라짐 IR:{d.actions_a} 코드:{d.actions_b}").strip(" |")
+    except Exception as e:  # 게이트 자체가 터지면 판정 못 한 것으로 친다
+        verdict, note = "REFUSED", f"게이트 오류: {type(e).__name__}: {e}"
+    log_buf.append(f"🚧 gate: {verdict} ({time.perf_counter() - _t:.2f}s) {note}".rstrip())
+    return verdict, note
+
+
 # ─────────────────────────────────────────────────────────────────────────────
 # Main entry
 # ─────────────────────────────────────────────────────────────────────────────
@@ -304,71 +393,41 @@ def generate_joi_code_ir(
     service_details = extract_service_details(selected_services, SERVICE_DATA)
     log_buf.append(f"🎯 selectors: {selection['selectors']}")
 
-    # ── Stage 3: feasibility → lowering ──
+    # ── Stage 3: feasibility → lowering → 게이트 ──
     try:
         check_feasibility(ir)
     except FeasibilityError as e:
         log_buf.append(f"⛔ feasibility: {e}")
         raise JoiGenerationError(f"IR infeasible: {e}", "\n".join(log_buf), error_code="ir_infeasible")
 
-    ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
-    bucket = classify_ir(ir)
-    log_buf.append(f"📦 IR bucket: {bucket}")
-    prompt_key = f"joi_from_ir_{bucket}"
-    try:
-        system_prompt = _load_lowering_prompt(bucket, ir=ir)
-    except FileNotFoundError as e:
-        raise JoiGenerationError(f"Lowering prompt missing: {e}", "\n".join(log_buf),
-                                 error_code="missing_lowering_prompt")
-
-    joi_input = (
-        f"[Command]\n{sentence}\n\n"
-        f"[Timeline IR]\n{ir_json_str}\n\n"
-        f"[Precision Selectors]\n{render_selectors(precision_output['selectors'])}\n\n"
-        f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
-    )
-
-    def _finalize(raw: str) -> dict:
-        """Parse + post-process raw LLM output into the final joi_block dict."""
-        script = re.sub(r'<Reasoning>.*?</Reasoning>', '', raw, flags=re.DOTALL).strip()
-        joi_json = {}
+    code_plan = ""
+    gate_verdict, gate_note = "", ""
+    if LOWER_MODE != "llm":
+        # 기본: 규칙 lowering (LLM 없음) → 게이트가 EQUIV 라고 할 때만 통과
+        _t = time.perf_counter()
         try:
-            m = re.search(r'"script"\s*:\s*"(.*?)"\s*\}', script, re.DOTALL)
-            if m:
-                fixed_inner = m.group(1).replace('\n', '\\n')
-                script = script[:m.start(1)] + fixed_inner + script[m.end(1):]
-            joi_json = json.loads(script)
-            if "script" in joi_json:
-                joi_json["script"] = _strip_selector_extra_parens(joi_json["script"])
-                joi_json["script"] = _apply_service_prefix(joi_json["script"])
-                joi_json["script"] = _normalize_script_newlines(joi_json["script"])
-            joi_json.setdefault("name", "Scenario")  # overwritten by naming stage below
-            joi_json = {"name": joi_json.pop("name"), **joi_json}
-        except (json.JSONDecodeError, TypeError):
-            body = _apply_service_prefix(_strip_selector_extra_parens(script))
-            joi_json = {"name": "Scenario", "cron": "", "period": 0,
-                        "script": _normalize_script_newlines(body)}
-
+            jb = lower_ir(ir, selection)
+        except CantLower as e:
+            log_buf.append(f"⛔ lowering(규칙): 아직 못 만드는 모양 — {e}")
+            raise JoiGenerationError(f"규칙 lowering 밖의 IR 모양: {e}", "\n".join(log_buf),
+                                     error_code="lowering_unsupported")
+        joi_json = {"name": "Scenario", "cron": jb.get("cron") or "",
+                    "period": int(jb.get("period") or 0), "script": jb.get("script", "")}
+        log_buf.append(f"🧮 lowering(규칙) ({time.perf_counter() - _t:.2f}s)")
         try:
-            _ = validate_joi(joi_json.get("script", ""), connected_devices, _SERVICE_CATEGORY_MAP)
+            _ = validate_joi(joi_json["script"], connected_devices, _SERVICE_CATEGORY_MAP)
         except Exception as e:
             log_buf.append(f"⚠️ validate_joi warning: {e}")
-
-        _override_ms = _wrapper_period_from_ir(ir)
-        if _override_ms is not None and joi_json.get("period") != _override_ms:
-            log_buf.append(f"🔧 wrapper.period override: {joi_json.get('period')} → {_override_ms} (from IR cycle.period)")
-            joi_json["period"] = _override_ms
-
-        if "script" in joi_json:
-            # Re-apply any/all the lowering LLM may have dropped, THEN canonicalize
-            # `any(...) ==` → `all(...) ==|`.
-            joi_json["script"] = _reapply_precision_quantifiers(joi_json["script"], precision_output["selectors"])
-            joi_json["script"] = _post_process_joi_any_quantifiers(joi_json["script"])
-        return joi_json
-
-    raw = infer(prompt_key, joi_input, system=system_prompt)
-    joi_json = _finalize(raw)
-    code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
+        gate_verdict, gate_note = _run_gate(ir, joi_json, connected_devices, selection, log_buf)
+        if gate_verdict != "EQUIV":
+            raise JoiGenerationError(f"게이트 {gate_verdict}: 코드가 IR 과 같다고 확인되지 않음 — {gate_note}",
+                                     "\n".join(log_buf),
+                                     error_code=f"lowering_gate_{gate_verdict.lower()}")
+    else:
+        joi_json, code_plan = _lower_by_llm(ir, sentence, selection, service_details,
+                                            connected_devices, infer, log_buf)
+        # 기준선 측정용: 게이트 판정은 기록만 하고 거르지 않는다
+        gate_verdict, gate_note = _run_gate(ir, joi_json, connected_devices, selection, log_buf)
 
     joi_code_raw = json.dumps(joi_json, indent=2, ensure_ascii=False)
     code_pretty = _unescape_script(joi_code_raw)
@@ -432,6 +491,8 @@ def generate_joi_code_ir(
         "mapping": slm_out.get("mapping", {}),
         "precision": precision_output["selectors"],
         "precision_reasoning": precision_output["reasoning"],
+        "lowering": "llm" if LOWER_MODE == "llm" else "rules",
+        "gate": {"verdict": gate_verdict, "note": gate_note},
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
             "translated_sentence": translated_sentence_kor or translated_sentence,

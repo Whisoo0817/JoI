@@ -69,6 +69,8 @@ ERROR_CODE_MAP = {
 _REASONING_CODES = {
     "reasoning_failed", "ir_invalid", "ir_rejected", "ir_infeasible",
     "missing_lowering_prompt",
+    # 규칙 lowering + 게이트 (joi/generate.py Stage 3)
+    "lowering_unsupported", "lowering_gate_diverge", "lowering_gate_refused",
 }
 
 
