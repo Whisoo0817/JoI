@@ -204,6 +204,12 @@ def lower_ir(ir: dict, selection: dict) -> dict:
         period = 100
     else:
         lines = _stmts(body, selection, 0)
+    # 마지막 줄이 call 결과 대입인데 뒤에서 아무도 안 쓰면(죽은 대입) 대입만 뗀다
+    # — 실행기는 대입 꼴의 call 을 액션으로 안 치기 때문에 있으면 동작이 사라진다.
+    if lines and not lines[-1].startswith(" "):
+        m = re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]* = (\S.*\))", lines[-1])
+        if m:
+            lines[-1] = m.group(1)
     script = "\n".join(lines)
     # 조건 자리의 any(#X) 비교는 JoI 관용구 all(#X) op| 로 (파이프라인 후처리와 동일)
     script = _post_process_joi_any_quantifiers(script)

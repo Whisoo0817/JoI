@@ -34,6 +34,18 @@ def has_blocking(stmts: list) -> bool:
                for x in walk_stmts(stmts))
 
 
+def _paused_at_delay(stmts: list, rpath: tuple) -> bool:
+    """멈췄던 자리(rpath 끝)가 delay 문인가."""
+    s = None
+    for j, (idx, br) in enumerate(rpath):
+        if idx >= len(stmts):
+            return False
+        s = stmts[idx]
+        if j < len(rpath) - 1:
+            stmts = s.then_body if br == 0 else (s.else_body or [])
+    return isinstance(s, jp.Delay)
+
+
 class PauseRunner:
     def __init__(self, src: str | list, repeat: bool) -> None:
         stmts = src if isinstance(src, list) else parse(src)
@@ -136,4 +148,15 @@ class PauseRunner:
             vars_["__dstart"] = 0
             if not self.repeat:
                 vars_["__done"] = True
+            elif rpath and r == "done" and _paused_at_delay(self.stmts, rpath):
+                # 허브는 period 마다 새 run 을 시작한다(joi_cycle.md). delay 로
+                # 멈췄던 run 은 실제 시간으론 이 경계 전에 이미 끝났으므로,
+                # 이 tick 의 새 run 을 바로 이어 시작한다 — 안 그러면 회차가
+                # 하나 걸러 떨어져 나간다. wait until 로 멈췄던 run 은 이 tick
+                # 까지 실행 중이었던 것이라 새 run 을 겹쳐 시작하지 않는다.
+                # (delay 가 period 보다 길면 새 run 이 다시 멈춰 경로가 이어진다.)
+                r = go(self.stmts, (), (), False)
+                if r != "pause":
+                    vars_["__path"] = ()
+                    vars_["__dstart"] = 0
         return StepResult(vars_, gv, actions, r == "break")

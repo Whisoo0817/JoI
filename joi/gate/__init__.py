@@ -9,6 +9,9 @@
 
 slm 파이프라인과 잇는 어댑터는 adapt.py 에 있다. 이 안의 나머지 모듈은
 paper 브랜치와 자구 동일하게 유지한다 (고칠 게 생기면 양쪽에 같이).
+예외: pause.py — delay 로 멈췄던 run 을 끝낸 tick 에 새 run 을 잇는 수정이
+들어갔다(허브의 "period 마다 재실행" 의미, joi_cycle.md). paper 쪽에도 같은
+수정이 필요하다 — 아직 안 옮김.
 """
 from .gate import GateResult, gate_pair          # noqa: F401
 from .adapt import gate_row, make_binding        # noqa: F401
