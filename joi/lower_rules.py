@@ -49,13 +49,21 @@ def token(cat: str, name: str) -> str:
     return f"{cat[0].lower()}{cat[1:]}_{name[0].lower()}{name[1:]}"
 
 
-def _sel(selection: dict, key: str) -> str:
-    """서비스의 셀렉터 문자열. 자리별 셀렉터(slots)가 있으면 등장 순서대로 하나씩 꺼내 쓴다.
-    없거나 여러 조각이면 아직 지원 밖."""
+def _sels(selection: dict, key: str) -> list[str]:
+    """서비스의 셀렉터 문자열들. 자리별 셀렉터(slots)가 있으면 등장 순서대로 하나씩 꺼내 쓴다.
+    여러 조각이면 합집합 뜻(예: "복도와 거실의 조명" → 복도 조각 + 거실 조각)."""
     queue = (selection.get("_slot_queue") or {}).get(key)
     if queue:
-        return queue.pop(0)
+        return [queue.pop(0)]
     parts = (selection.get("selectors") or {}).get(key) or []
+    if not parts:
+        raise CantLower(f"셀렉터가 없음: {key}")
+    return list(parts)
+
+
+def _sel(selection: dict, key: str) -> str:
+    """셀렉터 하나만 허용하는 자리(읽기·조건) — 여러 조각이면 아직 지원 밖."""
+    parts = _sels(selection, key)
     if len(parts) != 1:
         raise CantLower(f"셀렉터가 1개가 아님: {key} → {parts}")
     return parts[0]
@@ -257,13 +265,17 @@ def _stmts(steps: list, selection: dict, depth: int) -> list[str]:
                     vals.append(hv)
                 else:
                     vals.append(_arg_code(v, selection))
-            code = f"{_sel(selection, s['target'])}.{token(cat, method)}({', '.join(vals)})"
+            sels = _sels(selection, s["target"])
             var = s.get("var")
             cats = {k.split(".", 1)[0] for k in (selection.get("selectors") or {})}
-            if var and "." not in var and var not in cats:
-                # 결과를 담는 자리 — 단 서비스 이름(예: "Light")은 담는 게 아니다
-                code = f"{var} = {code}"
-            lines.append(pad + code)
+            if var and "." not in var and var not in cats and len(sels) != 1:
+                raise CantLower(f"결과를 담는 call 인데 셀렉터가 여러 조각: {s['target']} → {sels}")
+            for sel in sels:                       # 조각이 여럿이면 조각마다 한 번씩 부른다(합집합)
+                code = f"{sel}.{token(cat, method)}({', '.join(vals)})"
+                if var and "." not in var and var not in cats:
+                    # 결과를 담는 자리 — 단 서비스 이름(예: "Light")은 담는 게 아니다
+                    code = f"{var} = {code}"
+                lines.append(pad + code)
         elif op == "delay":
             dur = s.get("duration")
             if not isinstance(dur, str) or not dur.strip():

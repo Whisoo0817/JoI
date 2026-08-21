@@ -402,15 +402,17 @@ def occurrences_in_ir(ir: dict) -> list[tuple[str, str]]:
     return out
 
 
-def cond_pieces(slm_out: dict | None) -> list[tuple[str, list[str]]]:
-    """조건(·읽기) 절들을 조각 단위로 IR 순서대로 → [(조각 글, 그 조각의 후보 서비스들)].
+def clause_pieces(slm_out: dict | None, kind: str) -> list[tuple[str, list[str]]]:
+    """절들을 조각 단위로 IR 순서대로 → [(조각 글, 그 조각의 후보 서비스들)].
+    kind="condition" 이면 조건·읽기 절(COND/TRIG/READ), "action" 이면 실행 절(ACT).
     매핑이 조각(parts)을 남긴 절은 조각마다, 아니면 절 하나가 조각 하나."""
     segs = (slm_out or {}).get("segments") or []
     mp = (slm_out or {}).get("mapping") or {}
     parts, ranked = mp.get("parts") or {}, mp.get("ranked") or {}
+    want = ("ACT",) if kind == "action" else ("COND", "TRIG", "READ")
     out = []
     for s in segs:
-        if s.get("type") not in ("COND", "TRIG", "READ"): continue
+        if s.get("type") not in want: continue
         j = s.get("j")
         ps = parts.get(j) or parts.get(str(j))
         if ps:
@@ -505,6 +507,16 @@ def _selector_parts(pred: set[str], text: str, cat: str, devices: dict) -> list[
         t2, e2 = min_tags(c, devices)
         if e2:
             parts.append(t2); rest -= c
+    if len(rest) > 1:
+        # 장소 묶음: "복도와 거실의 조명" — 글에 나온 장소 태그별로 묶어 각각 정확히 잡히면 조각 여러 개
+        cand_tags = {t for d in rest for t in devices[d].get("tags", [])
+                     if not str(t).startswith("tc0_")} - CAT_TAGS - NOT_QUALIFIER
+        for t in sorted(_tag_hits(text, cand_tags, fuzzy=False)):
+            c = {d for d in rest if t in devices[d].get("tags", [])}
+            if not c: continue
+            t2, e2 = min_tags(c, devices)
+            if e2:
+                parts.append(t2); rest -= c
     if rest:
         t3, _ = min_tags(rest, devices)
         parts.append(t3 or [cat])
@@ -519,7 +531,7 @@ def build_selectors(ir: dict, connected_devices: dict, slm_out: dict | None = No
     swaps = capability_fix(ir, connected_devices or {}, texts, full_text)
     roles = services_in_ir(ir)
     occ = occurrences_in_ir(ir)
-    pieces = cond_pieces(slm_out)
+    pieces = {k: clause_pieces(slm_out, k) for k in ("condition", "action")}
     selectors, resolved, slots, missing = {}, {}, {}, []
     for svc, role in roles.items():
         cat = svc.split(".", 1)[0]
@@ -535,10 +547,11 @@ def build_selectors(ir: dict, connected_devices: dict, slm_out: dict | None = No
         selectors[svc] = [f"{q}(#" + " #".join(p) + ")" for p in parts]
         resolved[svc] = {"q": q or "one", "devices": sorted(pred),
                          "tags": [t for p in parts for t in p], "text": text}
-        # 자리별 기기: 조건·읽기 자리에 같은 서비스가 여러 번 + 조각도 그만큼
+        # 자리별 기기: 같은 서비스가 여러 번(조건·읽기끼리, 또는 실행끼리) + 조각도 그만큼
         n_occ = [r for s_, r in occ if s_ == svc]
-        if len(n_occ) >= 2 and all(r in ("condition", "read") for r in n_occ) and len(cands) >= 2:
-            ptexts = [t for t, rk in pieces if svc in rk] or [text]
+        kinds = {"action" if r == "action" else "condition" for r in n_occ}
+        if len(n_occ) >= 2 and len(kinds) == 1 and len(cands) >= 2:
+            ptexts = [t for t, rk in pieces[kinds.pop()] if svc in rk] or [text]
             if len(ptexts) == 1 and len(n_occ) == 2:
                 cand_tags = {t for d in cands for t in connected_devices[d].get("tags", [])
                              if not str(t).startswith("tc0_")} - CAT_TAGS - NOT_QUALIFIER
