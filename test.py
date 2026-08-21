@@ -183,25 +183,32 @@ def show_binding(selection, binding_gt):
     if not resolved:
         print("   (기기가 붙는 서비스 없음)")
     used, hit, tot = set(), 0, 0
+    def gt_line(info):
+        nonlocal hit, tot
+        if not binding_gt: return
+        gt, gq = gt_devices(binding_gt, svc.split(".", 1)[0], used)
+        if gt is None: return
+        tot += 1
+        ok = gt == set(info["devices"])
+        hit += ok
+        extra = f"   수량 정답={gq} {'✅' if gq == info['q'] else '❌'}" if gq else ""
+        print(f"       정답    : {'✅' if ok else '❌'} {sorted(gt)}{extra}")
     for svc, info in resolved.items():
         sel = " / ".join(selection["selectors"].get(svc, []))
         print(f"   {svc}")
+        if info.get("slots"):                       # 같은 서비스가 조건에 여러 번 → 자리마다 따로
+            print(f"       자리 {len(info['slots'])}개 (같은 서비스가 여러 번 나옴 — 자리마다 따로 고름)")
+            for k, si in enumerate(info["slots"], 1):
+                print(f"     #{k} 근거 조각: \"{si['text']}\"")
+                print(f"       수량    : {si['q']}   기기: {si['devices']}   셀렉터: {si['selector']}")
+                gt_line(si)
+            continue
         print(f"       근거 절 : \"{info['text']}\"")
         print(f"       수량    : {info['q']}")
         print(f"       기기    : {info['devices']}")
         print(f"       태그    : {info['tags']}")
         print(f"       셀렉터  : {sel}")
-        if binding_gt:
-            gt, gq = gt_devices(binding_gt, svc.split(".", 1)[0], used)
-            if gt is not None:
-                tot += 1
-                ok = gt == set(info["devices"])
-                hit += ok
-                mark = "✅" if ok else "❌"
-                extra = ""
-                if gq:
-                    extra = f"   수량 정답={gq} {'✅' if gq == info['q'] else '❌'}"
-                print(f"       정답    : {mark} {sorted(gt)}{extra}")
+        gt_line(info)
     return hit, tot
 
 
@@ -341,10 +348,11 @@ def run_row_quiet(row, pipe, build, build_selectors, MissingDevices):
         ir = sel["ir"]
         used = set()
         for svc, info in sel["resolved"].items():
-            gt, gq = gt_devices(binding_gt, svc.split(".", 1)[0], used) if binding_gt else (None, "")
-            if gt is not None:
-                stat["dev_tot"] += 1
-                stat["dev_hit"] += gt == set(info["devices"])
+            for one in (info.get("slots") or [info]):          # 자리별로 골랐으면 자리마다 대조
+                gt, gq = gt_devices(binding_gt, svc.split(".", 1)[0], used) if binding_gt else (None, "")
+                if gt is not None:
+                    stat["dev_tot"] += 1
+                    stat["dev_hit"] += gt == set(one["devices"])
     except MissingDevices as e:
         stat["error"] = "no_device"
         note = f"  기기없음({e})"

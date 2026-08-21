@@ -22,6 +22,13 @@ joi_slm 이 만든 Timeline IR 은 서비스 수준(`Category.Method`)이고 기
                태그로 못 잡는 1대는 기기 id 태그로.
 
 절↔서비스 연결은 매핑 결과(ranked/parts)에서 역추적한다 — IR 을 바꾸지 않는다.
+
+자리(등장)별 기기: 같은 서비스가 조건 안에 두 번 이상 나오고("거실 온도가 28도
+이상이거나 침실 온도가 30도 이상이면" → TemperatureSensor.Temperature 두 번)
+조건 조각도 그 수만큼 있으면, 등장마다 자기 조각으로 기기를 따로 고른다
+(자리1=거실, 자리2=침실). 한 조각에 장소 둘을 한 번에 부른 글("거실과 침실에 모두")은
+장소마다 한 벌씩 나눠 조각을 만든다. 조각 수가 안 맞으면 지금처럼 한 묶음(병합)으로 둔다.
+자리 순서는 게이트가 IR 을 걷는 순서와 같다(occurrences_in_ir).
 기기 없는 서비스가 하나라도 있으면 `MissingDevices` (부분 실현 금지).
 Clock·GlobalVariable 은 기기가 아니므로 셀렉터를 만들지 않는다.
 """
@@ -361,6 +368,73 @@ def services_in_ir(ir: dict) -> dict[str, str]:
     return roles
 
 
+def _unquoted(src: str) -> str:
+    """따옴표 안 글은 서비스 이름으로 안 센다(게이트와 같은 규칙)."""
+    return re.sub(r'"[^"]*"|\'[^\']*\'', '""', src)
+
+
+def occurrences_in_ir(ir: dict) -> list[tuple[str, str]]:
+    """IR 안의 서비스 등장(자리)을 게이트가 걷는 순서 그대로 → [(svc, role), ...].
+    순서: 줄 순서대로, 한 줄 안에서는 cond/until(왼→오) → read src → call target → call 인자
+    → 딸린 줄(then/else/body). 게이트(gate._Rewriter.walk)와 같아야 자리 번호(Cat, Cat#2 …)가 맞는다."""
+    out: list[tuple[str, str]] = []
+
+    def scan(src: Any, role: str) -> None:
+        if isinstance(src, str):
+            for cat, name in _SVC_RE.findall(_unquoted(src)):
+                out.append((f"{cat}.{name}", role))
+
+    def walk(steps: list) -> None:
+        for s in steps or []:
+            if not isinstance(s, dict): continue
+            for f in ("cond", "until"):
+                if s.get(f): scan(s[f], "condition")
+            if s.get("op") == "read" and isinstance(s.get("src"), str) and "." in s["src"]:
+                out.append((s["src"], "read"))
+            if s.get("op") == "call":
+                t = s.get("target", "")
+                if isinstance(t, str) and "." in t: out.append((t, "action"))
+                for v in (s.get("args") or {}).values(): scan(v, "read")
+            for v in s.values():
+                if isinstance(v, list): walk(v)
+
+    walk((ir or {}).get("timeline") or [])
+    return out
+
+
+def cond_pieces(slm_out: dict | None) -> list[tuple[str, list[str]]]:
+    """조건(·읽기) 절들을 조각 단위로 IR 순서대로 → [(조각 글, 그 조각의 후보 서비스들)].
+    매핑이 조각(parts)을 남긴 절은 조각마다, 아니면 절 하나가 조각 하나."""
+    segs = (slm_out or {}).get("segments") or []
+    mp = (slm_out or {}).get("mapping") or {}
+    parts, ranked = mp.get("parts") or {}, mp.get("ranked") or {}
+    out = []
+    for s in segs:
+        if s.get("type") not in ("COND", "TRIG", "READ"): continue
+        j = s.get("j")
+        ps = parts.get(j) or parts.get(str(j))
+        if ps:
+            out += [(p.get("part") or s.get("text", ""), list(p.get("ranked") or [])) for p in ps]
+        else:
+            out.append((s.get("text", ""), list(ranked.get(j) or ranked.get(str(j)) or [])))
+    return out
+
+
+_PAIR = re.compile(r"(\S+?)(과|와|랑|및|이나|나)\s+(\S+?)(?=에|의|이|가|은|는|도|\s|,)")
+
+
+def split_place_pair(text: str, cand_tags: set[str]) -> list[str] | None:
+    """"거실과 침실에 모두 …" 처럼 장소 둘을 한 번에 부른 글 → 장소마다 한 벌씩
+    ["거실에 모두 …", "침실에 모두 …"]. 두 낱말이 서로 다른 한정어 태그에 맞을 때만."""
+    for m in _PAIR.finditer(text):
+        a, b = m.group(1), m.group(3)
+        ha, hb = _tag_hits(a, cand_tags, fuzzy=False), _tag_hits(b, cand_tags, fuzzy=False)
+        if ha and hb and ha != hb:
+            rest = text[m.end():]
+            return [text[:m.start()] + a + rest, text[:m.start()] + b + rest]
+    return None
+
+
 # ── 능력 검사: 전원 의도인데 가리킨 기기가 서비스 카테고리 밖이면 Switch 로 ──
 _POWER_ON = re.compile(r"켜|틀어|가동|점등")
 _POWER_OFF = re.compile(r"꺼|끄|소등")
@@ -444,7 +518,9 @@ def build_selectors(ir: dict, connected_devices: dict, slm_out: dict | None = No
     full_text = " ".join(s.get("text", "") for s in (slm_out or {}).get("segments", []))
     swaps = capability_fix(ir, connected_devices or {}, texts, full_text)
     roles = services_in_ir(ir)
-    selectors, resolved, missing = {}, {}, []
+    occ = occurrences_in_ir(ir)
+    pieces = cond_pieces(slm_out)
+    selectors, resolved, slots, missing = {}, {}, {}, []
     for svc, role in roles.items():
         cat = svc.split(".", 1)[0]
         if cat in NON_DEVICE: continue
@@ -459,9 +535,40 @@ def build_selectors(ir: dict, connected_devices: dict, slm_out: dict | None = No
         selectors[svc] = [f"{q}(#" + " #".join(p) + ")" for p in parts]
         resolved[svc] = {"q": q or "one", "devices": sorted(pred),
                          "tags": [t for p in parts for t in p], "text": text}
+        # 자리별 기기: 조건·읽기 자리에 같은 서비스가 여러 번 + 조각도 그만큼
+        n_occ = [r for s_, r in occ if s_ == svc]
+        if len(n_occ) >= 2 and all(r in ("condition", "read") for r in n_occ) and len(cands) >= 2:
+            ptexts = [t for t, rk in pieces if svc in rk] or [text]
+            if len(ptexts) == 1 and len(n_occ) == 2:
+                cand_tags = {t for d in cands for t in connected_devices[d].get("tags", [])
+                             if not str(t).startswith("tc0_")} - CAT_TAGS - NOT_QUALIFIER
+                ptexts = split_place_pair(ptexts[0], cand_tags) or ptexts
+            if len(ptexts) == len(n_occ):
+                infos = []
+                for t in ptexts:
+                    p_i, _ = pick_devices(t, full_text, cands, connected_devices)
+                    q_i = quantifier(t, role, p_i, connected_devices)
+                    parts_i = _selector_parts(p_i, t, cat, connected_devices)
+                    if len(parts_i) != 1: infos = []; break
+                    infos.append({"text": t, "q": q_i or "one", "devices": sorted(p_i),
+                                  "tags": parts_i[0], "selector": f"{q_i}(#" + " #".join(parts_i[0]) + ")"})
+                # 자리마다 고른 게 서로 다를 때만 쪼갠 값을 쓴다(다 같으면 병합과 같다)
+                if infos and len({tuple(i["devices"]) for i in infos}) > 1:
+                    resolved[svc]["slots"] = infos
+                    slots[svc] = [i["selector"] for i in infos]
     if missing:
         raise MissingDevices(missing)
-    return {"selectors": selectors, "resolved": resolved,
+    # 자리 목록(게이트 걷기 순서): 바인딩 표(Cat, Cat#2 …)를 이 순서로 적는다
+    occurrences, used = [], {}
+    for svc, role in occ:
+        info = resolved.get(svc)
+        if info is None: continue
+        k = used.get(svc, 0); used[svc] = k + 1
+        sl = info.get("slots") or []
+        src = sl[k] if k < len(sl) else info
+        occurrences.append({"svc": svc, "role": role, "q": src["q"], "devices": list(src["devices"])})
+    return {"selectors": selectors, "resolved": resolved, "slots": slots,
+            "occurrences": occurrences,
             "selected_services": list(roles.keys()), "roles": roles,
             "ir": ir, "swaps": swaps}
 

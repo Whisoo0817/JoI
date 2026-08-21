@@ -391,7 +391,8 @@ def generate_joi_code_ir(
                         "reasoning": "명사·태그·닉네임 어휘 조인 + 수량 정책 (joi/devices.py)"}
     selected_services = selection["selected_services"]
     service_details = extract_service_details(selected_services, SERVICE_DATA)
-    log_buf.append(f"🎯 selectors: {selection['selectors']}")
+    log_buf.append(f"🎯 selectors: {selection['selectors']}"
+                   + (f"  자리별: {selection['slots']}" if selection.get("slots") else ""))
 
     # ── Stage 3: feasibility → lowering → 게이트 ──
     try:

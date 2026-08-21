@@ -50,7 +50,11 @@ def token(cat: str, name: str) -> str:
 
 
 def _sel(selection: dict, key: str) -> str:
-    """서비스의 셀렉터 문자열. 없거나 여러 조각이면 아직 지원 밖."""
+    """서비스의 셀렉터 문자열. 자리별 셀렉터(slots)가 있으면 등장 순서대로 하나씩 꺼내 쓴다.
+    없거나 여러 조각이면 아직 지원 밖."""
+    queue = (selection.get("_slot_queue") or {}).get(key)
+    if queue:
+        return queue.pop(0)
     parts = (selection.get("selectors") or {}).get(key) or []
     if len(parts) != 1:
         raise CantLower(f"셀렉터가 1개가 아님: {key} → {parts}")
@@ -121,6 +125,8 @@ def _cond_atoms(chunk: str, selection: dict) -> str:
 
 def lower_ir(ir: dict, selection: dict) -> dict:
     """정답 IR + 기기 고르기 결과 → JoI 블록 {"name","cron","period","script"}."""
+    # 자리별 셀렉터는 IR 을 걷는 순서(게이트와 같은 순서)대로 소비한다
+    selection = {**selection, "_slot_queue": {k: list(v) for k, v in (selection.get("slots") or {}).items()}}
     tl = list(ir.get("timeline") or [])
     if not tl or tl[0].get("op") != "start_at":
         raise CantLower("첫 줄이 start_at 이 아님")

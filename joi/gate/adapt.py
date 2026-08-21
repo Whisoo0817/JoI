@@ -29,8 +29,9 @@ def _pick_one(ids: list[str], devices: dict) -> list[str]:
 def make_binding(selection: dict, devices: dict) -> dict:
     """build_selectors 결과 → 게이트 binding 표.
 
-    서비스당 자리 하나만 적는다(게이트의 '병합 자리' 규약: 자리가 하나면
-    그 서비스의 전 등장이 같은 집합을 쓴다). 값 모양은 binding_gt 와 동일:
+    등장(자리)마다 한 줄 — build_selectors 의 occurrences 순서(= 게이트 걷기 순서).
+    같은 서비스가 조건에 두 번 나오고 자리별로 다른 기기를 골랐으면
+    Cat, Cat#2 가 서로 다른 기기가 된다. 값 모양은 binding_gt 와 동일:
       - 수량 any/all 읽기·조건 → {"any"/"all": [기기들]}
       - 전부 부르기(action all) → [기기들]
       - 단수 → [기기 하나]
@@ -38,11 +39,16 @@ def make_binding(selection: dict, devices: dict) -> dict:
     binding: dict = {}
     seen: dict[str, int] = {}                 # 카테고리별 자리 수
     roles = selection.get("roles") or {}
-    for svc, info in (selection.get("resolved") or {}).items():
+    # 자리 목록(occurrences: IR 걷기 순서, 자리별 기기)이 있으면 그대로 등장마다 한 자리씩.
+    # 없으면(옛 selection) 서비스당 한 자리.
+    rows = [(o["svc"], {"q": o["q"], "devices": o["devices"]}, o["role"])
+            for o in (selection.get("occurrences") or [])] \
+        or [(svc, info, roles.get(svc, "action"))
+            for svc, info in (selection.get("resolved") or {}).items()]
+    for svc, info, role in rows:
         cat = svc.split(".", 1)[0]            # 게이트 binding 키는 카테고리 이름
         q = info.get("q") or "one"
         ids = sorted(info.get("devices") or [])
-        role = roles.get(svc, "action")
         if q == "any":
             val = {"any": ids} if len(ids) > 1 else _pick_one(ids, devices)
         elif q == "all":
