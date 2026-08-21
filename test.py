@@ -302,7 +302,14 @@ def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
             print(f"   ({time.perf_counter() - t0:.2f}s)")
             stat["gate"] = g.get("verdict", "")
         except Exception as e:
-            print(f"   ⛔ {type(e).__name__}: {e}")
+            jj = getattr(e, "joi_json", None)
+            if jj:  # 게이트가 거절했어도 만든 코드는 보여준다
+                for line in json.dumps(jj, indent=2, ensure_ascii=False).replace("\\n", "\n").split("\n"):
+                    print("   " + line)
+                g = getattr(e, "gate", {}) or {}
+                print(f"   🚧 게이트: {g.get('verdict', '?')}  {g.get('note', '')}".rstrip() + "  → 거절")
+            else:
+                print(f"   ⛔ {type(e).__name__}: {e}")
             stat["gate"] = getattr(e, "error_code", "") or type(e).__name__
         if row.get("joi_code"):
             print("\n   ── 정답 코드 ──")

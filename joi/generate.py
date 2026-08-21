@@ -420,9 +420,12 @@ def generate_joi_code_ir(
             log_buf.append(f"⚠️ validate_joi warning: {e}")
         gate_verdict, gate_note = _run_gate(ir, joi_json, connected_devices, selection, log_buf)
         if gate_verdict != "EQUIV":
-            raise JoiGenerationError(f"게이트 {gate_verdict}: 코드가 IR 과 같다고 확인되지 않음 — {gate_note}",
+            err = JoiGenerationError(f"게이트 {gate_verdict}: 코드가 IR 과 같다고 확인되지 않음 — {gate_note}",
                                      "\n".join(log_buf),
                                      error_code=f"lowering_gate_{gate_verdict.lower()}")
+            err.joi_json = joi_json            # 거절했지만 만든 코드는 붙여 둔다(test.py 가 보여줌)
+            err.gate = {"verdict": gate_verdict, "note": gate_note}
+            raise err
     else:
         joi_json, code_plan = _lower_by_llm(ir, sentence, selection, service_details,
                                             connected_devices, infer, log_buf)
