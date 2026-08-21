@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """IR → JoI 코드를 규칙으로 만든다 (v1: 원샷 전사).
 
-지원 모양: start_at(now) + read/call/delay/if(then·else)/wait(edge 없음).
+지원 모양: start_at(now·cron) + read/call/delay/if(then·else)/wait(edge 없음)
++ 맨 앞 wait(for: 지속) 행 (held/fired 두 변수 관용구, period 100).
 
 LLM 없이 IR 의 각 줄을 정해진 모양으로 베껴 적는다. 지원 밖 모양이 나오면
 CantLower 를 던진다 — 억지로 만들지 않는다(fail-closed).
@@ -27,6 +28,17 @@ _QUOTE = re.compile(r'"[^"]*"|\'[^\']*\'')
 _ABS = re.compile(r"abs\(\s*(.+?)\s*-\s*(.+?)\s*\)\s*(>=|<=|==|!=|>|<)\s*(\S+)")
 # 참조를 걷어낸 뒤 이 글자만 남으면 산수식이다 (예: "$Television.Channel - 1")
 _MATHY = re.compile(r"^[\s0-9+\-*/%().]*$")
+
+
+_UNIT_MS = {"MS": 1, "SEC": 1000, "MIN": 60000, "HOUR": 3600000}
+
+
+def dur_ms(text: str) -> int:
+    """"30 SEC" 같은 시간 문구 → ms."""
+    m = re.fullmatch(r"\s*(\d+)\s*(MS|SEC|MIN|HOUR)S?\s*", str(text or ""))
+    if not m:
+        raise CantLower(f"시간 문구 모양: {text!r}")
+    return int(m.group(1)) * _UNIT_MS[m.group(2)]
 
 
 def token(cat: str, name: str) -> str:
@@ -118,11 +130,37 @@ def lower_ir(ir: dict, selection: dict) -> dict:
     elif anchor != "now":
         raise CantLower(f"앵커 지원 밖: {anchor!r}")
 
-    lines = _stmts(tl[1:], selection, 0)
+    period = 0
+    body = tl[1:]
+    first = body[0] if body else {}
+    if first.get("op") == "wait" and first.get("for"):
+        # 지속 조건: JoI 에 "N 초 이상 유지"가 없어서 100ms 마다 재는
+        # held(유지 시간)/fired(이미 발화했나) 관용구로 푼다. 정답 코드와 동일.
+        if first.get("edge") not in (None, "none") or first.get("timeout"):
+            raise CantLower(f"wait(for) 에 edge/timeout 이 같이 옴: {first!r}")
+        cond = _cond_code(first.get("cond") or "", selection)
+        ms = dur_ms(first["for"])
+        rest = _stmts(body[1:], selection, 1)
+        # 두 군데가 게이트 반례로 확정된 요점이다:
+        # ① 문턱은 > (>= 는 held 가 관찰 "후" 더해져 한 tick(100ms) 일찍 발화)
+        # ② 발화 뒤 break (없으면 조건이 끊겼다 다시 차면 재발화 — IR 은 원샷)
+        lines = ["held := 0",
+                 f"if ({cond}) {{",
+                 "    held = held + 100",
+                 "} else {",
+                 "    held = 0",
+                 "}",
+                 f"if (held > {ms}) {{",
+                 *rest,
+                 "    break",
+                 "}"]
+        period = 100
+    else:
+        lines = _stmts(body, selection, 0)
     script = "\n".join(lines)
     # 조건 자리의 any(#X) 비교는 JoI 관용구 all(#X) op| 로 (파이프라인 후처리와 동일)
     script = _post_process_joi_any_quantifiers(script)
-    return {"name": "", "cron": cron, "period": 0, "script": script}
+    return {"name": "", "cron": cron, "period": period, "script": script}
 
 
 def _stmts(steps: list, selection: dict, depth: int) -> list[str]:
