@@ -305,7 +305,8 @@ def run_row(row, pipe, build, build_selectors, MissingDevices, want_code):
             g = result.get("gate") or {}
             if g.get("verdict"):
                 print(f"   🚧 게이트: {g['verdict']}  {g.get('note', '')}".rstrip()
-                      + f"  (lowering={result.get('lowering', '?')})")
+                      + f"  (lowering={result.get('lowering', '?')}"
+                      + (f", LLM 고치기 {result['fix_rounds']}회" if result.get('fix_rounds') else "") + ")")
             print(f"   ({time.perf_counter() - t0:.2f}s)")
             stat["gate"] = g.get("verdict", "")
         except Exception as e:

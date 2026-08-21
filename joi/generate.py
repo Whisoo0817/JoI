@@ -221,15 +221,37 @@ def _duration_hints(code_obj) -> str:
     return "\n\n[Duration Hints] (already computed — use verbatim, do NOT recompute)\n" + "\n".join(seen)
 
 
-def _lower_by_llm(ir, sentence, selection, service_details, connected_devices, infer, log_buf):
-    """옛 LLM lowering (JOI_LOWER=llm). (joi_json, code_plan) 을 돌려준다."""
+# 고치기 라운드의 시스템 프롬프트 꼬리: 예문 은행은 빼고(2B 가 예문을 베껴 새로 짜 버림) 문법 + 할 일만
+_FIX_TAIL = """
+
+---
+
+## Fixing mode
+You are given a DRAFT JoI block and GATE FEEDBACK that says how the draft's behavior
+differs from the Timeline IR. Do NOT rewrite the program from scratch. Keep the draft's
+structure, period and cron; change only the lines needed so the behavior matches the IR.
+Use only the selectors listed in [Precision Selectors]. Output exactly one JSON object
+{"cron": ..., "period": ..., "script": ...} and nothing else."""
+
+
+def _lower_by_llm(ir, sentence, selection, service_details, connected_devices, infer, log_buf,
+                  extra="", fix=False):
+    """LLM lowering. (joi_json, code_plan) 을 돌려준다.
+    extra: 입력 끝에 덧붙일 글 — 규칙이 만든 초안 코드 + 게이트 피드백(고치기 라운드에서 씀).
+    fix: 고치기 모드 — 예문 은행 없이 문법(joi_common) + 고치기 지시만 시스템 프롬프트로."""
     precision_output = {"selectors": selection["selectors"]}
     ir_json_str = json.dumps(ir, ensure_ascii=False, indent=2)
     bucket = classify_ir(ir)
     log_buf.append(f"📦 IR bucket: {bucket}")
     prompt_key = f"joi_from_ir_{bucket}"
     try:
-        system_prompt = _load_lowering_prompt(bucket, ir=ir)
+        if fix:
+            common = PROMPTS.get("joi_common")
+            if not common:
+                raise FileNotFoundError("joi_common.md not loaded by PROMPTS")
+            system_prompt = common + _FIX_TAIL
+        else:
+            system_prompt = _load_lowering_prompt(bucket, ir=ir)
     except FileNotFoundError as e:
         raise JoiGenerationError(f"Lowering prompt missing: {e}", "\n".join(log_buf),
                                  error_code="missing_lowering_prompt")
@@ -239,6 +261,7 @@ def _lower_by_llm(ir, sentence, selection, service_details, connected_devices, i
         f"[Timeline IR]\n{ir_json_str}\n\n"
         f"[Precision Selectors]\n{render_selectors(precision_output['selectors'])}\n\n"
         f"[Service Details]\n{json.dumps(service_details, indent=2, ensure_ascii=False)}"
+        + (("\n\n" + extra) if extra else "")
     )
 
     def _finalize(raw: str) -> dict:
@@ -283,6 +306,37 @@ def _lower_by_llm(ir, sentence, selection, service_details, connected_devices, i
     joi_json = _finalize(raw)
     code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
     return joi_json, code_plan
+
+
+# 규칙 lowering 이 게이트 밖이면 LLM 에게 고치게 하는 라운드 수(0 = 안 함). 2B 한 번에 ~3초.
+LLM_FIX_ROUNDS = int(os.environ.get("JOI_LLM_FIX", "2"))
+# 피드백 세기: verdict(판정만) / trace(첫 갈라짐까지, 기본)
+FEEDBACK_LEVEL = os.environ.get("JOI_FEEDBACK", "trace")
+# 이 이유들은 IR·기기 쪽 문제라 코드를 고쳐도 안 바뀐다 — LLM 을 부르지 않는다
+_IR_SIDE_REASONS = ("인자 위치에 여러 대 자리", "read 위치에 여러 대 자리", "cond tokenize",
+                    "여러 대 읽기의 비교 상대", "cron 앵커 불일치")
+
+
+def _code_side(verdict: str, note: str) -> bool:
+    """게이트가 거른 이유가 코드 쪽인가(= LLM 이 고칠 여지가 있나)."""
+    return not any(r in (note or "") for r in _IR_SIDE_REASONS)
+
+
+def _feedback_text(draft: dict | None, verdict: str, note: str) -> str:
+    """LLM 에게 줄 글: 초안 코드(있으면) + 게이트가 본 것 + 할 일."""
+    lines = []
+    if draft:
+        lines += ["[Draft Code]", json.dumps({k: draft.get(k, "" if k != "period" else 0)
+                                              for k in ("cron", "period", "script")}, ensure_ascii=False)]
+    if verdict == "CANT":
+        lines += ["[Gate Feedback]", f"규칙 lowering 이 이 IR 모양을 못 만들었음: {note}"]
+    elif FEEDBACK_LEVEL == "verdict":
+        lines += ["[Gate Feedback]", f"판정: {verdict} (코드가 IR 과 같지 않음)"]
+    else:
+        lines += ["[Gate Feedback]", f"판정: {verdict} — {note}"]
+    lines += ["[Task]", "위 피드백을 반영해 IR 과 같은 동작이 되도록 코드를 고쳐라. 초안이 있으면 꼭 필요한 줄만 바꿔라. "
+                         "출력은 {\"cron\", \"period\", \"script\"} JSON 하나만."]
+    return "\n".join(lines)
 
 
 def _run_gate(ir, jb, connected_devices, selection, log_buf):
@@ -403,31 +457,63 @@ def generate_joi_code_ir(
 
     code_plan = ""
     gate_verdict, gate_note = "", ""
+    lowering_used, fix_rounds = "rules", 0
     if LOWER_MODE != "llm":
-        # 기본: 규칙 lowering (LLM 없음) → 게이트가 EQUIV 라고 할 때만 통과
+        # 기본: 규칙 lowering (LLM 없음) → 게이트가 EQUIV 라고 할 때만 통과.
+        # 규칙이 못 만들거나 게이트 밖이면, 코드 쪽 문제일 때만 LLM 에게 초안+피드백을 주고
+        # 고치게 한다(최대 LLM_FIX_ROUNDS 번). 그래도 EQUIV 가 아니면 거절 — 폴백 없음.
         _t = time.perf_counter()
+        joi_json, cant = None, ""
         try:
             jb = lower_ir(ir, selection)
+            joi_json = {"name": "Scenario", "cron": jb.get("cron") or "",
+                        "period": int(jb.get("period") or 0), "script": jb.get("script", "")}
+            log_buf.append(f"🧮 lowering(규칙) ({time.perf_counter() - _t:.2f}s)")
+            try:
+                _ = validate_joi(joi_json["script"], connected_devices, _SERVICE_CATEGORY_MAP)
+            except Exception as e:
+                log_buf.append(f"⚠️ validate_joi warning: {e}")
+            gate_verdict, gate_note = _run_gate(ir, joi_json, connected_devices, selection, log_buf)
         except CantLower as e:
+            cant = str(e)
             log_buf.append(f"⛔ lowering(규칙): 아직 못 만드는 모양 — {e}")
-            raise JoiGenerationError(f"규칙 lowering 밖의 IR 모양: {e}", "\n".join(log_buf),
+            gate_verdict, gate_note = "CANT", cant
+        if gate_verdict != "EQUIV" and LLM_FIX_ROUNDS > 0 and (cant or _code_side(gate_verdict, gate_note)):
+            draft = joi_json
+            for k in range(1, LLM_FIX_ROUNDS + 1):
+                fix_rounds = k
+                extra = _feedback_text(draft, gate_verdict, gate_note)
+                log_buf.append(f"🔁 LLM 고치기 {k}/{LLM_FIX_ROUNDS} ← {gate_verdict} {gate_note}".rstrip())
+                try:
+                    cand, code_plan = _lower_by_llm(ir, sentence, selection, service_details,
+                                                    connected_devices, infer, log_buf,
+                                                    extra=extra, fix=draft is not None)
+                except JoiGenerationError as e:
+                    log_buf.append(f"⚠️ LLM 고치기 실패: {e}")
+                    break
+                log_buf.append(f"🧾 LLM 코드 {k}: {json.dumps(cand, ensure_ascii=False)[:400]}")
+                v, n = _run_gate(ir, cand, connected_devices, selection, log_buf)
+                draft, gate_verdict, gate_note = cand, v, n
+                if v == "EQUIV":
+                    joi_json, lowering_used = cand, "rules+llm"
+                    break
+            if gate_verdict != "EQUIV":
+                joi_json = draft or joi_json
+        elif gate_verdict != "EQUIV":
+            log_buf.append("ℹ️ LLM 고치기 건너뜀 (IR·기기 쪽 이유거나 JOI_LLM_FIX=0)")
+        if gate_verdict == "CANT":
+            raise JoiGenerationError(f"규칙 lowering 밖의 IR 모양: {cant}", "\n".join(log_buf),
                                      error_code="lowering_unsupported")
-        joi_json = {"name": "Scenario", "cron": jb.get("cron") or "",
-                    "period": int(jb.get("period") or 0), "script": jb.get("script", "")}
-        log_buf.append(f"🧮 lowering(규칙) ({time.perf_counter() - _t:.2f}s)")
-        try:
-            _ = validate_joi(joi_json["script"], connected_devices, _SERVICE_CATEGORY_MAP)
-        except Exception as e:
-            log_buf.append(f"⚠️ validate_joi warning: {e}")
-        gate_verdict, gate_note = _run_gate(ir, joi_json, connected_devices, selection, log_buf)
         if gate_verdict != "EQUIV":
             err = JoiGenerationError(f"게이트 {gate_verdict}: 코드가 IR 과 같다고 확인되지 않음 — {gate_note}",
                                      "\n".join(log_buf),
                                      error_code=f"lowering_gate_{gate_verdict.lower()}")
             err.joi_json = joi_json            # 거절했지만 만든 코드는 붙여 둔다(test.py 가 보여줌)
             err.gate = {"verdict": gate_verdict, "note": gate_note}
+            err.fix_rounds = fix_rounds
             raise err
     else:
+        lowering_used = "llm"
         joi_json, code_plan = _lower_by_llm(ir, sentence, selection, service_details,
                                             connected_devices, infer, log_buf)
         # 기준선 측정용: 게이트 판정은 기록만 하고 거르지 않는다
@@ -495,7 +581,8 @@ def generate_joi_code_ir(
         "mapping": slm_out.get("mapping", {}),
         "precision": precision_output["selectors"],
         "precision_reasoning": precision_output["reasoning"],
-        "lowering": "llm" if LOWER_MODE == "llm" else "rules",
+        "lowering": lowering_used,             # rules / rules+llm(게이트 피드백으로 LLM 이 고침) / llm
+        "fix_rounds": fix_rounds,
         "gate": {"verdict": gate_verdict, "note": gate_note},
         "log": {
             "response_time": f"{elapsed:.4f} seconds",
