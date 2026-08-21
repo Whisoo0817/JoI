@@ -2,7 +2,8 @@
 """IR → JoI 코드를 규칙으로 만든다 (v1: 원샷 전사).
 
 지원 모양: start_at(now·cron) + read/call/delay/if(then·else)/wait(edge 없음)
-+ 맨 앞 wait(for: 지속) 행 (held/fired 두 변수 관용구, period 100).
++ 맨 앞 wait(for: 지속) 행 (held 카운터 + break, period 100)
++ 마지막 cycle 행 (wrapper period + 시작 래치 + until break + count 카운터).
 
 LLM 없이 IR 의 각 줄을 정해진 모양으로 베껴 적는다. 지원 밖 모양이 나오면
 CantLower 를 던진다 — 억지로 만들지 않는다(fail-closed).
@@ -24,18 +25,20 @@ class CantLower(Exception):
 _REF = re.compile(r"\$([A-Za-z][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)?)")
 _ATOM = re.compile(r"\$?([A-Za-z][A-Za-z0-9_]*)\.([A-Za-z][A-Za-z0-9_]*)")
 _QUOTE = re.compile(r'"[^"]*"|\'[^\']*\'')
+# min(식, 수)/max(식, 수) 인자 → JoI 에 min/max 가 없어서 보조 변수 + 클램프로 푼다
+_MINMAX = re.compile(r"^\s*(min|max)\(\s*(.+?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)\s*$")
 # abs(A - B) 비교 → JoI 에 abs 가 없어서 두 방향 비교로 푼다 (정답 관용구)
 _ABS = re.compile(r"abs\(\s*(.+?)\s*-\s*(.+?)\s*\)\s*(>=|<=|==|!=|>|<)\s*(\S+)")
 # 참조를 걷어낸 뒤 이 글자만 남으면 산수식이다 (예: "$Television.Channel - 1")
 _MATHY = re.compile(r"^[\s0-9+\-*/%().]*$")
 
 
-_UNIT_MS = {"MS": 1, "SEC": 1000, "MIN": 60000, "HOUR": 3600000}
+_UNIT_MS = {"MS": 1, "MSEC": 1, "SEC": 1000, "MIN": 60000, "HOUR": 3600000}
 
 
 def dur_ms(text: str) -> int:
     """"30 SEC" 같은 시간 문구 → ms."""
-    m = re.fullmatch(r"\s*(\d+)\s*(MS|SEC|MIN|HOUR)S?\s*", str(text or ""))
+    m = re.fullmatch(r"\s*(\d+)\s*(MSEC|MS|SEC|MIN|HOUR)S?\s*", str(text or ""))
     if not m:
         raise CantLower(f"시간 문구 모양: {text!r}")
     return int(m.group(1)) * _UNIT_MS[m.group(2)]
@@ -133,7 +136,51 @@ def lower_ir(ir: dict, selection: dict) -> dict:
     period = 0
     body = tl[1:]
     first = body[0] if body else {}
-    if first.get("op") == "wait" and first.get("for"):
+    cyc_at = [i for i, st in enumerate(body) if st.get("op") == "cycle"]
+    if cyc_at:
+        # cycle 은 wrapper 의 되풀이로 편다: body 가 곧 script, period 가 주기.
+        # 코퍼스 전 행에서 cycle 은 항상 하나뿐이고 마지막 op 이다.
+        i = cyc_at[0]
+        if len(cyc_at) > 1 or i != len(body) - 1:
+            raise CantLower("cycle 이 하나·마지막이 아님")
+        cyc = body[i]
+        period = dur_ms(cyc.get("period"))
+        lines = []
+        if body[:i]:
+            # cycle 앞의 한 번짜리 준비(대기·호출)는 시작 래치로 한 번만 돌린다
+            lines += ["started := false", "if (started == false) {"]
+            lines += _stmts(body[:i], selection, 1)
+            lines += ["    started = true", "}"]
+        until = cyc.get("until")
+        if isinstance(until, str) and until.strip():
+            lines += [f"if ({_cond_code(until, selection)}) {{", "    break", "}"]
+        n = cyc.get("count")
+        if n:
+            if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", str(n)):
+                raise CantLower(f"count 이름 모양: {n!r}")
+            lines.append(f"{n} := 0")
+        cbody = cyc.get("body") or []
+        if cbody and cbody[0].get("op") == "wait" \
+                and cbody[0].get("edge") == "rising":
+            # 눌리는 "순간"(rising)은 triggered 래치로 — 유지되는 동안 한 번만
+            w = cbody[0]
+            if w.get("for") or w.get("timeout"):
+                raise CantLower(f"rising 에 for/timeout 이 같이 옴: {w!r}")
+            cond = _cond_code(w.get("cond") or "", selection)
+            lines += ["triggered := false",
+                      f"if ({cond}) {{",
+                      "    if (triggered == false) {",
+                      *_stmts(cbody[1:], selection, 2),
+                      "        triggered = true",
+                      "    }",
+                      "} else {",
+                      "    triggered = false",
+                      "}"]
+        else:
+            lines += _stmts(cbody, selection, 0)
+        if n:
+            lines.append(f"{n} = {n} + 1")
+    elif first.get("op") == "wait" and first.get("for"):
         # 지속 조건: JoI 에 "N 초 이상 유지"가 없어서 100ms 마다 재는
         # held(유지 시간)/fired(이미 발화했나) 관용구로 푼다. 정답 코드와 동일.
         if first.get("edge") not in (None, "none") or first.get("timeout"):
@@ -177,11 +224,28 @@ def _stmts(steps: list, selection: dict, depth: int) -> list[str]:
             cat, _, method = (s.get("target") or "").partition(".")
             if not method:
                 raise CantLower(f"call target 모양: {s.get('target')!r}")
-            args = ", ".join(_arg_code(v, selection)
-                             for v in (s.get("args") or {}).values())
-            code = f"{_sel(selection, s['target'])}.{token(cat, method)}({args})"
+            vals = []
+            for name, v in (s.get("args") or {}).items():
+                m = _MINMAX.match(v) if isinstance(v, str) else None
+                if m:
+                    # min/max 는 보조 변수 + 클램프 if 로 편다 (정답 관용구)
+                    hv = name[0].lower() + name[1:]
+                    bound = m.group(3)
+                    if bound.endswith(".0"):
+                        bound = bound[:-2]
+                    cmp_ = ">" if m.group(1) == "min" else "<"
+                    lines += [f"{pad}{hv} = {_arg_code(m.group(2), selection)}",
+                              f"{pad}if ({hv} {cmp_} {bound}) {{",
+                              f"{pad}    {hv} = {bound}",
+                              f"{pad}}}"]
+                    vals.append(hv)
+                else:
+                    vals.append(_arg_code(v, selection))
+            code = f"{_sel(selection, s['target'])}.{token(cat, method)}({', '.join(vals)})"
             var = s.get("var")
-            if var and "." not in var:      # 결과를 담는 자리 (Svc.Attr 꼴은 제외)
+            cats = {k.split(".", 1)[0] for k in (selection.get("selectors") or {})}
+            if var and "." not in var and var not in cats:
+                # 결과를 담는 자리 — 단 서비스 이름(예: "Light")은 담는 게 아니다
                 code = f"{var} = {code}"
             lines.append(pad + code)
         elif op == "delay":
@@ -197,6 +261,8 @@ def _stmts(steps: list, selection: dict, depth: int) -> list[str]:
                 lines.append(f"{pad}}} else {{")
                 lines += _stmts(s["else"], selection, depth + 1)
             lines.append(f"{pad}}}")
+        elif op == "break":
+            lines.append(pad + "break")
         elif op == "wait":
             if s.get("edge") not in (None, "none") or s.get("for") or s.get("timeout"):
                 raise CantLower(f"wait 모양 지원 밖: edge={s.get('edge')!r} "
