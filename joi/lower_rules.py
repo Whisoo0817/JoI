@@ -167,10 +167,14 @@ def lower_ir(ir: dict, selection: dict) -> dict:
             if w.get("for") or w.get("timeout"):
                 raise CantLower(f"rising 에 for/timeout 이 같이 옴: {w!r}")
             cond = _cond_code(w.get("cond") or "", selection)
+            # 회차 카운터는 "한 회차가 끝날 때" 오른다 — rising 몸통은 눌린 순간에만
+            # 한 회차가 끝나니 카운터도 그 안에서 올린다(틱마다 올리면 틱을 세게 됨.
+            # 게이트 % 접기 뒤 C14#3 반례로 확정).
             lines += ["triggered := false",
                       f"if ({cond}) {{",
                       "    if (triggered == false) {",
                       *_stmts(cbody[1:], selection, 2),
+                      *([f"        {n} = {n} + 1"] if n else []),
                       "        triggered = true",
                       "    }",
                       "} else {",
@@ -178,8 +182,8 @@ def lower_ir(ir: dict, selection: dict) -> dict:
                       "}"]
         else:
             lines += _stmts(cbody, selection, 0)
-        if n:
-            lines.append(f"{n} = {n} + 1")
+            if n:
+                lines.append(f"{n} = {n} + 1")
     elif first.get("op") == "wait" and first.get("for"):
         # 지속 조건: JoI 에 "N 초 이상 유지"가 없어서 100ms 마다 재는
         # held(유지 시간)/fired(이미 발화했나) 관용구로 푼다. 정답 코드와 동일.

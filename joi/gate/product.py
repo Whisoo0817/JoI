@@ -37,6 +37,10 @@ def merge_axes(a: Axes, b: Axes) -> Axes:
     caps = dict(a.counter_caps)
     for k, v in b.counter_caps.items():
         caps[k] = max(caps.get(k, 0), v)
+    from math import gcd
+    mods = dict(a.counter_mods)
+    for k, v in b.counter_mods.items():       # 양쪽이 다른 L 이면 최소공배수
+        mods[k] = mods[k] * v // gcd(mods[k], v) if k in mods else v
     return Axes(cells,
                 sorted(set(a.hours) | set(b.hours)),
                 a.weekdays_used or b.weekdays_used,
@@ -46,7 +50,8 @@ def merge_axes(a: Axes, b: Axes) -> Axes:
                 a.param_reads + b.param_reads,
                 sorted(set(a.mirror_gv) | set(b.mirror_gv)),
                 minutes=sorted(set(a.minutes) | set(b.minutes)),
-                hour_ops=sorted(set(a.hour_ops) | set(b.hour_ops)))
+                hour_ops=sorted(set(a.hour_ops) | set(b.hour_ops)),
+                counter_mods=mods)
 
 
 @dataclass

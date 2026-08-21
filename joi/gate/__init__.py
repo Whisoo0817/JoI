@@ -9,9 +9,11 @@
 
 slm 파이프라인과 잇는 어댑터는 adapt.py 에 있다. 이 안의 나머지 모듈은
 paper 브랜치와 자구 동일하게 유지한다 (고칠 게 생기면 양쪽에 같이).
-예외: pause.py — delay 로 멈췄던 run 을 끝낸 tick 에 새 run 을 잇는 수정이
-들어갔다(허브의 "period 마다 재실행" 의미, joi_cycle.md). paper 쪽에도 같은
-수정이 필요하다 — 아직 안 옮김.
+예외(paper 쪽에도 같은 수정이 필요, 아직 안 옮김):
+  - pause.py — delay 로 멈췄던 run 을 끝낸 tick 에 새 run 을 잇는 수정
+    (허브의 "period 마다 재실행" 의미, joi_cycle.md).
+  - explore.py·product.py — `% k` 로만 읽히는 카운터를 n mod L 로 접는
+    counter_mods (IR 쪽은 ir_step 이 이미 접고 있었고, JoI 쪽만 없었다).
 """
 from .gate import GateResult, gate_pair          # noqa: F401
 from .adapt import gate_row, make_binding        # noqa: F401

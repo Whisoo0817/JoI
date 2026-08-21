@@ -108,6 +108,10 @@ class Axes:
     # it to place an observed value in its cell rather than matching the
     # representative literally (July is the same cell as the April rep).
     cell_preds: dict = field(default_factory=dict)
+    # `% k` 로만 읽히는 카운터 → 접는 나머지 L(모든 k 의 최소공배수). 값이 끝없이
+    # 커져도 미래 동작은 n mod L 로 정해지니 상태 키에는 n mod L 만 넣는다.
+    # (IR 쪽은 ir_step 이 실행 중에 직접 접고, JoI 쪽은 여기서 키만 접는다.)
+    counter_mods: dict = field(default_factory=dict)
     # GVs this scenario both writes and reads back (write-on-change mirrors).
     # Their pre-existing value matters — the explorer enumerates initial
     # values instead of assuming a runtime default (unseeded read = None is
@@ -422,7 +426,8 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
                 sorted(ts_thresholds), counter_caps, param_reads,
                 sorted(gv_written & gv_read),
                 minutes=sorted(minutes), hour_ops=sorted(hour_ops),
-                cell_preds={k: sorted(v) for k, v in num_consts.items()})
+                cell_preds={k: sorted(v) for k, v in num_consts.items()},
+                counter_mods=mod_counters(stmts, vars_, defs))
 
 
 def cell_of(axes: Axes, key: str, value):
@@ -448,6 +453,68 @@ def cell_of(axes: Axes, key: str, value):
     return "__other__" if "__other__" in reps else None
 
 
+# ── `% k` 카운터 접기 ─────────────────────────────────────────────────────────
+
+def mod_counters(stmts: list, vars_: dict[str, VarInfo],
+                 defs: dict[str, list]) -> dict[str, int]:
+    """상태 변수 중 (1) 대입이 `= 상수` / `= 자기 ± 상수` 뿐이고 (2) 자기 갱신 밖의
+    모든 읽기가 `var % 상수` 꼴인 것 → {이름: L}. L 은 나오는 상수들의 최소공배수.
+    `n % 2` 와 `n % 3` 이 같이 와도 L=6 하나로 접힌다. 다른 꼴 읽기(`n > 3` 등)가
+    하나라도 있으면 접지 않는다(그건 counter_caps 포화 경로)."""
+    from math import gcd
+    from .predicates import _reg_is_counter
+    mods: dict[str, list[int]] = {}
+    other: set[str] = set()
+
+    def walk(node: Any) -> None:
+        if isinstance(node, expr_mod.BinaryOp):
+            if (node.op == "%" and isinstance(node.left, expr_mod.VarRef)
+                    and isinstance(node.right, expr_mod.Lit)
+                    and isinstance(node.right.value, (int, float))
+                    and not isinstance(node.right.value, bool)
+                    and int(node.right.value) > 0):
+                mods.setdefault(node.left.name, []).append(int(node.right.value))
+                return
+            walk(node.left)
+            walk(node.right)
+        elif isinstance(node, expr_mod.UnaryOp):
+            walk(node.operand)
+        elif isinstance(node, expr_mod.FuncCall):
+            for a in node.args:
+                walk(a)
+        elif isinstance(node, jp.CallExpr):
+            for a in (node.args or ()):
+                walk(a)
+        elif isinstance(node, expr_mod.VarRef):
+            other.add(node.name)
+
+    for st in walk_stmts(stmts):
+        for e in stmt_exprs(st):
+            if isinstance(st, jp.Assign) and st.name in vars_ \
+                    and vars_[st.name].role == "state":
+                # 자기 갱신(`n = n + 1`)은 _reg_is_counter 가 따로 본다.
+                reads: list = []
+                expr_reads(e, reads)
+                if ("var", st.name) in reads:
+                    for _, nm in reads:
+                        if nm != st.name:
+                            other.add(nm)
+                    continue
+            walk(e)
+    out: dict[str, int] = {}
+    for nm, ks in mods.items():
+        vi = vars_.get(nm)
+        if vi is None or vi.role != "state" or vi.timestamp or nm in other:
+            continue
+        if not _reg_is_counter(nm, defs, vars_):
+            continue
+        L = 1
+        for k in ks:
+            L = L * k // gcd(L, k)
+        out[nm] = L
+    return out
+
+
 # ── Finiteness pre-flight ────────────────────────────────────────────────────
 
 def finiteness_check(vars_: dict[str, VarInfo], axes: Axes,
@@ -463,6 +530,10 @@ def finiteness_check(vars_: dict[str, VarInfo], axes: Axes,
             continue                       # zone-normalized
         if isinstance(vi.init, bool):
             continue                       # latch
+        if nm in axes.counter_mods:
+            if nm in axes.counter_caps:
+                bad.append(f"{nm} (%와 크기 비교 혼용)")
+            continue                       # n mod L 로 접힘
         if nm in axes.counter_caps:
             # saturation is exact only for reset/increment updates
             from .predicates import _reg_is_counter
@@ -516,6 +587,9 @@ def normalize(vars_: dict, gv: dict, now_ms: int,
                                       bisect_left(axes.ts_thresholds, delta),
                                       bisect_right(axes.ts_thresholds, delta))))
                     ts_vals.append((nm, v))
+        elif nm in axes.counter_mods and isinstance(v, (int, float)) \
+                and not isinstance(v, bool):
+            regs.append((nm, v % axes.counter_mods[nm]))
         elif nm in axes.counter_caps and isinstance(v, (int, float)):
             cap = axes.counter_caps[nm]
             regs.append((nm, v if v <= cap else cap + 1))
