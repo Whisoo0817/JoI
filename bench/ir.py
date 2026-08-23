@@ -812,11 +812,13 @@ def act_nodes(*, act, tpl, act_cat, vague_tpl, slots, notify_svc, trig_kind, occ
                 # 의도 문장이 이긴 카테고리와 다른 서비스를 가리키면 전원으로 떨어진다
                 if vague_tpl is not None and _cat_of(x) != act_cat:
                     x = power_call(act_cat, True)
-                else:
-                    x["args"] = {k: (msg if v == "$msg"
-                                     else "default playlist" if v == "$default" else v)
-                                 for k, v in x["args"].items()}
             out.append(x)
+    # 자리표시자는 마지막에 한 번에 푼다 — 전원 호출로 떨어진 것도 빠뜨리지 않는다
+    for x in out:
+        if isinstance(x, dict) and x.get("op") == "call" and x.get("args"):
+            x["args"] = {k: (msg if v == "$msg"
+                             else "default playlist" if v == "$default" else v)
+                         for k, v in x["args"].items()}
     return out
 
 
@@ -1166,3 +1168,33 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+# ── 방아쇠가 무엇을 읽나 ────────────────────────────────────────────────
+# "한 시간 전보다 높으면" 같은 문형은 숫자를 읽는 방아쇠에만 붙어야 한다.
+# 버튼 눌림이나 문 열림을 크고 작음으로 견줄 수는 없다.
+_CAT_CACHE = [None]
+NUM_RETURN = {"INTEGER", "DOUBLE"}
+
+
+def _cat_json():
+    if _CAT_CACHE[0] is None:
+        _CAT_CACHE[0] = json.load(open(CATALOG, encoding="utf-8"))
+    return _CAT_CACHE[0]
+
+
+def trig_reads(tpl):
+    """그 방아쇠가 읽는 값. 시각·타이머처럼 조건이 없으면 빈 문자열."""
+    e = TRIG_IR.get(tpl) or {}
+    c = e.get("cond") or ""
+    return _lhs(c) if c else ""
+
+
+def reads_number(tpl):
+    """그 방아쇠가 읽는 값이 숫자인가."""
+    src = trig_reads(tpl)
+    if "." not in src:
+        return False
+    c, a = src.split(".", 1)
+    d = (_cat_json().get(c) or {}).get(a) or {}
+    return d.get("return_type") in NUM_RETURN

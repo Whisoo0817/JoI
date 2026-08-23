@@ -353,6 +353,41 @@ def trig_pool(trig, cat_t):
     return ok or pool
 
 
+# 이미 끄는 동작에는 "그러고 나서 다시 꺼" 를 얹을 수 없다.
+# ("커피포트를 끄고, 30분 뒤에 다시 꺼")  "set off"(작동시킨다)는 켜는 쪽이라 뺀다.
+OFF_ACT = re.compile(r"^(close|shut|stop|pause|lock|kill|cancel|disarm|mute|lower)\b"
+                     r"|(?<!set )\boff\b|\bis locked\b|\bback to (its|the) dock\b", re.I)
+
+
+def logic_pool(pool, mode, trig, cat_t, act, body=""):
+    """이 상황에서 말이 되는 문형만 남긴다.
+
+    - 이전 값과 견주는 문형(D11)은 숫자를 읽는 방아쇠라야 한다.
+      버튼 눌림을 "한 시간 전보다 높으면" 으로 견줄 수는 없다.
+    - 오늘 몇 번인지 세는 문형(D12)은 셀 사건이 있어야 한다.
+      시각·타이머는 사건이 아니다.
+    - 둘 다 방아쇠가 없는 즉시 실행 문장에는 붙을 수 없다.
+      무엇을 견주고 무엇을 세는지가 문장에 없기 때문이다.
+    - 알림·조회·타이머는 "다시 끄기" 가 없다.
+    """
+    tp = trig_pool(trig, cat_t) if cat_t else []
+    has_num = any(IR.reads_number(t) for t in tp)
+    has_evt = any(IR.trig_reads(t) for t in tp)
+    out = []
+    for di, frame in pool:
+        if di in ("D11", "D12") and mode == "now":
+            continue
+        if di == "D11" and not has_num:
+            continue
+        if di == "D12" and not has_evt:
+            continue
+        if "turn it back off" in frame and (act in ("notify", "query", "timer")
+                                            or OFF_ACT.search(body)):
+            continue
+        out.append((di, frame))
+    return out or [x for x in pool if x[0] not in ("D11", "D12")] or pool
+
+
 def act_pool(act, trig):
     """위험 신호로 켜는 문장이 나오지 않게 문형을 걸러낸다."""
     pool = T.ACT[act]
@@ -370,7 +405,10 @@ def pick_n(rng, act):
 
 def degrammar(t):
     """"1 minutes" 같은 것을 고친다."""
-    return re.sub(r"\b1 (minute|hour|degree|percent|centimeter|watt)s\b", r"1 \1", t)
+    t = re.sub(r"\b1 (minute|hour|degree|percent|centimeter|watt)s\b", r"1 \1", t)
+    # "all the door locks is locked" → "are locked". 복수로 부르면 동사도 복수다.
+    t = re.sub(r"\b(all the [a-z0-9 ]*?s)\s+is\b", r"\1 are", t, flags=re.I)
+    return t
 
 
 LAST_PLACE = [None]      # fill() 이 마지막으로 고른 장소 태그
@@ -430,15 +468,15 @@ def main():
         quota = int(r["quota"])
         elig = r["spaces"].split()
         acts = r["act"].split("+")
-        cat_t = r["dev_trig"]
+        cat_t0 = r["dev_trig"]
         # 그 기기가 없는 공간 — 거절 문장을 만들 자리
         cat_a0 = ACT_CAT.get(acts[0], r["dev_act"])
         missing = [sid for sid, sp in S.items()
                    if cat_a0 and cat_a0 not in sp["_cats"]
                    and (r["mode"] != "domain" or sp["kind"] == r["n_rules"])]
         # 트리거가 바깥 정보 제공자인데 그 공간에 없으면 그것도 거절 사유다
-        if cat_t in CONTEXT:
-            missing += [sid for sid, sp in S.items() if cat_t not in sp["_cats"]
+        if cat_t0 in CONTEXT:
+            missing += [sid for sid, sp in S.items() if cat_t0 not in sp["_cats"]
                         and (not cat_a0 or cat_a0 in sp["_cats"])]
         n_ref = round(quota * REFUSE_RATE) if missing else 0
         n_ask = round(quota * ASK_RATE)
@@ -457,6 +495,16 @@ def main():
                 sp = S[sid]
                 act = acts[0] if plan == "refuse" else acts[k % len(acts)]
                 cat_a = ACT_CAT.get(act, r["dev_act"])
+                # 카탈로그의 Camera 는 사람을 보지 못한다. 그래서 보안 방아쇠를
+                # 카메라 자신의 상태로 걸어 왔는데, 동작까지 카메라면 제 꼬리를
+                # 무는 문장이 된다("카메라가 켜지면 카메라를 끈다").
+                # 그럴 때만 움직임 센서로 건다. 그것도 없으면 답할 길이 없다.
+                cat_t, trig_kind, sec_dead = cat_t0, r["trig"], False
+                if trig_kind == "security" and cat_a == "Camera":
+                    if "MotionSensor" in sp["_cats"]:
+                        cat_t, trig_kind = "MotionSensor", "motion"
+                    else:
+                        sec_dead = True
                 style = ("onedup" if plan == "ask" else
                          ["plain", "place", "nick", "all", "plain", "place", "nick"][k % 7])
                 # 시나리오 안의 순번(i)으로 세면 몫이 작은 시나리오가 전부 앞 칸에 걸린다.
@@ -495,8 +543,6 @@ def main():
                         tsvc, ok_ch = notify_target(sp, "notify")
                         if ok_ch != "execute":
                             expect, why_force = "refuse", "no_channel"
-                    if act == "timer":       # 세상을 안 바꾼다 — 늘 실행
-                        expect, targets, match = "execute", [], "none"
                     if act == "notify":      # 어디로 알리든 해가 없다 — 되묻지 않고 첫 번째로
                         expect = "execute" if rivals else "refuse"
                         targets, match = [], "none"
@@ -507,7 +553,7 @@ def main():
                                 break
                 else:
                     pool = (NOW_OVERRIDE[act] if r["mode"] == "now"
-                            and act in NOW_OVERRIDE else act_pool(act, r["trig"]))
+                            and act in NOW_OVERRIDE else act_pool(act, trig_kind))
                     notify_act = act
                     if act == "notify" and r["mode"] != "now" and k % 4 == 0:
                         # 넷에 하나는 채널을 댄다
@@ -516,7 +562,9 @@ def main():
                     tpl = act_tpl = pool[k % len(pool)] if attempt == 0 else rng.choice(pool)
                     if "{dev}" in tpl:
                         c = cat_a
-                        if c in ("", "NotificationProvider", "Clock"):
+                        if tpl == "tell me if {dev} is open":
+                            c = "ContactSensor"   # 스위치는 열리고 닫히지 않는다
+                        elif c in ("", "NotificationProvider", "Clock"):
                             # 조회 문형은 "is {dev} on" 처럼 단수를 받는다 — 복수 명사는 뺀다
                             cand = ["Switch", "Plug", "Fan", "Camera"] if act == "query" \
                                 else ["Light", "Switch", "Plug", "Fan", "Camera"]
@@ -524,7 +572,7 @@ def main():
                                            or ["Switch"])
                         got = refer(rng, sp, c, style)
                         if got is None:
-                            body = tpl.replace("{dev}", "the " + noun(cat_a))
+                            body = tpl.replace("{dev}", "the " + (noun(c) or noun(cat_a)))
                             targets, expect, match = [], "refuse", "none"
                         else:
                             ref, targets, expect, style, match = got
@@ -548,9 +596,16 @@ def main():
                             expect, why_force = "refuse", "no_channel"
                     if act == "query" and not targets:
                         targets, qwhy = query_targets(sp, body)
-                        match = "all" if targets else "none"
+                        # 재실 여부는 기기가 아니라 공용 변수가 답이다.
+                        # 지목할 기기는 없지만 답할 채널은 있으니 채점은 알림과 같다.
+                        match = "all" if (targets or qwhy == "global") else "none"
                         if qwhy == "no_device":
                             expect, why_force = "refuse", "no_device"
+                # 카탈로그에 그 일을 할 서비스가 아예 없다.
+                # Clock 은 Delay 뿐이라 타이머를 걸거나 끄지 못하고,
+                # FeedDispenser 는 Dispense 뿐이라 다음 급여를 건너뛰지 못한다.
+                if act == "timer" or act_tpl == "skip the next feeding":
+                    expect, why_force = "refuse", "no_service"
                 if plan == "refuse" and not use_vague and act != "notify":
                     expect = "refuse"
                 if expect == "refuse":
@@ -561,7 +616,8 @@ def main():
                 ti = (k % len(T.TONE) if attempt == 0
                       else rng.randrange(len(T.TONE)))
                 if use_logic:
-                    lp = T.LOGIC_HARD if use_hard else T.LOGIC_SOFT
+                    lp = logic_pool(T.LOGIC_HARD if use_hard else T.LOGIC_SOFT,
+                                    r["mode"], trig_kind, cat_t, act, body)
                     di, frame = lp[k % len(lp)] if attempt == 0 else rng.choice(lp)
                     cond_text = rng.choice(T.COND)
                     lslots = {"n": rng.choice([5, 10, 15, 20, 30]),
@@ -571,7 +627,11 @@ def main():
                             .replace("{n}", str(lslots["n"]))
                             .replace("{m}", str(lslots["m"])))
                     if r["mode"] != "now" and di not in ("D9", "D10", "D13"):
-                        tp = trig_pool(r["trig"], cat_t)
+                        tp = trig_pool(trig_kind, cat_t)
+                        if di == "D11":     # 견주려면 숫자를 읽어야 한다
+                            tp = [t for t in tp if IR.reads_number(t)] or tp
+                        elif di == "D12":   # 세려면 사건이어야 한다
+                            tp = [t for t in tp if IR.trig_reads(t)] or tp
                         raw_t = tp[k % len(tp)] if attempt == 0 else rng.choice(tp)
                         core = f"{fill(rng, raw_t, sp, act, cat_t)}, {core}"
                         tslots = dict(SLOTS[0])
@@ -579,17 +639,22 @@ def main():
                 elif r["mode"] == "now":
                     core = body
                 else:
-                    tp = trig_pool(r["trig"], cat_t)
+                    tp = trig_pool(trig_kind, cat_t)
                     raw_t = tp[k % len(tp)] if attempt == 0 else rng.choice(tp)
                     tt = fill(rng, raw_t, sp, act, cat_t)
                     tslots = dict(SLOTS[0])
                     front = (ti in (0, 5) and k % 3 == 0)
+                    # 본문이 이미 "when" 을 쓰고 있으면 뒤에 시간절을 또 붙일 수 없다
+                    # ("I want to know when it changes when the wash cycle ends")
+                    if re.search(r"\bwhen\b", body, re.I):
+                        front = True
                     core = f"{tt}, {body}" if front else f"{body} {tt}"
                 # 말투는 완성된 문장으로 판정한다. 명령문이 아니면 담백하게만 쓴다.
                 imperative = not is_state and not re.match(
                     r"(what|is |are |how |who |it |i |if |once |wait |give |keep |"
                     r"check |repeat |compare |count |after |every |while |until |when |"
-                    r"at |on |in |as |with |the moment|right |the air|the floor|nobody)",
+                    r"at |on |in |as |with |around |before |during |next |\d|"
+                    r"the moment|right |the air|the floor|nobody)",
                     core, re.I)
                 if not imperative:
                     ti = 0 if rng.random() < 0.5 else 5
@@ -600,10 +665,13 @@ def main():
                 # 실행이라 해놓고 그 공간에 기기가 없으면 다시 뽑는다
                 tier_now = TIER[dcode if use_logic else d_code(r["mode"], raw_t)]
                 ok = not (expect == "execute" and cat_a and cat_a not in sp["_cats"])
+                if sec_dead:
+                    ok = False      # 움직임 센서가 있는 공간으로 다시 뽑는다
                 if use_vague and tier_now in ("T3", "T4"):
                     ok = False      # 의도만 말하는 문장에 반복·누적을 얹지 않는다
                 # 바깥 정보 때문에 거절하려면 문장에 그 조건이 실제로 있어야 한다
-                if (expect == "refuse" and cat_a and cat_a in sp["_cats"]
+                if (expect == "refuse" and not why_force
+                        and cat_a and cat_a in sp["_cats"]
                         and act != "notify"
                         and (not raw_t or cat_t not in CONTEXT)):
                     ok = False
@@ -616,7 +684,7 @@ def main():
             if expect == "execute":
                 obj = IR.make_ir(
                     act=act, act_tpl=act_tpl, act_cat=win_cat, vague_tpl=vague_tpl,
-                    trig_tpl=raw_t, cat_t=cat_t, trig_kind=r["trig"],
+                    trig_tpl=raw_t, cat_t=cat_t, trig_kind=trig_kind,
                     frame=(frame if use_logic else ""), cond_text=cond_text,
                     slots=aslots, tslots=tslots, lslots=lslots,
                     kind=sp["kind"], occupancy=sp.get("occupancy"),
@@ -625,7 +693,7 @@ def main():
                     ir_gt = json.dumps(obj, ensure_ascii=False)
             rows.append(dict(
                 id=f"G{len(rows)+1:05d}", space_id=sid, kind=sp["kind"], command=sent,
-                mode=r["mode"], trig=r["trig"], act=act, dev_trig=cat_t, dev_act=cat_a,
+                mode=r["mode"], trig=trig_kind, act=act, dev_trig=cat_t, dev_act=cat_a,
                 ref=("vague" if use_vague else style), tone=tname, expect=expect,
                 d=(dcode if use_logic else d_code(r["mode"], raw_t)),
                 why=(why_force
