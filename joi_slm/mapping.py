@@ -7,6 +7,7 @@ from .catalog import SERVICES, EFF, ROLE, AL, svc_doc, svc_info, conn_categories
 from .builder import Mapping
 
 ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "examples.json")
+COND_ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "cond_examples.json")
 INSTRUCT = "주어진 스마트홈 명령의 절에 해당하는 IoT 서비스(기기 기능 또는 센서 값)를 찾아라"
 CINSTRUCT = "이 한국어 조건 표현이 가리키는 IoT 센서 값 또는 기기 상태 값을 찾아라"
 OK = {"ACT": {"action", "read_action"}, "COND": {"read", "read_action"}, "TRIG": {"read", "read_action"}, "READ": {"read", "read_action"}}
@@ -47,6 +48,11 @@ class Retriever:
         ex = json.load(open(examples)) if examples and os.path.exists(examples) else []
         self.ex_i = np.array([e["i"] for e in ex]); self.ex_col = np.array([SVCS.index(e["svc"]) for e in ex], int)
         self.EX = embedder([e["text"] for e in ex], instruct=INSTRUCT) if ex else None
+        # 조각 경로(조건절→값 서비스)용 예문. 절 단위 예문과 지시문이 다르다.
+        cx = json.load(open(COND_ASSET)) if os.path.exists(COND_ASSET) else []
+        cx = [e for e in cx if e["svc"] in VAL]
+        self.cx_i = np.array([e["i"] for e in cx]); self.cx_col = np.array([VAL.index(e["svc"]) for e in cx], int)
+        self.CX = embedder([e["text"] for e in cx], instruct=CINSTRUCT) if cx else None
     def __call__(self, segs, connected_devices=None, exclude=()):
         """segs: [{j, text, type}] → Mapping. exclude: 예문에서 뺄 원본 명령 i(held-out 평가용)."""
         conn = conn_categories(connected_devices); sw = switch_categories(connected_devices)
@@ -64,7 +70,12 @@ class Retriever:
         parts = {}
         pq = [(s["j"], p) for s in segs if s["type"] in ("COND", "TRIG") for p in parts_of(s["text"])]
         if pq:
-            S2 = self.emb([p for _, p in pq], instruct=CINSTRUCT) @ self.DV.T
+            Q2 = self.emb([p for _, p in pq], instruct=CINSTRUCT)
+            S2 = Q2 @ self.DV.T
+            if self.CX is not None:                                  # 조건 예문: 값 점수 = max(문서, 예문)
+                E2 = Q2 @ self.CX.T
+                for k in np.where(~np.isin(self.cx_i, list(exclude)))[0]:
+                    c = self.cx_col[k]; S2[:, c] = np.maximum(S2[:, c], E2[:, k])
             for r, (j, p) in enumerate(pq):
                 sc = S2[r].copy()
                 for k, v in enumerate(VAL):
