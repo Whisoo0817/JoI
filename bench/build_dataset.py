@@ -741,7 +741,9 @@ def main():
                 "cond": (cond_text if use_logic else ""), # 조건절 문구
                 "tone": tname,
                 # 한국어 문장을 이룬 조각 — (단어 수, 자리 이름). 절 경계를 여기서 뽑는다
-                "ko_parts": [[len(t.split()), kind, t.strip()] for t, kind in ko_parts if t.strip()],
+                # 조사 표시(%O·%L·%S)를 푼 뒤 담는다 — 안 풀면 절 글이 실제 문장과 달라진다
+                "ko_parts": [[len(t.split()), kind, KO.josa(t).strip()]
+                             for t, kind in ko_parts if t.strip()],
                 "ko_words": len(sent_ko.split()),
             })
             rows.append(dict(

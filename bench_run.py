@@ -107,6 +107,57 @@ def bucket(msg):
     return "그 밖"
 
 
+def ir_gap(got, want):
+    """서비스는 맞는데 뜻이 다를 때, 무엇이 다른지 가른다."""
+    import json as _j
+    def ops(ir):
+        out = []
+        def go(o):
+            if isinstance(o, dict):
+                if o.get("op"):
+                    out.append(o["op"])
+                for v in o.values():
+                    go(v)
+            elif isinstance(o, list):
+                for v in o:
+                    go(v)
+        go(ir or {})
+        return out
+    def conds(ir):
+        out = []
+        def go(o):
+            if isinstance(o, dict):
+                for k, v in o.items():
+                    if k in ("cond", "until") and isinstance(v, str):
+                        out.append(v)
+                    go(v)
+            elif isinstance(o, list):
+                for v in o:
+                    go(v)
+        go(ir or {})
+        return out
+    def args(ir):
+        out = []
+        def go(o):
+            if isinstance(o, dict):
+                if o.get("op") == "call":
+                    out.append(_j.dumps(o.get("args") or {}, sort_keys=True, ensure_ascii=False))
+                for v in o.values():
+                    go(v)
+            elif isinstance(o, list):
+                for v in o:
+                    go(v)
+        go(ir or {})
+        return sorted(out)
+    if sorted(ops(got)) != sorted(ops(want)):
+        return "뼈대가 다름(op 구성)"
+    if conds(got) != conds(want):
+        return "조건식이 다름"
+    if args(got) != args(want):
+        return "인자가 다름"
+    return "그 밖(순서·edge 등)"
+
+
 def judge_ok(got, want):
     """판정 채점. 되묻기는 중복정답 — 되물어도, 다 해도 맞다."""
     if want == "ask":
@@ -180,6 +231,8 @@ def main():
             stat["IR잼"] += 1
             stat["IR뜻같음"] += bool(v.get("same"))
             stat["IR서비스같음"] += bool(v.get("svc"))
+            if v.get("svc") and not v.get("same"):
+                stat["IR차이/" + ir_gap(got_ir, json.loads(r["ir_gt"]))] += 1
             for axis in ("tier", "d"):
                 key = r.get(axis) or "?"
                 per[axis][key]["IR잼"] += 1
@@ -218,6 +271,9 @@ def main():
     if stat["IR잼"]:
         print(f"IR    {stat['IR뜻같음']}/{stat['IR잼']} 뜻이 같음  "
               f"(서비스만 같음 {stat['IR서비스같음']}/{stat['IR잼']})")
+    gap = {k.split("/", 1)[1]: v for k, v in stat.items() if k.startswith("IR차이/")}
+    if gap:
+        print("서비스는 맞는데 뜻이 다른 까닭:", dict(sorted(gap.items(), key=lambda x: -x[1])))
     stuck = {k.split("/", 1)[1]: v for k, v in stat.items() if k.startswith("막힌이유/")}
     if stuck:
         print("막힌 이유:", dict(sorted(stuck.items(), key=lambda x: -x[1])))
