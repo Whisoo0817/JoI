@@ -479,7 +479,7 @@ def main():
     S = load_spaces()
     sc = list(csv.DictReader(open(os.path.join(HERE, "scenarios.csv"), encoding="utf-8")))
 
-    rows, seen = [], set()
+    rows, seen, parts = [], set(), []
     stats = collections.Counter()
     for si, r in enumerate(sc):
         quota = int(r["quota"])
@@ -731,6 +731,15 @@ def main():
                 expect, why_force, ir_gt = "refuse", "no_occupancy", ""
                 targets, tsvc, match = [], [], "none"
             stats[expect] += 1
+            parts.append({
+                "id": f"G{len(rows)+1:05d}",
+                "trig": raw_t or "",                      # 시간절 틀
+                "act": vague_tpl or act_tpl or "",        # 동작절(또는 의도) 틀
+                "is_vague": bool(vague_tpl),
+                "frame": (frame if use_logic else ""),    # 로직 문형
+                "cond": (cond_text if use_logic else ""), # 조건절 문구
+                "tone": tname,
+            })
             rows.append(dict(
                 id=f"G{len(rows)+1:05d}", space_id=sid, kind=sp["kind"], command=sent,
                 command_ko=sent_ko,
@@ -758,6 +767,12 @@ def main():
         w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
+
+    # 행마다 어느 틀을 썼는지 — 학습·시험을 **틀 종류로** 가르는 데 쓴다 (문장이 아니라 틀 단위)
+    with open(os.path.join(HERE, "parts_5k.json"), "w", encoding="utf-8") as f:
+        json.dump(parts, f, ensure_ascii=False, indent=1)
+        f.write("\n")
+    print(f"parts_5k.json — {len(parts)}행이 쓴 틀")
 
     bad = []
     CAT = json.load(open(os.path.join(os.path.dirname(HERE), "files",

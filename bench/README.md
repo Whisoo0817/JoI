@@ -862,4 +862,6 @@ U행은 존댓말이 **0%** 다 (씨앗이 전부 반말).
 | `policy.py` | 공간 종류별 기준값 17종, 숫자 없는 조건 29개, 알림 순서 |
 | `ir.py` | 문형 틀 → Timeline IR 조각 + IR 검산 (5단계) |
 | `gapmap.py` | 축별 분포 진단 + 빈 칸 찾기 (4단계) |
+| `parts_5k.json` | 행마다 어느 틀을 썼나 (build_dataset.py 가 같이 뱉는다) |
+| `build_split.py` | 학습·시험 나누기 → `split_5k.json` (**틀 종류로** 가른다) |
 | `build_hub_config.py` | 기준값·장면·알림 순서·보폭·재실주체 순서 → `files/hub_config.json` (파이프라인 입력) |
