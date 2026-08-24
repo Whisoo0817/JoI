@@ -39,6 +39,17 @@ def _alias(part, s):
     cat = s["svc"].split(".")[0]
     return max([len(w.strip()) for w in AL.get(cat, []) + s.get("ko_triggers", []) if len(w.strip()) >= 2 and w.strip() in part] or [0])
 
+def _scatter_max(S, E, col, keep=None):
+    """예문 점수를 서비스 칸에 최대값으로 얹는다.
+    예문마다 파이썬으로 한 바퀴 돌면 예문이 6천 개일 때 한 행에 몇 초가 걸린다.
+    한 번에 처리한다 — 결과는 반복문과 같다."""
+    if keep is not None:
+        E = E[:, keep]; col = col[keep]
+    if E.size == 0:
+        return
+    np.maximum.at(S, (np.arange(S.shape[0])[:, None], col[None, :]), E)
+
+
 class Retriever:
     def __init__(self, embedder, examples=ASSET):
         """examples: [{i, text, svc}] 코퍼스 예문(절 텍스트→gold 서비스, 없으면 문서 유사도만)."""
@@ -62,8 +73,8 @@ class Retriever:
             Q = self.emb([t for _, t, _ in q], instruct=INSTRUCT); S = Q @ self.D.T
             if self.EX is not None:                                     # 예문 확장: 서비스 점수 = max(문서 유사도, 예문 유사도)
                 E = Q @ self.EX.T
-                for k in np.where(~np.isin(self.ex_i, list(exclude)))[0]:
-                    c = self.ex_col[k]; S[:, c] = np.maximum(S[:, c], E[:, k])
+                _scatter_max(S, E, self.ex_col,
+                             ~np.isin(self.ex_i, list(exclude)) if exclude else None)
             for r, (j, t, ty) in enumerate(q):
                 order = np.argsort(-S[r])
                 ranked[j] = [SVCS[k] for k in order if ROLE[SVCS[k]] in OK[ty] and (conn is None or SVCS[k].split(".")[0] in conn)][:5]
@@ -74,8 +85,8 @@ class Retriever:
             S2 = Q2 @ self.DV.T
             if self.CX is not None:                                  # 조건 예문: 값 점수 = max(문서, 예문)
                 E2 = Q2 @ self.CX.T
-                for k in np.where(~np.isin(self.cx_i, list(exclude)))[0]:
-                    c = self.cx_col[k]; S2[:, c] = np.maximum(S2[:, c], E2[:, k])
+                _scatter_max(S2, E2, self.cx_col,
+                             ~np.isin(self.cx_i, list(exclude)) if exclude else None)
             for r, (j, p) in enumerate(pq):
                 sc = S2[r].copy()
                 for k, v in enumerate(VAL):
