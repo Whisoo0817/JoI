@@ -603,7 +603,7 @@ op 분포: `call` 4,115 · `start_at` 3,813 · `wait` 2,207 · `cycle` 651 · `i
 | `wait` 의 `timeout` | "10분 안에 안 오면" | D10 제한시간 대기 |
 | `src` 의 `@-1HOUR` `@-1DAY` | 같은 값의 한 시간 전 / 어제 같은 시각 읽기 | D11 비교 |
 | `src` 의 `@count:today` | 오늘 그 조건이 몇 번 참이었나 | D12 누적 |
-| `GlobalVariable.Value("occupancy")` | 재실을 전역 변수로 두는 공간 | 25개 공간 |
+| `GlobalVariable.Value("Human")` | 재실을 전역 변수로 두는 공간 | 25개 공간 |
 
 **장면(scene)은 카탈로그에 서비스가 없다.** `Scene` 카테고리가 없어서, 장면을 조명 값의
 묶음으로 푼다 — `movie` = 밝기 20% + 2700K. 9종을 `ir.py` 의 `SCENE` 에 적었다.
@@ -858,3 +858,4 @@ U행은 존댓말이 **0%** 다 (씨앗이 전부 반말).
 | `policy.py` | 공간 종류별 기준값 17종, 숫자 없는 조건 29개, 알림 순서 |
 | `ir.py` | 문형 틀 → Timeline IR 조각 + IR 검산 (5단계) |
 | `gapmap.py` | 축별 분포 진단 + 빈 칸 찾기 (4단계) |
+| `build_hub_config.py` | 기준값·장면·알림 순서·보폭·재실주체 순서 → `files/hub_config.json` (파이프라인 입력) |

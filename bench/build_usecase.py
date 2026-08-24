@@ -131,7 +131,7 @@ def occ(sid, present):
         return f"PresenceSensor.Presence == {v}"
     if o == "phone":
         return f"PersonTracker.IsHome == {v}"
-    return f'GlobalVariable.Value("occupancy") == {v}'
+    return f'GlobalVariable.Value("Human") == {v}'
 
 
 _LAST_SVC = [""]

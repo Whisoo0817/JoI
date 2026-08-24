@@ -636,13 +636,13 @@ COND_IR = {
 #   wait 의 "timeout"     "10분 안에 안 오면" — 기다림에 제한시간을 준다
 #   src 의 "@-1HOUR"      같은 값의 한 시간 전 읽기 (D11 비교)
 #   src 의 "@count:today" 오늘 그 조건이 몇 번 참이었나 (D12 누적)
-#   GlobalVariable.Value("occupancy")  재실을 전역 변수로 두는 공간
+#   GlobalVariable.Value("Human")  재실을 전역 변수로 두는 공간 (spaces.json 의 변수 이름과 같다)
 OCC_SRC = {
     "motion":   "MotionSensor.Motion",
     "presence": "PresenceSensor.Presence",
     "phone":    "PersonTracker.IsHome",
-    "global":   'GlobalVariable.Value("occupancy")',
-    "none":     'GlobalVariable.Value("occupancy")',
+    "global":   'GlobalVariable.Value("Human")',
+    "none":     'GlobalVariable.Value("Human")',
 }
 
 _TOKEN = re.compile(r"\$([A-Za-z_][A-Za-z0-9_]*)")
