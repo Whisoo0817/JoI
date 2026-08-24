@@ -138,9 +138,12 @@ def func_bonus(text, cands, conn=None, sw=None):
     # 알림을 어디로 보낼지 — 허브가 정한다 (files/hub_config.json 의 알림_순서).
     # 문장이 채널을 콕 집었으면("화면에 띄워") 그것, 아니면 순서대로 있는 첫 채널.
     # 임베딩만 두면 "보내" 라는 말에 끌려 폰도 없는 공간에서 푸시를 고른다.
-    if any(s_ in NOTIFY for s_ in cands + extra) or NOTIFY_WORD.search(text):
+    # 이 절이 알림 요청일 때만 — 1등 후보가 이미 알림 계열이면 "무엇을" 은 정해졌고
+    # "어디로" 만 남는다. 그때만 채널을 바꾼다. (앞서 후보 안에 알림이 하나라도 있으면
+    # 걸리게 했더니 "스피커 볼륨 올려" 같은 절까지 알림으로 끌려갔다.)
+    if cands and cands[0] in NOTIFY:
         win = notify_pick(text, conn)
-        if win: add(win, 6)
+        if win and win != cands[0]: add(win, 6)
 
     named = named_categories(text, cands + extra)
     can_switch = switchable(text, sw)
