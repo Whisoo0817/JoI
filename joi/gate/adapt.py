@@ -49,10 +49,16 @@ def make_binding(selection: dict, devices: dict) -> dict:
         cat = svc.split(".", 1)[0]            # 게이트 binding 키는 카테고리 이름
         q = info.get("q") or "one"
         ids = sorted(info.get("devices") or [])
-        if q == "any":
+        if role == "read":
+            # 읽기 자리는 값 하나를 받는 자리다. 여러 대가 맞아도 코드 쪽(ground)은
+            # 규약대로 한 대를 골라 읽으므로, IR 쪽도 같은 규약으로 한 대를 고른다.
+            # 여기서 여러 대를 그대로 두면 게이트가 "read 위치에 여러 대 자리"로
+            # 거절해 버린다 — 코드가 틀려서가 아니라 양쪽 접지가 달라서.
+            val = _pick_one(ids, devices)
+        elif q == "any":
             val = {"any": ids} if len(ids) > 1 else _pick_one(ids, devices)
         elif q == "all":
-            val = {"all": ids} if role in ("condition", "read") else ids
+            val = {"all": ids} if role == "condition" else ids
         else:
             val = _pick_one(ids, devices)
         n = seen.get(cat, 0) + 1

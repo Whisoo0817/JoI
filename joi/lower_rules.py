@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """IR → JoI 코드를 규칙으로 만든다 (v1: 원샷 전사).
 
-지원 모양: start_at(now·cron) + read/call/delay/if(then·else)/wait(edge 없음)
+지원 모양: start_at(now·cron) + read/call/delay/if(then·else)/wait(edge 없음,
+         되풀이 없는 대본이면 rising 도)
 + 맨 앞 wait(for: 지속) 행 (held 카운터 + break, period 100)
 + 마지막 cycle 행 (wrapper period + 시작 래치 + until break + count 카운터).
 
@@ -221,7 +222,8 @@ def lower_ir(ir: dict, selection: dict) -> dict:
                  "}"]
         period = 100
     else:
-        lines = _stmts(body, selection, 0)
+        # 되풀이가 없는 대본 — 위에서 아래로 한 번만 지나간다
+        lines = _stmts(body, selection, 0, oneshot=True)
     # 마지막 줄이 call 결과 대입인데 뒤에서 아무도 안 쓰면(죽은 대입) 대입만 뗀다
     # — 실행기는 대입 꼴의 call 을 액션으로 안 치기 때문에 있으면 동작이 사라진다.
     if lines and not lines[-1].startswith(" "):
@@ -234,7 +236,10 @@ def lower_ir(ir: dict, selection: dict) -> dict:
     return {"name": "", "cron": cron, "period": period, "script": script}
 
 
-def _stmts(steps: list, selection: dict, depth: int) -> list[str]:
+def _stmts(steps: list, selection: dict, depth: int,
+           oneshot: bool = False) -> list[str]:
+    """IR 조각 → JoI 줄들. oneshot=True 면 "이 자리는 딱 한 번만 지나간다"는 뜻
+    (되풀이 없는 대본). 그때만 rising 기다리기를 그냥 기다리기로 내린다 — 아래 참고."""
     pad = "    " * depth
     lines: list[str] = []
     for s in steps or []:
@@ -284,15 +289,24 @@ def _stmts(steps: list, selection: dict, depth: int) -> list[str]:
         elif op == "if":
             cond = _cond_code(s.get("cond") or "", selection)
             lines.append(f"{pad}if ({cond}) {{")
-            lines += _stmts(s.get("then") or [], selection, depth + 1)
+            lines += _stmts(s.get("then") or [], selection, depth + 1, oneshot)
             if s.get("else"):
                 lines.append(f"{pad}}} else {{")
-                lines += _stmts(s["else"], selection, depth + 1)
+                lines += _stmts(s["else"], selection, depth + 1, oneshot)
             lines.append(f"{pad}}}")
         elif op == "break":
             lines.append(pad + "break")
         elif op == "wait":
-            if s.get("edge") not in (None, "none") or s.get("for") or s.get("timeout"):
+            edge = s.get("edge")
+            # 한 번만 지나가는 자리에서는 rising 과 그냥 기다리기가 **같은 뜻**이다.
+            # IR 의 rising 래치는 처음에 "아직 못 봄"(False)이라, 시작부터 조건이
+            # 참이면 첫 tick 에 바로 발화한다(ir_step.py 머리말). 즉 처음 지나갈 때
+            # 발화 조건이 edge='none' 과 글자 그대로 같다 — 래치는 발화 뒤에나
+            # 뜻이 생기는데, 되풀이가 없으면 그 자리로 다시 오지 않는다.
+            # 되풀이(cycle) 안이면 얘기가 달라서 거기선 triggered 래치로 따로 푼다.
+            if edge == "rising" and oneshot and not s.get("for") and not s.get("timeout"):
+                edge = None
+            if edge not in (None, "none") or s.get("for") or s.get("timeout"):
                 raise CantLower(f"wait 모양 지원 밖: edge={s.get('edge')!r} "
                                 f"for={s.get('for')!r} timeout={s.get('timeout')!r}")
             cond = _cond_code(s.get("cond") or "", selection)
