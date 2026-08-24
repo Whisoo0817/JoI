@@ -29,7 +29,7 @@ DST = os.path.join(HERE, "dataset_ko.csv")
 N = 0        # 0 이면 전부
 
 COLS = ["id", "space_id", "command", "command_ko", "expect", "why",
-        "act", "ref", "tone_en", "d", "tier", "targets", "flag"]
+        "act", "ref", "d", "tier", "targets"]
 
 
 def load():
@@ -107,15 +107,9 @@ def main():
     rows = load()
     picked = sample(rows, N) if N else rows
 
-    out = []
-    for r in picked:
-        f = flags(r)
-        out.append({"id": r["id"], "space_id": r["space_id"],
-                    "command": r["command"], "command_ko": r["command_ko"],
-                    "expect": r["expect"], "why": r["why"], "act": r["act"],
-                    "ref": r["ref"], "tone_en": r.get("tone_en", ""),
-                    "d": r["d"], "tier": r["tier"],
-                    "targets": r["targets"], "flag": " ".join(f)})
+    # 표시(flags)는 아래 보고로만 낸다 — 표에 열로 싣지 않는다
+    marks = {r["id"]: flags(r) for r in picked}
+    out = [{k: r[k] for k in COLS} for r in picked]
 
     with open(DST, "w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, fieldnames=COLS)
@@ -132,10 +126,10 @@ def main():
     print("기기 지목:", dict(collections.Counter(r["ref"] for r in picked)))
 
     fl = collections.Counter()
-    for r in out:
-        for x in r["flag"].split():
+    for f in marks.values():
+        for x in f:
             fl[x.split(":")[0]] += 1
-    print(f"\n── 표시된 것 {sum(1 for r in out if r['flag'])}행 ──")
+    print(f"\n── 표시된 것 {sum(1 for f in marks.values() if f)}행 ──")
     for k, v in fl.most_common():
         print(f"   {k:14}{v:5}")
 
