@@ -20,6 +20,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import templates as T
 
+_LOGIC_SPLIT = re.compile(r"(\{(?:a_c|a|cond_while|cond_until|cond_q|cond)\})")
+
 # ── 기기 이름 ──────────────────────────────────────────────────────────
 NOUN_KO = {
     "Light": "조명", "Switch": "스위치", "Plug": "플러그", "Fan": "선풍기",
@@ -739,13 +741,18 @@ def conj(body):
 
 def sentence_ko(*, act_tpl, vague_tpl, dev_ko, aslots, act_place, sensor_cat,
                 trig_tpl, tslots, trig_place, frame, cond_text, lslots, tone,
-                dev_t_ko=None):
-    """영어와 같은 순서로 조립하되 한국어 어순을 따른다 — 시간절이 늘 앞이다."""
+                dev_t_ko=None, parts_out=None):
+    """영어와 같은 순서로 조립하되 한국어 어순을 따른다 — 시간절이 늘 앞이다.
+
+    parts_out 을 주면 조각을 (글, 자리이름) 으로 담아 준다 — 절 라벨을 뽑는 데 쓴다.
+    조사·말투는 글자를 바꾸지만 띄어쓰기는 안 건드리므로 단어 개수가 그대로다."""
     body = body_ko(act_tpl=act_tpl, vague_tpl=vague_tpl, dev_ko=dev_ko,
                    slots=aslots, place_tag=act_place, sensor_cat=sensor_cat)
     if body is None:
         return None
     core = body
+    if parts_out is not None and not frame:
+        parts_out.append((body, "{a}"))
     if frame:
         ko = LOGIC_KO.get(frame)
         if ko is None:
@@ -753,19 +760,33 @@ def sentence_ko(*, act_tpl, vague_tpl, dev_ko, aslots, act_place, sensor_cat,
             return None
         # 시간절이 이미 "~면" 으로 끝나면 조건은 "~일 때" 로 — "~면 ~면" 을 막는다
         cond_tbl = COND_KO_WHEN if trig_tpl else COND_KO
-        core = (ko.replace("{cond_until}", COND_KO_UNTIL.get(cond_text, cond_text))
-                  .replace("{cond_q}", COND_KO_Q.get(cond_text, cond_text))
-                  .replace("{a_c}", conj(body))
-                  .replace("{a}", body)
-                  .replace("{cond_while}", COND_KO_WHILE.get(cond_text, cond_text))
-                  .replace("{cond}", cond_tbl.get(cond_text, cond_text))
-                  .replace("{n}", str((lslots or {}).get("n", "")))
-                  .replace("{m}", str((lslots or {}).get("m", ""))))
+        sub = {"{cond_until}": COND_KO_UNTIL.get(cond_text, cond_text),
+               "{cond_q}": COND_KO_Q.get(cond_text, cond_text),
+               "{a_c}": conj(body), "{a}": body,
+               "{cond_while}": COND_KO_WHILE.get(cond_text, cond_text),
+               "{cond}": cond_tbl.get(cond_text, cond_text)}
+        core = ko
+        for k, v in sub.items():
+            core = core.replace(k, v)
+        num = {"{n}": str((lslots or {}).get("n", "")), "{m}": str((lslots or {}).get("m", ""))}
+        for k, v in num.items():
+            core = core.replace(k, v)
+        if parts_out is not None:
+            # 자리 이름을 붙인 채로 같은 순서로 다시 조립한다 — 글자는 위와 같아야 한다
+            for piece in _LOGIC_SPLIT.split(ko):
+                if not piece:
+                    continue
+                t = piece
+                for k, v in {**sub, **num}.items():
+                    t = t.replace(k, v)
+                parts_out.append((t, piece if piece in sub else "글자"))
     if trig_tpl:
         ko = TRIG_KO.get(trig_tpl)
         if ko is None:
             MISSING.append(("trig", trig_tpl))
             return None
         tt = _slots_ko(ko, tslots, dev_t_ko or dev_ko, trig_place, sensor_cat)
+        if parts_out is not None:
+            parts_out.insert(0, (tt, "{trig}"))
         core = f"{tt} {core}"          # 한국어는 시간절이 앞
     return apply_tone(josa(core), tone)

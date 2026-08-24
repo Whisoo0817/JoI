@@ -688,6 +688,7 @@ def main():
                 tname = T.TONE[ti][0]
                 tname, sent = tone(rng, core, ti)
                 # 같은 재료로 한국어 문장을 따로 만든다 (korean.py). 번역이 아니다.
+                ko_parts = []
                 sent_ko = KO.sentence_ko(
                     act_tpl=act_tpl, vague_tpl=vague_tpl,
                     dev_ko=dev_ko,
@@ -695,7 +696,7 @@ def main():
                     trig_tpl=raw_t, tslots=(tslots if raw_t else {}),
                     trig_place=trig_place, dev_t_ko=DEV_T_KO[0],
                     frame=(frame if use_logic else ""), cond_text=cond_text,
-                    lslots=lslots, tone=tname) or ""
+                    lslots=lslots, tone=tname, parts_out=ko_parts) or ""
                 # 실행이라 해놓고 그 공간에 기기가 없으면 다시 뽑는다
                 tier_now = TIER[dcode if use_logic else d_code(r["mode"], raw_t)]
                 ok = not (expect == "execute" and cat_a and cat_a not in sp["_cats"])
@@ -739,6 +740,9 @@ def main():
                 "frame": (frame if use_logic else ""),    # 로직 문형
                 "cond": (cond_text if use_logic else ""), # 조건절 문구
                 "tone": tname,
+                # 한국어 문장을 이룬 조각 — (단어 수, 자리 이름). 절 경계를 여기서 뽑는다
+                "ko_parts": [[len(t.split()), kind, t.strip()] for t, kind in ko_parts if t.strip()],
+                "ko_words": len(sent_ko.split()),
             })
             rows.append(dict(
                 id=f"G{len(rows)+1:05d}", space_id=sid, kind=sp["kind"], command=sent,
