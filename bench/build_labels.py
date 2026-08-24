@@ -103,6 +103,25 @@ def read_needed(part, row):
     return not part["frame"] and '"op": "read"' in (row.get("ir_gt") or "")
 
 
+def pulse_needed(part, row):
+    """이 행의 ACT 절이 "잠깐 켰다가 끄는" 절인가.
+
+    "선풍기 3분 동안 돌려" 는 세 수다 — 켜고, 3분 기다리고, 끈다. 말에는 "동안"
+    밖에 없어서 옛 라벨은 아무 표시도 안 붙였고, 조립기는 호출 한 번으로 냈다.
+    손으로 낱말표를 적지 않고 **정답 IR 이 call → delay → call 로 되어 있는지**로
+    안다. "동안"이 있어도 세 수가 아닌 행이 30개나 되므로 말만 보면 안 된다.
+    ACT 절이 둘인 행("…켜 주고, 5분 뒤에 다시 꺼")은 뺀다 — 거기 지연은 뒤 절의
+    몫이고 이미 delay 표시가 붙어 있다. 로직 틀이 있는 행도 뺀다.
+    """
+    if part["frame"] or sum(1 for _, k, _ in part["ko_parts"] if k in ("{a}", "{a_c}")) != 1:
+        return False
+    try:
+        ops = [x.get("op") for x in json.loads(row.get("ir_gt") or "{}").get("timeline", [])]
+    except Exception:                                   # noqa: BLE001
+        return False
+    return any(ops[k:k + 3] == ["call", "delay", "call"] for k in range(len(ops) - 2))
+
+
 def segs_of(part, row):
     """행 하나 → 절 목록. 조각(ko_parts)이 문장을 이룬 순서 그대로다.
     → [{"글", "종류", "mods", "단어수"}] 또는 ("모르는 조각", 글) 또는 None"""
@@ -113,7 +132,9 @@ def segs_of(part, row):
             if part["trig"] in STATE_TRIG:
                 mods = ["state"]      # 벌어지는 순간이 아니라 이미 그런 상태
         elif kind in ("{a}", "{a_c}"):
-            t, mods = "ACT", (["read"] if read_needed(part, row) else [])
+            t, mods = "ACT", []
+            if read_needed(part, row): mods.append("read")
+            if pulse_needed(part, row): mods.append("pulse")
         elif kind in PLACE:
             t, mods = "COND", []
         else:

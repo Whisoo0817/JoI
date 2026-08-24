@@ -156,7 +156,10 @@ def assemble(segs, cron, cyc_flags):
                 b = Box("IF"); b.add("CALL"); b.in_else = True; b.else_items = []; b.add("CALL"); b.in_else = False; cur().add(b)
             elif "유지하다가" in texts[i]:               # "…로 10초 유지하다가" = 켜기·지연 (끄기는 다음 절)
                 cur().add("CALL"); cur().add("DELAY")
-            elif PULSE_RE.search(texts[i]):
+            elif "pulse" in m or PULSE_RE.search(texts[i]):
+                # "선풍기 3분 동안 돌려" = 켜기·기다리기·끄기 세 수.
+                # 말만 보면 "동안"이 있어도 세 수가 아닌 행이 있어서, 절 표시(pulse)로 안다
+                # — 표시는 정답 IR 모양에서 뽑아 절 라벨에 넣어 둔 것이다(bench/build_labels.py).
                 cur().add("CALL"); cur().add("DELAY"); cur().add("CALL")
             elif MODE_ON_RE.search(texts[i]):
                 cur().add("CALL"); cur().add("CALL")

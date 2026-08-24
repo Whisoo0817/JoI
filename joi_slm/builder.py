@@ -61,6 +61,15 @@ class Asker:
         w = self._fill(p, '→ 값 = ')
         try: return float(w)
         except (TypeError, ValueError): return None
+    def compare_op(self, cmd, text, svc, desc, value):
+        """비교 부호 — 낱말표에 없는 말일 때("800 위에 머무르면", "3000 위를 가리키면").
+        >, <, == 셋 중 하나만 고르면 되는 닫힌 물음이라 2B 가 잘한다. 못 읽으면 None."""
+        p = (f'문구가 말하는 비교를 고른다. 답은 >, <, == 중 하나.\n'
+             f'예) "온도가 25도 아래로 떨어지면" + Temperature(온도) → 부호 = <\n'
+             f'문구: "{text}" + {svc.split(".")[1]}({desc}), 기준값 {value}')
+        w = self._fill(p, '→ 부호 = ')
+        return w if w in (">", "<", "==", ">=", "<=") else None
+
 
 class Mapping:
     """명령 하나의 매핑 결과. ranked: {j: [svc top-5]}, parts: {j: [{"part": text, "ranked": [값 svc top-5]}]}, texts: {j: 절 텍스트},
@@ -173,7 +182,10 @@ def _one_cond(svc, text):
         v = rerank.unit_scale(svc, text, c[1]); v = int(v) if float(v).is_integer() else v
         r = slots.range_comparator(text)                          # "20도 이상, 30도 미만이면" → and
         if r: return " and ".join(f"{svc} {op} {int(x) if float(x).is_integer() else x}" for op, x in r)
-        return f"{svc} {c[0]} {v}"
+        op = c[0]
+        if not c[2] and _ASK[0]:                                  # 낱말표가 못 알아본 말 → 부호는 2B 가 고른다
+            op = _ASK[0].compare_op(_ASK[1], text, svc, spec.get("descriptor", ""), v) or op
+        return f"{svc} {op} {v}"
     if vt == "BOOL":
         # 참/거짓은 항상 2B 가 정한다. "부정어 있으면 false" 규칙은 "집을 나서면"(부정어 없음, 답은 false)을 못 본다.
         a = _ASK[0].bool_state(_ASK[1], text, svc, spec.get("descriptor", "")) if _ASK[0] else None
@@ -274,6 +286,20 @@ def call_node(M, j, text, force=None, avoid=()):
             v = slots.string_arg(aid, text)
             if v is not None: args[aid] = v
     return {"op": "call", "target": svc, "args": args, "_text": text}
+
+
+def off_node(prev):
+    """켰다 끄기("3분 동안 돌려")의 두 번째 수 — 앞서 부른 것을 되돌린다.
+
+    같은 서비스의 값 목록에 off 가 있으면 그 값으로 되돌리고(선풍기·환기구),
+    없으면 스위치를 끈다(펌프). 어느 쪽인지는 카탈로그 값 목록으로 안다 — 손 표 없음."""
+    svc = (prev or {}).get("target")
+    if svc and svc != "?":
+        cat = svc.split(".")[0]
+        for a in (svc_info(svc)[1].get("arguments") or []):
+            if a.get("type") == "ENUM" and "off" in members_of(cat, a.get("format")):
+                return {"op": "call", "target": svc, "args": {a["id"]: "off"}}
+    return {"op": "call", "target": "Switch.Off", "args": {}}
 
 # ── 절 전처리: 슬롯 주도 mods, 표면 규칙 일반형, 관용구 ──
 def slot_mods(t, text, mods):
@@ -414,7 +440,9 @@ def build(segments, M, graph=True, ask=None):
                         fs = [f for f in M.ranked(OJ[j]) if svc_info(f)[0] == "function"]
                         want = [f for f in fs if ("Mode" in f) == (ncall[j] == 1) and ("Temperature" in f) == (ncall[j] == 2)]
                         if want: force = want[0]
-                    elif PULSE_RE.search(txt) and ncall[j] == 2: force = "Switch.Off"                        # 펄스 두 번째 호출 = 끄기
+                    elif ("pulse" in s["mods"] or PULSE_RE.search(txt)) and ncall[j] == 2:
+                        out.append(off_node(next((n for n in reversed(out) if n.get("op") == "call"), None)))
+                        continue                                                                        # 켰다 끄기의 두 번째 수 = 되돌리기
                     if TOGGLE_RE.search(txt) and TOGGLE_ONOFF_RE.search(txt) and rerank.switchable(txt, M.sw): force = "Switch.Toggle"   # 켜고 끄기 = Switch.Toggle 한 호출
                     elif SPLIT_TOGGLE_RE.search(txt) and j + 1 < len(S) and SPLIT_TOGGLE2_RE.match(S[j + 1]["text"]) and rerank.switchable(txt, M.sw): force = "Switch.Toggle"
                     elif TOGGLE_RE.search(txt):

@@ -5,7 +5,7 @@
   count(text)     "총 3번/최대 5번/4번만"             → 3
   cron(text)      "매일 오후 3시/평일 8시/월요일과 수요일 6시/정오/자정/새해" → "0 15 * * *" …
   until(text)     "오후 3시까지/밤 11시까지"          → "clock.time >= 1500"
-  comparator(text) 이상/이하/미만/초과/넘으면/떨어지면/보다 크면 … → (">=", N) …
+  comparator(text) 이상/이하/미만/초과/넘으면/떨어지면/보다 크면 … → (">=", N, 알아봤나) …
   bool_state(text) 감지되면/없으면/열리면/눌리면/잠기면/켜져 있으면 … → 값 (BOOL·ENUM 멤버)
   enum_arg(text, members)  냉방→cool, 응급→emergency …  (사전 + 부분 문자열)
 """
@@ -121,14 +121,16 @@ CMP = [  # (정규식, 연산자)  — 값 뒤에 붙는 표현
     (r"떨어졌|떨어지|내려가|낮아|밑으로|밑돌|하회|미달", "<"), (r"올라가|높아|상회|웃돌|넘길|넘을", ">"),
 ]
 def comparator(text):
-    """숫자 비교 조건 → (op, value). 값은 문장의 첫 숫자(단위 제거)."""
+    """숫자 비교 조건 → (op, value, 알아봤나). 값은 문장의 첫 숫자(단위 제거).
+    셋째 칸이 False 면 낱말표에 없는 말이라 == 로 찍은 것이다 — 부르는 쪽이
+    2B 에게 부호를 물어볼 수 있게 알려 준다("800 위에 머무르면" 같은 말)."""
     t = re.sub(r"\d+\s*(분|초|시간)\s*(이상|동안|간|넘게)", "", text)     # "10분 이상 감지되지 않으면"의 10은 for
     v = number(t)
     if v is None: return None
     for pat, op in CMP:
-        if re.search(pat, t): return op, v
-    if re.search(r"(이|가) 되면|되면", t): return ("==" if v == 0 else ">="), v         # "35도가 되면" 관례(≥); "0이 되면"은 ==
-    return "==", v
+        if re.search(pat, t): return op, v, True
+    if re.search(r"(이|가) 되면|되면", t): return ("==" if v == 0 else ">="), v, True    # "35도가 되면" 관례(≥); "0이 되면"은 ==
+    return "==", v, False
 
 def range_comparator(text):
     """같은 속성에 두 숫자 비교가 나란히 있으면(“20도 이상, 30도 미만”) [(op, v), (op, v)]; 아니면 None."""

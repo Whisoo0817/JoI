@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 
 ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "seg_heads.pkl")
 TYPES = ["ACT", "COND", "TRIG", "TIME", "DELAY", "READ", "ELSE", "STOP"]
-MODS = ["time", "read", "every", "sustain", "count", "else", "repeat", "delay", "mixed", "state"]
+MODS = ["time", "read", "every", "sustain", "count", "else", "repeat", "delay", "mixed", "state", "pulse"]
 
 class SegHeads:
     def __init__(self, scb, clf_b, sct, pca, clf_t, clf_m):
