@@ -21,7 +21,7 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.0.0.json")
+CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.1.0.json")
 
 # ── 효과 어휘 (이름표) ──────────────────────────────────────────────────
 # 이 밖의 단어는 못 쓴다. 검증이 막는다.
@@ -161,7 +161,8 @@ E["Light"] = {"MoveToBrightness": ["illuminance="], "MoveToHue": ["color="],
               "MoveToRGB": ["color="], "MoveToXY": ["color="],
               "MoveToColorTemperature": ["color="]}
 E["MenuProvider"] = {"GetMenu": ["data_out+"]}
-E["MessageSender"] = {"SendSMS": ["message_sent+"], "SendKakaoTalk": ["message_sent+"]}
+E["MessageSender"] = {"SendSMS": ["message_sent+"], "SendKakaoTalk": ["message_sent+"],
+                      "SendSlack": ["message_sent+"]}
 E["Microwave"] = {"SetCookingParameters": ["cooked+", "process+", "power_draw+"],
                   "AddMoreTime": ["cooked+", "process+"], "Stop": ["process-", "power_draw-"]}
 E["Mower"] = {"StartMowing": ["motion_run+", "floor_clean+"], "Pause": ["motion_run-"],
@@ -264,6 +265,9 @@ E["Valve"] = {"Open": ["water_flow+", "openness+"], "Close": ["water_flow-", "op
 E["Ventilator"] = {"SetVentilatorMode": {"off": ["running-", "air_motion-", "power_draw-"],
                                          "*": ["air_quality+", "air_motion+", "sound~", "power_draw+"]},
                    "SetAirflowRate": ["air_motion=", "air_quality+"]}
+E["Heater"] = {"On": ["running+", "temperature+", "thermal_comfort+", "power_draw+"],
+               "Off": ["running-", "power_draw-"],
+               "SetTargetTemperature": ["temperature=", "thermal_comfort="]}
 E["WaterHeater"] = {"SetTargetTemperature": ["water_temperature="],
                     "SetWaterHeaterMode": {"off": ["running-", "power_draw-"],
                                            "eco": ["water_temperature+", "power_draw-"],

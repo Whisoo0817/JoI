@@ -718,7 +718,7 @@ def main():
 
     bad = []
     CAT = json.load(open(os.path.join(os.path.dirname(HERE), "files",
-                                      "service_list_ver3.0.0.json"), encoding="utf-8"))
+                                      "service_list_ver3.1.0.json"), encoding="utf-8"))
     for x in rows:
         cats = S[x["space_id"]]["_cats"]
         c = ACT_CAT.get(x["act"], "")

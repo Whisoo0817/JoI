@@ -14,7 +14,7 @@ import collections, csv, json, os, re, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
-CAT = json.load(open(os.path.join(ROOT, "files", "service_list_ver3.0.0.json"),
+CAT = json.load(open(os.path.join(ROOT, "files", "service_list_ver3.1.0.json"),
                     encoding="utf-8"))
 # 메서드는 반드시 대문자로 시작 — "Golden.mp3" 같은 인자 문자열을 서비스로 오인하지 않게
 SVC_RE = re.compile(r"\b([A-Z][A-Za-z0-9]*)\.([A-Z][A-Za-z0-9]*)\b")

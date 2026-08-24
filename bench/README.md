@@ -1,8 +1,8 @@
 # bench — 범용 스마트홈 명령어 데이터셋
 
 **최종 산출물 두 가지**
-1. `files/service_list_ver3.0.0.json` — 서비스 카탈로그
-2. 영어 명령어 **5,000개** 데이터셋
+1. `files/service_list_ver3.1.0.json` — 서비스 카탈로그
+2. 영어 명령어 **5,578개** 데이터셋 (자체 5,000 `G행` + joi usecase 578 `U행`)
 
 논문·OVLA와 분리된 작업이다. 여기서는 데이터셋 자체만 본다.
 
@@ -28,6 +28,7 @@
 | acon96/Home-Assistant-Requests-V2 | 208,976행 | — | HF |
 | MASSIVE en-US `iot` (AmazonScience) | scenario=iot | — | CC BY 4.0 |
 | run.py QA 시트 | 37 | 실제 연구실 현장 (→ `smart_office.csv`) | 내부 |
+| dataset-usecase.xlsx | 616 | JoI 플랫폼 개발자 정의 use case (→ U행 578) | 내부 |
 | dataset.csv | 377 | 내부 | 내부 |
 
 ⚠ IFTTT 문장을 **그대로 실으면** 데이터셋 전체가 NC-SA에 묶인다. 참고해서 새로 쓰면 안 묶인다.
@@ -48,9 +49,22 @@
 
 ---
 
-## 2. 카탈로그 (v3.0.0)
+## 2. 카탈로그 (v3.1.0)
 
-`bench/build_catalog.py` 가 v2.1.0 에서 생성한다. **103 카테고리 / 460 서비스.**
+`bench/build_catalog.py` 가 v2.1.0 에서 생성한다. **105 카테고리 / 472 서비스**
+(v3.0.0 103/460 위에 3.1.0 층이 얹힌다 — 3.0.0 의 changelog 는 얼려 둔다).
+
+### 3.1.0 에서 더한 것 — joi usecase 맞춤
+
+| 무엇 | 왜 |
+|---|---|
+| `Heater` (난방기) | "온도 낮으면 난방 켜줘"(농장). HA climate. 온수기(WaterHeater)와 다르다 |
+| `MessageSender.SendSlack` | 팀 채널이라 받는 주소가 필요 없다 — 문자·카톡·메일과 달리 안 묻고 보낸다 |
+| read 의 @표기 확장 | `@avg:today` `@min:today` `@max:today` `@avg:yesterday` `@diff:today` — "오늘 평균 온도", "오늘 사용량". 기존 `@-1HOUR` `@-1DAY` `@count:today` 와 같은 IR 명세 표기다(카탈로그 서비스가 아니다) |
+
+Heater 는 FARM01 온실·FARM02 축사에 1대씩 놓였다. 이 때문에 기존 G행 하나가
+바뀌었다 — G03784 "Shut everything down in here"(FARM02) 의 정답에 축사 난방기가
+추가돼 13→14대.
 
 **넓히는 기준**: Home Assistant 도메인 또는 SmartThings capability 에 실제로 있으면 상식 선으로 보고 넣는다.
 집 밖 웹서비스(SNS·쇼핑·금융)는 넣지 않는다.
@@ -651,7 +665,53 @@ IR 을 붙이니 문장과 라벨이 어긋난 자리가 드러났다. 카탈로
 모델이 풀어야 할 문제를 대신 풀어 주지 않는다.
 
 
-## 10. 현장 묶음 (`smart_office.csv`)
+## 10. joi usecase 578 (`U행`) — `build_usecase.py`
+
+플랫폼 개발자가 정의한 use case 616문장(dataset-usecase.xlsx, 한국어,
+home·office·factory·lab·farm 각 시트)을 우리 벤치마크 행으로 옮겨
+`dataset_5k.csv` 뒤에 얹는다. **씨앗 문장은 한 줄도 싣지 않는다** — 뜻만 가져오고
+영어 문장은 전부 새로 썼다. 공간은 그 기기를 실제로 가진 곳을 골랐고, 판정은
+기존 5,000과 같은 원칙으로 공간이 정한다.
+
+| | execute | ask | refuse | 계 |
+|---|--:|--:|--:|--:|
+| U행 | 409 | 120 | 49 | **578** |
+
+### 싣지 않은 것 (38)
+
+| 무엇 | 몇 | 왜 |
+|---|--:|---|
+| 자동화 관리 (목록·수정·삭제) | 16 | 그 서비스가 카탈로그에 없다. 나중 일 |
+| 시스템 자기설명 (Help·기기 목록) | 9 | 기기가 아니라 허브가 자기 카탈로그로 답할 일 |
+| 일반 대화 (인사·잡담) | 6 | IoT 명령이 아니다 |
+| "확인 없이 ~" | 3 | 확인 버튼은 실행 UI 의 일 — 판정 축이 아니다 |
+| 기기 한 대만 능력이 없는 경우 | 4 | 카탈로그가 카테고리 단위라 "색 안 되는 조명"을 못 만든다 |
+
+### 판정 규칙 — 기존 원칙에 보탠 것
+
+| 씨앗의 판정 | 우리 판정 | 왜 |
+|---|---|---|
+| confirm / execute-confirm | **execute** | 확인 버튼은 모든 실행에 붙는다 (whisoo 결정) |
+| answer | **execute** (read+알림) | 값 하나로 답이 정해지면 실행이다 |
+| 열린 요약·다기기 모드 | **ask** | "상태 어때?", "외출 모드" — 무엇을 읽을지/할지 정의가 없다 |
+| 문자·카톡·메일 | **ask** | 받는 주소가 인자로 필요한데 모른다. 알림(notify)은 안 묻는다 |
+| 슬랙 | **execute** | 팀 채널이라 주소가 없다 (`SendSlack`) |
+| 예보 질문, "10분 전" | **refuse** `no_service` | WeatherProvider 에 예보가, 달력에 예측 대기가 없다 |
+| 기록 나열·주간 요약 | **refuse** `no_service` | 기록을 나열하는 서비스가 없다 |
+| 그 공간에 기기 없음 | **refuse** `no_device` | 사무실 플러그·공장 에어컨·농장 연기감지처럼 우리 공간에 정말 없다 |
+
+### 재현 순서
+
+```
+python bench/build_catalog.py     # files/service_list_ver3.1.0.json
+python bench/build_spaces.py      # spaces.json (Heater 포함)
+python bench/build_dataset.py     # dataset_5k.csv — G행 5,000 (U행은 지워진다)
+python bench/build_usecase.py     # U행 578 검산 후 다시 얹는다 (멱등)
+```
+
+---
+
+## 11. 현장 묶음 (`smart_office.csv`)
 
 5,000개와 **따로** 두는 37줄이다. 겹치는 문장은 1개뿐이다.
 
@@ -685,7 +745,7 @@ IR 을 붙이니 문장과 라벨이 어긋난 자리가 드러났다. 카탈로
 온 문장이라 정답 IR 을 따로 써야 한다.
 
 
-## 11. 파일
+## 12. 파일
 
 | 파일 | 내용 |
 |---|---|
@@ -694,6 +754,7 @@ IR 을 붙이니 문장과 라벨이 어긋난 자리가 드러났다. 카탈로
 | `relabel.py` | `dataset.csv` 377 → `labels_377.csv` + 카탈로그 재감사 |
 | `build_smart_office.py` | run.py QA 37 → 영어 + 라벨 + 실물 기기 58대 → `smart_office.csv` |
 | `harvest.py` | 원천 4곳 → `corpus.csv` (1단계) |
+| `build_usecase.py` | dataset-usecase.xlsx → U행 578 (`dataset_5k.csv` 에 얹음) |
 | `rank.py` | `corpus.csv` → `scenarios.csv` (2단계, 5,000 배분표) |
 | `templates.py` | 문형 틀 (시간절·동작절·로직·말투) |
 | `nick_lexicon.py` | 별명 한국어 → 영어 |

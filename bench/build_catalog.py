@@ -1,17 +1,17 @@
 # -*- coding: utf-8 -*-
-"""service_list_ver2.1.0 → ver3.0.0 (벤치마크용 카탈로그 확장).
+"""service_list_ver2.1.0 → ver3.1.0 (벤치마크용 카탈로그 확장).
 
 넓히는 기준: Home Assistant 도메인 + SmartThings capability 에 실제로 있는
 기기·센서·모드까지를 "상식 선"으로 본다. 집 밖 웹서비스(SNS·쇼핑·금융)와
 애매한 시간 표현(해질녘 anchor)은 넣지 않는다 — 되묻기/거절 예시로만 쓴다.
 
-  python bench/build_catalog.py          # files/service_list_ver3.0.0.json 생성
+  python bench/build_catalog.py          # files/service_list_ver3.1.0.json 생성
 """
 import json, os, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FILES = os.path.join(HERE, "..", "files")
-SRC, DST = "service_list_ver2.1.0.json", "service_list_ver3.0.0.json"
+SRC, DST = "service_list_ver2.1.0.json", "service_list_ver3.1.0.json"
 
 
 # ── 짧은 생성기 ────────────────────────────────────────────────────────────
@@ -647,6 +647,47 @@ def main():
         "Switch.On/Off inherit the effects of whatever category the switch is "
         "attached to ($switch_carries).")
     print(f"effects 붙임: {n_eff}개 함수 서비스")
+
+    # ══ 3.1.0 — joi usecase 맞춤 (dataset-usecase.xlsx) ═══════════════════════
+    # 3.0.0 의 changelog 는 그대로 얼려 두고, 이 층에서 더한 것만 3.1.0 에 적는다.
+    # 난방기 — usecase 의 "온도 낮으면 난방 켜줘"(농장). HA climate/generic_thermostat.
+    #          WaterHeater(온수기)와 다르다 — 이건 방 공기를 데우는 기기다.
+    ordered["Heater"] = {
+        "HeaterState": V("Current state of the heater", "ENUM",
+                         enums=["off - Not heating", "heating - Actively heating",
+                                "idle - At target temperature, standing by"]),
+        "TargetTemperature": V("Target temperature of the heater", "DOUBLE",
+                               bounds=[5, 35], unit="°C"),
+        "On": F("Turn the heater on"),
+        "Off": F("Turn the heater off"),
+        "SetTargetTemperature": F("Set the target temperature of the heater",
+                                  arg="DOUBLE", fmt="temperature",
+                                  bounds=[5, 35], unit="°C"),
+    }
+    # 슬랙 — 팀 채널이라 받는 사람 주소가 필요 없다. 문자·카톡·메일은 주소가
+    # 인자로 필요해서 주소를 모르면 되묻지만, 슬랙은 바로 보낼 수 있다.
+    ordered["MessageSender"]["SendSlack"] = F(
+        "Send a message to the team Slack channel", arg="STRING", fmt="message")
+    for c, m in [("Heater", "On"), ("Heater", "Off"),
+                 ("Heater", "SetTargetTemperature"), ("MessageSender", "SendSlack")]:
+        if c in eff.E and m in eff.E[c]:
+            ordered[c][m]["effects"] = eff.E[c][m]
+    ordered = {k: ordered[k] for k in
+               [k for k in ordered if k.startswith("$")]
+               + sorted(k for k in ordered if not k.startswith("$"))}
+    ordered["$schema_version"] = "3.1.0"
+    ordered["$changelog"]["3.1.0"] = [
+        "JoI usecase alignment (dataset-usecase.xlsx).",
+        "Added category: Heater (space heater — HA climate/generic_thermostat). "
+        "Distinct from WaterHeater.",
+        "Added MessageSender.SendSlack — team channel message; unlike SMS/KakaoTalk/"
+        "mail it needs no per-recipient address, so it can be sent without asking.",
+        "History reads: Timeline IR may read PAST values of any value service with "
+        "the invented @ notation on read.src — src@-1HOUR / src@-1DAY (value back "
+        "then), src@count:today (event count since midnight), and the aggregates "
+        "src@avg:today, src@min:today, src@max:today. IR-spec notation, not catalog "
+        "services; the hub's recorder answers them.",
+    ]
 
     json.dump(ordered, open(dst, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     cats = [k for k in ordered if not k.startswith("$")]

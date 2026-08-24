@@ -29,6 +29,7 @@ NICK_TOKENS = [
     ("비상 발전 배터리", "backup battery"), ("조수 퇴치기", "bird deterrent"),
     ("자동 급식기", "auto feeder"), ("주 급수 밸브", "main water valve"),
     ("관수 밸브", "irrigation valve"), ("관수 펌프", "irrigation pump"),
+    ("온실 난방기", "greenhouse heater"), ("축사 난방기", "barn heater"),
     ("관정 펌프", "well pump"), ("지하수 펌프", "well pump"),
     ("초저온 냉동고", "deep freezer"), ("시약 냉장고", "reagent fridge"),
     ("항온항습기", "climate chamber"), ("인큐베이터", "incubator"),

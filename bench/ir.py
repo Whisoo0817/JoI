@@ -26,7 +26,7 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.0.0.json")
+CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.1.0.json")
 
 # ── 센서에서 숫자를 읽는 속성 ──────────────────────────────────────────
 # "{sensor} 가 300 을 넘으면" 처럼 센서 이름만 대는 틀이 어느 속성을 읽는지.
@@ -232,6 +232,7 @@ POWER = {
                          ("SetThermostatMode", {"Mode": "off"})),
     "WaterHeater":      (("SetWaterHeaterMode", {"Mode": "heat"}),
                          ("SetWaterHeaterMode", {"Mode": "off"})),
+    "Heater":           (("On", {}), ("Off", {})),
     "Ventilator":       (("SetVentilatorMode", {"Mode": "auto"}),
                          ("SetVentilatorMode", {"Mode": "off"})),
     "Chamber":          (("SetChamberMode", {"Mode": "auto"}),
@@ -1173,14 +1174,13 @@ if __name__ == "__main__":
 # ── 방아쇠가 무엇을 읽나 ────────────────────────────────────────────────
 # "한 시간 전보다 높으면" 같은 문형은 숫자를 읽는 방아쇠에만 붙어야 한다.
 # 버튼 눌림이나 문 열림을 크고 작음으로 견줄 수는 없다.
-_CAT_CACHE = [None]
 NUM_RETURN = {"INTEGER", "DOUBLE"}
 
 
 def _cat_json():
-    if _CAT_CACHE[0] is None:
-        _CAT_CACHE[0] = json.load(open(CATALOG, encoding="utf-8"))
-    return _CAT_CACHE[0]
+    # 위의 _catalog() 를 그대로 쓴다. 예전에 여기서 _CAT_CACHE 를 다시 만들어
+    # 앞의 캐시를 가렸다 — coerce() 가 None 을 받는 잠복 버그였다.
+    return _catalog()
 
 
 def trig_reads(tpl):

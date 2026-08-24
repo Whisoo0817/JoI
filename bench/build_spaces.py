@@ -16,7 +16,7 @@ from nick_lexicon import to_en
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
-CATALOG = os.path.join(ROOT, "files", "service_list_ver3.0.0.json")
+CATALOG = os.path.join(ROOT, "files", "service_list_ver3.1.0.json")
 
 # 허브가 언제나 제공하는 것 — 기기 수(≥10)에는 세지 않는다.
 SYSTEM = [("Clock", "Clock"), ("GlobalVariable", "전역 변수"),
@@ -1065,6 +1065,7 @@ S["FARM01"] = build("FARM01", "farm", "비닐하우스 (토마토)", "M",
     d(3, "HumiditySensor", "Greenhouse"),
     d(2, "CarbonDioxideSensor", "Greenhouse"),
     d(1, "LightSensor", "Greenhouse"),
+    d(1, "Heater", "Greenhouse", nick="온실 난방기"),
     d(1, "Pump", "Utility", nick="관수 펌프"),
     d(1, "WaterLevelSensor", "Utility", nick="양액 탱크 수위"),
     d(1, "WaterQualitySensor", "Utility", nick="양액 센서"),
@@ -1099,6 +1100,7 @@ S["FARM02"] = build("FARM02", "farm", "축사 (양돈)", "M",
     d(1, "Siren|Switch", "Barn", "Main"),
     d(1, "Speaker", "Barn", "Main"),
     d(1, "Humidifier", "Barn"),
+    d(1, "Heater", "Barn", nick="축사 난방기"),
     d(1, "FeedDispenser", "Barn"),
     d(1, "EnergyMeter", "Utility"),
     d(1, "Battery", "Utility", nick="비상 발전 배터리"),
@@ -1338,7 +1340,7 @@ def main():
                 n_nick += 1
     print(f"별명 {n_nick}개를 영어로")
 
-    out = {"$version": "1.1.0", "$catalog": "service_list_ver3.0.0.json",
+    out = {"$version": "1.1.0", "$catalog": "service_list_ver3.1.0.json",
            "$comment": "벤치마크 공간 40 — 명령어는 space_id 로 이 목록을 가리킨다.",
            "spaces": S}
     dst = os.path.join(HERE, "spaces.json")
