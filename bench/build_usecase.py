@@ -155,7 +155,8 @@ def _resolve(sid, sel):
 def _row(idx, en, sid, **kw):
     ids = kw.pop("targets", [])
     ROWS.append(dict(
-        idx=idx, space_id=sid, kind=S[sid]["kind"], command=en, mode="usecase",
+        idx=idx, space_id=sid, kind=S[sid]["kind"], command=en, command_ko="",
+        mode="usecase",
         trig=kw.get("trig", "now"), act=kw["act"],
         dev_trig=kw.get("dev_trig", ""), dev_act=kw.get("dev_act", ""),
         ref=kw.get("ref", "plain"), tone=kw.get("tone", "bare"),
@@ -2094,7 +2095,9 @@ def sheet_farm():
 
 # ══ 검산과 출력 ═════════════════════════════════════════════════════════
 # kind ← space_id, n_target ← targets, match ← expect 라서 안 싣는다. tone 은 안 쓴다.
-COLS = ["id", "space_id", "command", "mode", "trig", "act", "dev_trig",
+# command_ko 는 아직 비어 있다 — U행은 손으로 쓴 문장이라 틀이 없다.
+# 씨앗이 한국어(dataset-usecase.xlsx)이므로 나중에 그쪽에서 가져온다.
+COLS = ["id", "space_id", "command", "command_ko", "mode", "trig", "act", "dev_trig",
         "dev_act", "ref", "expect", "d", "tier", "b1", "b3", "context",
         "why", "targets", "target_svc", "ir_gt"]
 

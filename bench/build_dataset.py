@@ -19,6 +19,7 @@ import sys
 
 import ir as IR
 import templates as T
+import korean as KO
 from effects import E, effects_of
 from want import WANT
 from policy import NOTIFY_ORDER
@@ -110,7 +111,8 @@ def load_spaces():
                           if t not in d["category"] and t != "System"
                           and t not in NOT_PLACE and "_" not in t), "")
             for c in d["category"]:
-                by_cat[c].append((did, d.get("nickname"), place))
+                by_cat[c].append((did, d.get("nickname"), place,
+                                  d.get("nickname_ko")))
         sp["_by_cat"] = by_cat
         sp["_cats"] = set(by_cat)
     return S
@@ -180,7 +182,7 @@ def _verdict(hit, is_pl):
 
 
 def refer(rng, sp, cat, style):
-    """기기 지목 문구, 가리키는 기기들, 판정, 실제로 쓴 방식, 채점 방식."""
+    """기기 지목 문구, 가리키는 기기들, 판정, 실제로 쓴 방식, 채점 방식, 한국어 지목구."""
     devs = sp["_by_cat"].get(cat, [])
     if not devs:
         return None
@@ -191,8 +193,9 @@ def refer(rng, sp, cat, style):
         if not cands:
             style = "place"
         else:
-            did, nick, _ = rng.choice(cands)
-            return f"the {nick}", [did], "execute", "nick", "all"
+            did, nick, _, nick_ko = rng.choice(cands)
+            return (f"the {nick}", [did], "execute", "nick", "all",
+                    KO.refer_ko("nick", cat, nick_ko=nick_ko or nick))
     if style == "place":
         places = [d[2] for d in devs if d[2]]
         if not places:
@@ -201,24 +204,30 @@ def refer(rng, sp, cat, style):
             pl = rng.choice(places)
             hit = [d[0] for d in devs if d[2] == pl]
             pe = place_en(pl)
+            ko = KO.refer_ko("place", cat, place_tag=pl)
             # 같은 방에 같은 기기가 여럿이면 같은 목적으로 놓인 것으로 본다.
             # "the barn fan" 은 축사 선풍기 4대를 다 켜라는 말이지 되물을 일이 아니다.
             if set(pe.split()) & set(n.split()):   # "back door door" 를 막는다
-                return f"the {n}", hit, "execute", "place", "all"
-            return f"the {pe} {n}", hit, "execute", "place", "all"
+                return f"the {n}", hit, "execute", "place", "all", ko
+            return f"the {pe} {n}", hit, "execute", "place", "all", ko
     ids = [d[0] for d in devs]
     if style == "all":
-        return f"all the {n if is_pl else plural(n)}", ids, "execute", "all", "all"
+        return (f"all the {n if is_pl else plural(n)}", ids, "execute", "all", "all",
+                KO.refer_ko("all", cat))
     if style == "any":
         return (f"any of the {n if is_pl else plural(n)}", ids,
-                "execute", "any", "any")
+                "execute", "any", "any", KO.refer_ko("any", cat))
     if style == "onedup":
         # 단수로 부르는데 같은 기기가 여럿 — 어느 것인지 되물어야 한다
+        # ★ 한국어에는 수가 없어 plain 과 같은 말이 된다 (korean.refer_ko 참고)
         sing = SING.get(cat, n[:-1] if is_pl and not n.endswith("ss") else n)
         v, m = _verdict(ids, False)
-        return f"the {sing}", ids, v, "onedup", m
+        return f"the {sing}", ids, v, "onedup", m, KO.refer_ko("onedup", cat)
     v, m = _verdict(ids, is_pl)
-    return f"the {n}", ids, v, "plain", m
+    # 영어는 "the lights"(복수=전부) 와 "the light"(단수=어느 것?) 로 갈리는데
+    # 한국어에는 수가 없다. 복수 쪽만 "다" 를 붙여 구분을 살린다.
+    return (f"the {n}", ids, v, "plain", m,
+            KO.refer_ko("plain", cat, plural=is_pl))
 
 
 # 즉시 실행일 때의 알림·조회는 대상이 있어야 문장이 된다
@@ -339,8 +348,8 @@ def query_targets(sp, sent):
     if not devs:
         return [], "no_device"
     pl = LAST_PLACE[0]
-    hit = [d for d, _, p in devs if p == pl] if pl else []
-    return (hit or [d for d, _, _ in devs]), ""
+    hit = [d for d, _, p, *_ in devs if p == pl] if pl else []
+    return (hit or [d for d, *_ in devs]), ""
 
 
 def trig_pool(trig, cat_t):
@@ -411,7 +420,8 @@ def degrammar(t):
     return t
 
 
-LAST_PLACE = [None]      # fill() 이 마지막으로 고른 장소 태그
+LAST_PLACE = [None]
+DEV_T_KO = [None]      # {dev_t}(버튼 문형) 의 한국어 지목구
 SLOTS = [{}]             # fill() 이 이번에 고른 값들 — 정답 IR 이 같은 값을 써야 한다
 
 
@@ -445,6 +455,7 @@ def fill(rng, text, sp, act, cat_t):
     if "{dev_t}" in text:
         r = refer(rng, sp, cat_t, "plain") if cat_t else None
         text = text.replace("{dev_t}", r[0] if r else "it")
+        DEV_T_KO[0] = r[5] if r else "그것"
     return text
 
 
@@ -524,6 +535,7 @@ def main():
                 tsvc, match, why_force = [], "none", ""
                 aslots, tslots, lslots = {}, {}, {}
                 act_tpl, vague_tpl, frame, cond_text = "", None, "", ""
+                dev_ko, act_place, trig_place = None, None, None
                 win_cat = cat_a
                 if use_vague:
                     body = vague_tpl = rng.choice(vpool)
@@ -537,7 +549,7 @@ def main():
                     win_cat = list(rivals)[0] if len(rivals) == 1 else cat_a
                     if rivals:
                         targets = sorted({d for c in rivals
-                                          for d, _, _ in sp["_by_cat"].get(c, [])})
+                                          for d, *_ in sp["_by_cat"].get(c, [])})
                         match = "ask" if len(rivals) > 1 else "all"
                     if act == "query":       # 읽은 값을 말해 줄 채널이 있어야 한다
                         tsvc, ok_ch = notify_target(sp, "notify")
@@ -573,22 +585,23 @@ def main():
                         got = refer(rng, sp, c, style)
                         if got is None:
                             body = tpl.replace("{dev}", "the " + (noun(c) or noun(cat_a)))
+                            dev_ko = KO.NOUN_KO.get(c) or KO.NOUN_KO.get(cat_a) or c
                             targets, expect, match = [], "refuse", "none"
                         else:
-                            ref, targets, expect, style, match = got
+                            ref, targets, expect, style, match, dev_ko = got
                             body = tpl.replace("{dev}", ref)
                     else:
                         # 기기를 안 대지만 무엇을 움직이는지는 정해져 있다
                         # ("난방 올려줘" = 그 공간 난방기). 공간 것 전부가 답.
                         body, expect, style = tpl, "execute", "none"
-                        hit = [d for d, _, _ in sp["_by_cat"].get(cat_a, [])]
+                        hit = [d for d, *_ in sp["_by_cat"].get(cat_a, [])]
                         targets, match = (hit, "all") if hit else ([], "none")
                     if act == "notify":
                         tsvc, expect = notify_target(sp, notify_act)
                         targets, match = [], ("all" if tsvc else "none")
                         style = "none"          # 알림은 기기를 지목하는 문장이 아니다
                     body = fill(rng, body, sp, act, cat_t)
-                    aslots = dict(SLOTS[0])
+                    aslots, act_place = dict(SLOTS[0]), LAST_PLACE[0]
                     if act == "query":
                         # 읽은 값을 어디로 말해 주나. 채널이 없으면 답할 길이 없다.
                         tsvc, ok_ch = notify_target(sp, "notify")
@@ -634,7 +647,7 @@ def main():
                             tp = [t for t in tp if IR.trig_reads(t)] or tp
                         raw_t = tp[k % len(tp)] if attempt == 0 else rng.choice(tp)
                         core = f"{fill(rng, raw_t, sp, act, cat_t)}, {core}"
-                        tslots = dict(SLOTS[0])
+                        tslots, trig_place = dict(SLOTS[0]), LAST_PLACE[0]
                     dcode = di
                 elif r["mode"] == "now":
                     core = body
@@ -642,7 +655,7 @@ def main():
                     tp = trig_pool(trig_kind, cat_t)
                     raw_t = tp[k % len(tp)] if attempt == 0 else rng.choice(tp)
                     tt = fill(rng, raw_t, sp, act, cat_t)
-                    tslots = dict(SLOTS[0])
+                    tslots, trig_place = dict(SLOTS[0]), LAST_PLACE[0]
                     front = (ti in (0, 5) and k % 3 == 0)
                     # 본문이 이미 "when" 을 쓰고 있으면 뒤에 시간절을 또 붙일 수 없다
                     # ("I want to know when it changes when the wash cycle ends")
@@ -662,6 +675,15 @@ def main():
                     ti = k % len(T.TONE) if attempt == 0 else rng.randrange(len(T.TONE))
                 tname = T.TONE[ti][0]
                 tname, sent = tone(rng, core, ti)
+                # 같은 재료로 한국어 문장을 따로 만든다 (korean.py). 번역이 아니다.
+                sent_ko = KO.sentence_ko(
+                    act_tpl=act_tpl, vague_tpl=vague_tpl,
+                    dev_ko=dev_ko,
+                    aslots=aslots, act_place=act_place, sensor_cat=cat_t,
+                    trig_tpl=raw_t, tslots=(tslots if raw_t else {}),
+                    trig_place=trig_place, dev_t_ko=DEV_T_KO[0],
+                    frame=(frame if use_logic else ""), cond_text=cond_text,
+                    lslots=lslots, tone=tname) or ""
                 # 실행이라 해놓고 그 공간에 기기가 없으면 다시 뽑는다
                 tier_now = TIER[dcode if use_logic else d_code(r["mode"], raw_t)]
                 ok = not (expect == "execute" and cat_a and cat_a not in sp["_cats"])
@@ -693,6 +715,7 @@ def main():
                     ir_gt = json.dumps(obj, ensure_ascii=False)
             rows.append(dict(
                 id=f"G{len(rows)+1:05d}", space_id=sid, kind=sp["kind"], command=sent,
+                command_ko=sent_ko,
                 mode=r["mode"], trig=trig_kind, act=act, dev_trig=cat_t, dev_act=cat_a,
                 ref=("vague" if use_vague else style), tone=tname, expect=expect,
                 d=(dcode if use_logic else d_code(r["mode"], raw_t)),
@@ -709,7 +732,7 @@ def main():
 
     # 안 싣는 열 넷 — 다른 열에서 그대로 나오거나(kind ← space_id, n_target ← targets,
     # match ← expect) 안 쓴다(tone). rows 안에는 남아 있어 아래 검산이 그대로 쓴다.
-    cols = ["id", "space_id", "command", "mode", "trig", "act",
+    cols = ["id", "space_id", "command", "command_ko", "mode", "trig", "act",
             "dev_trig", "dev_act", "ref", "expect", "d", "tier", "b1", "b3",
             "context", "why", "targets", "target_svc", "ir_gt"]
     dst = os.path.join(HERE, "dataset_5k.csv")
