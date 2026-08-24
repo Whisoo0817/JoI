@@ -2093,9 +2093,10 @@ def sheet_farm():
 
 
 # ══ 검산과 출력 ═════════════════════════════════════════════════════════
-COLS = ["id", "space_id", "kind", "command", "mode", "trig", "act", "dev_trig",
-        "dev_act", "ref", "tone", "expect", "d", "tier", "b1", "b3", "context",
-        "why", "targets", "n_target", "target_svc", "match", "ir_gt"]
+# kind ← space_id, n_target ← targets, match ← expect 라서 안 싣는다. tone 은 안 쓴다.
+COLS = ["id", "space_id", "command", "mode", "trig", "act", "dev_trig",
+        "dev_act", "ref", "expect", "d", "tier", "b1", "b3", "context",
+        "why", "targets", "target_svc", "ir_gt"]
 
 
 def validate():
@@ -2180,7 +2181,7 @@ def main():
         w = csv.DictWriter(f, fieldnames=COLS)
         w.writeheader()
         for r in kept:
-            w.writerow(r)
+            w.writerow({k: r[k] for k in COLS})
         for r in ROWS:
             w.writerow({k: r[k] for k in COLS})
     print(f"dataset_5k.csv: {len(kept)} + {len(ROWS)} = {len(kept) + len(ROWS)}문장")

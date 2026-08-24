@@ -707,12 +707,14 @@ def main():
                 targets=" ".join(targets), n_target=len(targets),
                 target_svc=" ".join(tsvc), match=match, ir_gt=ir_gt))
 
-    cols = ["id", "space_id", "kind", "command", "mode", "trig", "act",
-            "dev_trig", "dev_act", "ref", "tone", "expect", "d", "tier", "b1", "b3",
-            "context", "why", "targets", "n_target", "target_svc", "match", "ir_gt"]
+    # 안 싣는 열 넷 — 다른 열에서 그대로 나오거나(kind ← space_id, n_target ← targets,
+    # match ← expect) 안 쓴다(tone). rows 안에는 남아 있어 아래 검산이 그대로 쓴다.
+    cols = ["id", "space_id", "command", "mode", "trig", "act",
+            "dev_trig", "dev_act", "ref", "expect", "d", "tier", "b1", "b3",
+            "context", "why", "targets", "target_svc", "ir_gt"]
     dst = os.path.join(HERE, "dataset_5k.csv")
     with open(dst, "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=cols)
+        w = csv.DictWriter(f, fieldnames=cols, extrasaction="ignore")
         w.writeheader()
         w.writerows(rows)
 
@@ -774,7 +776,6 @@ def main():
     print("공간별 최소/최대:",
           min(collections.Counter(x['space_id'] for x in rows).values()),
           max(collections.Counter(x['space_id'] for x in rows).values()))
-    print("말투:", dict(collections.Counter(x["tone"] for x in rows)))
     mt = collections.Counter(x["match"] for x in rows)
     nt = [x["n_target"] for x in rows if x["n_target"]]
     print("채점 방식: 전부일치 %d / 되묻기 %d / 대상없음 %d, 기기 %d대 지목(한 문장 최대 %d), 서비스 %d건"

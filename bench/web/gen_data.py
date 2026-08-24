@@ -165,6 +165,8 @@ LAYOUT = {
     },
 }
 
+MATCH = {"execute": "all", "ask": "ask", "refuse": "none"}
+
 OUTDOOR_HINT = {"Garden", "Outdoor", "Field", "Balcony", "Dock", "TankYard", "Barn",
                 "Greenhouse", "Garage", "BackDoor"}
 
@@ -270,7 +272,9 @@ def build_cmds(sid, rows):
                 ir = None
         out.append({
             "id": r["id"], "text": r["command"], "expect": r["expect"],
-            "match": r["match"], "why": r["why"], "tier": r["tier"], "d": r["d"],
+            # match 는 expect 가 정한다 (execute↔all, ask↔ask, refuse↔none)
+            "match": MATCH[r["expect"]], "why": r["why"],
+            "tier": r["tier"], "d": r["d"],
             "mode": r["mode"], "trig": r["trig"], "act": r["act"],
             "targets": r["targets"].split() if r["targets"] else [],
             "ir": ir,

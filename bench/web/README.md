@@ -85,8 +85,9 @@ python bench/web/gen_data.py --all     # 40 공간 전부
 }
 ```
 
-채점은 `dataset_5k.csv` 의 `expect` · `targets` · `match` 와 견주면 된다.
-`match` 가 `all` 이면 targets 가 정확히 같아야 하고, `ask` 는 되묻기, `none` 은 기기 없음.
+채점은 `dataset_5k.csv` 의 `expect` · `targets` 와 견주면 된다. 채점 방식은 `expect` 가
+정한다 — `execute` 면 targets 가 집합으로 정확히 같아야 하고, `ask` 는 되묻어야 맞고,
+`refuse` 는 지목할 기기가 없다.
 
 ## 아직 안 한 것
 

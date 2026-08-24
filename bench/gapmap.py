@@ -5,11 +5,12 @@
 """
 import collections
 import csv
+import json
 import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-AXES = [("tier", "난이도"), ("d", "시간·로직"), ("ref", "기기 지목"), ("tone", "말투"), ("b1", "서비스 쓰임"),
+AXES = [("tier", "난이도"), ("d", "시간·로직"), ("ref", "기기 지목"), ("b1", "서비스 쓰임"),
         ("b3", "기기 종류 수"), ("expect", "판정"), ("context", "바깥 정보"),
         ("mode", "덩어리"), ("kind", "공간 종류"), ("trig", "트리거"), ("act", "동작")]
 T_NAME = {"T0": "즉시 실행", "T1": "TAP 그대로", "T2": "조건·지연",
@@ -26,6 +27,11 @@ def bar(v, tot, w=28):
 
 def main():
     R = list(csv.DictReader(open(os.path.join(HERE, "dataset_5k.csv"), encoding="utf-8")))
+    # kind 는 CSV 에 없다 — space_id 가 정한다
+    KIND = {sid: sp["kind"] for sid, sp in json.load(
+        open(os.path.join(HERE, "spaces.json"), encoding="utf-8"))["spaces"].items()}
+    for r in R:
+        r["kind"] = KIND[r["space_id"]]
     n = len(R)
     print(f"dataset_5k.csv {n}문장\n")
     for key, name in AXES:
