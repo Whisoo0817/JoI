@@ -651,6 +651,10 @@ def main():
                             tp = [t for t in tp if IR.reads_number(t)] or tp
                         elif di == "D12":   # 세려면 사건이어야 한다
                             tp = [t for t in tp if IR.trig_reads(t)] or tp
+                        # 주기 문형에 주기 시간절을 또 붙이면 주기가 두 번 적힌다
+                        # ("Every 30 minutes, check every 20 minutes and ...")
+                        if "every {n} minutes" in frame:
+                            tp = [t for t in tp if t != "every {n} minutes"] or tp
                         raw_t = nonhome(
                             tp[k % len(tp)] if attempt == 0 else rng.choice(tp), sp)
                         core = f"{fill(rng, raw_t, sp, act, cat_t)}, {core}"
