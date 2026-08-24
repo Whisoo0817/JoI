@@ -93,6 +93,19 @@ def score_targets(got, want):
     return g == w
 
 
+def bucket(msg):
+    """막힌 이유를 종류로 묶는다 — 무엇을 먼저 고칠지 보려고."""
+    m = msg or ""
+    if "여러 대 자리" in m:     return "값 자리에 기기 여럿"
+    if "cond tokenize" in m:   return "조건이 비었음"
+    if "cond trailing" in m:   return "조건에 딴 글자가 섞임"
+    if "DIVERGE" in m:         return "게이트 갈라짐"
+    if "REFUSED" in m:         return "게이트 기타"
+    if "CantLower" in m or "규칙 밖" in m: return "규칙이 못 옮김"
+    if "No connected" in m or "기기" in m: return "기기 없음"
+    return "그 밖"
+
+
 def judge_ok(got, want):
     """판정 채점. 되묻기는 중복정답 — 되물어도, 다 해도 맞다."""
     if want == "ask":
@@ -109,6 +122,12 @@ def main():
     args = ap.parse_args()
 
     rows = list(csv.DictReader(open(DATA, encoding="utf-8")))
+    # 정답 IR 은 영어판에만 있다 (한국어판은 문장·라벨만 든다)
+    ir_gt = {r["id"]: r["ir_gt"] for r in
+             csv.DictReader(open(os.path.join(HERE, "bench", "dataset_5k.csv"),
+                                 encoding="utf-8"))}
+    for r in rows:
+        r["ir_gt"] = ir_gt.get(r["id"], "")
     spaces, hub = load_spaces(), hub_config()
 
     if args.ids:
@@ -128,18 +147,29 @@ def main():
         devs = devices_of(spaces, r["space_id"])
         want_judge = r["expect"]
         want_targets = (r["targets"] or "").split()
-        got_judge, got_targets, err = "execute", [], ""
+        got_judge, got_targets, err, got_ir = "execute", [], "", None
         try:
             res = generate_joi_code_ir(r["command_ko"], devs, {})
+            got_ir = res.get("ir")
             got_targets = sorted({d for s in (res.get("resolved") or {}).values()
                                   for d in (s.get("devices") or [])})
         except JoiGenerationError as e:
             got_judge, err = "refuse", (e.args[0] if e.args else "")
+            got_ir = getattr(e, "ir", None)      # 게이트에 막혀도 IR 은 만들어졌다
             res = None
+            stat["막힌이유/" + bucket(err)] += 1
         except Exception as e:                       # noqa: BLE001
             got_judge, err = "error", f"{type(e).__name__}: {e}"
             res = None
 
+        # 정답 IR 과 견준다 — 게이트에 막혀도 Stage 1 이 맞았는지는 따로 봐야 한다
+        if r["ir_gt"] and res is not None or (r["ir_gt"] and got_ir is not None):
+            pass
+        if r["ir_gt"] and got_ir is not None:
+            v = compare.verdict(got_ir, json.loads(r["ir_gt"]))
+            stat["IR잼"] += 1
+            stat["IR뜻같음"] += bool(v.get("same"))
+            stat["IR서비스같음"] += bool(v.get("svc"))
         ok_j = judge_ok(got_judge, want_judge)
         ok_t = score_targets(got_targets, want_targets)
         stat["행"] += 1
@@ -163,6 +193,12 @@ def main():
     print(f"판정  {stat['판정맞음']}/{stat['행']}   (되묻기는 중복정답 — 되물어도 다 해도 맞음)")
     if stat["대상잼"]:
         print(f"대상  {stat['대상맞음']}/{stat['대상잼']}")
+    if stat["IR잼"]:
+        print(f"IR    {stat['IR뜻같음']}/{stat['IR잼']} 뜻이 같음  "
+              f"(서비스만 같음 {stat['IR서비스같음']}/{stat['IR잼']})")
+    stuck = {k.split("/", 1)[1]: v for k, v in stat.items() if k.startswith("막힌이유/")}
+    if stuck:
+        print("막힌 이유:", dict(sorted(stuck.items(), key=lambda x: -x[1])))
     print("정답 분포:", {k[3:]: v for k, v in stat.items() if k.startswith("정답=")})
     print("낸 것    :", {k[3:]: v for k, v in stat.items() if k.startswith("낸것=")})
 

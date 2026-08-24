@@ -502,13 +502,16 @@ def generate_joi_code_ir(
         elif gate_verdict != "EQUIV":
             log_buf.append("ℹ️ LLM 고치기 건너뜀 (IR·기기 쪽 이유거나 JOI_LLM_FIX=0)")
         if gate_verdict == "CANT":
-            raise JoiGenerationError(f"규칙 lowering 밖의 IR 모양: {cant}", "\n".join(log_buf),
-                                     error_code="lowering_unsupported")
+            _e = JoiGenerationError(f"규칙 lowering 밖의 IR 모양: {cant}", "\n".join(log_buf),
+                                    error_code="lowering_unsupported")
+            _e.ir = ir
+            raise _e
         if gate_verdict != "EQUIV":
             err = JoiGenerationError(f"게이트 {gate_verdict}: 코드가 IR 과 같다고 확인되지 않음 — {gate_note}",
                                      "\n".join(log_buf),
                                      error_code=f"lowering_gate_{gate_verdict.lower()}")
             err.joi_json = joi_json            # 거절했지만 만든 코드는 붙여 둔다(test.py 가 보여줌)
+            err.ir = ir                        # 게이트에 막혀도 Stage 1 은 따로 채점한다
             err.gate = {"verdict": gate_verdict, "note": gate_note}
             err.fix_rounds = fix_rounds
             raise err
