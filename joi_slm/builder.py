@@ -25,28 +25,42 @@ class Asker:
              f'A. true 인 상황\nB. false 인 상황\n\n답:')
         sc = self._choice(p, "AB")
         return None if sc is None else ("true" if sc[0] > sc[1] else "false")
+    def _fill(self, prompt, prefill):
+        """빈칸 채우기 한 번 — 답의 첫 낱말. 실패하면 None."""
+        try:
+            out = self.engine.chat([{"role": "user", "content": prompt}], max_tokens=6, temperature=0, prefill=prefill)[0]
+        except Exception:
+            return None
+        w = re.sub(r'^.*?= ?"?', "", out.strip()).split('"')[0].split()
+        return w[0].strip('"., *') if w else None
     def enum_member(self, cmd, text, svc, desc, members):
-        """enum 칸에 넣을 멤버 고르기 — 짧은 생성. 글자 객관식은 선택지가 많으면 2B 가 헤매서
-        (자연풍→high) 낱말을 직접 쓰게 한다. ENUM_KO 표는 판정자가 아니라 힌트로 쓴다 —
-        멤버 옆에 한국어 뜻을 달아 주고, 답도 한국어로 오면 표를 거꾸로 타서 되받는다."""
+        """enum 칸에 넣을 멤버 고르기 — 예시 하나 딸린 빈칸 채우기.
+        글자 객관식은 선택지가 많으면 2B 가 헤맸고(자연풍→high), 맨몸 질문은 "예보" 같은
+        표현에서 무너졌다(비 예보→thunderstorm). 다른 영역의 고정 예시 하나("먼지가 많으면"→dust)를
+        붙이니 날씨·선풍기 시험 9/9. ENUM_KO 표는 판정자가 아니라 힌트 — 멤버 옆에 한국어 뜻을 달고,
+        답이 한국어로 와도 표를 거꾸로 타서 되받는다."""
         members = [m.split(" - ")[0].strip() for m in members][:20]
         if not members: return None
         def gloss(k):
             ko = slots.ENUM_KO.get(k.lower(), slots.ENUM_KO.get(k, []))
             return f"{k}({ko[0]})" if ko else k
-        hint = " 세기·모드 말이 없이 그냥 켜거나 돌리라는 명령이면 auto." if "auto" in members else ""
-        p = (f'선택지: {" ".join(gloss(m) for m in members)}\n'
-             f'명령: "{text}"\n'
-             f'이 명령이 뜻하는 {svc}({desc}) 값 하나만 답하시오.{hint} 위에 없으면 "없음".')
-        try:
-            out = self.engine.chat([{"role": "user", "content": p}], max_tokens=6, temperature=0, prefill="답: ")[0]
-        except Exception:
-            return None
-        w = re.sub(r"^답:\s*", "", out.strip()).split()[0].strip('"., ') if out.strip() else ""
+        hint = "세기·모드 말이 없이 그냥 켜거나 돌리라는 문구면 auto.\n" if "auto" in members else ""
+        p = (f'문구가 뜻하는 값을 고른다. 값은 다음 중 하나: {", ".join(gloss(m) for m in members)}, 없음\n'
+             f'예) "먼지가 많으면" → 값 = "dust"\n{hint}'
+             f'문구: "{text}"')
+        w = self._fill(p, '→ 값 = "')
         if w in members: return w
         for m in members:                                # 한국어로 답하면 표를 거꾸로 타고 되받는다
             if w and w in slots.ENUM_KO.get(m.lower(), slots.ENUM_KO.get(m, [])): return m
         return None
+    def num_value(self, cmd, text, svc, desc):
+        """숫자 칸 — 글에 숫자가 없을 때("세탁기가 끝나면" → RemainingTime 0). 못 읽으면 None."""
+        p = (f'문구가 가리키는 순간의 값을 쓴다. 숫자 하나만. 모르면 "모름".\n'
+             f'예) "배터리가 다 닳으면" + BatteryLevel(배터리 %) → 값 = 0\n'
+             f'문구: "{text}" + {svc.split(".")[1]}({desc})')
+        w = self._fill(p, '→ 값 = ')
+        try: return float(w)
+        except (TypeError, ValueError): return None
 
 class Mapping:
     """명령 하나의 매핑 결과. ranked: {j: [svc top-5]}, parts: {j: [{"part": text, "ranked": [값 svc top-5]}]}, texts: {j: 절 텍스트},
@@ -135,6 +149,16 @@ def _cond_expr(M, j, text):
     return _one_cond(pick_value(text, vals, conn=M.conn), text)
 
 NUM_T = ("DOUBLE", "INT", "INTEGER", "FLOAT", "LONG")
+
+_HUB = [None]
+def hub():
+    """허브 설정(files/hub_config.json) — 색·장면·기준값 같은 사용자 설정. 정답지가 아니라 입력이다. 없으면 빈 dict."""
+    if _HUB[0] is None:
+        import os
+        f = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "files", "hub_config.json")
+        try: _HUB[0] = json.load(open(f, encoding="utf-8"))
+        except Exception: _HUB[0] = {}
+    return _HUB[0]
 def _one_cond(svc, text):
     if not svc: return "?"
     k, spec = svc_info(svc); cat = svc.split(".")[0]; vt = spec.get("type") if spec else None
@@ -142,7 +166,10 @@ def _one_cond(svc, text):
     if cv and (vt not in NUM_T or slots.comparator(text) is None or not re.search(r"이상|이하|미만|초과|넘|보다|떨어|올라|아래|밑", text)): return f"{svc} {cv}"
     if vt in NUM_T:
         c = slots.comparator(text)
-        if not c: return f"{svc} == ?"
+        if not c:
+            n = _ASK[0].num_value(_ASK[1], text, svc, spec.get("descriptor", "")) if _ASK[0] else None
+            if n is not None: return f"{svc} == {int(n) if float(n).is_integer() else n}"
+            return f"{svc} == ?"
         v = rerank.unit_scale(svc, text, c[1]); v = int(v) if float(v).is_integer() else v
         r = slots.range_comparator(text)                          # "20도 이상, 30도 미만이면" → and
         if r: return " and ".join(f"{svc} {op} {int(x) if float(x).is_integer() else x}" for op, x in r)
@@ -228,6 +255,10 @@ def call_node(M, j, text, force=None, avoid=()):
             elif aid in ("Hue", "Saturation"):
                 m = re.search(("색조" if aid == "Hue" else "채도") + r"\D{0,6}(\d+)", text)
                 if m: args[aid] = int(m.group(1))
+                else:
+                    C = hub().get("색상", {})                     # 색 이름("분홍")이면 허브 색상 표의 각도
+                    col = slots.enum_arg(text, [f"{c} - " for c in C])
+                    if col: args[aid] = float(C[col]) if aid == "Hue" else 100.0   # 채도는 이름 색이면 100 (허브 관례)
             elif aid in ("ColorX", "ColorY"):
                 col = slots.enum_arg(text, [f"{c} - " for c in COLOR_XY])
                 if col: args[aid] = COLOR_XY[col][0 if aid == "ColorX" else 1]
@@ -427,7 +458,7 @@ def build(segments, M, graph=True, ask=None):
     return {"timeline": tl}
 build.last = None
 
-MSG_ARGS = ("Text", "Prompt", "Body", "Message", "Command")     # 사람이 읽을 문구가 들어가는 자리
+MSG_ARGS = ("Text", "Prompt", "Title", "Body", "Message", "Command")     # 사람이 읽을 문구가 들어가는 자리
 def _fill_message(tl):
     """말하기·알림 호출의 문구 자리를 비워 두지 않는다.
     바로 앞에서 값을 읽었으면 그 값을 말하는 것으로 보고 "$변수", 아니면 그 절의 말을 그대로 쓴다."""
