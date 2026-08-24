@@ -300,6 +300,25 @@ LOGIC_HARD = [
     ("D13", "wait until {cond}, then {a} every {n} minutes for {m} hours"),
 ]
 LOGIC = LOGIC_SOFT + LOGIC_HARD   # 옛 이름
+# ── 집이 아닌 공간에서는 "집" 이라는 말을 안 쓴다 ────────────────────────
+# 공장·연구실·농장·사무실에 "집에 아무도 없으면" 이 붙어 있었다 (54행).
+# 뜻은 같고 말만 바꾼다. 같은 IR·같은 한국어 틀에 걸리도록 ir.py·korean.py 가
+# 이 표를 읽어 별명을 만든다 — 표를 늘리지 않는다.
+NONHOME = {
+    # 조건절
+    "nobody is home":                "nobody is around",
+    # 시간절 — 도착
+    "when I get home":               "when I arrive",
+    "as soon as I arrive home":      "as soon as I arrive",
+    "when I pull into the driveway": "when I pull into the parking lot",
+    "once I am back home":           "once I am back",
+    "when I am close to home":       "when I am close by",
+    # 시간절 — 나감
+    "when I leave home":             "when I leave",
+    "when I am away from home":      "when I am away",
+    # "once everyone has left", "after I head out" 은 "집" 이 안 들어가 그대로 쓴다
+}
+
 COND = ["the room is too warm", "nobody is home", "the door is open",
         "the humidity is over 60 percent", "it is dark outside",
         "the washing machine is running", "someone is in the room",

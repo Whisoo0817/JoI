@@ -26,6 +26,9 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+import templates as T
 CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.1.0.json")
 
 # ── 센서에서 숫자를 읽는 속성 ──────────────────────────────────────────
@@ -629,6 +632,13 @@ COND_IR = {
     "the temperature is under 18 degrees": "TemperatureSensor.Temperature < 18",
     "the battery is under 20 percent": "Battery.BatteryLevel < 20",
 }
+
+# 집이 아닌 공간용 별명 — 뜻이 같으니 IR 도 같다 (templates.NONHOME)
+for _old, _new in T.NONHOME.items():
+    if _old in COND_IR:
+        COND_IR[_new] = COND_IR[_old]
+    if _old in TRIG_IR:
+        TRIG_IR[_new] = TRIG_IR[_old]
 
 
 # ── 조립 ───────────────────────────────────────────────────────────────

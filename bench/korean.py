@@ -13,7 +13,12 @@
   말투 6종     polite 와 could 가 한국어에선 둘 다 "-해 주세요" 로 뭉갠다.
   어순         시간절이 한국어에선 늘 앞. 영어의 앞/뒤 다양성이 사라진다.
 """
+import os
 import re
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import templates as T
 
 # ── 기기 이름 ──────────────────────────────────────────────────────────
 NOUN_KO = {
@@ -579,6 +584,27 @@ COND_KO_WHILE.update({
     "the tank is below half": "탱크가 절반 아래인 동안",
     "the battery is under 20 percent": "배터리가 20퍼센트 아래인 동안",
 })
+
+# ── 집이 아닌 공간용 한국어 (templates.NONHOME 의 새 영어 문형) ──────────
+# "집에 아무도 없으면" 이 공장·연구실에 붙던 것을 여기서 갈라 준다.
+NONHOME_KO = {
+    "nobody is around":                "아무도 없",
+    "when I arrive":                   "내가 도착하면",
+    "as soon as I arrive":             "내가 도착하자마자",
+    "when I pull into the parking lot": "주차장에 차를 대면",
+    "once I am back":                  "내가 돌아오면",
+    "when I am close by":              "내가 근처에 오면",
+    "when I leave":                    "내가 나가면",
+    "when I am away":                  "내가 자리에 없을 때",
+}
+TRIG_KO.update({k: v for k, v in NONHOME_KO.items() if k != "nobody is around"})
+# 조건절은 어미가 다섯 가지라 뿌리에서 만든다
+COND_KO["nobody is around"]       = "아무도 없으면"
+COND_KO_WHEN["nobody is around"]  = "아무도 없을 때"
+COND_KO_Q["nobody is around"]     = "아무도 없는지"
+COND_KO_UNTIL["nobody is around"] = "아무도 없을 때까지"
+COND_KO_WHILE["nobody is around"] = "아무도 없는 동안"
+
 
 # ── 로직 틀 ────────────────────────────────────────────────────────────
 # {a} 동작절(반말 어간) · {cond} 조건 · {n},{m} 숫자

@@ -352,6 +352,12 @@ def query_targets(sp, sent):
     return (hit or [d for d, *_ in devs]), ""
 
 
+def nonhome(tpl, sp):
+    """집이 아닌 공간에서는 "집" 이라는 말을 쓰지 않는다 (templates.NONHOME).
+    뜻은 같으므로 IR·한국어는 별명으로 같은 자리에 걸린다."""
+    return T.NONHOME.get(tpl, tpl) if sp["kind"] != "home" else tpl
+
+
 def trig_pool(trig, cat_t):
     """문장이 대는 물리량과 시나리오의 센서가 어긋나지 않게 문형을 걸러낸다.
     (압력 센서 시나리오에 "온도가 30도를 넘으면" 이 붙는 것을 막는다)"""
@@ -632,7 +638,7 @@ def main():
                     lp = logic_pool(T.LOGIC_HARD if use_hard else T.LOGIC_SOFT,
                                     r["mode"], trig_kind, cat_t, act, body)
                     di, frame = lp[k % len(lp)] if attempt == 0 else rng.choice(lp)
-                    cond_text = rng.choice(T.COND)
+                    cond_text = nonhome(rng.choice(T.COND), sp)
                     lslots = {"n": rng.choice([5, 10, 15, 20, 30]),
                               "m": rng.choice([2, 3, 4, 5, 6])}
                     core = (frame.replace("{a}", body)
@@ -645,7 +651,8 @@ def main():
                             tp = [t for t in tp if IR.reads_number(t)] or tp
                         elif di == "D12":   # 세려면 사건이어야 한다
                             tp = [t for t in tp if IR.trig_reads(t)] or tp
-                        raw_t = tp[k % len(tp)] if attempt == 0 else rng.choice(tp)
+                        raw_t = nonhome(
+                            tp[k % len(tp)] if attempt == 0 else rng.choice(tp), sp)
                         core = f"{fill(rng, raw_t, sp, act, cat_t)}, {core}"
                         tslots, trig_place = dict(SLOTS[0]), LAST_PLACE[0]
                     dcode = di
@@ -653,7 +660,8 @@ def main():
                     core = body
                 else:
                     tp = trig_pool(trig_kind, cat_t)
-                    raw_t = tp[k % len(tp)] if attempt == 0 else rng.choice(tp)
+                    raw_t = nonhome(
+                        tp[k % len(tp)] if attempt == 0 else rng.choice(tp), sp)
                     tt = fill(rng, raw_t, sp, act, cat_t)
                     tslots, trig_place = dict(SLOTS[0]), LAST_PLACE[0]
                     front = (ti in (0, 5) and k % 3 == 0)
@@ -700,7 +708,6 @@ def main():
                 if ok and sent.lower() not in seen:
                     break
             seen.add(sent.lower())
-            stats[expect] += 1
             # 정답 IR. 실행일 때만 만든다 — 되묻기·거절은 프로그램이 아니라 판정이 답이다.
             ir_gt = ""
             if expect == "execute":
@@ -713,6 +720,13 @@ def main():
                     notify_svc=(tsvc[0] if tsvc else ""))
                 if obj:
                     ir_gt = json.dumps(obj, ensure_ascii=False)
+            # 재실을 감지할 방법이 없는 공간(전역 변수도 재실 센서도 폰도 없다)에서
+            # 재실을 묻는 명령은 답할 길이 없다 — 거절이다.
+            # 층이 주체 목록을 훑다 빈손으로 끝나므로 결정적으로 알아챈다.
+            if ir_gt and sp.get("occupancy") == "none" and "GlobalVariable" in ir_gt:
+                expect, why_force, ir_gt = "refuse", "no_occupancy", ""
+                targets, tsvc, match = [], [], "none"
+            stats[expect] += 1
             rows.append(dict(
                 id=f"G{len(rows)+1:05d}", space_id=sid, kind=sp["kind"], command=sent,
                 command_ko=sent_ko,
