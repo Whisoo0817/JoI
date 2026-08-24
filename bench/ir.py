@@ -317,7 +317,7 @@ ACT_IR = {
                   ["turn off {dev}", "switch {dev} off", "shut {dev} off", "kill {dev}"]},
     "light.dim": {
         "dim {dev} to {n} percent":    [c("Light.MoveToBrightness", Brightness="$n", Rate=0.0)],
-        "set {dev} brightness to {n}": [c("Light.MoveToBrightness", Brightness="$n", Rate=0.0)],
+        "set {dev} brightness to {n} percent": [c("Light.MoveToBrightness", Brightness="$n", Rate=0.0)],
         "bring {dev} down to {lo} percent": [c("Light.MoveToBrightness", Brightness="$lo", Rate=0.0)],
         "turn {dev} up to {hi} percent":    [c("Light.MoveToBrightness", Brightness="$hi", Rate=0.0)],
     },
@@ -325,8 +325,10 @@ ACT_IR = {
                     ["set {dev} to {color}", "make {dev} {color}",
                      "change {dev} to {color}", "turn {dev} {color}"]},
     "light.scene": {t: "$scene" for t in
-                    ["set the {scene} scene", "switch {dev} to the {scene} scene",
-                     "put {dev} into {scene} mode", "run the {scene} scene"]},
+                    ["set the lights to the {scene} scene",
+                     "switch {dev} to the {scene} scene",
+                     "put {dev} into {scene} mode",
+                     "run the {scene} scene on the lights"]},
     "switch": {"turn on {dev}": [P_ON], "switch {dev} on": [P_ON],
                "turn off {dev}": [P_OFF], "toggle {dev}": [c("Switch.Toggle")]},
     "plug": {"turn on {dev}": [P_ON], "cut power to {dev}": [P_OFF],
@@ -895,13 +897,12 @@ def logic_nodes(frame, acts, cond, slots, trig_cond, off_call):
         "{a} every {n} minutes until {cond}":    lambda: cyc(acts, until=cond),
         "once {cond}, {a} every {n} minutes":
             lambda: [{"op": "wait", "cond": cond, "edge": "rising"}] + cyc(acts),
-        "after that happens, {a} again every {n} minutes": lambda: cyc(acts),
+        # "after that happens, …" 와 "give it {n} minutes, and if nothing has changed …"
+        # 두 문형은 뺐다. 문장은 기다림·조건을 말하는데 IR 에는 둘 다 없어서
+        # 문제와 정답이 어긋났다 (2026-08-25, whisoo 확인).
         "wait up to {n} minutes to see if {cond}; if not, {a}":
             lambda: [{"op": "wait", "cond": cond, "edge": "rising", "timeout": per}] \
                     + iff(f"not ({cond})", acts),
-        "give it {n} minutes, and if nothing has changed by then, {a}":
-            lambda: [{"op": "delay", "duration": per}]
-                    + (iff(f"not ({trig_cond})", acts) if trig_cond else acts),
         "if it is higher than it was an hour ago, {a}":
             lambda: [{"op": "read", "var": "Current", "src": src},
                      {"op": "read", "var": "Previous", "src": src + "@-1HOUR"}]

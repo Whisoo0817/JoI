@@ -90,12 +90,16 @@ ACT = {
     "light.on": ["turn on {dev}", "switch {dev} on", "put {dev} on", "get {dev} on",
                  "light up {dev}"],
     "light.off": ["turn off {dev}", "switch {dev} off", "shut {dev} off", "kill {dev}"],
-    "light.dim": ["dim {dev} to {n} percent", "set {dev} brightness to {n}",
+    "light.dim": ["dim {dev} to {n} percent", "set {dev} brightness to {n} percent",
                   "bring {dev} down to {lo} percent", "turn {dev} up to {hi} percent"],
     "light.color": ["set {dev} to {color}", "make {dev} {color}", "change {dev} to {color}",
                     "turn {dev} {color}"],
-    "light.scene": ["set the {scene} scene", "switch {dev} to the {scene} scene",
-                    "put {dev} into {scene} mode", "run the {scene} scene"],
+    # 기기를 안 대는 두 틀도 "무엇의" 장면인지는 밝힌다 — "영화 모드로 해" 만으로는
+    # 무엇을 바꾸라는 말인지 알 수 없다 (whisoo). 어느 조명인지는 여전히 안 댄다.
+    "light.scene": ["set the lights to the {scene} scene",
+                    "switch {dev} to the {scene} scene",
+                    "put {dev} into {scene} mode",
+                    "run the {scene} scene on the lights"],
     "switch": ["turn on {dev}", "turn off {dev}", "toggle {dev}", "switch {dev} on"],
     "plug": ["turn on {dev}", "cut power to {dev}", "switch {dev} off"],
     "thermostat": ["set {dev} to {n} degrees", "turn the heating up to {n}",
@@ -289,9 +293,7 @@ LOGIC_HARD = [
     ("D8", "repeat this {m} times: {a}, then wait {n} minutes"),
     ("D8", "{a} every {n} minutes until {cond}"),
     ("D9", "once {cond}, {a} every {n} minutes"),
-    ("D9", "after that happens, {a} again every {n} minutes"),
     ("D10", "wait up to {n} minutes to see if {cond}; if not, {a}"),
-    ("D10", "give it {n} minutes, and if nothing has changed by then, {a}"),
     ("D11", "if it is higher than it was an hour ago, {a}"),
     ("D11", "compare it with yesterday at the same time and {a} if it went up"),
     ("D12", "if that has happened more than {m} times today, {a}"),
@@ -300,6 +302,60 @@ LOGIC_HARD = [
     ("D13", "wait until {cond}, then {a} every {n} minutes for {m} hours"),
 ]
 LOGIC = LOGIC_SOFT + LOGIC_HARD   # 옛 이름
+
+# ── 어떤 동작에 어떤 문형을 붙일 수 있나 ───────────────────────────────
+# 되풀이해도 뜻이 있는 동작. 이미 그 상태인 것을 다시 시키는 말은 안 만든다
+#   ("10분마다 에어컨 꺼" — 이미 꺼져 있다. "15분마다 블라인드 닫아" — 이미 닫혀 있다)
+# 여기 적은 것은 할 때마다 새로 일어난다 — 알리기·읽기·내보내기·정해진 시간 돌리기.
+REPEATABLE = {
+    "send me a notification", "let me know", "push me an alert", "tell me about it",
+    "give me a heads-up", "warn me",
+    "send a warning to my phone", "text my phone", "ping my phone",
+    "show it on the screen", "pop it up on the display",
+    "say it out loud on the speaker", "announce it", "read it out",
+    "tell me the temperature in the {place}", "what is {dev} doing",
+    "check whether {dev} is on", "read out the humidity",
+    "how much power is {dev} using",
+    "announce it on {dev}", "say it out loud on {dev}", "play a chime on {dev}",
+    "take a snapshot with {dev}", "brew a cup on {dev}",
+    "run {dev}", "dispense feed with {dev}",
+    "run {dev} for {n} minutes", "run {dev} for {n} hours",
+    "set a {n} minute timer", "start a countdown for {n} minutes",
+    "set off {dev}", "sound {dev}", "toggle {dev}",
+}
+
+# 켜 두었다가 멈출 수 있는 동작. "~인 동안 …하고, 그러다 바뀌면 멈춰"(D5) 와
+# "…하고, {n}분 뒤에 다시 꺼"(D2) 는 무언가를 **켠** 뒤라야 말이 된다.
+#   ("알림 띄워 주고, 그러다 바뀌면 멈춰" · "23도로 맞춰 주고, 30분 뒤에 다시 꺼")
+TURN_ON = {"ac", "fan", "purifier", "ventilator", "humidity", "heater", "growlight",
+           "light.on", "plug", "switch", "media", "vacuum", "sprinkler", "pump",
+           "conveyor", "compressor", "mower", "chamber", "camera", "coffee",
+           "waterheater", "armrobot"}
+
+# 조건절이 읽는 센서. 방아쇠가 이미 읽고 있는 것을 조건으로 또 읽지 않게 쓴다
+#   ("온도가 15도 아래로 떨어지면 온도가 18도 아래인 동안 …")
+# 그 센서가 없는 공간에 붙는 것은 막지 않는다 — 못 하는 명령을 알아보는 것도 시험이다.
+COND_SENSOR = {
+    "the room is too warm": "temp",
+    "the temperature is under 18 degrees": "temp",
+    "the door is open": "contact",
+    "the window is open": "contact",
+    "someone is in the room": "occupancy",
+    "nobody is home": "occupancy",
+    "nobody is around": "occupancy",
+    "the humidity is over 60 percent": "humidity",
+    "it is dark outside": "light",
+    "the washing machine is running": "washer",
+    "the tank is below half": "water",
+    "the battery is under 20 percent": "battery",
+}
+# 방아쇠 갈래가 읽는 센서 (COND_SENSOR 와 같은 이름이면 겹치는 것이다)
+TRIG_SENSOR = {
+    "threshold": "temp", "contact": "contact", "motion": "occupancy",
+    "presence": "occupancy", "arrive": "occupancy", "leave": "occupancy",
+    "proximity": "occupancy", "finished": "washer", "sun": "light",
+    "weather": "light", "battery": "battery",
+}
 # ── 집이 아닌 공간에서는 "집" 이라는 말을 안 쓴다 ────────────────────────
 # 공장·연구실·농장·사무실에 "집에 아무도 없으면" 이 붙어 있었다 (54행).
 # 뜻은 같고 말만 바꾼다. 같은 IR·같은 한국어 틀에 걸리도록 ir.py·korean.py 가
@@ -346,6 +402,8 @@ VALUES = {
         "humidity": [40, 45, 50, 55, 60],
         "media": [10, 20, 30, 40, 50],
         "cover": [10, 20, 30, 50, 70, 80],
+        # 보광등만 단위가 '시간' 이다. 기본값을 쓰면 "45시간 동안 켜 둬" 가 나온다.
+        "growlight": [2, 3, 4, 6, 8, 10, 12],
         "_default": [2, 3, 5, 10, 15, 20, 30, 45, 60],
     },
     "time": ["6 am", "6:30 am", "7 am", "8 am", "9 am", "10 pm", "10:30 pm",

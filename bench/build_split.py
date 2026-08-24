@@ -32,12 +32,26 @@ OUT = os.path.join(HERE, "split_5k.json")
 SLOTS = ("trig", "act", "frame", "cond")
 
 
-def hold_out(parts, rate, seed, cond_min):
-    """자리마다 틀의 일부를 시험 몫으로 뗀다. 종류가 적은 자리는 최소 개수를 지킨다."""
+def sole_frames(parts, rows):
+    """제 난이도(D코드)를 혼자 짊어진 문형. 이걸 떼면 그 난이도가 학습에서 통째로
+    사라진다 (D10 문형 둘 중 하나를 지웠을 때 실제로 그렇게 됐다)."""
+    by_d = collections.defaultdict(set)
+    for p in parts:
+        r = rows.get(p["id"])
+        if p.get("frame") and r:
+            by_d[r["d"]].add(p["frame"])
+    return {next(iter(v)) for v in by_d.values() if len(v) == 1}
+
+
+def hold_out(parts, rate, seed, cond_min, keep=()):
+    """자리마다 틀의 일부를 시험 몫으로 뗀다. 종류가 적은 자리는 최소 개수를 지킨다.
+    keep 에 든 문형은 안 뗀다 — 그 난이도의 학습 몫이 0 이 되기 때문이다."""
     rng = random.Random(seed)
     out = {}
     for slot in SLOTS:
         kinds = sorted({p[slot] for p in parts if p[slot]})
+        if slot == "frame":
+            kinds = [k for k in kinds if k not in keep]
         n = max(cond_min if slot in ("frame", "cond") else 1, round(len(kinds) * rate))
         out[slot] = sorted(rng.sample(kinds, min(n, len(kinds))))
     return out
@@ -52,7 +66,8 @@ def main():
 
     parts = json.load(open(PARTS, encoding="utf-8"))
     rows = {r["id"]: r for r in csv.DictReader(open(DATA, encoding="utf-8"))}
-    held = hold_out(parts, args.rate, args.seed, args.cond_min)
+    held = hold_out(parts, args.rate, args.seed, args.cond_min,
+                    keep=sole_frames(parts, rows))
 
     train, test, why = [], [], collections.Counter()
     for p in parts:

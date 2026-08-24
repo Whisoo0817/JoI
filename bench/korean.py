@@ -20,7 +20,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import templates as T
 
-_LOGIC_SPLIT = re.compile(r"(\{(?:a_c|a|cond_while|cond_until|cond_q|cond)\})")
+_LOGIC_SPLIT = re.compile(
+    r"(\{(?:a_c|a|cond_while|cond_until|cond_q|cond_only|cond_when|cond)\})")
 
 # ── 기기 이름 ──────────────────────────────────────────────────────────
 NOUN_KO = {
@@ -88,7 +89,9 @@ SCENE_KO = {"movie": "영화", "party": "파티", "relax": "휴식", "reading": 
             "dinner": "저녁 식사", "away": "외출"}
 WEEKDAY_KO = {"Monday": "월요일", "Tuesday": "화요일", "Wednesday": "수요일",
               "Thursday": "목요일", "Friday": "금요일", "Saturday": "토요일",
-              "Sunday": "일요일"}
+              "Sunday": "일요일",
+              # 영어 틀의 {weekday} 에는 "weekends" 도 들어온다
+              "weekends": "주말"}
 
 
 def time_ko(s):
@@ -213,17 +216,19 @@ ACT_KO = {
     "turn {dev} off": "{dev} 꺼", "toggle {dev}": "{dev} 켜고 끄기 바꿔",
     "cut power to {dev}": "{dev} 전원 차단해",
     "dim {dev} to {n} percent": "{dev} 밝기 {n}퍼센트로 낮춰",
-    "set {dev} brightness to {n}": "{dev} 밝기 {n}%L 맞춰",
+    "set {dev} brightness to {n} percent": "{dev} 밝기 {n}퍼센트%L 맞춰",
     "bring {dev} down to {lo} percent": "{dev} 밝기 {lo}퍼센트까지 낮춰",
     "turn {dev} up to {hi} percent": "{dev} 밝기 {hi}퍼센트까지 올려",
     "set {dev} to {color}": "{dev} {color}%L 바꿔",
     "make {dev} {color}": "{dev} {color}%L 해",
     "change {dev} to {color}": "{dev} {color}%L 바꿔",
     "turn {dev} {color}": "{dev} {color}%L 켜",
-    "set the {scene} scene": "{scene} 모드로 해",
+    # 기기를 안 대는 두 틀도 "조명" 은 밝힌다 — "영화 모드로 해" 로는 무엇을
+    # 바꾸라는 말인지 알 수 없다 (whisoo). 어느 조명인지는 여전히 안 댄다.
+    "set the lights to the {scene} scene": "조명 {scene} 모드로 해",
     "switch {dev} to the {scene} scene": "{dev} {scene} 모드로 바꿔",
     "put {dev} into {scene} mode": "{dev} {scene} 모드로 해",
-    "run the {scene} scene": "{scene} 모드 실행해",
+    "run the {scene} scene on the lights": "조명 {scene} 모드 실행해",
     "set {dev} to {n} degrees": "{dev} {n}도로 맞춰",
     "put {dev} on {n} degrees": "{dev} {n}도로 해",
     "turn the heating up to {n}": "난방 {n}도로 올려",
@@ -611,8 +616,14 @@ COND_KO_WHILE["nobody is around"] = "아무도 없는 동안"
 # ── 로직 틀 ────────────────────────────────────────────────────────────
 # {a} 동작절(반말 어간) · {cond} 조건 · {n},{m} 숫자
 LOGIC_KO = {
-    "if {cond} right now, {a}": "지금 {cond} {a}",
-    "{a}, but only if {cond}": "{cond} 그때만 {a}",
+    # 방아쇠절과 조건절이 나란히 오면 어미를 갈라 준다 — 방아쇠는 "~할 때",
+    # 조건은 "~면". 안 그러면 방아쇠가 둘로 보인다 (whisoo 2026-08-25):
+    #   "버튼을 누르면 지금 온도가 18도 아래일 때 …"  ← 어느 쪽이 방아쇠인지 모름
+    #   "버튼을 누를 때 온도가 18도보다 낮으면 …"      ← 이렇게
+    # 아래 TRIG_WHEN_FRAMES 에 적힌 문형이 그 대상이다.
+    "if {cond} right now, {a}": "{cond} {a}",
+    # "~일 때 그때만" 은 같은 말을 두 번 한다. "~일 때만" 하나면 된다.
+    "{a}, but only if {cond}": "{cond_only} {a}",
     "{a}, then {n} minutes later turn it back off": "{a_c}, {n}분 뒤에 다시 꺼",
     "wait {n} minutes and then {a}": "{n}분 기다렸다가 {a}",
     "keep checking and {a} for as long as {cond}": "{cond_while} 계속 확인하면서 {a}",
@@ -625,24 +636,65 @@ LOGIC_KO = {
         "{a_c} {n}분 기다리기를 {m}번 반복해",
     "{a} every {n} minutes until {cond}": "{cond_until} {n}분마다 {a}",
     "once {cond}, {a} every {n} minutes": "{cond} 그때부터 {n}분마다 {a}",
-    "after that happens, {a} again every {n} minutes":
-        "그 일이 생기면 그때부터 {n}분마다 다시 {a}",
     "wait up to {n} minutes to see if {cond}; if not, {a}":
         "{cond_q} {n}분까지 기다려 보고, 아니면 {a}",
-    "give it {n} minutes, and if nothing has changed by then, {a}":
-        "{n}분 줘 보고 그때까지 아무 변화 없으면 {a}",
-    "if it is higher than it was an hour ago, {a}": "한 시간 전보다 높으면 {a}",
+    # 아래 넷은 방아쇠가 읽는 값을 되받는다. "그게" 가 바로 앞 방아쇠절의 값이다
+    # ("온도가 10도를 넘을 때 그게 한 시간 전보다 높으면 …").
+    # 예전에는 "한 시간 전보다 높으면" / "오늘 그 일이" 라고만 해서 무엇을 견주고
+    # 무엇을 세는지가 문장에 없었다.
+    "if it is higher than it was an hour ago, {a}": "그게 한 시간 전보다 높으면 {a}",
     "compare it with yesterday at the same time and {a} if it went up":
-        "어제 같은 시각과 견줘서 올랐으면 {a}",
+        "그게 어제 같은 시각보다 올랐으면 {a}",
     "if that has happened more than {m} times today, {a}":
-        "오늘 그 일이 {m}번 넘게 있었을 때만 {a}",
+        "그게 오늘 {m}번 넘었으면 {a}",
     "count how many times it happens and {a} once it passes {m}":
-        "몇 번 생기는지 세다가 {m}번을 넘으면 {a}",
+        "그게 몇 번인지 세다가 {m}번을 넘으면 {a}",
     "{a} every {n} minutes while {cond}, and stop after {m} hours":
         "{cond_while} {n}분마다 {a_c}, {m}시간 뒤에는 멈춰",
     "wait until {cond}, then {a} every {n} minutes for {m} hours":
         "{cond_until} 기다렸다가 {m}시간 동안 {n}분마다 {a}",
 }
+
+# 방아쇠절을 "~할 때" 로 바꿔 쓰는 문형. 뒤에 "~면" 으로 끝나는 절이 곧바로 오는
+# 것들이다 — 둘 다 "~면" 이면 방아쇠가 둘로 보인다.
+TRIG_WHEN_FRAMES = {
+    "if {cond} right now, {a}",
+    "if it is higher than it was an hour ago, {a}",
+    "compare it with yesterday at the same time and {a} if it went up",
+    "if that has happened more than {m} times today, {a}",
+    "count how many times it happens and {a} once it passes {m}",
+}
+
+# "~하면" → "~할 때". 어간에 ㄹ 을 붙일 뿐이라 규칙 하나로 끝난다.
+#   누르면 → 누를 때 · 넘으면(자음 어간 + 으면) → 넘을 때 · 기울면(이미 ㄹ) → 기울 때
+# 규칙으로 안 되는 것만 아래 표에 적는다.
+TRIG_WHEN_FIX = {
+    "다들 나가고 나면": "다들 나가고 난 뒤에",
+}
+
+
+# 문장이 "~면" 절로 시작하나 ("이상하면 알려 줘", "그게 오늘 3번 넘었으면 …")
+_STARTS_MYEON = re.compile(r"^[^,]{0,20}?면 ")
+
+
+def trig_when(text):
+    """방아쇠절의 "~하면" 을 "~할 때" 로. "면" 으로 안 끝나면 그대로 둔다."""
+    t = (text or "").strip()
+    if t in TRIG_WHEN_FIX:
+        return TRIG_WHEN_FIX[t]
+    if not t.endswith("면"):
+        return t                       # "매일 8시에", "해 질 무렵" 따위
+    s = t[:-1]
+    if s.endswith("으"):               # 자음 어간 + 으면
+        return s[:-1] + "을 때"
+    ch = s[-1]
+    if "가" <= ch <= "힣":
+        code = ord(ch) - 0xAC00
+        if code % 28 == 8:             # 어간이 이미 ㄹ 받침 — "기울면"
+            return s + " 때"
+        if code % 28 == 0:             # 받침 없음 — ㄹ 을 얹는다
+            return s[:-1] + chr(0xAC00 + code + 8) + " 때"
+    return s + "ㄹ 때"
 
 # ── 말투 ───────────────────────────────────────────────────────────────
 # 영어 6종을 그대로 받지만 한국어에서는 존댓말을 크게 줄인다.
@@ -661,12 +713,24 @@ AUX_KO = {
 HONORIFIC = {"polite"}
 
 
+# 붙어 다니는 동사 — 사이에 '좀' 이 끼면 갈라진다 ("켜 좀 둬", "맞춰 좀 줘")
+_GLUED = re.compile(r"(?:켜|꺼|열어|닫아|내려|올려|맞춰|바꿔|틀어|돌려|해)"
+                    r"\s+(?:둬|놔|봐|줘|주)")
+
+
 def _soften(core):
-    """'좀' 을 넣어 부드러운 반말로. "거실 조명 켜" → "거실 조명 좀 켜"."""
+    """'좀' 을 넣어 부드러운 반말로. "거실 조명 켜" → "거실 조명 좀 켜".
+
+    마지막 빈칸에 넣되, 붙어 다니는 동사를 가르지는 않는다
+    ("켜 둬" → "켜 좀 둬" 가 아니라 "좀 켜 둬")."""
     if "좀" in core:
         return core
     i = core.rfind(" ")
-    return core[:i] + " 좀" + core[i:] if i > 0 else "좀 " + core
+    while i > 0 and _GLUED.match(core, core.rfind(" ", 0, i) + 1):
+        i = core.rfind(" ", 0, i)
+    if i <= 0:
+        return "좀 " + core
+    return core[:i] + " 좀" + core[i:]
 
 
 def apply_tone(core, tone):
@@ -758,12 +822,21 @@ def sentence_ko(*, act_tpl, vague_tpl, dev_ko, aslots, act_place, sensor_cat,
         if ko is None:
             MISSING.append(("logic", frame))
             return None
-        # 시간절이 이미 "~면" 으로 끝나면 조건은 "~일 때" 로 — "~면 ~면" 을 막는다
-        cond_tbl = COND_KO_WHEN if trig_tpl else COND_KO
+        # 시간절이 이미 "~면" 으로 끝나면 조건은 "~일 때" 로 — "~면 ~면" 을 막는다.
+        # 다만 TRIG_WHEN_FRAMES 는 거꾸로 간다 — 방아쇠를 "~할 때" 로 돌리고
+        # 조건은 "~면" 을 그대로 쓴다 (아래 trig_tpl 자리에서 돌린다).
+        # 동작절 자체가 "이상하면 알려 줘" 처럼 "~면" 으로 시작하면 조건은 "~일 때" 로
+        # 돌린다 — 조건도 "~면" 이면 "…아래면 바뀌면 알고 싶어" 가 된다.
+        flip = frame in TRIG_WHEN_FRAMES and not _STARTS_MYEON.match(body)
+        cond_tbl = (COND_KO if flip
+                    else COND_KO_WHEN if (trig_tpl or _STARTS_MYEON.match(body))
+                    else COND_KO)
         sub = {"{cond_until}": COND_KO_UNTIL.get(cond_text, cond_text),
                "{cond_q}": COND_KO_Q.get(cond_text, cond_text),
                "{a_c}": conj(body), "{a}": body,
                "{cond_while}": COND_KO_WHILE.get(cond_text, cond_text),
+               "{cond_only}": COND_KO_WHEN.get(cond_text, cond_text) + "만",
+               "{cond_when}": COND_KO_WHEN.get(cond_text, cond_text),
                "{cond}": cond_tbl.get(cond_text, cond_text)}
         core = ko
         for k, v in sub.items():
@@ -780,11 +853,18 @@ def sentence_ko(*, act_tpl, vague_tpl, dev_ko, aslots, act_place, sensor_cat,
                 for k, v in {**sub, **num}.items():
                     t = t.replace(k, v)
                 parts_out.append((t, piece if piece in sub else "글자"))
+    # "계속 확인하면서 계속 알려 줘" — 알림 동작은 이미 "계속" 을 안고 있다
+    core = core.replace("계속 확인하면서 계속", "계속")
     if trig_tpl:
         ko = TRIG_KO.get(trig_tpl)
         if ko is None:
             MISSING.append(("trig", trig_tpl))
             return None
+        # 방아쇠 뒤에 "~면" 절이 곧바로 오면 방아쇠는 "~할 때" 로 — 안 그러면
+        # 방아쇠가 둘로 보인다. 문형이 정한 자리(TRIG_WHEN_FRAMES)와, 동작절
+        # 자체가 "이상하면 알려 줘" 처럼 "~면" 으로 시작하는 자리 둘 다에 건다.
+        if frame in TRIG_WHEN_FRAMES or _STARTS_MYEON.match(core):
+            ko = trig_when(ko)         # "버튼을 누르면" → "버튼을 누를 때"
         tt = _slots_ko(ko, tslots, dev_t_ko or dev_ko, trig_place, sensor_cat)
         if parts_out is not None:
             parts_out.insert(0, (tt, "{trig}"))
