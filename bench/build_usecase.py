@@ -29,6 +29,7 @@
 import csv
 import json
 import os
+import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +39,22 @@ import policy as PL                # noqa: E402
 
 CAT = json.load(open(os.path.join(HERE, "..", "files", "service_list_ver3.1.0.json"),
                      encoding="utf-8"))
+
+# 씨앗 한국어 — dataset-usecase.xlsx 의 seed_command. 영어는 이걸 보고 새로 썼으므로
+# 뜻이 그대로인 행은 씨앗을 그대로 쓰고, 공간·기기를 바꾼 행만 ko= 로 덮어쓴다.
+def _seeds():
+    import openpyxl
+    wb = openpyxl.load_workbook(os.path.join(HERE, "dataset usecase.xlsx"),
+                                data_only=True)
+    out = []
+    for ws in wb.worksheets:
+        for r in ws.iter_rows(min_row=2, values_only=True):
+            if r[0]:
+                out.append(str(r[3]).strip())
+    return out
+
+
+SEED_KO = _seeds()
 S = json.load(open(os.path.join(HERE, "spaces.json"), encoding="utf-8"))["spaces"]
 csv.field_size_limit(10 ** 7)
 
@@ -152,10 +169,20 @@ def _resolve(sid, sel):
     return list(dict.fromkeys(ids))
 
 
+# 씨앗은 "켜줘"(붙여 쓰기), G행은 "켜 줘"(띄어 쓰기)다. 둘 다 맞춤법에 맞지만
+# 섞이면 G행/U행이 표기로 갈려 버린다 — 원칙인 띄어 쓰기로 맞춘다.
+# "%" 도 G행처럼 "퍼센트" 로 읽는다.
+def _ko_norm(t):
+    t = re.sub(r"(?<=[가-힣])(줘|줄래|주세요|주시겠어요|줄까)\b", r" \1", t)
+    t = re.sub(r"(\d+)\s*%", r"\1퍼센트", t)
+    return re.sub(r"\s{2,}", " ", t).strip()
+
+
 def _row(idx, en, sid, **kw):
     ids = kw.pop("targets", [])
+    ko = _ko_norm(kw.pop("ko", None) or SEED_KO[idx])
     ROWS.append(dict(
-        idx=idx, space_id=sid, kind=S[sid]["kind"], command=en, command_ko="",
+        idx=idx, space_id=sid, kind=S[sid]["kind"], command=en, command_ko=ko,
         mode="usecase",
         trig=kw.get("trig", "now"), act=kw["act"],
         dev_trig=kw.get("dev_trig", ""), dev_act=kw.get("dev_act", ""),
@@ -266,13 +293,13 @@ def sheet_home():
     A(15, "Make the lights a bit brighter.", H6, [("Light",)],
       act="light.dim", ref="vague", b1="set")
     X(16, "Dim the bedroom lights to 20 percent.", H6, [NOW, bright(20)],
-      [("Light", "Bedroom")], act="light.dim", b1="set")
+      [("Light", "Bedroom")], act="light.dim", b1="set", ko="침실 조명 20%로 낮춰줘.")
     X(17, "Turn the bedroom lights blue.", H6, [NOW, hue("blue")],
-      [("Light", "Bedroom")], act="light.color", b1="set")
+      [("Light", "Bedroom")], act="light.color", b1="set", ko="침실 조명 파란색으로 바꿔줘.")
     X(18, "Set the living room lights to a warm color.", H6, [NOW, ctemp(WARM)],
-      [("Light", "LivingRoom")], act="light.color", b1="set")
+      [("Light", "LivingRoom")], act="light.color", b1="set", ko="거실 조명 전구색으로 해줘.")
     X(19, "Change the kitchen lights to a cool white.", H6, [NOW, ctemp(COOL)],
-      [("Light", "Kitchen")], act="light.color", b1="set")
+      [("Light", "Kitchen")], act="light.color", b1="set", ko="주방 조명 주광색으로 바꿔줘.")
     X(20, "Set the air conditioner to 24 degrees.", H15,
       [NOW, CL("AirConditioner.SetTargetTemperature", Temperature=24.0)],
       [("AirConditioner",)], act="ac", b1="set")
@@ -282,13 +309,13 @@ def sheet_home():
       [("Thermostat",)], act="thermostat", b1="set")
     X(22, "Turn the living room temperature down to 22 degrees.", H5,
       [NOW, CL("Thermostat.SetTargetTemperature", Temperature=22.0)],
-      [("Thermostat",)], act="thermostat", b1="set")
+      [("Thermostat",)], act="thermostat", b1="set", ko="거실 온도 22도로 낮춰줘.")
     X(23, "Set the living room fans to high.", H3,
       [NOW, CL("Fan.SetFanMode", Mode="high")],
-      [("Fan", "LivingRoom")], act="fan", b1="set")
+      [("Fan", "LivingRoom")], act="fan", b1="set", ko="거실 선풍기 세게 틀어줘.")
     X(24, "Put the baby room air purifier on auto.", H9,
       [NOW, CL("AirPurifier.SetAirPurifierMode", Mode="auto")],
-      [("AirPurifier", "BabyRoom")], act="purifier", b1="set")
+      [("AirPurifier", "BabyRoom")], act="purifier", b1="set", ko="아기방 공기청정기 자동모드로 해줘.")
     X(25, "Switch the air conditioner to heat mode.", H15,
       [NOW, CL("AirConditioner.SetAirConditionerMode", Mode="heat")],
       [("AirConditioner",)], act="ac", b1="set")
@@ -307,7 +334,7 @@ def sheet_home():
       [("AirQualitySensor",)])
     Q(31, "What is the humidity in the living room?", H6,
       "HumiditySensor.Humidity", "Humidity", "The humidity is $Humidity",
-      [("HumiditySensor", "LivingRoom")], ref="place")
+      [("HumiditySensor", "LivingRoom")], ref="place", ko="거실 습도 몇이야?")
     Q(32, "Is the air conditioner on?", H15,
       "AirConditioner.AirConditionerMode", "Mode", "The air conditioner is $Mode",
       [("AirConditioner",)])
@@ -322,10 +349,10 @@ def sheet_home():
       [("ContactSensor", "Entrance")], ref="place")
     Q(36, "Are the living room windows closed?", H6,
       "ContactSensor.Contact", "Contact", "The window contact reads $Contact",
-      [("ContactSensor", "LivingRoom")], ref="place")
+      [("ContactSensor", "LivingRoom")], ref="place", ko="거실 창문 닫혀 있어?")
     Q(37, "Tell me the state of the balcony door.", H3,
       "ContactSensor.Contact", "Contact", "The balcony door contact reads $Contact",
-      [("ContactSensor", "Balcony")], ref="place", tone="bare")
+      [("ContactSensor", "Balcony")], ref="place", tone="bare", ko="발코니 문 상태 알려줘.")
     Q(38, "Is anyone home?", H5,
       "MotionSensor.Motion", "Motion", "Motion reads $Motion",
       [("MotionSensor",)])
@@ -350,7 +377,7 @@ def sheet_home():
       act="light.off", trig="presence", dev_trig="MotionSensor", d="D4", tier="T1")
     X(45, "When someone comes home, turn on the stairs light.", H5,
       [NOW, W(occ(H5, True)), PON("Light")], [("Light", "Stairs")],
-      act="light.on", trig="presence", dev_trig="MotionSensor", d="D4", tier="T1")
+      act="light.on", trig="presence", dev_trig="MotionSensor", d="D4", tier="T1", ko="누가 집에 오면 계단 조명 켜줘.")
     X(46, "If nobody is home, turn off the air conditioner.", H5,
       [NOW, W(occ(H5, False)), CL("AirConditioner.SetAirConditionerMode", Mode="off")],
       [("AirConditioner",)], act="ac", trig="presence", dev_trig="MotionSensor",
@@ -367,7 +394,7 @@ def sheet_home():
     X(49, "When the door closes, turn off the hallway light.", H6,
       [NOW, W("ContactSensor.Contact == true"), POFF("Light")],
       [("Light", "Hallway")], act="light.off", trig="contact",
-      dev_trig="ContactSensor", d="D4", tier="T1")
+      dev_trig="ContactSensor", d="D4", tier="T1", ko="문 닫히면 복도 조명 꺼줘.")
     X(50, "If the temperature goes above 28 degrees, turn on the air conditioner.", H15,
       [NOW, W("TemperatureSensor.Temperature > 28"),
        CL("AirConditioner.SetAirConditionerMode", Mode="cool")],
@@ -386,7 +413,7 @@ def sheet_home():
     X(53, "When it gets dark outside, turn on the living room lights.", H15,
       [NOW, W("LightSensor.Brightness < 50"), PON("Light")],
       [("Light", "LivingRoom")], act="light.on", trig="threshold",
-      dev_trig="LightSensor", d="D4", tier="T1")
+      dev_trig="LightSensor", d="D4", tier="T1", ko="어두워지면 거실 조명 켜줘.")
     X(54, "When the sun sets, close the curtains.", H3,
       [NOW, W(DARK), CL("WindowCovering.DownOrClose")],
       [("WindowCovering",)], act="cover", trig="sun", dev_trig="SunProvider",
@@ -398,7 +425,7 @@ def sheet_home():
     X(56, "When the TV turns on, dim the living room lights.", H6,
       [NOW, W('Switch.Switch == true'), bright(20)],
       [("Light", "LivingRoom")], act="light.dim", trig="device",
-      dev_trig="Television", d="D4", tier="T1")
+      dev_trig="Television", d="D4", tier="T1", ko="TV가 켜지면 거실 조명 어둡게 해줘.")
     X(57, "Tell me when the laundry is done.", H6,
       [NOW, W("LaundryWasher.RemainingTime == 0"), nn(H6, "The machine has finished")],
       [], act="notify", trig="finished", dev_trig="LaundryWasher", d="D4", tier="T1",
@@ -424,18 +451,18 @@ def sheet_home():
       d="D6", tier="T1")
     X(63, "Turn on the living room lights at 7 pm on weekdays.", H6,
       [CRON("0 19 * * 1-5"), PON("Light")], [("Light", "LivingRoom")],
-      act="light.on", trig="time", dev_trig="Clock", d="D6", tier="T1")
+      act="light.on", trig="time", dev_trig="Clock", d="D6", tier="T1", ko="평일 저녁 7시에 거실 조명 켜줘.")
     X(64, "Run the robot vacuum every weekend at 10.", H6, [CRON("0 10 * * 0,6"),
       CL("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="auto")],
       [("RobotVacuumCleaner",)], act="vacuum", trig="time", dev_trig="Clock",
-      d="D6", tier="T1")
+      d="D6", tier="T1", ko="주말마다 10시에 로봇청소기 돌려줘.")
     X(65, "Turn off the air conditioner in 10 minutes.", H15,
       [NOW, DL("10 MIN"), CL("AirConditioner.SetAirConditionerMode", Mode="off")],
       [("AirConditioner",)], act="ac", trig="timer", dev_trig="Clock",
       d="D2", tier="T2")
     X(66, "Turn off the bedroom lights in an hour.", H6,
       [NOW, DL("1 HOUR"), POFF("Light")], [("Light", "Bedroom")],
-      act="light.off", trig="timer", dev_trig="Clock", d="D2", tier="T2")
+      act="light.off", trig="timer", dev_trig="Clock", d="D2", tier="T2", ko="1시간 뒤에 침실 조명 꺼줘.")
     A(67, "Turn off the air purifier in a little while.", H3, [("AirPurifier",)],
       act="purifier", trig="timer", dev_trig="Clock", ref="plain")
     X(68, "Run the air purifier for 30 minutes.", H3,
@@ -450,7 +477,7 @@ def sheet_home():
       d="D2", tier="T2")
     X(70, "Keep the hallway light on for 10 minutes.", H6,
       [NOW, PON("Light"), DL("10 MIN"), POFF("Light")], [("Light", "Hallway")],
-      act="light.on", trig="timer", dev_trig="Clock", d="D2", tier="T2")
+      act="light.on", trig="timer", dev_trig="Clock", d="D2", tier="T2", ko="복도 조명 10분 동안 켜둬.")
     X(71, "At night, if motion is detected, turn the lights on low.", H5,
       [NOW, W("MotionSensor.Motion == true"), IF(DARK, [bright(20)])],
       [("Light",)], act="light.dim", trig="motion", dev_trig="MotionSensor",
@@ -458,7 +485,7 @@ def sheet_home():
     X(72, "In the morning, open the baby room curtain.", H9,
       [CRON("0 7 * * *"), CL("WindowCovering.UpOrOpen")],
       [("WindowCovering", "BabyRoom")], act="cover", trig="time",
-      dev_trig="Clock", d="D6", tier="T1")
+      dev_trig="Clock", d="D6", tier="T1", ko="아침에 아기방 커튼 열어줘.")
     A(73, "Late at night, don't turn off the speaker alerts.", H6, [("Speaker",)],
       act="speaker", trig="time", dev_trig="Clock", ref="plain")
     # ── 장면/모드 실행 — 다기기 묶음 모드는 정의가 없으므로 전부 되묻기 ──
@@ -535,7 +562,8 @@ def sheet_home():
       [NOW, W("ContactSensor.Contact == false"),
        CL("NotificationProvider.SendToast", Message="The door has opened")],
       [], act="notify", trig="contact", dev_trig="ContactSensor", d="D4", tier="T1",
-      tsvc="NotificationProvider.SendToast")
+      tsvc="NotificationProvider.SendToast",
+      ko="문 열리면 화면에 알림 띄워줘.")
     X(105, "If the air quality gets bad, put an alert on the screen.", H3,
       [NOW, W("AirQualitySensor.VeryFineDustLevel > 36"),
        CL("NotificationProvider.SendToast", Message="The air quality is bad")],
@@ -645,13 +673,13 @@ def sheet_office():
     X(148, "Turn off all the lights in the office.", O5, [NOW, POFF("Light")],
       [("Light",)], act="light.off", ref="all")
     X(149, "Turn on only the open space lights.", O5, [NOW, PON("Light")],
-      [("Light", "OpenSpace")], act="light.on")
+      [("Light", "OpenSpace")], act="light.on", ko="사무실 조명만 켜줘.")
     X(150, "Turn on the meeting room air conditioner.", O1,
       [NOW, CL("AirConditioner.SetAirConditionerMode", Mode="cool")],
       [("AirConditioner", "MeetingRoom")], act="ac")
     X(151, "Turn off the open space air conditioners.", O5,
       [NOW, CL("AirConditioner.SetAirConditionerMode", Mode="off")],
-      [("AirConditioner", "OpenSpace")], act="ac")
+      [("AirConditioner", "OpenSpace")], act="ac", ko="사무실 에어컨 꺼줘.")
     X(152, "Start the air purifier.", O1,
       [NOW, CL("AirPurifier.SetAirPurifierMode", Mode="auto")],
       [("AirPurifier",)], act="purifier")
@@ -660,7 +688,7 @@ def sheet_office():
     RF(154, "Turn on the power strip by the desks.", O5, "no_device", act="plug",
        dev_act="Plug")
     X(155, "Lower the open space blinds.", O5, [NOW, CL("WindowCovering.DownOrClose")],
-      [("WindowCovering", "OpenSpace")], act="cover")
+      [("WindowCovering", "OpenSpace")], act="cover", ko="사무실 블라인드 내려줘.")
     X(156, "Raise the window blinds.", O1, [NOW, CL("WindowCovering.UpOrOpen")],
       [("WindowCovering",)], act="cover")
     X(157, "Turn on the meeting room speakers.", O3,
@@ -672,17 +700,17 @@ def sheet_office():
     X(159, "Set the meeting room lights to 70 percent.", O5, [NOW, bright(70)],
       [("Light", "MeetingRoom")], act="light.dim", b1="set")
     X(160, "Dim the open space lights to 30 percent.", O5, [NOW, bright(30)],
-      [("Light", "OpenSpace")], act="light.dim", b1="set")
+      [("Light", "OpenSpace")], act="light.dim", b1="set", ko="사무실 조명 30%로 낮춰줘.")
     X(161, "Set the meeting room lights to a cool white.", O5, [NOW, ctemp(COOL)],
       [("Light", "MeetingRoom")], act="light.color", b1="set")
     X(162, "Set the open space lights to a warm color.", O2, [NOW, ctemp(WARM)],
-      [("Light", "OpenSpace")], act="light.color", b1="set")
+      [("Light", "OpenSpace")], act="light.color", b1="set", ko="사무실 조명 전구색으로 해줘.")
     X(163, "Set the meeting room to 24 degrees.", O1,
       [NOW, CL("AirConditioner.SetTargetTemperature", Temperature=24.0)],
       [("AirConditioner", "MeetingRoom")], act="ac", b1="set")
     X(164, "Turn the office temperature down to 23 degrees.", O6,
       [NOW, CL("Thermostat.SetTargetTemperature", Temperature=23.0)],
-      [("Thermostat",)], act="thermostat", b1="set")
+      [("Thermostat",)], act="thermostat", b1="set", ko="사무실 온도 23도로 낮춰줘.")
     X(165, "Switch the air conditioners to cool mode.", O5,
       [NOW, CL("AirConditioner.SetAirConditionerMode", Mode="cool")],
       [("AirConditioner",)], act="ac", b1="set", ref="plain")
@@ -697,13 +725,13 @@ def sheet_office():
     # ── 공간/기기 상태 조회 ──
     Q(169, "What is the temperature in the open space?", O5,
       "TemperatureSensor.Temperature", "Temperature", "The temperature is $Temperature",
-      [("TemperatureSensor", "OpenSpace")], ref="place")
+      [("TemperatureSensor", "OpenSpace")], ref="place", ko="지금 사무실 온도 어때?")
     Q(170, "Is the office air quality okay?", O5,
       "AirQualitySensor.VeryFineDustLevel", "Dust", "The fine dust level is $Dust",
       [("AirQualitySensor",)])
     Q(171, "Tell me the CO2 level in the open space.", O5,
       "AirQualitySensor.CarbonDioxide", "CO2", "The CO2 level is $CO2",
-      [("AirQualitySensor", "OpenSpace")], ref="place", tone="bare")
+      [("AirQualitySensor", "OpenSpace")], ref="place", tone="bare", ko="사무실 CO2 농도 알려줘.")
     Q(172, "Is anyone in the meeting room?", O3,
       "PresenceSensor.Presence", "Presence", "Presence reads $Presence",
       [("PresenceSensor", "MeetingRoom")], ref="place")
@@ -712,7 +740,7 @@ def sheet_office():
       [("PresenceSensor",)])
     Q(174, "Any motion in the open space?", O6,
       "MotionSensor.Motion", "Motion", "Motion reads $Motion",
-      [("MotionSensor", "OpenSpace")], ref="place")
+      [("MotionSensor", "OpenSpace")], ref="place", ko="사무실에 움직임 감지됐어?")
     Q(175, "Are the meeting room lights on?", O5,
       "Switch.Switch", "Switch", "The lights read $Switch",
       [("Light", "MeetingRoom")], dev_act="Light", ref="place")
@@ -724,10 +752,10 @@ def sheet_office():
       [("AirPurifier",)])
     Q(178, "Is the entrance door open?", O1,
       "ContactSensor.Contact", "Contact", "The door contact reads $Contact",
-      [("ContactSensor", "Entrance")], ref="place")
+      [("ContactSensor", "Entrance")], ref="place", ko="현관문 열려 있어?")
     Q(179, "Check whether the entrance door is closed.", O3,
       "ContactSensor.Contact", "Contact", "The door contact reads $Contact",
-      [("ContactSensor", "Entrance")], ref="place", tone="bare")
+      [("ContactSensor", "Entrance")], ref="place", tone="bare", ko="현관문 닫혀 있는지 확인해줘.")
     Q(180, "How much power has the office used today?", O5,
       "EnergyMeter.EnergyConsumed@diff:today", "Used", "Today's usage is $Used",
       [("EnergyMeter",)], d="D12", tier="T4")
@@ -764,12 +792,12 @@ def sheet_office():
     X(188, "Notify me when the entrance door opens.", O1,
       [NOW, W("ContactSensor.Contact == false"), nn(O1, "The door has opened")],
       [], act="notify", trig="contact", dev_trig="ContactSensor", d="D4", tier="T1",
-      tsvc=tsvc())
+      tsvc=tsvc(), ko="현관문이 열리면 알림 보내줘.")
     X(189, "If the entrance door opens after dark, send me a warning.", O3,
       [NOW, W("ContactSensor.Contact == false"), IF(DARK,
        [nn(O3, "The door has opened")])],
       [], act="notify", trig="contact", dev_trig="ContactSensor", d="D13", tier="T2",
-      ctx="sun", tsvc=tsvc())
+      ctx="sun", tsvc=tsvc(), ko="어두워진 뒤에 현관문이 열리면 경고해줘.")
     X(190, "If the door is open, turn off the air conditioner.", O6,
       [NOW, W("ContactSensor.Contact == false"),
        CL("AirConditioner.SetAirConditionerMode", Mode="off")],
@@ -903,7 +931,7 @@ def sheet_office():
       [NOW, W("ContactSensor.Contact == false"), IF(DARK,
        [nn(O6, "The door has opened")])],
       [], act="notify", trig="contact", dev_trig="ContactSensor", d="D13", tier="T2",
-      ctx="sun", tsvc=tsvc())
+      ctx="sun", tsvc=tsvc(), ko="밤에 현관문이 열리면 경고해줘.")
     RF(227, "If motion is detected while nobody is in the office, check the camera.",
        O5, "no_device", act="camera", dev_act="MotionSensor", trig="motion",
        dev_trig="MotionSensor")
@@ -915,7 +943,7 @@ def sheet_office():
     RF(229, "If water leaks, alert the manager.", O5, "no_device", act="notify",
        dev_act="LeakSensor", trig="leak", dev_trig="LeakSensor")
     X(230, "Show me the hallway cameras.", O5, [NOW, CL("Camera.StartStream")],
-      [("Camera", "Hallway")], act="camera")
+      [("Camera", "Hallway")], act="camera", ko="복도 카메라 보여줘.")
     X(231, "When motion is detected, capture a 10-second video.", O6,
       [NOW, W("MotionSensor.Motion == true"), CL("Camera.CaptureVideo", Seconds=10.0)],
       [("Camera",)], act="camera", trig="motion", dev_trig="MotionSensor",
@@ -950,7 +978,7 @@ def sheet_office():
     RF(251, "Lower the meeting room blinds.", O3, "no_device", act="cover",
        dev_act="WindowCovering")
     X(252, "Lock the entrance door locks.", O5, [NOW, CL("DoorLock.Lock")],
-      [("DoorLock", "Entrance")], act="lock")
+      [("DoorLock", "Entrance")], act="lock", ko="현관 도어락 잠가줘.")
     # 253 싣지 않음 — 기기 한 대만 색이 안 되는 경우
 
 
@@ -968,7 +996,7 @@ def sheet_factory():
       [("ProductionMachine", "Line", "line 2")], act="machine", ref="nick")
     X(258, "Shut down the process room machines.", F3,
       [NOW, CL("ProductionMachine.Stop")], [("ProductionMachine", "ProcessRoom")],
-      act="machine")
+      act="machine", ko="공정실 설비 꺼줘.")
     X(259, "Start the line 1 conveyor.", F1, [NOW, CL("ConveyorBelt.Start")],
       [("ConveyorBelt", "Line", "line 1")], act="conveyor", ref="nick")
     A(260, "Stop the conveyor.", F3, [("ConveyorBelt",)], act="conveyor",
@@ -976,11 +1004,11 @@ def sheet_factory():
     X(261, "Start the coolant pump.", F3, [NOW, CL("Pump.SetPumpMode",
       PumpMode="normal")], [("Pump",)], act="pump")
     X(262, "Stop pump 3.", F5, [NOW, POFF("Pump")],
-      [("Pump", "PumpRoom", "pump 3")], act="pump", ref="nick")
+      [("Pump", "PumpRoom", "pump 3")], act="pump", ref="nick", ko="3번 펌프 꺼줘.")
     X(263, "Close valve 1 in the pump room.", F5, [NOW, CL("Valve.Close")],
-      [("Valve", "PumpRoom", "valve 1")], act="valve", ref="nick")
+      [("Valve", "PumpRoom", "valve 1")], act="valve", ref="nick", ko="펌프실 1번 밸브 닫아줘.")
     X(264, "Open the process room valves.", F3, [NOW, CL("Valve.Open")],
-      [("Valve", "ProcessRoom")], act="valve")
+      [("Valve", "ProcessRoom")], act="valve", ko="공정실 밸브 열어줘.")
     X(265, "Turn on the workshop ventilators.", F4,
       [NOW, CL("Ventilator.SetVentilatorMode", Mode="auto")],
       [("Ventilator", "MachineShop")], act="ventilator")
@@ -989,7 +1017,7 @@ def sheet_factory():
     X(267, "Turn off the sirens.", F5, [NOW, CL("Siren.Deactivate")],
       [("Siren",)], act="siren", ref="plain")
     X(268, "Turn on the dock cameras.", F2, [NOW, CL("Camera.StartStream")],
-      [("Camera", "Dock")], act="camera")
+      [("Camera", "Dock")], act="camera", ko="하역장 카메라 켜줘.")
     # ── 기기 속성 조절 ──
     X(269, "Set the warehouse lights to 70 percent.", F2, [NOW, bright(70)],
       [("Light", "Warehouse")], act="light.dim", b1="set")
@@ -1009,7 +1037,7 @@ def sheet_factory():
       [NOW, CL("Ventilator.SetVentilatorMode", Mode="high")],
       [("Ventilator", "MachineShop")], act="ventilator", b1="set")
     A(275, "Set the compressor to the standard pressure.", F4, [("AirCompressor",)],
-      act="compressor", b1="set", ref="plain")
+      act="compressor", b1="set", ref="plain", ko="공기압축기 압력을 기준값으로 맞춰줘.")
     RF(276, "Open the valve halfway.", F5, "no_service", act="valve",
        dev_act="Valve", b1="set")
     # ── 공간/설비 상태 조회 ──
@@ -1018,7 +1046,7 @@ def sheet_factory():
       [("TemperatureSensor", "MachineShop")], ref="place")
     Q(278, "Is the air okay in the boiler room?", F5,
       "GasSensor.GasLevel", "Gas", "The gas level is $Gas",
-      [("GasSensor", "BoilerRoom")], ref="place")
+      [("GasSensor", "BoilerRoom")], ref="place", ko="보일러실 공기 괜찮아?")
     Q(279, "What is the humidity in the warehouse?", F2,
       "HumiditySensor.Humidity", "Humidity", "The humidity is $Humidity",
       [("HumiditySensor", "Warehouse")], ref="place")
@@ -1027,10 +1055,10 @@ def sheet_factory():
       [("ConveyorBelt", "Line", "line 1")], ref="nick")
     Q(281, "What is the status of the line 2 machine?", F1,
       "ProductionMachine.MachineState", "State", "The machine is $State",
-      [("ProductionMachine", "Line", "line 2")], ref="nick")
+      [("ProductionMachine", "Line", "line 2")], ref="nick", ko="라인 2 설비 상태 알려줘.")
     Q(282, "Is the compressor tank pressure in the normal range?", F1,
       "AirCompressor.TankPressure", "Pressure", "The tank pressure is $Pressure",
-      [("AirCompressor",)])
+      [("AirCompressor",)], ko="공기압축기 탱크 압력 정상 범위야?")
     Q(283, "Has any gas been detected?", F5,
       "GasSensor.Gas", "Gas", "Gas detection reads $Gas",
       [("GasSensor",)], ref="plain")
@@ -1082,7 +1110,7 @@ def sheet_factory():
     X(296, "If motion is detected in the warehouse, take a snapshot.", F2,
       [NOW, W("MotionSensor.Motion == true"), CL("Camera.CaptureImage")],
       [("Camera", "Warehouse")], act="camera", trig="motion",
-      dev_trig="MotionSensor", d="D4", tier="T1")
+      dev_trig="MotionSensor", d="D4", tier="T1", ko="창고에 움직임이 감지되면 사진 찍어줘.")
     X(297, "If the temperature goes above 35, turn on the ventilators.", F2,
       [NOW, W("TemperatureSensor.Temperature > 35"),
        CL("Ventilator.SetVentilatorMode", Mode="auto")],
@@ -1103,12 +1131,12 @@ def sheet_factory():
     X(301, "If the pressure goes above 8 bar, open valve 1.", F5,
       [NOW, W("AirCompressor.TankPressure > 8"), CL("Valve.Open")],
       [("Valve", "PumpRoom", "valve 1")], act="valve", trig="threshold",
-      dev_trig="AirCompressor", d="D4", tier="T1", ref="nick")
+      dev_trig="AirCompressor", d="D4", tier="T1", ref="nick", ko="압력이 8바 넘으면 1번 밸브 열어줘.")
     X(302, "If the tank level drops below half, start pump 1.", F5,
       [NOW, W("WaterLevelSensor.WaterLevel < 50"),
        CL("Pump.SetPumpMode", PumpMode="normal")],
       [("Pump", "PumpRoom", "pump 1")], act="pump", trig="threshold",
-      dev_trig="WaterLevelSensor", d="D4", tier="T1", ref="nick")
+      dev_trig="WaterLevelSensor", d="D4", tier="T1", ref="nick", ko="수위가 절반 아래로 떨어지면 1번 펌프 켜줘.")
     X(303, "If the power draw spikes, let me know.", F1,
       [NOW, W("EnergyMeter.Power > 50000"), nn(F1, "The power draw spiked")],
       [], act="notify", trig="power", dev_trig="EnergyMeter", d="D4", tier="T1",
@@ -1180,7 +1208,7 @@ def sheet_factory():
     X(322, "At 8:50 every morning, announce that work starts in 10 minutes.", F1,
       [CRON("50 8 * * *"), CL("Speaker.Speak", Text="Work starts in 10 minutes")],
       [("Speaker", "Line")], act="speaker", trig="time", dev_trig="Clock",
-      d="D6", tier="T1")
+      d="D6", tier="T1", ko="매일 아침 8시 50분에 10분 뒤 작업 시작이라고 방송해줘.")
     A(323, "If a machine reports an error, text the manager.", F4, [],
       act="notify", trig="device", dev_trig="ProductionMachine",
       dev_act="MessageSender", d="D4", tier="T1")
@@ -1269,7 +1297,7 @@ def sheet_factory():
       dev_act="MessageSender", ref="vague")
     A(354, "Push an alert.", F1, [], act="notify", dev_act="NotificationProvider")
     RF(355, "Stop the line 4 conveyor.", F1, "no_device", act="conveyor",
-       dev_act="ConveyorBelt")
+       dev_act="ConveyorBelt", ko="라인 4 컨베이어 멈춰줘.")
     RF(356, "Close the gas valve.", F1, "no_device", act="valve", dev_act="Valve")
     RF(357, "Slow the plug down to 50 percent.", F4, "no_service", act="plug",
        dev_act="Plug", b1="set")
@@ -1285,7 +1313,7 @@ def sheet_lab():
     X(360, "Turn off the test bed lights.", L5, [NOW, POFF("Light")],
       [("Light", "TestBed")], act="light.off")
     X(361, "Turn on just the lab room lights.", L3, [NOW, PON("Light")],
-      [("Light", "LabRoom")], act="light.on")
+      [("Light", "LabRoom")], act="light.on", ko="실험실 조명만 켜줘.")
     X(362, "Turn on the lab air conditioner.", L4,
       [NOW, CL("AirConditioner.SetAirConditionerMode", Mode="cool")],
       [("AirConditioner",)], act="ac")
@@ -1332,7 +1360,7 @@ def sheet_lab():
       [("AirConditioner",)], act="ac", b1="set")
     X(380, "Turn the lab temperature down to 22 degrees.", L4,
       [NOW, CL("AirConditioner.SetTargetTemperature", Temperature=22.0)],
-      [("AirConditioner",)], act="ac", b1="set")
+      [("AirConditioner",)], act="ac", b1="set", ko="실험실 온도 22도로 낮춰줘.")
     X(381, "Set the humidity to around 50 percent.", L1,
       [NOW, CL("Humidifier.SetTargetHumidity", Humidity=50.0)],
       [("Humidifier",)], act="humidity", b1="set", ref="plain")
@@ -1371,7 +1399,7 @@ def sheet_lab():
       [("ContactSensor", "Entrance")], ref="place")
     Q(393, "Is the cold room door closed?", L3,
       "ContactSensor.Contact", "Contact", "The door contact reads $Contact",
-      [("ContactSensor", "ColdRoom")], ref="place")
+      [("ContactSensor", "ColdRoom")], ref="place", ko="저온실 문 닫혀 있어?")
     Q(394, "Is the lab equipment running?", L2,
       "ProductionMachine.MachineState", "State", "The equipment is $State",
       [("ProductionMachine",)], ref="plain")
@@ -1439,7 +1467,7 @@ def sheet_lab():
     X(410, "If the TVOC goes above 500, warn me.", L2,
       [NOW, W("AirQualitySensor.TvocLevel > 500"), nn(L2, "The TVOC level is high")],
       [], act="notify", trig="threshold", dev_trig="AirQualitySensor",
-      d="D4", tier="T1", tsvc=tsvc())
+      d="D4", tier="T1", tsvc=tsvc(), ko="TVOC가 500 넘으면 경고해줘.")
     X(411, "If the temperature goes above 28, turn on the air conditioner.", L4,
       [NOW, W("TemperatureSensor.Temperature > 28"),
        CL("AirConditioner.SetAirConditionerMode", Mode="cool")],
@@ -1458,7 +1486,7 @@ def sheet_lab():
     X(414, "When it gets dark, turn on the test bed lights.", L5,
       [NOW, W("LightSensor.Brightness < 100"), PON("Light")],
       [("Light", "TestBed")], act="light.on", trig="threshold",
-      dev_trig="LightSensor", d="D4", tier="T1")
+      dev_trig="LightSensor", d="D4", tier="T1", ko="어두워지면 테스트베드 조명 켜줘.")
     X(415, "When it is bright, turn off the lab lights.", L5,
       [NOW, W("LightSensor.Brightness > 1000"), POFF("Light")],
       [("Light", "TestBed")], act="light.off", trig="threshold",
@@ -1513,7 +1541,7 @@ def sheet_lab():
     X(427, "Run the robot vacuum every Friday at 5.", L1, [CRON("0 17 * * 5"),
       CL("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="auto")],
       [("RobotVacuumCleaner",)], act="vacuum", trig="time", dev_trig="Clock",
-      d="D6", tier="T1")
+      d="D6", tier="T1", ko="매주 금요일 5시에 로봇청소기 돌려줘.")
     X(428, "Turn off the lab lights in 10 minutes.", L4, [NOW, DL("10 MIN"),
       POFF("Light")], [("Light", "LabRoom")], act="light.off", trig="timer",
       dev_trig="Clock", d="D2", tier="T2")
@@ -1534,12 +1562,12 @@ def sheet_lab():
     X(432, "At night, when someone is on the test bed, turn the lights on low.", L5,
       [NOW, W("PresenceSensor.Presence == true"), IF(DARK, [bright(20)])],
       [("Light", "TestBed")], act="light.dim", trig="presence",
-      dev_trig="PresenceSensor", d="D13", tier="T2", ctx="sun")
+      dev_trig="PresenceSensor", d="D13", tier="T2", ctx="sun", ko="밤에 테스트베드에 사람이 있으면 조명 약하게 켜줘.")
     X(433, "After hours, alert me whenever the cold room door opens.", L3,
       [NOW, W("ContactSensor.Contact == false"), IF(DARK,
        [nn(L3, "The door has opened")])],
       [], act="notify", trig="contact", dev_trig="ContactSensor", d="D13", tier="T2",
-      ctx="sun", tsvc=tsvc())
+      ctx="sun", tsvc=tsvc(), ko="퇴근 후에 저온실 문이 열리면 알려줘.")
     # ── 실험/운영 모드 — 되묻기 ──
     A(434, "Run the experiment-start mode.", L2, [], act="light.scene", ref="vague")
     A(435, "The experiment is done.", L2, [], act="light.scene", ref="vague",
@@ -1571,7 +1599,7 @@ def sheet_lab():
       [CRON("50 8 * * *"),
        CL("Speaker.Speak", Text="The experiment starts in 10 minutes")],
       [("Speaker",)], act="speaker", trig="time", dev_trig="Clock",
-      d="D6", tier="T1")
+      d="D6", tier="T1", ko="8시 50분에 10분 뒤 실험 시작이라고 방송해줘.")
     A(445, "If motion shows up after hours, send the manager a text.", L2, [],
       act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
     A(446, "If gas is detected, send a KakaoTalk message to the person on duty.",
@@ -1685,24 +1713,25 @@ def sheet_farm():
     G1, G2, G3, G4 = "FARM01", "FARM02", "FARM03", "FARM04"
     # ── 기기 직접 제어 ──
     X(485, "Turn on the barn lights.", G2, [NOW, PON("Light")],
-      [("Light", "Barn")], act="light.on")
+      [("Light", "Barn")], act="light.on", ko="축사 조명 켜줘.")
     X(486, "Turn off the field lights.", G3, [NOW, POFF("Light")],
-      [("Light", "Field")], act="light.off")
+      [("Light", "Field")], act="light.off", ko="밭 조명 꺼줘.")
     X(487, "Turn off all the lights on the farm.", G2, [NOW, POFF("Light")],
       [("Light",)], act="light.off", ref="all")
     X(488, "Turn on the grow lights in greenhouse 1.", G1, [NOW, PON("GrowLight")],
-      [("GrowLight", "Greenhouse", "greenhouse 1 ")], act="growlight", ref="nick")
+      [("GrowLight", "Greenhouse", "greenhouse 1 ")], act="growlight", ref="nick", ko="1번 하우스 생장등 켜줘.")
     X(489, "Turn off all the grow lights in the grow room.", G4,
       [NOW, POFF("GrowLight")], [("GrowLight", "GrowRoom")], act="growlight",
-      ref="all")
+      ref="all", ko="재배실 생장등 다 꺼줘.")
     X(490, "Start the irrigation pump.", G1, [NOW, CL("Pump.SetPumpMode",
       PumpMode="normal")], [("Pump",)], act="pump")
     X(491, "Stop the pumps in the utility room.", G4, [NOW, POFF("Pump")],
-      [("Pump", "Utility")], act="pump")
+      [("Pump", "Utility")], act="pump", ko="다용도실 펌프 꺼줘.")
     X(492, "Open the irrigation valve for greenhouse 1.", G1, [NOW, CL("Valve.Open")],
-      [("Valve", "Greenhouse", "greenhouse 1 ")], act="valve", ref="nick")
+      [("Valve", "Greenhouse", "greenhouse 1 ")], act="valve", ref="nick", ko="1번 하우스 관수 밸브 열어줘.")
     X(493, "Close all the greenhouse irrigation valves.", G1, [NOW, CL("Valve.Close")],
-      [("Valve", "Greenhouse")], act="valve", ref="all")
+      [("Valve", "Greenhouse")], act="valve", ref="all",
+      ko="온실 관수 밸브 다 닫아줘.")
     X(494, "Start the field sprinklers.", G3, [NOW, CL("Sprinkler.Start",
       Minutes=10.0)], [("Sprinkler", "Field")], act="sprinkler")
     X(495, "Turn off the zone 2 sprinkler.", G3, [NOW, CL("Sprinkler.Stop")],
@@ -1715,12 +1744,12 @@ def sheet_farm():
       [("Ventilator", "Barn")], act="ventilator")
     X(498, "Turn on the barn humidifier.", G2,
       [NOW, CL("Humidifier.SetHumidifierMode", Mode="auto")],
-      [("Humidifier", "Barn")], act="humidity")
+      [("Humidifier", "Barn")], act="humidity", ko="축사 가습기 켜줘.")
     X(499, "Turn off the grow room dehumidifier.", G4,
       [NOW, CL("Dehumidifier.SetDehumidifierMode", Mode="off")],
       [("Dehumidifier", "GrowRoom")], act="humidity")
     X(500, "Run the barn 1 feeder.", G2, [NOW, CL("FeedDispenser.Dispense")],
-      [("FeedDispenser", "Barn", "barn 1")], act="feeder", ref="nick")
+      [("FeedDispenser", "Barn", "barn 1")], act="feeder", ref="nick", ko="1동 급이기 돌려줘.")
     RF(501, "Stop the feed supply.", G2, "no_service", act="feeder",
        dev_act="FeedDispenser")
     X(502, "Turn on the greenhouse camera.", G1, [NOW, CL("Camera.StartStream")],
@@ -1728,7 +1757,7 @@ def sheet_farm():
     # ── 기기 속성 조절 ──
     X(503, "Set the greenhouse grow lights to 70 percent.", G1,
       [NOW, CL("GrowLight.SetIntensity", Intensity=70.0)],
-      [("GrowLight", "Greenhouse")], act="growlight", b1="set")
+      [("GrowLight", "Greenhouse")], act="growlight", b1="set", ko="온실 생장등 70%로 해줘.")
     X(504, "Brighten the grow room lights to full.", G4,
       [NOW, CL("GrowLight.SetIntensity", Intensity=100.0)],
       [("GrowLight", "GrowRoom")], act="growlight", b1="set")
@@ -1737,16 +1766,16 @@ def sheet_farm():
       [("GrowLight", "GrowRoom")], act="growlight", b1="set", ref="plain")
     X(506, "Set the greenhouse grow lights to blue light.", G1,
       [NOW, CL("GrowLight.SetSpectrum", Mode="blue")],
-      [("GrowLight", "Greenhouse")], act="growlight", b1="set")
+      [("GrowLight", "Greenhouse")], act="growlight", b1="set", ko="온실 생장등 파란빛으로 바꿔줘.")
     X(507, "Set the greenhouse to 24 degrees.", G1,
       [NOW, CL("Heater.SetTargetTemperature", Temperature=24.0)],
       [("Heater", "Greenhouse")], act="heater", b1="set")
     X(508, "Lower the grow room temperature to 22 degrees.", G4,
       [NOW, CL("AirConditioner.SetTargetTemperature", Temperature=22.0)],
-      [("AirConditioner", "GrowRoom")], act="ac", b1="set")
+      [("AirConditioner", "GrowRoom")], act="ac", b1="set", ko="재배실 온도 22도로 낮춰줘.")
     X(509, "Set the barn humidity to around 60 percent.", G2,
       [NOW, CL("Humidifier.SetTargetHumidity", Humidity=60.0)],
-      [("Humidifier", "Barn")], act="humidity", b1="set")
+      [("Humidifier", "Barn")], act="humidity", b1="set", ko="축사 습도 60% 근처로 맞춰줘.")
     X(510, "Crank the ventilators up to high.", G4,
       [NOW, CL("Ventilator.SetVentilatorMode", Mode="high")],
       [("Ventilator", "GrowRoom")], act="ventilator", b1="set", ref="plain")
@@ -1778,7 +1807,7 @@ def sheet_farm():
     Q(520, "Tell me the soil moisture for greenhouse 1.", G1,
       "SoilMoistureSensor.SoilMoisture", "Moisture", "The soil moisture is $Moisture",
       [("SoilMoistureSensor", "Greenhouse", "greenhouse 1 ")], tone="bare",
-      ref="nick")
+      ref="nick", ko="1번 하우스 토양 수분 알려줘.")
     Q(521, "How much water is left in the tank?", G1,
       "WaterLevelSensor.WaterLevel", "Level", "The tank level is $Level",
       [("WaterLevelSensor",)])
@@ -1792,13 +1821,13 @@ def sheet_farm():
       [("Sprinkler", "Field")], ref="plain")
     Q(525, "Are the barn ventilators off?", G2,
       "Ventilator.VentilatorMode", "Mode", "The ventilators are $Mode",
-      [("Ventilator", "Barn")], ref="place")
+      [("Ventilator", "Barn")], ref="place", ko="축사 환풍기 꺼져 있어?")
     Q(526, "Any motion out in the field?", G3,
       "MotionSensor.Motion", "Motion", "Motion reads $Motion",
-      [("MotionSensor", "Field")], ref="place")
+      [("MotionSensor", "Field")], ref="place", ko="밭에 움직임 감지됐어?")
     Q(527, "Is the barn temperature okay?", G2,
       "TemperatureSensor.Temperature", "Temperature", "The temperature is $Temperature",
-      [("TemperatureSensor", "Barn")], ref="place")
+      [("TemperatureSensor", "Barn")], ref="place", ko="축사 온도 괜찮아?")
     Q(528, "What was the average greenhouse temperature today?", G1,
       "TemperatureSensor.Temperature@avg:today", "Avg", "Today's average is $Avg",
       [("TemperatureSensor", "Greenhouse")], d="D12", tier="T4", ref="place")
@@ -1825,7 +1854,7 @@ def sheet_farm():
       [NOW, W("SoilMoistureSensor.SoilMoisture < 30"),
        CL("Pump.SetPumpMode", PumpMode="normal")],
       [("Pump",)], act="pump", trig="threshold", dev_trig="SoilMoistureSensor",
-      d="D4", tier="T1")
+      d="D4", tier="T1", ko="1번 하우스 토양 수분이 낮으면 관수 펌프 켜줘.")
     X(534, "Once the soil is moist enough, stop the watering.", G1,
       [NOW, W("SoilMoistureSensor.SoilMoisture > 60"), CL("Sprinkler.Stop")],
       [("Sprinkler", "Greenhouse")], act="sprinkler", trig="threshold",
@@ -1838,7 +1867,7 @@ def sheet_farm():
     X(536, "If the temperature gets low, turn on the heater.", G1,
       [NOW, W("TemperatureSensor.Temperature < 12"), CL("Heater.On")],
       [("Heater", "Greenhouse")], act="heater", trig="threshold",
-      dev_trig="TemperatureSensor", d="D4", tier="T1")
+      dev_trig="TemperatureSensor", d="D4", tier="T1", ko="온도가 낮으면 난방기 켜줘.")
     X(537, "If the barn gets hot, ventilate it.", G2,
       [NOW, W("TemperatureSensor.Temperature > 30"),
        CL("Ventilator.SetVentilatorMode", Mode="auto")],
@@ -1848,7 +1877,7 @@ def sheet_farm():
       [NOW, W("HumiditySensor.Humidity < 50"),
        CL("Humidifier.SetHumidifierMode", Mode="auto")],
       [("Humidifier", "Barn")], act="humidity", trig="threshold",
-      dev_trig="HumiditySensor", d="D4", tier="T1")
+      dev_trig="HumiditySensor", d="D4", tier="T1", ko="축사 공기가 건조하면 가습기 켜줘.")
     X(539, "If it gets too humid, run the dehumidifier.", G4,
       [NOW, W("HumiditySensor.Humidity > 85"),
        CL("Dehumidifier.SetDehumidifierMode", Mode="auto")],
@@ -1858,12 +1887,12 @@ def sheet_farm():
       [NOW, W("CarbonDioxideSensor.CarbonDioxide < 400"),
        nn(G4, "The CO2 level is low")],
       [], act="notify", trig="threshold", dev_trig="CarbonDioxideSensor",
-      d="D4", tier="T1", tsvc=tsvc())
+      d="D4", tier="T1", tsvc=tsvc(), ko="CO2가 400 아래로 떨어지면 알림 보내줘.")
     X(541, "If the ammonia level gets high, ventilate the barn.", G2,
       [NOW, W("GasSensor.GasLevel > 200"),
        CL("Ventilator.SetVentilatorMode", Mode="exhaust")],
       [("Ventilator", "Barn")], act="ventilator", trig="gas",
-      dev_trig="GasSensor", d="D4", tier="T1")
+      dev_trig="GasSensor", d="D4", tier="T1", ko="암모니아 농도가 높으면 축사 환기해줘.")
     X(542, "When the sun sets, turn on the grow lights.", G1,
       [NOW, W(DARK), PON("GrowLight")], [("GrowLight", "Greenhouse")],
       act="growlight", trig="sun", dev_trig="SunProvider", d="D4", tier="T1",
@@ -1871,7 +1900,7 @@ def sheet_farm():
     X(543, "If there is not enough light, turn on the greenhouse grow lights.", G1,
       [NOW, W("LightSensor.Brightness < 1000"), PON("GrowLight")],
       [("GrowLight", "Greenhouse")], act="growlight", trig="threshold",
-      dev_trig="LightSensor", d="D4", tier="T1")
+      dev_trig="LightSensor", d="D4", tier="T1", ko="빛이 부족하면 온실 생장등 켜줘.")
     X(544, "If it starts raining, stop the sprinklers and let me know.", G3,
       [NOW, W("RainSensor.Rain == true"), CL("Sprinkler.Stop"),
        nn(G3, "It is raining, sprinklers stopped")],
@@ -1889,12 +1918,12 @@ def sheet_farm():
     X(547, "If the nutrient pH drops below 5.5, let me know.", G1,
       [NOW, W("WaterQualitySensor.Ph < 5.5"), nn(G1, "The nutrient pH is off")],
       [], act="notify", trig="threshold", dev_trig="WaterQualitySensor",
-      d="D4", tier="T1", tsvc=tsvc())
+      d="D4", tier="T1", tsvc=tsvc(), ko="양액 pH가 5.5 아래로 떨어지면 알려줘.")
     X(548, "If nothing moves in the field for 30 minutes, let me know.", G3,
       [NOW, W("MotionSensor.Motion == false", edge="none", for_="30 MIN"),
        nn(G3, "No motion in the field")],
       [], act="notify", trig="motion", dev_trig="MotionSensor", d="D5", tier="T2",
-      tsvc=tsvc())
+      tsvc=tsvc(), ko="밭에 30분 동안 움직임이 없으면 알려줘.")
     X(549, "If the feed runs low, send me an alert.", G2,
       [NOW, W("FeedDispenser.FeedLevel < 20"), nn(G2, "The feed is running low")],
       [], act="notify", trig="threshold", dev_trig="FeedDispenser",
@@ -1906,17 +1935,17 @@ def sheet_farm():
       [NOW, W('Ventilator.VentilatorMode == "off"'),
        nn(G2, "A ventilator has stopped")],
       [], act="notify", trig="device", dev_trig="Ventilator", d="D4", tier="T1",
-      tsvc=tsvc())
+      tsvc=tsvc(), ko="축사 환풍기가 멈추면 알려줘.")
     # ── 시간/스케줄 자동화 ──
     X(552, "Turn on the greenhouse grow lights at 7 am.", G1, [CRON("0 7 * * *"),
       PON("GrowLight")], [("GrowLight", "Greenhouse")], act="growlight",
-      trig="time", dev_trig="Clock", d="D6", tier="T1")
+      trig="time", dev_trig="Clock", d="D6", tier="T1", ko="오전 7시에 온실 생장등 켜줘.")
     X(553, "Turn off the grow lights at 6 pm.", G4, [CRON("0 18 * * *"),
       POFF("GrowLight")], [("GrowLight", "GrowRoom")], act="growlight",
       trig="time", dev_trig="Clock", d="D6", tier="T1", ref="plain")
     X(554, "Water the field at 8 am.", G3, [CRON("0 8 * * *"),
       CL("Sprinkler.Start", Minutes=10.0)], [("Sprinkler", "Field")],
-      act="sprinkler", trig="time", dev_trig="Clock", d="D6", tier="T1")
+      act="sprinkler", trig="time", dev_trig="Clock", d="D6", tier="T1", ko="오전 8시에 밭에 물 줘.")
     X(555, "Ventilate the greenhouse every morning.", G1, [CRON("0 8 * * *"),
       CL("Ventilator.SetVentilatorMode", Mode="auto")],
       [("Ventilator", "Greenhouse")], act="ventilator", trig="time",
@@ -1938,16 +1967,16 @@ def sheet_farm():
       trig="timer", dev_trig="Clock", d="D2", tier="T2")
     X(560, "Water the field for 20 minutes.", G3,
       [NOW, CL("Sprinkler.Start", Minutes=20.0)], [("Sprinkler", "Field")],
-      act="sprinkler", trig="timer", dev_trig="Clock", d="D2", tier="T2")
+      act="sprinkler", trig="timer", dev_trig="Clock", d="D2", tier="T2", ko="밭에 20분 동안 물 줘.")
     X(561, "Run the barn ventilators for 2 hours.", G2,
       [NOW, CL("Ventilator.SetVentilatorMode", Mode="auto"), DL("2 HOUR"),
        CL("Ventilator.SetVentilatorMode", Mode="off")],
       [("Ventilator", "Barn")], act="ventilator", trig="timer", dev_trig="Clock",
-      d="D2", tier="T2")
+      d="D2", tier="T2", ko="축사 환풍기 2시간 동안 켜둬.")
     X(562, "At night, if the greenhouse gets cold, turn on the heater.", G1,
       [NOW, W("TemperatureSensor.Temperature < 12"), IF(DARK, [CL("Heater.On")])],
       [("Heater", "Greenhouse")], act="heater", trig="threshold",
-      dev_trig="TemperatureSensor", d="D13", tier="T2", ctx="sun")
+      dev_trig="TemperatureSensor", d="D13", tier="T2", ctx="sun", ko="밤에 온실 온도가 낮으면 난방기 켜줘.")
     X(563, "During the day, if there is not enough light, turn on the grow lights.",
       G1,
       [NOW, W("LightSensor.Brightness < 1000"),
@@ -1976,11 +2005,11 @@ def sheet_farm():
        CL("Display.ShowMessage", Message="The grow room is hot",
           DurationSeconds=10.0)],
       [], act="notify", trig="threshold", dev_trig="TemperatureSensor",
-      d="D4", tier="T1", tsvc="Display.ShowMessage")
+      d="D4", tier="T1", tsvc="Display.ShowMessage", ko="재배실 온도가 높으면 화면에 경고해줘.")
     X(573, "Every morning at 8:50, broadcast that work begins in 10 minutes.", G2,
       [CRON("50 8 * * *"), CL("Speaker.Speak", Text="Work starts in 10 minutes")],
       [("Speaker", "Barn")], act="speaker", trig="time", dev_trig="Clock",
-      d="D6", tier="T1")
+      d="D6", tier="T1", ko="매일 아침 8시 50분에 10분 뒤 작업 시작이라고 방송해줘.")
     X(574, "If the CO2 gets too high, say that we should ventilate.", G4,
       [NOW, W("CarbonDioxideSensor.CarbonDioxide > 3000"),
        CL("Speaker.Speak", Text="Please ventilate the grow room")],
@@ -2017,7 +2046,7 @@ def sheet_farm():
       [NOW, W("ContactSensor.Contact == false"), IF(DARK,
        [nn(G4, "The door has opened")])],
       [], act="notify", trig="contact", dev_trig="ContactSensor", d="D13", tier="T2",
-      ctx="sun", tsvc=tsvc())
+      ctx="sun", tsvc=tsvc(), ko="밤에 재배실 문이 열리면 경고해줘.")
     X(583, "If motion is detected outside, check it with the cameras.", G3,
       [NOW, W("MotionSensor.Motion == true"), CL("Camera.CaptureImage")],
       [("Camera", "Field")], act="camera", trig="motion", dev_trig="MotionSensor",
@@ -2043,7 +2072,7 @@ def sheet_farm():
       d="D4", tier="T1", tsvc=tsvc())
     RF(589, "If the feeder stops working, let me know.", G2, "no_service",
        act="notify", dev_act="FeedDispenser", trig="device",
-       dev_trig="FeedDispenser")
+       dev_trig="FeedDispenser", ko="급이기가 멈추면 알려줘.")
     A(590, "If anything odd happens, record 10 seconds of video.", G1,
       [("Camera", "Greenhouse")], act="camera", ref="vague")
     # ── 일상 정보/대화 ──
@@ -2085,18 +2114,16 @@ def sheet_farm():
       dev_act="MessageSender", ref="vague")
     A(611, "Send an alert.", G1, [], act="notify", dev_act="NotificationProvider")
     RF(612, "Turn on the zone 6 sprinkler.", G3, "no_device", act="sprinkler",
-       dev_act="Sprinkler")
+       dev_act="Sprinkler", ko="6번 구역 스프링클러 켜줘.")
     RF(613, "Close the nutrient valve.", G2, "no_device", act="valve",
        dev_act="Valve")
     RF(614, "Put the barn lights into grow light mode.", G2, "no_service",
-       act="light.color", dev_act="Light", b1="set")
+       act="light.color", dev_act="Light", b1="set", ko="축사 조명을 생장등 모드로 바꿔줘.")
     # 615 싣지 않음 — "확인 없이"
 
 
 # ══ 검산과 출력 ═════════════════════════════════════════════════════════
 # kind ← space_id, n_target ← targets, match ← expect 라서 안 싣는다. tone 은 안 쓴다.
-# command_ko 는 아직 비어 있다 — U행은 손으로 쓴 문장이라 틀이 없다.
-# 씨앗이 한국어(dataset-usecase.xlsx)이므로 나중에 그쪽에서 가져온다.
 COLS = ["id", "space_id", "command", "command_ko", "mode", "trig", "act", "dev_trig",
         "dev_act", "ref", "expect", "d", "tier", "b1", "b3", "context",
         "why", "targets", "target_svc", "ir_gt"]

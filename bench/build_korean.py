@@ -67,10 +67,11 @@ def sample(rows, n):
 LATIN = re.compile(r"[A-Za-z]{2,}")
 # 한국어 문장에 남아도 되는 로마자 — 제품명·약어. 뒤에 한글 조사가 붙으므로
 # \b 를 쓰면 경계가 안 잡힌다(한글도 낱말 문자다). 그래서 경계를 안 쓴다.
-ALLOW = re.compile(r"(TV|EV|CO2|RFID|LG|Aqara|Tuya|Wi-?Fi|Philips|Hue|SmartThings|"
+# 긴 것을 앞에 둔다 — "TVOC" 가 "TV" 로 먼저 잘리면 "OC" 가 남는다
+ALLOW = re.compile(r"(TVOC|RFID|CO2|SmartThings|TV|EV|LG|Aqara|Tuya|Wi-?Fi|Philips|Hue|SmartThings|"
                    r"Skylight|YUER|JOI|IR|barrier|tc0|Smart|Plug|Sensor|Speaker|"
                    r"Button|Motion|Light|Door|Window|Presence|Multi|Gang|Zigbee|"
-                   r"Hub|Bulb|Switch|P2|ep\d)", re.I)
+                   r"Hub|Bulb|Switch|P2|ep\d|pH|Ph|CO)", re.I)
 
 
 def flags(r):
@@ -85,13 +86,14 @@ def flags(r):
         f.append("영어남음:" + ",".join(sorted(set(LATIN.findall(left)))[:3]))
     if "  " in ko or " ." in ko:
         f.append("띄어쓰기")
-    # 단수로 부른 자리. 영어는 "the light" 로 티가 나지만 한국어는 그냥 "조명" 이라
-    # 문장만 보고는 왜 되물어야 하는지 알 수 없다. 복수 쪽에 "다" 를 붙여
-    # 겹치지는 않게 했지만, 애매함 자체는 한국어에서 더 크다 — 표시만 해 둔다.
+    # 단수로 부른 자리. 영어는 "the light" 로 티가 나지만 한국어는 그냥 "조명" 이다.
+    # 복수 쪽에 "다" 를 붙여 판정이 겹치지는 않게 했고(충돌 0), 후보가 여럿인
+    # 행은 한국어로도 애매해서 되묻기가 맞다 — 결함이 아니라 성격 표시다.
     if r["ref"] == "onedup":
         f.append("단수지목")
     # 거절 행은 지목이 실패한 자리라 ref 가 '시도한 방식' 을 남긴다 — 검사에서 뺀다
-    if r["expect"] != "refuse" and r["ref"] == "all" and "전부" not in ko:
+    if (r["expect"] != "refuse" and r["ref"] == "all"
+            and not re.search(r"전부|전체|모든|모두| 다 ", ko)):
         f.append("전부표시없음")
     if len(ko) > 90:
         f.append("너무김")
