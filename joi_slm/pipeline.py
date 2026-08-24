@@ -6,7 +6,7 @@ from .encoder import WordEncoder, make_embedder
 from .heads import SegHeads
 from .segment import Segmenter, MCQ
 from .mapping import Retriever
-from .builder import build
+from .builder import build, Asker
 
 class CommandToIR:
     def __init__(self, engine=None, gates=True):
@@ -19,11 +19,12 @@ class CommandToIR:
             engine = get_engine()
         self.engine = engine
         self.seg = Segmenter(WordEncoder(engine), SegHeads.load(), MCQ(engine) if gates else None)
+        self.ask = Asker(engine) if gates else None
         self.map = Retriever(make_embedder())
     def __call__(self, text, connected_devices=None, exclude=()):
         """→ {"ir": {...}, "segments": [...], "mapping": {...}, "graph": {...}}. exclude: 매핑 예문에서 뺄 원본 명령 i(평가용)."""
         segs = self.seg(text.strip())
         M = self.map(segs, connected_devices, exclude)
-        ir = build(segs, M)
+        ir = build(segs, M, ask=self.ask)
         return {"ir": ir, "segments": [{k: v for k, v in s.items() if k != "h6"} for s in build.last["segments"]],
                 "mapping": {"ranked": M.r, "parts": M.p}, "graph": build.last["graph"]}

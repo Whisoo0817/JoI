@@ -9,6 +9,45 @@ from .catalog import AL, EFF, svc_info, members_of, allowed
 from . import slots, rerank
 from .graph import normalize as graph_normalize
 
+_ASK = [None, ""]      # [Asker, 전체 문장] — build() 가 채운다. 없으면 규칙만으로 간다.
+
+class Asker:
+    """규칙이 못 정한 칸을 2B 1토큰 객관식으로 정한다. 선택지는 카탈로그에서 오므로
+    지어낼 길이 없다. 엔진 호출이 실패하면 None — 규칙 결과 그대로 쓴다."""
+    def __init__(self, engine): self.engine = engine
+    def _choice(self, prompt, letters):
+        try: return self.engine.choice(prompt, letters)
+        except Exception: return None
+    def bool_state(self, cmd, text, svc, desc):
+        """조건 절이 가리키는 상황에서 BOOL 값이 참인가 거짓인가. ("내가 집을 나서면" → IsHome 거짓)"""
+        p = (f'조건 절: "{text}"\n'
+             f'이 절이 가리키는 상황에서 {svc}({desc})의 값은?\n\n'
+             f'A. true 인 상황\nB. false 인 상황\n\n답:')
+        sc = self._choice(p, "AB")
+        return None if sc is None else ("true" if sc[0] > sc[1] else "false")
+    def enum_member(self, cmd, text, svc, desc, members):
+        """enum 칸에 넣을 멤버 고르기 — 짧은 생성. 글자 객관식은 선택지가 많으면 2B 가 헤매서
+        (자연풍→high) 낱말을 직접 쓰게 한다. ENUM_KO 표는 판정자가 아니라 힌트로 쓴다 —
+        멤버 옆에 한국어 뜻을 달아 주고, 답도 한국어로 오면 표를 거꾸로 타서 되받는다."""
+        members = [m.split(" - ")[0].strip() for m in members][:20]
+        if not members: return None
+        def gloss(k):
+            ko = slots.ENUM_KO.get(k.lower(), slots.ENUM_KO.get(k, []))
+            return f"{k}({ko[0]})" if ko else k
+        hint = " 세기·모드 말이 없이 그냥 켜거나 돌리라는 명령이면 auto." if "auto" in members else ""
+        p = (f'선택지: {" ".join(gloss(m) for m in members)}\n'
+             f'명령: "{text}"\n'
+             f'이 명령이 뜻하는 {svc}({desc}) 값 하나만 답하시오.{hint} 위에 없으면 "없음".')
+        try:
+            out = self.engine.chat([{"role": "user", "content": p}], max_tokens=6, temperature=0, prefill="답: ")[0]
+        except Exception:
+            return None
+        w = re.sub(r"^답:\s*", "", out.strip()).split()[0].strip('"., ') if out.strip() else ""
+        if w in members: return w
+        for m in members:                                # 한국어로 답하면 표를 거꾸로 타고 되받는다
+            if w and w in slots.ENUM_KO.get(m.lower(), slots.ENUM_KO.get(m, [])): return m
+        return None
+
 class Mapping:
     """명령 하나의 매핑 결과. ranked: {j: [svc top-5]}, parts: {j: [{"part": text, "ranked": [값 svc top-5]}]}, texts: {j: 절 텍스트},
     conn: 연결된 기기 카테고리 집합(형제 후보 중 실제로 붙어 있는 것을 고르는 데 쓴다. None 이면 안 거른다),
@@ -108,9 +147,16 @@ def _one_cond(svc, text):
         r = slots.range_comparator(text)                          # "20도 이상, 30도 미만이면" → and
         if r: return " and ".join(f"{svc} {op} {int(x) if float(x).is_integer() else x}" for op, x in r)
         return f"{svc} {c[0]} {v}"
-    if vt == "BOOL": return f"{svc} == {slots.bool_state(text, 'BOOL', [])}"
+    if vt == "BOOL":
+        # 참/거짓은 항상 2B 가 정한다. "부정어 있으면 false" 규칙은 "집을 나서면"(부정어 없음, 답은 false)을 못 본다.
+        a = _ASK[0].bool_state(_ASK[1], text, svc, spec.get("descriptor", "")) if _ASK[0] else None
+        return f"{svc} == {a or slots.bool_state(text, 'BOOL', [])}"
     if vt == "ENUM":
-        v = slots.bool_state(text, "ENUM", members_of(cat, spec.get("format"))); return f"{svc} == {v if v else '?'}"
+        v = slots.bool_state(text, "ENUM", members_of(cat, spec.get("format")))
+        if not v and _ASK[0]:
+            m = _ASK[0].enum_member(_ASK[1], text, svc, spec.get("descriptor", ""), members_of(cat, spec.get("format")))
+            if m: v = f'"{m}"'
+        return f"{svc} == {v if v else '?'}"
     if vt == "STRING":
         q = slots.quoted(text)
         if q: return f'{svc} == "{slots.STRING_KO.get(q.strip(), q.strip())}"'
@@ -164,6 +210,9 @@ def call_node(M, j, text, force=None, avoid=()):
         aid, at = a["id"], a.get("type")
         if at == "ENUM":
             v = slots.enum_arg(text, members_of(cat, a.get("format")))
+            if not v and _ASK[0]:
+                v = _ASK[0].enum_member(_ASK[1], text, svc, a.get("descriptor") or spec.get("descriptor", ""),
+                                        members_of(cat, a.get("format")))
             if v: args[aid] = v
         elif at in NUM_T:
             st = STEP_RE.search(text); lim = re.search(r"(최대|최소|최저|최고)\s*(\d+)", text)
@@ -247,8 +296,10 @@ def _merge_time_act(S):
     return out
 
 # ── 조립 ──
-def build(segments, M, graph=True):
-    """segments: [{j, text, type, mods, (h6)}] (원문 순서), M: Mapping → {"timeline": [...]}. 진단은 build.last."""
+def build(segments, M, graph=True, ask=None):
+    """segments: [{j, text, type, mods, (h6)}] (원문 순서), M: Mapping → {"timeline": [...]}. 진단은 build.last.
+    ask: Asker — 규칙이 못 정한 칸(참/거짓, enum)을 2B 객관식으로 정한다. None 이면 규칙만."""
+    _ASK[0], _ASK[1] = ask, " ".join(s["text"] for s in segments)
     S = [{**s, "j": s.get("j", k), "mods": slot_mods(s["type"], s["text"], s["mods"])} for k, s in enumerate(segments)]
     GD = None
     if len(S) >= 2:
