@@ -5,7 +5,7 @@
   ① 절 단위 순위 — 절 전체를 서비스 문서·예문과 견준다 (예문을 쓴다)
   ② 조각 단위 값 검색 — 조건절을 잘게 쪼개 **값 서비스**하고만 견준다 (예문을 안 썼다)
 `?` 가 남는 자리가 ②다. 어느 기기인지는 골라도 어느 값을 견줄지를 못 정한다.
-여기에 5k 학습 몫의 조건·시간절을 예문으로 먹인다.
+여기에 5k 의 조건·시간절을 예문으로 먹인다. 기본은 전부, --train-only 면 학습 몫만.
 
     ~/temp/bin/python build_cond_examples.py
 """
@@ -17,8 +17,9 @@ OUT = os.path.join(HERE, "joi_slm", "assets", "cond_examples.json")
 
 
 def main():
-    tr = set(json.load(open(os.path.join(HERE, "bench", "split_5k.json"),
-                            encoding="utf-8"))["학습"])
+    tr = (set(json.load(open(os.path.join(HERE, "bench", "split_5k.json"),
+                             encoding="utf-8"))["학습"])
+          if "--train-only" in sys.argv else None)
     import csv
     ir = {r["id"]: r["ir_gt"] for r in
           csv.DictReader(open(os.path.join(HERE, "bench", "dataset_5k.csv"), encoding="utf-8"))}
@@ -28,8 +29,8 @@ def main():
 
     ex, skip = [], collections.Counter()
     for i, o in enumerate(L):
-        if o["id"] not in tr or not ir.get(o["id"]):
-            skip["학습 몫 아님"] += 1
+        if (tr is not None and o["id"] not in tr) or not ir.get(o["id"]):
+            skip["학습 몫 아님" if tr is not None else "정답 IR 없음"] += 1
             continue
         conds = re.findall(r'"(?:cond|until)": "([^"]*)"', ir[o["id"]])
         svcs = {m for c in conds for m in

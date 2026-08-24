@@ -44,13 +44,13 @@ def use_engine_server(url=None):
 
 
 def material():
-    """학습 몫 중 정답 IR 이 있는 행 → build_examples 가 받는 모양."""
+    """정답 IR 이 있는 행 (--train-only 면 학습 몫만) → build_examples 가 받는 모양."""
     split = json.load(open(SPLIT, encoding="utf-8"))
-    train = set(split["학습"])
+    train = set(split["학습"]) if "--train-only" in sys.argv else None
     ir = {r["id"]: r["ir_gt"] for r in csv.DictReader(open(DATA, encoding="utf-8"))}
     out, gold = [], {}
     for i, o in enumerate(json.load(open(LABELS, encoding="utf-8"))):
-        if o["id"] not in train or not ir.get(o["id"]):
+        if (train is not None and o["id"] not in train) or not ir.get(o["id"]):
             continue
         out.append({"i": i, "cmd": o["cmd"],
                     "segments": [{"text": c["글"], "type": c["종류"], "mods": c["mods"]}
@@ -65,7 +65,7 @@ def main():
     args = ap.parse_args()
 
     labels, gold = material()
-    print(f"학습 몫 중 정답 IR 이 있는 행: {len(labels)}")
+    print(f"{'학습 몫' if '--train-only' in sys.argv else '전부'} 중 정답 IR 이 있는 행: {len(labels)}")
     print("  절 종류:", dict(collections.Counter(
         s["type"] for o in labels for s in o["segments"]).most_common()))
     if args.dry:
