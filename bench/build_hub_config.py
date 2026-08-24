@@ -29,6 +29,16 @@ OUT = os.path.join(os.path.dirname(HERE), "files", "hub_config.json")
 # 재실 주체 고르는 순서 — 위에서부터 있는 것을 쓴다.
 # 전역 변수에 Human 이 정의돼 있으면 그것, 없으면 센서, 둘 다 없으면 판단 불가.
 # (40개 공간 전부 이 순서로 spaces.json 의 occupancy 와 맞는 것을 확인했다.)
+# 알림 채널을 콕 집어 가리키는 말 — 허브가 제 채널을 뭐라고 부르는지다.
+# 이 말이 문장에 있으면 순서를 제치고 그 채널로 간다 ("화면에 띄워 줘").
+# 없으면 아래 알림_순서를 따른다. 943행에 대고 재 보니 이 둘로 98.9% 가 맞는다.
+NOTIFY_WORDS = {
+    "Display.ShowMessage": "화면|디스플레이|모니터",
+    "Speaker.Speak": "방송|스피커|음성|소리내|말해",
+    "NotificationProvider.SendPush": "폰|휴대폰|푸시",
+    "NotificationProvider.SendToast": "토스트",
+}
+
 OCCUPANCY_ORDER = [
     {"쓸 것": 'GlobalVariable.Value("Human")', "있어야 하는 것": "GlobalVariable 의 Human 변수"},
     {"쓸 것": "MotionSensor.Motion",           "있어야 하는 것": "MotionSensor"},
@@ -71,7 +81,8 @@ def main():
         "기준값": thresholds(),
         "장면": scenes(),
         "색상": {name: float(deg) for name, deg in ir.HUE.items()},
-        "알림_순서": [{"서비스": svc, "있어야 하는 기기": dev}
+        "알림_순서": [{"서비스": svc, "있어야 하는 기기": dev,
+                    "가리키는 말": NOTIFY_WORDS.get(svc, "")}
                    for svc, dev in policy.NOTIFY_ORDER],
         "값_보폭": policy.DELTA,
     }

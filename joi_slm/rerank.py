@@ -9,6 +9,32 @@ import re
 from .catalog import AL, svc_info
 ON = True
 
+# ── 알림 채널 고르기 (허브 설정) ──────────────────────────────────────
+_HUB = [None]
+def _notify_order():
+    """[(서비스, 있어야 하는 기기, 가리키는 말)] — 허브 설정에서 읽는다. 없으면 빈 목록."""
+    if _HUB[0] is None:
+        import json as _j, os as _o
+        f = _o.path.join(_o.path.dirname(_o.path.abspath(__file__)), "..", "files", "hub_config.json")
+        try: cfg = _j.load(open(f, encoding="utf-8"))
+        except Exception: cfg = {}
+        _HUB[0] = [(x["서비스"], x.get("있어야 하는 기기"), x.get("가리키는 말") or "")
+                   for x in cfg.get("알림_순서", [])]
+    return _HUB[0]
+
+NOTIFY = {s for s, _, _ in _notify_order()}
+NOTIFY_WORD = re.compile("|".join(w for _, _, w in _notify_order() if w) or r"(?!x)x")
+
+def notify_pick(text, conn):
+    """알림을 낼 서비스 하나. 채널을 지목한 말이 있으면 그것, 아니면 허브 순서."""
+    for svc, _need, words in _notify_order():
+        if words and re.search(words, text) and (conn is None or svc.split(".")[0] in conn):
+            return svc
+    for svc, need, _w in _notify_order():
+        if conn is None: return svc
+        if svc.split(".")[0] in conn and (need is None or need in conn): return svc
+    return None
+
 def pick(conn, *svcs):
     """형제 후보를 앞에서부터 보며 연결된 기기에 있는 첫 서비스를 고른다. 연결 정보가 없으면 맨 앞."""
     if conn:
@@ -109,6 +135,13 @@ def func_bonus(text, cands, conn=None, sw=None):
     if re.search(r"\d+\s*(%|퍼센트)", text):                                # A9: 수치(%) 지정은 Set*/MoveTo* (극성어 무시)
         for s in cands:
             if s.split(".")[1].startswith(("Set", "MoveTo")): b[s] = b.get(s, 0) + 4
+    # 알림을 어디로 보낼지 — 허브가 정한다 (files/hub_config.json 의 알림_순서).
+    # 문장이 채널을 콕 집었으면("화면에 띄워") 그것, 아니면 순서대로 있는 첫 채널.
+    # 임베딩만 두면 "보내" 라는 말에 끌려 폰도 없는 공간에서 푸시를 고른다.
+    if any(s_ in NOTIFY for s_ in cands + extra) or NOTIFY_WORD.search(text):
+        win = notify_pick(text, conn)
+        if win: add(win, 6)
+
     named = named_categories(text, cands + extra)
     can_switch = switchable(text, sw)
     for s in cands + extra:

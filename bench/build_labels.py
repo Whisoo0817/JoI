@@ -88,6 +88,18 @@ def chunk_label(text):
     return None
 
 
+def read_needed(part, row):
+    """이 행의 ACT 절이 "센서값을 읽어서 알려주는" 절인가.
+
+    "욕실 온도 보내 줘" 는 두 수다 — 온도를 읽고, 그 값을 말한다. 그런데 말에는
+    "확인해서" 같은 표시가 없어서 옛 라벨은 read 를 안 붙였고, 조립기는 알 방법이
+    없어 호출 한 번으로 냈다. 손으로 적지 않고 **정답 IR 에 read 마디가 있는지**로 안다.
+    로직 틀이 있는 행(세다가·오늘 몇 번…)은 건드리지 않는다 — 거기 read 는 틀이
+    스스로 넣는 것이라 ACT 절의 몫이 아니다.
+    """
+    return not part["frame"] and '"op": "read"' in (row.get("ir_gt") or "")
+
+
 def segs_of(part, row):
     """행 하나 → 절 목록. 조각(ko_parts)이 문장을 이룬 순서 그대로다.
     → [{"글", "종류", "mods", "단어수"}] 또는 ("모르는 조각", 글) 또는 None"""
@@ -98,7 +110,7 @@ def segs_of(part, row):
             if part["trig"] in STATE_TRIG:
                 mods = ["state"]      # 벌어지는 순간이 아니라 이미 그런 상태
         elif kind in ("{a}", "{a_c}"):
-            t, mods = "ACT", []
+            t, mods = "ACT", (["read"] if read_needed(part, row) else [])
         elif kind in PLACE:
             t, mods = "COND", []
         else:
