@@ -580,6 +580,7 @@ def generate_joi_code_ir(
         "segments": segments,
         "mapping": slm_out.get("mapping", {}),
         "precision": precision_output["selectors"],
+        "resolved": precision_output.get("resolved", {}),   # 자리별로 고른 기기 — 채점이 읽는다
         "precision_reasoning": precision_output["reasoning"],
         "lowering": lowering_used,             # rules / rules+llm(게이트 피드백으로 LLM 이 고침) / llm
         "fix_rounds": fix_rounds,
