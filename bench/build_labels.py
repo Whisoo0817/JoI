@@ -74,7 +74,10 @@ CHUNK = {
 }
 
 # 시간절이 시각인가 사건인가 — 시나리오의 방아쇠 종류로 가른다
-TIME_TRIGS = {"time", "sun", "timer"}
+# 해·일몰·일출은 시계가 아니라 **바깥 상태**다 — 정답 IR 도 cron 앵커가 아니라
+# SunProvider 를 기다리는 wait 마디다(bench/ir.py SUN_DOWN/SUN_UP). TIME 으로 두면
+# 조립기가 시계 길로 보내고, 시각 문구가 없어 절이 통째로 사라진다.
+TIME_TRIGS = {"time", "timer"}
 
 
 def chunk_label(text):

@@ -78,9 +78,64 @@ def _tidy_cond(ir):
     return json.loads(re.sub(r'"cond": "((?:[^"\\]|\\.)*)"', f, json.dumps(ir, ensure_ascii=False)))
 
 
+_ALIAS = [None]
+
+
+def _alias_map():
+    """카탈로그에서 **뜻풀이가 글자까지 같은 enum 값**들을 찾아 하나로 모은다.
+    지금 카탈로그(3.1.0)에는 한 묶음뿐이다: double = pushed_2x ("눌림 두 번").
+    정답 IR 은 double 로 적혀 있고 파이프라인은 카탈로그 순서대로 pushed_2x 를
+    고르는데, 카탈로그가 둘을 같은 뜻이라고 적어 둔 이상 채점에서 갈라선 안 된다.
+    표를 손으로 적지 않고 카탈로그에서 뽑는다 — 카탈로그가 바뀌면 따라 바뀐다."""
+    if _ALIAS[0] is None:
+        import collections, os
+        m = {}
+        path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                            "files", "service_list_ver3.1.0.json")
+
+        def walk(o):
+            if isinstance(o, dict):
+                ed = o.get("enums_descriptor")
+                if isinstance(ed, list):
+                    by = collections.defaultdict(list)
+                    for line in ed:
+                        if isinstance(line, str) and " - " in line:
+                            v, _, desc = line.partition(" - ")
+                            by[desc.strip().lower()].append(v.strip())
+                    for vs in by.values():
+                        if len(vs) > 1:
+                            for v in vs[1:]: m[v] = vs[0]
+                for v in o.values(): walk(v)
+            elif isinstance(o, list):
+                for v in o: walk(v)
+        try:
+            walk(json.load(open(path, encoding="utf-8")))
+        except Exception:                                  # noqa: BLE001
+            pass
+        _ALIAS[0] = m
+    return _ALIAS[0]
+
+
+def _unalias(ir):
+    """같은 뜻으로 적힌 enum 값을 하나로 — 조건식 속 따옴표 값과 인자 값만 손댄다
+    (말 문구까지 건드리면 "double" 같은 흔한 낱말이 바뀌어 버린다)."""
+    m = _alias_map()
+    if not m: return ir
+    pat = re.compile(r'"(' + "|".join(re.escape(k) for k in m) + r')"')
+    def f(o):
+        for k in ("cond", "until"):
+            if isinstance(o.get(k), str):
+                o[k] = pat.sub(lambda x: '"' + m[x.group(1)] + '"', o[k])
+        a = o.get("args")
+        if isinstance(a, dict):
+            for k, v in list(a.items()):
+                if isinstance(v, str) and v in m and k not in TEXT_ARGS: a[k] = m[v]
+    return _walk(ir, f)
+
+
 def normalize(ir):
     """표기 차이를 지운 모습."""
-    for f in (_inline_read, _mask_text, _drop_var, _tidy_cond): ir = f(ir)
+    for f in (_inline_read, _mask_text, _drop_var, _tidy_cond, _unalias): ir = f(ir)
     return ir
 
 
@@ -97,5 +152,6 @@ def verdict(ir, ir_gt):
     strict = _J(ir) == _J(ir_gt)
     svc = services(ir or {}) == services(ir_gt)
     same = svc and _J(normalize(ir or {})) == _J(normalize(ir_gt))     # 문구를 가려도 쓰는 서비스는 같아야 한다
-    text = same and _J(_tidy_cond(_drop_var(_inline_read(ir or {})))) == _J(_tidy_cond(_drop_var(_inline_read(ir_gt))))
+    def _t(x): return _J(_unalias(_tidy_cond(_drop_var(_inline_read(x)))))
+    text = same and _t(ir or {}) == _t(ir_gt)
     return {"strict": strict, "same": same, "text": text, "svc": svc}
