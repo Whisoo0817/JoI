@@ -99,6 +99,9 @@ def main():
                 i += len(t.split())
                 out.append(i)
             return out
+        if not segs:                                 # 절을 못 받은 행(앞단에서 막힘)은 맞다고 치지 않는다
+            c["절못받음"] += 1
+            continue
         got_cut = cuts_of([s["text"] for s in segs])
         want_cut = [k for k, x in enumerate(g["gold_labels"]) if x]
         seg_ok = got_cut == want_cut
@@ -137,8 +140,9 @@ def main():
     print(line("③ 서비스", "서비스", "서비스잼"))
     print(line("④ IR 뜻", "IR뜻", "IR잼"))
     print(line("   IR 서비스", "IR서비스", "IR잼"))
-    if c["터짐"] or c["IR없음"]:
-        print(f"  (예외로 빠진 행 {c['터짐']}, IR 조차 못 만든 행 {c['IR없음']})")
+    if c["터짐"] or c["IR없음"] or c["절못받음"]:
+        print(f"  (예외로 빠진 행 {c['터짐']}, IR 못 만든 행 {c['IR없음']}, "
+              f"절을 못 받은 행 {c['절못받음']})")
     if stop:
         print("\n  막힌 단계:")
         for k, n in stop.most_common():
