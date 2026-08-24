@@ -360,7 +360,11 @@ def build(segments, M, graph=True):
                         counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(M, OJ[j], "value") or pick_value(s["text"], [], conn=M.conn) or "?"})
                 elif leaf == "DELAY": out.append({"op": "delay", "duration": slots.duration(s["text"]) or "?"})
                 elif leaf.startswith("WAIT"):
-                    node = {"op": "wait", "cond": merged_text(j) if s["type"] in ("COND", "TRIG") else "?", "edge": "rising" if "every" in s["mods"] else "none"}
+                    # 기다림은 **그 일이 벌어지는 순간**(rising)이 기본이다.
+                    # "문이 열리면 잠가" 를 edge none 으로 두면 이미 열려 있을 때 바로 잠근다 — 뜻이 다르다.
+                    # "창문이 열린 채로 있으면" 처럼 이미 그런 상태를 가리키는 절만 none 이고,
+                    # 그건 절 타입 head 가 붙이는 state 표시로 안다.
+                    node = {"op": "wait", "cond": merged_text(j) if s["type"] in ("COND", "TRIG") else "?", "edge": "none" if "state" in s["mods"] else "rising"}
                     if "sustain" in s["mods"] and slots.duration(s["text"]): node["for"] = slots.duration(s["text"])
                     out.append(node)
                 elif leaf == "BREAK": out.append({"op": "break"})

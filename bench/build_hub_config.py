@@ -70,6 +70,7 @@ def main():
         "재실주체_순서": OCCUPANCY_ORDER,
         "기준값": thresholds(),
         "장면": scenes(),
+        "색상": {name: float(deg) for name, deg in ir.HUE.items()},
         "알림_순서": [{"서비스": svc, "있어야 하는 기기": dev}
                    for svc, dev in policy.NOTIFY_ORDER],
         "값_보폭": policy.DELTA,
@@ -80,6 +81,7 @@ def main():
 
     print(f"{OUT} 를 썼다")
     print(f"  기준값 {len(cfg['기준값'])}종 × 공간 {len(policy.KINDS)}종")
+    print(f"  색 {len(cfg['색상'])}종")
     print(f"  장면 {len(cfg['장면'])}종 · 알림 {len(cfg['알림_순서'])}단계 · "
           f"보폭 {len(cfg['값_보폭'])}개 · 재실주체 {len(OCCUPANCY_ORDER)}단계")
 

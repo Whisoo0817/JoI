@@ -34,8 +34,14 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
+import ir as IR         # noqa: E402
 import korean as K       # noqa: E402
 import templates as T    # noqa: E402
+
+# 시간절 중 "이미 그런 상태이면" 을 뜻하는 틀 — 정답 IR 이 edge 를 none 으로 둔 것들.
+# ("창문이 열린 채로 있으면", "아무도 없는 동안" …) 나머지는 그 일이 벌어지는 순간(rising)이다.
+# 손으로 적지 않고 정답 IR 에서 그대로 읽어 온다.
+STATE_TRIG = {k for k, v in IR.TRIG_IR.items() if "'edge': 'none'" in str(v)}
 
 OUT = os.path.join(HERE, "labels_5k.json")
 
@@ -89,6 +95,8 @@ def segs_of(part, row):
     for nw, kind, text in part["ko_parts"]:
         if kind == "{trig}":
             t, mods = ("TIME" if row["trig"] in TIME_TRIGS else "TRIG"), []
+            if part["trig"] in STATE_TRIG:
+                mods = ["state"]      # 벌어지는 순간이 아니라 이미 그런 상태
         elif kind in ("{a}", "{a_c}"):
             t, mods = "ACT", []
         elif kind in PLACE:

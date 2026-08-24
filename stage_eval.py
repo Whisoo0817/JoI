@@ -74,6 +74,7 @@ def main():
     c = collections.Counter()
     gap = collections.Counter()                  # IR 뜻이 틀린 까닭
     gap_ex = collections.defaultdict(list)
+    stop = collections.Counter()                 # 어느 단계에서 막혔나
     t0 = time.perf_counter()
     for i in pick:
         r, g = ko[i], lab[i]
@@ -83,7 +84,8 @@ def main():
         except JoiGenerationError as e:
             ir = getattr(e, "ir", None)
             segs = getattr(e, "segments", None) or []
-            mp = {}
+            stop[getattr(e, "error_code", "?")] += 1
+            mp = getattr(e, "mapping", None) or {}
         except Exception:                                # noqa: BLE001
             c["터짐"] += 1; continue
 
@@ -137,6 +139,10 @@ def main():
     print(line("   IR 서비스", "IR서비스", "IR잼"))
     if c["터짐"] or c["IR없음"]:
         print(f"  (예외로 빠진 행 {c['터짐']}, IR 조차 못 만든 행 {c['IR없음']})")
+    if stop:
+        print("\n  막힌 단계:")
+        for k, n in stop.most_common():
+            print(f"    {k:26s} {n:4d}")
     if gap:
         print("\n  IR 이 틀린 까닭:")
         for k, n in gap.most_common():
