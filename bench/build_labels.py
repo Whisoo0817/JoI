@@ -144,10 +144,15 @@ def main():
         if lab is None:
             skip["조각이 문장과 안 맞음"] += 1
             continue
-        # 남는 단어는 마지막 절 몫 (말투가 뒤에 붙인 것)
+        # 절 글은 **실제 문장에서 잘라** 담는다. 조립할 때 뽑은 글은 말투가 붙기 전
+        # 모습이라("…멈춰" → "…멈춰 주세요.") 문장과 글자가 다르다. 자르는 자리는
+        # 같으니 자리로 잘라 오면 문장과 정확히 맞는다.
+        cut = [0] + [k for k, x in enumerate(lab) if x] + [len(words)]
+        txt = [" ".join(words[cut[k]:cut[k + 1]]) for k in range(len(cut) - 1)]
         out.append({"id": r["id"], "cmd": r["command_ko"], "words": words,
                     "gold_labels": lab,
-                    "절": [{"글": x["글"], "종류": x["종류"], "mods": x["mods"]} for x in s]})
+                    "절": [{"글": t, "종류": x["종류"], "mods": x["mods"]}
+                          for t, x in zip(txt, s)]})
         skip["됨"] += 1
 
     print(f"라벨 만든 행 {len(out)} / {len(rows)}")

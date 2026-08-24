@@ -44,6 +44,7 @@ def main():
     ap.add_argument("--tier", nargs="*", default=["T0", "T1"])
     ap.add_argument("-n", type=int, default=150)
     ap.add_argument("--seed", type=int, default=11)
+    ap.add_argument("--show", action="store_true", help="틀린 IR 을 몇 개 찍어 본다")
     ap.add_argument("--all", action="store_true", help="시험 몫 말고 전부에서 뽑는다")
     args = ap.parse_args()
 
@@ -71,6 +72,8 @@ def main():
     sp = B.load_spaces()
 
     c = collections.Counter()
+    gap = collections.Counter()                  # IR 뜻이 틀린 까닭
+    gap_ex = collections.defaultdict(list)
     t0 = time.perf_counter()
     for i in pick:
         r, g = ko[i], lab[i]
@@ -85,10 +88,18 @@ def main():
             c["터짐"] += 1; continue
 
         c["행"] += 1
-        # ① 절 나누기 — 절 글이 정답과 그대로 같아야 1점
-        got_txt = [s["text"] for s in segs]
-        want_txt = [x["글"] for x in g["절"]]
-        seg_ok = got_txt == want_txt
+        # ① 절 나누기 — **자르는 자리**가 정답과 같아야 1점.
+        # 글자로 견주면 안 된다: 말투가 마지막 절 끝을 바꾸고(", 2시간 뒤에는 멈춰"
+        # → "…멈춰 주세요.") 쉼표가 앞 단어에 붙기도 하는데, 자르는 자리는 그대로다.
+        def cuts_of(texts):
+            out, i = [], 0
+            for t in texts[:-1]:
+                i += len(t.split())
+                out.append(i)
+            return out
+        got_cut = cuts_of([s["text"] for s in segs])
+        want_cut = [k for k, x in enumerate(g["gold_labels"]) if x]
+        seg_ok = got_cut == want_cut
         c["절나누기"] += seg_ok
         # ② 절 타입 — 절 나누기가 맞은 행에서만
         if seg_ok:
@@ -102,10 +113,18 @@ def main():
             c["서비스"] += want_svc <= top
         # ④ IR
         if ir is not None:
-            v = compare.verdict(ir, json.loads(data[i]["ir_gt"]))
+            want_ir = json.loads(data[i]["ir_gt"])
+            v = compare.verdict(ir, want_ir)
             c["IR잼"] += 1
             c["IR뜻"] += bool(v.get("same"))
             c["IR서비스"] += bool(v.get("svc"))
+            if not v.get("same"):
+                why = B.ir_gap(ir, want_ir)      # 뼈대·조건식·인자·그 밖 중 무엇이 어긋났나
+                gap[why] += 1
+                if len(gap_ex[why]) < 2:
+                    gap_ex[why].append((i, r["command_ko"], ir, want_ir))
+        else:
+            c["IR없음"] += 1
 
     def line(name, a, b):
         n, d = c[a], c[b]
@@ -116,8 +135,18 @@ def main():
     print(line("③ 서비스", "서비스", "서비스잼"))
     print(line("④ IR 뜻", "IR뜻", "IR잼"))
     print(line("   IR 서비스", "IR서비스", "IR잼"))
-    if c["터짐"]:
-        print(f"  (예외로 빠진 행 {c['터짐']})")
+    if c["터짐"] or c["IR없음"]:
+        print(f"  (예외로 빠진 행 {c['터짐']}, IR 조차 못 만든 행 {c['IR없음']})")
+    if gap:
+        print("\n  IR 이 틀린 까닭:")
+        for k, n in gap.most_common():
+            print(f"    {k:22s} {n:4d}")
+        if args.show:
+            for k, exs in gap_ex.items():
+                for i, cmd, got, want in exs:
+                    print(f"\n  [{k}] {i}  {cmd}")
+                    print(f"    낸 것 {json.dumps(got, ensure_ascii=False)}")
+                    print(f"    정답 {json.dumps(want, ensure_ascii=False)}")
     return 0
 
 

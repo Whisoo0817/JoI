@@ -436,8 +436,10 @@ def generate_joi_code_ir(
         selection = build_selectors(ir, connected_devices, slm_out)
     except MissingDevices as e:
         log_buf.append(f"⛔ devices: {e}")
-        raise JoiGenerationError(f"Cannot fulfill command — {e}", "\n".join(log_buf),
-                                 error_code="no_suitable_device")
+        _e = JoiGenerationError(f"Cannot fulfill command — {e}", "\n".join(log_buf),
+                                error_code="no_suitable_device")
+        _e.ir, _e.segments = ir, segments      # 뒤에서 막혀도 Stage 1 은 따로 채점한다
+        raise _e
     ir = selection["ir"]                                   # 능력 검사가 call 을 고쳤을 수 있음
     if selection["swaps"]:
         log_buf.append("🔧 능력 검사: " + ", ".join(f"{a}→{b}" for a, b in selection["swaps"]))
@@ -453,7 +455,10 @@ def generate_joi_code_ir(
         check_feasibility(ir)
     except FeasibilityError as e:
         log_buf.append(f"⛔ feasibility: {e}")
-        raise JoiGenerationError(f"IR infeasible: {e}", "\n".join(log_buf), error_code="ir_infeasible")
+        _e = JoiGenerationError(f"IR infeasible: {e}", "\n".join(log_buf),
+                                error_code="ir_infeasible")
+        _e.ir, _e.segments = ir, segments
+        raise _e
 
     code_plan = ""
     gate_verdict, gate_note = "", ""
@@ -504,7 +509,7 @@ def generate_joi_code_ir(
         if gate_verdict == "CANT":
             _e = JoiGenerationError(f"규칙 lowering 밖의 IR 모양: {cant}", "\n".join(log_buf),
                                     error_code="lowering_unsupported")
-            _e.ir = ir
+            _e.ir, _e.segments = ir, segments
             raise _e
         if gate_verdict != "EQUIV":
             err = JoiGenerationError(f"게이트 {gate_verdict}: 코드가 IR 과 같다고 확인되지 않음 — {gate_note}",
@@ -512,6 +517,7 @@ def generate_joi_code_ir(
                                      error_code=f"lowering_gate_{gate_verdict.lower()}")
             err.joi_json = joi_json            # 거절했지만 만든 코드는 붙여 둔다(test.py 가 보여줌)
             err.ir = ir                        # 게이트에 막혀도 Stage 1 은 따로 채점한다
+            err.segments = segments
             err.gate = {"verdict": gate_verdict, "note": gate_note}
             err.fix_rounds = fix_rounds
             raise err
