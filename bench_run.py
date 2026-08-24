@@ -25,6 +25,7 @@ import os
 import random
 import sys
 import time
+import collections
 from collections import Counter
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -150,6 +151,7 @@ def main():
     from joi_slm import compare
 
     stat = Counter()
+    per = {"tier": collections.defaultdict(Counter), "d": collections.defaultdict(Counter)}
     t0 = time.perf_counter()
     for i, r in enumerate(pick, 1):
         devs = devices_of(spaces, r["space_id"])
@@ -178,10 +180,22 @@ def main():
             stat["IR잼"] += 1
             stat["IR뜻같음"] += bool(v.get("same"))
             stat["IR서비스같음"] += bool(v.get("svc"))
+            for axis in ("tier", "d"):
+                key = r.get(axis) or "?"
+                per[axis][key]["IR잼"] += 1
+                per[axis][key]["IR"] += bool(v.get("same"))
+                per[axis][key]["IR서비스"] += bool(v.get("svc"))
         ok_j = judge_ok(got_judge, want_judge)
         ok_t = score_targets(got_targets, want_targets)
         stat["행"] += 1
         stat["판정맞음"] += bool(ok_j)
+        for axis in ("tier", "d"):
+            key = r.get(axis) or "?"
+            per[axis][key]["행"] += 1
+            per[axis][key]["판정"] += bool(ok_j)
+            if ok_t is not None:
+                per[axis][key]["대상잼"] += 1
+                per[axis][key]["대상"] += bool(ok_t)
         if ok_t is not None:
             stat["대상잼"] += 1
             stat["대상맞음"] += bool(ok_t)
@@ -207,6 +221,20 @@ def main():
     stuck = {k.split("/", 1)[1]: v for k, v in stat.items() if k.startswith("막힌이유/")}
     if stuck:
         print("막힌 이유:", dict(sorted(stuck.items(), key=lambda x: -x[1])))
+    def table(axis, order=None):
+        d = per[axis]
+        keys = [k for k in (order or sorted(d)) if k in d]
+        print(f"\n  ── {axis} 별  (판정 · 대상 · IR뜻 · IR서비스)")
+        for k in keys:
+            c = d[k]
+            def f(a, b):
+                return f"{c[a]}/{c[b]}" if c[b] else "  -  "
+            print(f"   {k:4s} 행 {c['행']:3d} | 판정 {f('판정','행'):>8s} | "
+                  f"대상 {f('대상','대상잼'):>8s} | IR뜻 {f('IR','IR잼'):>8s} | "
+                  f"IR서비스 {f('IR서비스','IR잼'):>8s}")
+    table("tier", ["T0", "T1", "T2", "T3", "T4"])
+    table("d", [f"D{i}" for i in range(1, 14)])
+    print()
     print("정답 분포:", {k[3:]: v for k, v in stat.items() if k.startswith("정답=")})
     print("낸 것    :", {k[3:]: v for k, v in stat.items() if k.startswith("낸것=")})
 
