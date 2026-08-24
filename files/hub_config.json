@@ -1,0 +1,206 @@
+{
+ "$version": "1.0.0",
+ "$comment": "허브 설정 — 파이프라인이 입력으로 읽는 값. 정답지가 아니다. 만드는 법은 bench/build_hub_config.py 참고.",
+ "재실주체_순서": [
+  {
+   "쓸 것": "GlobalVariable.Value(\"Human\")",
+   "있어야 하는 것": "GlobalVariable 의 Human 변수"
+  },
+  {
+   "쓸 것": "MotionSensor.Motion",
+   "있어야 하는 것": "MotionSensor"
+  },
+  {
+   "쓸 것": "PresenceSensor.Presence",
+   "있어야 하는 것": "PresenceSensor"
+  },
+  {
+   "쓸 것": "PersonTracker.IsHome",
+   "있어야 하는 것": "PersonTracker"
+  }
+ ],
+ "기준값": {
+  "too_warm_c": {
+   "home": 26,
+   "office": 25,
+   "lab": 24,
+   "farm": 30,
+   "factory": 32
+  },
+  "too_cold_c": {
+   "home": 18,
+   "office": 19,
+   "lab": 20,
+   "farm": 12,
+   "factory": 10
+  },
+  "too_humid_pct": {
+   "home": 70,
+   "office": 65,
+   "lab": 60,
+   "farm": 85,
+   "factory": 70
+  },
+  "too_dry_pct": {
+   "home": 30,
+   "office": 30,
+   "lab": 35,
+   "farm": 50,
+   "factory": 25
+  },
+  "dust_bad_ugm3": {
+   "home": 81,
+   "office": 81,
+   "lab": 50,
+   "farm": 150,
+   "factory": 150
+  },
+  "fine_dust_bad_ugm3": {
+   "home": 36,
+   "office": 36,
+   "lab": 25,
+   "farm": 75,
+   "factory": 75
+  },
+  "co2_high_ppm": {
+   "home": 1000,
+   "office": 1000,
+   "lab": 800,
+   "farm": 3000,
+   "factory": 1500
+  },
+  "too_dark_lux": {
+   "home": 50,
+   "office": 100,
+   "lab": 100,
+   "farm": 1000,
+   "factory": 150
+  },
+  "too_bright_lux": {
+   "home": 1000,
+   "office": 1000,
+   "lab": 1000,
+   "farm": 50000,
+   "factory": 2000
+  },
+  "too_loud_db": {
+   "home": 60,
+   "office": 55,
+   "lab": 60,
+   "farm": 75,
+   "factory": 85
+  },
+  "battery_low_pct": {
+   "home": 20,
+   "office": 20,
+   "lab": 20,
+   "farm": 20,
+   "factory": 20
+  },
+  "tank_low_pct": {
+   "home": 50,
+   "office": 50,
+   "lab": 50,
+   "farm": 50,
+   "factory": 50
+  },
+  "soil_dry_pct": {
+   "home": 30,
+   "office": 30,
+   "lab": 30,
+   "farm": 30,
+   "factory": 30
+  },
+  "power_spike_w": {
+   "home": 3000,
+   "office": 10000,
+   "lab": 5000,
+   "farm": 10000,
+   "factory": 50000
+  },
+  "wind_strong_ms": {
+   "home": 10,
+   "office": 10,
+   "lab": 10,
+   "farm": 8,
+   "factory": 12
+  },
+  "gas_danger_ppm": {
+   "home": 200,
+   "office": 200,
+   "lab": 100,
+   "farm": 200,
+   "factory": 100
+  },
+  "vibration_high_mms": {
+   "home": 10,
+   "office": 10,
+   "lab": 5,
+   "farm": 15,
+   "factory": 20
+  }
+ },
+ "장면": {
+  "movie": {
+   "밝기": 20.0,
+   "색온도": 2700
+  },
+  "party": {
+   "밝기": 80.0,
+   "색상": 280.0,
+   "채도": 100.0
+  },
+  "relax": {
+   "밝기": 30.0,
+   "색온도": 2700
+  },
+  "reading": {
+   "밝기": 90.0,
+   "색온도": 4000
+  },
+  "night": {
+   "밝기": 5.0,
+   "색온도": 2200
+  },
+  "morning": {
+   "밝기": 70.0,
+   "색온도": 5000
+  },
+  "focus": {
+   "밝기": 100.0,
+   "색온도": 5500
+  },
+  "dinner": {
+   "밝기": 40.0,
+   "색온도": 2700
+  },
+  "away": {
+   "끔": true
+  }
+ },
+ "알림_순서": [
+  {
+   "서비스": "NotificationProvider.SendPush",
+   "있어야 하는 기기": "PersonTracker"
+  },
+  {
+   "서비스": "Speaker.Speak",
+   "있어야 하는 기기": null
+  },
+  {
+   "서비스": "NotificationProvider.SendToast",
+   "있어야 하는 기기": null
+  },
+  {
+   "서비스": "Display.ShowMessage",
+   "있어야 하는 기기": null
+  }
+ ],
+ "값_보폭": {
+  "thermal_comfort": 2,
+  "temperature": 2,
+  "humidity": 10,
+  "illuminance": 0.5,
+  "sound": 10
+ }
+}
