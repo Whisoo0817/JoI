@@ -119,6 +119,8 @@ def main():
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--ids", nargs="*", default=None)
     ap.add_argument("--show", action="store_true", help="행마다 자세히")
+    ap.add_argument("--test", action="store_true",
+                    help="시험 몫에서만 뽑는다 (split_5k.json). 학습에 쓴 행은 안 본다")
     args = ap.parse_args()
 
     rows = list(csv.DictReader(open(DATA, encoding="utf-8")))
@@ -130,6 +132,12 @@ def main():
         r["ir_gt"] = ir_gt.get(r["id"], "")
     spaces, hub = load_spaces(), hub_config()
 
+    if args.test:
+        import json as _j
+        keep = set(_j.load(open(os.path.join(HERE, "bench", "split_5k.json"),
+                                encoding="utf-8"))["시험"])
+        rows = [r for r in rows if r["id"] in keep]
+        print(f"시험 몫에서만 본다 — {len(rows)}행 중에서 뽑음")
     if args.ids:
         pick = [r for r in rows if r["id"] in args.ids]
     else:
