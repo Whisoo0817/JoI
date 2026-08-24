@@ -149,8 +149,25 @@ def ir_gap(got, want):
                     go(v)
         go(ir or {})
         return sorted(out)
+    def targets(ir):
+        out = []
+        def go(o):
+            if isinstance(o, dict):
+                if o.get("op") == "call" and o.get("target"):
+                    out.append(o["target"])
+                for v in o.values():
+                    go(v)
+            elif isinstance(o, list):
+                for v in o:
+                    go(v)
+        go(ir or {})
+        return out
     if sorted(ops(got)) != sorted(ops(want)):
         return "뼈대가 다름(op 구성)"
+    if targets(got) != targets(want):
+        # 부르는 서비스가 다르면 인자도 당연히 다르다 — 그걸 "인자가 다름"으로
+        # 세면 진짜 까닭이 가려진다(스피커로 말할지 폰으로 보낼지의 문제였다).
+        return "부르는 서비스가 다름"
     if conds(got) != conds(want):
         return "조건식이 다름"
     if args(got) != args(want):
