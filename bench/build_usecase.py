@@ -947,12 +947,15 @@ def sheet_office():
        CL("Speaker.Speak", Text="Please ventilate the office")],
       [("Speaker",)], act="speaker", trig="threshold", dev_trig="AirQualitySensor",
       d="D4", tier="T1")
-    RF(219, "If motion is detected after hours, text the manager.", O6, "no_device",
+    # 문자·슬랙은 **채널을 댄** 문장이다. 알림기·스피커는 있으니 기기가 통째로
+    # 없는 게 아니라 그 채널이 없다 — G행과 같은 이유표(no_channel)를 쓴다.
+    RF(219, "If motion is detected after hours, text the manager.", O6, "no_channel",
        act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
-    RF(220, "If an intruder is detected, send a Slack message.", O6, "no_device",
+    RF(220, "If an intruder is detected, send a Slack message.", O6, "no_channel",
        act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
+    # 오피스5 에는 접점센서가 없다 — 문 열림은 Door.DoorState 로 안다.
     A(221, "If the door opens, email the manager.", O5, [], act="notify",
-      trig="contact", dev_trig="ContactSensor", dev_act="EmailProvider",
+      trig="contact", dev_trig="Door", dev_act="EmailProvider",
       d="D4", tier="T1")
     A(222, "Take a snapshot and email it to me.", O5, [], act="camera",
       dev_act="EmailProvider")
@@ -1647,8 +1650,11 @@ def sheet_lab():
        CL("Speaker.Speak", Text="The experiment starts in 10 minutes")],
       [("Speaker",)], act="speaker", trig="time", dev_trig="Clock",
       d="D6", tier="T1", ko="8시 50분에 10분 뒤 실험 시작이라고 방송해줘.")
-    A(445, "If motion shows up after hours, send the manager a text.", L2, [],
-      act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
+    # 화학 실험실에는 움직임 감지기가 없다 (접점·카메라뿐). 문자는 보낼 수 있으니
+    # 막히는 쪽은 채널이 아니라 방아쇠 기기다 — 되묻기가 아니라 거절이 맞다.
+    RF(445, "If motion shows up after hours, send the manager a text.", L2,
+       "no_device",
+       act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
     A(446, "If gas is detected, send a KakaoTalk message to the person on duty.",
       L2, [], act="notify", dev_act="MessageSender", trig="gas",
       dev_trig="GasSensor")
@@ -2074,8 +2080,8 @@ def sheet_farm():
       d="D4", tier="T1", tsvc="MessageSender.SendSlack")
     RF(578, "Email me a summary of today's greenhouse conditions.", G1,
        "no_service", act="query", dev_act="EmailProvider", b1="read")
-    RF(579, "Send me a camera photo by email.", G1, "no_device", act="camera",
-       dev_act="EmailProvider")
+    RF(579, "Send me a camera photo by email.", G1, "no_channel", act="camera",
+       dev_act="EmailProvider")   # 문자·알림은 되지만 이메일 통로가 없다
     X(580, "While the soil stays dry, remind me every 10 minutes.", G1,
       [NOW, W("SoilMoistureSensor.SoilMoisture < 30"),
        CY("10 MIN", [nn(G1, "The soil is dry")],
@@ -2201,8 +2207,17 @@ def validate():
             bad.append(f"{rid} 실행인데 정답 IR 이 없음")
         if r["expect"] != "execute" and r["ir_gt"]:
             bad.append(f"{rid} 실행이 아닌데 정답 IR 이 있음")
+        # 방아쇠 기기는 되묻기·실행 행에도 정말 있어야 한다 — 없는 센서를 두고
+        # "되물어라" 라고 답을 매기면 그 행은 풀 수 없는 문제가 된다.
+        if (r["dev_trig"] and r["expect"] != "refuse"
+                and r["dev_trig"] not in CATS[r["space_id"]]):
+            bad.append(f"{rid} 거절이 아닌데 방아쇠 {r['dev_trig']} 가 "
+                       f"{r['space_id']} 에 없음")
         # 거절 no_device: 그 기기가 정말 없는가
-        if r["why"] == "no_device" and r["dev_act"] in CATS[r["space_id"]]:
+        if (r["why"] == "no_device" and r["dev_act"] in CATS[r["space_id"]]
+                and r["dev_trig"] not in ("", *CATS[r["space_id"]])):
+            pass          # 동작 기기는 있지만 방아쇠 기기가 없다 — 거절이 맞다
+        elif r["why"] == "no_device" and r["dev_act"] in CATS[r["space_id"]]:
             # 방·별명 한정 거절(라인 4, 6번 구역)은 카테고리가 있어도 된다 —
             # 문장 속 한정어가 없는 기기를 가리킨다. 그 경우만 통과시킨다.
             # "라인 4"·"6번 구역"·"양액 밸브"(축사엔 급수 밸브뿐) — 한정어가
@@ -2211,6 +2226,10 @@ def validate():
                                                    "nutrient valve")):
                 bad.append(f"{rid} 거절인데 {r['dev_act']} 가 "
                            f"{r['space_id']} 에 있음")
+        # 거절 no_channel: 문장이 댄 그 통로가 정말 없는가
+        if r["why"] == "no_channel" and r["dev_act"] in CATS[r["space_id"]]:
+            bad.append(f"{rid} 통로가 없다는데 {r['dev_act']} 가 "
+                       f"{r['space_id']} 에 있음")
         if r["ir_gt"]:
             ir = json.loads(r["ir_gt"])
             bad += IR.check_ir(ir, {k: v for k, v in CAT.items()

@@ -658,7 +658,7 @@ LOGIC_KO = {
     "{a} every {n} minutes until {cond}": "{cond_until} {n}분마다 {a}",
     "once {cond}, {a} every {n} minutes": "{cond} {n}분마다 {a}",
     "wait up to {n} minutes to see if {cond}; if not, {a}":
-        "{cond_q} {n}분까지 기다려 보고, 아니면 {a}",
+        "{cond_q} 최대 {n}분 기다려 보고, 그래도 아니면 {a}",
     # 아래 넷은 방아쇠가 읽는 값을 되받는다. "그게" 가 바로 앞 방아쇠절의 값이다
     # ("온도가 10도를 넘을 때 그게 한 시간 전보다 높으면 …").
     # 예전에는 "한 시간 전보다 높으면" / "오늘 그 일이" 라고만 해서 무엇을 견주고

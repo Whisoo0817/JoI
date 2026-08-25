@@ -62,7 +62,7 @@ CHUNK = {
     "{n}분 기다렸다가":                ("DELAY", ["delay"]),
     "{n}분 뒤에 다시 꺼":              ("ACT",   ["delay", "repeat"]),
     "{n}분 쉬는 걸 {m}번 반복해":      ("ACT",   ["repeat", "count"]),
-    "{n}분까지 기다려 보고, 아니면":    ("TIME",  ["sustain"]),
+    "최대 {n}분 기다려 보고, 그래도 아니면": ("TIME",  ["sustain"]),
     "계속":                           ("READ",  ["read"]),
     "그러다 바뀌면 멈춰":              ("STOP",  []),
     "그 횟수를 세다가 {m}번을 넘으면":   ("COND", ["count"]),
