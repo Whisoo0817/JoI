@@ -358,7 +358,9 @@ def query_targets(sp, sent):
             # 전역 변수로 판단하거나 아예 안 보는 공간
             return [], ("global" if sp.get("occupancy") == "global" else "no_device")
     elif "temperature" in low:
-        cat = "TemperatureSensor"
+        # "바깥/실외 온도" 는 날씨 서비스가 답한다 — 방아쇠 쪽 32행이 이미 그렇다.
+        # 읽어서 알려 주는 3행만 실내 온도계를 읽고 있어 어긋나 있었다 (whisoo 2026-08-25).
+        cat = "WeatherProvider" if ("outdoor" in low or "outside" in low) else "TemperatureSensor"
     elif "humid" in low:
         cat = "HumiditySensor"
     else:
@@ -739,6 +741,7 @@ def main():
                         style = "none"          # 알림은 기기를 지목하는 문장이 아니다
                     body = fill(rng, body, sp, act, cat_t)
                     aslots, act_place = dict(SLOTS[0]), LAST_PLACE[0]
+                    aslots["place"] = act_place or ""      # 어느 자리를 물었나 (ir.NOW_NOTIFY_READ 가 본다)
                     if act == "query":
                         # 읽은 값을 어디로 말해 주나. 채널이 없으면 답할 길이 없다.
                         tsvc, ok_ch = notify_target(sp, "notify")

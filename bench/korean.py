@@ -468,7 +468,7 @@ TRIG_KO = {
     "when the door closes": "문이 닫히면",
     "when someone rings the doorbell": "누가 초인종을 누르면",
     "if the doorbell goes off": "초인종이 울리면",
-    "when there is somebody at the door": "문 앞에 누가 있으면",
+    "when the doorbell rings": "초인종이 울리면",
     "when I press the button": "내가 버튼을 누르면",
     "with a single press of {dev_t}": "{dev_t}%O 한 번 누르면",
     "when I double-press {dev_t}": "{dev_t}%S 연속 두 번 눌리면",

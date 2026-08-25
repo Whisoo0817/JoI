@@ -116,7 +116,7 @@ TRIG_IR = {
     # 초인종
     "when someone rings the doorbell":  _t("Doorbell", "Doorbell.DoorbellPressed == true"),
     "if the doorbell goes off":         _t("Doorbell", "Doorbell.DoorbellPressed == true"),
-    "when there is somebody at the door": _t("Doorbell", "Doorbell.DoorbellPressed == true"),
+    "when the doorbell rings": _t("Doorbell", "Doorbell.DoorbellPressed == true"),
     # 버튼
     "when I press the button":          _t("Button", 'Button.Button == "pushed"'),
     "with a single press of {dev_t}":   _t("Button", 'Button.Button == "pushed"'),
@@ -789,6 +789,11 @@ def act_nodes(*, act, tpl, act_cat, vague_tpl, slots, notify_svc, trig_kind, occ
         pre = []
         if vague_tpl is None and tpl in NOW_NOTIFY_READ:
             var, src = NOW_NOTIFY_READ[tpl]
+            # "바깥 온도" 는 날씨 서비스가 답한다 — 방아쇠 쪽("바깥 온도가 12도 아래로
+            # 떨어지면" 32행)이 이미 그렇다. 여기만 실내 온도계를 읽고 있어 어긋났다.
+            if src == "TemperatureSensor.Temperature" \
+                    and str(slots.get("place", "")).lower() in ("outdoor", "outside"):
+                var, src = "Temperature", "WeatherProvider.TemperatureWeather"
             pre = [{"op": "read", "var": var, "src": occ_src if src == "$OCCUPANCY" else src}]
         call = _notify_call(notify_svc, msg)
         return None if call is None else pre + [call]
