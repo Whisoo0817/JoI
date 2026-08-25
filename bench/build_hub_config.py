@@ -22,6 +22,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import ir
+import korean
 import policy
 
 OUT = os.path.join(os.path.dirname(HERE), "files", "hub_config.json")
@@ -48,10 +49,14 @@ OCCUPANCY_ORDER = [
 
 
 def scenes():
-    """장면 이름 → 조명 값. ir.SCENE 을 서비스 호출 대신 값으로 편다."""
+    """장면 이름 → 조명 값 + 사용자가 그 장면을 부르는 말.
+
+    ir.SCENE 을 서비스 호출 대신 값으로 편다. "가리키는 말"은 알림_순서와 같은
+    뜻이다 — 사람이 뭐라고 부르는지는 사용자가 정하는 것이라 허브에 적힌다.
+    파이프라인은 이 말로 절이 장면인지 알고, 칸 수로 호출을 몇 번 낼지 안다."""
     out = {}
     for name, parts in ir.SCENE.items():
-        d = {}
+        d = {"가리키는 말": korean.SCENE_KO.get(name, name)}
         for kind, v in parts:
             if kind == "bri":
                 d["밝기"] = float(v)

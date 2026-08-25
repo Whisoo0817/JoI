@@ -20,6 +20,8 @@
 """
 import re
 
+from . import rerank
+
 class Leaf(str):
     """잎(CALL/READ/DELAY/WAIT…) — 소유 절 추적을 위해 개별 객체""" 
 _CUR = [None]                      # 조립 중인 절 번호 (후보 생성·렌더링용 소유 정보)
@@ -146,6 +148,10 @@ def assemble(segs, cron, cyc_flags):
             if SLOT_DRIVEN and DELAY_LEAD_RE.search(texts[i]) and not PERIOD_RE.search(texts[i]): cur().add("DELAY")   # 절 안 지연 → DELAY + CALL
             if "mixed" in m and nxt[0] == "STOP":       # ACT/mixed("10씩 높여줘. 최대 밝기가 되면") + STOP = CALL + IF[BREAK]
                 cur().add("CALL"); b = Box("IF"); b.add("BREAK"); cur().add(b); i += 2; continue
+            n_scene = len(rerank.scene_calls(texts[i]))
+            if n_scene:                                 # 장면("조명 영화 모드로 해") = 허브에 적힌 칸 수만큼 호출
+                for _ in range(n_scene): cur().add("CALL")
+                i += 1; continue
             if MODE_TEMP_RE.search(texts[i]):           # "냉방 모드로 18도로 설정" = SetMode + SetTargetTemperature
                 cur().add("CALL"); cur().add("CALL"); i += 1; continue
             if TOGGLE_RE.search(texts[i]) and TOGGLE_ONOFF_RE.search(texts[i]):   # 켜고 끄기 = Switch.Toggle 한 호출(사용자 결정)

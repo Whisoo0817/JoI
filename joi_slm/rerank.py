@@ -11,16 +11,58 @@ ON = True
 
 # ── 알림 채널 고르기 (허브 설정) ──────────────────────────────────────
 _HUB = [None]
-def _notify_order():
-    """[(서비스, 있어야 하는 기기, 가리키는 말)] — 허브 설정에서 읽는다. 없으면 빈 목록."""
+def _hub():
+    """허브 설정(files/hub_config.json) 통째로. 없으면 빈 dict."""
     if _HUB[0] is None:
         import json as _j, os as _o
         f = _o.path.join(_o.path.dirname(_o.path.abspath(__file__)), "..", "files", "hub_config.json")
-        try: cfg = _j.load(open(f, encoding="utf-8"))
-        except Exception: cfg = {}
-        _HUB[0] = [(x["서비스"], x.get("있어야 하는 기기"), x.get("가리키는 말") or "")
-                   for x in cfg.get("알림_순서", [])]
+        try: _HUB[0] = _j.load(open(f, encoding="utf-8"))
+        except Exception: _HUB[0] = {}
     return _HUB[0]
+
+def _notify_order():
+    """[(서비스, 있어야 하는 기기, 가리키는 말)] — 허브 설정에서 읽는다. 없으면 빈 목록."""
+    return [(x["서비스"], x.get("있어야 하는 기기"), x.get("가리키는 말") or "")
+            for x in _hub().get("알림_순서", [])]
+
+# ── 장면 — 허브가 적어 둔 조명 설정 묶음 ────────────────────────────────────
+_SCENE = [None]
+
+def _scenes():
+    """{가리키는 말: {칸: 값}} — 허브 설정에서 읽는다.
+    "가리키는 말"은 사용자가 그 장면을 뭐라 부르는지다(알림_순서와 같은 뜻)."""
+    if _SCENE[0] is None:
+        out = {}
+        for name, d in (_hub().get("장면") or {}).items():
+            w = d.get("가리키는 말")
+            if w: out[w] = {k: v for k, v in d.items() if k != "가리키는 말"}
+        _SCENE[0] = out
+    return _SCENE[0]
+
+def scene_of(text):
+    """이 절이 가리키는 장면의 설정 칸. 장면이 아니면 None.
+    허브 표에 없는 이름은 못 알아본다 — 그게 맞다(사용자가 안 정한 장면이다)."""
+    hit = [w for w in _scenes() if w in text]
+    return _scenes()[max(hit, key=len)] if hit else None      # "저녁 식사" 가 "저녁" 보다 앞선다
+
+# 허브 칸 → 어떤 호출로 내리나. 칸 이름·값은 허브(사용자)가 정하고,
+# 그 칸을 어느 서비스로 부르는지는 카탈로그를 아는 여기가 정한다.
+SCENE_CALL = [
+    (("밝기",),        "Light.MoveToBrightness",
+     lambda d: {"Brightness": float(d["밝기"]), "Rate": 0.0}),
+    (("색온도",),      "Light.MoveToColorTemperature",
+     lambda d: {"ColorTemperature": d["색온도"]}),
+    (("색상", "채도"), "Light.MoveToHueAndSaturation",
+     lambda d: {"Hue": float(d["색상"]), "Saturation": float(d["채도"])}),
+    (("끔",),          "Switch.Off", lambda d: {}),
+]
+
+def scene_calls(text):
+    """장면 절 → [(서비스, 인자), …]. 장면이 아니면 빈 목록.
+    호출을 몇 번 낼지도 여기서 정해진다 — 허브에 적힌 칸 수가 곧 호출 수다."""
+    d = scene_of(text)
+    if not d: return []
+    return [(svc, mk(d)) for keys, svc, mk in SCENE_CALL if all(k in d for k in keys)]
 
 NOTIFY = {s for s, _, _ in _notify_order()}
 NOTIFY_WORD = re.compile("|".join(w for _, _, w in _notify_order() if w) or r"(?!x)x")

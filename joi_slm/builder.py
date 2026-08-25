@@ -435,6 +435,11 @@ def build(segments, M, graph=True, ask=None):
                 j = b.owner[id(x)]; s = S[j]; leaf = str(x)
                 if leaf == "CALL":
                     ncall[j] += 1; force = None; txt = s["text"]; same_svc = False
+                    sc = rerank.scene_calls(txt)
+                    if sc and ncall[j] <= len(sc):      # 장면 — 허브 표가 서비스도 값도 다 갖고 있다
+                        tgt, a = sc[ncall[j] - 1]
+                        out.append({"op": "call", "target": tgt, "args": dict(a)})
+                        continue
                     if MODE_ON_RE.search(txt) and ncall[j] == 1 and rerank.switchable(txt, M.sw): force = "Switch.On"   # A4: "모드로 켜고" 첫 호출 = 켜기(스위치 달린 기기일 때)
                     elif MODE_TEMP_RE.search(txt):                                                          # "냉방 모드로 18도로": 1=Mode 2=Temperature
                         fs = [f for f in M.ranked(OJ[j]) if svc_info(f)[0] == "function"]
