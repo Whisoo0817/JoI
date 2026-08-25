@@ -9,7 +9,8 @@ from .catalog import AL, EFF, svc_info, members_of, own_off, allowed
 from . import slots, rerank
 from .graph import normalize as graph_normalize
 
-_ASK = [None, ""]      # [Asker, 전체 문장] — build() 가 채운다. 없으면 규칙만으로 간다.
+_ASK = [None, ""]
+_OCC = [None]                 # 이 공간의 재실 판단 서비스 (허브). build() 가 채운다      # [Asker, 전체 문장] — build() 가 채운다. 없으면 규칙만으로 간다.
 
 class Asker:
     """규칙이 못 정한 칸을 2B 1토큰 객관식으로 정한다. 선택지는 카탈로그에서 오므로
@@ -75,8 +76,9 @@ class Mapping:
     """명령 하나의 매핑 결과. ranked: {j: [svc top-5]}, parts: {j: [{"part": text, "ranked": [값 svc top-5]}]}, texts: {j: 절 텍스트},
     conn: 연결된 기기 카테고리 집합(형제 후보 중 실제로 붙어 있는 것을 고르는 데 쓴다. None 이면 안 거른다),
     sw: 그중 Switch 를 같이 가진 종류(켜기/끄기를 Switch 로 할 수 있는 기기)"""
-    def __init__(self, ranked=None, parts=None, texts=None, conn=None, sw=None):
+    def __init__(self, ranked=None, parts=None, texts=None, conn=None, sw=None, occ=None):
         self.conn = conn; self.sw = sw
+        self.occ = occ            # 이 공간에서 재실을 판단할 서비스 (허브가 정한다). 없으면 None
         self.r = {int(k): [x for x in v if allowed(x)] for k, v in (ranked or {}).items()}
         self.p = {int(k): v for k, v in (parts or {}).items()}
         self.t = {int(k): v for k, v in (texts or {}).items()}
@@ -99,9 +101,9 @@ def _lex_score(part, svc):
     cat = svc.split(".")[0]
     return len(_bigrams(part) & _bigrams(" ".join(AL.get(cat, []) + EFF.get(svc, {}).get("ko_triggers", []) + [cat])))
 def _choose(cands, sc): return cands[max(range(len(cands)), key=lambda k: sc[k])]
-def pick_value(text, vals, norank=False, conn=None):
+def pick_value(text, vals, norank=False, conn=None, occ=None):
     """값 서비스 후보(순위순) → 어휘 중복·순위·재정렬 보너스로 top-1. norank: 숫자뿐인 질의(검색 순위 무의미)면 순위 감점 생략"""
-    bon, extra = rerank.value_bonus(text, vals, conn)
+    bon, extra = rerank.value_bonus(text, vals, conn, occ)
     vals = list(vals) + [e for e in extra if svc_info(e)[0] == "value" and (conn is None or e.split(".")[0] in conn)]
     if not vals: return None
     return _choose(vals, [_lex_score(text, vals[k]) - (0 if norank else k) + bon.get(vals[k], 0) for k in range(len(vals))])
@@ -140,7 +142,7 @@ def _cond_expr(M, j, text):
             else: return part
             prev = " ".join(M.text(k) for k in ks)
             return (prev + " " + part) if prev else part
-        exprs = [_one_cond(pick_value(_ctx(x["part"]), [s_ for s_ in x["ranked"] if svc_info(s_)[0] == "value"], norank=NUM_ONLY.match(x["part"].strip()) is not None, conn=M.conn), x["part"]) for x in cp]
+        exprs = [_one_cond(pick_value(_ctx(x["part"]), [s_ for s_ in x["ranked"] if svc_info(s_)[0] == "value"], norank=NUM_ONLY.match(x["part"].strip()) is not None, conn=M.conn, occ=M.occ), x["part"]) for x in cp]
         out = exprs[0]
         for k, e in enumerate(exprs[1:]): out += (" or " if k < len(conns) and conns[k] in ("거나", "이거나") else " and ") + e
         return out
@@ -155,7 +157,7 @@ def _cond_expr(M, j, text):
         out = exprs[0]
         for k, e in enumerate(exprs[1:]): out += (" or " if k < len(conns) and conns[k] in ("거나", "이거나") else " and ") + e
         return out
-    return _one_cond(pick_value(text, vals, conn=M.conn), text)
+    return _one_cond(pick_value(text, vals, conn=M.conn, occ=M.occ), text)
 
 NUM_T = ("DOUBLE", "INT", "INTEGER", "FLOAT", "LONG")
 
@@ -170,6 +172,11 @@ def hub():
     return _HUB[0]
 def _one_cond(svc, text):
     if not svc: return "?"
+    if _OCC[0] and svc == _OCC[0].split("(")[0]:
+        # 재실 — 허브가 적어 둔 그대로 쓴다. 전역 변수면 이름표가 붙는다
+        # (GlobalVariable.Value("Human")). 값은 참/거짓이라 BOOL 과 같이 2B 에게 묻는다.
+        a = _ASK[0].bool_state(_ASK[1], text, _OCC[0], "사람이 있나") if _ASK[0] else None
+        return f"{_OCC[0]} == {a or slots.bool_state(text, 'BOOL', [])}"
     k, spec = svc_info(svc); cat = svc.split(".")[0]; vt = spec.get("type") if spec else None
     cv = rerank.value_conv(svc, text)
     if cv and (vt not in NUM_T or slots.comparator(text) is None or not re.search(r"이상|이하|미만|초과|넘|보다|떨어|올라|아래|밑", text)): return f"{svc} {cv}"
@@ -218,6 +225,14 @@ def pick_function(M, j, text, avoid=()):
         keep = [c for c in cands if c not in avoid]
         n0 = len([c for c in cands[:n0] if c not in avoid]); cands = keep
     if not cands: return None
+    # 스스로 켜고 끌 줄 아는 기기(챔버 SetChamberMode, 커피포트 Brew/Stop)면 일반 스위치는 뺀다.
+    # 안 그러면 "챔버 켜" 에서 이름에 On 이 붙었다는 이유로 Switch.On 이 1등 후보를 이긴다.
+    # 어느 기기가 그런지는 카탈로그가 안다(own_off) — 손 표 없음.
+    own = own_off(cands[0].split(".")[0])[0] if cands else None
+    if own and not cands[0].startswith("Switch."):
+        keep = [c for c in cands if c not in ("Switch.On", "Switch.Off")]
+        if keep:
+            n0 = len([c for c in cands[:n0] if c in keep]); cands = keep
     pol = [p for p, rx in POS.items() if re.search(rx, text)]; has_num = slots.number_arg(text) is not None
     def score(k, s_):
         name = s_.split(".", 1)[1]; sc = -(k if k < n0 else 1) + bon.get(s_, 0)      # 규칙 추가 후보는 순위 벌점 1
@@ -228,7 +243,9 @@ def pick_function(M, j, text, avoid=()):
         if has_num and nargs and name.startswith(("Set", "MoveTo")): sc += 2
         if "Mode" in name or any(a.get("type") == "ENUM" for a in spec.get("arguments", [])):   # A14: 해당 enum 멤버가 있는 모드 설정 함수 우선
             for a in spec.get("arguments", []):
-                if a.get("type") == "ENUM": sc += 2 if slots.enum_arg(text, members_of(s_.split(".")[0], a.get("format"))) else -1
+                if a.get("type") != "ENUM": continue
+                if slots.enum_arg(text, members_of(s_.split(".")[0], a.get("format"))): sc += 2
+                elif s_ != own: sc -= 1        # 그 기기의 켜고 끄는 방법 자체면 모드 말이 없다고 깎지 않는다
         if rerank.sets_mode(s_) and nargs and not has_num: sc -= 3   # 모드만 말한 명령에 시간까지 달라는 함수는 뒤로
         if not has_num and name.startswith(("Set", "MoveTo")) and nargs and not spec.get("arguments", [{}])[0].get("type") == "ENUM" and not re.search(r"켜|꺼|끄|최대|최소", text): sc -= 1
         return sc
@@ -248,10 +265,16 @@ def call_node(M, j, text, force=None, avoid=()):
     for a in spec.get("arguments", []):
         aid, at = a["id"], a.get("type")
         if at == "ENUM":
-            v = slots.enum_arg(text, members_of(cat, a.get("format")))
+            ms = members_of(cat, a.get("format"))
+            # "챔버 켜 줘" 처럼 그냥 켜라는 말이면 끄는 값은 답이 될 수 없다 — 물음에서 뺀다.
+            # (안 빼면 2B 가 "켜"에 off 를 고르기도 한다.) 반대로 끄라는 말이면 끄는 값만 본다.
+            on_, off_ = re.search(POS["on"], text), re.search(POS["off"], text)
+            if on_ and not off_: ms = [m for m in ms if m not in ("off", "stop")] or ms
+            elif off_ and not on_: ms = [m for m in ms if m in ("off", "stop")] or ms
+            v = slots.enum_arg(text, ms)
             if not v and _ASK[0]:
-                v = _ASK[0].enum_member(_ASK[1], text, svc, a.get("descriptor") or spec.get("descriptor", ""),
-                                        members_of(cat, a.get("format")))
+                v = _ASK[0].enum_member(_ASK[1], text, svc,
+                                        a.get("descriptor") or spec.get("descriptor", ""), ms)
             if v: args[aid] = v
         elif at in NUM_T:
             st = STEP_RE.search(text); lim = re.search(r"(최대|최소|최저|최고)\s*(\d+)", text)
@@ -355,6 +378,7 @@ def build(segments, M, graph=True, ask=None):
     """segments: [{j, text, type, mods, (h6)}] (원문 순서), M: Mapping → {"timeline": [...]}. 진단은 build.last.
     ask: Asker — 규칙이 못 정한 칸(참/거짓, enum)을 2B 객관식으로 정한다. None 이면 규칙만."""
     _ASK[0], _ASK[1] = ask, " ".join(s["text"] for s in segments)
+    _OCC[0] = getattr(M, "occ", None)
     S = [{**s, "j": s.get("j", k), "mods": slot_mods(s["type"], s["text"], s["mods"])} for k, s in enumerate(segments)]
     GD = None
     if len(S) >= 2:
@@ -470,7 +494,7 @@ def build(segments, M, graph=True, ask=None):
                     if getf and (top(M, OJ[j], "value") is None or param) and not re.search(r"온도|습도|조도|농도|상태|값|수치", s["text"]):
                         out.append(call_node(M, OJ[j], s["text"], force=getf))            # 값 서비스가 없거나 인자 필요 → 함수 call
                     else:
-                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(M, OJ[j], "value") or pick_value(s["text"], [], conn=M.conn) or "?"})
+                        counter[0] += 1; out.append({"op": "read", "var": f"v{counter[0]}", "src": top(M, OJ[j], "value") or pick_value(s["text"], [], conn=M.conn, occ=M.occ) or "?"})
                 elif leaf == "DELAY": out.append({"op": "delay", "duration": slots.duration(s["text"]) or "?"})
                 elif leaf.startswith("WAIT"):
                     # 기다림은 **그 일이 벌어지는 순간**(rising)이 기본이다.

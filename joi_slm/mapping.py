@@ -5,6 +5,7 @@ import json, os, re
 import numpy as np
 from .catalog import SERVICES, EFF, ROLE, AL, svc_doc, svc_info, conn_categories, switch_categories
 from .builder import Mapping
+from . import rerank
 
 ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "examples.json")
 COND_ASSET = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "cond_examples.json")
@@ -67,6 +68,7 @@ class Retriever:
     def __call__(self, segs, connected_devices=None, exclude=()):
         """segs: [{j, text, type}] → Mapping. exclude: 예문에서 뺄 원본 명령 i(held-out 평가용)."""
         conn = conn_categories(connected_devices); sw = switch_categories(connected_devices)
+        occ = rerank.occupancy_of(connected_devices)          # 재실 판단 주체 — 허브가 공간마다 정한다
         q = [(s["j"], s["text"], s["type"]) for s in segs if s["type"] in OK]
         ranked = {}
         if q:
@@ -93,7 +95,7 @@ class Retriever:
                     if conn is not None and v.split(".")[0] not in conn: sc[k] = -9
                     else: sc[k] += 0.02 * _lex(p, EFF[v]) + 0.08 * _alias(p, EFF[v])
                 parts.setdefault(j, []).append({"part": p, "ranked": [VAL[k] for k in np.argsort(-sc)[:5]]})
-        return Mapping(ranked, parts, {s["j"]: s["text"] for s in segs}, conn, sw)
+        return Mapping(ranked, parts, {s["j"]: s["text"] for s in segs}, conn, sw, occ)
 
 def build_examples(labels, gold_of, embedder, out=ASSET):
     """코퍼스 예문: 명령의 gold 서비스마다 역할이 맞는 절 중 문서 유사도 최고인 절을 예문으로. labels: type_labels 항목들, gold_of(o)→IR."""

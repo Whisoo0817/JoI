@@ -64,6 +64,33 @@ def scene_calls(text):
     if not d: return []
     return [(svc, mk(d)) for keys, svc, mk in SCENE_CALL if all(k in d for k in keys)]
 
+# ── 재실 주체 — 허브가 적어 둔 순서대로 ────────────────────────────────────
+OCC_WORD = re.compile(r"사람|재실|아무도|누군가|누가|비어 ?있|부재")
+
+def _occ_order():
+    """[(쓸 것, 있어야 하는 것)] — 허브 설정의 재실주체_순서."""
+    return [(x["쓸 것"], x.get("있어야 하는 것") or "") for x in _hub().get("재실주체_순서", [])]
+
+def occupancy_of(connected_devices):
+    """이 공간에서 "사람이 있나" 를 무엇으로 판단하나. 방법이 없으면 None.
+
+    허브 순서를 위에서부터 훑어 **그 공간에 실제로 되는 첫 번째**를 쓴다.
+    전역 변수는 서비스가 어디에나 있으므로 **변수 이름**이 실제로 정의돼 있는지로
+    본다(기기의 variables 칸). 이걸 안 보면 40곳 모두 전역 변수로 가 버린다."""
+    if not connected_devices: return None
+    cats, names = set(), set()
+    for d in connected_devices.values():
+        if not isinstance(d, dict): continue
+        cats |= set(d.get("category") or [])
+        names |= set(d.get("variables") or {})
+    for svc, need in _occ_order():
+        if svc.startswith("GlobalVariable"):
+            m = re.search(r'"([^"]+)"', svc)                 # GlobalVariable.Value("Human") → Human
+            if m and m.group(1) in names: return svc
+        elif need in cats:
+            return svc
+    return None
+
 NOTIFY = {s for s, _, _ in _notify_order()}
 NOTIFY_WORD = re.compile("|".join(w for _, _, w in _notify_order() if w) or r"(?!x)x")
 
@@ -208,7 +235,7 @@ def func_bonus(text, cands, conn=None, sw=None):
         elif named: b[s] = b.get(s, 0) - 2                     # 다른 기기를 이름 대고 불렀다
     return b, extra
 
-def value_bonus(text, cands, conn=None):
+def value_bonus(text, cands, conn=None, occ=None):
     if not ON: return {}, []
     b = {}; extra = []
     def add(s, v):
@@ -229,11 +256,16 @@ def value_bonus(text, cands, conn=None):
             if cat in ("Switch", "LevelControl"): continue
             if cat in named: b[s_] = b.get(s_, 0) + 2
             elif named: b[s_] = b.get(s_, 0) - 2
-        for rx, *sib in SENSOR_LEX:
-            if re.search(rx, text):
-                s_ = pick(conn, *sib)
-                if s_: add(s_, 5)
-                break
+        if occ and OCC_WORD.search(text):
+            # "사람이 있으면" — 이 공간에서 누가 판단 주체인지는 허브가 안다.
+            # 낱말표(SENSOR_LEX)로는 재실 센서와 전역 변수를 못 가른다.
+            add(occ, 6)
+        else:
+            for rx, *sib in SENSOR_LEX:
+                if re.search(rx, text):
+                    s_ = pick(conn, *sib)
+                    if s_: add(s_, 5)
+                    break
     return b, extra
 
 # ── 값 표현 관례(gold 관례 사전): 서비스별 상태어 → 연산자·값 ──
