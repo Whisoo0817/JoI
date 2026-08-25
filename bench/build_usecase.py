@@ -2278,7 +2278,8 @@ def main():
         w.writeheader()
         for r in kept:
             w.writerow({k: r[k] for k in COLS})
-        for r in ROWS:
+        # U행도 티어 오름차순으로 — 번호는 그대로 둔다 (KO_FIX 등 손 표가 U번호를 쓴다)
+        for r in sorted(ROWS, key=lambda r_: r_["tier"]):
             w.writerow({k: r[k] for k in COLS})
     print(f"dataset_5k.csv: {len(kept)} + {len(ROWS)} = {len(kept) + len(ROWS)}문장")
 

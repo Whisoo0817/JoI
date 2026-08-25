@@ -949,6 +949,15 @@ def main():
                 targets=" ".join(targets), n_target=len(targets),
                 target_svc=" ".join(tsvc), match=match, ir_gt=ir_gt))
 
+    # 티어 오름차순으로 줄 세우고 번호를 다시 매긴다 (whisoo 2026-08-25).
+    # 같은 티어 안에서는 만든 순서 그대로(안정 정렬) — 내용은 하나도 안 바뀐다.
+    # parts 는 rows 와 나란한 표라 같은 순서로 함께 세운다.
+    order = sorted(range(len(rows)), key=lambda k: (rows[k]["tier"], k))
+    rows = [rows[k] for k in order]
+    parts = [parts[k] for k in order]
+    for n, (r_, p_) in enumerate(zip(rows, parts), 1):
+        r_["id"] = p_["id"] = f"G{n:05d}"
+
     # 안 싣는 열 넷 — 다른 열에서 그대로 나오거나(kind ← space_id, n_target ← targets,
     # match ← expect) 안 쓴다(tone). rows 안에는 남아 있어 아래 검산이 그대로 쓴다.
     cols = ["id", "space_id", "command", "command_ko", "mode", "trig", "act",
