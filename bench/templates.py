@@ -36,12 +36,12 @@ TRIG = {
                  "when there is somebody at the door"],
     "button": ["when I press the button", "with a single press of {dev_t}",
                "when I double-press {dev_t}", "with one tap on the wall switch",
-               "when the scene switch is pressed"],
+               "when the scene button is pressed"],
     # 문장이 대는 물리량과 시나리오의 센서가 맞아야 한다. 어느 센서에나 붙는
     # 일반 문형("{sensor} 가 300 을 넘으면")을 같이 둔다 — ir.py 가 짝을 맞춘다.
-    "threshold": ["when the temperature goes above {deg} degrees",
-                  "if the temperature drops below {deg} degrees",
-                  "while the temperature stays over {deg} degrees",
+    "threshold": ["when the temperature goes above {deg_hi} degrees",
+                  "if the temperature drops below {deg_lo} degrees",
+                  "while the temperature stays over {deg_hi} degrees",
                   "when the humidity climbs over {pct} percent",
                   "once the air quality gets worse than {lvl}",
                   "if {sensor} reads more than {lvl}",
@@ -49,7 +49,7 @@ TRIG = {
                   "if {sensor} falls under {lvl}",
                   "while {sensor} stays above {lvl}"],
     "weather": ["when it starts raining", "if rain is in the forecast",
-                "when it gets hot outside", "if the outside temperature drops below {deg}",
+                "when it gets hot outside", "if the outside temperature drops below {deg_lo}",
                 "when snow is expected", "if the forecast says frost"],
     "calendar": ["when a meeting is about to start", "at the start of my next event",
                  "if my calendar says I am busy", "when today's first event begins"],
@@ -90,7 +90,7 @@ ACT = {
     "light.on": ["turn on {dev}", "switch {dev} on", "put {dev} on", "get {dev} on",
                  "light up {dev}"],
     "light.off": ["turn off {dev}", "switch {dev} off", "shut {dev} off", "kill {dev}"],
-    "light.dim": ["dim {dev} to {n} percent", "set {dev} brightness to {n} percent",
+    "light.dim": ["dim {dev} to {lo} percent", "set {dev} brightness to {n} percent",
                   "bring {dev} down to {lo} percent", "turn {dev} up to {hi} percent"],
     "light.color": ["set {dev} to {color}", "make {dev} {color}", "change {dev} to {color}",
                     "turn {dev} {color}"],
@@ -296,7 +296,6 @@ LOGIC_HARD = [
     ("D10", "wait up to {n} minutes to see if {cond}; if not, {a}"),
     ("D11", "if it is higher than it was an hour ago, {a}"),
     ("D11", "compare it with yesterday at the same time and {a} if it went up"),
-    ("D12", "if that has happened more than {m} times today, {a}"),
     ("D12", "count how many times it happens and {a} once it passes {m}"),
     ("D13", "{a} every {n} minutes while {cond}, and stop after {m} hours"),
     ("D13", "wait until {cond}, then {a} every {n} minutes for {m} hours"),
@@ -331,6 +330,104 @@ TURN_ON = {"ac", "fan", "purifier", "ventilator", "humidity", "heater", "growlig
            "light.on", "plug", "switch", "media", "vacuum", "sprinkler", "pump",
            "conveyor", "compressor", "mower", "chamber", "camera", "coffee",
            "waterheater", "armrobot"}
+
+# ── 물리적으로 거꾸로인 짝 ─────────────────────────────────────────────
+# 센서가 없어서 못 하는 명령은 시험 문제로 값이 있다. 그런데 **센서는 있는데
+# 시키는 게 해로운** 명령은 다르다 — 지금 판정 축(execute/ask/refuse)에 "위험해서
+# 거절" 이 없어서 정답을 적을 수가 없다. 그래서 아예 안 만든다 (whisoo 2026-08-25).
+#
+# 상황 이름 → 그 상황에서 하면 안 되는 (동작 갈래, 켜냐/끄냐).
+#   "on"  = 켜기·올리기·시작 · "off" = 끄기·내리기·잠그기·풀기 · "*" = 둘 다
+UNSAFE = {
+    "cold":   [("fan", "on"), ("ac", "on"), ("ventilator", "on"),
+               ("purifier", "on"), ("thermostat", "off")],  # 추운데 냉방·난방 끄기
+    "hot":    [("thermostat", "on"), ("waterheater", "on"),
+               ("ventilator", "off"), ("fan", "off"), ("ac", "off")],
+    "gas":    [("ventilator", "off"), ("purifier", "off"), ("valve", "on"),
+               ("thermostat", "on"), ("siren", "off")],    # 가스인데 환기·경보를 끄다
+    "smoke":  [("ventilator", "off"), ("thermostat", "on"), ("siren", "off"),
+               ("lock", "on")],                            # 불났는데 문을 잠그다
+    "leak":   [("pump", "on"), ("sprinkler", "on"), ("valve", "on"),
+               ("siren", "off")],
+    "airbad": [("ventilator", "off"), ("purifier", "off")],
+    "humid":  [("humidity", "on"), ("sprinkler", "on")],   # 습한데 가습
+    "dark":   [("lock", "off"), ("garage", "on"), ("cover", "on"),
+               ("light.off", "*")],                        # 어두운데 열고 끄다
+    "open":   [("lock", "off"), ("thermostat", "on"), 
+               ("ac", "on")],                              # 열려 있는데 냉난방
+    "wet":    [("sprinkler", "on"), ("mower", "on"), ("cover", "on")],  # 비·눈
+    "frost":  [("fan", "on"), ("ac", "on"), ("cover", "on")],
+    "empty":  [("light.on", "on"), ("media", "on"), ("coffee", "on"),
+               ("lock", "off"), ("garage", "on")],         # 아무도 없는데 켜고 열다
+    # 아래는 재검토(opus 5대)에서 더 나온 것들
+    "occupied": [("light.off", "*"), ("light.on", "off"), ("switch", "off"),
+                 ("media", "off"), ("camera", "off"), ("lock", "on")],
+    "nomotion": [("light.on", "on"), ("media", "on")],     # 아무도 안 움직이는데 켜다
+    "windy":  [("cover", "on")],                           # 강풍인데 블라인드 올리다
+    "presshigh": [("compressor", "on"), ("pump", "on")],   # 압력이 높은데 더 올리다
+    "battlow": [("vacuum", "on"), ("mower", "on"), ("media", "on")],
+    "tanklow": [("pump", "on"), ("sprinkler", "on"), ("coffee", "on")],
+}
+
+# 방아쇠 틀 → 상황 이름
+TRIG_SENSE = {
+    "if the temperature drops below {deg_lo} degrees": "cold",
+    "if the outside temperature drops below {deg_lo}": "cold",
+    "when the temperature goes above {deg_hi} degrees": "hot",
+    "while the temperature stays over {deg_hi} degrees": "hot",
+    "when it gets hot outside": "hot",
+    "when the gas sensor goes over {lvl}": "gas",
+    "if a gas leak is detected": "gas",
+    "when {sensor} reads a dangerous level": "gas",
+    "when the smoke detector goes off": "smoke",
+    "if the smoke alarm sounds": "smoke",
+    "when {sensor} reports smoke": "smoke",
+    "when a water leak is detected": "leak",
+    "if {sensor} finds water on the floor": "leak",
+    "when the leak sensor trips": "leak",
+    "once the air quality gets worse than {lvl}": "airbad",
+    "when the humidity climbs over {pct} percent": "humid",
+    "at sunset": "dark", "when the sun goes down": "dark",
+    "as the sun sets": "dark", "around sundown": "dark",
+    "once it gets dark outside": "dark",
+    "when the {place} door opens": "open", "if a window is left open": "open",
+    "when {sensor} says the door is open": "open",
+    "once the door has been open for {n} minutes": "open",
+    "when it starts raining": "wet", "if rain is in the forecast": "wet",
+    "when snow is expected": "wet",
+    "if the forecast says frost": "frost",
+    "once the {place} is empty": "empty", "while nobody is around": "empty",
+    "while someone is in the {place}": "occupied",
+    "when the {place} is occupied": "occupied",
+    "when someone shows up in the {place}": "occupied",
+    "when I get home": "occupied", "as soon as I arrive home": "occupied",
+    "when I pull into the driveway": "occupied", "once I am back home": "occupied",
+    "when I am close to home": "occupied",
+    "when someone rings the doorbell": "occupied",
+    "if the doorbell goes off": "occupied",
+    "when there is somebody at the door": "occupied",
+    "when nothing has moved for {n} minutes": "nomotion",
+    "when the wind picks up past {wind}": "windy",
+    "if wind speed goes over {wind}": "windy",
+    "if power draw stays above {watt} watts": "presshigh",
+    "when the battery drops below {pct} percent": "battlow",
+    "if any sensor battery is running low": "battlow",
+    "if my phone battery falls under {pct} percent": "battlow",
+    "when I leave home": "empty", "once everyone has left": "empty",
+    "after I head out": "empty", "when I am away from home": "empty",
+}
+# 조건절 → 상황 이름
+COND_SENSE = {
+    "the room is too warm": "hot",
+    "the temperature is under 18 degrees": "cold",
+    "the humidity is over 60 percent": "humid",
+    "it is dark outside": "dark",
+    "the door is open": "open", "the window is open": "open",
+    "nobody is home": "empty", "nobody is around": "empty",
+    "someone is in the room": "occupied",
+    "the tank is below half": "tanklow",
+    "the battery is under 20 percent": "battlow",
+}
 
 # 조건절이 읽는 센서. 방아쇠가 이미 읽고 있는 것을 조건으로 또 읽지 않게 쓴다
 #   ("온도가 15도 아래로 떨어지면 온도가 18도 아래인 동안 …")
@@ -413,6 +510,9 @@ VALUES = {
     "weekday": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday",
                 "Saturday", "Sunday", "weekends"],
     "deg": [0, 5, 10, 15, 18, 20, 22, 24, 26, 28, 30],
+    # 방향이 있는 문턱. "0도를 넘으면" 은 늘 참이고 "30도 아래로 떨어지면" 도 늘 참이다
+    "deg_hi": [24, 26, 28, 30, 32, 35],
+    "deg_lo": [0, 5, 10, 12, 15, 18],
     "pct": [30, 40, 50, 55, 60, 65, 70, 80],
     "lvl": [50, 100, 150, 200, 300, 500, 800, 1000],
     "watt": [500, 800, 1000, 1500, 2000, 3000],

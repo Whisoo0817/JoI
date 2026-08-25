@@ -121,15 +121,15 @@ TRIG_IR = {
     "when I press the button":          _t("Button", 'Button.Button == "pushed"'),
     "with a single press of {dev_t}":   _t("Button", 'Button.Button == "pushed"'),
     "with one tap on the wall switch":  _t("Button", 'Button.Button == "pushed"'),
-    "when the scene switch is pressed": _t("Button", 'Button.Button == "pushed"'),
+    "when the scene button is pressed": _t("Button", 'Button.Button == "pushed"'),
     "when I double-press {dev_t}":      _t("Button", 'Button.Button == "double"'),
     # 임계값 — 문장이 대는 물리량과 시나리오의 센서가 맞아야 한다
-    "when the temperature goes above {deg} degrees":
-        _t("TemperatureSensor", "TemperatureSensor.Temperature > $deg"),
-    "if the temperature drops below {deg} degrees":
-        _t("TemperatureSensor", "TemperatureSensor.Temperature < $deg"),
-    "while the temperature stays over {deg} degrees":
-        _t("TemperatureSensor", "TemperatureSensor.Temperature > $deg", edge="none"),
+    "when the temperature goes above {deg_hi} degrees":
+        _t("TemperatureSensor", "TemperatureSensor.Temperature > $deg_hi"),
+    "if the temperature drops below {deg_lo} degrees":
+        _t("TemperatureSensor", "TemperatureSensor.Temperature < $deg_lo"),
+    "while the temperature stays over {deg_hi} degrees":
+        _t("TemperatureSensor", "TemperatureSensor.Temperature > $deg_hi", edge="none"),
     "when the humidity climbs over {pct} percent":
         _t("HumiditySensor", "HumiditySensor.Humidity > $pct"),
     "once the air quality gets worse than {lvl}":
@@ -143,8 +143,8 @@ TRIG_IR = {
     "if rain is in the forecast": _t("WeatherProvider", 'WeatherProvider.Weather == "rain"', edge="none"),
     "when snow is expected":      _t("WeatherProvider", 'WeatherProvider.Weather == "snow"', edge="none"),
     "when it gets hot outside":   _t("WeatherProvider", "WeatherProvider.TemperatureWeather > $too_warm_c"),
-    "if the outside temperature drops below {deg}":
-        _t("WeatherProvider", "WeatherProvider.TemperatureWeather < $deg"),
+    "if the outside temperature drops below {deg_lo}":
+        _t("WeatherProvider", "WeatherProvider.TemperatureWeather < $deg_lo"),
     "if the forecast says frost": _t("WeatherProvider", "WeatherProvider.TemperatureWeather <= 0", edge="none"),
     # 일정
     "when a meeting is about to start": _t("CalendarProvider", "CalendarProvider.IsBusy == true"),
@@ -316,7 +316,7 @@ ACT_IR = {
     "light.off": {t: [P_OFF] for t in
                   ["turn off {dev}", "switch {dev} off", "shut {dev} off", "kill {dev}"]},
     "light.dim": {
-        "dim {dev} to {n} percent":    [c("Light.MoveToBrightness", Brightness="$n", Rate=0.0)],
+        "dim {dev} to {lo} percent":   [c("Light.MoveToBrightness", Brightness="$lo", Rate=0.0)],
         "set {dev} brightness to {n} percent": [c("Light.MoveToBrightness", Brightness="$n", Rate=0.0)],
         "bring {dev} down to {lo} percent": [c("Light.MoveToBrightness", Brightness="$lo", Rate=0.0)],
         "turn {dev} up to {hi} percent":    [c("Light.MoveToBrightness", Brightness="$hi", Rate=0.0)],
@@ -911,9 +911,9 @@ def logic_nodes(frame, acts, cond, slots, trig_cond, off_call):
             lambda: [{"op": "read", "var": "Current", "src": src},
                      {"op": "read", "var": "Previous", "src": src + "@-1DAY"}]
                     + iff("Current > Previous", acts),
-        "if that has happened more than {m} times today, {a}":
-            lambda: [{"op": "read", "var": "Count", "src": src + "@count:today"}]
-                    + iff(f"Count > {m}", acts),
+        # "if that has happened more than {m} times today, …" 는 뺐다 —
+        # 방아쇠절 뒤의 "그게 오늘 N번" 이 무엇을 세는지 한국어로 안 잡힌다
+        # (2026-08-25, whisoo). 세는 문형은 아래 "count how many times" 하나만 쓴다.
         "count how many times it happens and {a} once it passes {m}":
             lambda: [{"op": "read", "var": "Count", "src": src + "@count:today"}]
                     + iff(f"Count >= {m}", acts),
