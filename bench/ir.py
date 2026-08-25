@@ -400,7 +400,7 @@ ACT_IR = {
     "vacuum": {
         "start {dev}": [c("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="auto")],
         "stop {dev}":  [c("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="stop")],
-        "run {dev} in the {place}": [c("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="part")],
+        "run {dev} in the {place}": [c("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="auto")],   # part(spot 청소)가 아니라 auto — "거실 청소해"는 그냥 돌리라는 말이다 (whisoo 2026-08-25)
         "send {dev} back to its dock": [c("RobotVacuumCleaner.GoHome")],
     },
     "mower": {"start {dev}": [c("Mower.StartMowing")], "park {dev}": [c("Mower.Dock")],
