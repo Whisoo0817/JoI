@@ -6,7 +6,7 @@
 형제 후보는 연결된 기기(conn)에 있는 쪽을 먼저 쓴다 — 예: "문이 열리면" 은 Door 가 붙어 있으면 Door.DoorState, 없으면 ContactSensor.Contact.
 """
 import re
-from .catalog import AL, svc_info
+from .catalog import own_off, AL, svc_info
 ON = True
 
 # ── 알림 채널 고르기 (허브 설정) ──────────────────────────────────────
@@ -174,7 +174,13 @@ def func_bonus(text, cands, conn=None, sw=None):
         for s in cands:
             if s.endswith("SetChannel") and re.search(r"\d+\s*번", text): b[s] = b.get(s, 0) + 6
             if s.endswith(("ChannelUp", "ChannelDown")) and re.search(r"하나|한 ?칸|다음|이전|올려|내려", text) and not re.search(r"\d+\s*번", text): b[s] = b.get(s, 0) + 6
-    elif not LIGHT.search(text) and not MODE.search(text) and switchable(text, sw):   # A3: 모드어 없는 기기 켜기/끄기 = Switch.On/Off
+    elif not LIGHT.search(text) and not MODE.search(text) and switchable(text, sw) \
+            and not (cands and own_off(cands[0].split(".")[0])[0]):
+        # A3: 모드어 없는 기기 켜기/끄기 = Switch.On/Off.
+        # 단 **스스로 켜고 끌 줄 아는 기기**(선풍기 Mode=off, 커피포트 Stop)는 빼고 —
+        # 카탈로그가 아는 것이라 표를 적지 않는다. 이걸 안 빼면 "선풍기 꺼" 가
+        # 1등 후보(Fan.SetFanMode)를 제치고 Switch.Off 로 간다. 조명·TV·플러그처럼
+        # 스스로 끄는 법이 없는 기기만 Switch 로 끈다(정답도 그렇다).
         if re.search(r"켜|틀어|가동", text) and not re.search(r"꺼|끄", text): add("Switch.On", 4)
         elif re.search(r"꺼|끄", text): add("Switch.Off", 4)
     if re.search(r"\d+\s*(%|퍼센트)", text):                                # A9: 수치(%) 지정은 Set*/MoveTo* (극성어 무시)

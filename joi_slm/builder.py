@@ -5,7 +5,7 @@
 """
 import re, collections, json
 from .box import Box, assemble_tree, MODE_ON_RE, PULSE_RE, TOGGLE_RE, TOGGLE_ONOFF_RE, SPLIT_TOGGLE_RE, SPLIT_TOGGLE2_RE, MODE_TEMP_RE, ELSE_SPLIT
-from .catalog import AL, EFF, svc_info, members_of, allowed
+from .catalog import AL, EFF, svc_info, members_of, own_off, allowed
 from . import slots, rerank
 from .graph import normalize as graph_normalize
 
@@ -295,10 +295,8 @@ def off_node(prev):
     없으면 스위치를 끈다(펌프). 어느 쪽인지는 카탈로그 값 목록으로 안다 — 손 표 없음."""
     svc = (prev or {}).get("target")
     if svc and svc != "?":
-        cat = svc.split(".")[0]
-        for a in (svc_info(svc)[1].get("arguments") or []):
-            if a.get("type") == "ENUM" and "off" in members_of(cat, a.get("format")):
-                return {"op": "call", "target": svc, "args": {a["id"]: "off"}}
+        own, arg = own_off(svc.split(".")[0])
+        if own: return {"op": "call", "target": own, "args": {arg: "off"} if arg else {}}
     return {"op": "call", "target": "Switch.Off", "args": {}}
 
 # ── 절 전처리: 슬롯 주도 mods, 표면 규칙 일반형, 관용구 ──

@@ -33,6 +33,30 @@ def svc_info(svc):
 def members_of(cat, fmt):
     return SERVICE_DATA.get(cat, {}).get("enums_map", {}).get(fmt, [])
 
+
+_OWN_OFF = {}
+def own_off(cat):
+    """그 기기 종류가 **스스로 끄는 방법**이 있나 → (서비스, enum 인자 이름) 또는 (None, None).
+    값 목록에 off 가 있는 Set* 함수(선풍기 Mode=off)나, 인자 없는 Stop/Off 함수
+    (커피포트 Stop)를 카탈로그에서 찾는다. 손으로 적은 표가 아니다.
+
+    쓰는 곳 둘 — 켰다 끄기의 두 번째 수(builder.off_node), 그리고 "꺼" 라는 말에
+    Switch.Off 를 밀어 줄지 말지(rerank). 스스로 끄는 기기는 Switch 로 끄지 않는다."""
+    if cat not in _OWN_OFF:
+        d = SERVICE_DATA.get(cat) or {}
+        hit = (None, None)
+        for f in (d.get("functions") or []):
+            for a in (f.get("arguments") or []):
+                if a.get("type") == "ENUM" and "off" in members_of(cat, a.get("format")):
+                    hit = (f"{cat}.{f['id']}", a["id"]); break
+            if hit[0]: break
+        if not hit[0]:
+            for f in (d.get("functions") or []):
+                if f["id"] in ("Stop", "Off", "TurnOff") and not (f.get("arguments") or []):
+                    hit = (f"{cat}.{f['id']}", None); break
+        _OWN_OFF[cat] = hit
+    return _OWN_OFF[cat]
+
 def switch_categories(connected_devices):
     """켜고 끄기를 Switch 로 할 수 있는 기기 종류 — 같은 기기에 Switch 가 함께 붙어 있는 것들.
     (집에 스위치 달린 기기가 하나 있다고 제습기까지 Switch.On 으로 켤 수 있는 건 아니다.)"""
