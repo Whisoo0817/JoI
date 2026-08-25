@@ -178,9 +178,56 @@ def _ko_norm(t):
     return re.sub(r"\s{2,}", " ", t).strip()
 
 
+# 씨앗(원본 시트)의 한국어가 영어·정답과 어긋난 자리를 바로잡는다.
+# opus 검토(2026-08-25)가 한 줄씩 읽어 찾은 것. 열쇠는 씨앗의 줄 번호다.
+# 정답 IR 이 걸린 자리는 한국어를 고치고, 표현만 다른 자리는 영어를 고쳤다
+# (영어를 고친 것: 에어컨 냉방·창문 — 아래가 아니라 그 줄에서 직접).
+KO_FIX = {
+    500: "축사 1 급이기 돌려 줘.",   # 별명 표기와 맞춤
+    190: "문이 열려 있으면 사무실 에어컨 꺼 줘.",   # U0183
+    24: "아기방 공기청정기 자동 모드로 해 줘.",   # U0025
+    97: "부재중에 움직임이 감지되면 카메라로 사진 찍어 줘.",   # U0098
+    158: "사무실 스피커 음소거해 줘.",   # U0151
+    182: "오늘 사무실 온도 변화 알려 줘.",   # U0175
+    222: "카메라로 사진 찍어서 이메일로 보내 줘.",   # U0215
+    225: "어두워진 뒤에 사무실에 움직임이 감지되면 알려 줘.",   # U0218
+    228: "연기 감지되면 경보 울리고 사무실 전체에 경고해 줘.",   # U0221
+    232: "지금 비 와?",   # U0225
+    233: "오늘 현장 나가기 괜찮은 날이야?",   # U0226
+    265: "작업장 환풍기 켜 줘.",   # U0250
+    270: "라인 조명 최대 밝기로 해 줘.",   # U0255
+    287: "공장 전력 사용량이 높아?",   # U0272
+    291: "컨베이어가 멈추면 알려 줘.",   # U0276
+    295: "사람이 가까이 오면 로봇팔을 정지해 줘.",   # U0280
+    303: "전력 사용량이 높으면 알려 줘.",   # U0288
+    309: "매주 금요일 저녁에 창고 조명 전체 꺼 줘.",   # U0294
+    310: "매일 퇴근 시간에 공장을 절전 모드로 바꿔 줘.",   # U0295
+    322: "매일 아침 8시 50분에 10분 뒤에 작업 시작한다고 방송해 줘.",   # U0307
+    334: "물이 새면 펌프 멈추고 알려 줘.",   # U0319
+    335: "비상 정지 버튼이 눌리면 라인 전체 멈춰 줘.",   # U0320
+    336: "작업자가 끼일 위험이 있으면 로봇팔 정지해 줘.",   # U0321
+    357: "플러그 속도를 50퍼센트로 낮춰 줘.",   # U0336
+    376: "테스트베드 조명 최대 밝기로 해 줘.",   # U0354
+    378: "가스가 감지되면 실험실 조명 빨간색으로 바꿔 줘.",   # U0356
+    391: "실험실에 움직임 감지됐어?",   # U0369
+    402: "오늘 문 열린 기록 있어?",   # U0380
+    444: "아침 8시 50분에 10분 뒤에 실험 시작한다고 방송해 줘.",   # U0422
+    447: "실험실에 가스가 감지되면 슬랙으로 알려 줘.",   # U0425
+    456: "사람 없는데 움직임이 있으면 카메라로 사진 찍어 줘.",   # U0434
+    504: "재배실 조명 최대 밝기로 해 줘.",   # U0474
+    545: "바람이 세지면 온실 차광막 닫아 줘.",   # U0515
+    563: "낮에 빛이 부족하면 생장등 켜 줘.",   # U0533
+    573: "매일 아침 8시 50분에 10분 뒤 작업 시작을 알려 줘.",   # U0543
+    574: "온실 CO2 농도가 높으면 환기하라고 말해 줘.",   # U0544
+    586: "암모니아가 감지되면 환기하고 대피 안내해 줘.",   # U0556
+    587: "누수가 생기면 펌프 멈추고 알려 줘.",   # U0557
+    595: "지금 밖에 비 와?",   # U0565
+}
+
 def _row(idx, en, sid, **kw):
     ids = kw.pop("targets", [])
-    ko = _ko_norm(kw.pop("ko", None) or SEED_KO[idx])
+    ko = _ko_norm(KO_FIX.get(idx) or kw.pop("ko", None) or SEED_KO[idx])
+    kw.pop("ko", None)
     ROWS.append(dict(
         idx=idx, space_id=sid, kind=S[sid]["kind"], command=en, command_ko=ko,
         mode="usecase",
@@ -316,8 +363,8 @@ def sheet_home():
     X(24, "Put the baby room air purifier on auto.", H9,
       [NOW, CL("AirPurifier.SetAirPurifierMode", Mode="auto")],
       [("AirPurifier", "BabyRoom")], act="purifier", b1="set", ko="아기방 공기청정기 자동모드로 해줘.")
-    X(25, "Switch the air conditioner to heat mode.", H15,
-      [NOW, CL("AirConditioner.SetAirConditionerMode", Mode="heat")],
+    X(25, "Switch the air conditioner to cool mode.", H15,
+      [NOW, CL("AirConditioner.SetAirConditionerMode", Mode="cool")],
       [("AirConditioner",)], act="ac", b1="set")
     A(26, "Turn the speaker volume down.", H6, [("Speaker",)],
       act="speaker", b1="set")
@@ -900,12 +947,15 @@ def sheet_office():
        CL("Speaker.Speak", Text="Please ventilate the office")],
       [("Speaker",)], act="speaker", trig="threshold", dev_trig="AirQualitySensor",
       d="D4", tier="T1")
-    RF(219, "If motion is detected after hours, text the manager.", O6, "no_device",
+    # 문자·슬랙은 **채널을 댄** 문장이다. 알림기·스피커는 있으니 기기가 통째로
+    # 없는 게 아니라 그 채널이 없다 — G행과 같은 이유표(no_channel)를 쓴다.
+    RF(219, "If motion is detected after hours, text the manager.", O6, "no_channel",
        act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
-    RF(220, "If an intruder is detected, send a Slack message.", O6, "no_device",
+    RF(220, "If an intruder is detected, send a Slack message.", O6, "no_channel",
        act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
+    # 오피스5 에는 접점센서가 없다 — 문 열림은 Door.DoorState 로 안다.
     A(221, "If the door opens, email the manager.", O5, [], act="notify",
-      trig="contact", dev_trig="ContactSensor", dev_act="EmailProvider",
+      trig="contact", dev_trig="Door", dev_act="EmailProvider",
       d="D4", tier="T1")
     A(222, "Take a snapshot and email it to me.", O5, [], act="camera",
       dev_act="EmailProvider")
@@ -1600,8 +1650,11 @@ def sheet_lab():
        CL("Speaker.Speak", Text="The experiment starts in 10 minutes")],
       [("Speaker",)], act="speaker", trig="time", dev_trig="Clock",
       d="D6", tier="T1", ko="8시 50분에 10분 뒤 실험 시작이라고 방송해줘.")
-    A(445, "If motion shows up after hours, send the manager a text.", L2, [],
-      act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
+    # 화학 실험실에는 움직임 감지기가 없다 (접점·카메라뿐). 문자는 보낼 수 있으니
+    # 막히는 쪽은 채널이 아니라 방아쇠 기기다 — 되묻기가 아니라 거절이 맞다.
+    RF(445, "If motion shows up after hours, send the manager a text.", L2,
+       "no_device",
+       act="notify", dev_act="MessageSender", trig="motion", dev_trig="MotionSensor")
     A(446, "If gas is detected, send a KakaoTalk message to the person on duty.",
       L2, [], act="notify", dev_act="MessageSender", trig="gas",
       dev_trig="GasSensor")
@@ -2027,8 +2080,8 @@ def sheet_farm():
       d="D4", tier="T1", tsvc="MessageSender.SendSlack")
     RF(578, "Email me a summary of today's greenhouse conditions.", G1,
        "no_service", act="query", dev_act="EmailProvider", b1="read")
-    RF(579, "Send me a camera photo by email.", G1, "no_device", act="camera",
-       dev_act="EmailProvider")
+    RF(579, "Send me a camera photo by email.", G1, "no_channel", act="camera",
+       dev_act="EmailProvider")   # 문자·알림은 되지만 이메일 통로가 없다
     X(580, "While the soil stays dry, remind me every 10 minutes.", G1,
       [NOW, W("SoilMoistureSensor.SoilMoisture < 30"),
        CY("10 MIN", [nn(G1, "The soil is dry")],
@@ -2154,8 +2207,17 @@ def validate():
             bad.append(f"{rid} 실행인데 정답 IR 이 없음")
         if r["expect"] != "execute" and r["ir_gt"]:
             bad.append(f"{rid} 실행이 아닌데 정답 IR 이 있음")
+        # 방아쇠 기기는 되묻기·실행 행에도 정말 있어야 한다 — 없는 센서를 두고
+        # "되물어라" 라고 답을 매기면 그 행은 풀 수 없는 문제가 된다.
+        if (r["dev_trig"] and r["expect"] != "refuse"
+                and r["dev_trig"] not in CATS[r["space_id"]]):
+            bad.append(f"{rid} 거절이 아닌데 방아쇠 {r['dev_trig']} 가 "
+                       f"{r['space_id']} 에 없음")
         # 거절 no_device: 그 기기가 정말 없는가
-        if r["why"] == "no_device" and r["dev_act"] in CATS[r["space_id"]]:
+        if (r["why"] == "no_device" and r["dev_act"] in CATS[r["space_id"]]
+                and r["dev_trig"] not in ("", *CATS[r["space_id"]])):
+            pass          # 동작 기기는 있지만 방아쇠 기기가 없다 — 거절이 맞다
+        elif r["why"] == "no_device" and r["dev_act"] in CATS[r["space_id"]]:
             # 방·별명 한정 거절(라인 4, 6번 구역)은 카테고리가 있어도 된다 —
             # 문장 속 한정어가 없는 기기를 가리킨다. 그 경우만 통과시킨다.
             # "라인 4"·"6번 구역"·"양액 밸브"(축사엔 급수 밸브뿐) — 한정어가
@@ -2164,6 +2226,10 @@ def validate():
                                                    "nutrient valve")):
                 bad.append(f"{rid} 거절인데 {r['dev_act']} 가 "
                            f"{r['space_id']} 에 있음")
+        # 거절 no_channel: 문장이 댄 그 통로가 정말 없는가
+        if r["why"] == "no_channel" and r["dev_act"] in CATS[r["space_id"]]:
+            bad.append(f"{rid} 통로가 없다는데 {r['dev_act']} 가 "
+                       f"{r['space_id']} 에 있음")
         if r["ir_gt"]:
             ir = json.loads(r["ir_gt"])
             bad += IR.check_ir(ir, {k: v for k, v in CAT.items()

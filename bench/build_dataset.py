@@ -102,6 +102,20 @@ def place_en(tag):
     return " ".join(p if len(p) == 1 else p.lower() for p in parts)
 
 
+def _check_tables():
+    """UNSAFE·SENSE 표의 열쇠가 실제 틀에 있는지 본다. 틀 이름을 고치고 표를 안
+    고치면 표가 조용히 죽는다 — 실제로 그래서 "가스면 환풍기 꺼" 가 살아남았다."""
+    allt = {t for v in T.TRIG.values() for t in v}
+    bad = sorted(k for k in T.TRIG_SENSE if k not in allt)
+    assert not bad, f"TRIG_SENSE 에 없는 방아쇠 틀: {bad}"
+    badc = sorted(k for k in T.COND_SENSE
+                  if k not in T.COND and k not in T.NONHOME.values())
+    assert not badc, f"COND_SENSE 에 없는 조건: {badc}"
+    acts = set(T.ACT)
+    bada = sorted({a for v in T.UNSAFE.values() for a, _ in v} - acts)
+    assert not bada, f"UNSAFE 에 없는 동작 갈래: {bada}"
+
+
 def load_spaces():
     S = json.load(open(os.path.join(HERE, "spaces.json"), encoding="utf-8"))["spaces"]
     for sid, sp in S.items():
@@ -135,7 +149,7 @@ NOUN = {
     "LeakSensor": "leak sensor", "GasSensor": "gas sensor",
     "VibrationSensor": "vibration sensor", "TiltSensor": "tilt sensor",
     "ProximitySensor": "proximity sensor", "WindSensor": "wind sensor",
-    "PowerMeter": "power meter", "Button": "button", "MultiButton": "scene switch",
+    "PowerMeter": "power meter", "Button": "button", "MultiButton": "scene button",
     "ProductionMachine": "machine", "Projector": "projector", "Display": "display",
     "Dishwasher": "dishwasher", "LaundryWasher": "washing machine",
     "LaundryDryer": "dryer", "Oven": "oven", "Microwave": "microwave",
@@ -161,7 +175,7 @@ NOUN = {
 
 
 SING = {"Light": "light", "GrowLight": "grow light", "WindowCovering": "blind",
-        "MultiButton": "scene switch"}
+        "MultiButton": "scene button"}
 
 
 def plural(n):
@@ -229,6 +243,11 @@ def refer(rng, sp, cat, style):
     return (f"the {n}", ids, v, "plain", m,
             KO.refer_ko("plain", cat, plural=is_pl))
 
+
+# "한 판" 이 있어서 끝날 수 있는 기기. "조명이 끝나면" 은 말이 안 된다.
+FINISHES = ["LaundryWasher", "LaundryDryer", "Dishwasher", "Oven", "Microwave",
+            "RiceCooker", "ProductionMachine", "RobotVacuumCleaner", "Mower",
+            "ClothingCare", "Printer", "EvCharger", "Chamber"]
 
 # 즉시 실행일 때의 알림·조회는 대상이 있어야 문장이 된다
 NOW_OVERRIDE = {
@@ -358,23 +377,80 @@ def nonhome(tpl, sp):
     return T.NONHOME.get(tpl, tpl) if sp["kind"] != "home" else tpl
 
 
-def trig_pool(trig, cat_t):
+def trig_pool(trig, cat_t, act_tpl=None):
     """문장이 대는 물리량과 시나리오의 센서가 어긋나지 않게 문형을 걸러낸다.
-    (압력 센서 시나리오에 "온도가 30도를 넘으면" 이 붙는 것을 막는다)"""
+    (압력 센서 시나리오에 "온도가 30도를 넘으면" 이 붙는 것을 막는다)
+
+    "every {n} minutes" 는 방아쇠지만 하는 일은 되풀이다. 되풀이 문형과 똑같이
+    되풀이해서 뜻이 있는 동작에만 붙인다 ("10분마다 블라인드 닫아" 를 막는다)."""
     pool = T.TRIG[trig]
     ok = [t for t in pool
           if IR.TRIG_IR.get(t, {}).get("cat") in (cat_t, "*")
           and (IR.TRIG_IR.get(t, {}).get("cat") != "*" or cat_t in IR.READ_ATTR)]
-    return ok or pool
+    ok = ok or pool
+    # 단위가 정해진 센서에 "{sensor} 가 800 을 넘으면" 을 붙이면 800도·800% 로
+    # 읽힌다. 이런 센서는 전용 틀("N도", "N퍼센트")만 쓴다.
+    if cat_t in BOUNDED_SENSOR:
+        ok = [t for t in ok if "{lvl}" not in t] or ok
+    if act_tpl is not None and act_tpl not in T.REPEATABLE:
+        ok = [t for t in ok if t != "every {n} minutes"] or ok
+    return ok
 
 
 # 이미 끄는 동작에는 "그러고 나서 다시 꺼" 를 얹을 수 없다.
 # ("커피포트를 끄고, 30분 뒤에 다시 꺼")  "set off"(작동시킨다)는 켜는 쪽이라 뺀다.
-OFF_ACT = re.compile(r"^(close|shut|stop|pause|lock|kill|cancel|disarm|mute|lower)\b"
+OFF_ACT = re.compile(r"^(close|shut|stop|pause|lock|kill|cancel|disarm|mute|lower|slow)\b"
                      r"|(?<!set )\boff\b|\bis locked\b|\bback to (its|the) dock\b", re.I)
 
+# 한국어로 "~인 동안" 이 되는 시간절. 조건도 "~인 동안" 인 문형에는 안 붙인다.
+# 값의 범위가 정해진 센서 — 일반 "{lvl}" 틀을 쓰면 말이 안 되는 수치가 나온다
+BOUNDED_SENSOR = {"TemperatureSensor", "HumiditySensor", "Battery"}
 
-def logic_pool(pool, mode, trig, cat_t, act, body=""):
+WHILE_TRIG = re.compile(r"^while |stays (over|above)|has been ")
+
+# 하루에 한 번뿐이거나 "한 번" 을 이미 말한 방아쇠 — 세는 문형(D12)에 못 붙인다
+ONCE_TRIG = re.compile(r"^(at sunset|at sunrise|when the sun |as the sun |"
+                       r"around sundown|once it gets dark|while )|single press|"
+                       r"one tap|today's first|next event|a meeting is about|"
+                       r"stays (over|above)|has been |is left open")
+
+# 동작 자체를 되풀이하는 문형. "{n}분마다 확인해서" 는 확인을 되풀이하는 것이라 뺀다.
+REPEAT_FRAME = re.compile(r"^\{a\}.*every \{n\} minutes|then \{a\} every \{n\} minutes"
+                          r"|, \{a\} every \{n\} minutes|repeat this \{m\} times")
+
+
+# 동작 틀이 켜는 쪽인가 끄는 쪽인가. UNSAFE 표를 볼 때 쓴다.
+# "unlock" 은 OFF_ACT 가 안 잡는다(앞의 lock 만 본다) — 여는 쪽이라 따로 적는다.
+_OPENISH = re.compile(r"^unlock\b")
+
+
+def act_dir(body):
+    if _OPENISH.search(body):
+        return "off"
+    return "off" if OFF_ACT.search(body) else "on"
+
+
+# 센서 갈래만으로도 상황을 안다 — 일반 문형("{sensor} 가 300 을 넘으면")일 때 쓴다
+# 값이 내려가는 쪽을 말하는 방아쇠 틀에는 센서 갈래를 안 씌운다
+# (압력계 갈래는 "높다" 는 뜻인데 "falls under" 틀은 반대다)
+DOWNWARD = re.compile(r"falls under|drops below|goes down|is running low|is empty")
+
+CAT_SENSE = {"GasSensor": "gas", "SmokeDetector": "smoke", "LeakSensor": "leak",
+             "AirQualitySensor": "airbad", "CarbonDioxideSensor": "airbad",
+             "CarbonMonoxideSensor": "gas", "HumiditySensor": "humid",
+             "WindSensor": "windy", "PressureSensor": "presshigh",
+             "Battery": "battlow", "WaterLevelSensor": "tanklow"}
+
+
+def unsafe_pair(sense, act, body):
+    """이 상황에 이 동작을 붙이면 물리적으로 거꾸로인가."""
+    if not sense:
+        return False
+    d = act_dir(body)
+    return any(a == act and (w == "*" or w == d) for a, w in T.UNSAFE.get(sense, ()))
+
+
+def logic_pool(pool, mode, trig, cat_t, act, body="", act_tpl=""):
     """이 상황에서 말이 되는 문형만 남긴다.
 
     - 이전 값과 견주는 문형(D11)은 숫자를 읽는 방아쇠라야 한다.
@@ -383,33 +459,70 @@ def logic_pool(pool, mode, trig, cat_t, act, body=""):
       시각·타이머는 사건이 아니다.
     - 둘 다 방아쇠가 없는 즉시 실행 문장에는 붙을 수 없다.
       무엇을 견주고 무엇을 세는지가 문장에 없기 때문이다.
-    - 알림·조회·타이머는 "다시 끄기" 가 없다.
+    - 되풀이 문형은 되풀이해서 뜻이 있는 동작에만 붙는다 (T.REPEATABLE).
+      "10분마다 에어컨 꺼" 는 이미 꺼져 있는 것을 또 끄라는 말이다.
+      다만 "{n}분마다 확인해서 {cond}면 {a}" 는 되풀이하는 것이 확인이라 그대로 둔다.
+    - "다시 끄기"(D2)와 "그러다 바뀌면 멈춰"(D5)는 무언가를 **켠** 뒤라야 한다.
     """
     tp = trig_pool(trig, cat_t) if cat_t else []
     has_num = any(IR.reads_number(t) for t in tp)
     has_evt = any(IR.trig_reads(t) for t in tp)
+    can_repeat = act_tpl in T.REPEATABLE
+    # 동작절 자체가 조건으로 시작하면("tell me if something is off") 조건 문형을
+    # 또 얹을 수 없다 — 한 문장에 조건이 셋이 된다
+    body_is_cond = bool(re.search(r"^(tell me if|let me know if|send me a note if|"
+                                  r"I want to know when|ping me when)", body))
+    on_act = act in T.TURN_ON and not OFF_ACT.search(body)
     out = []
     for di, frame in pool:
         if di in ("D11", "D12") and mode == "now":
             continue
         if di == "D11" and not has_num:
             continue
+        # 거리·기울기 같은 순간 값은 "어제 같은 시각보다" 로 견줄 것이 아니다
+        if di == "D11" and trig in ("proximity", "tilt", "contact", "barrier"):
+            continue
         if di == "D12" and not has_evt:
             continue
-        if "turn it back off" in frame and (act in ("notify", "query", "timer")
-                                            or OFF_ACT.search(body)):
+        # 한 번뿐인 사건은 "오늘 몇 번" 이 말이 안 된다 — 해 뜨기, 오늘 첫 일정,
+        # "한 번만 누르기" 는 세는 문형과 정면으로 부딪힌다.
+        if di == "D12" and not [t for t in tp if not ONCE_TRIG.search(t)]:
+            continue
+        if REPEAT_FRAME.search(frame) and not can_repeat:
+            continue
+        if body_is_cond and "{cond}" in frame:
+            continue
+        # 누수·연기·가스·비상정지에 "10분마다 확인해서" 나 "20분 기다렸다가" 는
+        # 상식에 어긋난다 — 안전 정지는 즉시다.
+        if trig in ALARM_TRIG and ("{n}" in frame or "{m}" in frame):
+            continue
+        if "turn it back off" in frame and not on_act:
+            continue
+        if "stop once that changes" in frame and not on_act:
+            continue
+        # "~인 동안 계속" 은 이어지는 동작에만. 타이머·조회는 한 번이면 끝난다.
+        if "as long as {cond}" in frame and act in ("timer", "query"):
             continue
         out.append((di, frame))
     return out or [x for x in pool if x[0] not in ("D11", "D12")] or pool
 
 
-def act_pool(act, trig):
-    """위험 신호로 켜는 문장이 나오지 않게 문형을 걸러낸다."""
+def act_pool(act, trig, sense=None):
+    """위험 신호로 켜는 문장이 나오지 않게 문형을 걸러낸다.
+
+    sense 를 주면 그 상황에서 거꾸로인 동작 틀을 먼저 뺀다. 방아쇠 쪽만 걸러서는
+    모자란다 — 시나리오가 "가스 + 환풍기" 하나뿐이면 뺄 방아쇠가 없기 때문이다.
+    """
     pool = T.ACT[act]
+    if sense:
+        pool = [t for t in pool if not unsafe_pair(sense, act, t)] or pool
     if trig in ALARM_TRIG:
         safe = [t for t in pool if t.startswith(SAFE_START)]
         if safe:
             return safe
+    elif act == "notify":
+        # "경고해 줘" 는 위험한 일에만 쓴다. "세탁 끝나면 경고해 줘" 는 말이 안 된다.
+        pool = [t for t in pool if t != "warn me"] or pool
     return pool
 
 
@@ -440,8 +553,8 @@ def fill(rng, text, sp, act, cat_t):
         SLOTS[0]["n"] = v
         text = text.replace("{n}", str(v))
     for key in ("time_am", "time_pm", "time", "weekday", "color", "scene",
-                "deg", "pct", "lvl", "watt", "kwh", "tilt", "cm", "wind",
-                "lo", "hi"):
+                "deg_hi", "deg_lo", "deg", "pct", "lvl", "watt", "kwh",
+                "tilt", "cm", "wind", "lo", "hi"):
         if "{%s}" % key in text:
             v = rng.choice(T.VALUES[key])
             SLOTS[0][key] = v
@@ -476,6 +589,7 @@ def tone(rng, s, i):
 
 def main():
     rng = random.Random(SEED)
+    _check_tables()
     S = load_spaces()
     sc = list(csv.DictReader(open(os.path.join(HERE, "scenarios.csv"), encoding="utf-8")))
 
@@ -541,10 +655,16 @@ def main():
                 tsvc, match, why_force = [], "none", ""
                 aslots, tslots, lslots = {}, {}, {}
                 act_tpl, vague_tpl, frame, cond_text = "", None, "", ""
+                vague_redraw = False
                 dev_ko, act_place, trig_place = None, None, None
                 win_cat = cat_a
                 if use_vague:
-                    body = vague_tpl = rng.choice(vpool)
+                    # 의도문도 상황에 맞춰 거른다 ("압력이 높은데 압력 올려 줘")
+                    vs = CAT_SENSE.get(cat_t) if r["mode"] != "now" else None
+                    vpool2 = [t for t in vpool if not unsafe_pair(vs, act, t)]
+                    if not vpool2:
+                        vague_redraw = True
+                    body = vague_tpl = rng.choice(vpool2 or vpool)
                     is_state = body in vp["state"]
                     targets, match = [], "none"
                     rivals = rival_cats(sp, act)
@@ -570,8 +690,11 @@ def main():
                                 tsvc, match = [svc], "all"
                                 break
                 else:
+                    # 이 시나리오가 말하는 상황 — 그 상황에 거꾸로인 동작 틀을 뺀다
+                    sense = CAT_SENSE.get(cat_t) if r["mode"] != "now" else None
                     pool = (NOW_OVERRIDE[act] if r["mode"] == "now"
-                            and act in NOW_OVERRIDE else act_pool(act, trig_kind))
+                            and act in NOW_OVERRIDE
+                            else act_pool(act, trig_kind, sense))
                     notify_act = act
                     if act == "notify" and r["mode"] != "now" and k % 4 == 0:
                         # 넷에 하나는 채널을 댄다
@@ -580,8 +703,16 @@ def main():
                     tpl = act_tpl = pool[k % len(pool)] if attempt == 0 else rng.choice(pool)
                     if "{dev}" in tpl:
                         c = cat_a
+                        if tpl == "run {dev} in the {place}":
+                            # 기기 지목에 장소가 또 들어가면 "주방 거실 로봇청소기"
+                            # 가 된다. 여기서는 장소를 안 붙인 지목만 쓴다.
+                            style = "plain"
                         if tpl == "tell me if {dev} is open":
                             c = "ContactSensor"   # 스위치는 열리고 닫히지 않는다
+                        elif tpl == "ping me when {dev} finishes":
+                            # 조명은 "끝나지" 않는다. 한 판이 끝나는 기기만 쓴다.
+                            c = rng.choice([x for x in FINISHES if x in sp["_cats"]]
+                                           or ["LaundryWasher"])
                         elif c in ("", "NotificationProvider", "Clock"):
                             # 조회 문형은 "is {dev} on" 처럼 단수를 받는다 — 복수 명사는 뺀다
                             cand = ["Switch", "Plug", "Fan", "Camera"] if act == "query" \
@@ -632,29 +763,73 @@ def main():
                 # 언제. 앞자리("At sunset, turn on ...")는 담백한 말투에서만 자연스럽다.
 
                 raw_t = ""
+                want_repeatable = False
+                redraw = False        # 이 조합이 말이 안 된다 — 다시 뽑아야 한다
                 ti = (k % len(T.TONE) if attempt == 0
                       else rng.randrange(len(T.TONE)))
                 if use_logic:
                     lp = logic_pool(T.LOGIC_HARD if use_hard else T.LOGIC_SOFT,
-                                    r["mode"], trig_kind, cat_t, act, body)
+                                    r["mode"], trig_kind, cat_t, act, body,
+                                    vague_tpl or act_tpl)
+                    # D11(이전 값과 견주기)·D12(오늘 몇 번인지 세기)는 카탈로그에 없는
+                    # 우리 표기(@-1HOUR·@count:today)를 쓴다. 되풀이 문형이 동작을
+                    # 가려 막힌 자리를 이 둘이 다 차지하면 표기가 과하게 늘어난다.
+                    # (slot 은 use_hard 를 가르는 데 이미 썼으므로 다른 눈금을 쓴다)
+                    if (len(rows) * 11) % 100 >= 25:
+                        lp = [x for x in lp if x[0] not in ("D11", "D12")] or lp
                     di, frame = lp[k % len(lp)] if attempt == 0 else rng.choice(lp)
-                    cond_text = nonhome(rng.choice(T.COND), sp)
-                    lslots = {"n": rng.choice([5, 10, 15, 20, 30]),
+                    # 되풀이 문형이 막혀 남은 문형(D10·D12)으로 쏠리지 않게, 되풀이할
+                    # 수 있는 동작을 먼저 찾아본다. 그런 동작이 없는 시나리오도 있으니
+                    # 40번까지만 다시 뽑고 그 뒤에는 남은 문형을 그대로 쓴다.
+                    want_repeatable = (use_hard and attempt < 40
+                                       and (vague_tpl or act_tpl) not in T.REPEATABLE)
+                    # 방아쇠가 이미 읽고 있는 것을 조건으로 또 읽지 않는다
+                    # ("온도가 15도 아래로 떨어지면 온도가 18도 아래인 동안 …")
+                    same = T.TRIG_SENSOR.get(trig_kind) if r["mode"] != "now" else None
+                    cp = [c for c in T.COND
+                          if T.COND_SENSOR.get(c) != same
+                          and not unsafe_pair(T.COND_SENSE.get(c), act, body)]
+                    if not cp:
+                        redraw = True
+                    cond_text = nonhome(rng.choice(cp or T.COND), sp)
+                    # 되풀이 주기는 동작이 도는 시간보다 길어야 한다
+                    # ("5분마다 선풍기 45분 동안 돌려" — 겹쳐서 말이 안 된다)
+                    per = [5, 10, 15, 20, 30]
+                    dur = re.search(r"for (\d+) minutes", body)
+                    if dur and "every {n} minutes" in frame:
+                        d0 = int(dur.group(1))
+                        per = [x for x in per if x > d0] or [d0 + 30]
+                    lslots = {"n": rng.choice(per),
                               "m": rng.choice([2, 3, 4, 5, 6])}
                     core = (frame.replace("{a}", body)
                             .replace("{cond}", cond_text)
                             .replace("{n}", str(lslots["n"]))
                             .replace("{m}", str(lslots["m"])))
                     if r["mode"] != "now" and di not in ("D9", "D10", "D13"):
-                        tp = trig_pool(trig_kind, cat_t)
+                        tp = trig_pool(trig_kind, cat_t, vague_tpl or act_tpl)
                         if di == "D11":     # 견주려면 숫자를 읽어야 한다
                             tp = [t for t in tp if IR.reads_number(t)] or tp
-                        elif di == "D12":   # 세려면 사건이어야 한다
-                            tp = [t for t in tp if IR.trig_reads(t)] or tp
+                        elif di == "D12":   # 세려면 되풀이되는 사건이어야 한다
+                            tp = [t for t in tp if IR.trig_reads(t)
+                                  and not ONCE_TRIG.search(t)] or tp
                         # 주기 문형에 주기 시간절을 또 붙이면 주기가 두 번 적힌다
                         # ("Every 30 minutes, check every 20 minutes and ...")
                         if "every {n} minutes" in frame:
                             tp = [t for t in tp if t != "every {n} minutes"] or tp
+                        if "wait {n} minutes" in frame:
+                            tp = [t for t in tp if "wait" not in t] or tp
+                        # "~인 동안" 문형에 "~인 동안" 방아쇠를 붙이면 동안이 겹친다
+                        # ("온도가 18도 위에 머무는 동안 배터리가 20% 아래인 동안 …")
+                        if "while {cond}" in frame or "as long as {cond}" in frame:
+                            tp = [t for t in tp if not WHILE_TRIG.search(t)] or tp
+                        # 물리적으로 거꾸로인 방아쇠는 뺀다 (가스인데 환기 끄기 등)
+                        safe_tp = [t for t in tp
+                                   if not unsafe_pair(
+                                       T.TRIG_SENSE.get(t) or (None if DOWNWARD.search(t) else CAT_SENSE.get(cat_t)),
+                                       act, body)]
+                        if not safe_tp:
+                            redraw = True      # 다 위험하다 — 동작을 바꿔 다시 뽑는다
+                        tp = safe_tp or tp
                         raw_t = nonhome(
                             tp[k % len(tp)] if attempt == 0 else rng.choice(tp), sp)
                         core = f"{fill(rng, raw_t, sp, act, cat_t)}, {core}"
@@ -663,7 +838,12 @@ def main():
                 elif r["mode"] == "now":
                     core = body
                 else:
-                    tp = trig_pool(trig_kind, cat_t)
+                    tp = trig_pool(trig_kind, cat_t, vague_tpl or act_tpl)
+                    safe_tp = [t for t in tp
+                               if not unsafe_pair(T.TRIG_SENSE.get(t) or (None if DOWNWARD.search(t) else CAT_SENSE.get(cat_t)), act, body)]
+                    if not safe_tp:
+                        redraw = True
+                    tp = safe_tp or tp
                     raw_t = nonhome(
                         tp[k % len(tp)] if attempt == 0 else rng.choice(tp), sp)
                     tt = fill(rng, raw_t, sp, act, cat_t)
@@ -704,6 +884,12 @@ def main():
                     ok = False      # 움직임 센서가 있는 공간으로 다시 뽑는다
                 if use_vague and tier_now in ("T3", "T4"):
                     ok = False      # 의도만 말하는 문장에 반복·누적을 얹지 않는다
+                if want_repeatable:
+                    ok = False      # 되풀이할 수 있는 동작으로 다시 뽑는다
+                if vague_redraw and attempt < 50:
+                    ok = False
+                if redraw and attempt < 50:
+                    ok = False      # 물리적으로 말이 되는 짝을 찾아 다시 뽑는다
                 # 바깥 정보 때문에 거절하려면 문장에 그 조건이 실제로 있어야 한다
                 if (expect == "refuse" and not why_force
                         and cat_a and cat_a in sp["_cats"]

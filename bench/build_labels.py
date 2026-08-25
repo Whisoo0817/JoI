@@ -45,8 +45,10 @@ STATE_TRIG = {k for k, v in IR.TRIG_IR.items() if "'edge': 'none'" in str(v)}
 
 OUT = os.path.join(HERE, "labels_5k.json")
 
-PLACE = {"{a}", "{a_c}", "{cond}", "{cond_while}", "{cond_until}", "{cond_q}"}
-SPLIT = re.compile(r"(\{(?:a_c|a|cond_while|cond_until|cond_q|cond)\})")
+PLACE = {"{a}", "{a_c}", "{cond}", "{cond_while}", "{cond_until}", "{cond_q}",
+         "{cond_when}", "{cond_only}"}
+SPLIT = re.compile(
+    r"(\{(?:a_c|a|cond_while|cond_until|cond_q|cond_only|cond_when|cond)\})")
 
 # ── 로직 틀의 글자 조각 → (절 종류, mods) ──────────────────────────────
 # 20종뿐이다. 새 조각이 생기면 검산이 잡는다.
@@ -54,23 +56,18 @@ CHUNK = {
     "{n}분마다":                      ("TIME",  ["every"]),
     "{n}분마다 확인해서":              ("TIME",  ["every", "read"]),
     "그때부터 {n}분마다":              ("TIME",  ["every"]),
-    "그 일이 생기면 그때부터 {n}분마다 다시": ("TIME", ["every", "repeat"]),
     "앞으로 {m}시간 동안 {n}분마다":    ("TIME",  ["every", "sustain"]),
     "기다렸다가 {m}시간 동안 {n}분마다": ("TIME",  ["every", "sustain"]),
     "{m}시간 뒤에는 멈춰":             ("STOP",  ["sustain"]),
     "{n}분 기다렸다가":                ("DELAY", ["delay"]),
     "{n}분 뒤에 다시 꺼":              ("ACT",   ["delay", "repeat"]),
-    "{n}분 기다리기를 {m}번 반복해":    ("ACT",   ["repeat", "count"]),
-    "{n}분까지 기다려 보고, 아니면":    ("TIME",  ["sustain"]),
-    "{n}분 줘 보고 그때까지 아무 변화 없으면": ("TIME", ["sustain"]),
-    "계속 확인하면서":                 ("READ",  ["read"]),
+    "{n}분 쉬는 걸 {m}번 반복해":      ("ACT",   ["repeat", "count"]),
+    "최대 {n}분 기다려 보고, 그래도 아니면": ("TIME",  ["sustain"]),
+    "계속":                           ("READ",  ["read"]),
     "그러다 바뀌면 멈춰":              ("STOP",  []),
-    "몇 번 생기는지 세다가 {m}번을 넘으면": ("COND", ["count"]),
-    "오늘 그 일이 {m}번 넘게 있었을 때만": ("COND", ["count"]),
-    "한 시간 전보다 높으면":           ("COND",  ["read"]),
-    "어제 같은 시각과 견줘서 올랐으면": ("COND",  ["read"]),
-    "지금":                           ("TIME",  []),
-    "그때만":                         ("TIME",  []),
+    "그 횟수를 세다가 {m}번을 넘으면":   ("COND", ["count"]),
+    "그게 한 시간 전보다 높으면":      ("COND",  ["read"]),
+    "그게 어제 같은 시각보다 올랐으면": ("COND",  ["read"]),
 }
 
 # 시간절이 시각인가 사건인가 — 시나리오의 방아쇠 종류로 가른다
