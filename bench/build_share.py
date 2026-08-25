@@ -21,6 +21,12 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+
+import ir as IR            # noqa: E402
+import korean as K         # noqa: E402
+import policy as P         # noqa: E402
+
 OUT = os.path.join(HERE, "share")
 
 # 밖으로 안 내보내는 열 — 만드는 쪽 사정이다
@@ -59,6 +65,51 @@ INTENT_GUIDE = [
     ("상태조회", "지금 값을 묻는다", "지금 거실 온도 어때? / 현관문 열려 있어?"),
     ("외부정보", "날씨·일정을 묻는다", "오늘 비 와? / 다음 회의 몇 시야?"),
 ]
+
+# ── 숫자 기준 (policy.py · ir.py) 을 안내 시트에 그대로 편다 ──────────────
+# "너무 더우면 에어컨 켜 줘" 를 채점하려면 26℃ 라는 걸 알아야 한다. 문장 표만
+# 넘기면 받는 쪽이 이 값을 모른다.
+CONST_KO = {
+    "too_warm_c":         "덥다 (℃)",
+    "too_cold_c":         "춥다 (℃)",
+    "too_humid_pct":      "눅눅하다 (%)",
+    "too_dry_pct":        "건조하다 (%)",
+    "dust_bad_ugm3":      "미세먼지 나쁨 PM10 (㎍/㎥)",
+    "fine_dust_bad_ugm3": "초미세먼지 나쁨 PM2.5 (㎍/㎥)",
+    "co2_high_ppm":       "이산화탄소 높다 (ppm)",
+    "too_dark_lux":       "어둡다 (lux)",
+    "too_bright_lux":     "눈부시다 (lux)",
+    "too_loud_db":        "시끄럽다 (dB)",
+    "battery_low_pct":    "배터리 부족 (%)",
+    "tank_low_pct":       "탱크 부족 (%)",
+    "soil_dry_pct":       "흙이 마름 (%)",
+    "power_spike_w":      "전력 급증 (W)",
+    "wind_strong_ms":     "바람 강함 (m/s)",
+    "gas_danger_ppm":     "가스 위험 (ppm)",
+    "vibration_high_mms": "진동 높음 (mm/s)",
+}
+
+DELTA_KO = [
+    ("thermal_comfort", "체감 온도", "\"시원하게\" = 지금 온도 − 2℃"),
+    ("temperature", "온도", "\"조금 따뜻하게\" = 지금 온도 + 2℃"),
+    ("humidity", "습도", "\"눅눅해\" = 지금 습도 − 10%p"),
+    ("illuminance", "밝기", "\"어둡게\" = 지금 밝기의 절반 (\"밝게\" 는 80% 로)"),
+    ("sound", "소리", "볼륨 한 단계"),
+]
+
+CONST_NOTE = (
+    "숫자 없는 말을 정답으로 바꾸는 표다. \"덥다\" 는 집에서 26℃, 온실에서 30℃ 다. "
+    "사용자마다 다르게 두지 않고 공간 종류 다섯으로 고정했다 — 사용자 설정에 따라 "
+    "정답이 갈리면 채점이 두 갈래가 되기 때문이다.\n"
+    "근거: 온·습도는 국내 실내 권장(여름 26℃ / 겨울 20℃, 습도 40~60%), 미세먼지는 "
+    "환경부 '나쁨' 경계(PM10 81, PM2.5 36), CO₂ 는 실내공기질 1,000ppm. "
+    "농장·공장 값과 전력 기준은 근거 문헌이 아니라 우리가 정한 설정값이다."
+)
+
+SCENE_NOTE = (
+    "카탈로그에 장면(Scene) 서비스가 없다. \"영화 모드\" 는 조명 값의 묶음으로 푼다 — "
+    "밝기 한 번, 색온도 한 번, 호출 두 번이다."
+)
 
 
 def ir_ops(raw):
@@ -190,35 +241,114 @@ def main():
 
         ws = wb.active
         ws.title = "안내"
+        num_rows = []                       # 오른쪽 정렬할 자리 (행, 열들)
+
+        def head(cells):
+            """머리글 줄 — 굵게 + 바탕색."""
+            r = ws.max_row
+            for c in cells:
+                ws[f"{c}{r}"].font = head_font
+                ws[f"{c}{r}"].fill = head_fill
+
+        def wide(text, cols="B:F"):
+            """긴 글 한 줄 — 오른쪽 칸을 합쳐 넓게 쓴다."""
+            ws.append([text] if cols == "A:F" else ["", text])
+            r = ws.max_row
+            a, b = cols.split(":")
+            if cols == "A:F":
+                ws.merge_cells(f"A{r}:F{r}")
+            else:
+                ws.merge_cells(f"{a}{r}:{b}{r}")
+            return r
+
         ws.append(["JoI 명령어 벤치마크 — 공유용"])
         ws["A1"].font = Font(bold=True, size=14)
+        ws.merge_cells("A1:F1")
         ws.append([])
-        ws.append([f"명령어 {len(out):,}개. 영어와 한국어가 같은 줄에 있다. "
-                   "공간 40곳의 기기 목록이 따로 있어서, 같은 문장이라도 "
-                   "어디서 말했느냐에 따라 실행·되묻기·거절로 갈린다."])
-        ws.append(["도메인마다 시트를 나눴다. 만드는 쪽에서만 쓰는 열 9개"
-                   "(mode trig act dev_trig dev_act ref b1 b3 ir_gt)는 뺐다."])
+        wide(f"명령어 {len(out):,}개. 영어와 한국어가 같은 줄에 있다. "
+             "공간 40곳의 기기 목록이 따로 있어서, 같은 문장이라도 "
+             "어디서 말했느냐에 따라 실행·되묻기·거절로 갈린다.", "A:F")
+        wide("도메인마다 시트를 나눴다. 만드는 쪽에서만 쓰는 열 9개"
+             "(mode trig act dev_trig dev_act ref b1 b3 ir_gt)는 뺐다.", "A:F")
+
+        # ── 열 사전
         ws.append([])
         ws.append(["열", "뜻"])
-        for c in ("A6", "B6"):
-            ws[c].font = head_font
-            ws[c].fill = head_fill
+        ws.merge_cells(f"B{ws.max_row}:F{ws.max_row}")
+        head("AB")
         for name, desc in GUIDE:
             ws.append([name, desc])
+            ws.merge_cells(f"B{ws.max_row}:F{ws.max_row}")
+
+        # ── intent
         ws.append([])
-        ws.append(["intent", "뜻", "예"])
-        r0 = ws.max_row
-        for c in "ABC":
-            ws[f"{c}{r0}"].font = head_font
-            ws[f"{c}{r0}"].fill = head_fill
+        ws.append(["intent", "뜻", "", "예"])
+        r = ws.max_row
+        ws.merge_cells(f"B{r}:C{r}")
+        ws.merge_cells(f"D{r}:F{r}")
+        head("ABD")
         for a, b, c in INTENT_GUIDE:
-            ws.append([a, b, c])
-        ws.column_dimensions["A"].width = 14
-        ws.column_dimensions["B"].width = 78
-        ws.column_dimensions["C"].width = 44
+            ws.append([a, b, "", c])
+            r = ws.max_row
+            ws.merge_cells(f"B{r}:C{r}")
+            ws.merge_cells(f"D{r}:F{r}")
+
+        # ── 기준값 — "덥다" 가 몇 도인가
+        ws.append([])
+        ws.append(["숫자 기준 — 숫자 없는 말을 정답으로 바꾸는 표"])
+        ws[f"A{ws.max_row}"].font = Font(bold=True, size=12)
+        ws.merge_cells(f"A{ws.max_row}:F{ws.max_row}")
+        wide(CONST_NOTE, "A:F")
+        ws.append([])
+        ws.append(["기준"] + [KIND_KO[k] for k in P.KINDS])
+        head("ABCDEF")
+        for name, vals in P.CONST.items():
+            ws.append([CONST_KO.get(name, name), *vals])
+            num_rows.append((ws.max_row, "BCDEF"))
+
+        # ── 값 보폭 — "조금 더" 가 얼마인가
+        ws.append([])
+        ws.append(["\"조금 더\" 가 얼마인가", "보폭", "", "예"])
+        r = ws.max_row
+        ws.merge_cells(f"B{r}:C{r}")
+        ws.merge_cells(f"D{r}:F{r}")
+        head("ABD")
+        step_ko = {"illuminance": "×0.5", "humidity": "10%p",
+                   "thermal_comfort": "2℃", "temperature": "2℃"}
+        for key, ko, ex in DELTA_KO:
+            ws.append([ko, step_ko.get(key, P.DELTA[key]), "", ex])
+            r = ws.max_row
+            ws.merge_cells(f"B{r}:C{r}")
+            ws.merge_cells(f"D{r}:F{r}")
+            num_rows.append((r, "B"))
+
+        # ── 장면 — 카탈로그에 없어서 조명 값으로 푼다
+        ws.append([])
+        ws.append(["장면 — 조명 값의 묶음으로 푼다"])
+        ws[f"A{ws.max_row}"].font = Font(bold=True, size=12)
+        ws.merge_cells(f"A{ws.max_row}:F{ws.max_row}")
+        wide(SCENE_NOTE, "A:F")
+        ws.append([])
+        ws.append(["장면", "가리키는 말", "밝기 %", "색온도 K", "색상 Hue", "채도 %"])
+        head("ABCDEF")
+        for name, parts in IR.SCENE.items():
+            d = dict(parts)
+            ws.append([name, K.SCENE_KO.get(name, ""),
+                       d.get("bri", "끈다" if "off" in d else ""),
+                       d.get("k", ""),
+                       IR.HUE[d["hue"]] if "hue" in d else "",
+                       100 if "hue" in d else ""])
+            num_rows.append((ws.max_row, "CDEF"))
+
+        for col, wdt in zip("ABCDEF", (30, 15, 13, 13, 13, 13)):
+            ws.column_dimensions[col].width = wdt
         for row in ws.iter_rows():
             for cell in row:
                 cell.alignment = Alignment(vertical="top", wrap_text=True)
+        for r, cols in num_rows:            # 숫자는 오른쪽으로
+            for c in cols:
+                ws[f"{c}{r}"].alignment = Alignment(vertical="top",
+                                                    horizontal="right")
 
         ws = wb.create_sheet("공간")
         ws.append(["space_id", "domain", "어떤 곳", "기기 수", "문장 수"])
