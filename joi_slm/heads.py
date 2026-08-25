@@ -29,8 +29,12 @@ class SegHeads:
         md = [[MODS[k] for k, m in enumerate(self.clf_m) if m is not None and m.predict(V[r:r + 1])[0] == 1] for r in range(len(V))]
         return ty, pr.max(1), md
 
-def train_seg_heads(exp_dir, aug=("polite", "nominal", "post"), out=ASSET):
-    """exp_dir = slm/experiments. 원본 382(states.npz, gold 경계·타입·mods) + 증강 세트(aug_<name>.json + 상태 npz)."""
+def train_seg_heads(exp_dir, aug=("polite", "nominal", "post"), out=ASSET, only=None):
+    """exp_dir = slm/experiments. 원본 382(states.npz, gold 경계·타입·mods) + 증강 세트(aug_<name>.json + 상태 npz).
+
+    only: 학습에 쓸 행 id 집합(None 이면 전부). 일반화를 재려고 학습 몫으로만 학습할 때 쓴다.
+    **행을 빼도 states.npz 는 그대로 쓴다** — 라벨 파일에서 행을 지우면 순번(ci)이
+    밀려 상태와 어긋나므로, 목록은 그대로 두고 여기서 건너뛴다."""
     T = json.load(open(os.path.join(exp_dir, "type", "type_labels.json"))); TI = {o["i"]: o for o in T}
     H = np.load(os.path.join(exp_dir, "head", "states.npz")); HX = H["X"]; L = list(H["layers"]); LB, LT = L.index(2), L.index(6)
     row = {(int(c), int(t)): i for i, (c, t) in enumerate(zip(H["cmd_idx"], H["word_pos"]))}
@@ -41,6 +45,7 @@ def train_seg_heads(exp_dir, aug=("polite", "nominal", "post"), out=ASSET):
         starts = [k for k, l in enumerate(labels) if l == 1 or k == 0]; ends = starts[1:] + [n]
         for ty, md, e in zip(types, mods, ends): Xt.append(get(e - 1)[LT]); yt.append(ty); ym.append([int(m in md) for m in MODS])
     for ci, it in enumerate(T):
+        if only is not None and it.get("id") not in only: continue
         add(lambda t, ci=ci: HX[row[(ci, t)]], it["gold_labels"], [s["type"] for s in it["segments"]], [s["mods"] for s in it["segments"]])
     for name in aug:
         A = json.load(open(os.path.join(exp_dir, "type", f"aug_{name}.json")))

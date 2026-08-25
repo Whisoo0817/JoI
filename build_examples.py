@@ -62,6 +62,7 @@ def material():
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true")
+    ap.add_argument("--train-only", action="store_true", help="학습 몫만 (일반화 재기용)")
     args = ap.parse_args()
 
     labels, gold = material()
