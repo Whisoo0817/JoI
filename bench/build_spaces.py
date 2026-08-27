@@ -16,7 +16,7 @@ from nick_lexicon import to_en
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.join(HERE, "..")
-CATALOG = os.path.join(ROOT, "files", "service_list_ver3.1.0.json")
+CATALOG = os.path.join(ROOT, "files", "service_list_ver3.0.0.json")
 
 # 허브가 언제나 제공하는 것 — 기기 수(≥10)에는 세지 않는다.
 SYSTEM = [("Clock", "Clock"), ("GlobalVariable", "전역 변수"),
@@ -192,9 +192,17 @@ def build(sid, kind, name, size, notes, rows, missing=()):
             key = f"{sid}_{place}_{cl[0]}"
             seen[key] = seen.get(key, 0) + 1
             did = f"{key}_{seen[key]}"
-            tags = ([place] if place else []) + ex + ([brand] if brand else []) + cl
+            # location — 방 하나를 가리키는 딱 한 값. 층이 있으면 붙인다.
+            # 층을 안 붙이면 OFFICE05 의 1층 회의실과 2층 회의실이 한 방이 되어
+            # "회의실 조명 켜" 가 두 층을 다 켜 버린다. 서로 다른 방이다.
+            # "2층 다 꺼" 는 location 을 자르지 않고 Floor2 태그로 찾는다.
+            floor = next((t for t in ex if t.startswith("Floor")), None)
+            loc = f"{floor}_{place}" if (floor and place) else place
+            tags = ([place] if place else []) + ex + ([brand] if brand else []) + cl \
+                   + ([loc] if loc else [])
             devices[did] = {
                 "nickname": (nick.format(i=i) if nick else None),
+                "location": loc,
                 "category": cl,
                 "tags": list(dict.fromkeys(t for t in tags if t)),
             }
@@ -204,7 +212,8 @@ def build(sid, kind, name, size, notes, rows, missing=()):
             ([("PersonTracker", "내 폰")] if sid in PERSON_TRACKER else []) + \
             ([("CalendarProvider", "일정")] if sid in CALENDAR else [])
     for cat, nk in SYSTEM + extra:
-        e = {"nickname": nk, "category": [cat], "tags": ["System", cat]}
+        e = {"nickname": nk, "location": "System",
+             "category": [cat], "tags": ["System", cat]}
         if cat == "GlobalVariable":
             e["variables"] = GLOBALS.get(sid, {})
         devices[f"{sid}_System_{cat}"] = e
@@ -789,7 +798,8 @@ S["OFFICE01"] = build("OFFICE01", "office", "스타트업 사무실 (단층)", "
     d(1, "AirQualitySensor", "OpenSpace"),
     d(1, "CoffeeMaker", "Pantry"),
     d(1, "Fan", "Pantry"),
-    d(2, "WindowCovering", "OpenSpace", "Blind"),
+    d(2, "WindowCovering", "OpenSpace", "Blind", "사무실 블라인드 {i}"),
+    d(2, "WindowCovering", "OpenSpace", "Window", "사무실 창문 {i}"),
     d(1, "Thermostat", "OpenSpace"),
 ], missing=["Camera", "Projector", "Siren"])
 
@@ -817,25 +827,48 @@ S["OFFICE02"] = build("OFFICE02", "office", "공유오피스 한 층", "M",
     d(2, "MultiButton", "MeetingRoom"),
     d(2, "Ventilator", "OpenSpace"),
     d(1, "CoffeeMaker", "Pantry"),
-    d(4, "WindowCovering", "OpenSpace", "Blind"),
+    d(4, "WindowCovering", "OpenSpace", "Blind", "사무실 블라인드 {i}"),
     d(1, "SmokeDetector", "Pantry"),
 ])
 
 S["OFFICE03"] = build("OFFICE03", "office", "회의실 중심 오피스", "M",
-    "회의실 4개 — 예약·재실·환기 자동화. 회의실마다 같은 기기 한 벌씩(중복).", [
-    d(4, "Light|Switch", "MeetingRoom", "LightSwitch", "회의실 {i} 조명"),
-    d(4, "Display", "MeetingRoom", "", "회의실 {i} 화면"),
-    d(4, "PresenceSensor", "MeetingRoom", "", "회의실 {i} 재실"),
-    d(4, "AirConditioner|Switch", "MeetingRoom"),
-    d(4, "CarbonDioxideSensor", "MeetingRoom"),
-    d(2, "Projector", "MeetingRoom"),
-    d(2, "Speaker", "MeetingRoom"),
-    d(2, "Camera", "MeetingRoom", nick="화상회의 카메라 {i}"),
-    d(2, "AudioRecorder", "MeetingRoom", "", "회의 녹음기 {i}"),
+    "회의실 4개 — location 이 방마다 따로다(MeetingRoom1~4). 예약·재실·환기 자동화. "
+    "1·2 회의실은 큰 방이라 프로젝터·스피커·카메라·녹음기·환기가 더 있다.", [
+    d(1, "Light|Switch", "MeetingRoom1", "LightSwitch,MeetingRoom", "회의실 1 조명"),
+    d(1, "Light|Switch", "MeetingRoom2", "LightSwitch,MeetingRoom", "회의실 2 조명"),
+    d(1, "Light|Switch", "MeetingRoom3", "LightSwitch,MeetingRoom", "회의실 3 조명"),
+    d(1, "Light|Switch", "MeetingRoom4", "LightSwitch,MeetingRoom", "회의실 4 조명"),
+    d(1, "Display", "MeetingRoom1", "MeetingRoom", "회의실 1 화면"),
+    d(1, "Display", "MeetingRoom2", "MeetingRoom", "회의실 2 화면"),
+    d(1, "Display", "MeetingRoom3", "MeetingRoom", "회의실 3 화면"),
+    d(1, "Display", "MeetingRoom4", "MeetingRoom", "회의실 4 화면"),
+    d(1, "PresenceSensor", "MeetingRoom1", "MeetingRoom", "회의실 1 재실"),
+    d(1, "PresenceSensor", "MeetingRoom2", "MeetingRoom", "회의실 2 재실"),
+    d(1, "PresenceSensor", "MeetingRoom3", "MeetingRoom", "회의실 3 재실"),
+    d(1, "PresenceSensor", "MeetingRoom4", "MeetingRoom", "회의실 4 재실"),
+    d(1, "AirConditioner|Switch", "MeetingRoom1", "MeetingRoom"),
+    d(1, "AirConditioner|Switch", "MeetingRoom2", "MeetingRoom"),
+    d(1, "AirConditioner|Switch", "MeetingRoom3", "MeetingRoom"),
+    d(1, "AirConditioner|Switch", "MeetingRoom4", "MeetingRoom"),
+    d(1, "CarbonDioxideSensor", "MeetingRoom1", "MeetingRoom"),
+    d(1, "CarbonDioxideSensor", "MeetingRoom2", "MeetingRoom"),
+    d(1, "CarbonDioxideSensor", "MeetingRoom3", "MeetingRoom"),
+    d(1, "CarbonDioxideSensor", "MeetingRoom4", "MeetingRoom"),
+    d(1, "Projector", "MeetingRoom1", "MeetingRoom"),
+    d(1, "Projector", "MeetingRoom2", "MeetingRoom"),
+    d(1, "Speaker", "MeetingRoom1", "MeetingRoom"),
+    d(1, "Speaker", "MeetingRoom2", "MeetingRoom"),
+    d(1, "Camera", "MeetingRoom1", "MeetingRoom", "화상회의 카메라 1"),
+    d(1, "Camera", "MeetingRoom2", "MeetingRoom", "화상회의 카메라 2"),
+    d(1, "AudioRecorder", "MeetingRoom1", "MeetingRoom", "회의 녹음기 1"),
+    d(1, "AudioRecorder", "MeetingRoom2", "MeetingRoom", "회의 녹음기 2"),
+    d(1, "Ventilator", "MeetingRoom1", "MeetingRoom"),
+    d(1, "Ventilator", "MeetingRoom2", "MeetingRoom"),
+    d(1, "MultiButton", "MeetingRoom1", "MeetingRoom"),
+    d(1, "MultiButton", "MeetingRoom2", "MeetingRoom"),
+    d(1, "MultiButton", "MeetingRoom3", "MeetingRoom"),
     d(3, "Light|Switch", "OpenSpace", "LightSwitch,Main"),
     d(1, "Speaker", "OpenSpace", "Main"),
-    d(2, "Ventilator", "MeetingRoom"),
-    d(3, "MultiButton", "MeetingRoom"),
     d(2, "TemperatureSensor", "OpenSpace"),
     d(1, "DoorLock", "Entrance"),
     d(1, "ContactSensor", "Entrance", "Door"),
@@ -868,7 +901,7 @@ S["OFFICE04"] = build("OFFICE04", "office", "콜센터 (소음·공조 중심)",
 ])
 
 S["OFFICE05"] = build("OFFICE05", "office", "대형 오피스 2개 층", "L",
-    "가장 큰 오피스. 층 × 구역 두 단계 한정어가 모두 필요.", [
+    "가장 큰 오피스. 층 한정어가 필요하다 — 층마다 오픈스페이스·회의실·복도가 한 벌씩. 출입구와 설비실은 층 구분이 없는 공용이다.", [
     d(8, "Light|Switch", "OpenSpace", "LightSwitch,Floor1,Main"),
     d(8, "Light|Switch", "OpenSpace", "LightSwitch,Floor2"),
     d(2, "Light|Switch", "MeetingRoom", "LightSwitch,Floor1"),
@@ -883,21 +916,31 @@ S["OFFICE05"] = build("OFFICE05", "office", "대형 오피스 2개 층", "L",
     d(4, "TemperatureSensor", "OpenSpace", "Floor2"),
     d(2, "AirQualitySensor", "OpenSpace", "Floor1"),
     d(2, "AirQualitySensor", "OpenSpace", "Floor2"),
-    d(4, "Ventilator", "OpenSpace"),
-    d(4, "Display", "MeetingRoom"),
-    d(2, "Projector", "MeetingRoom"),
-    d(2, "MultiButton", "MeetingRoom"),
-    d(4, "Speaker", "OpenSpace", "Main"),
-    d(4, "Printer", "OpenSpace"),
+    d(2, "Ventilator", "OpenSpace", "Floor1"),
+    d(2, "Ventilator", "OpenSpace", "Floor2"),
+    d(2, "Display", "MeetingRoom", "Floor1"),
+    d(2, "Display", "MeetingRoom", "Floor2"),
+    d(1, "Projector", "MeetingRoom", "Floor1"),
+    d(1, "Projector", "MeetingRoom", "Floor2"),
+    d(1, "MultiButton", "MeetingRoom", "Floor1"),
+    d(1, "MultiButton", "MeetingRoom", "Floor2"),
+    d(2, "Speaker", "OpenSpace", "Floor1,Main"),
+    d(2, "Speaker", "OpenSpace", "Floor2,Main"),
+    d(2, "Printer", "OpenSpace", "Floor1"),
+    d(2, "Printer", "OpenSpace", "Floor2"),
     d(2, "RfidReader", "Entrance"),
     d(2, "DoorLock", "Entrance"),
     d(2, "Door", "Entrance", "", "자동문 {i}"),
     d(2, "OccupancyCounter", "Entrance"),
-    d(4, "Camera", "Hallway"),
-    d(2, "SmokeDetector", "Hallway"),
-    d(2, "Siren|Switch", "Hallway", "Main"),
-    d(8, "WindowCovering", "OpenSpace", "Blind"),
-    d(1, "Button", "OpenSpace"),
+    d(2, "Camera", "Hallway", "Floor1"),
+    d(2, "Camera", "Hallway", "Floor2"),
+    d(1, "SmokeDetector", "Hallway", "Floor1"),
+    d(1, "SmokeDetector", "Hallway", "Floor2"),
+    d(1, "Siren|Switch", "Hallway", "Floor1,Main"),
+    d(1, "Siren|Switch", "Hallway", "Floor2,Main"),
+    d(4, "WindowCovering", "OpenSpace", "Blind,Floor1", "1층 블라인드 {i}"),
+    d(4, "WindowCovering", "OpenSpace", "Blind,Floor2", "2층 블라인드 {i}"),
+    d(1, "Button", "OpenSpace", "Floor1"),
     d(2, "EnergyMeter", "Utility"),
     d(1, "EmailProvider", "System"),
     d(1, "CloudServiceProvider", "System"),
@@ -1340,7 +1383,7 @@ def main():
                 n_nick += 1
     print(f"별명 {n_nick}개를 영어로")
 
-    out = {"$version": "1.1.0", "$catalog": "service_list_ver3.1.0.json",
+    out = {"$version": "1.1.0", "$catalog": "service_list_ver3.0.0.json",
            "$comment": "벤치마크 공간 40 — 명령어는 space_id 로 이 목록을 가리킨다.",
            "spaces": S}
     dst = os.path.join(HERE, "spaces.json")

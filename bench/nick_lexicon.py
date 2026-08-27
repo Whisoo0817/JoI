@@ -52,7 +52,7 @@ NICK_TOKENS = [
     ("계량기", "meter"), ("급이기", "feeder"), ("급식기", "feeder"),
     ("에이컨", "AC"), ("에어컨", "AC"), ("가습기", "humidifier"), ("온수기", "water heater"),
     ("보일러", "boiler"), ("냉장고", "fridge"), ("프린터", "printer"), ("펫캠", "pet cam"),
-    ("스피커", "speaker"), ("챔버", "chamber"), ("커튼", "curtain"), ("모니터", "monitor"),
+    ("스피커", "speaker"), ("챔버", "chamber"), ("커튼", "curtain"), ("블라인드", "blind"), ("창문", "window"), ("모니터", "monitor"),
     ("금고", "safe"), ("펌프", "pump"), ("밸브", "valve"), ("조명", "light"), ("전등", "light"),
     ("문자 발송", "SMS sender"), ("보안 카메라", "security camera"),
     ("농도 인디케이터", "level indicator"), ("인디케이터", "indicator"),
@@ -77,6 +77,7 @@ NICK_TOKENS = [
 
 # "3번 밸브" 는 "valve 3" 이 되어야 한다 — 앞에 붙은 번호를 떼어 뒤로 보낸다
 _LEAD = [(re.compile(r"(\d+)번 하우스\s*"), "greenhouse {n} "),
+         (re.compile(r"(\d+)층\s*"), "floor {n} "),
          (re.compile(r"(\d+)호기\s*"), "machine {n} "),
          (re.compile(r"(\d+)라인\s*"), "line {n} "),
          (re.compile(r"(\d+)구역\s*"), "zone {n} "),
