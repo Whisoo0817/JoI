@@ -187,7 +187,7 @@ def main():
         print(f"  {ax}:", dict(collections.Counter(r[ax] for r in rows).most_common()))
     # 검산: 문장이 대는 기기가 실제로 있는가 / 카탈로그에 있는 카테고리인가
     cat = json.load(open(os.path.join(os.path.dirname(HERE), "files",
-                                      "service_list_ver3.1.0.json"), encoding="utf-8"))
+                                      "service_list_ver3.0.0.json"), encoding="utf-8"))
     bad = [c for c in cats if c not in cat]
     print("  검산:", f"카탈로그에 없는 카테고리 {bad}" if bad else "어긋난 것 없음 ✅")
 

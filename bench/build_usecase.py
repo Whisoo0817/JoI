@@ -20,11 +20,11 @@
   answer → execute                      read + 알림. 값 하나로 답이 정해지면 실행이다
   열린 요약·다기기 모드 → ask           "상태 어때?", "외출 모드" — 무엇을 읽을지/할지 미정
   주소가 필요한 채널(문자·카톡·메일) → ask   받는 주소를 모른다. 알림(notify)은 안 묻는다
-  슬랙 → execute                        팀 채널이라 주소가 없다 (3.1.0 SendSlack)
+  슬랙 → execute                        팀 채널이라 주소가 없다 (SendSlack)
   예보·"10분 전" → refuse no_service    WeatherProvider 에 예보가, 달력에 예측 대기가 없다
   기록 나열·주간 요약 → refuse no_service  기록을 나열하는 서비스가 없다
   과거 값 → read 의 @표기               @-1HOUR/@-1DAY/@count:today (기존) +
-                                        @avg|min|max:today, @avg:yesterday, @diff:today (3.1.0)
+                                        @avg|min|max:today, @avg:yesterday, @diff:today
 """
 import csv
 import json
@@ -37,7 +37,7 @@ sys.path.insert(0, HERE)
 import ir as IR                    # noqa: E402
 import policy as PL                # noqa: E402
 
-CAT = json.load(open(os.path.join(HERE, "..", "files", "service_list_ver3.1.0.json"),
+CAT = json.load(open(os.path.join(HERE, "..", "files", "service_list_ver3.0.0.json"),
                      encoding="utf-8"))
 
 # 씨앗 한국어 — dataset-usecase.xlsx 의 seed_command. 영어는 이걸 보고 새로 썼으므로

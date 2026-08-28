@@ -29,7 +29,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 
 import templates as T
-CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.1.0.json")
+CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.0.0.json")
 
 # ── 센서에서 숫자를 읽는 속성 ──────────────────────────────────────────
 # "{sensor} 가 300 을 넘으면" 처럼 센서 이름만 대는 틀이 어느 속성을 읽는지.
