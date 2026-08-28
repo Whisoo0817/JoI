@@ -9,7 +9,7 @@ _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 # 인자는 이름 없이 위치와 형식 힌트("DOUBLE | DOUBLE", "brightness | transition_rate")로만 온다.
 # 여기서 예전 모양({values, functions, enums_map})으로 되돌려 아래 코드는 그대로 쓴다.
 # 인자 이름은 files/argument_names.json 이름표에서 가져온다(2.0.7 이름 승계 + 형식 힌트 유도).
-_SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver3.1.0.json")
+_SERVICE_LIST_PATH = os.path.join(_BASE_DIR, "files/service_list_ver3.0.0.json")
 _ARG_NAMES_PATH = os.path.join(_BASE_DIR, "files/argument_names.json")
 
 _ARG_NAMES = {}

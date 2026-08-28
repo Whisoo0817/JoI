@@ -83,7 +83,7 @@ _ALIAS = [None]
 
 def _alias_map():
     """카탈로그에서 **뜻풀이가 글자까지 같은 enum 값**들을 찾아 하나로 모은다.
-    지금 카탈로그(3.1.0)에는 한 묶음뿐이다: double = pushed_2x ("눌림 두 번").
+    지금 카탈로그(3.0.0)에는 한 묶음뿐이다: double = pushed_2x ("눌림 두 번").
     정답 IR 은 double 로 적혀 있고 파이프라인은 카탈로그 순서대로 pushed_2x 를
     고르는데, 카탈로그가 둘을 같은 뜻이라고 적어 둔 이상 채점에서 갈라선 안 된다.
     표를 손으로 적지 않고 카탈로그에서 뽑는다 — 카탈로그가 바뀌면 따라 바뀐다."""
@@ -91,7 +91,7 @@ def _alias_map():
         import collections, os
         m = {}
         path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                            "files", "service_list_ver3.1.0.json")
+                            "files", "service_list_ver3.0.0.json")
 
         def walk(o):
             if isinstance(o, dict):

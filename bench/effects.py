@@ -21,7 +21,7 @@ import os
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.1.0.json")
+CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.0.0.json")
 
 # ── 효과 어휘 (이름표) ──────────────────────────────────────────────────
 # 이 밖의 단어는 못 쓴다. 검증이 막는다.

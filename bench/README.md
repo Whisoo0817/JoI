@@ -1,7 +1,7 @@
 # bench — 범용 스마트홈 명령어 데이터셋
 
 **최종 산출물 두 가지**
-1. `files/service_list_ver3.1.0.json` — 서비스 카탈로그
+1. `files/service_list_ver3.0.0.json` — 서비스 카탈로그
 2. 영어 명령어 **5,578개** 데이터셋 (자체 5,000 `G행` + joi usecase 578 `U행`)
 3. 한국어판 — 같은 행의 `command_ko` 열 (**5,578개 전부**)
 
@@ -50,12 +50,11 @@
 
 ---
 
-## 2. 카탈로그 (v3.1.0)
+## 2. 카탈로그 (v3.0.0)
 
-`bench/build_catalog.py` 가 v2.1.0 에서 생성한다. **105 카테고리 / 472 서비스**
-(v3.0.0 103/460 위에 3.1.0 층이 얹힌다 — 3.0.0 의 changelog 는 얼려 둔다).
+`bench/build_catalog.py` 가 v2.1.0 에서 생성한다. **105 카테고리 / 472 서비스**.
 
-### 3.1.0 에서 더한 것 — joi usecase 맞춤
+### joi usecase 맞춤으로 마지막에 더한 것
 
 | 무엇 | 왜 |
 |---|---|
@@ -835,7 +834,7 @@ home·office·factory·lab·farm 각 시트)을 우리 벤치마크 행으로 �
 ### 재현 순서
 
 ```
-python bench/build_catalog.py     # files/service_list_ver3.1.0.json
+python bench/build_catalog.py     # files/service_list_ver3.0.0.json
 python bench/build_spaces.py      # spaces.json (Heater 포함)
 python bench/build_dataset.py     # dataset_5k.csv — G행 5,000 (U행은 지워진다)
 python bench/build_usecase.py     # U행 578 검산 후 다시 얹는다 (멱등)
