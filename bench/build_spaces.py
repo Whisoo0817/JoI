@@ -829,6 +829,7 @@ S["OFFICE02"] = build("OFFICE02", "office", "공유오피스 한 층", "M",
     d(1, "CoffeeMaker", "Pantry"),
     d(4, "WindowCovering", "OpenSpace", "Blind", "사무실 블라인드 {i}"),
     d(1, "SmokeDetector", "Pantry"),
+    d(1, "MessageSender", "System"),
 ])
 
 S["OFFICE03"] = build("OFFICE03", "office", "회의실 중심 오피스", "M",
@@ -874,6 +875,7 @@ S["OFFICE03"] = build("OFFICE03", "office", "회의실 중심 오피스", "M",
     d(1, "ContactSensor", "Entrance", "Door"),
     d(1, "OccupancyCounter", "Entrance"),
     d(1, "Printer", "OpenSpace"),
+    d(1, "MessageSender", "System"),
 ])
 
 S["OFFICE04"] = build("OFFICE04", "office", "콜센터 (소음·공조 중심)", "M",
@@ -898,6 +900,7 @@ S["OFFICE04"] = build("OFFICE04", "office", "콜센터 (소음·공조 중심)",
     d(1, "Fan", "Pantry"),
     d(1, "SmokeDetector", "OpenSpace"),
     d(1, "MenuProvider", "System"),
+    d(1, "MessageSender", "System"),
 ])
 
 S["OFFICE05"] = build("OFFICE05", "office", "대형 오피스 2개 층", "L",
@@ -945,6 +948,7 @@ S["OFFICE05"] = build("OFFICE05", "office", "대형 오피스 2개 층", "L",
     d(1, "EmailProvider", "System"),
     d(1, "CloudServiceProvider", "System"),
     d(1, "MenuProvider", "System"),
+    d(1, "MessageSender", "System"),
 ])
 
 S["OFFICE06"] = build("OFFICE06", "office", "지점 사무소 (소형)", "S",
