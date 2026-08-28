@@ -1,5 +1,5 @@
 {
- "$schema_version": "3.0.0",
+ "$schema_version": "3.1.0",
  "$changelog": {
   "2.1.0": [
    "Fixed typo: SetRobotVacuumCleanerModeMode → SetRobotVacuumCleanerMode",
@@ -14,7 +14,213 @@
    "Added services to existing categories: AirConditioner.FanMode, AirConditioner.SwingMode, AirConditioner.SetFanMode, AirConditioner.SetSwingMode, Camera.RecordingState, Camera.StartRecording, Camera.StopRecording, WindowCovering.CurrentTiltAngle, WindowCovering.SetTiltAngle",
    "Added enum members: AirConditioner.AirConditionerMode:dry, AirConditioner.AirConditionerMode:fan, AirConditioner.AirConditionerMode:off, Fan.FanMode:turbo, AirPurifier.AirPurifierMode:turbo, Humidifier.HumidifierMode:sleep, Humidifier.HumidifierMode:turbo, RobotVacuumCleaner.RobotVacuumCleanerMode:spot, RobotVacuumCleaner.RobotVacuumCleanerMode:edge, RobotVacuumCleaner.RobotVacuumCleanerMode:silent, RobotVacuumCleaner.RobotVacuumCleanerMode:charge, Siren.SirenMode:intruder, Siren.SirenMode:gas, Siren.SirenMode:test, WindowCovering.WindowCoveringType:curtain, WindowCovering.WindowCoveringType:shutter, WindowCovering.WindowCoveringType:awning, WindowCovering.WindowCoveringType:rollerShade, WindowCovering.WindowCoveringType:screen, Thermostat.ThermostatMode:dry, Thermostat.ThermostatMode:fanOnly",
    "effects: every function service lists what it changes in the real world, using a fixed vocabulary ($effects_vocab). Direct effects only. Switch.On/Off inherit the effects of whatever category the switch is attached to ($switch_carries)."
+  ],
+  "3.1.0": [
+   "JoI usecase alignment (dataset-usecase.xlsx).",
+   "Added category: Heater (space heater — HA climate/generic_thermostat). Distinct from WaterHeater.",
+   "Added MessageSender.SendSlack — team channel message; unlike SMS/KakaoTalk/mail it needs no per-recipient address, so it can be sent without asking.",
+   "History reads: Timeline IR may read PAST values of any value service with the invented @ notation on read.src — src@-1HOUR / src@-1DAY (value back then), src@count:today (event count since midnight), and the aggregates src@avg:today, src@min:today, src@max:today. IR-spec notation, not catalog services; the hub's recorder answers them."
   ]
+ },
+ "$effects_vocab": {
+  "temperature": "방 온도 (온도계 숫자)",
+  "thermal_comfort": "사람이 느끼는 시원함·따뜻함. 선풍기는 온도를 못 내리지만 이건 내린다",
+  "humidity": "습도",
+  "air_quality": "공기질 — 미세먼지·CO2·냄새가 좋아지면 +",
+  "air_motion": "바람·공기 흐름",
+  "illuminance": "밝기",
+  "color": "빛의 색",
+  "sound": "소리 크기",
+  "power_draw": "쓰는 전기",
+  "water_flow": "물 흐름 (밸브·펌프·스프링클러)",
+  "water_level": "탱크 수위",
+  "water_temperature": "물 온도",
+  "soil_moisture": "토양 수분",
+  "light_spectrum": "빛의 파장 (식물용)",
+  "openness": "열림 정도 (문·창·커튼·차고)",
+  "locked": "잠김",
+  "running": "기기가 돌고 있나 — 전원이 켜져 있다는 뜻. 모든 켜기·끄기가 이걸 가진다",
+  "process": "사이클이 돌고 있나 (세탁·건조·설거지·조리·인쇄·생산)",
+  "motion_run": "움직이는 기기가 움직이고 있나 (청소기·컨베이어·로봇팔·잔디깎이·컴프레서)",
+  "recording": "녹화·녹음 중",
+  "position": "물리적 위치 (로봇팔·청소기 도킹)",
+  "floor_clean": "바닥·잔디가 깨끗해짐 (청소기·잔디깎이)",
+  "item_clean": "옷·그릇·기구가 깨끗해짐 (세탁·건조·설거지·의류관리·살균)",
+  "cooked": "음식이 익음",
+  "charge": "배터리 충전량",
+  "visual_signal": "눈에 보이는 신호 (상태등·깜빡임·화면)",
+  "audio_signal": "귀에 들리는 신호 (차임·사이렌·안내 음성)",
+  "message_sent": "사람에게 메시지가 간다",
+  "data_out": "정보를 돌려준다 (읽기·조회·생성)",
+  "variable": "전역 변수 값",
+  "count": "누적 횟수·카운터",
+  "feed": "사료·물 배급",
+  "halted": "비상 정지",
+  "media": "재생 중인 콘텐츠",
+  "enrolled": "등록된 얼굴·데이터"
+ },
+ "$switch_carries": {
+  "Light": {
+   "On": [
+    "illuminance+"
+   ],
+   "Off": [
+    "illuminance-"
+   ]
+  },
+  "GrowLight": {
+   "On": [
+    "illuminance+"
+   ],
+   "Off": [
+    "illuminance-"
+   ]
+  },
+  "Fan": {
+   "On": [
+    "air_motion+",
+    "thermal_comfort-"
+   ],
+   "Off": [
+    "air_motion-"
+   ]
+  },
+  "AirConditioner": {
+   "On": [
+    "thermal_comfort~"
+   ],
+   "Off": []
+  },
+  "AirPurifier": {
+   "On": [
+    "air_quality+"
+   ],
+   "Off": []
+  },
+  "Humidifier": {
+   "On": [
+    "humidity+"
+   ],
+   "Off": []
+  },
+  "Dehumidifier": {
+   "On": [
+    "humidity-"
+   ],
+   "Off": []
+  },
+  "Ventilator": {
+   "On": [
+    "air_quality+",
+    "air_motion+"
+   ],
+   "Off": [
+    "air_motion-"
+   ]
+  },
+  "ElectricBlanket": {
+   "On": [
+    "thermal_comfort+"
+   ],
+   "Off": []
+  },
+  "WaterHeater": {
+   "On": [
+    "water_temperature+"
+   ],
+   "Off": []
+  },
+  "CoffeeMaker": {
+   "On": [
+    "cooked+"
+   ],
+   "Off": []
+  },
+  "Television": {
+   "On": [
+    "media+",
+    "visual_signal+"
+   ],
+   "Off": [
+    "media-",
+    "visual_signal-"
+   ]
+  },
+  "Speaker": {
+   "On": [
+    "sound+"
+   ],
+   "Off": [
+    "sound-"
+   ]
+  },
+  "Projector": {
+   "On": [
+    "visual_signal+"
+   ],
+   "Off": [
+    "visual_signal-"
+   ]
+  },
+  "Display": {
+   "On": [
+    "visual_signal+"
+   ],
+   "Off": [
+    "visual_signal-"
+   ]
+  },
+  "Camera": {
+   "On": [
+    "recording+"
+   ],
+   "Off": [
+    "recording-"
+   ]
+  },
+  "Pump": {
+   "On": [
+    "water_flow+"
+   ],
+   "Off": [
+    "water_flow-"
+   ]
+  },
+  "Sprinkler": {
+   "On": [
+    "water_flow+",
+    "soil_moisture+"
+   ],
+   "Off": [
+    "water_flow-"
+   ]
+  },
+  "RangeHood": {
+   "On": [
+    "air_quality+"
+   ],
+   "Off": []
+  },
+  "Siren": {
+   "On": [
+    "audio_signal+"
+   ],
+   "Off": [
+    "audio_signal-"
+   ]
+  },
+  "StatusLight": {
+   "On": [
+    "visual_signal+"
+   ],
+   "Off": [
+    "visual_signal-"
+   ]
+  },
+  "Plug": {
+   "On": [],
+   "Off": []
+  }
  },
  "AirCompressor": {
   "CompressorState": {
@@ -2323,6 +2529,69 @@
    ]
   }
  },
+ "Heater": {
+  "HeaterState": {
+   "type": "value",
+   "descriptor": "Current state of the heater",
+   "return_descriptor": "Current state of the heater",
+   "return_type": "ENUM",
+   "enums_descriptor": [
+    "off - Not heating",
+    "heating - Actively heating",
+    "idle - At target temperature, standing by"
+   ]
+  },
+  "TargetTemperature": {
+   "type": "value",
+   "descriptor": "Target temperature of the heater",
+   "return_descriptor": "Target temperature of the heater",
+   "return_type": "DOUBLE",
+   "return_bounds": [
+    5,
+    35
+   ],
+   "unit": "°C"
+  },
+  "On": {
+   "type": "function",
+   "descriptor": "Turn the heater on",
+   "argument_descriptor": "Turn the heater on",
+   "return_type": "VOID",
+   "effects": [
+    "running+",
+    "temperature+",
+    "thermal_comfort+",
+    "power_draw+"
+   ]
+  },
+  "Off": {
+   "type": "function",
+   "descriptor": "Turn the heater off",
+   "argument_descriptor": "Turn the heater off",
+   "return_type": "VOID",
+   "effects": [
+    "running-",
+    "power_draw-"
+   ]
+  },
+  "SetTargetTemperature": {
+   "type": "function",
+   "descriptor": "Set the target temperature of the heater",
+   "argument_descriptor": "Set the target temperature of the heater",
+   "argument_type": "DOUBLE",
+   "argument_format": "temperature",
+   "argument_bounds": [
+    5,
+    35
+   ],
+   "argument_unit": "°C",
+   "return_type": "VOID",
+   "effects": [
+    "temperature=",
+    "thermal_comfort="
+   ]
+  }
+ },
  "Humidifier": {
   "HumidifierMode": {
    "type": "value",
@@ -2980,6 +3249,17 @@
    "argument_descriptor": "Send a KakaoTalk message to a contact",
    "argument_type": "STRING | STRING",
    "argument_format": "contact | message",
+   "return_type": "VOID",
+   "effects": [
+    "message_sent+"
+   ]
+  },
+  "SendSlack": {
+   "type": "function",
+   "descriptor": "Send a message to the team Slack channel",
+   "argument_descriptor": "Send a message to the team Slack channel",
+   "argument_type": "STRING",
+   "argument_format": "message",
    "return_type": "VOID",
    "effects": [
     "message_sent+"
@@ -5812,206 +6092,6 @@
     "openness~",
     "illuminance~"
    ]
-  }
- },
- "$effects_vocab": {
-  "temperature": "방 온도 (온도계 숫자)",
-  "thermal_comfort": "사람이 느끼는 시원함·따뜻함. 선풍기는 온도를 못 내리지만 이건 내린다",
-  "humidity": "습도",
-  "air_quality": "공기질 — 미세먼지·CO2·냄새가 좋아지면 +",
-  "air_motion": "바람·공기 흐름",
-  "illuminance": "밝기",
-  "color": "빛의 색",
-  "sound": "소리 크기",
-  "power_draw": "쓰는 전기",
-  "water_flow": "물 흐름 (밸브·펌프·스프링클러)",
-  "water_level": "탱크 수위",
-  "water_temperature": "물 온도",
-  "soil_moisture": "토양 수분",
-  "light_spectrum": "빛의 파장 (식물용)",
-  "openness": "열림 정도 (문·창·커튼·차고)",
-  "locked": "잠김",
-  "running": "기기가 돌고 있나 — 전원이 켜져 있다는 뜻. 모든 켜기·끄기가 이걸 가진다",
-  "process": "사이클이 돌고 있나 (세탁·건조·설거지·조리·인쇄·생산)",
-  "motion_run": "움직이는 기기가 움직이고 있나 (청소기·컨베이어·로봇팔·잔디깎이·컴프레서)",
-  "recording": "녹화·녹음 중",
-  "position": "물리적 위치 (로봇팔·청소기 도킹)",
-  "floor_clean": "바닥·잔디가 깨끗해짐 (청소기·잔디깎이)",
-  "item_clean": "옷·그릇·기구가 깨끗해짐 (세탁·건조·설거지·의류관리·살균)",
-  "cooked": "음식이 익음",
-  "charge": "배터리 충전량",
-  "visual_signal": "눈에 보이는 신호 (상태등·깜빡임·화면)",
-  "audio_signal": "귀에 들리는 신호 (차임·사이렌·안내 음성)",
-  "message_sent": "사람에게 메시지가 간다",
-  "data_out": "정보를 돌려준다 (읽기·조회·생성)",
-  "variable": "전역 변수 값",
-  "count": "누적 횟수·카운터",
-  "feed": "사료·물 배급",
-  "halted": "비상 정지",
-  "media": "재생 중인 콘텐츠",
-  "enrolled": "등록된 얼굴·데이터"
- },
- "$switch_carries": {
-  "Light": {
-   "On": [
-    "illuminance+"
-   ],
-   "Off": [
-    "illuminance-"
-   ]
-  },
-  "GrowLight": {
-   "On": [
-    "illuminance+"
-   ],
-   "Off": [
-    "illuminance-"
-   ]
-  },
-  "Fan": {
-   "On": [
-    "air_motion+",
-    "thermal_comfort-"
-   ],
-   "Off": [
-    "air_motion-"
-   ]
-  },
-  "AirConditioner": {
-   "On": [
-    "thermal_comfort~"
-   ],
-   "Off": []
-  },
-  "AirPurifier": {
-   "On": [
-    "air_quality+"
-   ],
-   "Off": []
-  },
-  "Humidifier": {
-   "On": [
-    "humidity+"
-   ],
-   "Off": []
-  },
-  "Dehumidifier": {
-   "On": [
-    "humidity-"
-   ],
-   "Off": []
-  },
-  "Ventilator": {
-   "On": [
-    "air_quality+",
-    "air_motion+"
-   ],
-   "Off": [
-    "air_motion-"
-   ]
-  },
-  "ElectricBlanket": {
-   "On": [
-    "thermal_comfort+"
-   ],
-   "Off": []
-  },
-  "WaterHeater": {
-   "On": [
-    "water_temperature+"
-   ],
-   "Off": []
-  },
-  "CoffeeMaker": {
-   "On": [
-    "cooked+"
-   ],
-   "Off": []
-  },
-  "Television": {
-   "On": [
-    "media+",
-    "visual_signal+"
-   ],
-   "Off": [
-    "media-",
-    "visual_signal-"
-   ]
-  },
-  "Speaker": {
-   "On": [
-    "sound+"
-   ],
-   "Off": [
-    "sound-"
-   ]
-  },
-  "Projector": {
-   "On": [
-    "visual_signal+"
-   ],
-   "Off": [
-    "visual_signal-"
-   ]
-  },
-  "Display": {
-   "On": [
-    "visual_signal+"
-   ],
-   "Off": [
-    "visual_signal-"
-   ]
-  },
-  "Camera": {
-   "On": [
-    "recording+"
-   ],
-   "Off": [
-    "recording-"
-   ]
-  },
-  "Pump": {
-   "On": [
-    "water_flow+"
-   ],
-   "Off": [
-    "water_flow-"
-   ]
-  },
-  "Sprinkler": {
-   "On": [
-    "water_flow+",
-    "soil_moisture+"
-   ],
-   "Off": [
-    "water_flow-"
-   ]
-  },
-  "RangeHood": {
-   "On": [
-    "air_quality+"
-   ],
-   "Off": []
-  },
-  "Siren": {
-   "On": [
-    "audio_signal+"
-   ],
-   "Off": [
-    "audio_signal-"
-   ]
-  },
-  "StatusLight": {
-   "On": [
-    "visual_signal+"
-   ],
-   "Off": [
-    "visual_signal-"
-   ]
-  },
-  "Plug": {
-   "On": [],
-   "Off": []
   }
  }
 }
