@@ -68,7 +68,7 @@ LATIN = re.compile(r"[A-Za-z]{2,}")
 # 한국어 문장에 남아도 되는 로마자 — 제품명·약어. 뒤에 한글 조사가 붙으므로
 # \b 를 쓰면 경계가 안 잡힌다(한글도 낱말 문자다). 그래서 경계를 안 쓴다.
 # 긴 것을 앞에 둔다 — "TVOC" 가 "TV" 로 먼저 잘리면 "OC" 가 남는다
-ALLOW = re.compile(r"(TVOC|RFID|CO2|SmartThings|TV|EV|LG|Aqara|Tuya|Wi-?Fi|Philips|Hue|SmartThings|"
+ALLOW = re.compile(r"(TVOC|RFID|CCT|CO2|SmartThings|TV|EV|LG|Aqara|Tuya|Wi-?Fi|Philips|Hue|lindy|lamp|"
                    r"Skylight|YUER|JOI|IR|barrier|tc0|Smart|Plug|Sensor|Speaker|"
                    r"Button|Motion|Light|Door|Window|Presence|Multi|Gang|Zigbee|"
                    r"Hub|Bulb|Switch|P2|ep\d|pH|Ph|CO)", re.I)

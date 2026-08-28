@@ -26,7 +26,10 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.1.0.json")
+sys.path.insert(0, HERE)
+
+import templates as T
+CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.0.0.json")
 
 # ── 센서에서 숫자를 읽는 속성 ──────────────────────────────────────────
 # "{sensor} 가 300 을 넘으면" 처럼 센서 이름만 대는 틀이 어느 속성을 읽는지.
@@ -113,20 +116,20 @@ TRIG_IR = {
     # 초인종
     "when someone rings the doorbell":  _t("Doorbell", "Doorbell.DoorbellPressed == true"),
     "if the doorbell goes off":         _t("Doorbell", "Doorbell.DoorbellPressed == true"),
-    "when there is somebody at the door": _t("Doorbell", "Doorbell.DoorbellPressed == true"),
+    "when the doorbell rings": _t("Doorbell", "Doorbell.DoorbellPressed == true"),
     # 버튼
     "when I press the button":          _t("Button", 'Button.Button == "pushed"'),
     "with a single press of {dev_t}":   _t("Button", 'Button.Button == "pushed"'),
     "with one tap on the wall switch":  _t("Button", 'Button.Button == "pushed"'),
-    "when the scene switch is pressed": _t("Button", 'Button.Button == "pushed"'),
+    "when the scene button is pressed": _t("Button", 'Button.Button == "pushed"'),
     "when I double-press {dev_t}":      _t("Button", 'Button.Button == "double"'),
     # 임계값 — 문장이 대는 물리량과 시나리오의 센서가 맞아야 한다
-    "when the temperature goes above {deg} degrees":
-        _t("TemperatureSensor", "TemperatureSensor.Temperature > $deg"),
-    "if the temperature drops below {deg} degrees":
-        _t("TemperatureSensor", "TemperatureSensor.Temperature < $deg"),
-    "while the temperature stays over {deg} degrees":
-        _t("TemperatureSensor", "TemperatureSensor.Temperature > $deg", edge="none"),
+    "when the temperature goes above {deg_hi} degrees":
+        _t("TemperatureSensor", "TemperatureSensor.Temperature > $deg_hi"),
+    "if the temperature drops below {deg_lo} degrees":
+        _t("TemperatureSensor", "TemperatureSensor.Temperature < $deg_lo"),
+    "while the temperature stays over {deg_hi} degrees":
+        _t("TemperatureSensor", "TemperatureSensor.Temperature > $deg_hi", edge="none"),
     "when the humidity climbs over {pct} percent":
         _t("HumiditySensor", "HumiditySensor.Humidity > $pct"),
     "once the air quality gets worse than {lvl}":
@@ -140,8 +143,8 @@ TRIG_IR = {
     "if rain is in the forecast": _t("WeatherProvider", 'WeatherProvider.Weather == "rain"', edge="none"),
     "when snow is expected":      _t("WeatherProvider", 'WeatherProvider.Weather == "snow"', edge="none"),
     "when it gets hot outside":   _t("WeatherProvider", "WeatherProvider.TemperatureWeather > $too_warm_c"),
-    "if the outside temperature drops below {deg}":
-        _t("WeatherProvider", "WeatherProvider.TemperatureWeather < $deg"),
+    "if the outside temperature drops below {deg_lo}":
+        _t("WeatherProvider", "WeatherProvider.TemperatureWeather < $deg_lo"),
     "if the forecast says frost": _t("WeatherProvider", "WeatherProvider.TemperatureWeather <= 0", edge="none"),
     # 일정
     "when a meeting is about to start": _t("CalendarProvider", "CalendarProvider.IsBusy == true"),
@@ -313,8 +316,8 @@ ACT_IR = {
     "light.off": {t: [P_OFF] for t in
                   ["turn off {dev}", "switch {dev} off", "shut {dev} off", "kill {dev}"]},
     "light.dim": {
-        "dim {dev} to {n} percent":    [c("Light.MoveToBrightness", Brightness="$n", Rate=0.0)],
-        "set {dev} brightness to {n}": [c("Light.MoveToBrightness", Brightness="$n", Rate=0.0)],
+        "dim {dev} to {lo} percent":   [c("Light.MoveToBrightness", Brightness="$lo", Rate=0.0)],
+        "set {dev} brightness to {n} percent": [c("Light.MoveToBrightness", Brightness="$n", Rate=0.0)],
         "bring {dev} down to {lo} percent": [c("Light.MoveToBrightness", Brightness="$lo", Rate=0.0)],
         "turn {dev} up to {hi} percent":    [c("Light.MoveToBrightness", Brightness="$hi", Rate=0.0)],
     },
@@ -322,8 +325,10 @@ ACT_IR = {
                     ["set {dev} to {color}", "make {dev} {color}",
                      "change {dev} to {color}", "turn {dev} {color}"]},
     "light.scene": {t: "$scene" for t in
-                    ["set the {scene} scene", "switch {dev} to the {scene} scene",
-                     "put {dev} into {scene} mode", "run the {scene} scene"]},
+                    ["set the lights to the {scene} scene",
+                     "switch {dev} to the {scene} scene",
+                     "put {dev} into {scene} mode",
+                     "run the {scene} scene on the lights"]},
     "switch": {"turn on {dev}": [P_ON], "switch {dev} on": [P_ON],
                "turn off {dev}": [P_OFF], "toggle {dev}": [c("Switch.Toggle")]},
     "plug": {"turn on {dev}": [P_ON], "cut power to {dev}": [P_OFF],
@@ -395,7 +400,7 @@ ACT_IR = {
     "vacuum": {
         "start {dev}": [c("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="auto")],
         "stop {dev}":  [c("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="stop")],
-        "run {dev} in the {place}": [c("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="part")],
+        "run {dev} in the {place}": [c("RobotVacuumCleaner.SetRobotVacuumCleanerMode", Mode="auto")],   # part(spot 청소)가 아니라 auto — "거실 청소해"는 그냥 돌리라는 말이다 (whisoo 2026-08-25)
         "send {dev} back to its dock": [c("RobotVacuumCleaner.GoHome")],
     },
     "mower": {"start {dev}": [c("Mower.StartMowing")], "park {dev}": [c("Mower.Dock")],
@@ -630,19 +635,26 @@ COND_IR = {
     "the battery is under 20 percent": "Battery.BatteryLevel < 20",
 }
 
+# 집이 아닌 공간용 별명 — 뜻이 같으니 IR 도 같다 (templates.NONHOME)
+for _old, _new in T.NONHOME.items():
+    if _old in COND_IR:
+        COND_IR[_new] = COND_IR[_old]
+    if _old in TRIG_IR:
+        TRIG_IR[_new] = TRIG_IR[_old]
+
 
 # ── 조립 ───────────────────────────────────────────────────────────────
 # 우리가 덧붙인 표기 세 가지. 카탈로그에 없는 것이라 여기 적어 둔다.
 #   wait 의 "timeout"     "10분 안에 안 오면" — 기다림에 제한시간을 준다
 #   src 의 "@-1HOUR"      같은 값의 한 시간 전 읽기 (D11 비교)
 #   src 의 "@count:today" 오늘 그 조건이 몇 번 참이었나 (D12 누적)
-#   GlobalVariable.Value("occupancy")  재실을 전역 변수로 두는 공간
+#   GlobalVariable.Value("Human")  재실을 전역 변수로 두는 공간 (spaces.json 의 변수 이름과 같다)
 OCC_SRC = {
     "motion":   "MotionSensor.Motion",
     "presence": "PresenceSensor.Presence",
     "phone":    "PersonTracker.IsHome",
-    "global":   'GlobalVariable.Value("occupancy")',
-    "none":     'GlobalVariable.Value("occupancy")',
+    "global":   'GlobalVariable.Value("Human")',
+    "none":     'GlobalVariable.Value("Human")',
 }
 
 _TOKEN = re.compile(r"\$([A-Za-z_][A-Za-z0-9_]*)")
@@ -777,6 +789,11 @@ def act_nodes(*, act, tpl, act_cat, vague_tpl, slots, notify_svc, trig_kind, occ
         pre = []
         if vague_tpl is None and tpl in NOW_NOTIFY_READ:
             var, src = NOW_NOTIFY_READ[tpl]
+            # "바깥 온도" 는 날씨 서비스가 답한다 — 방아쇠 쪽("바깥 온도가 12도 아래로
+            # 떨어지면" 32행)이 이미 그렇다. 여기만 실내 온도계를 읽고 있어 어긋났다.
+            if src == "TemperatureSensor.Temperature" \
+                    and str(slots.get("place", "")).lower() in ("outdoor", "outside"):
+                var, src = "Temperature", "WeatherProvider.TemperatureWeather"
             pre = [{"op": "read", "var": var, "src": occ_src if src == "$OCCUPANCY" else src}]
         call = _notify_call(notify_svc, msg)
         return None if call is None else pre + [call]
@@ -885,13 +902,12 @@ def logic_nodes(frame, acts, cond, slots, trig_cond, off_call):
         "{a} every {n} minutes until {cond}":    lambda: cyc(acts, until=cond),
         "once {cond}, {a} every {n} minutes":
             lambda: [{"op": "wait", "cond": cond, "edge": "rising"}] + cyc(acts),
-        "after that happens, {a} again every {n} minutes": lambda: cyc(acts),
+        # "after that happens, …" 와 "give it {n} minutes, and if nothing has changed …"
+        # 두 문형은 뺐다. 문장은 기다림·조건을 말하는데 IR 에는 둘 다 없어서
+        # 문제와 정답이 어긋났다 (2026-08-25, whisoo 확인).
         "wait up to {n} minutes to see if {cond}; if not, {a}":
             lambda: [{"op": "wait", "cond": cond, "edge": "rising", "timeout": per}] \
                     + iff(f"not ({cond})", acts),
-        "give it {n} minutes, and if nothing has changed by then, {a}":
-            lambda: [{"op": "delay", "duration": per}]
-                    + (iff(f"not ({trig_cond})", acts) if trig_cond else acts),
         "if it is higher than it was an hour ago, {a}":
             lambda: [{"op": "read", "var": "Current", "src": src},
                      {"op": "read", "var": "Previous", "src": src + "@-1HOUR"}]
@@ -900,9 +916,9 @@ def logic_nodes(frame, acts, cond, slots, trig_cond, off_call):
             lambda: [{"op": "read", "var": "Current", "src": src},
                      {"op": "read", "var": "Previous", "src": src + "@-1DAY"}]
                     + iff("Current > Previous", acts),
-        "if that has happened more than {m} times today, {a}":
-            lambda: [{"op": "read", "var": "Count", "src": src + "@count:today"}]
-                    + iff(f"Count > {m}", acts),
+        # "if that has happened more than {m} times today, …" 는 뺐다 —
+        # 방아쇠절 뒤의 "그게 오늘 N번" 이 무엇을 세는지 한국어로 안 잡힌다
+        # (2026-08-25, whisoo). 세는 문형은 아래 "count how many times" 하나만 쓴다.
         "count how many times it happens and {a} once it passes {m}":
             lambda: [{"op": "read", "var": "Count", "src": src + "@count:today"}]
                     + iff(f"Count >= {m}", acts),

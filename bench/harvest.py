@@ -24,7 +24,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 SP = os.environ.get(
     "SCRATCH",
     "/tmp/claude-1003/-home-gnltnwjstk/95c928fb-f31c-4ff3-9e61-d6c4b3211a7c/scratchpad")
-CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.1.0.json")
+CATALOG = os.path.join(os.path.dirname(HERE), "files", "service_list_ver3.0.0.json")
 
 csv.field_size_limit(10 ** 7)
 
