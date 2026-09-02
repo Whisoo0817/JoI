@@ -186,6 +186,8 @@ def product_runners(runner_a, runner_b, period_ms: int,
     bad = runner_a.check_finite(axes) + runner_b.check_finite(axes)
     if bad:
         raise Unsupported(f"unbounded carried vars: {bad}")
+    from .features import analyze_runner, enforce
+    enforce(analyze_runner(runner_a) + analyze_runner(runner_b))
 
     res = ProductResult("EQUIV")
     keys = sorted(axes.cells)
@@ -372,9 +374,12 @@ def main() -> None:
     print("\n== 고장 주입 변형 (전부 DIVERGE + 재생 확인이어야 함) ==")
 
     def show_mut(name: str, base_src: str, mut_src: str, period: int) -> None:
-        ra = JoiRunner.from_src(base_src)
-        rb = JoiRunner.from_src(mut_src)
-        _show(name, product_runners(ra, rb, period), replay_with=(ra, rb))
+        try:
+            ra = JoiRunner.from_src(base_src)
+            rb = JoiRunner.from_src(mut_src)
+            _show(name, product_runners(ra, rb, period), replay_with=(ra, rb))
+        except Unsupported as e:
+            print(f"{name[:44]:44s} —        Unsupported: {e}")
 
     fire = by_name["화재 감지 알림"]
     mut1 = mutate(fire["code"], "30 * 60", "3 * 60")

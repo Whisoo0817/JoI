@@ -173,6 +173,97 @@ def test_gate_passes_equiv():
     assert fold_verdict(_pr("EQUIV"), [], []).verdict == "EQUIV"
 
 
+# ── P1 Day 1: 미지원 무늬 fail-closed (2026-09-02 개정 계획) ─────────────────
+
+from ..interp import Unsupported
+
+TEMP = "(#TemperatureSensor).temperatureSensor_temperature"
+HUMID = "(#HumiditySensor).humiditySensor_humidity"
+
+
+def _refused(src: str) -> bool:
+    try:
+        product_explore(src, src, PERIOD)
+        return False
+    except Unsupported:
+        return True
+
+
+def test_joint_arithmetic_guard_is_refused():
+    src = (f"t = {TEMP}\nh = {HUMID}\n"
+           f"if (t + h > 100) {{ {SPEAK} }}\n")
+    assert _refused(src), "두 입력을 섞은 산술 guard가 통과 (per-axis 분할로는 미보장)"
+
+
+def test_read_vs_read_guard_is_refused():
+    src = (f"t = {TEMP}\nh = {HUMID}\n"
+           f"if (t > h) {{ {SPEAK} }}\n")
+    assert _refused(src), "읽기 vs 읽기 비교가 통과 (대표값 쌍이 실경계를 놓침)"
+
+
+def test_derived_single_key_guard_is_refused():
+    # k=1이어도 항등이 아니면 경계가 이동한다: x/2>10의 실경계는 20
+    src = f"t = {TEMP}\nif (t / 2 > 10) {{ {SPEAK} }}\n"
+    assert _refused(src), "변형된 단일 키 guard가 통과 (술어 상수 10 ≠ 실경계 20)"
+
+
+def test_independent_multikey_and_or_is_not_flagged():
+    # 원자별 '맨 읽기 vs 상수'는 키가 여러 개라도 정확 — 오탐 금지
+    src = (f"t = {TEMP}\nh = {HUMID}\n"
+           f"if (t > 10 and h < 5) {{ {SPEAK} }}\n")
+    assert product_explore(src, src, PERIOD).verdict == "EQUIV"
+
+
+def test_bool_vs_bool_compare_is_not_flagged():
+    # bool 도메인은 전량 열거되므로 bool끼리 비교는 정확 (보안모드 자동제어 무늬)
+    src = ("prev := false\ncur = false\n"
+           "if ((#Door).door_contact == true) { cur = true }\n"
+           f"if (cur != prev) {{ {SPEAK} }}\nprev = cur\n")
+    assert product_explore(src, src, PERIOD).verdict == "EQUIV"
+
+
+def test_observable_counter_is_refused():
+    src = ("n := 0\nif ((#Door).door_contact == true) { n = n + 1 }\n"
+           "if (n >= 3) { (#Speaker).speaker_speak(n) }\n")
+    assert _refused(src), "포화 counter 값이 액션 인자로 나가는데 통과 (cap 위가 뭉개짐)"
+
+
+def test_comparison_only_counter_is_allowed():
+    src = ("n := 0\nif ((#Door).door_contact == true) { n = n + 1 }\n"
+           f"if (n >= 3) {{ {SPEAK} }}\n")
+    assert product_explore(src, src, PERIOD).verdict == "EQUIV"
+
+
+def test_arith_transformed_arg_is_refused():
+    src = f"t = {TEMP}\n(#Speaker).speaker_speak(t * 2)\n"
+    assert _refused(src), "산술을 거친 값의 인자 유출이 통과 (대표값 우연 일치 가능)"
+
+
+def test_identity_arg_flow_is_allowed():
+    src = f"t = {TEMP}\nif (t > 10) {{ (#Speaker).speaker_speak(t) }}\n"
+    assert product_explore(src, src, PERIOD).verdict == "EQUIV"
+
+
+_TWO_TIMERS = (
+    "a := 0\nb := 0\nnow = (#Clock).clock_timestamp\n"
+    "if ((#Door).door_contact == true) { a = now }\n"
+    "if ((#Window).window_contact == true) { b = now }\n"
+    "if (now - a > %s) { (#Speaker).speaker_speak(\"x\") }\n"
+    "if (now - b > %s) { (#Speaker).speaker_speak(\"y\") }\n"
+)
+
+
+def test_two_timers_distinct_thresholds_refused():
+    assert _refused(_TWO_TIMERS % (30, 60)), \
+        "임계가 다른 타이머 2개가 통과 (교차 순서가 상태 키에 없음)"
+
+
+def test_two_timers_same_threshold_allowed():
+    # 같은 단일 임계값이면 선후 부호(order_sig)로 교차 순서가 보존된다
+    assert product_explore(_TWO_TIMERS % (30, 30),
+                           _TWO_TIMERS % (30, 30), PERIOD).verdict == "EQUIV"
+
+
 # ── runner ───────────────────────────────────────────────────────────────────
 
 def main() -> int:

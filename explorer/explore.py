@@ -701,6 +701,8 @@ def explore(src: str | list, period_ms: int, t0_ms: int | None = None,
     bad = finiteness_check(vinfo, axes, stmts)
     if bad:
         raise Unsupported(f"unbounded carried vars: {bad}")
+    from .features import analyze_stmts, enforce
+    enforce(analyze_stmts(stmts, vinfo, axes))
 
     keys = sorted(axes.cells)
     combos = [dict(zip(keys, vals))

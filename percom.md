@@ -857,6 +857,46 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   구성하는 게 우선**. Quantifier·서비스·디바이스 매핑의 판정·정답·규칙
   정리는 그 뒤로 미룬다.
 
+### 9.17 미지원 무늬 fail-closed + 발생 빈도 측정 — P1 Day 1 (2026-09-02)
+
+- **계획 개정**(리뷰어 피드백 수용, whisoo 승인): "허위 EQUIV 차단"과
+  "복잡한 표현 완전 지원"을 분리. 먼저 세 무늬를 전부 탐지→REFUSED로
+  막고, corpus 발생 빈도를 측정한 뒤 full 지원은 조건부로. full 지원
+  순서(하게 되면): bounded counter 전개 → 2-timer deadline region →
+  input-pure affine joint SMT. solver timeout·state cap은 내부 UNKNOWN,
+  정적 미지원만 REFUSED. 단순 프로그램은 z3 없는 기존 경로 유지.
+- **구현**(explorer/features.py, product·explore 사전 점검에 연결):
+  ① `joint-guard`/`derived-guard` — 비교 원자의 한쪽이 "맨 읽기 vs
+  상수"가 아니면 거절. **k=1도 항등이 아니면 위험**(x/2>10의 실경계는
+  20인데 술어 상수는 10 — 리뷰어 명세에 없던 추가 발견). 예외: 타이머
+  무늬(zone 담당), bool×bool 비교(도메인 전량 열거로 정확 — 보안모드
+  자동제어의 desired != armed), 다중 정의 wire의 분기별 배분.
+  ② `arith-arg` — 산술을 거친 값의 관찰 지점(액션 인자·GV 쓰기·질의
+  인자) 유출 거절. 맨 읽기·문자열 이어붙이기는 항등 전달이라 허용.
+  ③ `observable-counter` — 대입 그래프 고정점 taint로 포화 counter →
+  관찰 지점 흐름 거절(비교 전용은 허용). ④ `multi-timer` — 타임스탬프
+  상태 변수 ≥2 **이고** 서로 다른 임계값 관여 시 거절(같은 단일
+  임계값은 order_sig로 이미 정확 — 제외; IR은 pc 직렬이라 같은 wait의
+  for+timeout 쌍만 해당). ⑤ `opaque-guard` — guard 모양이 지원 밖.
+  **부수 발견**: `clock.time`(HHMM 합성)은 clock_state에 없어 지금까지
+  **None으로 조용히 평가**되던 미모델 읽기 — 이제 명시적으로 거절.
+  IR 쪽(compile_ir 튜플 AST)과 JoI 쪽(문장 AST) 각각 분석기 구현.
+- **발생 빈도**(python3 -m explorer.prevalence, 정답쌍 178건): 걸린 행
+  **7건(3.9%)** — 미모델 clock.time 5행(C15_005·C16_011·C18_003/004/009),
+  결합 산술 1행(C11_001, abs(t2−t1)≥1), 인자 산술 1행(C14_002, max(...)).
+  counter 유출 0, gate corpus multi-timer 0. 독립 다중 센서 and/or
+  30행은 **오탐 0**. product 하네스에선 보안모드 침입 감지가
+  multi-timer(grace_start·last_alert × 120/600s)로 정직 거절 — 고장
+  주입 2건(grace 경계·cooldown 변이)도 같이 REFUSED로 이동해 **deadline
+  region 지원의 실제 근거**가 됨.
+- **기준선 이동**(전부 REFUSED 방향, EQUIV↔DIVERGE 뒤집힘 **0** 확인):
+  gate 178건 DIVERGE 81→75, EQUIV 97→96, REFUSED 0→7. product 자기동치
+  6/6 → 5/6 EQUIV + 침입 감지 REFUSED, 고장 주입 4/4 → 2 DIVERGE +
+  2 REFUSED(침입 계열). 회귀: test_soundness 17→**28건** 통과.
+- **Day 2 결정 대기**: full 지원 후보의 실이득 — 미모델 clock.time
+  모델링(5행, 최대 이득), 2-timer deadline region(침입 감지 + 변이
+  검출 복원), affine joint SMT(1행)·arith-arg(1행). whisoo 확정 후 진행.
+
 ### 9.16 검증기 soundness P0 수정 — whisoo 결정 3건 반영 (2026-09-02)
 
 배경: 타 에이전트의 soundness 분석(explorer_soundness_fix_spec)을 코드와
@@ -891,8 +931,8 @@ c±1 대표값의 구간 누락, product 점프 가드 부재; 그 외 순서 �
   수정 전후 **완전 동일**(DIVERGE 81/EQUIV 97, 재생 미확인 0) — 이번
   수정으로 뒤집힌 쌍 0. 분할 세밀화로 상태 수만 증가(보안모드 188→320,
   여전히 <1s). e1은 수정 전부터 `adapt` 모듈 부재로 실행 불가(무관).
-- **미착수(P1, 제출 후)**: 복합 산술식(x+y>10)·다중 timer 관계·관찰
-  가능한 counter 인자(affine/region 추상화 또는 단편 축소), 지원 단편
+- **미착수(P1, 제출 후)**: ~~복합 산술식(x+y>10)·다중 timer 관계·관찰
+  가능한 counter 인자~~(→ §9.17 Day 1에서 fail-closed 완료), 지원 단편
   계약 문서(SUPPORTED_FRAGMENT), 유한 도메인 전수 차등 oracle, IR
   한-걸음 실행기 자체의 차등 검증, OneShot/Pause 경로의 점프 안전 확인.
 
