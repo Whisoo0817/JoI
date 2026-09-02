@@ -213,27 +213,102 @@ def product_runners(runner_a, runner_b, period_ms: int,
         return {k: v for k, v in gv.items() if k not in ext_gv}
 
     visited: dict[tuple, None] = {}
-    parents: dict[tuple, tuple] = {}      # key → (parent_key|None, input, dwell)
+    # key → (parent_key|None, input, dwell, 반복 수) — 반복 수 n은 같은
+    # (input, dwell) 한-tick 걸음이 n번 이어졌다는 뜻(점프 억제 시의
+    # 실걸음 fast-forward). 재생은 걸음 단위라 경로 전개 때 n번 편다.
+    parents: dict[tuple, tuple] = {}
     queue: list = []                      # (A_vars, A_gv, B_vars, B_gv, now, held)
 
     def key_of(av, ag, bv, bg, now) -> tuple:
         return (normalize(av, ag, now, va, axes),
                 normalize(bv, bg, now, vb, axes))
 
-    def push(av, ag, bv, bg, now, held, parent, i, d) -> None:
+    def push(av, ag, bv, bg, now, held, parent, i, d, rep: int = 1) -> None:
         k = key_of(av, ag, bv, bg, now)
         if k not in visited:
             visited[k] = None
-            parents[k] = (parent, i, d)
+            parents[k] = (parent, i, d, rep)
             queue.append((av, ag, bv, bg, now, held))
 
     def path_to(k) -> list:
         out = []
         while k is not None and k in parents:
-            p, i, d = parents[k]
-            out.append((i, d))
+            p, i, d, rep = parents[k]
+            out.extend([(i, d)] * rep)
             k = p
         return list(reversed(out))
+
+    WALK_CAP = 100_000        # 상태 하나의 실걸음 fast-forward 최대 tick 수
+
+    def _drop(vars_, drift: set) -> dict:
+        return {k: v for k, v in vars_.items() if k not in drift}
+
+    def walk_time(av, ag, bv, bg, now, held, here) -> None:
+        """점프 억제 상태의 시간 전진 보전 — 다음 키-변화 경계까지 실걸음.
+
+        걸음마다 실제 step이라 낡은 레지스터 재생이 없다. 걷다가 키가
+        바뀌거나 (양쪽 동일한) 발화가 나오면 그 상태를 밀어 BFS가 잇고,
+        차이가 나오면 그대로 반례다(경로는 tick 단위로 편다).
+
+        목표 경계는 now-추적(매 tick 갱신) 레지스터를 **빼고** 계산한다 —
+        추적 레지스터의 교차점은 늘 한 tick 앞에서 다시 무장되는 신기루라
+        그걸 목표로 삼으면 달력 경계까지 영영 못 간다. 어떤 레지스터가
+        추적인지는 걸으면서 실측한다(값이 변한 timestamp 상태 변수).
+        빼고도 남는 경계가 없으면 상태는 시간-이동 불변 — 재방문 종료가
+        안전하다. 달력 경계는 절대 시각이라 녹지 않고 반드시 걸린다.
+        경계가 걸음 예산 밖이면 닫힘 주장을 포기한다(→ UNKNOWN)."""
+        for cand in [held] + combos:
+            w, gvs = split(cand)
+            wa, wag, wb, wbg, wnow = av, ag, bv, bg, now
+            drift: set = set()
+            target = None
+            ticks = 0
+            while ticks < WALK_CAP:
+                if target is None or wnow >= target:
+                    targets = [t for t in (
+                        next_key_change_ms(_drop(wa, drift), wnow, va, axes),
+                        next_key_change_ms(_drop(wb, drift), wnow, vb, axes))
+                        if t is not None]
+                    if not targets:
+                        break            # 남는 경계 없음 — 시간-이동 불변
+                    target = min(targets)
+                    if (target - wnow) // period_ms + 1 > WALK_CAP - ticks:
+                        res.closed = False
+                        note = "점프 억제 + 경계가 걸음 예산 밖 — 미완"
+                        if note not in res.notes:
+                            res.notes.append(note)
+                        return
+                if res.n_steps > STEP_CAP:
+                    res.closed = False
+                    if "CAP HIT" not in res.notes:
+                        res.notes.append("CAP HIT")
+                    return
+                ra = runner_a.step(wa, {**wag, **gvs}, w, wnow + period_ms)
+                rb = runner_b.step(wb, {**wbg, **gvs}, w, wnow + period_ms)
+                res.n_steps += 2
+                oa, ob = _out(ra.actions), _out(rb.actions)
+                if oa != ob or ra.terminated != rb.terminated:
+                    res.divergences.append(Divergence(
+                        len(path_to(here)) + ticks + 1, cand, period_ms,
+                        oa, ob,
+                        path_to(here) + [(cand, period_ms)] * ticks))
+                    return
+                for nm, vi in va.items():   # 추적 레지스터 실측
+                    if vi.timestamp and ra.vars.get(nm) != wa.get(nm):
+                        drift.add(nm)
+                for nm, vi in vb.items():
+                    if vi.timestamp and rb.vars.get(nm) != wb.get(nm):
+                        drift.add(nm)
+                wnow += period_ms
+                ticks += 1
+                wa, wag = ra.vars, own(ra.gv)
+                wb, wbg = rb.vars, own(rb.gv)
+                if ra.terminated:
+                    break
+                if oa or key_of(wa, wag, wb, wbg, wnow) != here:
+                    push(wa, wag, wb, wbg, wnow, cand, here, cand,
+                         period_ms, rep=ticks)
+                    break
 
     mirror_inits = [dict(zip(axes.mirror_gv, vals)) for vals in
                     itertools.product([None, False, True],
@@ -269,6 +344,7 @@ def product_runners(runner_a, runner_b, period_ms: int,
         # stutter witness (see explore.py): some holdable input must keep
         # BOTH sides silent and stationary for a long dwell to be legal
         stutter = False
+        suppressed = False
         for cand in [held] + combos:
             w, gvs = split(cand)
             pa = runner_a.step(av, {**ag, **gvs}, w, now + period_ms)
@@ -288,6 +364,7 @@ def product_runners(runner_a, runner_b, period_ms: int,
                     note = "jump suppressed: now-tracking register"
                     if note not in res.notes:
                         res.notes.append(note)
+                    suppressed = True
                     continue
                 stutter = True
                 break
@@ -322,6 +399,14 @@ def product_runners(runner_a, runner_b, period_ms: int,
                          here, i, d)
             if len(res.divergences) >= max_diverge:
                 break
+
+        # 점프가 억제됐고 tick 후속들이 같은 키로 접히면 시간 전진이
+        # 통째로 사라진다 (달력 경계 뒤의 행동이 영원히 미탐 → 허위
+        # EQUIV — E3 C18_007에서 발견, 2026-09-02). 실걸음 fast-forward:
+        # 입력을 고정한 채 다음 키-변화 경계까지 한 tick씩 실제로 걷는다.
+        # 레지스터가 매 tick 충실히 갱신되므로 점프의 조작이 없다.
+        if suppressed and not stutter and len(res.divergences) < max_diverge:
+            walk_time(av, ag, bv, bg, now, held, here)
 
     res.n_states = len(visited)
     res.closed = res.closed and not queue

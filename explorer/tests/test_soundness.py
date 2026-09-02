@@ -289,6 +289,29 @@ def test_deadline_region_separates_states():
     assert k1 == k3
 
 
+# ── 점프 억제 시 실걸음 fast-forward (2026-09-02, E3 C18_007 회귀) ──────────
+
+TRACKER_HOUR = (
+    "last := 0\n"
+    "now = (#Clock).clock_timestamp\n"
+    "last = now\n"
+    'if ((#Clock).clock_hour >= %d) { (#Speaker).speaker_speak("late") }\n'
+)
+
+
+def test_suppressed_jump_still_reaches_calendar_boundary():
+    # now-추적 레지스터가 점프를 억제해도 달력 경계(22시 vs 23시) 뒤의
+    # 행동 차이는 실걸음으로 도달해 잡아야 한다 — 이전엔 tick 후속이
+    # 같은 키로 접혀 상태 1개로 '닫힘·EQUIV'를 선언했다 (허위 EQUIV)
+    r = product_explore(TRACKER_HOUR % 22, TRACKER_HOUR % 23, PERIOD)
+    assert r.verdict == "DIVERGE", (r.verdict, r.n_states, r.notes)
+
+
+def test_suppressed_jump_selfpair_still_equiv():
+    r = product_explore(TRACKER_HOUR % 22, TRACKER_HOUR % 22, PERIOD)
+    assert r.verdict == "EQUIV" and r.closed, (r.verdict, r.notes)
+
+
 # ── ① clock.time(HHMM) 달력 모델링 (2026-09-02) ──────────────────────────────
 
 TOD = 'if (clock.time >= %d) { (#Speaker).speaker_speak("night") }\n'

@@ -839,6 +839,7 @@ def explore(src: str | list, period_ms: int, t0_ms: int | None = None,
         # is wrong — a repeat-emitting held input would block the jump and
         # memoized 1-tick walking can never cross a minutes-long region.
         stutter = False
+        suppressed = False
         for cand in [held] + combos:
             probe = run(vars_, gv, cand, now + period_ms)
             if (not probe.actions and not probe.terminated and
@@ -853,6 +854,7 @@ def explore(src: str | list, period_ms: int, t0_ms: int | None = None,
                     note = "jump suppressed: now-tracking register"
                     if note not in g.notes:
                         g.notes.append(note)
+                    suppressed = True
                     continue
                 stutter = True
                 break
@@ -884,6 +886,50 @@ def explore(src: str | list, period_ms: int, t0_ms: int | None = None,
                     g.edges.append((src_id, dst, d, tuple(r.actions)))
                     g.edge_inputs.append(dict(i))
                     g.edge_guards.append(r.guards)
+
+        # 점프 억제 + tick 후속이 같은 키로 접히면 시간 전진이 사라진다
+        # (product.walk_time과 같은 수정, 2026-09-02): now-추적 레지스터를
+        # 뺀 다음 키-변화 경계까지 입력을 고정하고 실걸음으로 걷는다.
+        if suppressed and not stutter:
+            for cand in [held] + combos:
+                wv, wg, wnow = vars_, gv, now
+                drift: set = set()
+                target = None
+                ticks = 0
+                while ticks < 100_000:
+                    if target is None or wnow >= target:
+                        target = next_key_change_ms(
+                            {k: v for k, v in wv.items() if k not in drift},
+                            wnow, vinfo, axes)
+                        if target is None:
+                            break        # 남는 경계 없음 — 시간-이동 불변
+                        if (target - wnow) // period_ms + 1 > 100_000 - ticks:
+                            g.notes.append("점프 억제 + 경계가 걸음 예산 밖")
+                            g.closed = False
+                            g.n_states = len(visited)
+                            return g
+                    if g.n_steps > STEP_CAP:
+                        g.notes.append("CAP HIT — aborted")
+                        g.closed = False
+                        g.n_states = len(visited)
+                        return g
+                    r = run(wv, wg, cand, wnow + period_ms)
+                    for a in r.actions:
+                        g.actions_seen[repr(a)] = \
+                            g.actions_seen.get(repr(a), 0) + 1
+                        g.fired.add(fired_key(a))
+                    for nm, vi in vinfo.items():
+                        if vi.timestamp and r.vars.get(nm) != wv.get(nm):
+                            drift.add(nm)
+                    wnow += period_ms
+                    ticks += 1
+                    wv, wg = r.vars, own_gv(r.gv)
+                    if r.terminated:
+                        break
+                    if r.actions or normalize(wv, wg, wnow, vinfo,
+                                              axes) != key_here:
+                        push(wv, wg, wnow, cand)
+                        break
 
     g.n_states = len(visited)
     g.closed = not queue

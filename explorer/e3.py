@@ -166,6 +166,7 @@ def gate(args) -> None:
     rows = {key_of(r): r for r in load_rows()}
     res, gen_err = Counter(), Counter()
     diverged, unconfirmed, refused = [], [], Counter()
+    refused_kind = Counter()
     classes = Counter()
     lines = []
     files = sorted(glob.glob(os.path.join(out_dir, "*.json")))
@@ -206,6 +207,16 @@ def gate(args) -> None:
         if g.verdict == "REFUSED":
             note = (g.notes[-1] if g.notes else "")[:80]
             refused[note[:60]] += 1
+            # 내부 4-way 구분(§9.16 fold_verdict): 정적 미지원(조각 밖)과
+            # 내부 UNKNOWN(탐색 미완·재생 미확인)은 배포 행동은 같아도
+            # 논문 집계에선 다른 종류다.
+            joined = " ".join(g.notes)
+            if "재생 미확인" in joined:
+                refused_kind["내부 UNKNOWN(재생 미확인)"] += 1
+            elif "내부 UNKNOWN" in joined:
+                refused_kind["내부 UNKNOWN(탐색 미완)"] += 1
+            else:
+                refused_kind["정적 미지원(조각 밖)"] += 1
         lines.append((key, g.verdict, note))
 
     n = sum(res.values())
@@ -216,6 +227,8 @@ def gate(args) -> None:
         print("  DIVERGE 분류:", dict(classes.most_common()))
     for k, v in gen_err.most_common():
         print(f"  [생성실패 {v}] {k}")
+    if refused_kind:
+        print("  REFUSED 내역:", dict(refused_kind.most_common()))
     for k, v in refused.most_common(10):
         print(f"  [{v}] {k}")
 
@@ -223,11 +236,18 @@ def gate(args) -> None:
     md = os.path.join(ROOT, "explorer", "runs", "e3.md")
     with open(md, "w", encoding="utf-8") as f:
         f.write("# E3 — 게이트 분류 (확인된 IR × LLM lowering 후보)\n\n")
+        f.write("판독 방침(whisoo 08-14): 수량 정책은 보류 — `집합/수량(정책)`은 "
+                "통과 취급, 지금 보는 것은 로직·서비스·디바이스 매핑.\n\n")
         f.write(f"생성: `python -m explorer.e3` | 모델 `{tag}` | {n}행\n\n")
         f.write("| 판정 | 행 수 |\n|---|---|\n")
         for k in ("EQUIV", "DIVERGE", "REFUSED", "GEN_ERROR"):
             if res.get(k):
                 f.write(f"| {k} | {res[k]} |\n")
+        if refused_kind:
+            f.write("\n## REFUSED 내역 (내부 4-way, §9.16 fold_verdict)\n\n"
+                    "| 종류 | 행 수 |\n|---|---|\n")
+            for k, v in refused_kind.most_common():
+                f.write(f"| {k} | {v} |\n")
         if classes:
             f.write("\n## DIVERGE 분류 (수량 정책은 보류 — whisoo 결정 08-14)\n\n"
                     "| 분류 | 행 수 |\n|---|---|\n")
