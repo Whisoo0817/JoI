@@ -20,8 +20,8 @@ import itertools
 import time as _time
 from dataclasses import dataclass, field
 
-from .explore import (Axes, T0_DEFAULT, next_event_ms, next_key_change_ms,
-                      normalize)
+from .explore import (Axes, T0_DEFAULT, _regs_frozen, next_event_ms,
+                      next_key_change_ms, normalize, reps_from_preds)
 from .interp import Unsupported
 from .runner import JoiRunner
 
@@ -30,10 +30,22 @@ STEP_CAP = 4_000_000
 
 
 def merge_axes(a: Axes, b: Axes) -> Axes:
+    # (op, const) 술어는 합집합으로 보존한다 — replay의 cell_of가 관측값을
+    # 셀에 넣을 때 필요 (이전엔 병합에서 유실됐음, 2026-09-02 수정).
+    preds: dict[str, list] = {}
+    for k in set(a.cell_preds) | set(b.cell_preds):
+        preds[k] = sorted(set(map(tuple, a.cell_preds.get(k, [])))
+                          | set(map(tuple, b.cell_preds.get(k, []))))
     cells: dict[str, list] = {}
     for k in set(a.cells) | set(b.cells):
-        cells[k] = sorted(set(a.cells.get(k, [])) | set(b.cells.get(k, [])),
-                          key=repr)
+        if k in preds:
+            # 수치 키는 술어 합집합에서 대표값을 다시 만든다. 양쪽 대표값의
+            # 합집합만으로는 조합이 갈라놓는 구간을 놓친다 (A: x>10,
+            # B: x>10.4 → (10, 10.4] 구간에 대표값 없음 → 허위 EQUIV).
+            cells[k] = reps_from_preds(preds[k])
+        else:
+            cells[k] = sorted(set(a.cells.get(k, [])) | set(b.cells.get(k, [])),
+                              key=repr)
     caps = dict(a.counter_caps)
     for k, v in b.counter_caps.items():
         caps[k] = max(caps.get(k, 0), v)
@@ -46,7 +58,8 @@ def merge_axes(a: Axes, b: Axes) -> Axes:
                 a.param_reads + b.param_reads,
                 sorted(set(a.mirror_gv) | set(b.mirror_gv)),
                 minutes=sorted(set(a.minutes) | set(b.minutes)),
-                hour_ops=sorted(set(a.hour_ops) | set(b.hour_ops)))
+                hour_ops=sorted(set(a.hour_ops) | set(b.hour_ops)),
+                cell_preds=preds)
 
 
 @dataclass
@@ -61,7 +74,8 @@ class Divergence:
 
 @dataclass
 class ProductResult:
-    verdict: str            # "EQUIV" | "DIVERGE"
+    verdict: str            # "EQUIV" | "DIVERGE" | "UNKNOWN"(탐색 미완 —
+                            # 게이트는 밖으로 REFUSED로 접는다, gate.py)
     n_states: int = 0
     n_steps: int = 0
     closed: bool = True
@@ -134,14 +148,21 @@ def _canon(v):
 
 
 def _out(actions) -> tuple:
+    """관찰값 = 발화 순서를 보존한 액션 시퀀스 (중복 포함).
+
+    같은 tick 안에서도 순서는 행동이다 — "사진 찍고 이메일 전송"은 뒤집으면
+    다른 프로그램이다 (whisoo 결정 2026-09-02; 구 §9.4의 tick 내 순서 무시
+    규약을 번복, 논문의 순서 보존 의미론으로 복귀). 정렬하지 않는다."""
     out = []
     for a in actions:
         try:
             args = tuple(_canon(x) for x in a.args)
             out.append(repr(type(a)(a.service, a.method, args, a.target)))
-        except Exception:
-            out.append(repr(a))
-    return tuple(sorted(out))
+        except Exception as e:
+            # 액션을 관찰값으로 옮기지 못하면 비교 자체를 신뢰할 수 없다 —
+            # 임의 repr로 계속 가지 않고 fail-closed.
+            raise Unsupported(f"action canonicalization: {a!r} ({e})")
+    return tuple(out)
 
 
 def product_explore(src_a: str | list, src_b: str | list, period_ms: int,
@@ -253,6 +274,17 @@ def product_runners(runner_a, runner_b, period_ms: int,
                     and not pa.terminated and not pb.terminated
                     and key_of(pa.vars, own(pa.gv), pb.vars, own(pb.gv),
                                now + period_ms) == here):
+                # explore.py와 동일한 안전 조건: now를 따라가는 레지스터는
+                # 정규화 키에선 정지해 보여도 구체값이 흐른다 — 점프가
+                # 낡은 레지스터로 재생되며 없는 발화를 지어낸다. 양쪽 다
+                # 얼어 있을 때만 점프 (2026-09-02 수정; 이전엔 product에
+                # 이 가드가 없어 explore와 판정이 어긋날 수 있었음).
+                if not (_regs_frozen(av, pa.vars, va)
+                        and _regs_frozen(bv, pb.vars, vb)):
+                    note = "jump suppressed: now-tracking register"
+                    if note not in res.notes:
+                        res.notes.append(note)
+                    continue
                 stutter = True
                 break
         dwells = [period_ms]
@@ -291,6 +323,10 @@ def product_runners(runner_a, runner_b, period_ms: int,
     res.closed = res.closed and not queue
     if res.divergences:
         res.verdict = "DIVERGE"
+    elif not res.closed:
+        # "어긋남을 못 봤다"와 "같음을 확인했다"는 다르다 — cap 등으로
+        # 그래프가 닫히지 않았으면 EQUIV를 주장하지 않는다 (2026-09-02).
+        res.verdict = "UNKNOWN"
     res.seconds = _time.time() - t_start
     return res
 

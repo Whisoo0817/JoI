@@ -857,6 +857,45 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   구성하는 게 우선**. Quantifier·서비스·디바이스 매핑의 판정·정답·규칙
   정리는 그 뒤로 미룬다.
 
+### 9.16 검증기 soundness P0 수정 — whisoo 결정 3건 반영 (2026-09-02)
+
+배경: 타 에이전트의 soundness 분석(explorer_soundness_fix_spec)을 코드와
+대조 — 핵심 7건 중 6건 실재 확인(허위 EQUIV 가능 경로: cap 미완 판정,
+c±1 대표값의 구간 누락, product 점프 가드 부재; 그 외 순서 소실, 재생
+미확인 DIVERGE, merge_axes의 cell_preds 유실).
+
+- **whisoo 결정 ①**: tick 내 액션 **순서도 관찰값이다** — "사진 찍고
+  이메일 전송"은 뒤집으면 다른 프로그램. §9.4의 "같은 tick 안 순서 무관"
+  규약을 번복하고 논문(구 comparator)의 순서 보존 의미론으로 복귀.
+- **whisoo 결정 ②**: 수량·바인딩 애매성은 **없다고 가정** — 명령이 위치·
+  기기·서비스와 하나/전부를 항상 명확히 준다고 전제. "조명 켜라는데
+  조명이 여러 대" 같은 경우는 데이터셋에 존재하지 않는 것으로. 따라서
+  pick_by_rule(Main→첫 후보) 규약은 그대로 두고 REFUSED로 바꾸지 않음.
+- **whisoo 결정 ③**: 판정은 **내부 4-way, 외부 3-way** — product는
+  UNKNOWN(탐색 미완)을 갖되, 게이트가 밖으로는 REFUSED로 접는다(fail-
+  closed, 배포 행동 동일). 논문 3-way 서사 유지.
+- **구현**(explorer/, 회귀 17/17 통과 · 기존 하네스 동일 결과 확인):
+  ① product `_out` 정렬 제거(순서·중복 보존), 액션 정규화 실패는 임의
+  repr 대신 Unsupported. ② `closed=False`(CAP HIT)는 EQUIV 아닌 UNKNOWN.
+  ③ `reps_from_preds` — 경계 상수 + **인접 경계의 중간값** + 양끝으로
+  대표값 생성(c±1 폐기; 임계 10/10.5 사이·실수 도메인 10/11 사이 구간
+  복원), derive_axes와 merge_axes가 공유. merge_axes는 cell_preds
+  합집합에서 대표값을 **다시 계산**(A: x>10 × B: x>10.4의 (10,10.4]
+  누락 해소) + cell_preds 보존. ④ product 점프에 explore와 같은
+  `_regs_frozen` 가드(now 추적 레지스터 시 점프 금지). ⑤ gate
+  `fold_verdict`: DIVERGE는 재생 확인된 반례가 있을 때만 유지, 미확인·
+  UNKNOWN은 "내부 UNKNOWN: …" note와 함께 REFUSED.
+- **검증**: explorer/tests/test_soundness.py 17건(명세 반례 고정).
+  product 하네스 자기동치 6/6 EQUIV·닫힘(절전 시나리오에 점프 억제 note
+  신규 표시), 고장 주입 4/4 DIVERGE+재생 확인. gate 캐시 정답쌍 178건
+  수정 전후 **완전 동일**(DIVERGE 81/EQUIV 97, 재생 미확인 0) — 이번
+  수정으로 뒤집힌 쌍 0. 분할 세밀화로 상태 수만 증가(보안모드 188→320,
+  여전히 <1s). e1은 수정 전부터 `adapt` 모듈 부재로 실행 불가(무관).
+- **미착수(P1, 제출 후)**: 복합 산술식(x+y>10)·다중 timer 관계·관찰
+  가능한 counter 인자(affine/region 추상화 또는 단편 축소), 지원 단편
+  계약 문서(SUPPORTED_FRAGMENT), 유한 도메인 전수 차등 oracle, IR
+  한-걸음 실행기 자체의 차등 검증, OneShot/Pause 경로의 점프 안전 확인.
+
 ### 9.15 게이트를 라이브 파이프라인에 연결 (2026-08-14 저녁)
 
 - **whisoo 결정**: 재시도는 구현에서 뺀다. VERIFY 옵션 없이 게이트는

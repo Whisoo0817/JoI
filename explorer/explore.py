@@ -144,6 +144,30 @@ def _apply(op: str, x: float, c: float) -> bool:
             "==": x == c, "!=": x != c}[op]
 
 
+def reps_from_preds(pairs: list) -> list:
+    """Exact 1-D partition for one numeric key: boundary constants
+    themselves + the midpoint of every adjacent boundary gap + one value
+    past each end, merged to one representative per distinguishable region
+    (identical truth vector over the (op, const) pairs the code uses).
+
+    Midpoints — not c±1 — guarantee a representative inside EVERY open
+    interval between boundaries, however narrow: thresholds 10 and 10.5
+    (or 10 and 11 on a real-valued sensor) get their in-between region
+    (soundness fix, 2026-09-02)."""
+    pairs = sorted(pairs)
+    consts = sorted({c for _, c in pairs})
+    cand = set(consts)
+    cand.add(consts[0] - 1)
+    cand.add(consts[-1] + 1)
+    for lo, hi in zip(consts, consts[1:]):
+        cand.add(lo + (hi - lo) / 2)
+    seen_vec: dict[tuple, float] = {}
+    for x in sorted(cand):
+        vec = tuple(_apply(o, x, c) for o, c in pairs)
+        seen_vec.setdefault(vec, x)
+    return sorted(seen_vec.values())
+
+
 def _const_options(node: Any, vars_: dict, defs: dict,
                    visiting: frozenset = frozenset()) -> set | None:
     """Every constant value an expression can evaluate to, following wires
@@ -397,16 +421,7 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
 
     cells: dict[str, list] = {}
     for k, oc in num_consts.items():
-        # candidates around every boundary, then merge candidates the code
-        # cannot distinguish (identical truth vector over the (op, const)
-        # pairs actually used on this key) — one representative per region
-        pairs = sorted(oc)
-        cand = sorted({v for _, c in pairs for v in (c - 1, c, c + 1)})
-        seen_vec: dict[tuple, float] = {}
-        for x in cand:
-            vec = tuple(_apply(o, x, c) for o, c in pairs)
-            seen_vec.setdefault(vec, x)
-        cells[k] = sorted(seen_vec.values())
+        cells[k] = reps_from_preds(sorted(oc))
     for k, ss in str_consts.items():
         cells[k] = sorted(ss) + ["__other__"]
     for k in bool_keys:

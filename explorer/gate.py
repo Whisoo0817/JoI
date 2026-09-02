@@ -263,6 +263,25 @@ def gate_pair(ir: dict, binding: dict, devices: dict, jb: dict) -> GateResult:
         return GateResult("REFUSED", notes=notes + [str(e)])
 
     replays = [replay_divergence(ir_r, joi_r, dv) for dv in pr.divergences]
+    return fold_verdict(pr, replays, notes)
+
+
+def fold_verdict(pr: ProductResult, replays: list[ReplayResult],
+                 notes: list[str]) -> GateResult:
+    """product 내부 판정 → 배포 3-way 판정 (2026-09-02, whisoo 결정).
+
+    - DIVERGE는 구체 재생으로 확인된 반례가 있을 때만 유지한다(T2 복원).
+      재생이 하나도 확인되지 않으면 허위 반례 가능성 — 내부 UNKNOWN.
+    - 내부 UNKNOWN(탐색 미완, 재생 미확인)은 밖으로 REFUSED로 접는다:
+      배포 행동은 어차피 거절로 같고, 논문 판정은 3-way를 유지한다.
+    - EQUIV는 product가 이미 닫힌 그래프에서만 내므로 그대로 통과."""
+    if pr.verdict == "DIVERGE" and not any(r.confirmed for r in replays):
+        return GateResult("REFUSED", pr, replays,
+                          notes + ["내부 UNKNOWN: 반례 재생 미확인(허위 의심)"])
+    if pr.verdict == "UNKNOWN":
+        return GateResult("REFUSED", pr, replays,
+                          notes + ["내부 UNKNOWN: 탐색 미완 — "
+                                   + (" ".join(pr.notes) or "사유 미기록")])
     return GateResult(pr.verdict, pr, replays, notes)
 
 
