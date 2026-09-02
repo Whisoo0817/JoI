@@ -35,8 +35,9 @@ from __future__ import annotations
 
 import itertools
 import time as _time
-from bisect import bisect_right
+from bisect import bisect_left, bisect_right
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Any
 
 from . import expr as expr_mod
@@ -108,10 +109,16 @@ class Axes:
     # it to place an observed value in its cell rather than matching the
     # representative literally (July is the same cell as the April rep).
     cell_preds: dict = field(default_factory=dict)
+    # clock.time (HHMM 합성값) 비교의 (op, 상수) — 자유 입력이 아니라 달력
+    # 파생이므로 cells가 아닌 하루-내-분 경계로 다룬다 (2026-09-02 ①).
+    tod_ops: list = field(default_factory=list)
     # GVs this scenario both writes and reads back (write-on-change mirrors).
     # Their pre-existing value matters — the explorer enumerates initial
     # values instead of assuming a runtime default (unseeded read = None is
     # exactly the seed-fault class and must stay visible).
+
+
+MODELED_CLOCK = ("hour", "minute", "weekday", "isholiday", "timestamp", "time")
 
 
 def _read_key(node: Any) -> str | None:
@@ -123,7 +130,33 @@ def _read_key(node: Any) -> str | None:
         return world_key(node.tags, svc, node.member)
     if isinstance(node, expr_mod.DeviceRef):
         return node.key
+    if isinstance(node, expr_mod.ClockRef):
+        # 맨 clock.time / clock.hour … 표기 — 모델링된 필드만 키로 인정
+        # (그 밖은 None → features의 opaque-guard가 거른다)
+        f = node.field.lower()
+        return f"clock.{f}" if f in MODELED_CLOCK else None
     return None
+
+
+@lru_cache(maxsize=256)
+def _tod_flips(tod_ops: tuple) -> tuple:
+    """clock.time 술어의 진리값이 바뀌는 하루-내-분(minute-of-day) 경계.
+
+    HHMM 상수 c의 분값 m = (c//100)*60 + c%100. 정수 도메인이므로
+    >=·<는 m에서, >·<=는 m+1에서, ==·!=는 m과 m+1 양쪽에서 뒤집힌다.
+    2400처럼 하루 밖 상수는 경계가 1440 이상 — 어떤 분(0..1439)도 넘지
+    못해 자연히 '항상 거짓/참'으로 모델된다."""
+    flips: set[int] = set()
+    for op, c in tod_ops:
+        m = (int(c) // 100) * 60 + int(c) % 100
+        if op in (">=", "<"):
+            flips.add(m)
+        elif op in (">", "<="):
+            flips.add(m + 1)
+        else:                              # == / !=
+            flips.add(m)
+            flips.add(m + 1)
+    return tuple(sorted(f for f in flips if 0 < f < 1440))
 
 
 def _gv_read_name(node: Any) -> str | None:
@@ -233,6 +266,7 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
     hours: set[int] = set()
     hour_ops: set = set()
     minutes: set[int] = set()
+    tod_ops: set = set()
     weekdays_used = False
     holiday_used = False
     ts_thresholds: set[float] = set()
@@ -295,6 +329,11 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
             if key == "clock.minute":
                 if isinstance(const, (int, float)):
                     minutes.add(int(const))
+                continue
+            if key == "clock.time":        # HHMM 합성 — 달력 경계로
+                if isinstance(const, (int, float)) \
+                        and not isinstance(const, bool):
+                    tod_ops.add((op, int(const)))
                 continue
             if key == "clock.timestamp":
                 continue
@@ -416,7 +455,7 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
                 k = _read_key(resolve(side))
                 if k and k not in ("clock.hour", "clock.weekday",
                                    "clock.minute", "clock.timestamp",
-                                   "clock.isholiday"):
+                                   "clock.isholiday", "clock.time"):
                     bool_keys.add(k)
 
     cells: dict[str, list] = {}
@@ -437,7 +476,8 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
                 sorted(ts_thresholds), counter_caps, param_reads,
                 sorted(gv_written & gv_read),
                 minutes=sorted(minutes), hour_ops=sorted(hour_ops),
-                cell_preds={k: sorted(v) for k, v in num_consts.items()})
+                cell_preds={k: sorted(v) for k, v in num_consts.items()},
+                tod_ops=sorted(tod_ops))
 
 
 def cell_of(axes: Axes, key: str, value):
@@ -536,10 +576,17 @@ def normalize(vars_: dict, gv: dict, now_ms: int,
             regs.append((nm, v if v <= cap else cap + 1))
         else:
             regs.append((nm, v))
-    # pairwise capture order of live timers (who crosses first)
+    # 살아있는 타이머 쌍의 마감 차이 구간 (2026-09-02 ②, deadline region):
+    # 임계 ci·cj가 다르면 교차 순서는 (va+ci) vs (vb+cj) ⟺ va−vb vs cj−ci.
+    # 부호만으로는 부족하므로 차이를 임계값들의 차 집합 위 구간으로 접는다
+    # (timed-automata region에서 착안한 pairwise deadline refinement).
+    # 캡처 시각은 설정 후 고정 — 구간은 새 캡처 때만 바뀌어 점프-불변.
+    diffs = _deadline_diffs(tuple(axes.ts_thresholds))
     order = tuple(sorted(nm for nm, _ in ts_vals))
+    ts_vals_d = dict(ts_vals)
     order_sig = tuple(
-        (a, b, (ts_vals_d := dict(ts_vals))[a] <= ts_vals_d[b])
+        (a, b, bisect_left(diffs, ts_vals_d[a] - ts_vals_d[b]),
+         bisect_right(diffs, ts_vals_d[a] - ts_vals_d[b]))
         for i, a in enumerate(order) for b in order[i + 1:])
     cal = _cal_cell(now_ms, axes)
     return (tuple(regs), tuple(sorted(gv.items())), cal, order_sig)
@@ -574,9 +621,23 @@ def next_event_ms(vars_: dict, now_ms: int, vinfo: dict[str, VarInfo],
             if t > now_ms:
                 cands.append(t)
                 break
-    if axes.weekdays_used or axes.hours:
+    for f in _tod_flips(tuple(axes.tod_ops)):   # next HH:MM flip of any day
+        day = now_ms // DAY_MS
+        for d in (day, day + 1):
+            t = d * DAY_MS + f * 60_000
+            if t > now_ms:
+                cands.append(t)
+                break
+    if axes.weekdays_used or axes.hours or axes.tod_ops:
         cands.append((now_ms // DAY_MS + 1) * DAY_MS)   # midnight
     return min(cands) if cands else None
+
+
+@lru_cache(maxsize=256)
+def _deadline_diffs(thresholds: tuple) -> tuple:
+    """임계값끼리의 차 {ci − cj} (0 포함) — 타이머 쌍 차이의 구간 경계."""
+    return tuple(sorted({a - b for a in thresholds for b in thresholds})) \
+        if thresholds else (0.0,)
 
 
 def _cal_cell(now_ms: int, axes: Axes) -> tuple:
@@ -587,7 +648,10 @@ def _cal_cell(now_ms: int, axes: Axes) -> tuple:
     week), plus the weekday when the code reads it."""
     cs = clock_state(now_ms)
     bounds = sorted({h for h in axes.hours} | {h + 1 for h in axes.hours})
+    flips = _tod_flips(tuple(axes.tod_ops))
+    mod = cs["clock.hour"] * 60 + cs["clock.minute"]
     return (bisect_right(bounds, cs["clock.hour"]),
+            bisect_right(flips, mod) if flips else -1,
             cs["clock.weekday"] if axes.weekdays_used else "-")
 
 
@@ -626,6 +690,8 @@ def next_key_change_ms(vars_: dict, now_ms: int, vinfo: dict,
         for h in ({h for h in axes.hours} | {h + 1 for h in axes.hours}):
             cands.add((day + d) * DAY_MS + (h % 24) * 3_600_000
                       + (DAY_MS if h >= 24 else 0))
+        for f in _tod_flips(tuple(axes.tod_ops)):
+            cands.add((day + d) * DAY_MS + f * 60_000)
         cands.add((day + d + 1) * DAY_MS)       # midnights
     base = (_cal_cell(now_ms, axes), _ts_regions(vars_, now_ms, vinfo, axes))
     for t in sorted(cands):

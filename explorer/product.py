@@ -59,7 +59,9 @@ def merge_axes(a: Axes, b: Axes) -> Axes:
                 sorted(set(a.mirror_gv) | set(b.mirror_gv)),
                 minutes=sorted(set(a.minutes) | set(b.minutes)),
                 hour_ops=sorted(set(a.hour_ops) | set(b.hour_ops)),
-                cell_preds=preds)
+                cell_preds=preds,
+                tod_ops=sorted(set(map(tuple, a.tod_ops))
+                               | set(map(tuple, b.tod_ops))))
 
 
 @dataclass

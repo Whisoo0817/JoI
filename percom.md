@@ -857,6 +857,41 @@ trigger↔condition 혼동(edge/level) / `for:` 누락 / wrong `mode` /
   구성하는 게 우선**. Quantifier·서비스·디바이스 매핑의 판정·정답·규칙
   정리는 그 뒤로 미룬다.
 
+### 9.18 clock.time 모델링 + 마감 차이 구간 — P1 Day 2 (2026-09-02)
+
+- **whisoo 결정**: §9.17 측정에서 실이득 있는 ①②만 full 지원, ③(affine
+  joint SMT + 인자 산술, 각 1행)은 논문 제한사항(SUPPORTED_FRAGMENT)으로.
+- **① clock.time(HHMM 합성) 달력 모델링**: 평가는 원래 양쪽 다 정확했다
+  (interp·ir_step 모두 hour×100+minute 파생 — §9.17의 "None 평가"는 IR이
+  아니라 축 부재가 본질). 구멍은 **축·점프 부재**: 경계(23:00 등)에서
+  탐색이 멈춰 서지 않아 진리 전환을 못 볼 수 있었다. 수정: `Axes.tod_ops`
+  ((op, HHMM) 수집 — derive_axes·compile_ir 양쪽, 자유 입력 축이 아니라
+  달력 파생), `_tod_flips`(정수 분 도메인이라 >=·<는 m, >·<=는 m+1,
+  ==는 양쪽에서 뒤집힘; 2400은 경계 1440 이상 → 자연히 항상-거짓),
+  `_cal_cell`에 하루-내-분 구간 추가, next_event_ms/next_key_change_ms에
+  경계 점프 후보 추가, merge_axes 합집합.
+- **② 마감 차이 구간(deadline region)**: normalize의 타이머 쌍 선후
+  부호(va≤vb)를 **차이의 구간**으로 교체 — 교차 순서는 (va+ci) vs
+  (vb+cj) ⟺ va−vb vs cj−ci 이므로 임계값 차 집합 {ci−cj} 위의
+  (bisect_left, bisect_right) 쌍으로 접는다(timed-automata region에서
+  착안한 pairwise deadline refinement — 논문 표기도 이 문구로). 캡처
+  시각은 고정이라 구간은 새 캡처 때만 바뀜 → 점프 후보 추가 불필요.
+  쌍별이므로 타이머 n개에도 건전 — §9.17의 multi-timer flag는 제거
+  (상태 폭발은 STATE_CAP→UNKNOWN이 받침). 소형 반례를 회귀로 고정:
+  같은 zone·같은 부호에서 차이 35s/25s(임계차 30 양쪽)가 키를 갈라야 함.
+- **검증**: test_soundness 28→**33건**(deadline 분리 단위 반례, 임계
+  변이 DIVERGE, clock.time 자기쌍·경계 변이·2400 죽은 분기 동치).
+  product 자기동치 **6/6 EQUIV·닫힘 복원**(침입 감지 27상태), 고장 주입
+  **4/4 DIVERGE+재생 확인 복원**. gate 178건 **DIVERGE 79/EQUIV 97/
+  REFUSED 2** — clock.time 5행 전부 Day 1 이전 판정으로 복귀(4 DIVERGE +
+  C18_009 EQUIV, 이번엔 건전한 모델로; 재생 미확인 0), 남은 REFUSED는
+  ③ 대상 C11_001(abs(t2−t1))·C14_002(max 인자)뿐. prevalence 재측정:
+  걸린 행 2건, 독립 and/or 30행 오탐 0.
+- **잔여(문서화된 한계)**: ③ 결합 산술·인자 산술 2행은 REFUSED 유지
+  (제한사항으로 서술), product 교차-쌍(IR 타이머 × JoI 타이머) 마감
+  경쟁은 상태 키 밖 — 같은 입력 경로에서 대응 캡처가 일치해 실질 영향
+  없음 서술 + 잔여 갭으로 명기.
+
 ### 9.17 미지원 무늬 fail-closed + 발생 빈도 측정 — P1 Day 1 (2026-09-02)
 
 - **계획 개정**(리뷰어 피드백 수용, whisoo 승인): "허위 EQUIV 차단"과

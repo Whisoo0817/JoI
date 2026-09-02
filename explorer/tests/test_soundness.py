@@ -253,15 +253,69 @@ _TWO_TIMERS = (
 )
 
 
-def test_two_timers_distinct_thresholds_refused():
-    assert _refused(_TWO_TIMERS % (30, 60)), \
-        "임계가 다른 타이머 2개가 통과 (교차 순서가 상태 키에 없음)"
-
-
 def test_two_timers_same_threshold_allowed():
     # 같은 단일 임계값이면 선후 부호(order_sig)로 교차 순서가 보존된다
     assert product_explore(_TWO_TIMERS % (30, 30),
                            _TWO_TIMERS % (30, 30), PERIOD).verdict == "EQUIV"
+
+
+# ── ② 마감 차이 구간 (2026-09-02, deadline region) ───────────────────────────
+
+def test_two_timers_distinct_thresholds_now_supported():
+    # Day 1의 fail-closed를 ②가 대체 — 자기쌍은 EQUIV·닫힘이어야 한다
+    r = product_explore(_TWO_TIMERS % (30, 60), _TWO_TIMERS % (30, 60), PERIOD)
+    assert r.verdict == "EQUIV" and r.closed, (r.verdict, r.notes)
+
+
+def test_two_timers_threshold_mutation_diverges():
+    r = product_explore(_TWO_TIMERS % (30, 60), _TWO_TIMERS % (30, 45), PERIOD)
+    assert r.verdict == "DIVERGE", r.verdict
+
+
+def test_deadline_region_separates_states():
+    # 같은 zone·같은 선후 부호라도 차이가 임계차(30)를 넘느냐로 미래
+    # 교차 순서가 갈린다 — 상태 키가 갈라야 한다 (구 부호 방식은 병합)
+    from ..interp import parse
+    from ..predicates import classify_vars
+    from ..explore import derive_axes, normalize
+    stmts = parse(_TWO_TIMERS % (30, 60))
+    vinfo = classify_vars(stmts)
+    axes = derive_axes(stmts, vinfo)
+    T = 1_000_000
+    k1 = normalize({"a": T - 5, "b": T - 40}, {}, T * 1000, vinfo, axes)
+    k2 = normalize({"a": T - 15, "b": T - 40}, {}, T * 1000, vinfo, axes)
+    assert k1 != k2, "차이 35s와 25s(임계차 30 양쪽)가 같은 키로 병합"
+    k3 = normalize({"a": T - 5, "b": T - 40}, {}, T * 1000, vinfo, axes)
+    assert k1 == k3
+
+
+# ── ① clock.time(HHMM) 달력 모델링 (2026-09-02) ──────────────────────────────
+
+TOD = 'if (clock.time >= %d) { (#Speaker).speaker_speak("night") }\n'
+
+
+def test_clock_time_axes_and_selfpair():
+    from ..interp import parse
+    from ..predicates import classify_vars
+    from ..explore import derive_axes
+    stmts = parse(TOD % 2300)
+    axes = derive_axes(stmts, classify_vars(stmts))
+    assert (">=", 2300) in axes.tod_ops, axes.tod_ops
+    r = product_explore(TOD % 2300, TOD % 2300, PERIOD)
+    assert r.verdict == "EQUIV" and r.closed, (r.verdict, r.notes)
+
+
+def test_clock_time_threshold_mutation_diverges():
+    # 22:00~23:00 사이에서만 행동이 갈린다 — 경계 점프가 있어야 잡힌다
+    r = product_explore(TOD % 2300, TOD % 2200, PERIOD)
+    assert r.verdict == "DIVERGE", r.verdict
+
+
+def test_clock_time_2400_is_never_true():
+    # HHMM 최대는 2359 — `>= 2400` 분기는 죽은 코드와 동치
+    dead = TOD % 2400
+    empty = "x = (#Clock).clock_hour\n"
+    assert product_explore(dead, empty, PERIOD).verdict == "EQUIV"
 
 
 # ── runner ───────────────────────────────────────────────────────────────────

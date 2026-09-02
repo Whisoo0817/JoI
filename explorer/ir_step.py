@@ -316,6 +316,7 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
     str_consts: dict[str, set] = {}
     bool_keys: set[str] = set()
     ts_thresholds: set[float] = set()
+    tod_ops: set = set()
     counter_caps: dict[str, float] = {}
     n_cycle = [0]
     all_conds: list[tuple] = []           # 카운터 사용 후분석용
@@ -373,6 +374,14 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
                     keys: list[str] = []
                     reads_in(side, keys)
                     for kk in keys:
+                        if kk == "clock.time":
+                            # HHMM 합성 — 자유 입력 축이 아니라 달력 경계
+                            # (ir_step이 hour*100+minute로 파생, explore의
+                            # tod_ops/_tod_flips가 구간·점프를 담당)
+                            if isinstance(c, (int, float)) \
+                                    and not isinstance(c, bool):
+                                tod_ops.add((op, int(c)))
+                            continue
                         if isinstance(c, bool) or c is None:
                             bool_keys.add(kk)
                         elif isinstance(c, str):
@@ -645,7 +654,8 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
         cells.setdefault(k, [True, False])
     axes = Axes(cells, [], False, False, sorted(ts_thresholds),
                 counter_caps, [],
-                cell_preds={k: sorted(v) for k, v in num_consts.items()})
+                cell_preds={k: sorted(v) for k, v in num_consts.items()},
+                tod_ops=sorted(tod_ops))
     return IrProgram(ins, vinfo, axes, var_keys)
 
 

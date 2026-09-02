@@ -17,11 +17,9 @@
 3. 포화(saturation)된 counter 값이 관찰 지점으로 나가는 경우 — 포화는
    "비교 전용"일 때만 정당하다. cap 위 5회/6회가 같은 상태로 접히는데
    출력은 다르다                                     → observable-counter
-4. 마감 경쟁하는 타이머 — 살아있는 타임스탬프 레지스터가 2개 이상이고
-   서로 다른 임계값이 관여하면, 상태 키의 (zone, 선후 부호)만으로는
-   교차 순서(v1+c1 vs v2+c2)를 보존하지 못한다        → multi-timer
-   (모두 같은 단일 임계값이면 선후 부호로 충분 — 제외. IR은 pc 직렬이라
-   서로 다른 wait끼리는 경쟁 불가; 같은 wait의 for+timeout 쌍만 해당.)
+(구 multi-timer flag는 2026-09-02 ②에서 제거: normalize의 쌍별 deadline
+ region이 임계값이 다른 타이머의 교차 순서를 상태 키에 보존한다.
+ clock.time도 같은 날 ①에서 달력 경계 tod_ops로 모델링되어 허용.)
 
 전부 과대 탐지(=더 많은 REFUSED) 방향으로만 틀린다. 실제 발생 빈도는
 `python3 -m explorer.prevalence`로 측정해 full 지원 여부를 결정한다.
@@ -43,7 +41,9 @@ from .predicates import (CMP_OPS, TS_KEY, VarInfo, _fold_with_params,
 
 ARITH_OPS = ("+", "-", "*", "/", "%")
 NUM_FUNCS = ("min", "max", "avg", "abs")
-CLOCK_FIELDS = ("hour", "minute", "weekday", "isholiday", "timestamp")
+# 모델링된 clock 필드 (explore.MODELED_CLOCK과 동일 원천).
+# "time"(HHMM 합성)은 2026-09-02 ①에서 달력 경계(tod_ops)로 승격.
+from .explore import MODELED_CLOCK as CLOCK_FIELDS  # noqa: E402
 
 
 @dataclass(frozen=True)
@@ -294,13 +294,9 @@ def analyze_stmts(stmts: list, vars_: dict[str, VarInfo],
             for a in (s.call.args or ()):
                 check_sink_arg(a, f"{svc}.{m}")
 
-    # 4. 마감 경쟁 타이머 (프로그램 자체의 타임스탬프 상태 변수 기준)
-    ts_vars = sorted(nm for nm, vi in vars_.items()
-                     if vi.role == "state" and vi.timestamp)
-    if len(ts_vars) >= 2 and len(set(axes.ts_thresholds)) >= 2:
-        feats.append(Feature(
-            "multi-timer",
-            f"타이머 {ts_vars} × 임계 {sorted(set(axes.ts_thresholds))}"))
+    # (구 multi-timer flag는 2026-09-02 ②에서 제거 — normalize의 쌍별
+    # deadline region이 임계값이 다른 타이머들의 교차 순서를 상태 키에
+    # 보존하므로 거절이 불필요해졌다. 상태 폭발은 STATE_CAP→UNKNOWN이 받침.)
     return _dedup(feats)
 
 
@@ -583,11 +579,7 @@ def analyze_ir(prog) -> list[Feature]:
     for x in prog.ins:
         if x.cond is not None:
             check_cond(x.cond)
-        if x.kind == "WAIT" and x.for_sec > 0 and x.to_sec > 0 \
-                and x.for_sec != x.to_sec:
-            feats.append(Feature(
-                "multi-timer",
-                f"wait 지속 {x.for_sec}s vs 제한 {x.to_sec}s 마감 경쟁"))
+        # (wait for+timeout 마감 경쟁 flag는 ②의 deadline region이 대체)
         for a in (x.args or ()):
             tag, v = a[0], a[1]
             if tag == "var" and v in counters:
@@ -675,21 +667,21 @@ def _selfcheck() -> None:
          f"if (n >= 3) {{ {SAY}(n) }}\n", {"observable-counter"}),
         ("n := 0\nif ((#Door).door_contact == true) { n = n + 1 }\n"
          f"if (n >= 3) {{ {SAY}(\"x\") }}\n", set()),
+        # 타이머 2개 × 다른 임계 — ②의 deadline region이 담당, flag 없음
         ("a := 0\nb := 0\nnow = (#Clock).clock_timestamp\n"
          "if ((#Door).door_contact == true) { a = now }\n"
          "if ((#Window).window_contact == true) { b = now }\n"
          f"if (now - a > 30) {{ {SAY}(\"x\") }}\n"
-         f"if (now - b > 60) {{ {SAY}(\"y\") }}\n", {"multi-timer"}),
-        ("a := 0\nb := 0\nnow = (#Clock).clock_timestamp\n"
-         "if ((#Door).door_contact == true) { a = now }\n"
-         "if ((#Window).window_contact == true) { b = now }\n"
-         f"if (now - a > 30) {{ {SAY}(\"x\") }}\n"
-         f"if (now - b > 30) {{ {SAY}(\"y\") }}\n", set()),
+         f"if (now - b > 60) {{ {SAY}(\"y\") }}\n", set()),
+        # clock.time — ①에서 달력 경계로 모델링, flag 없음
+        (f"if (clock.time >= 2300) {{ {SAY}(\"x\") }}\n", set()),
     ]
     for src, want in cases:
         got = kinds(src)
         mark = "OK " if got == want else "!! "
-        print(f"{mark}{want or '{}'} ← {got or '{}'}  | {src.splitlines()[-2][:60]}")
+        line = src.splitlines()[-2] if len(src.splitlines()) > 1 \
+            else src.splitlines()[0]
+        print(f"{mark}{want or '{}'} ← {got or '{}'}  | {line[:60]}")
         assert got == want, (src, got, want)
     print("features selfcheck passed")
 
