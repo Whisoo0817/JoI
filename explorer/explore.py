@@ -120,6 +120,13 @@ class Axes:
 
 MODELED_CLOCK = ("hour", "minute", "weekday", "isholiday", "timestamp", "time")
 
+# A read that reaches an observable action argument without first being
+# partitioned by a predicate cannot be omitted from the product input space.
+# These three concrete witnesses define the deliberately finite value-flow
+# domain used by the current Explorer.  Unlike predicate cells, they are not
+# merged: each value can produce a distinct action argument.
+OBSERVABLE_VALUE_DOMAIN = [None, 0, "__observable_value__"]
+
 
 def _read_key(node: Any) -> str | None:
     """World key for a sensor-read AST node, or None."""
@@ -273,6 +280,7 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
     counter_caps: dict[str, float] = {}
     param_reads: list[str] = []
     gv_written: set[str] = set()
+    observable_reads: set[str] = set()
 
     from .predicates import var_defs
     defs = var_defs(stmts)
@@ -295,6 +303,45 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
             return [f"{base}({i!r})" for i in ranges[node.args[0].name]]
         param_reads.append(f"{base}(unresolvable args)")
         return []
+
+    def _observable_sources(node: Any,
+                            visiting: frozenset = frozenset()) -> set[str]:
+        """External reads whose concrete values flow to an action argument.
+
+        Follow JoI variables transitively.  Clock fields are derived from the
+        shared time axis and therefore are not free input-domain keys.
+        """
+        key = _read_key(node)
+        if key is not None:
+            return set() if key in CAL_KEYS or key == TS_KEY else {key}
+        gv_name = _gv_read_name(node)
+        if gv_name is not None:
+            return {f"@gv:{gv_name}"} if gv_name not in gv_written else set()
+        if isinstance(node, jp.CallExpr) and node.args is not None:
+            svc, _ = canonical_key(node.service, node.method)
+            own = set() if svc in ("globalvariable", "clock") \
+                else set(_query_keys(node) or [])
+            for arg in node.args:
+                own.update(_observable_sources(arg, visiting))
+            return own
+        if isinstance(node, expr_mod.VarRef):
+            if node.name in visiting:
+                return set()
+            out: set[str] = set()
+            for definition in defs.get(node.name, []):
+                out.update(_observable_sources(
+                    definition, visiting | {node.name}))
+            return out
+        out: set[str] = set()
+        if hasattr(node, "__dict__"):
+            for value in vars(node).values():
+                if isinstance(value, (list, tuple)):
+                    for item in value:
+                        if hasattr(item, "__dict__"):
+                            out.update(_observable_sources(item, visiting))
+                elif hasattr(value, "__dict__"):
+                    out.update(_observable_sources(value, visiting))
+        return out
 
     # GVs this scenario writes are internal state, not input axes
     for s in walk_stmts(stmts):
@@ -457,6 +504,15 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
                                    "clock.minute", "clock.timestamp",
                                    "clock.isholiday", "clock.time"):
                     bool_keys.add(k)
+        if isinstance(s, jp.CallStmt):
+            svc, method = canonical_key(s.call.service, s.call.method)
+            args = list(s.call.args or ())
+            # A GlobalVariable set's first argument is the variable name;
+            # only the assigned value is observable behavior.
+            if svc == "globalvariable" and method.startswith("set"):
+                args = args[1:]
+            for arg in args:
+                observable_reads.update(_observable_sources(arg))
 
     cells: dict[str, list] = {}
     for k, oc in num_consts.items():
@@ -469,6 +525,8 @@ def derive_axes(stmts: list, vars_: dict[str, VarInfo]) -> Axes:
         cells[f"@gv:{g}"] = [True, False]
     for g, ss in gv_str.items():
         cells[f"@gv:{g}"] = sorted(ss) + ["__other__"]
+    for key in observable_reads:
+        cells.setdefault(key, list(OBSERVABLE_VALUE_DOMAIN))
     if holiday_used:
         cells["clock.isholiday"] = [False, True]
 

@@ -86,8 +86,15 @@ def model_tag() -> str:
     return mid.rsplit("/", 1)[-1].lower().replace(".", "_")
 
 
+def active_model_id() -> str:
+    """Exact server model ID; unlike ``--tag``, this is provenance."""
+    from timeline_ir.config import get_client, get_model_id
+    return get_model_id(get_client())
+
+
 def gen(args) -> None:
-    tag = args.tag or model_tag()
+    model_id = active_model_id()
+    tag = args.tag or model_id.rsplit("/", 1)[-1].lower().replace(".", "_")
     out_dir = os.path.join(CAND_BASE, tag)
     os.makedirs(out_dir, exist_ok=True)
     gt_dir = os.path.join(out_dir, "_gt_ir")
@@ -101,8 +108,8 @@ def gen(args) -> None:
         rows = rows[: args.limit]
     todo = [r for r in rows
             if not os.path.exists(os.path.join(out_dir, key_of(r) + ".json"))]
-    print(f"[e3 gen] 모델 {tag} | 대상 {len(rows)}행, 남은 {len(todo)}행, "
-          f"workers={args.workers}")
+    print(f"[e3 gen] 모델 {model_id} | tag={tag} | 대상 {len(rows)}행, "
+          f"남은 {len(todo)}행, workers={args.workers}")
 
     def one(r):
         key = key_of(r)
@@ -133,7 +140,8 @@ def gen(args) -> None:
             d.update(command_kor=r["command_kor"],
                      command_eng=r["command_eng"],
                      connected_devices=json.loads(r["connected_devices"]),
-                     ir=json.loads(r["ir_gt"]), model=tag,
+                     ir=json.loads(r["ir_gt"]), model=model_id,
+                     candidate_tag=tag,
                      elapsed_sec=round(el, 1))
             with open(out_path, "w", encoding="utf-8") as f:
                 json.dump(d, f, ensure_ascii=False, indent=2)

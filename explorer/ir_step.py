@@ -25,7 +25,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any
 
-from .explore import Axes
+from .explore import Axes, OBSERVABLE_VALUE_DOMAIN
 from .expr import canonical_key
 from .interp import (Action, OpaqueToken, StepResult, Unsupported,
                      clock_state, world_key)
@@ -318,6 +318,7 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
     ts_thresholds: set[float] = set()
     tod_ops: set = set()
     counter_caps: dict[str, float] = {}
+    param_reads: list[str] = []
     n_cycle = [0]
     all_conds: list[tuple] = []           # 카운터 사용 후분석용
     counter_sites: dict[str, list[Ins]] = {}   # 이름 카운터 → TOP/END_ITER
@@ -442,10 +443,25 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
             v = node.get("var", "")
             if v:
                 vinfo[v] = VarInfo("state")
+            query_key = world_key(groups[0], svc, method)
+            if v and not args and len(groups[0]) == 1:
+                # A zero-argument result call corresponds to a grounded JoI
+                # property read.  Preserve the bound device identity just as
+                # ground.py's DeviceRef does; parameterized service queries
+                # retain their service-level key on both sides.
+                tag = groups[0][0]
+                if tag.lower() != csvc:
+                    query_key = f"{tag}.{cm}"
+            if v:
+                if all(a[0] == "lit" for a in args):
+                    vals = [a[1] for a in args]
+                    var_keys[v] = (f"{query_key}"
+                                   if not vals else
+                                   f"{query_key}({','.join(map(repr, vals))})")
             # key = 질의 답을 찾을 월드 키 (var 있는 호출 = 질의, interp와 동일)
             ins.append(Ins("CALL", svc=csvc, method=cm, tags=groups[0],
                            groups=tuple(groups), args=args, var=v,
-                           key=world_key(groups[0], svc, method)))
+                           key=query_key))
         elif op == "read":
             key = to_key(node["src"])
             v = node["var"]
@@ -592,6 +608,11 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
             if x.var not in used:
                 x.var = ""            # 결과를 아무도 안 읽음 → 실행 호출
 
+    for x in ins:
+        if x.kind == "CALL" and x.var \
+                and not all(a[0] == "lit" for a in x.args):
+            param_reads.append(f"{x.key}(unresolvable args)")
+
     # 이름 카운터 후분석: 조건에서 어떻게 쓰였는지에 따라 접는 방식 결정.
     # %k만 쓰면 증가할 때 나머지로 접고(라운드로빈), 크기/등호 비교만 쓰면
     # 최대 상수에서 포화. 둘 다 쓰면 아직 못 다룬다. 아무도 안 읽으면
@@ -637,6 +658,35 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
             for s in sites:
                 s.cname = ""
 
+    observable_reads: set[str] = set()
+
+    def _observable_tuple_reads(node) -> None:
+        if isinstance(node, tuple):
+            if not node:
+                return
+            if node[0] == "read":
+                if not str(node[1]).startswith("clock."):
+                    observable_reads.add(str(node[1]))
+                return
+            if node[0] == "var":
+                key = var_keys.get(node[1])
+                if key is not None and not key.startswith("clock."):
+                    observable_reads.add(key)
+                return
+            for child in node[1:]:
+                _observable_tuple_reads(child)
+        elif isinstance(node, list):
+            for child in node:
+                _observable_tuple_reads(child)
+
+    # Values reaching an executed CALL are part of the observable trace.
+    # Keep their external sources as explicit input axes even when no guard
+    # happens to compare them.
+    for x in ins:
+        if x.kind == "CALL" and not x.var:
+            for arg in x.args:
+                _observable_tuple_reads(arg)
+
     cells: dict[str, list] = {}
     for k, oc in num_consts.items():
         pairs = sorted(oc)
@@ -652,8 +702,10 @@ def compile_ir(ir: dict, name_map: dict[str, str] | None = None,
         cells[k] = sorted(ss) + ["__other__"]
     for k in bool_keys:
         cells.setdefault(k, [True, False])
+    for k in observable_reads:
+        cells.setdefault(k, list(OBSERVABLE_VALUE_DOMAIN))
     axes = Axes(cells, [], False, False, sorted(ts_thresholds),
-                counter_caps, [],
+                counter_caps, param_reads,
                 cell_preds={k: sorted(v) for k, v in num_consts.items()},
                 tod_ops=sorted(tod_ops))
     return IrProgram(ins, vinfo, axes, var_keys)

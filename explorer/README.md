@@ -36,6 +36,44 @@ SEED-DEP 1건. 임의 신규 시나리오도 JoI+period+인벤토리만 있으�
 | `replay.py` | 배포 로그 재생 → 행동별 생애 상태(ENGAGED/WINDOW/UNMET/NONCONFORM) |
 | `e1.py` | E1 전수 표 하네스 → `runs/e1.md` |
 | `composite.py` | (보류·미검증) P4 공유-GV 곱 초안 |
+| `exact_tick.py` | 명시적 유한 입력 모델의 bounded tick 완전열거 기준선 |
+| `ab_eval.py` | 동결 manifest 기반 A/B·완료율·전이 수 집계기 |
+| `domain_manifest.py` | 결과를 보기 전 입력 도메인·소스 해시·horizon 직렬화 |
+| `differential_sweep.py` | 기존 388개 후보를 이용한 개발 전용 차등 sweep |
+
+## 신규 A/B 평가 경로 (2026-09-04)
+
+`exact_tick.py`는 상태 정규화, 시간 점프, 입력 dedup을 사용하지 않고 명시된
+입력 도메인의 모든 tick 시퀀스를 유한 horizon까지 실행한다. `product.py`의
+평가 전용 `max_ticks` 모드는 같은 horizon에서 구체 상태와 depth를 보존하며,
+Explorer의 입력 경계 이산화만 적용한다. 따라서 두 결과의 차이는 개발 중
+false accept/false reject 후보로 취급할 수 있다.
+
+현재 결과와 제한은
+`skill_result/05_experiment_plan/ab-evaluation-protocol.md`에 누적한다. 기존
+388개 후보를 이용한 sweep은 outcome-visible development evidence이며 최종
+abstract 수치가 아니다. 실행기는 다음과 같다.
+
+```bash
+python3 -m explorer.tests.test_exact_tick
+python3 -m explorer.ab_eval \
+  --manifest explorer/eval/ab_development_manifest.json \
+  --output-dir skill_result/05_experiment_plan/results/E3/development-pilot
+python3 -m explorer.differential_sweep \
+  --candidates explorer/candidates/qwen3_5-9b-awq-4bit \
+  --output-dir skill_result/05_experiment_plan/results/E3/differential-dev-stress-h8-all \
+  --horizon 8 --stress-domain
+
+# 결과를 실행 중 재도출하지 않는 manifest 경로
+python3 -m explorer.domain_manifest \
+  --candidates explorer/candidates/qwen3_5-9b-awq-4bit \
+  --output skill_result/05_experiment_plan/results/E3/domain-manifest-dev-h8.json \
+  --horizon 8
+python3 -m explorer.differential_sweep \
+  --candidates explorer/candidates/qwen3_5-9b-awq-4bit \
+  --domain-manifest skill_result/05_experiment_plan/results/E3/domain-manifest-dev-h8.json \
+  --output-dir skill_result/05_experiment_plan/results/E3/differential-dev-manifest-h8-all
+```
 
 ## 게이트 측정 결과 (2026-07-31, 코퍼스 10 시나리오)
 

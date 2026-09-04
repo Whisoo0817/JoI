@@ -64,6 +64,19 @@ def merge_axes(a: Axes, b: Axes) -> Axes:
                                | set(map(tuple, b.tod_ops))))
 
 
+def check_supported_pair(runner_a, runner_b, axes: Axes | None = None) -> Axes:
+    """Apply every fail-closed supported-fragment precondition."""
+    axes = axes or merge_axes(runner_a.axes, runner_b.axes)
+    if axes.param_reads:
+        raise Unsupported(f"parameterized reads: {axes.param_reads}")
+    bad = runner_a.check_finite(axes) + runner_b.check_finite(axes)
+    if bad:
+        raise Unsupported(f"unbounded carried vars: {bad}")
+    from .features import analyze_runner, enforce
+    enforce(analyze_runner(runner_a) + analyze_runner(runner_b))
+    return axes
+
+
 @dataclass
 class Divergence:
     depth: int              # transitions from an initial state
@@ -84,6 +97,10 @@ class ProductResult:
     divergences: list = field(default_factory=list)
     seconds: float = 0.0
     notes: list = field(default_factory=list)
+    # None means the normal fixpoint/unbounded-within-fragment search.  A
+    # positive value means every modeled history was checked only through
+    # that many logical ticks; this is used solely by the A/B evaluation.
+    bounded_horizon_ticks: int | None = None
 
 
 @dataclass
@@ -149,6 +166,24 @@ def _canon(v):
     return int(v) if isinstance(v, float) and v.is_integer() else v
 
 
+def _freeze_concrete(value):
+    """Hashable, lossless store key for bounded evaluation mode."""
+    if isinstance(value, dict):
+        return tuple(sorted((str(k), _freeze_concrete(v))
+                            for k, v in value.items()))
+    if isinstance(value, (list, tuple)):
+        return tuple(_freeze_concrete(v) for v in value)
+    if isinstance(value, set):
+        return tuple(sorted((_freeze_concrete(v) for v in value), key=repr))
+    if isinstance(value, float) and value.is_integer():
+        return int(value)
+    try:
+        hash(value)
+    except TypeError:
+        return repr(value)
+    return value
+
+
 def _out(actions) -> tuple:
     """관찰값 = 발화 순서를 보존한 액션 시퀀스 (중복 포함).
 
@@ -169,29 +204,37 @@ def _out(actions) -> tuple:
 
 def product_explore(src_a: str | list, src_b: str | list, period_ms: int,
                     t0_ms: int | None = None,
-                    max_diverge: int = 3) -> ProductResult:
+                    max_diverge: int = 3,
+                    max_ticks: int | None = None) -> ProductResult:
     """JoI × JoI 진입점 — 실행기(Runner)로 감싸 본체에 넘긴다."""
     return product_runners(JoiRunner.from_src(src_a), JoiRunner.from_src(src_b),
-                           period_ms, t0_ms, max_diverge)
+                           period_ms, t0_ms, max_diverge, max_ticks)
 
 
 def product_runners(runner_a, runner_b, period_ms: int,
                     t0_ms: int | None = None,
-                    max_diverge: int = 3) -> ProductResult:
-    """실행기 두 개를 나란히 걸으며 액션을 대조한다 (runner.py의 계약 참조)."""
+                    max_diverge: int = 3,
+                    max_ticks: int | None = None) -> ProductResult:
+    """실행기 두 개를 나란히 걸으며 액션을 대조한다.
+
+    ``max_ticks`` is an evaluation-only bounded mode.  When present, the
+    initial reaction is tick 1 and no successor later than tick ``max_ticks``
+    is executed.  Elapsed time is included in the visited key in this mode so
+    a state first reached late cannot hide the same state reached earlier with
+    more remaining horizon.
+    """
     t_start = _time.time()
     t0_ms = T0_DEFAULT if t0_ms is None else t0_ms
+    if period_ms <= 0:
+        raise ValueError("period_ms must be positive")
+    if max_ticks is not None and max_ticks <= 0:
+        raise ValueError("max_ticks must be positive")
+    horizon_end = (None if max_ticks is None
+                   else t0_ms + (max_ticks - 1) * period_ms)
     va, vb = runner_a.vars_info, runner_b.vars_info
-    axes = merge_axes(runner_a.axes, runner_b.axes)
-    if axes.param_reads:
-        raise Unsupported(f"parameterized reads: {axes.param_reads}")
-    bad = runner_a.check_finite(axes) + runner_b.check_finite(axes)
-    if bad:
-        raise Unsupported(f"unbounded carried vars: {bad}")
-    from .features import analyze_runner, enforce
-    enforce(analyze_runner(runner_a) + analyze_runner(runner_b))
+    axes = check_supported_pair(runner_a, runner_b)
 
-    res = ProductResult("EQUIV")
+    res = ProductResult("EQUIV", bounded_horizon_ticks=max_ticks)
     keys = sorted(axes.cells)
     combos = [dict(zip(keys, vals))
               for vals in itertools.product(*(axes.cells[k] for k in keys))]
@@ -220,6 +263,15 @@ def product_runners(runner_a, runner_b, period_ms: int,
     queue: list = []                      # (A_vars, A_gv, B_vars, B_gv, now, held)
 
     def key_of(av, ag, bv, bg, now) -> tuple:
+        if horizon_end is not None:
+            # A bounded accuracy experiment must not merge two concrete timer
+            # ages merely because they occupy the same threshold zone.  At the
+            # same wall time, age 1 and age 2 can have different behavior before
+            # the horizon even though both satisfy ``age < 3``.  Keep the raw
+            # stores and depth; bounded mode evaluates only the input-value
+            # partition, not state/time abstraction.
+            return (_freeze_concrete(av), _freeze_concrete(ag),
+                    _freeze_concrete(bv), _freeze_concrete(bg), now - t0_ms)
         return (normalize(av, ag, now, va, axes),
                 normalize(bv, bg, now, vb, axes))
 
@@ -264,6 +316,8 @@ def product_runners(runner_a, runner_b, period_ms: int,
             target = None
             ticks = 0
             while ticks < WALK_CAP:
+                if horizon_end is not None and wnow + period_ms > horizon_end:
+                    break
                 if target is None or wnow >= target:
                     targets = [t for t in (
                         next_key_change_ms(_drop(wa, drift), wnow, va, axes),
@@ -340,34 +394,37 @@ def product_runners(runner_a, runner_b, period_ms: int,
             break
         av, ag, bv, bg, now, held = queue.pop(0)
         here = key_of(av, ag, bv, bg, now)
+        if horizon_end is not None and now >= horizon_end:
+            continue
 
         # stutter witness (see explore.py): some holdable input must keep
         # BOTH sides silent and stationary for a long dwell to be legal
         stutter = False
         suppressed = False
-        for cand in [held] + combos:
-            w, gvs = split(cand)
-            pa = runner_a.step(av, {**ag, **gvs}, w, now + period_ms)
-            pb = runner_b.step(bv, {**bg, **gvs}, w, now + period_ms)
-            res.n_steps += 2
-            if (not pa.actions and not pb.actions
-                    and not pa.terminated and not pb.terminated
-                    and key_of(pa.vars, own(pa.gv), pb.vars, own(pb.gv),
-                               now + period_ms) == here):
-                # explore.py와 동일한 안전 조건: now를 따라가는 레지스터는
-                # 정규화 키에선 정지해 보여도 구체값이 흐른다 — 점프가
-                # 낡은 레지스터로 재생되며 없는 발화를 지어낸다. 양쪽 다
-                # 얼어 있을 때만 점프 (2026-09-02 수정; 이전엔 product에
-                # 이 가드가 없어 explore와 판정이 어긋날 수 있었음).
-                if not (_regs_frozen(av, pa.vars, va)
-                        and _regs_frozen(bv, pb.vars, vb)):
-                    note = "jump suppressed: now-tracking register"
-                    if note not in res.notes:
-                        res.notes.append(note)
-                    suppressed = True
-                    continue
-                stutter = True
-                break
+        if horizon_end is None:
+            for cand in [held] + combos:
+                w, gvs = split(cand)
+                pa = runner_a.step(av, {**ag, **gvs}, w, now + period_ms)
+                pb = runner_b.step(bv, {**bg, **gvs}, w, now + period_ms)
+                res.n_steps += 2
+                if (not pa.actions and not pb.actions
+                        and not pa.terminated and not pb.terminated
+                        and key_of(pa.vars, own(pa.gv), pb.vars, own(pb.gv),
+                                   now + period_ms) == here):
+                    # explore.py와 동일한 안전 조건: now를 따라가는 레지스터는
+                    # 정규화 키에선 정지해 보여도 구체값이 흐른다 — 점프가
+                    # 낡은 레지스터로 재생되며 없는 발화를 지어낸다. 양쪽 다
+                    # 얼어 있을 때만 점프 (2026-09-02 수정; 이전엔 product에
+                    # 이 가드가 없어 explore와 판정이 어긋날 수 있었음).
+                    if not (_regs_frozen(av, pa.vars, va)
+                            and _regs_frozen(bv, pb.vars, vb)):
+                        note = "jump suppressed: now-tracking register"
+                        if note not in res.notes:
+                            res.notes.append(note)
+                        suppressed = True
+                        continue
+                    stutter = True
+                    break
         dwells = [period_ms]
         if stutter:
             for ev in (next_event_ms(av, now, va, axes),
@@ -383,6 +440,8 @@ def product_runners(runner_a, runner_b, period_ms: int,
         for i in combos:
             w, gvs = split(i)
             for d in dwells:
+                if horizon_end is not None and now + d > horizon_end:
+                    continue
                 ra = runner_a.step(av, {**ag, **gvs}, w, now + d)
                 rb = runner_b.step(bv, {**bg, **gvs}, w, now + d)
                 res.n_steps += 2

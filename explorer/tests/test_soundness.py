@@ -14,7 +14,7 @@ import traceback
 
 from .. import product as product_mod
 from ..explore import explore, reps_from_preds
-from ..gate import GateResult, fold_verdict
+from ..gate import GateResult, fold_verdict, gate_pair, prepare_pair
 from ..product import (Divergence, ProductResult, ReplayResult, merge_axes,
                        product_explore)
 from ..runner import JoiRunner
@@ -49,6 +49,44 @@ def test_action_arguments_are_observable():
     a = '(#Speaker).speaker_speak("a")\n'
     b = '(#Speaker).speaker_speak("b")\n'
     assert product_explore(a, b, PERIOD).verdict == "DIVERGE"
+
+
+def test_unpredicated_value_flow_is_an_explicit_input_axis():
+    src = ("t = (#TemperatureSensor).temperatureSensor_temperature\n"
+           "(#Speaker).speaker_speak(t)\n")
+    runner = JoiRunner.from_src(src)
+    assert "temperaturesensor.temperature" in runner.axes.cells
+    assert len(runner.axes.cells["temperaturesensor.temperature"]) >= 2
+
+
+def test_zero_arg_ir_query_uses_grounded_device_key():
+    ir = {"timeline": [
+        {"op": "start_at", "anchor": "now"},
+        {"op": "call", "target": "CloudServiceProvider.IsAvailable",
+         "args": {}, "var": "Available"},
+        {"op": "if", "cond": "$Available == true", "then": [
+            {"op": "call", "target": "Speaker.Speak", "args": {}}
+        ], "else": []},
+    ]}
+    binding = {"CloudServiceProvider": ["Main_Cloud"],
+               "Speaker": ["Living_Speaker"]}
+    devices = {
+        "Main_Cloud": {"category": ["CloudServiceProvider"],
+                       "tags": ["Main", "CloudServiceProvider"]},
+        "Living_Speaker": {"category": ["Speaker"],
+                           "tags": ["Living", "Speaker"]},
+    }
+    code = {
+        "period": 0, "cron": "",
+        "script": (
+            "Available = any(#CloudServiceProvider)."
+            "cloudServiceProvider_isAvailable\n"
+            "if (Available == true) { "
+            "all(#Speaker).speaker_speak() }")
+    }
+    pair = prepare_pair(ir, binding, devices, code)
+    assert "Main_Cloud.isavailable" in pair.ir_runner.axes.cells
+    assert set(pair.ir_runner.axes.cells) == set(pair.code_runner.axes.cells)
 
 
 # ── 이슈 2: 미완 그래프는 EQUIV가 아니다 ─────────────────────────────────────
@@ -171,6 +209,18 @@ def test_gate_folds_unknown_into_refused():
 
 def test_gate_passes_equiv():
     assert fold_verdict(_pr("EQUIV"), [], []).verdict == "EQUIV"
+
+
+def test_gate_refuses_generated_code_parse_error():
+    ir = {"timeline": [
+        {"op": "start_at", "anchor": "now"},
+        {"op": "call", "target": "Light.On", "args": {}},
+    ]}
+    devices = {"L1": {"category": ["Light"], "tags": ["Light"]}}
+    block = {"script": "if (", "period": 0, "cron": ""}
+    result = gate_pair(ir, {"Light": ["L1"]}, devices, block)
+    assert result.verdict == "REFUSED"
+    assert any("preparation failed" in note for note in result.notes)
 
 
 # ── P1 Day 1: 미지원 무늬 fail-closed (2026-09-02 개정 계획) ─────────────────

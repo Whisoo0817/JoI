@@ -71,6 +71,25 @@ def ensure_client():
     return client
 
 
+def parse_response_json(raw: str) -> dict:
+    """Accept a JSON object with optional model-added Markdown fencing."""
+    text = (raw or "").strip()
+    if text.startswith("```"):
+        text = re.sub(r"^```(?:json)?\s*", "", text, count=1,
+                      flags=re.IGNORECASE)
+        text = re.sub(r"\s*```$", "", text, count=1)
+    try:
+        parsed = json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        if start < 0:
+            raise
+        parsed, _ = json.JSONDecoder().raw_decode(text[start:])
+    if not isinstance(parsed, dict):
+        raise ValueError("constraint extraction response must be a JSON object")
+    return parsed
+
+
 def extract(command: str) -> dict:
     ensure_client()
     resp = client.chat.completions.create(
@@ -85,7 +104,7 @@ def extract(command: str) -> dict:
                     # same as the production pipeline (pipeline_helpers.py:28)
                     "chat_template_kwargs": {"enable_thinking": False}},
     )
-    return json.loads(resp.choices[0].message.content)
+    return parse_response_json(resp.choices[0].message.content)
 
 
 def match_hint(text: str, connected_cats, top_n: int = 2):

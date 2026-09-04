@@ -215,55 +215,76 @@ class GateResult:
         return any(r.confirmed for r in self.replays)
 
 
-def gate_pair(ir: dict, binding: dict, devices: dict, jb: dict) -> GateResult:
-    """확인된 (IR, 바인딩 표) × 후보 JoI 블록 판정.
+@dataclass
+class PreparedPair:
+    """Grounded runners and schedule shared by deployment and evaluation."""
+
+    ir_runner: object
+    code_runner: object
+    period_ms: int
+    notes: list[str] = field(default_factory=list)
+
+
+def prepare_pair(ir: dict, binding: dict, devices: dict,
+                 jb: dict) -> PreparedPair:
+    """Prepare a confirmed IR and JoI block without running the Explorer.
 
     jb: {"script": JoI 코드, "period": ms(0=원샷), "cron": ""|"x"|크론}."""
     notes: list[str] = []
-    try:
-        period = int(jb.get("period") or 0)
-        cron = (jb.get("cron") or "").strip()
-        if cron and cron != "x":
-            # cron 쌍: 같은 앵커 공유 확인 후 소거 — 창 안 행동만 비교
-            tl = [dict(t) for t in (ir.get("timeline") or [])]
-            if not (tl and tl[0].get("op") == "start_at"
-                    and tl[0].get("anchor") == "cron"
-                    and (tl[0].get("cron") or "").strip() == cron):
-                raise Unsupported(f"cron 앵커 불일치: joi={cron!r}")
-            tl[0] = {"op": "start_at", "anchor": "now"}
-            ir = {**ir, "timeline": tl}
+    period = int(jb.get("period") or 0)
+    cron = (jb.get("cron") or "").strip()
+    if cron and cron != "x":
+        # cron 쌍: 같은 앵커 공유 확인 후 소거 — 창 안 행동만 비교
+        tl = [dict(t) for t in (ir.get("timeline") or [])]
+        if not (tl and tl[0].get("op") == "start_at"
+                and tl[0].get("anchor") == "cron"
+                and (tl[0].get("cron") or "").strip() == cron):
+            raise Unsupported(f"cron 앵커 불일치: joi={cron!r}")
+        tl[0] = {"op": "start_at", "anchor": "now"}
+        ir = {**ir, "timeline": tl}
 
-        new_ir, name_map, bind, rw_notes = reground_ir(ir, binding)
-        notes += rw_notes
-        ir_r = IrRunner(new_ir, name_map=name_map, bind=bind)
+    new_ir, name_map, bind, rw_notes = reground_ir(ir, binding)
+    notes += rw_notes
+    ir_r = IrRunner(new_ir, name_map=name_map, bind=bind)
 
-        gstmts, rep = ground(parse(jb["script"]), devs_of(devices),
-                             pick=pick_by_rule)
-        if rep.floating:
-            notes.append(f"부유 셀렉터(인벤토리 0대): {rep.floating}")
+    gstmts, rep = ground(parse(jb["script"]), devs_of(devices),
+                         pick=pick_by_rule)
+    if rep.floating:
+        notes.append(f"부유 셀렉터(인벤토리 0대): {rep.floating}")
 
-        if period > 0:
-            if has_blocking(gstmts):
-                joi_r = DoneLatch(PauseRunner(gstmts, repeat=True))
-            else:
-                joi_r = DoneLatch(JoiRunner.from_src(gstmts))
-            pr = product_runners(ir_r, joi_r, period)
+    if period > 0:
+        if has_blocking(gstmts):
+            joi_r = DoneLatch(PauseRunner(gstmts, repeat=True))
         else:
-            try:
-                joi_r = OneShotRunner(gstmts)
-            except Unsupported:
-                joi_r = PauseRunner(gstmts, repeat=False)
-            ts = [t for t in (set(ir_r.axes.ts_thresholds)
-                              | set(joi_r.axes.ts_thresholds)) if t > 0]
-            grid = 60000
-            if ts and min(ts) < 60:
-                grid = 1000 if min(ts) >= 1 else 100
-            pr = product_runners(ir_r, joi_r, grid)
-    except Unsupported as e:
-        return GateResult("REFUSED", notes=notes + [str(e)])
+            joi_r = DoneLatch(JoiRunner.from_src(gstmts))
+        grid = period
+    else:
+        try:
+            joi_r = OneShotRunner(gstmts)
+        except Unsupported:
+            joi_r = PauseRunner(gstmts, repeat=False)
+        ts = [t for t in (set(ir_r.axes.ts_thresholds)
+                          | set(joi_r.axes.ts_thresholds)) if t > 0]
+        grid = 60000
+        if ts and min(ts) < 60:
+            grid = 1000 if min(ts) >= 1 else 100
+    return PreparedPair(ir_r, joi_r, grid, notes)
 
-    replays = [replay_divergence(ir_r, joi_r, dv) for dv in pr.divergences]
-    return fold_verdict(pr, replays, notes)
+
+def gate_pair(ir: dict, binding: dict, devices: dict, jb: dict) -> GateResult:
+    """확인된 (IR, 바인딩 표) × 후보 JoI 블록 판정."""
+    try:
+        pair = prepare_pair(ir, binding, devices, jb)
+        pr = product_runners(pair.ir_runner, pair.code_runner, pair.period_ms)
+    except (Unsupported, ValueError) as e:
+        # Generated code that the adapter cannot parse is a fail-closed
+        # refusal, not a verifier crash and never an EQUIV result.
+        return GateResult("REFUSED", notes=[
+            f"candidate preparation failed: {type(e).__name__}: {e}"])
+
+    replays = [replay_divergence(pair.ir_runner, pair.code_runner, dv)
+               for dv in pr.divergences]
+    return fold_verdict(pr, replays, pair.notes)
 
 
 def fold_verdict(pr: ProductResult, replays: list[ReplayResult],
