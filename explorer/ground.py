@@ -14,7 +14,7 @@ interpreter only ever sees instance-level reads and actions:
 
 Matching: every selector tag must equal the device's id, its type, one of
 its spaces, or one of its instance_tags (id matching added 2026-08-14 —
-mapping_v2 emits (#<device-id>) selectors for siblings no tag combo can
+The mapper emits (#<device-id>) selectors for siblings no tag combo can
 split, §9.12). Offline devices don't match (device
 failure = binding change, P2). Clock/GlobalVariable are ambient, never
 grounded. A selector matching NOTHING stays as-is ("floating": the tag set
@@ -63,7 +63,7 @@ def match(devs: list[Dev], tags: tuple) -> list[Dev]:
         if not d.online:
             continue
         # 기기 id도 매칭한다 — 태그 조합으로 정확히 못 가르는 형제 기기를
-        # 매핑이 (#<기기id>)로 분해해 내보내므로 (mapping_v2, §9.12)
+        # 매핑이 (#<기기id>)로 분해해 내보내므로
         if all(t == d.id or t == d.type or t in d.spaces or t in d.tags
                for t in tags):
             out.append(d)

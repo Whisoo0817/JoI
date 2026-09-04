@@ -1,0 +1,693 @@
+                                                     DiTMoS: Delving into Diverse Tiny-Model
+                                                          Selection on Microcontrollers
+                                                                                 Xiao Ma, Shengfeng He, Hezhe Qiao, Dong Ma∗
+                                                                                 School of Computing and Information Systems
+                                                                                       Singapore Management University
+                                                                                                  Singapore
+                                                              {xiaoma.2022, hezheqiao.2022}@phdcs.smu.edu.sg, {shengfenghe,dongma}@smu.edu.sg
+
+
+                                            Abstract—1 Enabling efficient and accurate deep neural net-
+arXiv:2403.09035v1 [cs.LG] 14 Mar 2024
+
+
+
+
+                                         work (DNN) inference on microcontrollers is non-trivial due
+                                         to the constrained on-chip resources. Current methodologies
+                                         primarily focus on compressing larger models yet at the expense
+                                         of model accuracy. In this paper, we rethink the problem from the
+                                         inverse perspective by constructing small/weak models directly
+                                         and improving their accuracy. Thus, we introduce DiTMoS, a
+                                         novel DNN training and inference framework with a selector-                       (a) Top-down                      (b) Bottom-up
+                                         classifiers architecture, where the selector routes each input
+                                         sample to the appropriate classifier for classification. DiTMoS is        Fig. 1: Illustration of (a) top-down and (b) bottom-up methodology.
+                                         grounded on a key insight: a composition of weak models can ex-
+                                         hibit high diversity and the union of them can significantly boost
+                                         the accuracy upper bound. To approach the upper bound, DiT-               to 52.9% achievable by conventional machining learning like
+                                         MoS introduces three strategies including diverse training data           support vector machine (SVM) on the ImageNet dataset [6].
+                                         splitting to increase the classifiers’ diversity, adversarial selector-      Nevertheless, realizing the potential of DNNs on IoTs for
+                                         classifiers training to ensure synergistic interactions thereby
+                                         maximizing their complementarity, and heterogeneous feature               on-device pervasive sensing presents several challenges due
+                                         aggregation to improve the capacity of classifiers. We further            to the inherent constraints of IoT devices. First, modern
+                                         propose a network slicing technique to alleviate the extra memory         DNNs typically comprise millions of parameters and demand
+                                         overhead incurred by feature aggregation. We deploy DiTMoS on             substantial memory for execution, whereas IoT devices are
+                                         the Neucleo STM32F767ZI board and evaluate it based on three              usually equipped with microcontroller units (MCUs) featuring
+                                         time-series datasets for human activity recognition, keywords
+                                         spotting, and emotion recognition, respectively. The experiment           constrained memory and storage. For example, mainstream
+                                         results manifest that: (a) DiTMoS achieves up to 13.4% accuracy           MCUs normally come with SRAM of 16KB-256KB and
+                                         improvement compared to the best baseline; (b) network slicing            Flash of 256KB-2MB) [7], which are orders of magnitude
+                                         almost completely eliminates the memory overhead incurred by              smaller than what is required. Second, with such a memory
+                                         feature aggregation with a marginal increase of latency. Code is          budget, neural networks on MCUs have to be of smaller
+                                         released at https://github.com/TheMaXiao/DiTMoS
+                                            Index Terms—embedded machine learning, model diversity,                sizes, which results in diminished representation capability
+                                         model selection, adversarial training.                                    and consequently, poorer sensing performance [8]. Third, the
+                                                                                                                   limited computation capability and battery capacity of IoTs
+                                                                 I. I NTRODUCTION                                  lead to prolonged inference time, which can be detrimental to
+                                                                                                                   latency-sensitive applications [9].
+                                            Internet of Things (IoTs), equipped with diverse miniatur-                To address these challenges, current approaches employ a
+                                         ized and low-power sensors, have catalyzed a remarkable surge             top-down methodology (Figure 1(a)), i.e., converting a large
+                                         in continuous and cost-effective pervasive sensing applications           yet accurate DNN model into a smaller one with the objectives
+                                         in recent years, encompassing environmental monitoring [1],               of minimizing accuracy loss, memory usage, and computation.
+                                         asset tracking [2], and on-body human sensing [3]. On the                 Typical techniques include pruning which removes unneces-
+                                         other hand, advancements in artificial intelligence, especially           sary or unimportant weights or connections [10], and quantiza-
+                                         deep neural networks (DNNs), enable effective extraction of               tion which reduces the precision of the weights and activations
+                                         both the explicit and implicit information within the substantial         [11]. More recently, knowledge distillation (KD) has been
+                                         volume of sensor data, leading to enhanced sensing perfor-                exploited to distill the knowledge acquired by a strong model
+                                         mance and more precise comprehension of the context [4].                  into a weaker one, facilitating the deployment on MCUs [12],
+                                         For example, recent transformer DNNs like SwinV2 [5] can                  [13]. While these methods have proven effective, they adhere
+                                         boost the image recognition accuracy up to 90.17% compared                to a top-down principle that encounters a transferability limit
+                                                                                                                   when applied to tiny models.
+                                           *Dong Ma is the corresponding author.
+                                           1 This paper has been accepted at PerCom 2024 and won the Best Paper       In this work, we rethink the problem from a bottom-up
+                                         Award.                                                                    perspective by creating tiny models directly and elevating their
+accuracy to the next level, as shown in Figure 1(b). We have
+identified two key insights (Section II-A): (1) smaller/weaker
+models can demonstrate greater diversity compared to their
+larger/stronger counterparts, owing to their inherent limited
+representation capability, and (2) the aggregation of multiple                       (a) Strong model                      (b) Weak model
+weak models promises a higher upper bound on classification
+accuracy (i.e., the percentage of samples correctly classified         Fig. 2: The architecture of (a) strong model and (b) weak model.
+by at least one classifier, refer to as union accuracy). Building
+upon these insights, we propose DiTMoS, a hierarchical                       the high union accuracy of multiple weak models and
+selector-classifiers architecture, where the selector extracts               propose a scheme to select the best one for classification.
+coarse-grained features from each input sample to determine              •   We present DiTMoS, a novel selector-classifiers frame-
+the appropriate classifier for classification.                               work designed for accurate and efficient DNN inference
+   However, training an accurate and efficient selector-                     on MCUs.
+classifiers network encounters several challenges. First, model          •   We implement DiTMoS on real MCU platforms and
+diversity plays a critical role in pushing the overall accuracy              showcase its superior performance over the state-of-the-
+upper bound, while the limited capacity of weak models makes                 art approaches under various configurations.
+it challenging to control the training process when maximizing
+diversity across multiple models. Second, the overall accuracy                                   II. P RELIMINARY
+is determined by both the selector’s routing precision and
+the individual classifier’s classification accuracy. Thus, there         DiTMoS leverages the model diversity to improve the
+necessitates a close coupling between the selector and classi-        classification performance. In this section, we first investigate
+fiers, which is challenging to achieve due to (1) the distinctive     the diversity of different models and introduce a naive model
+objectives of the two tasks and (2) the reliance on classifiers’      selection approach.
+diversity when training the selector. Third, compared to a pure-
+classifier structure (i.e., all the layers are used for classifica-   A. Model Diversity: Strong Model vs Weak Model
+tion), the selector network allocates a portion of the model             Deep learning models are trained in a data-driven manner,
+parameters, resulting in a diminished classifier’s capacity, and      where the models automatically learn knowledge and skills
+consequently, a reduction in classification accuracy.                 from the data during the training process. How the model is
+   We tackle these challenges with three strategies: (1) we op-       trained (e.g., different hyperparameters, different input data,
+timize classifiers’ diversity by partitioning the training dataset    and different model initializations) will greatly influence the
+into multiple subsets, based on prior semantic knowledge              learning process [14]. Model diversity refers to the difference
+from a larger pre-trained model. Then, each classifier is             among the set of knowledge (i.e., feature representations)
+initially trained with a separate subset to ensure they acquire       learned by different deep learning models, which is usually
+knowledge from distinctive data sources; (2) we design an             considered an effective property in improving the overall
+asynchronous and iterative adversarial training mechanism to          model accuracy. For example, ensemble learning combines a
+enable synergistic interaction between the selector and clas-         diverse set of models to boost the sensing performance [15].
+sifiers, thereby maximizing their complementarity; (3) during            However, we found that model diversity is closely asso-
+classifiers training, we propose to re-utilize the feature extrac-    ciated with the capacity (i.e., the ability to represent and
+tion layers in the selector network (i.e., heterogeneous feature      learn complex patterns from data) of a neural network. To
+aggregation) to maximize the knowledge diversity employed in          demonstrate this, we conducted an experiment with a human
+classifier classification. To mitigate the additional memory cost     activity recognition dataset named UniMiB-SHAR [16], which
+associated with heterogeneous feature aggregation, we propose         aims to classify 17 activities using a 3-axis accelerometer.
+a network slicing technique that reallocates the intermediate         We consider two levels of model capacity, i.e., strong and
+features from memory to the Flash, based on the memory                weak2 . The strong model is composed of 6 one-dimensional
+management scheme of MCUs.                                            convolutional layers (with a kernel size of 64, 64, 64, 32, 32,
+   We implement DiTMoS on the STM32F767ZI Nucleo board                and 16, respectively) 3 and 1 fully-connected layer (with 256
+and assess its performance across three typical pervasive             neurons), while the weak model contains 3 one-dimensional
+sensing applications that favor MCU deployment: human ac-             convolutional layers (with a kernel size of 6, 6, and 2,
+tivity recognition (UniMiB-SHAR dataset), keyword spotting            respectively) and 1 fully-connected layer (with 48 neurons),
+(Speech Commands dataset), and emotion recognition (DEAP              as shown in Figure 2. Then, for each level, we trained five
+dataset). The results reveal that DiTMoS consistently outper-         models with different initializations (i.e., the model weights
+forms the best baselines, achieving an impressive accuracy
+enhancement of up to 13.4%, while maintaining a similar level           2 Note that the ‘weak’ and ‘strong’ here refer to the classification perfor-
+
+of memory usage and latency overhead.                                 mance on a given task, which is typically associated with the size (number
+                                                                      of parameters) of the model, i.e., ‘small’ and ‘large’.
+   Our contributions are summarized as follows:                         3 Each convolutional layer is followed by a Max pooling layer in all the
+   • To the best of our knowledge, we are the first to uncover        experiments.
+                                                                                        Table I: Comparison of model accuracy.
+                                                                                                                                       Union     Selection
+                                                                          Model Index          1       2       3       4        5
+                                                                                                                                      Accuracy   Accuracy
+                                                                      Strong Model (484KB)   95.3%   95.9%   95.2%   96.1%    95.9%    98.9%
+                                                                       Weak Model (28KB)     64.7%   57.8%   58.2%   61.4%    60.9%    81.5%      66.6%
+
+
+
+
+        (a) Strong models                 (b) Weak models
+
+  Fig. 3: CKA matrix of (a) strong models and (b) weak models.
+
+
+are initialized differently before training), during which all the
+hyperparameters remain the same.
+   Centered Kernel Alignment (CKA): we first utilize the                        (a) Strong models                          (b) Weak models
+CKA, a metric that is widely used to measure the geometric
+similarity between two feature representations of a neural           Fig. 4: Illustration of correctly classified sample index of the five
+network [17], to quantify the model diversity. For two feature       models from the (a) strong group and (b) weak group.
+representations X and Y , CKA can be computed as [17]
+                                                                     weak models respectively, where the numbers represent the
+                               ∥Y T X∥2F
+             CKA(X, Y ) =                                     (1)    percentage of samples being correctly classified. We can
+                          ∥X T X∥F ∥Y T Y ∥F                         observe that (1) for each capacity level, most samples ( ‘easy’
+where || · ||F is the Frobenius norm. CKA ranges from 0 to 1,        samples) can be correctly classified by all the individual
+where higher values reflect higher similarity (lower diversity).     models, i.e., overlapped knowledge learned by the models; (2)
+   Specifically, we extracted the feature representations of the     compared to strong models, there are more samples that can
+last convolutional layer and calculated the model-wise CKA           only be correctly recognized by one weak model (i.e., higher
+among the five models, for each level. From Figure 3, we             model specialization) due to the diversity of weak models.
+can observe that strong models yield higher CKA values than          The improved union accuracy offers a promise that if we can
+weak models, implying that models with higher capacity tend          accurately select the appropriate weak model for each
+to converge to a similar set of features even though they are        input sample, the overall classification accuracy can be
+initialized differently. On the other hand, due to the limited       significantly enhanced.
+capacity, weak models can only learn part of the knowledge
+and thus present higher diversity (lower CKA).                       B. A Naive Model Selection Approach
+   Classification Accuracy: Then, we calculated the classifica-         To realize this promise, an intuitive way is to train another
+tion accuracy on the testing dataset and presented the results       deep learning model (referred to as selector) to select the
+in Table I. All five strong models achieve high accuracy of          right weak model (referred to as classifier) for each input.
+around 95% with a marginal difference, while the weak models         Thus, we first performed inference on the training dataset
+obtain poorer accuracy with large variations. For example, the       with the five weak models, which creates a new label for
+accuracy of Weak Model 1 is 6.9% higher than that of Weak            each training sample. For example, if a sample can only be
+Model 2. This is because weak models learn more diverse              correctly recognized by classifier 1 and classifier 3, the new
+features that have varying effectiveness on the same task.           label is [1,0,1,0,0]. Then, we built a selector that has the same
+   In addition, we further explore the diversity between models      architecture as the weak models to avoid incurring additional
+by defining an accuracy named union accuracy, which repre-           computation overhead and trained it with the binary cross-
+sents the percentage of samples that can be correctly classified     entropy loss. The output of the selector is a vector indicating
+by at least one model. To calculate the union accuracy, we           whether the corresponding classifier will be selected.
+first performed inference with the five models and recorded the         The last column of Table I presents the performance of
+index of correctly classified samples. Then, we obtain a union       the above-mentioned model selection approach. We can see
+set of the index by removing the repeated indexes. Finally, the      that the overall accuracy after model selection is only 66.6%
+union accuracy is computed as the ratio between the size of the      (merely 1.9% higher than the best weak model), which is
+union set and the total number of testing samples. As shown          far away from the union accuracy. With a thorough analysis,
+in the penultimate column of Table I, the union accuracy of          we identified two main reasons that resulted in the poor
+the five strong models is only 3% higher than the individual         performance of the above model selection. First, as shown
+models, while weak models obtain a union accuracy that is            in Figure 4(b), 40.8% samples can be correctly classified
+around 20% higher than the individual models.                        by all models (i.e., labeled as [1,1,1,1,1]) and nearly 70.2%
+   Figure 4 further illustrates the detailed analysis of the         samples are multi-labeled. Such a multi-label task is extremely
+classification results from the five strong models and five          challenging for a selector with the same architecture as the
+                  Fig. 5: System overview of DiTMoS, including a training phase (left) and an inference phase (right).
+
+
+weak model. Increasing the model capacity of the selector            B. Diverse Training Data Splitting
+can improve the performance, but this also increases the                As mentioned in Section II-B, classifiers trained with dif-
+computation overhead which is valuable on an MCU. Second,            ferent initializations have a large overlap in terms of correctly
+the whole process can be considered a two-stage classification,      classified samples. As a result, one sample can be routed to
+where the selector aims to identify groups of samples with sim-      multiple classifiers when training the selector, which makes the
+ilar properties and the classifiers will be specialized on each      training processing extremely challenging. The main reason is
+group. So there would be some mutual correlations between            that each classifier is trained with the whole dataset, which
+the two stages that are useful for the overall classification.       allows the models to learn general yet similar knowledge
+However, currently, the selector and classifiers are trained         especially when the model architecture is the same. So, to
+separately so that the mutual information cannot be captured.        increase the specialization of classifiers, we should prevent a
+                                                                     single classifier from seeing the whole training dataset.
+                    III. D I TM O S D ESIGN                             Thus, we propose to split the whole dataset into multiple
+                                                                     subsets, and train a classifier on each subset. This design also
+   Based on the above findings, we propose DiTMoS, a novel           speeds up the convergence of the training. Specifically, we first
+deep learning framework that aims to improve the classifica-         design a strong model, the same 6-layer CNN strong model
+tion performance of tiny models on MCUs. In this section,            as used in the Section II-A, that can achieve nearly optimal
+we first present an overview of the framework, followed by a         performance on the classification task. Then, for each input,
+detailed design of each block in the framework.                      we extract the embeddings from the last convolutional layer of
+                                                                     the pre-trained strong model as the corresponding features (as
+                                                                     shown with the dotted line in Figure 5). The motivation behind
+A. Overview
+                                                                     feature extraction is to enhance the separability of subsets and
+   As illustrated in Figure 5, DiTMoS consists of a training         mitigate overlap among them. Given the high performance
+phase on the server (GPU/CPU) and an inference phase on              of the strong model, the extracted features exhibit a strong
+the MCU. The training phase leverages three main techniques:         representation capability when splitting the dataset. Afterward,
+diverse training data splitting, selector-classifiers adversarial    we apply the K-Means4 [18] algorithm on the extracted
+training, and heterogeneous feature aggregation. Specifically,       features to obtain multiple subsets, where the number of
+to avoid the multi-label issue (i.e., one sample can be correctly    subsets m is determined by the number of classifiers. Finally,
+classified by multiple classifiers), we propose to perform parti-    each classifier is pre-trained with the corresponding subset to
+tioning on the training dataset with prior semantic knowledge        gain its specialization. Figure 6 presents the detailed testing
+from a pre-trained strong model. Then, we train each classifier      performance of the five weak models after splitting the training
+initially with the data from a particular subset, aiming to          dataset of UniMiB-SHAR. We can observe that (1) although
+ensure that a sample can be correctly recognized by a classifier     each individual classifier only achieves approximately 17%
+only. To allow the information coupling between the selector         accuracy on the full testing dataset, the union accuracy can be
+and classifiers, we design an adversarial training pipeline to       up to 82.1%, implying the specialization of each classifier;
+train the selector and classifiers asynchronously and iteratively.   (2) the overlap between different classifiers is only 3.6%,
+In particular, one party (either the selector or classifiers) is     demonstrating the effectiveness of training data splitting in
+frozen to allow the other to adapt during the training process.      alleviating the multi-label issue.
+Meanwhile, considering the weak capability of classifiers, we
+propose to aggregate the heterogeneous feature representations       C. Adversarial Selector-Classifiers Training
+from the selector when training the classifiers to improve clas-       The selector and classifiers are coupled with each other.
+sification performance. The training phase will output a trained     Specifically, to choose the best classifier for the current
+selector and multiple trained classifiers. During inference, the     input sample, the selector should have some knowledge about
+input sample first undergoes the selector, which outputs the
+                                                                       4 Note that we tested various clustering algorithms including K-Means, K-
+index of the selected classifier. Then, the raw input, together
+                                                                     Means++, GMM, and Mean Shift. The results indicate that the selection of
+with the intermediate feature representations of the selector,       the clustering algorithm has minimal impact on the final performance because
+are fed into the selected classifier for classification.             the subsets will be refined by the following iterative training process.
+                                                                          samples that cannot be correctly classified by any classifier,
+     Model Index    Accuracy
+         1           17.5%                                                i.e., the one-hot label is [0, 0, ..., 0]. We also convert them
+         2           17.2%                                                into single-label samples by assigning the classifier with the
+         3           17.1%                                                lowest confidence. The underlying rationale is that the low-
+         4           16.4%
+                                                                          confidence classifier has a higher chance to correctly classify
+         5           17.6%
+       Union         82.1%                                                the sample by adjusting its weights during training, compared
+                                                                          to high-confidence classifiers. After the labels are processed,
+             (a)                               (b)                        the selector’s weights will be trained to couple with the
+Fig. 6: (a) Classification accuracies and (b) illustration of correctly   classifiers trained in the previous iteration.
+classified sample index of the five models with training data splitting      Classifiers training: unlike conventional single-classifier
+on the UniMiB dataset.                                                    training, there are multiple classifiers that need to be trained
+                                                                          individually on different input samples (i.e., each classifier can
+the classifiers (i.e., understand the characteristics of different        only perceive part of the training set). Based on the assignment
+options). On the other hand, the classifiers should enlarge               of the selector, for each batch, only the weights of selected
+and associate their diversity with the selector to reduce the             classifiers will be updated. For instance, if a batch contains
+difficulty of selection. However, another problem identified              16 samples, in which 6 samples are routed to classifier 1, 5
+from the experiment in Section II-B is that training the selector         samples are routed to classifier 2, and 5 samples are routed
+and classifier independently ignores their mutual correlation.            to classifier 3, only the three classifiers will be trained and
+   To gain the mutual correlation, a straightforward solution is          the rest m − 3 classifiers will remain unchanged. Since the
+to train the selector and classifiers synchronously. However,             sample assignment is based on the selector (new subsets will
+we experimentally found that this incurs two issues and                   be generated at each epoch), the samples fed to each classifier
+leads to poor performance. First, unlike classifiers that have            might be different from the subsets obtained during training
+already been pre-trained on different subsets, the selector is            data splitting in the beginning. However, this is preferable
+randomly initialized and has no knowledge about the task.                 as (1) the initial training data splitting may not be optimal
+Such a knowledge gap would deteriorate the specializations                and (2) the adversarial training process actually fine-tunes the
+(prior knowledge) of classifiers, making training data splitting          alignment between selector and classifiers over iterations.
+ineffective. Second, in essence, the selector is responsible                 Loss function: although we freeze the classifiers when
+for model selection, while the classifiers are dedicated to               training the selector, and vice versa, our loss function needs
+fine-grained classification. Simultaneously training two mod-             to consider both stages as the aim is to align them iteratively.
+els with distinct objectives presents challenges because they             Specifically, as shown in Equation (2), we designed a loss
+interact within different task-specific feature spaces.                   function that consists of four components. In detail, CEsel rep-
+   To address the problems, we propose to train the selector              resents the cross-entropy loss of the selector, which measures
+and classifiers asynchronously, iteratively, and in an adversarial        the performance of the selector in terms of correctly routing
+manner. Specifically, one adversarial training iteration consists         an input sample to the right classifier. The other three losses
+of two steps: (1) selector training: based on the classifiers’            (i.e., CEsingle , CEunion , CEoverlap ) are all designed for
+prior knowledge, the selector will be trained for several epochs          the classifiers. Concretely, when there are multiple classifiers,
+(e.g., 5), during which the weights of the classifiers are frozen;        the classification result of a sample can be in three cases:
+(2) classifiers training: after the selector learns the character-        (i) recognized by a single classifier only, (ii) recognized
+istics of the classifiers, the classifiers will be re-trained (fine-      by multiple classifiers simultaneously, and (iii) none of the
+tuned) for several epochs, during which the selector weights              classifiers can recognize it. Then, CEsingle is the cross-
+are frozen. The two-step adversarial training will be executed            entropy loss on the samples in case (i), which only updates
+for multiple iterations until convergence. Next, we introduce             the corresponding classifier; CEunion is the cross-entropy loss
+the two steps in detail.                                                  designed to deal with case (iii). It aims to improve the union
+   Selector training: to train the selector, we first need                accuracy by updating all classifiers when none of them can
+to generate a label for each sample, i.e., the index of the               recognize a sample; CEoverlap is the negative cross-entropy
+classifier that can correctly classify it. We achieve this by             loss designed for case (ii), which aims to further increase the
+performing inference on the training dataset using all the m              diversity of classifiers by reducing their knowledge overlap.
+classifiers. However, the label generation process presents two           All the three losses are sample-wise, meaning that different
+issues. First, although the training data splitting is effective          losses are applied to different samples, instead of the whole
+in reducing the knowledge overlap among the classifiers, it               batch. We further introduce three coefficients, i.e., α, β, and γ,
+cannot completely eliminate the multi-label issue as some                 to regularize the weights of three losses related to classifiers.
+easy samples (around 3.6% in our experiment) can still                    The coefficients will impact the accuracy of DiTMoS. In
+be recognized by different classifiers. For these multi-label             our experiments, we conducted a grid search for the three
+samples, we convert their label to single-label by assigning              coefficients with values ranging from 0.01 to 1 and the results
+the classifier with the highest confidence. Second, due to                reveal a 3% difference between the least and most effective
+the weak capability of the classifiers, there are still some              settings. Following the grid search results, we assign 0.1,
+      Fig. 7: Illustration of heterogeneous feature aggregation.
+                                                                                       Fig. 8: Memory usage of DiTMoS without network slicing.
+0.1, and 0.03 to α, β, and γ respectively that yield optimal
+performance.                                                                       E. Training Settings
+                                                                                      Our framework is implemented with PyTorch and trained on
+ Loss = CEsel +α·CEsingle +β·CEunion +γ·CEoverlap (2)
+                                                                                   an NVIDIA 3090 GPU. In each adversarial training iteration,
+D. Heterogeneous Feature Aggregation                                               the selector and classifiers are trained for 6 epochs respec-
+                                                                                   tively. We utilize the SGD optimizer and set the initial learning
+   The subset-based classifier pre-training and adversarial                        rate as 0.001 with a decay of 0.5 after every 5 iterations.
+selector-classifiers training result in diversified classifiers and
+the corresponding correlated selector. However, the selector-                                      IV. MCU I MPLEMENTATION
+classifiers architecture has two inherent limitations that hinder                    After training the selector and classifiers on the server, we
+it from achieving optimal performance. First, it splits the                        deploy them on the MCU. Next, we describe the process of
+whole network into two parts, each focusing on sample routing                      the deployment and how we optimize the memory usage.
+and classification, respectively. Compared to classification
+using the full network, the classifier’s representation capability                 A. Platform and Workflow
+is reduced, leading to diminished performance. Second, due to                         In this paper, we choose Nucleo STM32F767ZI [19] as the
+the routing of the selector, classifiers are trained on a subset                   MCU test platform given its wide adoption in industrial IoTs
+of the data only, preventing them from observing the complete                      [8], [20]. It is equipped with a Cortex-M7 MCU, a 512 KB
+dataset. This limitation results in the loss of global and general                 SRAM, and a 2 MB Flash. STM32 provides an official inte-
+features that could be advantageous for classification.                            grated development toolchain including STM32CubeIDE and
+   To overcome the two limitations and further improve the                         its associated artificial intelligence (AI) package for onboard
+classification performance, we propose to aggregate the hetero-                    inference of deep learning models.
+geneous intermediate features from the selector when training                         To deploy DiTMoS on the STM32 board, we first convert
+the classifiers. Specifically, Figure 7 illustrates the overall                    the PyTorch models for the selector and classifiers to the
+structure of the network, which consists of three consec-                          ONNX format (an open format for machine learning mod-
+utive convolutional layers and a fully connected layer for                         els that allows model interchange between different frame-
+the selector and classifiers, respectively5 . An input sample                      works [21]). Then, the ONNX models are uploaded to the
+first undergoes the selector for classifier selection and then                     AI package to analyze the model’s memory usage by loading
+is passed to the selected classifier for classification. During                    and executing the model layer-by-layer. Specifically, only the
+classification, the intermediate feature representations from                      parameters (trainable weights and constants) of the currently
+the first and second convolutional layers of the selector are                      executed layer will be loaded from the Flash to the memory
+concatenated to the outputs of the corresponding layers in the                     for computation. Meanwhile, all the intermediate tensors (i.e.,
+selected classifier before feeding to the next layer, namely,                      activations) produced at runtime must be stored in the mem-
+heterogeneous feature aggregation. Such a strategy not only                        ory, constraining the peak memory usage [22]. Finally, the
+incorporates the heterogeneous global information from the                         toolchain generates the C-code to execute models.
+full dataset but also increases the representation capability of
+the classifier by borrowing more convolutional layers from the                     B. Memory Optimization with Network Slicing
+selector for feature extraction. However, not all the borrowed                        As presented in III-D, DiTMoS aggregates the intermedi-
+features are helpful as deeper convolutional layers tend to                        ate feature representations from the selector to improve the
+generate features that are more specific to the corresponding                      classification performance. Since the intermediate activations
+task. We choose to aggregate the feature representations from                      have to be held in the memory until they are integrated into
+the first two convolutional layers of the selector only because                    the classifier, the peak memory of DiTMoS is increased. For
+they exhibit a higher degree of task-neutrality. In contrast, we                   example, Figure 8 illustrates the detailed memory usage of
+experimentally found that incorporating the third convolutional                    DiTMoS throughout the inference. Concretely, the outputs of
+layer indeed leads to a deterioration in classification accuracy.                  the first convolutional layer of the selector will be retained in
+   5 Note that we consider the same architecture for both the selector and
+                                                                                   the memory after Maxpooling until it is reused in the first
+classifiers in our evaluation to demonstrate the concept. However, their           convolutional layer of the selected classifier, and similarly
+architectures can be designed arbitrarily based on the application requirements.   to the second convolutional layer of the selector. The peak
+                                                                          thousands of different people. Given the high sampling rate
+                                                                          of audio signals, we follow the audio processing convention
+                                                                          to extract 26-channel MFCC features from raw audio files with
+                                                                          25 ms window size and 10 ms shift as the model input [24].
+                                                                             DEAP [25]: An emotion recognition dataset that contains
+                                                                          32-channel electroencephalogram (EEG) signals of 32 volun-
+                                                                          teers when they are watching 40 one-minute-long excerpts of
+                                                                          music videos. Following prior works [26], we downsample
+                                                                          the dataset from 512 Hz to 128 Hz, and chop up the 32-
+Fig. 9: Illustration of network slicing and the intermediate data flow.
+                                                                          channel EEG signals into 2-second frames with 1.875-second
+                                                                          overlapping, resulting in a total of 148,480 samples. The
+memory usage is observed in the first convolutional layer of              original arousal-valence ratings are converted to four emotion
+the classifier, with a significant portion occupied by reserved           states based on the arousal-valence model [27].
+intermediate activations.                                                    Network Configuration: In the following experiments, the
+   To eliminate the extra memory consumption incurred by                  strong model used for feature extraction during training data
+feature aggregation, we propose to split the whole network into           splitting adopts the same architecture as shown in Figure 2(a),
+multiple slices, where each slice manages its input/output by             which achieves more than 95% on all the three datasets.
+directly communicating with the Flash. Specifically, as shown             Since the difficulty of the three datasets varies, the default
+in Figure 9, both the selector and classifier are split into three        kernels of convolution layers in the selector and classifiers
+slices, in which the first two convolutional layers are treated           are [8,8,4,8,8,4] for UniMiB-SHAR, and [12,12,6,12,12,6] for
+as independent slices respectively, and the third convolutional           both Speech Commands and DEAP. The default number of
+layer plus the fully connected layer are combined in separate             classifiers is set as 6 for all the datasets. Unless otherwise
+slices. As a result, the output of slice 1 and slice 2 can be             specified, all the results presented in the evaluation are based
+stored on the Flash and reloaded when they are used in slice              on the default settings.
+4 and slice 5. Such a slicing strategy is designed based on the
+                                                                          B. Baselines
+characteristics of feature aggregation, and it almost completely
+removes the extra memory usage by migrating the to-be-reused                 To demonstrate the effectiveness of DiTMoS over existing
+intermediate activations to the Flash. However, the latency of            techniques, we consider four baseline approaches listed below:
+the inference will be slightly increased because (1) storing and             Single Classifier (SigCla): Essentially, by splitting the
+reloading the activations require extra time and (2) computing            whole network into the selector and classifier, DiTMoS assigns
+the aggregated features consumes more time. We will evaluate              the weights to two different tasks, where only half of the
+the overhead of network slicing in Section V-D.                           weights mainly focus on classification. Thus, our first baseline
+                                                                          is to construct a network that has the same architecture (6 con-
+                         V. E VALUATION                                   volutional layers plus 2 FC layers) as DiTMoS (maintaining
+   Next, we evaluate the performance of DiTMoS on different               the same structure and number of parameters to ensure a fair
+time series datasets and compare its classification accuracy              comparison) while all the weights are used for classification,
+with various baselines. We also measure the real system per-              referred to as the single classifier (SigCla). Then, the model
+formance including latency, memory, and energy consumption.               will be trained from scratch on the full training dataset.
+                                                                             Single Classifier with Knowledge Distillation (SigCla-
+A. Datasets                                                               KD): In SigCla, although the whole network is utilized for
+   We selected three public time series datasets that are ex-             classification, the performance could still be low as weak
+pected to be executed on embedded devices in practice, cov-               models have insufficient capacity to learn a concise knowl-
+ering typical pervasive sensing applications including human              edge representation from the data [28]. Knowledge distillation
+activity recognition (HAR), speech-based keyword spotting,                (KD), which transfers knowledge from a high-capacity model
+and EEG-based emotion recognition. Each dataset is split into             to a low-capacity model without loss of validity, has been
+80% training and 20% testing during the evaluation.                       considered state-of-the-art in training a weak model [29].
+   UniMiB-SHAR [16]: A human activity recognition dataset                 Thus, we treat the SigCla architecture trained with KD as our
+collected with a 3-axis accelerometer on the smartphone.                  second baseline, referred to as SigCla-KD. Specifically, we
+It consists of 17 classes (including 9 types of daily living              apply a most recent KD framework [30] to the single classifier.
+activities and 8 types of falls) performed by 30 subjects. The            The teacher model is the same as the strong model used for
+total number of samples is 11,771, where each sample is a                 training data splitting in DiTMoS.
+3-second measurement sampled at 50 Hz.                                       Ensemble: Model ensemble is another popular technique
+   Speech Commands [23]: An audio dataset of spoken                       to improve classification performance using multiple weak
+words collected by Google, which is designed for keyword                  models. Unlike DiTMoS which selects only one weak model
+spotting systems such as voice assistants. It contains 85,511             for classification, the ensemble combines all the weak models
+one-second long utterances of 30 short words spoken by                    for prediction. With the same computation overhead, DiTMoS
+                       0.90                                                0.90                                                    0.80
+                       0.85                                                                                                        0.75
+                                                                           0.85                                                    0.70
+
+            Accuracy
+                       0.80                                                                                                        0.65
+                       0.75                                                0.80                                                    0.60
+                                                                                                                                   0.55
+                       0.70                                                0.75                                                    0.50
+                                   la             D oE ble oS                        Cla          -KD oE ble oS                               Cla    -KD oE ble oS
+                              Sig
+                                  C           la-K -M           m iTM             Sig igCla Ada-M nsem DiTM                                Sig igCla Ada-M nsem DiTM
+                                       iS gC Ada Ense D                                   S                    E                                  S              E
+                                        D   8 Q L 0 L %  6 + $ 5                   E   6 S H H F K  & R P P D Q G V                           F   ' ( $ 3
+                                                             Fig. 10: Comparison of DiTMoS with different baselines.
+
+                       0.95                                              0.95                                                      1.00        SigCla
+                       0.90                                              0.90                                                      0.90        SigCla-KD
+            Accuracy
+
+
+
+
+                       0.85                                              0.85                                                      0.80        Ada-MoE
+                                                                                                                                               Ensemble
+                                                               SigCla-KD 0.80
+                                                               SigCla                                                 SigCla
+                       0.80                                                                                           SigCla-KD    0.70        DiTMoS
+                                                               Ada-MoE 0.75
+                       0.75
+                                                                                                                      Ada-MoE
+                                                                                                                                   0.60
+                                                               Ensemble
+                                                               DiTMoS    0.70                                         Ensemble
+                                                                                                                      DiTMoS       0.50
+                       0.70 1×               2×             3×        4× 0.65 1×             2×              3×               4×          1×          2×                3×    4×
+                                             Model Size                                       Model Size                                              Model Size
+                                          D   8 Q L 0 L %  6 + $ 5                 E   6 S H H F K  & R P P D Q G V                                  F   ' ( $ 3
+                                                                  Fig. 11: Impact of model size on the three datasets.
+can be considered a two-model ensemble approach where                                                of MoE is even worse than a single model on the CIFAR-10
+the size of the weak models is equivalent to the selector                                            dataset without applying rotation.
+(or classifier). Thus, to ensure fair comparison regarding                                              2) Impact of model size: Existing MCUs are equipped
+computation during inference, we train two weak classifiers                                          with memories of varying sizes, ranging from <16 KB for
+(with the same architecture as in DiTMoS) and combine them                                           ultra-low-power MCUs, 16-256 KB for mainstream MCUs,
+using the ensemble approach [31] for final classification.                                           to 256-512 KB for high-performance MCUs [7]. This al-
+   Adapted Mixture of Experts (Ada-MoE): Mixture of                                                  lows application developers to design models with varying
+experts is a technique widely adopted in large models such                                           capacities to fit the accuracy and computation requirements
+as transformers to improve performance by having diverse                                             flexibly. To evaluate how DiTMoS adapts to different MCU
+experts while reducing the computation by activating part                                            configurations, we design multiple networks with different
+of the experts on a per-sample basis [32]. The concept of                                            sizes (from default model size to 4× of the default model
+MoE (i.e., routing the layer input to different experts via                                          size for each dataset) by changing the width of CNN and FC
+a small gating network) is similar to DiTMoS. Thus, to                                               layer while keeping the same 3 CNN+1 FC architecture for the
+compare DiTMoS with MoE, we regard the selector as the                                               selector and classifiers. For example, for the UniMiB-SHAR
+gate and classifiers as experts, and train all of them together                                      dataset with CNN kernel size and FC size of [8,8,4,64], we
+using a single cross-entropy loss (i.e., without the three core                                      construct a 2×, 3×, and 4× model by setting the layer size to
+techniques of DiTMoS as presented in Section III), referred                                          [12,12,6,72], [16,16,8,112], and [20,20,10,144], respectively.
+to as Ada-MoE.                                                                                       The same procedure is applied to the other two datasets.
+                                                                                                        Figure 11 plots the accuracy change of different approaches
+C. Classification Performance                                                                        over different model sizes on the three datasets. We can ob-
+   We first compare the classification performance of DiTMoS                                         serve that (1) with the increase of the model size, all the meth-
+with baselines and then evaluate the impact of different                                             ods achieve higher classification accuracy as the model is able
+network configurations. All the results are averaged over 5                                          to learn more accurate and fine-grained feature representations;
+repeated experiments, each with random initialization.                                               (2) DiTMoS consistently outperforms other baselines across
+   1) Comparison with baselines: Figure 10 shows the classi-                                         different model sizes, demonstrating the superior performance
+fication accuracy of DiTMoS and other baselines on the three                                         of DiTMoS on different MCU and application configurations;
+datasets, respectively. We can see that DiTMoS outperforms                                           (3) on the UniMiB-SHAR and Speech Commands datasets,
+all the baselines with a large margin on all datasets. In detail,                                    DiTMoS shows a higher improvement for smaller models.
+DiTMoS achieves 86.2%, 86.2%, and 77.4% on UniMiB,                                                   This is because our approach combats the weak capacity of
+Speech Commands, and DEAP, which are 7.0%, 4.3%, and                                                 smaller models using the diversity of multiple models. Al-
+13.4% higher than the best baseline respectively. In addition,                                       though Ada-MoE and ensemble also leverage model diversity,
+the baseline approaches show large variations in different                                           DiTMoS produces more diverse classifiers with the proposed
+datasets. For example, Ada-MoE performs better than SigCla-                                          training data splitting and the CEoverlap loss to regularize the
+KD on speech commands but performs very poorly on the                                                knowledge overlap between models. Concretely, the overlap
+other two datasets, as it is very sensitive to the datasets. The                                     of correctly classified samples among different models in the
+same finding is also presented in [33], where the accuracy                                           default setting for DiTMoS is 45% lower than the value for
+                    1.00                                           1.00                                             1.00
+                    0.95                                   Overall
+                                                                   0.95                                             0.95                                   Overall
+
+
+
+
+             Accuracy
+                                                           Union                                           Overall                                         Union
+                                                           Selector                                        Union    0.90                                   Selector
+                    0.90                                           0.90                                    Selector 0.85
+
+                    0.85                                           0.85                                             0.80
+                                                                                                                    0.75
+                    0.80 2       6         10         14        18 0.80 2         6          10         14      18 0.70 2      6         10           14        18
+                             Number of Classifiers                          Number of Classifiers                           Number of Classifiers
+                                D   8 Q L 0 L %  6 + $ 5                  E   6 S H H F K  & R P P D Q G V                   F   ' ( $ 3
+                                             Fig. 12: Impact of the number of classifiers on the three datasets.
+
+     Table II: Ablation study of DiTMoS with default setting.
+                                                                                            and classifiers together in a synchronous manner, similar to
+      Ablation Study          UniMiB-SHAR             Speech Commands       DEAP            MoE. For heterogeneous feature aggregation, the intermediate
+     Random Splitting            84.9%                     84.3%            75.8%           embeddings from selector are excluded for classifier training.
+  w/o Adversarial Training       72.6%                     81.8%            56.3%
+  w/o Feature Aggregation        83.5%                     86.0%            76.3%              Table II reports the performance of the three datasets. First,
+         DiTMoS                  86.2%                     86.2%            77.4%           we can observe that data splitting with a strong model con-
+                                                                                            tributes 2% improvement compared to random splitting as it
+Ada-MoE.                                                                                    not only increases the similarity of samples within each subset
+   3) Impact of number of classifiers: Another design choice                                but also enhances the diversity of different subsets. Second,
+of DiTMoS is the number of classifiers, which can be adjusted                               adversarial training is the most effective technique in DiTMoS
+by splitting the training dataset into different number of                                  and dramatically lifts the recognition accuracy. This implies
+subsets, changing the output of the selector accordingly, and                               that compared to synchronous training, adversarial training can
+connecting the same number of classifiers to the selector.                                  enable more strongly coupled selector and classifiers which
+Intuitively, having more classifiers can create broader diversity                           work coordinately to make a prediction. Third, heterogeneous
+thereby enhancing the union accuracy (i.e., the total number                                feature aggregation can also enhance the overall accuracy,
+of samples that can be correctly classified by the classifiers)                             although the improvement is smaller on some datasets. The
+of the classifiers. However, this introduces more difficulty for                            main reason is that the default model is very small so the
+the selector (i.e., a decrease of selector accuracy) as there                               features from the selector contain little knowledge that can be
+are more classes. In addition, although the computation and                                 helpful in classifiers. We then change the model size to be
+memory cost per sample remain the same, more classifiers                                    3× and 4× larger, the accuracy without feature aggregation
+require larger Flash to store their weights.                                                drops by 3.2% and 3.5% respectively on the DEAP dataset,
+   To explore the impact of the number of classifiers, we                                   revealing the potential of feature aggregation.
+adjusted it from 2 to 18 on the three datasets. Figure 12
+                                                                                            D. System Performance
+shows the corresponding union accuracy, selector accuracy,
+and overall accuracy for each dataset. We can observe that                                     Finally, we evaluate the system performance of DiTMoS
+(1) there is indeed a trade-off between the union accuracy                                  based on the UniMiB-SHAR dataset. Specifically, we utilize
+and selector accuracy, which leads to an optimal number                                     the memory analyzer in STM32CubeIDE to measure the peak
+of classifiers in terms of the overall accuracy; (2) however,                               memory usage, and a USB power meter to measure the power
+this optimal number is different for different datasets as the                              consumption. Flash usage is basically the size of the models.
+difficulty of the three tasks varies. The optimal number might                              Table III presents the results, which are based on multiple runs
+be large for specific datasets, leading to notable Flash overhead                           of inference and the latency is averaged over 1000 runs.6
+when storing the classifiers. Thus, application designers can                                  1) Memory & Flash Usage: As presented in Section IV,
+flexibly adjust the number of classifiers based on the overall                              with the layer-by-layer loading and execution strategy, the
+accuracy curve and the available Flash resource. The results                                peak memory usage is constrained by the layer that has the
+in Figure 12 also indicate that even under the non-optimal                                  largest input and output sizes. Thus, all four baselines have the
+settings, our framework can achieve higher accuracy than                                    same peak memory. For our approach, heterogeneous feature
+baselines; (3) since the optimal numbers for some datasets are                              aggregation requires reserving the intermediate activations of
+larger than our default setting (i.e., 6), the results indicate that                        the selector until they are aggregated in the classifier, which
+DiTMoS can achieve even more accuracy improvement than                                      incurs additional memory usage depending on the size of the
+we presented in Section V-C-1), compared to the baselines.                                  network (2.4 KB for the default network). However, with the
+   4) Ablation Study: Next, we present the ablation study                                   proposed network slicing technique, the additional memory
+that assesses the effectiveness of different components in                                  usage can be eliminated (the extra 0.1 KB usage is due to
+DiTMoS. Specifically, for training data splitting, instead of
+                                                                                               6 Note that the accuracy on MCU is the same as that measured on the
+using a strong model to extract more representative features,
+                                                                                            server because we did not apply quantization (i.e., the precision of weights
+we randomly split the dataset into multiple subsets without                                 and activations is the same. Thus, we only report the system overheads in this
+K-Means. For adversarial training, we just train the selector                               subsection.
+        Table III: System performance on UniMiB-SHAR.
+                                                                   classifier can be designed with different structures, kernel
+                       Memory       Flash      Latency   Energy    sizes, and the number of kernels, which have been proven
+      Approach
+                      Usage(KB)   Usage(KB)     (ms)      (mJ)     to be helpful in increasing the diversity of models [34], [35].
+       SigCla            6.1         63.6       11.9       3.9
+     SigCla-KD           6.1         63.6       11.9       3.9
+     Ada-MoE             6.1        168.2       10.4       3.4                         VII. R ELATED W ORK
+      Ensemble           6.1         51.4       10.4       3.4
+ DiTMoS w/o Slicing      8.5        166.9       10.9       3.6        Embedded machine learning: it has been an active research
+      DiTMoS             6.2        166.9       12.5       4.1     field in recent years and numerous approaches have been
+                                                                   proposed. We summarize these works in three threads: (1)
+                                                                   frameworks to support end-to-end DNN inference on MCU:
+the increased channels when reusing the features). In terms of     TensorFlow Lite for Microcontrollers (TFLM) [36] is an
+Flash, although Ada-MoE and DiTMoS require more usage              interpreter-based tool-chain which converts Tensorflow Lite
+depending on the number of experts/classifiers, it is affordable   models to C-code based on an operator library. MCUNet [37]
+as MCU usually equips much larger Flash than memory.               is a system-algorithm co-design framework consisting of a
+   2) Energy and Latency: As mentioned in Section V-B, the         TinyNAS module to search for the best model architecture
+sizes of the baseline models are devised to ensure a fair          and a TinyEngine module to optimize runtime memory usage;
+comparison in terms of computation cost during inference.          (2) model compression: Liberis et al. [10] proposed a differ-
+Thus, the latency and energy consumption for all the baselines     entiable pruning structure that iteratively removes unnecessary
+are almost the same. For DiTMoS, heterogeneous feature             weights based on specific resource budgets and channel impor-
+aggregation increases the latency in two aspects: (1) storing      tance, while BC-Net [38] optimize computation by combining
+and loading the intermediate activations using Flash requires      binarization and quantization; and (3) memory management:
+1.6 ms and (2) computing the aggregated activations incurs         to reduce the peak memory usage, researchers proposed to
+0.5 ms overhead. The first part is introduced by network           decompose a full convolutional layer into small patches [39]
+slicing, which trade-offs between memory usage and latency.        or only compute partial regions across multiple layers [20], or
+With feature aggregation, the second part is an unavoidable but    reordering operations in multi-branch networks [22]. Unlike
+fortunately minor overhead. In practice, for latency-sensitive     them, DiTMoS is designed based on the concept of model
+applications, developers can forgo feature aggregation in order    selection, which has not been explored in the context of
+to reduce latency. Figure 10 and Table II indicate that DiTMoS     embedded machine learning.
+still achieves better performance than other baselines without        Ensemble & MoE: DiTMoS leverages the model diversity to
+feature aggregation.                                               gain performance improvement so our work is also related to
+                      VI. D ISCUSSION                              ensemble learning [40] and the mixture of experts (MoE) [41].
+                                                                   Specifically, compared to ensemble learning that combines all
+   Orthogonal to model compression: To enable DNN ex-
+                                                                   the weaker models for each inference, DiTMoS only selects
+ecution on MCUs, existing efforts mainly revolve around
+                                                                   one classifier, thereby significantly reducing the computation
+compressing a large and accurate model into a smaller one,
+                                                                   overhead. The pipeline of DiTMoS is similar to MoE, while
+often involving a modest compromise in accuracy. Techniques
+                                                                   they differ in that (1) the expert in MoE is just part of the
+such as pruning [10] and quantization [11] exemplify this ap-
+                                                                   network (e.g., a block in a layer) instead of a standalone
+proach. However, we offer a fresh perspective by constructing
+                                                                   model; (2) MoE usually selects more than one expert and
+a cohort of weak yet diverse models and selecting the most
+                                                                   combines them for prediction; and (3) the gate and experts
+suitable model for classification. Consequently, our approach
+                                                                   in MoE are trained synchronously. Notably, Taylor et al.
+operates independently and orthogonally of traditional model
+                                                                   [42] proposed a KNN-based model selection scheme to select
+compression techniques, allowing for their combined use to
+                                                                   a model (either small, medium, or large) for each input.
+enhance performance. For instance, by applying pruning and
+                                                                   However, the aim is to reduce the computation cost and the
+quantization, DiTMoS can construct larger models (thus with
+                                                                   three models just differ in capacity instead of diversity.
+larger capacity) to improve the overall accuracy while main-
+taining the same memory usage and computation overhead.
+                                                                                        VIII. C ONCLUSION
+   Flexible design of DiTMoS: The core of DiTMoS is the con-
+cept of selector-classifiers architecture, which leverages model      This paper presents DiTMoS, a memory-efficient selector-
+diversity (translates to a high union accuracy) and selector-      classifier framework that enables accurate inference of time
+classifiers coupling to improve the overall performance. In        series classification on MCUs. DiTMoS consists of 3 major
+this work, we consider a balanced selector-classifiers network     components: training data splitting to enlarge the diversity of
+configuration to demonstrate the concept, where the selector       classifiers, adversarial training to coordinate the selector and
+and classifiers equally share the whole network capacity by        classifier, and heterogeneous feature aggregation to enhance
+having the same architecture. However, the capability of each      the classifier capability. We further proposed a network slicing
+sub-network can be adjusted flexibly to accommodate the            technique to optimize memory usage. The experiment result
+characteristics of the task for better performance. Moreover,      shows that DiTMoS significantly outperforms baselines while
+instead of having the same structure for all classifiers, each     incurring marginal latency and memory overhead.
+                              R EFERENCES                                        [21] “Open neural network exchange(onnx),” https://onnx.ai/.
+                                                                                 [22] E. Liberis and N. D. Lane, “Neural networks on microcontrollers:
+ [1] S. L. Ullo and G. R. Sinha, “Advances in smart environment monitoring            saving memory at inference via operator reordering,” arXiv preprint
+     systems using iot and sensors,” Sensors, vol. 20, no. 11, p. 3113, 2020.         arXiv:1910.05110, 2019.
+ [2] R. Khalid and W. Ejaz, “Internet of things-based on-demand rental asset     [23] P. Warden, “Speech commands: A dataset for limited-vocabulary speech
+     tracking and monitoring system,” in 2022 5th International Conference            recognition,” arXiv preprint arXiv:1804.03209, 2018.
+     on Information and Computer Technologies (ICICT). IEEE, 2022, pp.           [24] S. Poirier, F. Routhier, and A. Campeau-Lecours, “Voice control in-
+     84–89.                                                                           terface prototype for assistive robots for people living with upper
+ [3] C. V. Anikwe, H. F. Nweke, A. C. Ikegwu, C. A. Egwuonwu, F. U. Onu,              limb disabilities,” in 2019 IEEE 16th International Conference on
+     U. R. Alo, and Y. W. Teh, “Mobile and wearable sensors for data-driven           Rehabilitation Robotics (ICORR). IEEE, 2019, pp. 46–52.
+     health monitoring system: State-of-the-art and future prospect,” Expert     [25] S. Koelstra, C. Muhl, M. Soleymani, J.-S. Lee, A. Yazdani, T. Ebrahimi,
+     Systems with Applications, vol. 202, p. 117362, 2022.                            T. Pun, A. Nijholt, and I. Patras, “Deap: A database for emotion
+ [4] S. Zhang, Y. Li, S. Zhang, F. Shahabi, S. Xia, Y. Deng, and N. Alshurafa,        analysis ;using physiological signals,” IEEE Transactions on Affective
+     “Deep learning in human activity recognition with wearable sensors: A            Computing, vol. 3, no. 1, pp. 18–31, 2012.
+     review on advances,” Sensors, vol. 22, no. 4, p. 1476, 2022.                [26] O. Saha, M. S. Mahmud, S. A. Fattah, and M. Saquib, “Automatic
+ [5] Z. Liu, H. Hu, Y. Lin, Z. Yao, Z. Xie, Y. Wei, J. Ning, Y. Cao,                  emotion recognition from multi-band eeg data based on a deep learning
+     Z. Zhang, L. Dong et al., “Swin transformer v2: Scaling up capacity and          scheme with effective channel attention,” IEEE Access, vol. 11, pp.
+     resolution,” in Proceedings of the IEEE/CVF conference on computer               2342–2350, 2022.
+     vision and pattern recognition, 2022, pp. 12 009–12 019.                    [27] E. H. Houssein, A. Hammad, and A. A. Ali, “Human emotion recogni-
+ [6] Y. Lin, F. Lv, S. Zhu, M. Yang, T. Cour, K. Yu, L. Cao, and T. Huang,            tion from eeg-based brain–computer interface using machine learning:
+     “Large-scale image classification: Fast feature extraction and svm train-        a comprehensive review,” Neural Computing and Applications, vol. 34,
+     ing,” in CVPR 2011. IEEE, 2011, pp. 1689–1696.                                   no. 15, pp. 12 527–12 557, 2022.
+ [7] “Stm32       mainstream     microcontrollers,”     https://www.st.com/en/   [28] J. Gou, B. Yu, S. J. Maybank, and D. Tao, “Knowledge distillation: A
+     microcontrollers-microprocessors/stm32-mainstream-mcus.html.                     survey,” International Journal of Computer Vision, vol. 129, pp. 1789–
+ [8] C. Banbury, C. Zhou, I. Fedorov, R. Matas, U. Thakker, D. Gope,                  1819, 2021.
+     V. Janapa Reddi, M. Mattina, and P. Whatmough, “Micronets: Neural           [29] S. Soro, “Tinyml for ubiquitous edge ai,” arXiv preprint
+     network architectures for deploying tinyml applications on commodity             arXiv:2102.01255, 2021.
+     microcontrollers,” Proceedings of Machine Learning and Systems, vol. 3,     [30] T. Huang, S. You, F. Wang, C. Qian, and C. Xu, “Knowledge distillation
+     pp. 517–532, 2021.                                                               from a stronger teacher,” Advances in Neural Information Processing
+ [9] T. Garbay, P. Dobias, W. Dron, P. Lusich, I. Khalis, A. Pinna,                   Systems, vol. 35, pp. 33 716–33 727, 2022.
+     K. Hachicha, and B. Granado, “Cnn inference costs estimation on             [31] G. Huang, Y. Li, G. Pleiss, Z. Liu, J. E. Hopcroft, and K. Q. Wein-
+     microcontrollers: the est primitive-based model,” in 2021 28th IEEE              berger, “Snapshot ensembles: Train 1, get m for free,” arXiv preprint
+     International Conference on Electronics, Circuits, and Systems (ICECS).          arXiv:1704.00109, 2017.
+     IEEE, 2021, pp. 1–5.                                                        [32] S. E. Yuksel, J. N. Wilson, and P. D. Gader, “Twenty years of mixture of
+[10] E. Liberis and N. D. Lane, “Differentiable neural network pruning to             experts,” IEEE transactions on neural networks and learning systems,
+     enable smart applications on microcontrollers,” Proceedings of the ACM           vol. 23, no. 8, pp. 1177–1193, 2012.
+     on Interactive, Mobile, Wearable and Ubiquitous Technologies, vol. 6,       [33] Z. Chen, Y. Deng, Y. Wu, Q. Gu, and Y. Li, “Towards understanding
+     no. 4, pp. 1–19, 2023.                                                           the mixture-of-experts layer in deep learning,” in Advances in Neural
+[11] F. Daghero, A. Burrello, C. Xie, M. Castellano, L. Gandolfi, A. Cal-             Information Processing Systems, S. Koyejo, S. Mohamed, A. Agarwal,
+     imera, E. Macii, M. Poncino, and D. J. Pagliari, “Human activity                 D. Belgrave, K. Cho, and A. Oh, Eds., vol. 35, 2022, pp. 23 049–23 062.
+     recognition on microcontrollers with quantized and adaptive deep neural     [34] R. Tu, N. Roberts, M. Khodak, J. Shen, F. Sala, and A. Talwalkar,
+     networks,” ACM Transactions on Embedded Computing Systems (TECS),                “Nas-bench-360: Benchmarking neural architecture search on diverse
+     vol. 21, no. 4, pp. 1–28, 2022.                                                  tasks,” Advances in Neural Information Processing Systems, vol. 35, pp.
+[12] G. Cerutti, R. Prasad, A. Brutti, and E. Farella, “Compact recurrent neu-        12 380–12 394, 2022.
+     ral networks for acoustic event detection on low-energy low-complexity      [35] T. Nguyen, M. Raghu, and S. Kornblith, “Do wide and deep networks
+     platforms,” IEEE Journal of Selected Topics in Signal Processing,                learn the same things? uncovering how neural network representations
+     vol. 14, no. 4, pp. 654–664, 2020.                                               vary with width and depth,” arXiv preprint arXiv:2010.15327, 2020.
+[13] A. Brutti, F. Paissan, A. Ancilotto, and E. Farella, “Optimizing phinet     [36] R. David, J. Duke, A. Jain, V. Janapa Reddi, N. Jeffries, J. Li, N. Kreeger,
+     architectures for the detection of urban sounds on low-end devices,” in          I. Nappier, M. Natraj, T. Wang et al., “Tensorflow lite micro: Embedded
+     2022 30th European Signal Processing Conference (EUSIPCO). IEEE,                 machine learning for tinyml systems,” Proceedings of Machine Learning
+     2022, pp. 1121–1125.                                                             and Systems, vol. 3, pp. 800–811, 2021.
+[14] Y. Yang, L. Hodgkinson, R. Theisen, J. Zou, J. E. Gonzalez, K. Ram-         [37] J. Lin, W.-M. Chen, Y. Lin, C. Gan, S. Han et al., “Mcunet: Tiny deep
+     chandran, and M. W. Mahoney, “Taxonomizing local versus global struc-            learning on iot devices,” Advances in Neural Information Processing
+     ture in neural network loss landscapes,” Advances in Neural Information          Systems, vol. 33, pp. 11 711–11 722, 2020.
+     Processing Systems, vol. 34, pp. 18 722–18 733, 2021.                       [38] L. Mocerino and A. Calimera, “Fast and accurate inference on micro-
+[15] W. Huang, L. Zhang, S. Wang, H. Wu, and A. Song, “Deep ensemble                  controllers with boosted cooperative convolutional neural networks (bc-
+     learning for human activity recognition using wearable sensors via               net),” IEEE Transactions on Circuits and Systems I: Regular Papers,
+     filter activation,” ACM Transactions on Embedded Computing Systems,              vol. 68, no. 1, pp. 77–88, 2021.
+     vol. 22, no. 1, pp. 1–23, 2022.                                             [39] J. Lin, W.-M. Chen, H. Cai, C. Gan, and S. Han, “Memory-efficient
+[16] D. Micucci, M. Mobilio, and P. Napoletano, “Unimib shar: A dataset for           patch-based inference for tiny deep learning,” Advances in Neural
+     human activity recognition using acceleration data from smartphones,”            Information Processing Systems, vol. 34, pp. 2346–2358, 2021.
+     Applied Sciences, vol. 7, no. 10, 2017.                                     [40] R. Ani, S. Krishna, N. Anju, M. S. Aslam, and O. Deepa, “Iot
+[17] S. Kornblith, M. Norouzi, H. Lee, and G. Hinton, “Similarity of                  based patient monitoring and diagnostic prediction tool using ensemble
+     neural network representations revisited,” in International conference           classifier,” in 2017 International conference on advances in computing,
+     on machine learning. PMLR, 2019, pp. 3519–3529.                                  communications and informatics (ICACCI). IEEE, 2017, pp. 1588–
+[18] J. MacQueen et al., “Some methods for classification and analysis of             1593.
+     multivariate observations,” in Proceedings of the fifth Berkeley sympo-     [41] X. Gong, Q. Feng, Y. Zhang, J. Qin, W. Ding, B. Li, P. Jiang, and
+     sium on mathematical statistics and probability, vol. 1, no. 14. Oakland,        K. Gai, “Real-time short video recommendation on mobile devices,” in
+     CA, USA, 1967, pp. 281–297.                                                      Proceedings of the 31st ACM International Conference on Information
+[19] “Stm32          nucleo-f767zi       board,”        https://www.st.com/en/        & Knowledge Management, 2022, pp. 3103–3112.
+     microcontrollers-microprocessors/stm32f767zi.html.                          [42] B. Taylor, V. S. Marco, W. Wolff, Y. Elkhatib, and Z. Wang, “Adaptive
+[20] E. Liberis and N. D. Lane, “Pex: Memory-efficient microcontroller deep           deep learning model selection on embedded systems,” ACM SIGPLAN
+     learning through partial execution,” arXiv preprint arXiv:2211.17246,            Notices, vol. 53, no. 6, pp. 31–43, 2018.
+     2022.
+

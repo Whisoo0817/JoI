@@ -82,8 +82,8 @@ If a service has no `args:` listed, emit `{}`. Do NOT put selectors, tags, or ot
 - ❌ `"Switch.On": {"Selector": "all(#Bedroom #Switch)"}`  ← NEVER
 - ✅ `"Switch.On": {}`
 
-## 4.1 Implicit intents from `<intent>` hints in service_plan reasoning
-The conversation context includes the service_plan reasoning (e.g. `Call <Cat>.<Setter>(turn on); Call <Cat>.<Setter>(turn off)`). Use the `<intent>` hint in parentheses to resolve args when the command does not state numeric values explicitly:
+## 4.1 Implicit intents from the command
+Use the command's on/off intent to resolve args when a selected setter controls a continuous range and the command does not state a numeric value explicitly:
 - `turn on` + a setter whose primary numeric arg controls a continuous "fully on ↔ fully off" range (brightness, level, volume, position, etc. — anything where MAX = fully on) → set that arg to catalog MAX (e.g. `100.0` for a 0–100 percentage arg, or the arg's declared upper bound).
 - `turn off` + the same setter shape → set that arg to catalog MIN (typically `0` or `0.0`).
 - `max` / `maximum` / `full` → catalog max.
@@ -126,9 +126,8 @@ bare literal. The literal form `-1` would mean "set the absolute channel to
 
 The expression uses the attribute that *reads* the current value (e.g.
 `Television.Channel`, `Speaker.Volume`, `Light.CurrentBrightness`), selected
-from the connected catalog. When the service_plan reasoning shows the value
-to read (e.g. `Read Television.Channel; Call Television.SetChannel(curr−1)`),
-use that same attribute id in the `$<Service>.<Attr>` reference.
+from the connected catalog. Use that attribute id in the
+`$<Service>.<Attr>` reference.
 
 ## 7.2 Ceiling / floor caps — wrap with min() / max()
 🛑 When the command describes a **ceiling or floor** on the change ("up to N",
@@ -205,7 +204,6 @@ Output:
 ```
 
 ## Example 2b — Sequential multi-call (same service, two different args, list form)
-service_plan reasoning (prior turn): `Read MultiButton.Button1(pressed?); Call Light.MoveToBrightness(turn on); Call Light.MoveToBrightness(turn off)`
 ```
 [Command]
 When button 1 is pressed, turn on the entrance light and turn it off after 5 minutes.

@@ -1,0 +1,681 @@
+     PSMark: a distributed IoT benchmark for publish/subscribe
+                  under domain-based workloads
+       Christian Badolato, Nathan Samson, Houssam Hajj Hassan, Chih-Kai Huang,
+                      Georgios Bouloukakis, Primal Pappachan, Roberto Yus
+
+
+
+      To cite this version:
+     Christian Badolato, Nathan Samson, Houssam Hajj Hassan, Chih-Kai Huang, Georgios Bouloukakis, et al..
+     PSMark: a distributed IoT benchmark for publish/subscribe under domain-based workloads. 24th IEEE Inter-
+     national Conference on Pervasive Computing and Communications (PerCom ), IEEE, Mar 2026, Pisa (Italy),
+     Italy. ⟨hal-05517145⟩
+
+
+
+
+                                        HAL Id: hal-05517145
+                          https://inria.hal.science/hal-05517145v1
+                                           Submitted on 18 Feb 2026
+
+
+
+
+    HAL is a multi-disciplinary open access archive             L’archive ouverte pluridisciplinaire HAL, est des-
+for the deposit and dissemination of scientific re-        tinée au dépôt et à la diffusion de documents scien-
+search documents, whether they are published or not.       tifiques de niveau recherche, publiés ou non, émanant
+The documents may come from teaching and research          des établissements d’enseignement et de recherche
+institutions in France or abroad, or from public or pri-   français ou étrangers, des laboratoires publics ou
+vate research centers.                                     privés.
+
+
+           Distributed under a Creative Commons CC BY 4.0 - Attribution - International License
+    PSMark: A Distributed IoT Benchmark for
+ Publish/Subscribe Under Domain-Based Workloads
+                 Christian Badolato† , Nathan Samson† , Houssam Hajj Hassan**‡ , Chih-Kai Huang¶‡ ,
+                              Georgios Bouloukakis* , Primal Pappachan§ , Roberto Yus†
+            {cbad1, nsamson4, ryus}@umbc.edu, houssam.hajjhassan@orange.com, chih-kai.huang@telecom-paris.fr
+                                             gbouloukakis@upatras.gr, primal@pdx.edu
+       †
+         University of Maryland, Baltimore County, USA; ‡ Télécom SudParis, Institut Polytechnique de Paris, France;
+         ¶
+           Télécom Paris; * University of Patras, Greece; § Portland State University, USA; ** Orange Innovation, France
+
+
+   Abstract—The Publish/Subscribe (pub/sub) paradigm is widely       healthcare [10], and smart cities [10], [11], [12]. However,
+used in the Internet of Things (IoT). Standalone sensors, wear-      pub/sub protocols and their implementations are not one-size-
+ables, and other devices act as producers that publish messages      fits-all: selecting a pub/sub system and tuning its communica-
+to consumers such as edge servers or even other IoT devices.
+Selecting and configuring a pub/sub protocol for an IoT system       tion parameters must align the system’s features with domain
+requires considering network requirements, device reliability, and   and use case requirements (e.g., timing and reliability).
+required Quality-of-Service guarantees. Pub/sub benchmarking            This is a particularly important consideration during the
+suites can help compare expected behavior of various protocols,      design and deployment of pervasive IoT systems. Consider
+implementations, and network configurations. However, current        a traffic management and safety deployment in which a large
+pub/sub benchmarks focus primarily on stress testing systems
+assuming mostly static configurations of homogeneous publishers      number of traffic signals must use a pub/sub system to en-
+which are not representative of real-world IoT deployments. To       sure fault-tolerant, real-time monitoring and control of traffic
+address this, we present PSMark, a distributed, multi-protocol       patterns [12]. In this environment, the pub/sub system must
+benchmark for evaluating topic-filtered pub/sub systems under        be able to efficiently handle a vast number of clients without
+workloads representative of real-world IoT environments. PS-         experiencing timing delays due to connection management or
+Mark supports (i) workloads representative of heterogeneous IoT
+device deployments including variations in device communication      the exhaustion of computational resources. Likewise, a deploy-
+parameters, (ii) evaluation of distributed IoT deployments with      ment for monitoring hospital patients requires constant, reli-
+multiple data aggregation servers, (iii) cross-protocol measure-     able data transfer between medical devices, processing servers,
+ments across MQTT and DDS, with extensibility to additional          and status displays to ensure prompt and accurate response
+protocols, and (iv) a modular design for adding additional           to patient emergencies [13]. Despite the shared requirements
+metrics and interfaces. We further construct twelve IoT-focused
+workloads derived from seven real-world datasets in the domains      of low-latency and reliable messaging, these use cases likely
+of manufacturing, healthcare, smart homes, and smart cities.         involve vastly different device types, device quantities, data
+Finally, we benchmark five popular MQTT brokers and one DDS          volumes, and processing power. IoT system designers must
+implementation using PSMark and analyze their performance            thoroughly evaluate various pub/sub systems against each of
+across multiple testbeds and Quality-of-Service settings.            these factors before selecting one for deployment.
+   Index Terms—Internet of Things, Benchmarking, Publish/Sub-
+scribe, MQTT, DDS, Performance evaluation                               Benchmarking frameworks have been established as an
+                                                                     important mechanism to evaluate the performance of mod-
+                                                                     ern technologies and smart spaces [14], [15], [16], [17].
+                      I. I NTRODUCTION
+                                                                     Benchmarks comparing pub/sub systems have appeared in
+   The Internet of Things (IoT) is now integral to modern            industry [18], [19], [20], [21] and academia [22], [23], [24].
+data processing, with an estimated 21.5 billion devices world-       However, we identify three common limitations: i) emphasis
+wide in 2025 [1]. These devices span smart cities, homes,            on stress testing under heavy network traffic rather than
+healthcare, agriculture, and the Industrial Internet of Things       emulating real-world IoT workloads [21], [25], [26], [27];
+(IIoT) [2]. Adoption is expected to continue to grow as the          ii) static publisher configurations that overlook heterogeneity
+Artificial Intelligence of Things (AIoT) enables advances in         in payload sizes, publication rates, and connection stability
+transportation, factory maintenance, medical diagnoses, and          [22], [28], [29]; and iii) limited representation of large-scale,
+more [3], [4], [5]. Given the volume of data produced,               distributed environments where large numbers of IoT devices
+transmitted, and consumed within IoT networks, efficient data        publish to applications across various networked servers [30],
+exchange is critical. Publish/Subscribe (pub/sub) protocols          [28]. Therefore, accurately benchmarking these systems under
+are widely recommended for scalable, lightweight, decoupled          workloads which accurately characterize the behavior of dis-
+communication in distributed IoT systems. Both centralized,          tributed, heterogeneous IoT deployments remains challenging.
+broker-based protocols (e.g., MQTT [6]) and decentralized,              To address these gaps, we present PSMark, a distributed
+brokerless protocols (e.g., the Data Distribution Service–           pub/sub benchmarking framework to measure the performance
+DDS [7]) have seen significant adoption in IIoT [8], [9],            of workloads which accurately represent IoT deployments
+containing devices of varying types, payload sizes, publication     parameters. All three protocols use topic-based subscription,
+rates, and network connection stability across both broker-         where communication occurs over channels identified by key-
+based and brokerless pub/sub systems. PSMark incorporates           words known as topics.
+a modular design which supports the easy addition of new
+                                                                    Related Work. Many pub/sub vendors provide lightweight
+pub/sub protocols, publisher and subscriber implementations,
+                                                                    tools for quick performance checks in simple topologies, such
+and metrics. The key contributions of this paper are:
+                                                                    as eMQTT-Bench [36], RTI Perftest [37], and eProsima Fast-
+  • We design and implement PSMark for pub/sub IoT bench-           RTPS Automated Benchmark [21]. Load testing platforms
+    marking which captures IoT deployment-derived behaviors         (e.g., JMeter [25], Gatling [26], and Locust [27]) can be
+    while imposing minimal network and compute overhead,            extended with plugins for pub/sub interactions, though they
+    so measurements are not skewed by the framework.                are not tailored for IoT message semantics. Several more
+  • We define 52 built-in IoT device configurations based on        comprehensive efforts target pub/sub benchmarking. Longo
+    7 real-world datasets and create 12 built-in workloads          et al. propose a framework for dynamically deploying multi-
+    comprising domain-specific device deployments.                  broker MQTT systems to study performance in bridged-broker
+  • We use PSMark to evaluate five popular MQTT bro-                scenarios [38]. Bode et al. analyze four DDS implementations
+    kers (EMQX Open Source, Mochi-MQTT, Mosquitto,                  with a cross-vendor DDS benchmarking tool [22]. Zhang et
+    NanoMQ, and VerneMQ) and the widely used OpenDDS                al. introduce a benchmark suite that generates pub/sub clients
+    [31] implementation under PSMark workloads.                     and workloads with a time-series-based syntax [30].
+   The rest of this paper is organized as follows. Section II          A few works explore benchmarking pub/sub communication
+provides background on pub/sub protocols and benchmarks.            in IoT-specific contexts. Shulka et al. present a benchmark for
+Section III details the challenges addressed by PSMark, as          distributed stream processing that evaluates task-oriented IoT
+well as its architectural design, metrics, and workloads derived    workloads (e.g., model-based prediction, data parsing) based
+from real-world IoT datasets. Section IV provides an overview       on real IoT data streams [39]. It focuses on end-to-end task
+of the MQTT and DDS systems we benchmark. Section                   benchmarking, and supports MQTT input and output. Zilhão et
+V outlines the experimental benchmarking results. Finally,          al. propose a modular pub/sub benchmarking tool for broker-
+Section VI concludes the paper and outlines future work.            based middleware prioritizing extensibility through swappable
+                                                                    modules [28]. They evaluate their middleware through a series
+          II. BACKGROUND AND R ELATED W ORK                         of tests sending statically sized messages at a globally consis-
+                                                                    tent rate. Herrnleben et al. design a distributed, IoT-focused,
+Publish/Subscribe Protocols. Pub/sub is a communication
+                                                                    pub/sub benchmark which supports injecting variations to
+paradigm that enables decoupled, asynchronous, event-driven
+                                                                    network bandwidth, transmission latency, and packet loss [29].
+exchange between publishers (data producers) and subscribers
+                                                                    They then perform an analysis of various static message rates,
+(data consumers). Subscribers register a subscription filter
+                                                                    Quality-of-Service (QoS) settings, and network stability on a
+(e.g., a topic name) with an event service and receive matching
+                                                                    one-node, containerized deployment.
+messages sent by publishers to that service. The event service         Taken together, these tools enable high-level comparisons
+tracks publications and subscriptions, eliminating the need for     across different protocol implementations, stress testing of
+publishers and subscribers to know about other entities on the      web-based pub/sub systems, or evaluation of general IoT
+network [32]. Two primary protocol families correspond to           pub/sub behaviors under static payload sizes and constant
+how the event service is realized: Broker-based protocols use a     device connectivity. However, existing tools are often single-
+centralized broker to record subscriptions and route matching       protocol, not tailored for pub/sub and IoT environments, do
+publications to subscribers; Peer-to-peer (“brokerless”) pro-       not support measurement of distributed deployments, or do not
+tocols rely on distributed, per-node middleware to discover         adequately model dynamic IoT device behaviors (see Table I).
+pub/sub entities, manage subscriptions, and route publications.
+   Pub/sub protocols are widely used in IoT domains; MQTT,                             III. PSM ARK B ENCHMARK
+AMQP, and DDS are among the most common [33], [22],                    PSMark is, to the best of the authors’ knowledge, the first
+[9]. MQTT is a standardized, broker-based protocol designed         pub/sub benchmark that jointly offers: (i) multi-protocol sup-
+for lightweight machine-to-machine communication in low-            port, (ii) distributed topology evaluation, (iii) explicit modeling
+bandwidth settings, making it well suited for IoT [6]. AMQP         of device heterogeneity and connection stability, and (iv) an
+also offers broker-based pub/sub, but prioritizes message           open set of IoT-focused workloads derived from real-world
+safety and reliability, typically incurring higher processing and   datasets designed to be reused and extended by the community.
+network overheads [34]. DDS is a fully distributed, broker-         It is publicly available on GitHub [40]. We begin by outlining
+less protocol for real-time pub/sub with highly configurable        the design challenges we needed to address.
+Quality-of-Service (QoS) parameters [7]; it has been adopted        C-1 Measuring Distributed Topologies. Deployments span
+across energy grids, healthcare, and manufacturing [10]. Coor-      rooms, buildings, and cities, often interacting with multiple
+dination between DDS entities is most often performed via the       edge sites [41], [42]. The challenge is to benchmark such
+Real-Time Publish-Subscribe protocol (RTPS) [35], by which          geographically dispersed environments and obtain accurate
+the middleware advertises its publishers, subscribers, and QoS      measurements across edge server boundaries.
+                                         TABLE I: Comparison of pub/sub benchmarking tools.
+ Feature                            [36]        [37]        [21]       [25]      [26]       [27]   [38]     [22]     [30]          [39]    [28]     [29]     PSMark
+ Pub/Sub Focused                     ✓           ✓           ✓                                      ✓        ✓        ✓                     ✓        ✓         ✓
+ Multiple Protocol Support                                              ✓        ✓        ✓                           ✓                     ✓        ✓         ✓
+ Brokerless Protocol Support                     ✓                    Partial* Partial* Partial*    ✓                 ✓                                        ✓
+ Measures Distributed Topologies                                                                    ✓        ✓                     ✓                 ✓         ✓
+ Built-In Workloads                                                                          ✓      ✓                              ✓              Partial†     ✓
+ IoT Focused                                                                                                                       ✓                 ✓         ✓
+ Real-World Device Behaviors                                                                                                       ✓              Partial‡     ✓
+ Extensibility                                                          ✓       ✓         ✓                                                 ✓     Partial§     ✓
+* Requires plugin development - † Workload is   retired -   ‡   Does not model connectivity or variable message attributes -   §   Cannot extend metrics
+
+C-2 Scaling to Large Populations. Smart-city and IIoT set-
+tings involve vast numbers of devices. The challenge is to
+orchestrate and observe large-scale experiments without the
+benchmark itself becoming a bottleneck.
+C-3 Cross-Paradigm Protocol Coverage. Broker-based and
+brokerless pub/sub protocols differ fundamentally. The chal-
+lenge is to support both (with an emphasis on topic-based
+systems, see Section II) without prescribing specific brokers
+or configurations, enabling fair, comparable evaluations.
+C-4 Capturing Deployment-Derived Workloads. IoT devices
+publish at heterogeneous rates, with varied payload sizes, and
+under intermittent connectivity. The challenge is to model and
+parameterize workloads that faithfully reflect real deployments
+rather than synthetic stress only.
+C-5 Modularity and Extensibility. Pub/sub ecosystems evolve,
+and publisher/subscriber behavior may include pre-/post-                                Fig. 1: PSMark execution workflow for a brokered evaluation.
+processing (e.g., access control). The challenge is to design
+a framework that admits new protocols, metrics, and pub/sub                             Execution workflow. Figure 1 illustrates the execution work-
+client implementations with minimal integration effort.                                 flow of PSMark for a brokered system as an example. First,
+  At its core, PSMark executes deployment-style workload                                a Launcher process provisions both the broker and the set
+scenarios by instantiating clients (publishers and subscribers)                         of PSMark nodes, which in turn configure themselves and
+with predefined (user-adjustable) behaviors that exchange mes-                          establish control-plane connectivity among the set. Next, each
+sages over the target pub/sub system. PSMark then collects                              node creates local clients based on the benchmarking scenario
+multiple metrics and generates a complete log of results.                               (e.g., a set of publishing smart speakers and cameras in a
+                                                                                        smart home scenario). At this point, nodes enter a barrier-
+                                                                                        synchronized lifecycle: (i) start scenario only after all peers
+A. Distributed and Scalable Architectural Design
+                                                                                        confirm readiness, ensuring subscribers are active before any
+   To address C-1 and C-2, PSMark coordinates benchmark                                 publication; (ii) run the workload pub/sub phase with no
+execution across a configurable set of nodes, analogous to edge                         coordination traffic on the data path; (iii) upon completion,
+servers in an IoT deployment. Each node independently man-                              hit a second barrier to stop clients deterministically; and (iv)
+ages: (i) a pool of publishers, which emulate IoT devices by                            share measurements needed for per-node and pairwise metrics
+generating the node’s assigned workload, and (ii) subscribers,                          before computing results locally.
+which represent data aggregation points (e.g., databases, ap-                           Node Design. Figure 2 overviews each node’s architecture
+plications, AIoT models). By default, each node subscribes to                           and inter-node connections. Two components are primarily
+all publications to capture the worst-case fan-out behavior of                          responsible for addressing distributed correctness at scale: the
+an IoT deployment. While in most real deployments devices                               Node Manager handles intra-node duties (e.g., initialization,
+publish from dedicated processors to networked edge servers,                            verifying connectivity with remote nodes), while the Lifecycle
+emulating one device per compute instance would impose                                  Manager coordinates synchronization with remote nodes via a
+prohibitive orchestration and networking overhead in large                              state machine per the workflow presented above. To avoid mis-
+scale benchmarking, contradicting C-2. PSMark therefore                                 classifying messages as lost, nodes must be synchronized and
+groups publishers per node to leverage local processing power                           acknowledge stage completion through the Lifecycle Manager
+while still ensuring inter-node communication: nodes process                            before any node may proceed to the next stage (C-1). Thus,
+messages via externally-facing network interfaces, preserving                           all subscribers are active before publications begin and remain
+realistic communication patterns even for brokerless systems.                           subscribed until all publications finish. No synchronization
+is performed during workload execution to avoid injecting         Functions (NIFs), which allow C++ code to be executed
+extraneous network overhead, which may skew results.              directly within Erlang processes. Finally, Metric Plugins pro-
+                                                                  vide a clean extension point for user-defined measurements;
+                                                                  Section III-D details built-in metrics and collection.
+
+                                                                  C. Deployment-based Workloads
+                                                                     Within each PSMark node, the Scenario Manager (see
+                                                                  Figure 2) initializes, coordinates, and terminates pub/sub
+                                                                  clients according to a device-centric deployment plan. It
+                                                                  issues protocol-agnostic commands (e.g., connect, publish,
+                                                                  subscribe) to the underlying clients via the aforementioned
+                                                                  Protocol Adapters. Workloads are composed of reusable, con-
+                                                                  figurable device definitions. This design models the hetero-
+                                                                  geneity and complexity of real-world IoT devices [44], [45],
+                                                                  allows rapid adjustment of device parameters, and facilitates
+                                                                  reuse across user-defined workloads. Each definition speci-
+              Fig. 2: PSMark node architecture.                   fies message publication rate, payload size, and connection
+                                                                  stability. Because a device’s payload can vary, users may
+   PSMark is designed to minimize both runtime and con-           provide a mean and variance; PSMark then samples payload
+figuration complexity. Nodes are implemented in Erlang/OTP        sizes from a normal distribution. Stability is configured via a
+27. Erlang uses lightweight processes, automatic concurrency      disconnection check period, disconnection chance, reconnec-
+and multithreading, and efficient inter-process communication     tion check period, and reconnection chance. At each check,
+via a persistent TCP connection. This separates coordination      the publisher running that device’s workload disconnects or
+from pub/sub traffic and keeps its overhead small compared to     reconnects according to the given probabilities.
+the workload itself (C-1 and C-2). Workloads, topologies, and        PSMark workloads build on devices; workload definitions
+pub/sub systems are configured through declarative specifica-     specify a composition of devices to model representative IoT
+tions; no code changes are required to vary device populations,   deployments1 . PSMark provides twelve built-in workloads
+broker placements, or system parameters.                          targeting four IoT domains (see Figure 3) with substantial
+                                                                  IoT activity and research [2]: smart factory (PSMark-F),
+B. Multi-protocol Adaptation and Extensibility
+                                                                  smart home (PSMark-HM), smart city (PSMark-C), and smart
+   To future-proof PSMark as an extensible, reusable bench-       healthcare (PSMark-HC). We constructed the workloads for
+mark for IoT pub/sub evaluation, we adopt a modular ar-           each domain by surveying open-source datasets containing
+chitecture that admits new pub/sub protocols, alternative         real device traces, selecting those with sufficient detail to
+client implementations, and custom metrics (C-5) through          extract publication frequencies, payload sizes, sleep intervals,
+well-defined interfaces, reducing implementation effort. At       and related operational parameters ([46], [47], [48], [49], [50],
+the center are Protocol Adapters (one per protocol) which         [51], [52]). Device types, counts, and configuration parameters
+translate high-level pub/sub operations into system-specific      are derived from the chosen datasets: observed payload struc-
+commands, which can be interpreted by individual pub/sub          tures determine the average and variance of payload lengths;
+client interfaces. These adapters also capture measurement        base device counts come from the datasets’ deployment con-
+events and load system-specific configurations, such as QoS       text. Because stability is rarely reported, we apply domain-
+parameters (C-3). PSMark has built-in adapters for the MQTT       appropriate, workload-wide stability settings frequent enough
+(broker-based) and DDS (brokerless) protocols; adapters for       to exercise disconnect/reconnect behavior (rationales appear in
+other protocols can be developed for integration into PSMark.     the domain descriptions). Table II summarizes device totals,
+Below the adapters, Client Interfaces execute pub/sub system-     maximum publish rates (noting that disconnections reduce
+specific commands against concrete pub/sub libraries and can      instantaneous rates), and stability parameters. Each domain
+optionally perform pre/post-processing tasks needed to model      includes three workloads scaled at “1x” (base), “2x” and “10x”
+deployment behavior. For example, to enable content filtering     (device counts multiplied by 2 and 10) respectively, for a
+when subscription matching among clients must account for         total of twelve built-in workloads. Each workload represents
+the contents of a message in addition to its topic.               the device population of a single edge server; by default,
+   PSMark includes built-in client interfaces for MQTT, using     distributed experiments run the full workload per node, though
+the EMQTT v1.14 library [43] to provide protocol function-        workloads can be split when desired.
+ality (as we will see in Section IV, this library works with
+                                                                  PSMark-C: Smart City. PSMark-C aggregates city-scale
+most MQTT broker implementations), and DDS, written using
+                                                                  devices monitoring (i) household electricity use, (ii) traffic and
+OpenDDS v3.33.0, a well-known, open-source DDS imple-
+mentation [31], [22]. As OpenDDS primarily supports C++             1 Users may extend or create workloads from templates to mirror their own
+implementation, we leverage Erlang’s Native Implemented           deployments (e.g., their specific smart factory).
+            (a) PSMark-C                     (b) PSMark-F                   (c) PSMark-HC                    (d) PSMark-HM
+                     Fig. 3: PSMark’s workload setups: Smart City, Factory, Healthcare Center, and Home.
+
+           TABLE II: Summary of PSMark workloads.                    sensor readings (obstacle maps, odometry, LiDAR, IMU) are
+Workload            Devices    Msgs/s
+                                        Disconnection Reconnection   taken from the iV2V testbed [54], [46]. In total, PSMark-F
+                                            Rate          Rate       includes 40 devices. Factory devices are assumed stable since
+PSMark-C                541       109    20% per 5s    50% per 5s    they are often stationary and well maintained; we configure a
+PSMark-C-2x           1,082       218    20% per 5s    50% per 5s
+                                                                     5% disconnection chance and 80% reconnection chance per
+PSMark-C-10x          5,410     1,090    20% per 5s    50% per 5s
+PSMark-F                 40       590     5% per 1s    80% per 1s    second. To better stress pub/sub stacks, we again consider
+PSMark-F-2x              80     1,180     5% per 1s    80% per 1s    bursty workloads by reducing machine-status intervals from
+PSMark-F-10x            400     5,900     5% per 1s    80% per 1s    one minute to one second; AMR rates already exceed 10 ms-
+PSMark-HC                24         5    10% per 5s    80% per 5s    gs/s, so the traffic remains AMR-dominated.
+PSMark-HC-2x             48        10    10% per 5s    80% per 5s
+PSMark-HC-10x           240        50    10% per 5s    80% per 5s    PSMark-HC: Smart Healthcare. We model beds requiring
+PSMark-HM                20       148     5% per 1s    80% per 1s    continuous monitoring (e.g., ICUs) processed by one server
+PSMark-HM-2x             40       296     5% per 1s    80% per 1s    per hospital. The number of monitored beds is based on
+PSMark-HM-10x           200     1,480     5% per 1s    80% per 1s    the average bed count for a medium-sized French hospital,
+                                                                     assuming ∼20% require continuous monitoring [56]. Device
+mobility, and (iii) environmental air quality. For electricity, we   parameters come from [52] (vitals–heart rate and steps–,
+use a smart meter dataset [49] containing 3-minute readings          activity labels, temperature, humidity, location, device battery).
+across 100 households, which capture values such as hours            PSMark-HC includes 24 sensors. Hospitals aim for stable
+of power supply, voltage, and withdrawn current. Mobility            connectivity but remain dynamic (patient movement); we
+devices (vehicle counts, speeds, road occupancy, traffic lights,     therefore choose intermediate stability: every 5s, devices have
+weather, parking availability, energy consumption, pollution)        a 10% disconnection chance and 80% reconnection chance.
+are derived from a smart mobility dataset [51]. Environmental
+sensors (humidity, light, NO/NO2, ozone, PM10, CO2, sound,           PSMark-HM: Smart Home. This scenario models a home
+UV, air pressure) follow the Pune Smart City Development             IoT analytics platform with controllers (e.g., smart speak-
+Corporation Limited (PSCDCL) testbed [47] with 15-minute             ers), cameras, energy-management devices (e.g., plugs), health
+intervals. Based on the analysis of these datasets, we include       monitors (e.g., smoke detectors, scales), and smart appli-
+100 smart meters, 10 devices for each environmental signal,          ances (e.g., printers) based on [48]. Transmission parameters
+30 energy-sensing devices, 1 weather station, and 300 traffic        (payload length, rate) are drawn from a real-world deployed
+sensors per edge server, totaling 541 devices. City devices face     testbed [48], [57], [58]. Each home contains 20 devices in-
+less reliable connectivity; we translate this into a stability as-   cluding Amazon Echo, Belkin Motion Sensor, Belkin Switch,
+sessment every 5s with a 20% disconnection chance and 50%            Blipcate BP Meter, Dropcam, HP Printer, iHome PowerPlug,
+reconnection chance. To stress-test protocols under periods of       LiFX Bulb, and NEST Smoke Sensor, among others. Home
+burstiness while maintaining accurate message distributions,         devices are considered stable; we again consider smart home
+we reduce 3-minute and 15-minute intervals to 3s and 15s,            networks and devices reliable and use a 5% disconnection
+respectively, preserving relative rates across device types.         chance and 80% reconnection chance per second.
+
+PSMark-F: Smart Factory. We model an assembly line                   D. Distributed Measurement and Result Computation
+with six machines instrumented by IoT devices, following the
+setup in [53]. The line includes a sorting station, a multi-            PSMark natively measures pub/sub system performance in
+processing station (oven and milling), a high-bay warehouse,         terms of network and hardware resource consumption. During
+and a vacuum-gripper robot; Autonomous Mobile Robots                 execution, each node’s Storage Manager records message-
+(AMRs) support internal material transport [54]. Device pa-          send/-receive events as well as disconnections and reconnec-
+rameters are drawn from [50], which provides 10,000 one-             tions, persisting them locally in ETS (Erlang’s in-memory
+minute samples from an industrial machine. We extract six            store) to avoid overhead from networked databases or write-
+features (e.g., temperature, speed, production quality score,        to-disk operations. After a workload completes, the Storage
+vibration, energy consumption) and model one sensor per              Manager ships the necessary aggregates to peer nodes for
+feature in the dataset. AMR state and environment ROS [55]           metric computation, synchronizing it via Mnesia, Erlang’s
+distributed DBMS. Using ETS and Mnesia ensures efficient           standalone service or be embedded directly into IoT appli-
+data storage and minimizes computational overhead.                 cations and edge services. It provides each pub/sub client
+   The node’s Metric Manager initializes metric plugins and        with a dedicated write buffer to avoid one client starving the
+hardware resource monitors, coordinates metric computation         system. Subscription matching is implemented with a trie (a
+at the end of a run, and logs all events to persistent storage.    prefix-based search tree optimized for string retrieval). It is
+Each PSMark node reports its own results so that differences       implemented in Go.
+in network qualities or machine characteristics do not bias a      Eclipse Mosquitto [66] (v2.0.22): Prioritizes a computation-
+single global aggregate. In addition, pairwise network metrics     ally lightweight footprint for use in low power embedded sys-
+are collected among all node-to-node links to maintain ac-         tems. Hashed subscription filter are stored in a topic hierarchy
+curacy even when some inter-node network paths experience          tree to provide more efficient lookup. It is implemented in C.
+instability (C-1). While user-defined metrics can be added as      NanoMQ [67] (v0.24.2): Optimized for multi-core CPUs and
+plugins (C-5), PSMark includes standard network metrics [59],      implements a built-in scheduler to asynchronously process
+[60] and hardware-resource consumption metrics:                    messaging tasks across multiple threads. It uses a topic trie
+Message Receipt Throughput: The mean and variance of               for subscription matching. It is implemented in C.
+messages received per second by a node’s subscribers. We           VerneMQ [68] (v2.1.1): High-availability broker which em-
+report throughput from the receiver’s perspective, excluding       phasizes fault-tolerance through multiple clustered brokers.
+messages that were published but never delivered to that node.     Subscription matching is also performed with a trie. It is
+Message Loss: Number of messages published toward a node           implemented in Erlang/OTP.
+not received by its matching subscribers. This captures drops      OpenDDS [31] (v3.33.0): Popular, open-source, and fully
+in the network, the middleware, or (when present) the broker.      compliant with the DDS specification [7]. It prioritizes op-
+Message Latency: The mean, variance, and P90/95/99 values          erating system portability and interoperability with other DDS
+of the end-to-end time from publisher send to subscriber           systems. It is implemented in C++.
+receipt, measured at the application layer. This includes mid-        We expect MQTT systems to excel in lightweight messaging
+dleware/broker processing time plus network transit, reflect-      at scale. EMQX’s mass-scale optimization to favor lower
+ing IoT deployment experience rather than raw link latency.        latency and higher throughput under heavy fan-in workloads,
+Publishers include a publication timestamp in the payload;         Mochi-MQTT to offer minimal message loss and efficient
+subscribers compute latency without cross-node coordination.       utilization of broker system resources due to its separation
+PSMark assumes synchronized node clocks prior to execution.        of client buffers and the native concurrency provided by
+Computational Resources: CPU and memory usage for                  the Go language, Mosquitto to provide the lowest broker
+publishers/subscribers and, when applicable, the broker. To        system resource overhead to ensure its suitability for low
+avoid excess overhead, PSMark deterministically designates         power environments, and NanoMQ to show low latency and
+a single node per scenario to report broker resources. We use      high throughput in a multi-core testbed. We expect VerneMQ
+Prometheus Node Exporter v1.8.2 [61] on each benchmark             to offer middle-of-the-road performance in a non-clustered,
+node and on the broker’s host to query OS-level statistics; this   single broker deployment. In contrast, we expect the brokerless
+adds negligible network overhead (one query per snapshot).         DDS stack to incur higher system resource overheads on
+                                                                   benchmark nodes (e.g., participant discovery and richer QoS
+                   IV. P UB /S UB S YSTEMS                         negotiation, which is not offloaded to a broker) but to deliver
+   We assess several of the most widely used pub/sub systems       consistently low latency, and to provide strong reliability under
+using PSMark, including both MQTT and DDS implementa-              loss when configured to enforce strict QoS requirements.
+tions; our benchmark is designed to make such cross-paradigm
+evaluation systematic and reproducible. We selected open-                        V. E XPERIMENTAL E VALUATION
+source MQTT brokers with high popularity (according to             Experimental Testbeds. We execute PSMark in two environ-
+GitHub star counts), favorable industry comparisons [62], and      ments: a commodity server and a multi-node cluster.
+demonstrated use in distributed IoT deployments [24]. For            Commodity server: A single, physical host with an Intel
+DDS, we selected one system based on its popularity (i.e.,         Core i7-7700k (4 core) CPU, 32 GB RAM, and running
+GitHub star count) and its use of the Adaptive Communication       Ubuntu 22.04.1 (kernel 6.8.0-65-generic). The PSMark node,
+Environment which enables code portability across diverse          and any MQTT broker under test, run as Docker containers
+embedded systems and is widely used across domains such            (Engine 28.0.4); nodes use the official erlang:27-alpine image
+as healthcare, telecommunication, and industrial control [63].     as their base; Prometheus Node Exporter v1.8.2 is added to
+EMQX Open Source [64] (v5.8): Popular broker designed for          images to capture resource metrics. This setup uses a single
+mass-scale deployments (up to 100 million concurrent MQTT          PSMark node to emulate small-scale, IoT deployments on
+connections per cluster and millisecond-level latency). It uses    commodity hardware using LAN topologies.
+SQL-based subscription matching to provide highly efficient          Cluster: Two or more physical servers interconnected via a
+routing. It is implemented in Erlang/OTP.                          25 Gbps switch; each server has dual Intel Xeon Gold 5320
+Mochi-MQTT [65] (v2.7.9): High-performance broker de-              CPUs (52 total cores), 384 GB RAM, and hosts a Kubernetes
+signed for lightweight operation which can operate as a            (v1.33.2) cluster spanning multiple VMs (control plane or
+workers). All VMs run Debian 12.11 (kernel 6.1.0-37-amd64);         TABLE III: Five-node communication metrics (low-QoS).
+containerd v2.1.3 is the container runtime, and Cilium [69]                      EMQX LQ           Mochi-MQTT LQ        MosquittoLQ
+v1.17.6 the Container Network Interface (CNI) plugin. Each                   Lat   Tput    Drop   Lat    Tput Drop    Lat   Tput Drop
+                                                                            (ms) (msg/s)   (%)   (ms) (msg/s) (%)    (ms) (msg/s) (%)
+worker runs PSMark as a Kubernetes “Pod” so traffic traverses      C         14.93   691     0.0  11.12    690   0.0  11.96    689  0.1
+externally facing network interfaces, approximating multi-         C-2x      34.85  1381   <0.1   27.17   1381 <0.1   31.65  1328   3.9
+edge-server deployments. Chrony v4.3 ensures the Kubernetes        C-10x    187.59  6913   <0.1 167.29    6578   4.9  83.79  4648 32.8
+                                                                   F          0.89  2725   <0.1   15.38   2826 <0.1    7.75  2830 <0.1
+control-plane node syncs to external Network Time Protocol
+                                                                   F-2x       0.94  5493   <0.1 1920.27   4219 25.5 3010.44  3311 41.8
+(NTP) servers and acts as the NTP source for workers. We           HC         1.32    23     0.0   0.93     23   0.0   1.17     23  0.0
+observe sub-millisecond clock skews across the 16 second           HC-2x      1.31    45     0.0   0.82     45   0.0   1.11     45  0.0
+sync intervals, ensuring test results are not skewed by clock      HC-10x    10.74   234     0.0   8.49    233   0.0  11.11    234  0.0
+misalignment. We perform experiments with two, five, and           HM         1.02   714     0.0   0.90    713   0.0   1.16    715  0.0
+                                                                   HM-2x      0.96  1432     0.0   0.87   1429   0.0   3.31  1431   0.0
+eight PSMark nodes. One server (the “primary”) always hosts        HM-10x     0.95  7266     0.0   0.66   7251   0.0   1.14  7256   0.0
+the broker VM (for MQTT tests) and the control plane VM (16
+                                                                                NanoMQLQ             VerneMQLQ            OpenDDSLQ
+cores, 64 GB RAM) along with two PSMark VMs (8 cores, 32                    Lat     Tput Drop     Lat     Tput Drop     Lat   Tput Drop
+GB per worker). Extra servers host only three PSMark VMs.                  (ms) (msg/s) (%)      (ms) (msg/s) (%)      (ms) (msg/s) (%)
+We use one server for the two nodes tests, two servers for         C        48.60     689 <0.1     9.82     686  0.4    11.00   630  8.6
+                                                                   C-2x    106.64    1379 <0.1    19.77    1333  3.5    17.08  1258  8.8
+the five node tests, and three servers for the eight node tests.   C-10x  4336.30    5474 20.5    86.75    5351 22.5     N/A    N/A N/A
+Figure 4 shows the five-node configuration.                        F        17.40    2831 <0.1    16.98    2830 <0.1     8.56  2802  1.0
+                                                                   F-2x   5042.69    3994 29.2   296.48    3745 34.0 25990.97 5087 10.0
+                                                                   HC        7.05      23 <0.1     1.14      22  0.0     1.05    21  8.1
+                                                                   HC-2x    12.66      45 <0.1     1.07      45  0.0     2.73    41  8.3
+                                                                   HC-10x   68.77     233  0.2     5.91     234  0.0    21.70   212  8.9
+                                                                   HM        1.47     714  0.0     1.08     714  0.0     0.72   708  0.9
+                                                                   HM-2x     1.52    1430  0.0     0.98    1430  0.0     0.77  1415  0.9
+                                                                   HM-10x    3.16    7262 <0.1     0.81    7259  0.0     N/A    N/A N/A
+
+                                                                   every second). We denote configurations as XLQ and XHQ
+                                                                   (e.g., EM QXLQ or OpenDDSHQ ).
+           Fig. 4: Five-node testbed configuration.                Experimental Setup. For each system/testbed, we run all
+                                                                   PSMark workloads at their base scaling factors (see Table
+Pub/sub System Configuration. We benchmark the five                II) under both low and high QoS configurations. On the
+MQTT systems using MQTT version 5.0 [6]. To avoid biasing          cluster, 2x and 10x scales are also run using low QoS. Each
+results toward a particular domain or testbed, systems run as      experiment consists of 10 minutes of consistent workload
+close as possible to default configurations; we only change        traffic, repeated seven times (70 minutes total) for the multi-
+settings necessary for successful execution of PSMark: i) dis-     node testbed, and four times (40 minutes total) for single-node.
+able EMQX force_shutdown setting to prevent intentional            Reported results are the mean over iterations. Configurations
+crashes on queue-limit hits; ii) allow unauthenticated clients     and results are provided in the PSMark repository [40]. In
+in Mosquitto and VerneMQ (disabled by default); iii) con-          all tables, “N/A” indicates that the pub/sub system could not
+figure OpenDDS for RTPS discovery (rather than the default         complete the workload under the given configuration (e.g., due
+“InfoRepo” which is marked for deprecation). On the cluster,       to middleware/broker overload or fault).
+DDS is configured to use unicast for RTPS, as multicast is
+known to be unstable in Cilium [70]. These untuned settings        A. Multi-Node Experiments
+represent conservative, “worst-case” expectations. All MQTT
+                                                                      We evaluate the systems on two, five, and eight distributed
+brokers are deployed as standalone, self-hosted services. Note
+                                                                   nodes. For conciseness, we report the five-node results; full
+that OpenDDS uses TCP by default, ensuring messages tra-
+                                                                   results for all topologies are available in [40]. PSMark-F-
+verse the network cards even in the single-node testbed.
+                                                                   10x exceeded the capacity of every system in the five-node
+   Each system’s performance is analyzed under low and
+                                                                   deployment and is therefore omitted from the analysis below.
+high QoS requirements. In low QoS mode, MQTT brokers
+use QoS 0 (“at most once”, no delivery guarantees) and             Experiment 1 - Workload Network Performance.               We
+OpenDDS uses default QoS (no reliability nor node liveliness       first examine communication metrics: latency, throughput, and
+guarantees). In high QoS mode, MQTT uses QoS 2 (“ex-               dropped rate. Due to space constraints, we focus on low-QoS
+actly once”, four-way handshake to ensure message delivery).       configurations (see Table III and Table IV).
+OpenDDS uses the “RELIABLE” reliability setting (which             EMQX successfully processes all PSMark workloads with
+enforces eventual delivery of messages even should clients         > 99.9% delivery rate, and is the only system to sustain near-
+temporarily disconnect), the “TRANSIENT” durability setting        real-time rates on PSMark-F-2x. However, EMQX showed
+(with a depth of 5 to ensure late-joining subscribers receive      significant latency on all PSMark-C scales (second only to
+the previous 5 messages on a given topic), and a 1s liveliness     NanoMQ). Because PSMark-C includes an order of magnitude
+lease (which requires DDS entities to send heartbeat messages      more devices with higher instability than any other workload,
+this suggests EMQX performance is more sensitive to the                  TABLE IV: Five-node latency percentiles (low-QoS).
+quantity and frequency of client connections rather than the                       EMQX LQ            Mochi-MQTT LQ           MosquittoLQ
+rate of message publication, counter to our initial expectation.               P90   P95   P99       P90    P95   P99      P90    P95     P99
+                                                                    C          42.30 50.28 65.24     31.53 39.34 54.32     34.04 41.27 54.65
+Mochi-MQTT performs unexpectedly strongly on all PSMark-            F           1.38  1.55  1.93     39.85 46.20 57.79     19.65 25.50 46.75
+HC and PSMark-HM scales, delivering the lowest latency              HC          2.51  3.07  4.41      1.80   2.17 3.25      2.18    2.43 3.27
+among MQTT systems (except VerneMQ on PSMark-HC-                    HM          1.55  1.71  2.01      1.38   1.53 1.80      1.73    1.91 2.32
+10x) with no message loss. On PSMark-C-10x it drops fewer                          NanoMQLQ             VerneMQLQ             OpenDDSLQ
+messages and achieves higher throughput than Mosquitto,                        P90     P95   P99     P90     P95   P99     P90    P95   P99
+                                                                    C         141.64 169.41 219.48   30.62 38.62 53.68     32.35 46.98 76.06
+NanoMQ, and VerneMQ, though it trails EMQX. However,
+                                                                    F          44.39 50.49 57.35     40.02 46.82 61.92     26.19 30.81 38.74
+Mochi-MQTT struggles on PSMark-F-2x, where the the sce-             HC         12.18 13.83 16.89      2.14    2.55 4.01     2.16   3.00 5.18
+nario overwhelmed Mochi-MQTT’s message buffers causing              HM          2.61    3.08  4.01    1.66    1.84 2.20     1.16   1.34 1.76
+high latency and message loss as well as low throughput.
+Mosquitto showed average performance overall. It achieves            TABLE V: Five-node broker/DDS CPU usage (low-QoS).
+competitive latency values for MQTT on most workload                         EMQX LQ MochiLQ MosquittoLQ NanoMQLQ VerneMQLQ
+                                                                                                                                  OpenDDSLQ
+                                                                                                                                    (Delta)
+scalings (with only EMQX having lower latency percentiles on
+                                                                    C          4.13     1.86      1.41        3.80         3.33      2.95
+PSMark-F), but is easily overloaded: both PSMark-C-10x and          C-2x       7.58    3.07       2.01       7.20         5.35       6.12
+PSMark-F-2x show low throughput and >30% loss. Designed             C-10x     28.02    14.10      7.60       33.85        25.06       N/A
+for embedded/low-power contexts, Mosquitto trades scale for         F         15.25    24.54     12.36       12.92        22.56      3.49
+                                                                    F-2x      20.69    30.47     21.60       25.75        42.03      9.40
+footprint. Notably, PSMark-HM-10x runs at about half the
+                                                                    HC         0.82    0.51       0.55       0.66         0.50       0.06
+latency of PSMark-HM-2x, indicating performance does not            HC-2x      1.12     0.44      0.47        0.62         0.63      0.06
+scale proportionally to client count or message volume.             HC-10x     1.38    0.91       0.69       1.54         1.05       0.81
+NanoMQ underperformed expectations, with consistently               HM         6.94     2.49      1.53        3.68         4.00      1.50
+                                                                    HM-2x     10.20    4.60       1.95       5.44         7.10       3.09
+higher latency and message loss across most workloads.
+                                                                    HM-10x    25.89    12.09      5.58       12.91        18.63       N/A
+Although it achieves high throughput and comparatively
+lower loss than Mosquitto an VerneMQ on the demanding               Benchmark-node CPU usage across MQTT tests was largely
+PSMark-C-10x and PSMark-F-2x scenarios, it does so with             stable (exceeding a 2% delta only for PSMark-F and PSMark-
+>4s latency—unsuitable for real-time IoT. NanoMQ supports           C-10x), as expected given that brokers bear the queuing
+heavy multi-threading, but reaching its potential appears to re-    and routing load. Pub/sub system CPU results appear in
+quire intentional, deployment-specific tuning beyond defaults.      Table V. To quantify OpenDDS overhead, we take the mean
+VerneMQ behaved as expected in a single-broker setup: com-          MQTT PSMark node CPU utilization across a workload as a
+petitive on lighter PSMark-HC and PSMark-HM workloads               node’s baseline under that workload (which excludes broker-
+(comparable to EMQX and Mochi-MQTT), and generally                  side routing/matching). We then compare OpenDDS CPU
+lower latency, but with higher message loss on PSMark-C             usage to this baseline. Mosquitto’s suitability for constrained
+and PSMark-F-2x. We anticipate better performance in multi-         environments is clear: it consistently uses the least CPU with
+broker scenarios, although that is out of the scope of this paper   the exception of 3 workloads which exhibited a <1% delta.
+and will be explored as future work.                                Mochi-MQTT is also efficient against PSMark-C, PSMark-HC,
+OpenDDS shows low latency on PSMark-C-2x and the lighter            and PSMark-HM scalings. EMQX’s power shows the tradeoff
+PSMark-HM scales, but exhibits generally higher loss and            of higher CPU usage under lighter workloads. NanoMQ and
+poor scalability under low QoS settings (e.g., ∼26s latency         VerneMQ were broadly comparable. As expected, OpenDDS
+on PSMark-F-2x; failure on PSMark-C-10x and PSMark-HM-              adds minimal CPU load for light workloads, with overhead
+10x). While this is contrary to DDS’s strong performance in         increasing steadily as client counts and publish rates rise.
+prior studies [71], [22], these studies configured “RELIABLE”
+transport, better comparable to the high QoS configuration.         Experiment 3 - Impact of High QoS Requirements. We
+As with NanoMQ, OpenDDS seems to benefit strongly from              now consider the effects of high QoS settings on the work-
+deployment-specific tuning to reach expected performance.           loads’ base scaling (see Table VI). All systems incur a notable
+                                                                    latency increase, with none able to provide timely transfer
+   Overall, under low QoS, Mochi-MQTT and VerneMQ ob-
+                                                                    under defaults against PSMark-C in a single-broker setup.
+tain the best performance across all three metrics for lighter
+                                                                    Mochi-MQTT is the only system with zero message loss
+workloads, while EMQX trades slightly higher latency for far
+                                                                    under high QoS, slightly improving over its low-QoS results.
+greater reliability in high-intensity IoT deployments. Metrics
+                                                                    Other MQTT brokers exhibited some reliability degradation on
+exhibited high variance across systems/workloads, indicating
+                                                                    PSMark-C and PSMark-F due to the increased message counts,
+parameter tuning is required for consistent delivery timings.
+                                                                    processing overheads, and queue holding required to ensure
+Experiment 2 - Hardware Resource Utilization. We next               reliable delivery of messages. NanoMQ fails to complete
+analyze resource usage, again focused on low-QoS config-            PSMark-F under any test. OpenDDS’s high QoS configuration
+urations. Memory remained between ∼1.2% and 2.0% of                 drastically improves message delivery rates over unreliable
+the allocated RAM for both benchmark nodes and brokers.             settings, further highlighting the importance of tuning.
+ TABLE VI: Five-node communication metrics (high-QoS).                                 workloads. PSMark measures end-to-end behavior while cap-
+                  EMQX HQ                Mochi-MQTT HQ              MosquittoHQ        turing IoT device heterogeneity (publication frequencies, pay-
+              Lat   Tput      Drop      Lat    Tput Drop          Lat   Tput Drop      load sizes, and connection stability) across domains such as
+             (ms) (msg/s)     (%)      (ms) (msg/s) (%)          (ms) (msg/s) (%)
+C             38.12   588      14.8     31.85    690   0.0        38.69    566 17.8    smart cities, IIoT, healthcare, and smart homes. Its modular
+F              1.86  2729     <0.1      15.28   2830   0.0        53.66  1039 <0.1     architecture supports custom metrics, additional pub/sub proto-
+HC             5.87    23       0.0      3.36     23   0.0         7.22     22  0.0    cols, and deployment-specific client implementations. The PS-
+HM             1.47   716       0.0      1.40    714   0.0         2.12    710  0.0
+                                                                                       Mark implementation currently includes 12 built-in workloads,
+                   NanoMQHQ                  VerneMQHQ              OpenDDSHQ
+                                                                                       derived from 7 datasets that reflect observed device behaviors,
+                Lat     Tput Drop        Lat      Tput Drop       Lat   Tput Drop
+               (ms) (msg/s) (%)         (ms) (msg/s) (%)         (ms) (msg/s) (%)      2 protocols (MQTT, DDS), and network and computational
+ C            113.78      688 <0.1       65.47       565 18.0     45.00   688 <0.1     resource metrics. The full codebase, including Kubernetes
+ F               N/A     N/A N/A 292.09            2633    6.6     9.22  2808  0.6     and Docker launchers for easy multi-node and single-node
+ HC             15.90      22 <0.1       11.83        23   0.0    18.15    22  0.0
+                                         †         †
+                                                                                       deployments, and all experimental artifacts (configs, logs, and
+ HM              2.01     714      0.0     2.04      714 † 0.0     1.47   712  0.2
+†
+  Results represent 5 successful tests.
+                                                                                       raw results) for reproducibility are available on GitHub [40].
+                                                                                          Evaluating six popular pub/sub systems with PSMark has
+B. Single-Node Experiments.
+                                                                                       lead to several interesting observations: 1) Workload compo-
+   We also evaluate the systems on commodity hardware on                               sition matters more than raw volume. Although PSMark-F-2x
+the single-node testbed. Because smart city and non-base-                              (80 devices; 1,180 msgs/s) stressed most systems, PSMark-
+scaled workloads are infeasible on commodity hardware, we                              HM-10x (200 devices; 1,480 msgs/s) did not; implicating
+limit our analysis to PSMark-F, PSMark-HC, and PSMark-                                 device mix (rates, payload sizes) rather than message count
+HM, and compare trends with the multi-node results. The                                alone as the dominant driver of performance. This validates
+results for low-QoS configurations is shown in Table VII. All                          PSMark’s device-centric workload design over uniform “pub-
+systems easily handle the reduced traffic from a single node.                          lishers × rate” load models. 2) QoS–throughput trade-offs are
+MQTT brokers exhibit no loss with uniformly low latency.                               steep at scale. Tightening guarantees (e.g., MQTT QoS 2,
+OpenDDS shows significantly more reliability in a single-                              DDS reliable + durable + liveness) significantly increased
+node setting, processing workloads with comparable latency                             latency and loss (or even led to failures) for most systems
+to the MQTT brokers with nearly an order of magnitude less                             on high-volume workloads. Even when latency is not critical,
+drops than it’s five-node performance. EMQX exhibited higher                           reliability settings must be balanced against system resources
+latency than in the 5-node environment for PSMark-F, but                               and queueing capacity. 3) Resource efficiency vs. spare capac-
+showed slightly higher reliability overall. Mosquitto maintains                        ity varies widely. Mosquitto consumed the least CPU in several
+the lowest CPU usage among brokers for heavier workloads;                              scenarios (up to 78% lower than peers on PSMark-HM-10x)
+but is outperformed on other workloads; EMQX remains the                               but saturated early. Where messages are independent, sharding
+most resource-hungry. Under high QoS, MQTT latency once                                across multiple lightweight brokers may be more resource-
+again increases across the board. NanoMQ and VerneMQ drop                              efficient than a single high-capacity broker. 4) Default config-
+<0.1% of their messages, while all other brokers maintain                              urations hinder performance but enable generality. While it
+perfect reliability. OpenDDS shows the largest gains, achiev-                          was expected that some systems would fail to achieve their full
+ing perfect reliability with latency comparable to its low-                            potential under default configurations, others (e.g., EMQX)
+QoS runs. Overall, single-node IoT deployments experience                              effectively processed multiple workloads. This is important
+few reliability concerns. These results further underscore the                         for hybrid scenarios (e.g., smart cities integrating smart home
+need to configure scalable, clustered brokers in multi-node                            devices), where tuning for a single domain may not be optimal.
+MQTT contexts to allow load balanced data transfer and avoid                              As future work, we plan to (i) add a PSMark control
+overwhelming brokers with excessive message frequency.                                 plane for dynamic node orchestration, system configuration,
+ TABLE VII: One-node communication metrics (low-QoS).                                  and network impairment emulation; (ii) support automated
+                  EMQX LQ                Mochi-MQTT LQ               MosquittoLQ
+                                                                                       placement of publisher groups across independent compute
+              Lat   Tput Drop           Lat    Tput Drop          Lat    Tput Drop     instances to better mirror real topologies; (iii) introduce fine-
+             (ms) (msg/s) (%)          (ms) (msg/s) (%)          (ms) (msg/s) (%)      grained topic controls and policy-driven device behaviors; and
+F              1.95   568  0.0           2.43    562   0.0         4.91     566  0.0
+                                                                                       (iv) extend metrics and protocol coverage, including protocols
+HC             1.26     5  0.0           0.71      5   0.0         0.64       5  0.0
+HM             0.82   143  0.0           0.52    144   0.0         0.47     142  0.0   using content-based subscription which do not require chan-
+                  NanoMQLQ                 VerneMQLQ                 OpenDDSLQ
+                                                                                       nels to be identified by topics.
+              Lat     Tput Drop         Lat     Tput Drop         Lat    Tput Drop
+             (ms) (msg/s) (%)          (ms) (msg/s) (%)          (ms) (msg/s) (%)                           ACKNOWLEDGMENT
+F              2.03     563 <0.1         1.99     566 <0.1         2.69    563 <0.1       This work is partially supported by the European Union’s Horizon
+HC             1.65       5  0.0         1.29       5  0.0         0.65      5  0.9
+                                                                                       Europe research and innovation actions under grant agreements No.
+HM             0.52     143  0.0         0.70     143  0.0         0.68    144 <0.1
+                                                                                       101168560 (CoEvolution) and No. 101168465 (MEDIATE) and NSF
+                  VI. C ONCLUSION                                                      Award #2451803. Experiments were partly carried out using the
+  We introduced PSMark, a distributed benchmarking frame-                              Grid’5000, supported by Inria, CNRS, RENATER and others (see
+work for pub/sub systems under deployment-derived IoT                                  https://www.grid5000.fr).
+                               R EFERENCES                                           [36] EMQ Technologies Inc., “Lightweight mqtt benchmark tool written in
+                                                                                          erlang,” 2025. [Online]. Available: https://github.com/emqx/emqtt-bench
+ [1] Richard. Miller and Kelli. Washington, Consumer Use of the Internet and         [37] RTI Connext DDS Community, “Rti perftest,” 2022. [Online]. Available:
+     Mobile 2026., 10th ed., ser. RKMA Market Research Ebook Series v.4.                  https://github.com/rticommunity/rtiperftest
+     Richard K. Miller & Associates, 2025.                                           [38] E. Longo et al., “Border: A benchmarking framework for distributed mqtt
+ [2] R. Chataut et al., “Unleashing the power of iot: A comprehensive review              brokers,” IEEE IoTJ, vol. 9, 2022.
+     of iot applications and future prospects in healthcare, agriculture, smart      [39] A. Shukla et al., “RIoTBench: An IoT benchmark for distributed stream
+     homes, smart cities, and industry 4.0,” Sensors, vol. 23, 2023.                      processing systems,” CCPE, vol. 29, 2017.
+ [3] G. Bouloukakis et al., “Unlocking aiot efficiency in the computing contin-      [40] C. Badolato et al., “PSMark: A distributed pub/sub iot benchmark,” 2026.
+     uum - the pandora framework,” in 15th Int. Conf. on the IoT, 2025.                   [Online]. Available: https://github.com/DAMSlabUMBC/PSMark
+ [4] S. I. Siam et al., “Artificial intelligence of things: A survey,” ACM Trans.    [41] B. Gupta and M. Quamara, “An overview of internet of things (iot):
+     Sen. Netw., vol. 21, 2025.                                                           Architectural aspects, challenges, and protocols,” CCPE, vol. 32, 2020.
+ [5] H. Fu et al., “Aiot: Artificial intelligence and the internet of things for     [42] W. Yu et al., “A survey on the edge computing for the internet of things,”
+     monitoring and prognosis of systems and structures,” IEEE Trans. on                  IEEE Access, vol. 6, 2018.
+     Instrumentation and Measurement, vol. 74, 2025.                                 [43] EMQ Technologies, “emqtt,” 2025. [Online]. Available: https://github.
+ [6] OASIS MQTT TC, “Mqtt version 5.0,” 2019. [Online]. Available:                        com/emqx/emqtt
+     https://docs.oasis-open.org/mqtt/mqtt/v5.0/os/mqtt-v5.0-os.html                 [44] A. Chio et al., “Smartspec: A framework to generate customizable,
+ [7] Object Management Group, “OMG Data Distribution Service (DDS),”                      semantics-based smart space datasets,” Pervasive Mob. Comput., 2023.
+     2015. [Online]. Available: https://omg.org/spec/DDS                             [45] C. Badolato et al., “Your smart home exchanged 3m messages: Defining
+ [8] M. Nast et al., “A survey and comparison of publish/subscribe protocols              and analyzing smart device passive mode,” in PerCom, 2025.
+     for the industrial internet of things,” in 12th Int. Conf. on the IoT, 2023.    [46] R. Hernangómez et al., “Toward an AI-Enabled Connected Industry: AGV
+ [9] IIoT World, HiveMQ, “Trends and Technology Adoption,” 2019. [On-                     Communication and Sensor Measurement Datasets,” IEEE Communica-
+     line]. Available: https://iiot-world.com/industrial-iot/connected-industry/          tions Magazine, vol. 62, 2024.
+     survey-results-building-iiot-systems-trends-and-technology-adoption/            [47] Akshit Mahajan, “Pune Smart City Dataset,” 2022. [Online]. Available:
+[10] Object Management Group, “Who’s using dds,” 2025. [Online]. Available:               https://kaggle.com/datasets/akshman/pune-smartcity-test-dataset
+     https://dds-foundation.org/who-is-using-dds-2/                                  [48] A. Sivanathan et al., “Classifying IoT Devices in Smart Environments
+[11] B. Mishra and A. Kertesz, “The use of mqtt in m2m and iot systems: A                 Using Network Traffic Characteristics,” IEEE TMC, 2018.
+     survey,” IEEE Access, vol. 8, 2020.                                             [49] S. Agrawal et al., “High frequency smart meter data from two districts in
+[12] HiveMQ, “Berlex connects traffic signals to the cloud with hivemq,”                  India (Mathura and Bareilly),” 2021.
+     2020. [Online]. Available: https://hivemq.com/case-studies/berlex/              [50] Python Developer, “Smart Manufacturing Process Data,” 2025.
+[13] I. Ahmed et al., “Wireless Communications for the Hospital of the Fu-                [Online]. Available: https://www.kaggle.com/datasets/programmer3/
+     ture: Requirements, Challenges and Solutions,” Int. J. of Wireless Info.             smart-manufacturing-process-data
+     Networks, vol. 27, 2020.                                                        [51] Ziya, “Smart Mobility Traffic Dataset,” 2025. [Online]. Available:
+[14] J. Ma et al., “A customizable benchmarking tool for evaluating person-               https://kaggle.com/datasets/ziya07/smart-mobility-traffic-dataset
+     alized thermal comfort provisioning in smart spaces using digital twins,”       [52] Vinod       Kumar,       “IoT     in     Healthcare      &      Well-being,”
+     Pervasive Mob. Comput., 2025.                                                        2025. [Online]. Available: https://www.kaggle.com/datasets/dcsavinod/
+[15] N. Papadakis et al., “A context-aware benchmarking approach for                      iot-in-healthcare-and-well-being
+     scenario-based evaluation of smart devices,” in IoT, 2025.                      [53] University of Trier IoT Lab, “Fischertechnik Smart Factory,” 2025.
+[16] A. Hamid et al., “Genaipabench: A benchmark for generative ai-based                  [Online]. Available: https://www.uni-trier.de/en/index.php?id=69689
+     privacy assistants,” Proc. Priv. Enhancing Technologies, 2024.                  [54] R. Hernangómez et al., “Toward an ai-enabled connected industry: Agv
+[17] P. Gupta et al., “Smartbench: A benchmark for data management in smart               communication and sensor measurement datasets,” IEEE Communications
+     spaces,” Proc. VLDB Endow., vol. 13, 2020.                                           Magazine, vol. 62, 2024.
+[18] M.        Jin,       “Open        MQTT          Benchmarking         Compari-   [55] M. Quigley et al., “Ros: an open-source robot operating system,” in ICRA
+     son,”       2023.      [Online].       Available:      https://emqx.com/blog/        workshop on open source software, vol. 3, no. 3.2. Kobe, 2009.
+     open-mqtt-benchmarking-comparison-mqtt-brokers-in-2023                          [56] J.-Y. Lefrant et al., “Icu bed capacity during covid-19 pandemic in france:
+[19] OpenDDS Foundation, “OpenDDS Performance Testing,” 2024. [Online].                   From ephemeral beds to continuous and permanent adaptation,” ACCPM,
+     Available: https://opendds.org/about/performance.html                                2021.
+[20] A. Khizhniak and Y. Goortovoi, “Collection of 20+ MQTT Broker Perfor-           [57] A. Sivanathan et al., “Characterizing and classifying iot traffic in smart
+     mance Benchmarks,” 2023. [Online]. Available: https://altoroslabs.com/               cities and campuses,” in INFOCOM Workshops, 2017.
+     blog/a-collection-of-mqtt-broker-performance-benchmarks-2020-2023               [58] R. Kumar et al., “Iot network traffic classification using machine learning
+[21] eProsima, “eProsima/benchmarking,” 2022. [Online]. Available: https:                 algorithms: An experimental analysis,” IEEE IoTJ, vol. 9, 2022.
+     //github.com/eProsima/benchmarking                                              [59] M. S. Aslanpour et al., “Performance evaluation metrics for cloud, fog and
+[22] V. Bode et al., “Systematic Analysis of DDS Implementations,” in MID-                edge computing: A review, taxonomy, benchmarks and standards for future
+     DLEWARE, 2023.                                                                       research,” Internet of Things, vol. 12, 2020.
+[23] A. Aguiar and R. Morla, “Lessons learned and challenges on benchmark-           [60] A. Obiniyi et al., “New innovations in performance analysis of computer
+     ing publish-subscribe iot platforms,” in CPS-IoTBench, 2019.                         networks: A review,” Int. J. of Applied Info. Systems, vol. 6, 2014.
+[24] H. Koziolek et al., “A Comparison of MQTT Brokers for Distributed IoT           [61] Prometheus Authors, “Prometheus node exporter,” 2025. [Online].
+     Edge Computing,” in Software Architecture: 14th European Conf, 2020.                 Available: https://github.com/prometheus/node exporter
+[25] The Apache Software Foundation, “Apache jmeter,” 2025. [Online].                [62] F.    Wang,      “Comparison       of    Open     Source     MQTT      Bro-
+     Available: https://jmeter.apache.org/index.html                                      kers,” 2025. [Online]. Available: https://www.emqx.com/en/blog/
+[26] Gatling Corp., “Gatling,” 2025. [Online]. Available: https://gatling.io/             a-comprehensive-comparison-of-open-source-mqtt-brokers-in-2023
+[27] J. Heyman et al., “Locust,” 2025. [Online]. Available: https://locust.io/       [63] DOCGroup, “ACE, TAO, and CIAO Success Stories,” 2018. [Online].
+[28] L. Zilhão et al., “A Modular Tool for Benchmarking loT Publish-Subscribe            Available: https://cs.wm.edu/∼dcschmidt/ACE-users.html
+     Middleware,” in 19th WoWMoM, 2018.                                              [64] EMQ Technologies Inc., “Emqx,” 2025. [Online]. Available: https:
+[29] S. Herrnleben et al., “ComBench: A Benchmarking Framework for Pub-                   //github.com/emqx/emqx
+     lish/Subscribe Communication Protocols Under Network Limitations,” in           [65] Mochi MQTT, “Mochi-mqtt server,” 2025. [Online]. Available: https:
+     Performance Evaluation Methodologies and Tools, 2021.                                //github.com/mochi-mqtt/server
+                                                                                     [66] R. A. Light, “Mosquitto: server and client implementation of the mqtt
+[30] K. Zhang et al., “PSBench: A benchmark for content- and topic-based
+                                                                                          protocol,” Journal of Open Source Software, vol. 2, 2017.
+     publish/subscribe systems,” in MIDDLEWARE, 2014.
+                                                                                     [67] EMQ Technologies Inc., “Nanomq,” 2025. [Online]. Available: https:
+[31] OpenDDS Foundation, “OpenDDS,” 2025. [Online]. Available: https:
+                                                                                          //github.com/nanomq/nanomq
+     //github.com/OpenDDS/OpenDDS
+                                                                                     [68] Octavo Labs AG, “VerneMQ: A Distributed MQTT Broker,” 2025.
+[32] P. T. Eugster et al., “The many faces of publish/subscribe,” ACM Comput-
+                                                                                          [Online]. Available: https://github.com/vernemq/vernemq
+     ing Surveys, vol. 35, 2003.
+                                                                                     [69] Cilium Authors, “Cilium,” 2025. [Online]. Available: https://github.com/
+[33] C. C. Sobin, “A Survey on Architecture, Protocols and Challenges in IoT,”            cilium/cilium
+     Wireless Personal Communications, vol. 112, 2020.                               [70] Cilium, “Multicast Support in Cilium (Beta),” 2025. [Online]. Available:
+[34] OASIS AMQP TC, “Amqp v1.0,” 2012. [Online]. Available: https:                        https://docs.cilium.io/en/latest/network/multicast/
+     //docs.oasis-open.org/amqp/core/v1.0/amqp-core-complete-v1.0.pdf                [71] M. Aartsen et al., “Analyzing Interoperability and Security Overhead of
+[35] Object Management Group, “DDS Interoperability Wire Protocol,” 2022.                 ROS2 DDS Middleware,” in MED, 2022.
+     [Online]. Available: https://omg.org/spec/DDSI-RTPS
+

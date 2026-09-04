@@ -1,0 +1,1305 @@
+                                        Thoughtful Things: Building Human-Centric Smart Devices with
+                                        Small Language Models
+                                        EVAN KING, University of Texas at Austin, USA
+                                        HAOXIANG YU, University of Texas at Austin, USA
+                                        SAHIL VARTAK, University of Texas at Austin, USA
+                                        JENNA JACOB, University of Texas at Austin, USA
+                                        SANGSU LEE, University of Texas at Austin, USA
+arXiv:2405.03821v1 [cs.HC] 6 May 2024
+
+
+
+
+                                        CHRISTINE JULIEN, University of Texas at Austin, USA
+                                        Everyday devices like light bulbs and kitchen appliances are now embedded with so many features and automated behaviors
+                                        that they have become complicated to actually use. While such “smart” capabilities can better support users’ goals, the task of
+                                        learning the “ins and outs” of different devices is daunting. Voice assistants aim to solve this problem by providing a natural
+                                        language interface to devices, yet such assistants cannot understand loosely-constrained commands, they lack the ability to
+                                        reason about and explain devices’ behaviors to users, and they rely on connectivity to intrusive cloud infrastructure. Toward
+                                        addressing these issues, we propose thoughtful things: devices that leverage lightweight, on-device language models to take
+                                        actions and explain their behaviors in response to unconstrained user commands. We propose an end-to-end framework that
+                                        leverages formal modeling, automated training data synthesis, and generative language models to create devices that are both
+                                        capable and thoughtful in the presence of unconstrained user goals and inquiries. Our framework requires no labeled data
+                                        and can be deployed on-device, with no cloud dependency. We implement two thoughtful things (a lamp and a thermostat)
+                                        and deploy them on real hardware, evaluating their practical performance.
+                                        Additional Key Words and Phrases: natural language interfaces, generative language models, self-explaining systems, smart
+                                        devices, human-centered computing
+                                        ACM Reference Format:
+                                        Evan King, Haoxiang Yu, Sahil Vartak, Jenna Jacob, Sangsu Lee, and Christine Julien. 2024. Thoughtful Things: Building
+                                        Human-Centric Smart Devices with Small Language Models. 1, 1 (May 2024), 24 pages. https://doi.org/XXXXXXX.XXXXXXX
+
+                                        1    INTRODUCTION
+                                        Miniaturization of hardware, coupled with ubiquitous connectivity and increasingly powerful software imple-
+                                        mentations have produced a dramatic boost in the capability—and complexity—of everyday devices. Ovens can
+                                        now subtly adapt cooking modes to different recipes [38], while thermostats can utilize long-term sensing to learn
+                                        energy-efficient schedules based on user habits [21]. Even light bulbs have evolved from simple “on-off” devices
+                                        to include the ability to adapt to a user’s circadian rhythms [35]. This complexity is further compounded in
+                                        high-end “prosumer” devices, which tend to incorporate even deeper sets of features—from musical synthesizers
+                                        Authors’ addresses: Evan King, e.king@utexas.edu, University of Texas at Austin, Austin, Texas, USA; Haoxiang Yu, hxyu@utexas.edu,
+                                        University of Texas at Austin, Austin, Texas, USA; Sahil Vartak, sv25972@utexas.edu, University of Texas at Austin, Austin, Texas, USA;
+                                        Jenna Jacob, jenna.jacob@utexas.edu, University of Texas at Austin, Austin, Texas, USA; Sangsu Lee, sethlee@utexas.edu, University of Texas
+                                        at Austin, Austin, TX, USA; Christine Julien, c.julien@utexas.edu, University of Texas at Austin, Austin, Texas, USA.
+
+                                        Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that
+                                        copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first
+                                        page. Copyrights for components of this work owned by others than ACM must be honored. Abstracting with credit is permitted. To copy
+                                        otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from
+                                        permissions@acm.org.
+                                        © 2024 Association for Computing Machinery.
+                                        XXXX-XXXX/2024/5-ART $15.00
+                                        https://doi.org/XXXXXXX.XXXXXXX
+
+
+                                                                                                                                    , Vol. 1, No. 1, Article . Publication date: May 2024.
+2   • E. King, et al.
+
+
+    Change to a dim, warm glow.                                        How bright is that?
+
+
+
+
+                                                   “state”: “on”,
+                                                   “brightness”: 50,
+                                                   “color”: {
+                                                                                                       The light is
+                                                     “r”: 128,
+                                                     “g”: 0,                                           moderately dim
+                                                     “b”: 0                                            with a warm
+                                                   }                                                   reddish color.
+
+
+
+Fig. 1. Our prototype implementation of a “thoughtful lamp”. The lamp leverages a fine-tuned small language model running
+on a Raspberry Pi to respond to loosely constrained user commands with appropriate actions (e.g., changing color; left to
+right) and explanations (e.g., describing its state and capabilities; right)
+
+
+with nearly-infinite combinations of parameters [53] to exercise bikes that adapt workout routines to different
+fitness levels [6]. However, for all but the most technically literate “power users”, these smart devices can be
+intimidating [25, 28]—if only because their capabilities are not easily understood, and the reasoning behind their
+behaviors is often unclear [63]. In understanding the capabilities and behaviors of their devices, users face a
+steeper learning curve than ever: the user manual for a “smart” General Electric refrigerator, for instance, is twice
+as long as its “non-smart” counterpart [2, 3]. Modern devices are empowered to do more than ever and, as a
+result, are more complicated than ever to actually use.
+   Natural language interfaces (NLI) are a popular way for users to control smart devices. The most widely-adopted
+NLI are “smart home assistants” like Alexa or Google Home, which can interpret simple voice commands to
+control devices connected to a user’s home network. In practice, home assistants have numerous issues; among
+them, they impose burdensome, rigid command structures that make them frustrating to use [42, 58] and rely on
+constant connectivity to the cloud. With cloud dependency comes a host of other concerns: high business cost [13],
+weak user privacy [5, 54], and unpredictable “bricking” of users’ devices when services are sunset [4, 12, 44].
+While the recent introduction of large language models (LLMs) for device control provides added flexibility [30],
+these approaches rely on GPU-hungry LLMs that demand either powerful hardware [45] or impose the same
+cloud dependency as existing smart home assistants [31]. Furthermore, recent LLM-based smart home systems
+cannot explain the reasoning behind devices’ behaviors—they can act, but they cannot think.
+   In this paper, our objective is to build smart devices that are not only capable, but also thoughtful. This
+“thoughtfulness” refers to individual devices that possess some degree of self-knowledge that allows them to
+flexibly reason about their internal settings and states in relation to users’ inquiries and goals. A user might ask a
+thoughtful lamp, for instance, to “make it more welcoming in here”, and the lamp can reason about “welcoming”
+in relation to its available settings to meet the user’s goal in a flexible manner. A thoughtful thermostat might
+leverage its self-knowledge to explain to a confused user who asks “why did the heat turn off?” when the
+thermostat executes an otherwise-opaque learned schedule. In realizing a thoughtful thing, we synergize a feature-
+rich device’s ability to take actions and provide helpful explanations in response to loosely-constrained user
+commands. We accomplish this with no dependence on the cloud or on GPU-rich local hardware, which improves
+device longevity and benefits user privacy. Consequently, these devices are more human-centric because user
+interactions are tailored to the goals, communication styles, and privacy concerns of users.
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                    Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models •         3
+
+
+   The key insight of our work is that we only need to define a state model for a device, after which we can
+automate the task of training a small language model to reason about the device in the manner of a “thoughtful
+thing”. We develop this concept in several steps. First, we establish a definition of “thoughtful things”, along
+with some simplifying assumptions. We then introduce a general-purpose framework for building thoughtful
+things. Our five-step approach allows us to build thoughtful things by training a grounded, lightweight model
+of self-knowledge using a combination of formal modeling, automated training data synthesis, and small (i.e.,
+sub-3B-parameter), fine-tuned language models. This self-knowledge empowers a thoughtful thing to reason
+about its internal settings and states in relation to unconstrained natural language commands given by users
+without a need for cloud connectivity or expensive hardware, and requires no labeled data collection to train.
+To demonstrate our framework, we undertake two case study implementations of thoughtful things—a lamp
+and a thermostat. We deploy both implementations on a realistic consumer device (Raspberry Pi) and show the
+effectiveness of our framework for building devices that provide high-quality, human-centric user interactions.
+   Our key contributions are as follows:
+      • A practical framework for building thoughtful things: devices that leverage small, fine-tuned language
+        models to reason about their own behaviors and capabilities to respond to unstructured user commands with
+        appropriate actions or explanations. Our framework requires no labeled training data and leverages models
+        small enough to run on-device, removing the need for costly, intrusive, and ephemeral cloud infrastructure.
+      • A set of evaluations that demonstrate the practical performance of models produced by our framework.
+      • Two implementations of thoughtful things—a thoughtful lamp and a thoughtful thermostat—which we
+        integrate on readily available consumer hardware (Raspberry Pi 5). We collect empirical measurements of
+        on-device performance (e.g., response latency), which hint at feasibility for practical applications.
+  The paper is organized as follows. Section 2 situates the paper with related work, definitions, and simplifying
+assumptions. Section 3 introduces our framework for building thoughtful things. Section 4 describes our real-world
+implementations of two thoughtful things using our framework: a thoughtful lamp and thoughtful thermostat.
+Section 5 evaluates the quality and runtime performance of the models produced by our framework, while
+Section 6 discusses limitations and avenues for future work. Section 7 concludes.
+
+2     BACKGROUND
+We first discuss related work in empirical studies, self-explaining systems, natural language interfaces, and large
+language models. We then establish a set of definitions and assumptions that situate the remainder of the paper.
+
+2.1    Related Work
+Prior empirical studies motivate our effort to improve smart device usability and understandability. Lazar et
+al. found that smart device users “may not have the expertise of how devices could suit their goals” and that
+“extra work...was a significant issue” that leads to abandonment of smart devices [37]. He et al. noted that smart
+device users often believe “one had to be an expert to write rules” to make full use of one’s devices, and that
+“inexperienced users were intimidated”. They also found that the opaque automated behaviors of, e.g., smart
+thermostats, are a common cause of frustration, concluding that “it is necessary to give users greater transparency”
+about devices’ behaviors [25]. The importance of transparency is echoed in studies by Coskun et al. and Yang et
+al. [15, 63]. In a study among older adults, Iancu and Iancu found that while users “like owning smart devices,
+they consider them too complex and intrusive”, and concluded that users “require substantial help in using,
+understanding and discovering new functions of...device[s]” [28]. Privacy is particularly important, as user fears
+about cloud-connected devices that are “always listening” are known to reduce adoption [22]. User studies signal
+a need for smart devices that are usable, understandable, and unintrusive in spite of their complexity [39].
+
+                                                                             , Vol. 1, No. 1, Article . Publication date: May 2024.
+4 •    E. King, et al.
+
+
+    Self-explaining systems that can describe their capabilities and reasoning are proposed to improve user trust
+and understanding [17, 34]. In smart environments, prior work achieves self-explanation by composing formal
+descriptions of device capabilities and/or automation rules to provide instructions and descriptions to users.
+Lieberman et al. proposed Roadie, a framework for generating device instructions by leveraging a knowledge
+graph of user goals, a set of device actions, and a partial-order planner [40]. Burmeister et al. subsequently
+proposed a “Smart Object Description Language” for formalizing the capabilities of smart devices [10, 11], which
+Kordts et al. integrated in a framework that synthesizes user documentation for ensembles of smart devices [33].
+Coppers et al. and Sadeghi et al. similarly leverage formal treatments for self-explanation, but focus on user-
+centric explanations of automation routines at different levels of specificity [14, 52]. As in prior work, our
+framework leverages formal descriptions of devices—albeit to a different end. We leverage formalization as a
+sort of grounding for training and reasoning with a generative language model. This allows us to incorporate
+out-of-domain knowledge—e.g., information about the how device settings relate to abstract concepts like mood,
+or human contexts—that tends to be absent from formal specifications.
+    Natural language interfaces (NLI) that enable users to interact with devices via spoken commands are
+popular due to their purported accessibility and ease-of-use [47, 49]. Yates et al. proposed an early NLI for
+appliances that leverages a behavioral model and relational database to allow users to query or modify device
+state with structured commands, e.g., to ask an answering machine “how many messages?” or to “delete old
+messages” [64]. A variety of works have proposed NLI to other devices, e.g., fridges [19, 22], automobiles [57], and
+sound synthesizers [8, 43]. Research in NLI has predominantly focused on methods for intent detection and slot
+filling, through which a system extracts key intents and entities from user utterances to map to hard-coded system
+actions [61]. “Smart home assistants” like Google Home and Alexa are arguably the dominant form of NLI for
+smart device control in practice. These assistants tend to suffer from an inability to understand loosely-constrained
+commands, which contributes to high user friction and dissatisfaction while limiting accessibility [16, 42, 46].
+    Large language models (LLMs) have recently gained traction due to their high performance at many
+downstream natural language tasks. LLM research stems from the introduction of the transformer architecture
+by Vaswani et al., which leverages “attention” to model inter-sequence dependencies in language [59]. When
+trained on significant amounts of unconstrained text, these models can generalize to a variety of tasks involving
+language, including code synthesis [62] and reasoning [32]. These models also exhibit good performance at smart
+home control, as they are able to model the relationship between unconstrained natural language and device
+settings and/or state encoded in, e.g., JSON (see Fig. 2). King et al. introduced the use of LLMs for controlling
+ensembles of smart devices with Sasha, a system that leverages general-purpose LLMs (i.e., GPT-4 [1] and Llama
+2 [56]) to generate “action plans” in response to unconstrained user commands [31]. Paul et al. proposed a
+method for synthesizing data and fine-tuning smaller language models (i.e., Llama 2) to specialize at smart device
+control [45]. As with prior work, we leverage language models for device control, but introduce several important
+novelties. First, our work leverages local models that are less than half the size of the state of the art for smart
+spaces—the 2.7B Phi-2 [23] and the 2B Gemma [55] base models—which greatly reduces the cost of training and
+implementation in real devices. Second, our approach differs in that we train models to reason about the state of
+individual devices, rather than ensembles. Finally, our work is the first to introduce the use of small language
+models for smart device explainability, which has not been explored in the literature.
+
+2.2    Definitions & Assumptions
+Our goal is to build everyday devices that can respond to a given unconstrained user command with either an
+appropriate action 𝛼 or logically correct explanation 𝜖 (Fig. 3). A device acts by transitioning to a valid and
+appropriate state, i.e., by choosing settings that satisfy the user’s request. An action 𝛼 is therefore an actionable (i.e.,
+machine-parseable) description of the state that a device should take in response to a command. A device explains
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                              Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models •                   5
+
+
+                               “it’s too dark in here”                           “it’s way too cold”             55F
+
+
+
+                              {”                             {”                {”                                  {”
+                          state                              state           tem                                   tem
+                              “:                             “:         perature                                   perature
+                                ”                            ”                 “:                                  “:
+                            off                              off               55                                  55
+                              “}                             “}                  }                                 }
+                                it                           it                  it                                it
+                               ‘s                            ‘s                 ‘s                                 ‘s
+                             too                             too             way                                   way
+                            dark                             dark             too                                  too
+                               in                            in              cold                                  cold
+                            here                             here
+
+
+Fig. 2. Visualizations of attention in a transformer model (Phi-2) given input user commands and device states. Generalist
+base models are pre-trained on large amounts of code and unconstrained text, so they learn semantic relationships between
+commands and relevant machine-readable state (e.g., “dark” and “off”). In this paper, we fine-tune these models to generate
+responses with device-specific actions and explanations that adhere to a real device’s state model.
+
+
+                   User Command                                                 Device                                         Response
+                                     cα   Action-Oriented                                                               α          Action
+                                                                           Generative Model
+                                                                                                                        {
+             well-specified          set to 50% brightness                      (LLM)                                       “state”: “on”,
+moderately underspecified            make it dimmer                                                                         ”brightness”: 50
+      fully underspecified           it’s too bright                                                                    }
+
+
+
+
+                                     cє Explanation-Oriented                   State Model                              є       Explanation
+                                     what is the brightness?                                                           “The lamp is currently on
+                                                                                      “on”: {
+
+                                                               ?                      }
+                                                                                        ”brightness”: (0, 100)
+
+
+
+                                     how bright is that?                                                               and set to a medium
+                                     why is it so bright?                                                              brightness.”
+                                                                                      “off”: {
+
+                                                                                      }
+
+
+
+
+Fig. 3. Thoughtful things are devices that respond to unconstrained user commands with appropriate actions (i.e., state
+changes) or explanations (i.e., descriptions of current state and capabilities). We accomplish this by combining a small,
+fine-tuned generative language model with a formal system model. The LLM flexibly synthesizes new states and explanations
+in response to diverse user commands, while the system model grounds responses in a device’s true capabilities.
+
+
+by generating a natural language description of its current state, with sensitivity to the device’s capabilities.
+Taking the example of a “thoughtful lamp”, the device should respond to an action-oriented command 𝑐 𝛼 like
+“make the light better for reading” by generating an action 𝛼 that assigns, e.g., a brightness and color that a user
+would find appropriate for reading. If the user issues an explanation-oriented command 𝑐𝜖 like “is this as
+bright as it gets?”, the lamp should reason about its capabilities in relation to its current state to produce an
+explanation 𝜖, e.g., “No, the light is at half brightness, so it can be brighter.”
+   Natural language commands have varying levels of specificity. We adapt a definition of command specificity
+from related work [31]. We target three levels:
+    • Well-specified commands describe specific, desired actions/explanations and relevant settings, e.g., “set
+      to 50% brightness” or “what is the current brightness level?”
+
+                                                                                                 , Vol. 1, No. 1, Article . Publication date: May 2024.
+6   • E. King, et al.
+
+
+      State Modeling                  Random State Generation           Knowledge Synthesis                          Bootstrapping                 Distillation
+    Formalize the device’s               Randomly generate a             Create actions/explanations           Fine-tune a base model on      Generate new queries &
+states and associated settings        diverse set of possible states      that yield/describe states           synthetic knowledge & state   correct output with teacher
+
+
+                                                                                                                 Make the light
+                                                                                                               bright and spooky
+
+    on                      off                                                                               “state”: “on”,
+                                                                                                              “brightness”: 100,
+                                                                                                              “color”: { ... }
+
+                                                                                                                I’m on and my
+“state”: “on”,       “state”: “off”                                         ACTION         EXPLANATION          color is purple
+“brightness”: ...,                                                      Make the light     I’m on and my
+“color”: { ... }                                                       bright and spooky   color is purple.
+
+
+
+
+Fig. 4. Overview of our framework. Our five-step process leverages a combination of formal modeling, training data synthesis,
+and fine-tuning and distillation of large language models to train a lightweight model capable of generating appropriate
+settings and explanations for individual smart devices in response to unconstrained user commands.
+
+
+
+     • Moderately underspecified commands allude to desired actions/explanations and relevant settings, but
+       do not name them specifically, e.g., “make it dimmer” or “how bright is that?”
+     • Fully underspecified commands make no reference to device settings or values, but still have an implicit
+       goal, e.g., “it’s too bright” or “why is it so bright?”.
+   We assume the ability to infer whether a command is action- or explanation-oriented is a given, i.e., we assume
+a device can infer whether a command 𝑐 is either 𝑐 𝛼 or 𝑐𝜖 . Furthermore, we leave user commands with no action-
+or explanation-oriented goal out of scope, i.e., conversational commands like “hey lamp, how’s it going today?”
+have no specified response.
+   We assume that the device state that is acted upon or explained by a thoughtful thing is finite, and that a
+formal state model for the device is tractable. This applies to a variety of everyday devices, e.g., lights, thermostats,
+household appliances, televisions, etc., but does not apply to more complex continuous or real-time “systems of
+systems” like whole automobiles, robots, etc. Furthermore, we do not capture the temporal relationship between
+subsequent states: the thoughtful lamp cannot respond to explanation-oriented commands like “what color were
+you yesterday?” We describe our approach to state modeling in more detail in Section 3.1.
+
+3    A FRAMEWORK FOR BUILDING THOUGHTFUL THINGS
+This section introduces our general-purpose framework for building thoughtful things. We leverage a combination
+of formal modeling of a device, along with generative modeling of appropriate actions and explanations (provided
+by a small generative language model). The former provides a grounded definition of the device’s capabilities,
+while the latter provides the flexibility to respond to diverse user commands. The key advantage of our framework
+is that the engineering effort is limited to designing a device’s system model—we fully automate the process of
+fine-tuning a complementary generative model to reason about a given device’s state in response to action- and
+explanation-oriented user commands. The framework, depicted in Fig. 4, is summarized as follows:
+    (1) State Modeling. We first design a formal state model that captures a device’s high-level states, as well as
+        the lower-level settings and sensor values that are associated with each state.
+    (2) Random State Generation. Given a state model of a device, we randomly generate a large set of valid,
+        pseudo-random snapshots of different states to serve as unlabeled training data.
+    (3) Knowledge Synthesis. For each generated device state snapshot, we use an instruction-tuned teacher
+        LLM to synthesize both an action-oriented command that would result in the device reaching that state, as
+        well as an explanation-oriented command and corresponding explanation that describes that snapshot.
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                     Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models •         7
+
+
+             Name                               Description
+      𝛼      action                             machine-parseable description of the settings that a device
+                                                should have in response to a user command
+      𝜖      explanation                        NL description of a device’s current state or capabilities
+      𝑐𝛼     action-oriented command            NL command that triggers a device to generate an 𝛼
+      𝑐𝜖     explanation-oriented command       NL command that triggers a device to generate an 𝜖
+      𝑚      high-level state name              names a high-level device mode or state, e.g., “on” state of a light
+                                                or “cool” state of a thermostat
+      𝜎𝑖     valid range for setting 𝑖          defines the range of possible values for a setting 𝑖
+      Σ      set of valid setting ranges        set of all 𝜎𝑖 for a device
+      𝛾𝑗     valid range for sensor input 𝑗     defines the range of possible values for a sensor input 𝑗
+      Γ      set of valid sensor input ranges   set of all 𝛾 𝑗 for a device
+      𝑡𝑚     template for state 𝑚               specifies the (𝑖, 𝜎𝑖 ) and ( 𝑗, 𝛾𝑖 ) that are relevant to the state 𝑚
+      𝑠𝑚     snapshot of state 𝑚                describes the current value 𝑣𝑖 of each setting and value 𝑣 𝑗 of
+                                                each sensor for a device in state 𝑚 at runtime
+Table 1. Summary of notation we use to formalize the state model of a device. Devices generate either an action 𝛼 or
+explanation 𝜖 in response to a user command 𝑐 of the corresponding type. For each state 𝑚, a corresponding template 𝑡𝑚
+describes the capabilities of the device in that state. Specifying 𝑡𝑚 provides (1) means to easily generate synthetic data
+for fine-tuning a language model on a given device’s state and (2) a basis for grounding a language model’s actions and
+explanations in the real capabilities of the device.
+
+
+
+ (4) Model Bootstrapping. Using the initial set of synthesized snapshots and annotations, we fine-tune a small
+     (sub-3B-parameter) language model to generate actions and explanations in response to user commands.
+ (5) Model Distillation. Finally, we refine the initial fine-tuned model by initiating a feedback loop between
+     the bootstrapped “student” model and a larger “teacher” model that is capable of identifying and remedying
+     inaccuracies in the smaller model’s responses.
+ We describe each of these steps in detail in the following. To aid explanation, we alternate between two
+motivating examples—a “thoughtful lamp” and “thoughtful thermostat”—that we later implement in Section 4.
+
+3.1       State Modeling
+The notation introduced in this section (and used throughout the remainder of the paper) is summarized in
+Table 1. Fig. 5 provides a helpful visual summary of the state model.
+   We model a device on two complementary levels of abstraction: (1) a high-level state machine 𝑆 that expresses
+the valid transitions between coarse-grained states or “modes” 𝑚 ∈ 𝑆 of a device, and (2) a set 𝑇 of lower-level
+templates 𝑡𝑚 ∈ 𝑇 associated with each state 𝑚. The first step in designing a state model for a device is to identify
+each of the 𝑚 that belong to the set of coarse-grained device states 𝑆. Then, for each 𝑚 ∈ 𝑆 we must design a
+corresponding 𝑡𝑚 ∈ 𝑇 . A thermostat, for instance, has four high-level states 𝑚 ∈ 𝑆 = {fan, heat, cool, off }, and
+thus four templates 𝑡𝑚 ∈ 𝑇 = {𝑡 fan, 𝑡 heat , 𝑡 cool , 𝑡 off }.
+   The purpose of a template 𝑡𝑚 is to specify the valid ranges for settings and, optionally, sensor inputs that are
+relevant to the state 𝑚. We refer to the “name” of a setting as 𝑖 and a sensor input as 𝑗. We distinguish between
+settings and sensors in this manner because it allows us to later enforce the fields of a device’s state that an
+underlying generative model is or is not permitted to change. In general, a device has a set Σ of individual settings
+𝜎𝑖 ∈ Σ and a set Γ of individual sensor inputs 𝛾 𝑗 ∈ Γ. Both 𝜎𝑖 and 𝛾 𝑗 define valid ranges for a corresponding
+setting or sensor input with the name 𝑖 or 𝑗, e.g., a lamp’s percent brightness setting 𝜎brightness = [1, 100].
+
+                                                                              , Vol. 1, No. 1, Article . Publication date: May 2024.
+8   • E. King, et al.
+
+
+For, e.g., a thermostat, the device’s full set of possible settings is Σthermostat = {𝜎setpoint } and sensor values is
+Γthermostat = {𝛾 room_temperature }. The lamp has settings Σlamp = {𝜎brightness , 𝜎r , 𝜎g , 𝜎b } and no sensors, i.e., Γlamp = ∅.
+   Each template 𝑡𝑚 contains a subset of the 𝜎𝑖 ∈ Σ and the 𝛾 𝑗 ∈ Γ, depending on whether the setting or sensor
+input is relevant to the state 𝑚. A 𝜎𝑖 is relevant to 𝑚 if 𝜎𝑖 influences the behavior of the device in that state. A
+𝛾𝑖 is relevant to 𝑚 if (1) 𝛾𝑖 influences the behavior of the device in that state, or (2) 𝛾𝑖 influences the choice of
+an action 𝛼 that would result in the device transitioning to a different state 𝑚 ′ that is accessible from 𝑚. We
+illustrate relevance with a concrete example. The 𝜎setpoint of a thermostat is relevant to only a subset of states,
+i.e., when the thermostat is set to either 𝑚 = heat or 𝑚 = cool. In the fan and off modes, 𝜎setpoint is not relevant
+since the setpoint does not influence the operation of the thermostat in those modes. 𝜎setpoint therefore appears
+only in 𝑡 heat and 𝑡 cool . The thermostat also has a sensor input 𝛾 room_temperature in order to regulate the operation
+of the system. This sensor input is relevant to every state 𝑚 ∈ 𝑆, and thus appears in every template 𝑡𝑚 ∈ 𝑇 .
+This is because the thermostat needs awareness of the temperature (even when, e.g., in the off state) in order
+to choose appropriate future states (i.e., take an action 𝛼) in response to user commands. For example, if the
+thermostat is 𝑚 = off and the user gives the command 𝑐 𝛼 = “it’s too hot in here”, the thermostat needs awareness
+of the room temperature in order to choose an appropriate setpoint as it transitions to the 𝑚 ′ = cool state. In an
+implementation, 𝑡𝑚 takes the form of an associative array (e.g., a Python dictionary), where each relevant setting
+name 𝑖 or sensor name 𝑗 is a key of 𝑡𝑚 and the corresponding 𝜎𝑖 and 𝛾𝑖 is a value:
+
+                        𝑡𝑚 = {(𝑖, 𝜎𝑖 ) | 𝜎𝑖 ∈ Σ, 𝜎𝑖 is relevant to 𝑚} ∪ {( 𝑗, 𝛾 𝑗 ) | 𝛾 𝑗 ∈ Γ, 𝛾 𝑗 is relevant to 𝑚}
+   At runtime, a device’s current state is described by a snapshot 𝑠𝑚 , which is an instantiated template that
+contains each setting 𝑖 and sensor input 𝑗 from the keys of the corresponding template 𝑡𝑚 , with values 𝑣𝑖 and 𝑣 𝑗
+assigned. Additionally, every 𝑠𝑚 contains a default “state” element that names the high-level state it is associated
+with, i.e., ∀𝑠𝑚 , (“state”, 𝑚) ∈ 𝑠𝑚 . A snapshot 𝑠𝑚 is, like 𝑡𝑚 , an associative array. A state snapshot is only valid if all
+𝑖 and 𝑗 in 𝑠𝑚 exist in the corresponding 𝑡𝑚 , and their values are within the ranges specified by 𝜎𝑖 and 𝛾 𝑗 :
+
+               𝑠𝑚 = {(𝑖, 𝑣𝑖 ) | ∀𝑖, 𝑖 ∈ 𝑡𝑚 ∧ 𝑣𝑖 ∈ 𝜎𝑖 } ∪ {( 𝑗, 𝑣 𝑗 ) | ∀𝑗, 𝑗 ∈ 𝑡𝑚 ∧ 𝑣 𝑗 ∈ 𝛾 𝑗 } ∪ {(“state”, m), 𝑚 ∈ 𝑆 }
+   State snapshots are important for two reasons. First, they provide a concrete description of the device’s current
+state runtime, from which explanations 𝜖 can be generated. When we later fine-tune a small language model to
+explain the device’s state (see Section 3.4), we are essentially training it to describe the current snapshot 𝑠𝑚 in a
+manner that satisfies a user’s explanation-oriented command, 𝑐𝜖 . For example, if a user gives the command 𝑐𝜖 =
+“how bright is that?” and (brightness, 𝑣 brightness = 50) ∈ 𝑠𝑚 , the device might respond with 𝜖 = “The brightness is
+currently set to 50%”. Furthermore, a state snapshot 𝑠𝑚 is nearly interchangeable with a valid action 𝛼 that our
+language model should generate in response to an action-oriented user command 𝑐 𝛼 . When we fine-tune it to
+generate actions, we are training it to generate a form of snapshot that satisfies 𝑐 𝛼 . The only difference between
+an action 𝛼 and a full snapshot 𝑠𝑚 is that 𝛼 omits sensor values. The reason is simple: sensor inputs are, by nature,
+immutable. We define a valid 𝛼 that transitions the device from a state 𝑚 to 𝑚 ′ as follows:
+
+                    𝛼 = {(𝑖, 𝑣𝑖 ) | ∀𝑖, 𝑖 ∈ 𝑡𝑚 ∧ 𝑣𝑖 ∈ 𝜎𝑖 } ∪ {(“state”, m′ ), 𝑚 ′ ∈ 𝑆, 𝑚 ′ is reachable from 𝑚}
+   Note that the new state 𝑚 ′ may equal 𝑚, since the device need not transition to a different high-level state in
+order to change its settings. When the device generates a proposed action 𝛼 in response to a user command 𝑐 𝛼 ,
+we verify that the response adheres to this definition before changing the state of the device. Since we are relying
+on a generative model to create 𝛼—and these models are prone to occasional “hallucination” by, e.g., creating
+settings and values that do not exist [31]—the proposed action 𝛼 occasionally does not satisfy the definition of 𝛼.
+When the device generates an invalid 𝛼, we simply leave the state of the device unchanged.
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                            Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models •                                   9
+
+
+  m∈S            States                                tm ∈ T             Templates                                    sm                Snapshots
+         high-level states of a device      modeled      valid ranges for settings and sensors          instantiated        runtime descriptions of device state
+                                              by              corresponding to each state                    as
+
+                                                                       setting i range σi
+                                                       theat = {                                                       sheat = {
+                                                                       (setpoint, [50, 90]),                                            (state, heat),
+      m = heat       cool           off                                (room temperature, [50, 90])                                     (setpoint, 70),
+                                                                  }                                                                     (room temperature, 65)
+                                                                                                                                    }
+                                                                       sensor j             range γj
+
+
+                                                       tcool = {                                                       scool = {
+                                                                       (setpoint, [50, 90]),                                            (state, cool),
+        heat       m = cool         off                                (room temperature, [50, 90])                                     (setpoint, 68),
+                                                              }                                                                         (room temperature, 75)
+                                                                                                                                    }
+
+
+                                                       toff = {                                                        soff = {
+                                                                      (room temperature, [50, 90])                                      (state, off),
+        heat         cool         m = off
+                                                              }                                                                         (room temperature, 75)
+                                                                                                                                }
+
+
+
+
+Fig. 5. Overview of device state models, with examples included for a thermostat. We model a device based on a high-level
+state machine 𝑆 that describes valid transitions between states 𝑚 (left). A lower-level template 𝑡𝑚 associated with each
+state 𝑚 captures each setting 𝑖 and sensor 𝑗 and their valid ranges 𝜎𝑖 , 𝛾 𝑗 (center). At runtime, a snapshot 𝑠𝑚 describes the
+current state of the device (right). A thoughtful thing leverages a fine-tuned small language model to act by generating valid
+snapshots for new states and to explain by describing the snapshot of the device’s current state.
+
+
+3.2      Random State Generation
+We use a given device’s state model (specifically, the templates 𝑡𝑚 ∈ 𝑇 ) to create a dataset for fine-tuning a small
+generative language model to act upon and explain the device’s state. We begin this process by generating a
+large number of randomized state snapshots 𝑠𝑚 from 𝑡𝑚 , with the fields of each 𝑠𝑚 randomly initialized. The
+set of random snapshots that we generate needs to be balanced with respect to the relative size of the state
+spaces of each 𝑚, as implied by each 𝑡𝑚 ∈ 𝑇 . This is because we want the model to learn information about
+diverse states (i.e., diverse 𝑠𝑚 ), so that it will generalize well. For example, assume a lamp device has two states,
+𝑚 ∈ 𝑆 = {on, off }, where 𝑡 on specifies four relevant settings for brightness and RGB color and 𝑡 off specifies no
+relevant settings, i.e., 𝑡 off = ∅. Based on these templates, there is only one possible snapshot in the 𝑚 = off state,
+i.e., 𝑠 off = {(“state”, m)}. In the 𝑚 = on state, however, there are many combinations of values for the brightness
+and RGB settings and, correspondingly, a significantly larger number of possible 𝑠 on . If we generate random
+snapshots for 𝑚 = on and 𝑚 = off with equal probability, our model will be biased toward knowledge about the
+simple off state while lacking knowledge about, e.g., the diverse colors expressible in the on state. We therefore
+generate snapshots from weighted random choice, taking into account the size of the state space implied by the
+template for each state. We first make a weighted choice of a state 𝑚 ∈ 𝑆 for which to generate a snapshot with
+probability 𝑃 (𝑚). 𝑃 (𝑚) is simply a function of the number of settings and sensor inputs present in 𝑡𝑚 :
+
+                                                   |∀𝑖 ∈ 𝑡𝑚 | + |∀𝑗 ∈ 𝑡𝑚 | + 1
+                                                      𝑃 (𝑚) =
+                                                          |Σ ∩ Γ| + 1
+   We add 1 to the numerator and denominator to account for the fact that a 𝑡𝑚 can be empty (e.g., for the lamp
+in the off state), but still needs to be chosen with a nonzero probability. After choosing an 𝑚, we then initialize
+
+                                                                                                       , Vol. 1, No. 1, Article . Publication date: May 2024.
+10 •    E. King, et al.
+
+
+   Action Synthesis System Prompt                                 Explanation Synthesis System Prompt
+   You interpret JSON descriptions of {device} state and           You interpret JSON descriptions of {device} state and
+   provide brief (one sentence) descriptions of that state.        provide explanations about it.
+
+   Describe three situations where someone would want the          First, provide a comprehensive SUMMARY of what you see
+   {device} to have those settings. For the situation, include     in the JSON state. Describe it qualitatively, using terms a
+   one brief, informal command (related to that situation) that    layperson might understand. Include some information in the
+   someone would tell their friend in order to have them change    summary about how the {device} might be interacting with
+   the {device} to those settings.                                 the surrounding environment.
+
+   Do not refer to specific settings in the command.               Ask three QUESTIONS that can be answered by the state of
+   Format your response as a Python dictionary:                    the {device}. Refer to the valid settings of the {device}, if
+   {"situations": [], "commands": []}                              needed. Then, ANSWER the questions. In your answers, use
+                                                                   non-technical language that can be easily understood by a
+                                                                   layperson.
+
+                                                                   Do not include numbers or specific values from the state in
+                                                                   the answer. Refer to things descriptively, not with numbers.
+
+                                                                   Format your response as a Python dictionary:
+                                                                   {"summary": "", "questions": [], "answers": []}
+
+
+
+
+Fig. 6. System prompts that we use to synthesize fine-tuning data for small language models. Given a set of state states that
+we randomly generate using our state model, we use a large instruction-tuned LLM to generate synthetic “knowledge” about
+how different device states relate to different user commands, actions, and explanations.
+
+
+each value 𝑣𝑖 and 𝑣 𝑗 in 𝑠𝑚 uniformly at random from the ranges 𝜎𝑖 and 𝛾 𝑗 specified in 𝑡𝑚 . This yields a single
+random snapshot. We repeat this process until we have generated a large set of random snapshots. We determine
+the appropriate size of this set heuristically, dependent on the size of the state space for a given device. Since the
+small language model that we ultimately fine-tune on these states incorporates out-of-domain knowledge, it is
+sufficient to generate a set on the order of hundreds or thousands of state snapshots, even when the state space
+for, e.g., the thoughtful lamp constitutes billions of possible snapshots.
+
+3.3    Knowledge Synthesis
+We label our set of pseudo-random state snapshots with help from an instruction-tuned LLM, allowing us to create
+a dataset for fine-tuning a single, smaller generative language model at the action/explanation task for a given
+device. In our case, the goal of this process is to capture device-specific “knowledge” that describes how different
+user commands 𝑐, actions 𝛼, and explanations 𝜖 relate to one another. We accomplish this by synthesizing a set
+of examples of:
+   (1) an action-oriented command 𝑐 𝛼 that yields an action 𝛼, derived from each random state snapshot 𝑠𝑚
+   (2) an explanation-oriented command 𝑐𝜖 that yields an explanation 𝜖 of each random snapshot 𝑠𝑚
+   In the case of (1), the output of the synthesis process is a large set of tuples of (𝑐 𝛼 , 𝛼), where 𝛼 contains all of
+the mutable settings from a random snapshot 𝑠𝑚 while omitting any immutable sensor values; the output for (2)
+is a large set of tuples of (𝑐𝜖 , 𝑠𝑚 , 𝜖). Table 2 provides examples of random snapshots and synthesized 𝑐 𝛼 , 𝑐𝜖 , and 𝜖.
+We synthesize instances using two prompts—one for actions, one for explanations—carefully engineered so that
+they generalize to different devices (Fig. 6).
+   Our action prompt instructs the teacher LLM to imagine a situation where a user may want the device to
+have the settings in 𝛼 given the sensor subset of 𝑠𝑚 (if applicable), then create a brief command 𝑐 𝛼 in informal
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                   Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models • 11
+
+
+      Snapshot 𝑠𝑚                Action Command 𝑐 𝛼          Explanation Command 𝑐𝜖                  Explanation 𝜖
+      {
+                                                                   “Why’s it so dark               “It’s dark because
+        “state”: “off”               “I’m off to bed.”
+                                                                      in here?”                     the lamp is off.”
+      }
+      {
+        “state”: “on”,
+        “brightness”: 100,
+        “color”:{
+                                      “Let there be                “Is that as bright               “Yes, the lamp is
+          “r”: 235,
+                                    bright red light!”                 as it gets?”               at 100% brightness.”
+          “g”: 64,
+          “b”: 52
+        }
+      }
+Table 2. Random state snapshots and examples of synthesized commands and explanations for a thoughtful lamp. Given a
+large set of random snapshots, we use an instruction-tuned teacher LLM to synthesize action- and explanation-oriented
+commands, as well as explanations. These labeled snapshots serve as a training set for fine-tuning a small LLM to take
+actions and provide explanations in response to user commands.
+
+
+
+
+language that a user would give to the device in that situation. Though instructing the teacher model to imagine a
+situational context is not strictly necessary to synthesize commands, it tends to produce more loosely-constrained
+synthetic commands (e.g., “hey lamp, I’m heading out for the day”) than simply instructing to create a command
+(which results in, e.g., “turn off the lamp”) [48]. We ensure that the set of synthetic 𝑐 𝛼 are diverse by re-prompting
+the model to suggest a different command if the semantic similarity (i.e., cosine similarity between word
+embeddings [29, 51]) of the current command and previously-synthesized commands is too high.
+   To synthesize explanation annotations, we prompt the teacher model to ask and answer a question for each
+high-level field in the 𝑠𝑚 , i.e., to synthesize several 𝑐𝜖 and 𝜖 for each setting and sensor value in 𝑠𝑚 . We include
+the state template 𝑡𝑚 in the prompt to ground the teacher’s questions and answers in the actual capabilities of the
+device. For example, if 𝑠𝑚 contains (brightness, 42) and the synthesized 𝑐𝜖 is “Is this the maximum brightness?”, the
+template field (brightness, [1, 100]) suggests a correct 𝜖 is, e.g., “No, this is under half of the maximum brightness.”
+When synthesizing instances for a new device, we simply substitute the name of the device (e.g., “smart light” or
+“thermostat”) into the generic action and explanation prompts with no changes to the instructions.
+
+3.4    Bootstrapping
+We fine-tune a small language model on our generated snapshots to give it the ability to generate actions 𝛼 or
+explanations 𝜖 in response to user commands 𝑐 𝛼 or 𝑐𝜖 . The objective of this “bootstrapping” phase is to teach
+the model the prompt formats for action- and explanation-oriented inputs. We individually insert each of the
+action tuples (𝑐 𝛼 , 𝛼) and explanation tuples (𝑐𝜖 , 𝑠𝑚 , 𝜖) from our synthesized dataset into the respective prompt
+format to create fine-tuning examples (Fig. 7). By fine-tuning a model on these prompt formats, we are effectively
+teaching it to complete the input text of the prompt with either an action (i.e., mutable settings) or explanation.
+   As is conventional, we perform a train-test split of the fine-tuning examples prior to training. However, we
+hold out the test set beyond the bootstrapping phase and the distillation phase (see Section 6). This enables us to
+later test the model’s ability to generalize to new commands, beyond simply learning the input-output pairs it
+has been fine-tuned on. We evaluate models’ performance in Section 5 on this hold-out test set.
+
+                                                                            , Vol. 1, No. 1, Article . Publication date: May 2024.
+12 •    E. King, et al.
+
+
+  Action-Oriented Prompt
+
+ User: cα
+ [SENSORS] {(j, vj) | (j, vj) ∈ sm } [/SENSORS]
+                                                                                   User: Hey, can you cool it down a little bit?
+
+ Output: [SETTINGS] α = {(‟state”, m), (i, vi) | (i, vi) ∈ sm } [/SETTINGS]
+                                                                                   [SENSORS] {“room_temperature”: 82} [/SENSORS]
+                                                                                   Output: [SETTINGS] {“state”: “cool”, “setpoint”: 76} [/SETTINGS]
+
+
+
+
+ Explanation-Oriented Prompt
+
+ User: cє
+                                                                         User: Is it going to cool off in here?
+
+ [SENSORS] {(j, vj) | (j, vj) ∈ sm } [/SENSORS]
+                                                                         [SENSORS] {“room_temperature”: 82} [/SENSORS]
+
+ [SETTINGS] {(‟state”, m), (i, vi) | (i, vi) ∈ sm } [/SETTINGS]
+                                                                         [SETTINGS] {“state”: “cool”, “setpoint”: 76} [/SETTINGS]
+
+ Output: [EXPLANATION] є [/EXPLANATION]
+                                                                         Output: [EXPLANATION] Yes, the cooling mode is active and the setpoint is below
+                                                                         the room temperature, so it should cool off soon. [/EXPLANATION]
+
+
+
+Fig. 7. Prompt formats that we use to fine-tune a small language model for device actions/explanations. Examples show
+prompts for a thermostat device, which has both “sensors” and “settings” in its state model. When fine-tuning, we substitute
+the full command, state snapshot (split into immutable sensors and mutable settings), and explanation (if applicable) into the
+prompt to create training instances. The fine-tuned model learns to complete the prompt with either actions or explanations
+(depicted as colored text) depending on the prompt.
+
+
+3.5    Distillation
+After the first pass of fine-tuning, we use an iterative distillation process to better specialize the small model at
+the action/explanation task for a device. The goal of this process is to train the language model beyond the point
+of simply memorizing the prompt structure, into a better “understanding” of a given device’s capabilities.
+   Conventional distillation works by minimizing the loss between a “student” model’s outputs on unlabeled
+training data and pseudo-labels from a “teacher” model on the same data [9]. Recent approaches prioritize
+synthesis of new training data from the teacher model to further fine-tune the student model, thus “aligning”
+the quality of the student’s outputs with those of the teacher [26, 60]. Our approach works in the same spirit as
+recent approaches, but provides grounding by incorporating the device’s state model. We use a teacher LLM to
+generate progressively more challenging and/or novel action- and explanation-oriented commands to give to the
+student, and to synthesize the correct outputs to commands that the student is unable to correctly respond to.
+We illustrate the flow chart for this process in Fig. 8 and describe its steps in the following.
+   (1) Synthesize query. We prompt the teacher model to synthesize a new command (either action- or
+       explanation-oriented) to give to the student model. We include the device’s state model (i.e., the tem-
+       plates 𝑡𝑚 ∈ 𝑇 ) in the prompt to ensure that the command adheres to the actual capabilities of the device.
+   (2) Check novelty. If the command is action-oriented, we check its novelty against every command the model
+       has been fine-tuned on in the past (including the hold-out test set created during bootstrap fine-tuning). We
+       compute the cosine similarity of the word embeddings of the command against every past command and
+       consider it novel if this similarity is below a threshold. We do not check the novelty of explanation-oriented
+       queries, since the same command may yield different outputs depending on the state of the device.
+   (3) Input to student. We input the synthesized command to the student model. If the command is action-
+       oriented, we initialize the student to the “off” state before inputting; if the command is explanation-oriented,
+       we generate a random snapshot and initialize the device in that state.
+   (4) Check logic. We prompt the teacher model with the command, the student response, and the full set
+       of templates 𝑇 , instructing it to assign a binary “true” or “false” label depending on whether the student
+       response satisfies the user’s request expressed in the command. If the teacher label is “true”, we return
+       to (1). If the rate at which the student responds correctly to the teacher commands exceeds 80%, we proceed
+       to (7) before stopping distillation.
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                            Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models • 13
+
+
+
+                                                                            no      Input to student                                   true
+                                                      Is query novel?
+   SYNTHESIZE            “Make the room glow
+                         with a soft pink light.”      semantic                                                   CHECK LOGIC
+     QUERY
+                 1
+                                                       similarity       2
+                                                                            yes                               3                 4     false
+
+
+
+                                                                            no
+  SYNTHESIZE            The color given was             Adheres to                        fine-tune student
+  CORRECTION            purple, not soft pink.         state model?
+                 5                                                      6   yes
+
+
+
+
+Fig. 8. We use an iterative distillation process to align the outputs of the small language model in a thoughtful thing (i.e., the
+“student” model) with the outputs of a higher-performance “teacher” LLM. Green boxes denote prompts to the teacher model.
+This process distills specialized knowledge about a given device’s capabilities into the generative model that a thoughtful
+thing uses to act and explain in response to user commands.
+
+
+
+
+   (5) Synthesize correction. If the student responded incorrectly to the teacher’s command, we prompt the
+       teacher to synthesize a more appropriate response that the student should have given. We include the
+       device’s state model (i.e., templates 𝑡𝑚 ∈ 𝑇 ) in the prompt to reduce the likelihood that the teacher
+       synthesizes a response that is not possible given the device’s true capabilities.
+   (6) Check adherence to state model. To prevent fine-tuning the student model on hallucinations produced
+       by the teacher model, we check that the teacher’s correction adheres to the state model for the device.
+   (7) Fine-tune. When the teacher is no longer able to (a) synthesize commands above the novelty threshold
+       and (b) consistently produce corrections that adhere to the state model, or (c) we have generated an equal
+       number of action- and explanation-oriented corrections meeting a preset “batch size”, we fine-tune the
+       student model on the current batch of synthesized corrections.
+
+   After fine-tuning, we repeat the process on the newly distilled version of the student model. We continue until
+the teacher model is unable to synthesize new commands that are both of sufficient novelty while respecting the
+state model of the device, i.e., when the rate at which corrections do not adhere to the state model exceeds 90%.
+
+3.6    Integration
+Once we have completed the two main tasks of (1) designing a device’s state model and (2) fine-tuning a generative
+model to handle user commands, we integrate these two pieces into the device’s system implementation. Given an
+interface through which to receive commands (e.g., a voice interface) and determine whether a command is action-
+or explanation-oriented, we prompt the fine-tuned model with the user command and device state snapshot
+(using the appropriate prompt format in Fig. 7). If the command elicits an explanation, we extract the explanation
+text from between the [EXPLANATION][/EXPLANATION] tokens in the model’s output; similarly, if the desired
+output is an action, we extract the new settings for the device from between the [SETTINGS][/SETTINGS]. In the
+former case, we can display the explanation on a user interface, or read it aloud via text-to-speech. In the latter
+case, we first attempt to parse the text of the action into a data structure. If parsing fails due to incorrect syntax,
+we quietly log an error and leave the state of the device unchanged. If successful, we check that the proposed
+action 𝛼 adheres to the definition (Sec. 3.1). If it does not, we quietly log an error without changing the device’s
+settings. If so, we call whichever internal APIs are necessary to change the device’s settings to the values implied
+by the output action 𝛼.
+
+                                                                                     , Vol. 1, No. 1, Article . Publication date: May 2024.
+14 •    E. King, et al.
+
+
+
+
+Fig. 9. Raspberry Pi 5 installed in the base of our thoughtful lamp prototype. Thoughtful things leverage generative language
+models for device control and explainability; these models are lightweight enough to run on low-cost commodity hardware.
+
+
+4     CASE STUDY IMPLEMENTATIONS
+We use our framework to build two proof-of-concept implementations—a thoughtful lamp and thoughtful
+thermostat. For each device, we fine-tune two different small language models at the reasoning task—Gemma
+(2B) [55] and Phi-2 (2.7B) [23]—which we later compare in Section 5. The engineering effort in all cases is limited
+to designing a state model for the device, after which the process of synthesizing training data and fine-tuning
+the generative language model for responding to user commands is automated by our framework. We implement
+both devices using Python bindings for the llama.cpp framework [7, 20], and therefore adopt Python syntax
+throughout this section. We run the implementations on a Raspberry Pi 5 (8GB).
+
+4.1    A Thoughtful Lamp
+The thoughtful lamp is an interesting case because of the size of its state space: in the on state, the lamp has
+1.65 × 109 possible state snapshots, accounting for each combination of RGB value and brightness. The main
+task for the lamp’s generative model is to reason about the way that these different brightness and color settings
+relate to different user goals and inquiries. Exploring this case allows us to determine how well a small language
+model can learn to generalize to the action/explanation task when the size of the dataset we fine-tune it with
+covers only a very small subset of possible states.
+   State Modeling. Adhering to the definition in Section 4, the thoughtful lamp has two possible high-level states,
+with 𝑆 = {off , on}. Both states 𝑚 ∈ 𝑆 can transition to one another bidirectionally. The 𝑡 off template contains no
+settings 𝜎𝑖 or sensor inputs 𝛾 𝑗 , i.e., 𝑡 off = ∅. The template 𝑡 on defines brightness and color settings, expressed as
+RGB values, i.e., 𝑡 on = {𝜎brightness , 𝜎r , 𝜎g , 𝜎b }. We summarize the state model design in Table 3.
+   Random State Generation & Knowledge Synthesis. We use our state model to randomly generate 200 states,
+then synthesize their corresponding annotations using GPT-4. We generate two annotations per state—one
+action-oriented and one explanation-oriented—resulting in 400 total fine-tuning instances.
+   Bootstrapping & Distillation. We perform bootstrap fine-tuning on a small language model with our initial
+set of synthetic instances. We do this using low-rank adaptation (LoRA) [27], which keeps the requirement for
+GPU VRAM below the 16GB provided by the machine instance we perform training on. After bootstrapping
+is complete, we merge the LoRA adapter layer into the full model weights and begin distillation. We perform
+distillation with GPT-4 as the teacher model. This process takes several hours, during which the student model
+receives around 1000 commands that are synthesized by GPT-4. This produces several hundred new training
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                       Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models • 15
+
+
+               State 𝑚     Template 𝑡𝑚                                         Example Snapshot 𝑠𝑚
+                                                                                      {
+                                   {
+                                                                                         "state": "on",
+                                       "brightness": range(0, 100),
+                                                                                         "brightness": 55,
+                                       "color": {
+                                                                                         "color": {
+                                         "r": range(0, 255),
+               on         𝑡 on =                                               𝑠 on =      "r": 64,
+                                         "g": range(0, 255),
+                                                                                           "g": 234,
+                                         "b": range(0, 255)
+                                                                                           "b": 1
+                                       }
+                                                                                         }
+                                   }
+                                                                                      }
+                                                                                       {
+               off        𝑡 off = {}                                           𝑠 off = "state": "off"
+                                                                                       }
+Table 3. Summary of state model for the thoughtful lamp (expressed as Python dictionaries). Left: two high-level states
+𝑚 ∈ 𝑆 = {on, off }; Center: templates 𝑡𝑚 for each state; Right: examples of snapshots 𝑠𝑚 for each state. The lamp has four
+setting values in the on state (brightness and RGB color) and no sensor inputs; in the off state, the lamp has no settings.
+
+
+
+
+Fig. 10. Example interaction with the thoughtful lamp, via command line interface (Pi removed from base for illustration).
+
+
+instances based on GPT-4’s corrections, which we then fine-tune the student model on. Both models required a
+comparable number of corrections during distillation.
+  Integration. We embed the Raspberry Pi in the base of the lamp (Fig. 9), which controls a Philips Hue smart
+bulb. While a speech-to-text interface is possible using, e.g., a lightweight Whisper model [50], we rely on a
+command line interface for simplicity. When the language model generates new actions, we parse them as JSON
+before mapping the changes to settings to the appropriate Philips Hue API calls. Explanations output by the
+model are simply displayed on the command line. We show an example of several interactions in Fig. 10.
+
+                                                                                , Vol. 1, No. 1, Article . Publication date: May 2024.
+16 •    E. King, et al.
+
+
+       State 𝑚      Template 𝑡𝑚                                                Example Snapshot 𝑠𝑚
+                                                                                        {
+                               {
+                                                                                           "state": "heat",
+                                   "room_temperature": range(50, 90),
+       heat         𝑡 heat =                                                   𝑠 heat = "room_temperature": 55,
+                                   "setpoint": range(50, 90)
+                                                                                           "setpoint": 68
+                               }
+                                                                                        }
+                                                                                        {
+                               {
+                                                                                           "state": "cool",
+                                   "room_temperature": range(50, 90),
+       cool         𝑡 cool =                                                   𝑠 cool = "room_temperature": 81,
+                                   "setpoint": range(50, 90)
+                                                                                           "setpoint": 75
+                               }
+                                                                                        }
+                                                                                       {
+                               {
+                                                                                          "state": "fan",
+       fan          𝑡 fan =        "room_temperature": range(50, 90)           𝑠 fan =
+                                                                                          "room_temperature": 74
+                               }
+                                                                                       }
+                                                                                       {
+                              {
+                                                                                          "state": "off",
+       off          𝑡 off =        "room_temperature": range(50, 90)           𝑠 off =
+                                                                                          "room_temperature": 74
+                              }
+                                                                                       }
+Table 4. Summary of state model for the thoughtful thermostat (expressed as Python dictionaries). Left: four high-level
+states 𝑚 ∈ 𝑆 = {heat, cool, fan, off }; Center: templates 𝑡𝑚 for each state; Right: examples of snapshots 𝑠𝑚 for each state. The
+thermostat has one sensor input (room temperature), which is relevant to every state and appears in every template. In heat
+and cool modes, the thermostat has a setpoint setting.
+
+
+
+4.2     A Thoughtful Thermostat
+The thoughtful thermostat has a smaller state space than the lamp, but incorporates sensor input (i.e., room
+temperature) in its state model. We undertake this implementation to determine how well a small language model
+can learn to differentiate between mutable and immutable state (i.e., setting and sensor values, respectively).
+   State Modeling. The thermostat has four possible states, with 𝑆 = {fan, heat, cool, off }. Each state 𝑚 ∈ 𝑆 can
+transition to each other state. In only the heat and cool modes, the thermostat has a 𝜎setpoint setting; the thermostat
+has a 𝛾 room_temperature sensor input in every state. We summarize the state model design in Table 4.
+   Random State Generation. We randomly generate 200 states, then synthesize their corresponding action/explanation
+annotations using GPT-4, resulting in 400 bootstrap fine-tuning instances.
+   Bootstrapping & Distillation. As before, we perform bootstrap fine-tuning with our synthetic instances, aided
+by LoRA on a 16GB VRAM machine. After bootstrapping, we use GPT-4 as a teacher model for distillation. Unlike
+the lamp, the two base models behaved differently from one another during distillation for the thermostat: Phi-2
+required one long round before meeting the threshold to end distillation, while Gemma required two short rounds.
+Many of the Gemma model’s responses during the first distillation round were erroneous, suggesting that the
+model was still learning the prompt format during distillation. The model therefore quickly met the threshold for
+corrections to end the first round. Both models received around 500 novel commands from the teacher model
+before completing distillation, which is about half that of the lamp.
+   We also noted that both models began to learn actions that assigned only a subset of settings available for a
+state (e.g., changing the setpoint of the thermostat without changing the mode). While these actions are valid,
+this behavior was not anticipated—all of our bootstrap fine-tuning instances contain the full set of settings for
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                  Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models • 17
+
+
+each state. We attribute the differences between the distillation of the lamp and thermostat to differences in
+prompt structure (the thermostat prompt includes sensors, while the lamp’s does not).
+   Integration. We install the Raspberry Pi on the rear of a 7" touchscreen display, which provides a user interface
+to the implementation. We input commands via keyboard, though a speech-to-text implementation is also feasible.
+When the language model generates actions or explanations in response to a command, we display them on the
+screen. We do not connect our implementation to a climate control system—however, the Pi provides general-
+purpose input/output (GPIO) pins capable of interfacing with a common 4-wire residential system, making this
+extra integration step fairly trivial.
+
+5     EVALUATION
+We frame our evaluations of our implementations around the following research questions:
+   • RQ1: How well do small language models perform at the device action/explanation task when trained in our
+      framework? Performing “well” in this case means that a model gains the ability to generate actions and
+      explanations that set and explain a given device’s state and settings with high accuracy.
+   • RQ2: Can small language models learn to generalize to the action/explanation task through fine-tuning?
+     Training a model on every possible state it could encounter is not feasible. Ideally, we can leverage the
+      out-of-domain knowledge present in a language model to generalize to new and unseen states given only a
+      small set of training examples.
+   • RQ3: What is the practical performance when implemented in a real device? Since our long-term objective is
+      to integrate “thoughtfulness” into everyday devices, it is important to understand runtime performance,
+      e.g., response latency.
+ We investigate these research questions using the procedures described in the following.
+
+5.1    Procedures & Metrics
+For each implementation, we use our framework to fine-tune two base models at the action/explanation task:
+Gemma (2B) [55] and Phi-2 (2.7B) [23]. We use a hold-out test set of 100 commands (evenly split between action-
+oriented and explanation-oriented), created during the bootstrapping phase of fine-tuning (see Section 3.4). We
+input each command from our hold-out test set, generating either an action or explanation with the model under
+test. For action-oriented commands, we initialize the device’s state model to 𝑚 = off . For explanation-oriented
+commands, we initialize the device with a randomly-generated snapshot, with the random seed held constant
+between trials so that the set of states explained by each respective model are the same. Toward answering RQ1,
+we measure performance along the following metric:
+    • Setting-level accuracy. For each generated response, we use GPT-4 to assign a “correct” or “incorrect”
+       label, indicating whether or not the response was appropriate given the command (and device state, if
+       applicable). For responses with an “incorrect” label, we use GPT-4 to label which of the fields in the device’s
+       state snapshot were either (1) incorrectly set (for actions) or (2) incorrectly explained (for explanations). We
+       perform this for the initial bootstrapped model and the distilled model, each at two levels of precision—16-bit
+       floating point (i.e., fp16) and 8-bit integer (int8) quantization. To strengthen our confidence in GPT-4’s
+       labels, we validate them with a human annotation task performed by 3 annotators. For each response
+       generated by the fp16 distilled models, annotators provide a binary “correct” or “incorrect” label. Each
+       annotation instance shows the command given and the two models’ responses. We instruct the annotator
+       to select each output that correctly addresses the command, or “none of the above” if none were correct.
+       This produces 600 labels with Krippendorf’s 𝛼 = 0.75, suggesting satisfactory agreement between human
+       annotators [24]. We then check agreement between each human annotator and GPT-4, yielding pairwise
+       Cohen’s 𝜅 of 0.66, 0.76, and 0.73, respectively, suggesting substantial agreement [36].
+
+                                                                           , Vol. 1, No. 1, Article . Publication date: May 2024.
+18 •    E. King, et al.
+
+
+  Toward answering RQ2, we compare the similarity of the models’ fine-tuning inputs to the models’ generated
+outputs on the hold-out test set using the following metrics:
+      • Jaccard similarity. Action-oriented commands generate outputs with high syntactic overlap, since they
+        must adhere to the device’s state model. We thus measure the portion of output actions that are fully
+        identical to those in the training set using Jaccard set similarity. Lower Jaccard similarity suggests that a
+        model is generating novel snapshots with setting values not seen in the training set. We exclude off states
+        from this metric, since there is only one possible form a snapshot can take for this state.
+      • ROUGE score. For explanation-oriented commands, we measure the ROUGE score [41] between the
+        synthesized explanations and the explanations output by the model. Lower scores indicate lower similarity.
+        In our case, lower is better since it suggests that the model is generating novel explanations.
+  Toward answering RQ3, we deploy each distilled model at two levels of quantization (fp16 and int8) on our
+Raspberry Pi 5 (8GB). We do not utilize any form of GPU acceleration. We use our set of 100 test commands as
+input to collect the following metrics:
+      • Tokens per second. We measure the overall speed of responses by dividing the number of tokens in the
+        output by the time taken to respond.
+      • Response latency by interaction type. We measure the time taken to respond, as a function of the
+        command type (action- or explanation-oriented).
+      • Memory usage. We measure the fixed amount of (non-GPU) memory usage by each model at runtime.
+      • CPU temperature. Intensive operations like LLM inferences produce heat, which results in CPU throttling
+        and reduced performance. We evaluate this impact by continuously inputting our test commands over an
+        hour span and measuring the change in temperature. We also note whether any CPU throttling occurs
+        during this span. During these trials, we place the Raspberry Pi 5 in a case with thermal heat sink padding.
+
+5.2     Results
+Models quickly learn correct actions and explanations for small state spaces. Fig. 11 depicts the accuracy
+at choosing or explaining the given device’s settings, across model responses. For example, if the accuracy for
+“brightness” is 80%, this means that 80% of the model’s responses chose or explained the device’s brightness
+correctly. In general, models quickly attain high performance at choosing and/or explaining settings that have
+small state spaces, regardless of device or command type. For the lamp, the number of choices for “state” is two (on
+or off ); all models achieve over 80% accuracy at either acting appropriately when the correct response is to turn
+the light on or off, or correctly explaining the state (e.g., when 𝑐𝜖 = “Is the lamp using electricity?”, generating
+𝜖 = “No, the lamp is not using electricity because it is off"). This is also true of the lamp’s brightness, and the
+setpoint of the thermostat. As mentioned in Section 4, the thermostat models met the threshold to complete
+distillation after about half as many student/teacher iterations as the lamp, meaning the models are trained on an
+overall smaller set of instances—these models nonetheless achieve performance comparable to the lamp.
+   Distillation improves the quality of actions and explanations for larger state spaces. While models can
+quickly achieve high performance for small state spaces, larger state spaces pose more of a challenge. Referring
+again to Fig. 11, the performance for “color” is lowest among all models, for all command types. However,
+distillation in these cases appears to provide the largest improvement in performance over the bootstrapped models.
+This suggests that additional training is most beneficial to models’ performance at the task of choosing/explaining
+states like “color” that represent very large decision spaces. We note that Gemma appears at first glance to
+struggle with the relatively small state space of the thermostat “state” setting (i.e., on, off, heat, cool, fan), and
+improves with distillation. This is not because the state space itself is difficult—rather, the bootstrapped model
+produced a large number of invalid outputs since it had not fully learned the prompt structure.
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                            Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models • 19
+
+
+                                           Lamp                                                 Thermostat
+                      Gemma (2B)                      Phi-2 (2.7B)                 Gemma (2B)                 Phi-2 (2.7B)
+            1.0                             1.0                            1.0                       1.0                              Bootstrap (fp16)
+                                                                                                                                      Distillation (fp16)
+      both 0.8                              0.8                            0.8                       0.8                              Bootstrap (int8)
+                                                                                                                                      Distillation (int8)
+            0.6                             0.6                            0.6                       0.6
+                  State Brightness Color          State Brightness Color         State    Setpoint          State     Setpoint
+            1.0                             1.0                            1.0                       1.0
+
+     action 0.8                             0.8                            0.8                       0.8
+
+            0.6                             0.6                            0.6                       0.6
+                  State Brightness Color          State Brightness Color         State    Setpoint          State     Setpoint
+            1.0                             1.0                            1.0                       1.0
+
+explanation 0.8                             0.8                            0.8                       0.8
+
+            0.6                             0.6                            0.6                       0.6
+                  State Brightness Color          State Brightness Color         State    Setpoint          State     Setpoint
+
+
+Fig. 11. Model accuracy at choosing and/or explaining different device settings across responses to 100 test commands. Top:
+both command types; middle: action-oriented commands; bottom: explanation-oriented commands. If a bar shows, e.g., 80%
+for “brightness”, this means that 80% of responses appropriately chose and/or explained the device’s brightness setting in
+response to a user command. In general, small state spaces are learned more quickly, performance in larger state spaces
+benefits from more training, and explanations are harder to learn than actions. Error bars depict a 90% confidence interval.
+
+
+
+   Models generate novel & valid actions and explanations not seen in the training set. Table 5 depicts
+the textual similarity between models’ outputs and their training data at successive phases of training in our
+framework. For actions, the Jaccard similarity is zero for all models at the bootstrap phase, meaning none of
+the models’ outputs are identical to those in the synthetic training set of actions. This number increases only
+slightly after distillation—the models begin to memorize a very small number of states with more fine-tuning.
+For explanations, the ROUGE scores decrease with more training—the score for each ROUGE metric is at its
+lowest for every model after distillation. This suggests that more training via distillation induces the models to
+generate a more diverse set of explanations. In conjunction with the results in Fig. 11, the models’ generated
+outputs are not simply novel, but also exhibit a reasonable level of accuracy. With respect to RQ2, models do
+not aggressively memorize the synthetic actions and explanations they are fine-tuned on—rather, they learn to
+generate novel actions and explanations.
+   Latency, memory usage, and temperature in the base case hint at feasibility in practice. Table 6 reports
+results for each device, base model, and precision when evaluated on our Raspberry Pi 5. Our implementation
+does not fully leverage the hardware capabilities of the Pi (e.g., GPU acceleration), nor do we use memory
+locking to ensure that the models are fully allocated in RAM. In general, the quantized models provide greater
+responsiveness. The thermostat device generally exhibits lower latency than the lamp since its state structure
+requires fewer tokens. When giving each model a continuous stream of commands for an hour, we noted that
+the temperature of the Raspberry Pi never reached the 80◦𝐶 threshold for CPU throttling. Temperature tended
+to increase by about 5◦𝐶 to 10◦𝐶 over the first 15 minutes before stabilizing. With respect to RQ3, the base
+implementation with no platform-specific optimizations has moderate responsiveness and does not suffer from
+performance degradation under load.
+
+                                                                                                , Vol. 1, No. 1, Article . Publication date: May 2024.
+20   • E. King, et al.
+
+
+            Device            Base Model           Checkpoint     Jaccard    ROUGE-1    ROUGE-2     ROUGE-L
+                                                   bootstrap      0.00       0.28       0.13        0.26
+                              Gemma
+                                                   distillation   0.01       0.21       0.06        0.19
+            Lamp
+                                                   bootstrap      0.00       0.35       0.16        0.32
+                              Phi-2
+                                                   distillation   0.05       0.30       0.12        0.27
+                                                   bootstrap      0.00       0.39       0.14        0.34
+                              Gemma
+                                                   distillation   0.04       0.27       0.09        0.23
+            Thermostat
+                                                   bootstrap      0.00       0.41       0.14        0.35
+                              Phi-2
+                                                   distillation   0.04       0.33       0.10        0.28
+Table 5. Similarity between models’ generated actions/explanations and the actions/explanations in the training set. All
+models are fp16 precision. Jaccard measures similarity between training and output actions; ROUGE scores measure similarity
+between training and output explanations. In general, the models do not aggressively memorize the training set—rather, they
+learn to generate novel actions and explanations in response to user commands.
+
+
+
+                                                                               𝛼 Latency (s)       𝜖 Latency (s)
+     Device              Model       Prec.      Mem. (GB)     Tokens/s      Mean Min Max        Mean Min Max
+                                     fp16         5.81          0.60        36.51 10.06 73.56   27.52 18.58 48.54
+                         Gemma
+                                     int8         3.15          1.25        16.94 5.20 34.50    13.50 8.98 23.15
+     Lamp
+                                     fp16         5.51          0.63        25.11 9.34 33.96    22.49 12.22 33.04
+                         Phi-2
+                                     int8         3.08          1.13        13.35 5.29 17.96    13.07 5.97 17.73
+                                     fp16                       0.80        18.95 13.29 23.51   21.95 13.70 30.39
+                         Gemma
+                                     int8                       1.51         9.68 6.02 13.24    11.30 7.90 14.68
+     Thermostat
+                                     fp16                       0.68        20.47 15.42 24.46   26.56 21.47 33.20
+                         Phi-2
+                                     int8                       1.24        11.65 8.63 13.94    14.43 10.47 18.01
+Table 6. Empirical results of runtime testing on a Raspberry Pi 5 using the Python bindings for the llama.cpp framework
+(with no GPU acceleration or memlocking). Without memory locking (i.e., storing the full model in memory without paging
+any parts to disk), memory usage results reflect a combination of RAM and disk usage. 8-bit quantized models are generally
+faster than 16-bit models, with lower memory overhead. Average latency for actions is generally higher for the lamp than
+for the thermostat, since the light’s state model requires more tokens. In general, high latency motivates more specialized
+implementations that make optimal use of system resources (rather than general-purpose inference frameworks)
+
+
+
+6    DISCUSSION
+Our framework instills small language models with “self-knowledge” about a device, which enables the models to
+generate appropriate actions and explanations in response to user commands. These language models are small
+enough to integrate on real devices, with no need for cloud infrastructure. We achieve this without a need for
+specialized training data—by simply designing a state model for a device, we are able to automate the rest of the
+process. Our effort opens the door for several further avenues of research, which we discuss in the following.
+   Mastering massive state spaces. Our results suggest that larger state spaces are harder for a model to learn.
+While our general-purpose framework handles the process of adapting a generalist model to action/explanation
+for a device, models would likely benefit from additional domain-specific knowledge in the training set. An
+important takeaway is that some device states are harder to learn than others. Bearing this in mind when building
+a specialized training set, model performance would likely benefit from data that elucidates those broader states.
+For the lamp, this would be, e.g., a large set of named RGB colors and unconstrained text describing them [18].
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                         Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models • 21
+
+
+Training new base models on high-quality, domain-specific knowledge would likely provide added benefit to
+downstream performance [23].
+   Improving runtime responsiveness. Our empirical results suggest that practical thoughtful things are within
+reach on everyday hardware, but we leave room for improvement with respect to response latency. The first step
+toward improving an implementation is to integrate it more closely with the capabilities of the platform—e.g.,
+to utilize GPU acceleration and avoid memory paging. We noted during development that responses using
+the llama.cpp binaries tended to be about 3x faster than using the open-source Python bindings for llama.cpp,
+suggesting that closer integration with the framework would provide performance gains. In a production
+implementation, the hardware platform and software implementation of the state model and of generative model
+inferences are likely to be tightly coupled, providing higher performance.
+   Incorporating temporality of state. Our state model uses snapshots to encode immediate states, and to
+describe future states. Given the limitations of small language models, we stop short of incorporating a temporal
+dimension to state, where a sequence of device behaviors over time can be explained or proposed as an action.
+This extension to our framework would nonetheless benefit user-centricity. Users are often confused by, e.g.,
+smart devices that execute learned (or user-programmed but forgotten) automation routines unpredictably [25].
+While our model allows for a device to explain its current state relative to possible future states (e.g., the lamp at
+50% brightness can be made brighter), it has no knowledge of past decisions or states. The ability to schedule
+future states, or to transition through sequences of states would also be beneficial. Interestingly, many of the
+“teacher” corrections that we observed for the lamp during distillation involved such plans: GPT-4 would create a
+command like “cycle through the colors of the rainbow”, then synthesize JSON suggesting this state sequence.
+These corrections, however, do not adhere to our current state model, so they were omitted.
+
+7   CONCLUSION
+In this paper, we proposed thoughtful things: human-centric devices empowered by a combination of formal state
+models and generative language models to take action and provide explanations in response to unconstrained user
+commands. We described our framework for building thoughtful things, which takes a state model for a given
+device and uses it to synthesize data and fine-tune a small generative language model for the action/explanation
+task. The models that enable thoughtful things’ reasoning are lightweight enough to run on-device, with no
+dependency on the cloud. To demonstrate our framework, we undertook two case study implementations—
+a thoughtful lamp and thoughtful thermostat. We evaluated our implementations by performing automated
+and human annotation of the quality of models’ responses. Finally, we deployed our implementations on real
+hardware (a Raspberry Pi 5) and collected empirical measurements of response latency, memory consumption,
+and computational demand over time. Our work opens the door for everyday devices with greater usability and
+improved user privacy.
+
+REFERENCES
+ [1] Josh Achiam, Steven Adler, Sandhini Agarwal, Lama Ahmad, Ilge Akkaya, Florencia Leoni Aleman, Diogo Almeida, Janko Altenschmidt,
+     Sam Altman, Shyamal Anadkat, et al. 2023. GPT-4 Technical Report. arXiv preprint arXiv:2303.08774 (2023).
+ [2] GE Appliances. 2023. Owner’s Manual, Refrigerator Models 16, 17, 18, 19, 22 (6th ed.). General Electric.
+ [3] GE Appliances. 2023. Owner’s Manual, Refrigerator Models PVD, PXD, and GVE (7th ed.). General Electric.
+ [4] Boone Ashworth. 2022. The Risk of Relying on a Smart Home Company to Keep The Lights On. Wired (April 2022). https:
+     //www.wired.com/story/insteon-shutdown/
+ [5] Natã M Barbosa, Zhuohao Zhang, and Yang Wang. 2020. Do Privacy and Security Matter to Everyone? Quantifying and Clustering
+     {User-Centric} Considerations About Smart Home Device Adoption. In Sixteenth Symposium on Usable Privacy and Security (SOUPS
+     2020). 417–435.
+ [6] Tom Bell. 2023. ERG mode explained: what it is, how to use it and when you should turn it off. https://www.bikeradar.com/advice/fitness-
+     and-training/erg-mode
+
+
+                                                                                         , Vol. 1, No. 1, Article . Publication date: May 2024.
+22   • E. King, et al.
+
+
+ [7] Andrei Betlen. 2024. llama-cpp-python. https://github.com/abetlen/llama-cpp-python.
+ [8] Stephen Brade, Bryan Wang, Mauricio Sousa, Gregory Lee Newsome, Sageev Oore, and Tovi Grossman. 2024. SynthScribe: Deep
+     Multimodal Tools for Synthesizer Sound Retrieval and Exploration. In Proceedings of the 29th International Conference on Intelligent User
+     Interfaces. 51–65.
+ [9] Cristian Buciluǎ, Rich Caruana, and Alexandru Niculescu-Mizil. 2006. Model compression. In Proceedings of the 12th ACM SIGKDD
+     international conference on Knowledge discovery and data mining. 535–541.
+[10] Daniel Burmeister, Bashar Altakrouri, and Andreas Schrader. 2015. Ambient Reflection: Towards Self-explaining Devices.. In LMIS@
+     EICS. 16–20.
+[11] Daniel Burmeister, Florian Burmann, and Andreas Schrader. 2017. The smart object description language: modeling interaction
+     capabilities for self-reflection. In 2017 IEEE International Conference on Pervasive Computing and Communications Workshops (PerCom
+     Workshops). IEEE, 503–508.
+[12] Jeffrey Van Camp. 2019. My Jibo Is Dying and It’s Breaking My Heart. Wired (March 2019). https://www.wired.com/story/jibo-is-
+     dying-eulogy/
+[13] Augusto Ciuffoletti. 2018. Low-cost IoT: A holistic approach. Journal of Sensor and Actuator Networks 7, 2 (2018), 19.
+[14] Sven Coppers, Davy Vanacken, and Kris Luyten. 2020. FORTNIoT: Intelligible Predictions to Improve User Understanding of Smart Home
+     Behavior. Proc. ACM Interact. Mob. Wearable Ubiquitous Technol. 4, 4, Article 124 (dec 2020), 24 pages. https://doi.org/10.1145/3432225
+[15] Aykut Coskun, Gül Kaner, and İdil Bostan. 2018. Is smart home a necessity or a fantasy for the mainstream user? A study on users’
+     expectations of smart household appliances. International Journal of Design 12, 1 (2018), 7–20.
+[16] Benjamin R Cowan, Nadia Pantidi, David Coyle, Kellie Morrissey, Peter Clarke, Sara Al-Shehri, David Earley, and Natasha Bandeira.
+     2017. " What can i help you with?" infrequent users’ experiences of intelligent personal assistants. In Proceedings of the 19th international
+     conference on human-computer interaction with mobile devices and services. 1–12.
+[17] Anind K Dey. 2009. Explanations in Context-Aware Systems.. In ExaCt. 84–93.
+[18] Leatrice Eiseman. 2017. The complete color harmony, pantone edition: expert color information for professional results. Rockport Publishers.
+[19] Renato Ferrero, Mohammad Ghazi Vakili, Edoardo Giusto, Mauro Guerrera, and Vincenzo Randazzo. 2019. Ubiquitous fridge with
+     natural language interaction. In 2019 IEEE International Conference on RFID Technology and Applications (RFID-TA). IEEE, 404–409.
+[20] Georgi Gerganov. 2024. llama.cpp. https://github.com/ggerganov/llama.cpp.
+[21] Google. 2024. Beginner’s guide to the Nest thermostat. https://support.google.com/googlenest/answer/9248184
+[22] Denis Gudovskiy, Gyuri Han, Takuya Yamaguchi, and Sotaro Tsukizawa. 2019. Smart home appliances: Chat with your fridge. arXiv
+     preprint arXiv:1912.09589 (2019).
+[23] Suriya Gunasekar, Yi Zhang, Jyoti Aneja, Caio César Teodoro Mendes, Allie Del Giorno, Sivakanth Gopi, Mojan Javaheripi, Piero
+     Kauffmann, Gustavo de Rosa, Olli Saarikivi, et al. 2023. Textbooks are all you need. arXiv preprint arXiv:2306.11644 (2023).
+[24] Andrew F Hayes and Klaus Krippendorff. 2007. Answering the call for a standard reliability measure for coding data. Communication
+     methods and measures 1, 1 (2007), 77–89.
+[25] Weijia He, Jesse Martinez, Roshni Padhi, Lefan Zhang, and Blase Ur. 2019. When smart devices are stupid: negative experiences using
+     home smart devices. In 2019 IEEE Security and Privacy Workshops (SPW). IEEE, 150–155.
+[26] Cheng-Yu Hsieh, Chun-Liang Li, Chih-Kuan Yeh, Hootan Nakhost, Yasuhisa Fujii, Alexander Ratner, Ranjay Krishna, Chen-Yu Lee, and
+     Tomas Pfister. 2023. Distilling step-by-step! outperforming larger language models with less training data and smaller model sizes.
+     arXiv preprint arXiv:2305.02301 (2023).
+[27] Edward J Hu, Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and Weizhu Chen. 2021. Lora: Low-rank
+     adaptation of large language models. arXiv preprint arXiv:2106.09685 (2021).
+[28] Ioana Iancu and Bogdan Iancu. 2020. I love it, but it is too complicated. Aging adults’ perspective on mobile technology acceptance.
+     ESSACHESS–Journal for Communication Studies 13, 2 (26) (2020), 13–39.
+[29] Tom Kenter and Maarten De Rijke. 2015. Short text similarity with word embeddings. In Proceedings of the 24th ACM international on
+     conference on information and knowledge management. 1411–1420.
+[30] Evan King, Haoxiang Yu, Sangsu Lee, and Christine Julien. 2023. "Get ready for a party": Exploring smarter smart spaces with help from
+     large language models. arXiv preprint arXiv:2303.14143 (2023).
+[31] Evan King, Haoxiang Yu, Sangsu Lee, and Christine Julien. 2024. Sasha: creative goal-oriented reasoning in smart homes with large
+     language models. Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies 8, 1 (2024), 1–38.
+[32] Takeshi Kojima, Shixiang Shane Gu, Machel Reid, Yutaka Matsuo, and Yusuke Iwasawa. 2022. Large language models are zero-shot
+     reasoners. Advances in neural information processing systems 35 (2022), 22199–22213.
+[33] Börge Kordts, Bennet Gerlach, and Andreas Schrader. 2021. Towards self-explaining ambient applications. In Proceedings of the 14th
+     PErvasive Technologies Related to Assistive Environments Conference. 383–390.
+[34] Todd Kulesza, Simone Stumpf, Margaret Burnett, Sherry Yang, Irwin Kwan, and Weng-Keen Wong. 2013. Too much, too little, or just
+     right? Ways explanations impact end users’ mental models. In 2013 IEEE Symposium on visual languages and human centric computing.
+     IEEE, 3–10.
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+                                         Thoughtful Things: Building Human-Centric Smart Devices with Small Language Models • 23
+
+
+[35] Sook-Youn Kwon and Jae-Hyun Lim. 2017. Multi-objective context-adaptive natural lighting system. Energy and Buildings 144 (2017),
+     61–73.
+[36] J Richard Landis and Gary G Koch. 1977. The measurement of observer agreement for categorical data. biometrics (1977), 159–174.
+[37] Amanda Lazar, Christian Koehler, Theresa Jean Tanenbaum, and David H Nguyen. 2015. Why we use and abandon smart devices. In
+     Proceedings of the 2015 ACM international joint conference on pervasive and ubiquitous computing. 635–646.
+[38] Bojun Li, Piyanuch Hathaipontaluk, and Suhuai Luo. 2009. Intelligent oven in smart home environment. In 2009 international conference
+     on research challenges in computer science. IEEE, 247–250.
+[39] Wenda Li, Tan Yigitcanlar, Isil Erol, and Aaron Liu. 2021. Motivations, barriers and risks of smart home adoption: From systematic
+     literature review to conceptual framework. Energy Research & Social Science 80 (2021), 102211.
+[40] Henry Lieberman and José Espinosa. 2006. A goal-oriented interface to consumer electronics using planning and commonsense
+     reasoning. In Proceedings of the 11th international conference on Intelligent User Interfaces. 226–233.
+[41] Chin-Yew Lin. 2004. ROUGE: A package for automatic evaluation of summaries. In Text summarization branches out. 74–81.
+[42] Ewa Luger and Abigail Sellen. 2016. " Like Having a Really Bad PA" The Gulf between User Expectation and Experience of Conversational
+     Agents. In Proceedings of the 2016 CHI conference on human factors in computing systems. 5286–5297.
+[43] Lucian Meinicke, Keiko Ochi, and Yasunari Obuchi. 2020. Multi-level Query Analysis for NLT-based Synthesizer Interface. In 2020
+     Nicograph International (NicoInt). IEEE, 62–65.
+[44] Pranay Parab. 2024. Google Assistant Is Losing a Bunch of Features. https://lifehacker.com/tech/google-assistant-is-losing-a-bunch-of-
+     features Section: Internet.
+[45] Sudipta Paul, Lingyu Zhang, Yilin Shen, and Hongxia Jin. 2024. Enabling Device Control Planning Capabilities of Small Language Model.
+     In ICASSP 2024-2024 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP). IEEE, 12066–12070.
+[46] Alisha Pradhan, Amanda Lazar, and Leah Findlater. 2020. Use of intelligent voice assistants by older adults with low technology use.
+     ACM Transactions on Computer-Human Interaction (TOCHI) 27, 4 (2020), 1–27.
+[47] Alisha Pradhan, Kanika Mehta, and Leah Findlater. 2018. "Accessibility Came by Accident" Use of Voice-Controlled Intelligent Personal
+     Assistants by People with Disabilities. In Proceedings of the 2018 CHI Conference on human factors in computing systems. 1–13.
+[48] Ben Prystawski, Michael Li, and Noah Goodman. 2024. Why think step by step? Reasoning emerges from the locality of experience.
+     Advances in Neural Information Processing Systems 36 (2024).
+[49] Aung Pyae and Tapani N. Joelsson. 2018. Investigating the usability and user experiences of voice user interface: a case of Google
+     home smart speaker. In Proceedings of the 20th International Conference on Human-Computer Interaction with Mobile Devices and
+     Services Adjunct (Barcelona, Spain) (MobileHCI ’18). Association for Computing Machinery, New York, NY, USA, 127–131. https:
+     //doi.org/10.1145/3236112.3236130
+[50] Alec Radford, Jong Wook Kim, Tao Xu, Greg Brockman, Christine McLeavey, and Ilya Sutskever. 2023. Robust speech recognition via
+     large-scale weak supervision. In International Conference on Machine Learning. PMLR, 28492–28518.
+[51] Nils Reimers and Iryna Gurevych. 2019. Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks. In Proceedings of the
+     2019 Conference on Empirical Methods in Natural Language Processing. Association for Computational Linguistics. http://arxiv.org/abs/
+     1908.10084
+[52] Mersedeh Sadeghi, Lars Herbold, Max Unterbusch, and Andreas Vogelsang. 2024. SmartEx: A Framework for Generating User-Centric
+     Explanations in Smart Environments. arXiv preprint arXiv:2402.13024 (2024).
+[53] Jordie Shier. 2021. The synthesizer programming problem: improving the usability of sound synthesizers. Master’s thesis. University of
+     Victoria.
+[54] Lo’ai Tawalbeh, Fadi Muheidat, Mais Tawalbeh, and Muhannad Quwaider. 2020. IoT Privacy and security: Challenges and solutions.
+     Applied Sciences 10, 12 (2020), 4102.
+[55] Gemma Team, Thomas Mesnard, Cassidy Hardin, Robert Dadashi, Surya Bhupatiraju, Shreya Pathak, Laurent Sifre, Morgane Rivière, Mi-
+     hir Sanjay Kale, Juliette Love, et al. 2024. Gemma: Open models based on gemini research and technology. arXiv preprint arXiv:2403.08295
+     (2024).
+[56] Hugo Touvron, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, Soumya Batra, Prajjwal
+     Bhargava, Shruti Bhosale, et al. 2023. Llama 2: Open foundation and fine-tuned chat models. arXiv preprint arXiv:2307.09288 (2023).
+[57] Pirros Tsiakoulis, Milica Gašic, Matthew Henderson, Joaquin Planells-Lerma, Jorge Prombonas, Blaise Thomson, Kai Yu, Steve Young,
+     and Eli Tzirkel. 2012. Statistical methods for building robust spoken dialogue systems in an automobile. Proceedings of the 4th applied
+     human factors and ergonomics (2012).
+[58] Pooja Upadhyay, Sharon Heung, Shiri Azenkot, and Robin N Brewer. 2023. Studying exploration & long-term use of voice assistants by
+     older adults. In Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems. 1–11.
+[59] Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N Gomez, Łukasz Kaiser, and Illia Polosukhin. 2017.
+     Attention is all you need. Advances in neural information processing systems 30 (2017).
+[60] Yizhong Wang, Yeganeh Kordi, Swaroop Mishra, Alisa Liu, Noah A Smith, Daniel Khashabi, and Hannaneh Hajishirzi. 2022. Self-instruct:
+     Aligning language models with self-generated instructions. arXiv preprint arXiv:2212.10560 (2022).
+
+                                                                                         , Vol. 1, No. 1, Article . Publication date: May 2024.
+24   • E. King, et al.
+
+
+[61] Henry Weld, Xiaoqi Huang, Siqu Long, Josiah Poon, and Soyeon Caren Han. 2022. A survey of joint intent detection and slot filling
+     models in natural language understanding. Comput. Surveys 55, 8 (2022), 1–38.
+[62] Frank F Xu, Uri Alon, Graham Neubig, and Vincent Josua Hellendoorn. 2022. A systematic evaluation of large language models of code.
+     In Proceedings of the 6th ACM SIGPLAN International Symposium on Machine Programming. 1–10.
+[63] Rayoung Yang and Mark W Newman. 2013. Learning from a learning thermostat: lessons for intelligent systems for the home. In
+     Proceedings of the 2013 ACM international joint conference on Pervasive and ubiquitous computing. 93–102.
+[64] Alexander Yates, Oren Etzioni, and Daniel Weld. 2003. A reliable natural language interface to household appliances. In Proceedings of
+     the 8th international conference on Intelligent user interfaces. 189–196.
+
+
+
+
+, Vol. 1, No. 1, Article . Publication date: May 2024.
+

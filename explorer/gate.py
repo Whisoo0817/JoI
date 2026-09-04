@@ -303,7 +303,7 @@ def main() -> None:
     res, refused = Counter(), Counter()
     diverged, unconfirmed = [], []
     n_stale = 0
-    for f in sorted(glob.glob("paper/simulators/cache/*.json")):
+    for f in sorted(glob.glob("sensys/simulators/cache/*.json")):
         key = f.rsplit("/", 1)[-1][:-5]
         d = json.load(open(f))
         jb = d.get("joi_block")
@@ -345,7 +345,7 @@ def main() -> None:
          "(#Light #Hallway).light_moveToBrightness"),
     ]
     for name, key, old, new in muts:
-        d = json.load(open(f"paper/simulators/cache/{key}.json"))
+        d = json.load(open(f"sensys/simulators/cache/{key}.json"))
         r = rows[key]
         jb = dict(d["joi_block"])
         assert old in jb["script"], f"{name}: 패턴 없음"

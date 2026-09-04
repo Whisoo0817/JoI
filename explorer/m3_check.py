@@ -102,7 +102,7 @@ def check_pair(d: dict):
 def main() -> None:
     res, errs = Counter(), Counter()
     diverged = []
-    for f in sorted(glob.glob("paper/simulators/cache/*.json")):
+    for f in sorted(glob.glob("sensys/simulators/cache/*.json")):
         d = json.load(open(f))
         jb = d.get("joi_block")
         if not jb:

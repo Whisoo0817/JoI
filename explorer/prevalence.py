@@ -72,7 +72,7 @@ def main() -> None:
     n_pairs = n_indep = n_err = 0
     indep_flagged: list[str] = []
 
-    for f in sorted(glob.glob("paper/simulators/cache/*.json")):
+    for f in sorted(glob.glob("sensys/simulators/cache/*.json")):
         key = f.rsplit("/", 1)[-1][:-5]
         d = json.load(open(f))
         jb = d.get("joi_block")

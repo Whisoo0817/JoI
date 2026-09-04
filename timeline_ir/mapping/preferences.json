@@ -1,0 +1,12 @@
+{
+  "_comment": "서비스 선호/처방 규칙. 같은 효과를 내는 서비스가 여럿일 때 무엇을 우선할지 결정한다. 새 규칙은 여기에 추가한다. when_hint는 해당 단어가 effect_hint에 있을 때만 규칙을 적용한다.",
+  "preferences": [
+    {"prefer": "Camera.CaptureVideo", "over": "Camera.StartRecording",
+     "why": "StartRecording은 반환값이 없어 전송/첨부 체이닝 불가 (정책 2026-07-20: 녹화+메일=파일 전송)"},
+    {"prefer": "Camera.CaptureImage", "over": "Camera.CaptureVideo",
+     "when_hint": ["사진", "촬영", "찍어"],
+     "why": "촬영/사진은 스틸 이미지 (현행 파이프라인 규약)"},
+    {"prefer": "MessageSender.SendSms", "over": "MessageSender.SendKakaoTalk",
+     "why": "템플릿 id 없는 카톡 발송 불가"}
+  ]
+}

@@ -1,0 +1,1164 @@
+1
+2
+                  OVLA: On-device Verification of LLM-Generated IoT                                                                                       59
+                                                                                                                                                          60
+3                           Automations via Timeline IR                                                                                                   61
+4                                                                                                                                                         62
+5                                                             Anonymous Author(s)                                                                         63
+6                                                                                                                                                         64
+7    Abstract                                                                     schedules, periodic executions, and sustained state durations (e.g.     65
+8    Smart home automation increasingly relies on large language mod-             “if it persists for more than N minutes”). Driven by timers, coun-      66
+9    els (LLMs) to translate natural language (NL) user intents into ex-          ters, and multi-step state, the correct behavior of an automation       67
+10   ecutable reactive rules. However, deploying these rules directly on          must be evaluated across an entire timeline rather than a single        68
+11   edge hubs poses severe reliability and safety risks since reactive IoT       discrete instant. Furthermore, in our setting, this logic is deployed   69
+12   automations are temporally complex, involving precise triggers,              as arbitrary code rather than a restricted, fixed-rule template. Val-   70
+13   durations, and repetitions. Existing validation methods rely heav-           idating their correctness presents two key challenges. First, no        71
+14   ily on human code inspection, offline experts, or resource-heavy             test oracle is available. Unlike text-to-SQL or traditional program-    72
+15   cloud LLM re-checks, and thus fail to meet edge privacy and la-              ming benchmarks that supply gold denotations or input-output            73
+16   tency constraints. To tackle this challenge, we present OVLA, an             test suites [5, 30], a reactive automation’s output is a future se-     74
+17   on-device pipeline for deterministic, LLM-free verification of IoT           quence of environment interactions. Because no external source          75
+18   automations before deployment. OVLA bridges the gap between                  can pre-label this sequence, the verification reference must be ac-     76
+19   informal natural language and strict execution with Timeline IR, a           tively constructed on the fly. Second, syntactic divergence compli-     77
+20   compact, machine-checkable representation of temporal behavior:              cates evaluation. The same user intent can be expressed through         78
+21   the user’s intent is translated into a typed Timeline IR, and the            many syntactically different yet behaviorally equivalent imple-         79
+22   user confirms its deterministic plain-language rendering, which              mentations. Therefore, checking a generated program by matching         80
+23   then serves as the reference specification. OVLA then synthesizes            it against any single reference text is neither sound nor complete.     81
+24   boundary-event scenarios from this IR, co-simulates the IR and the           Determining correctness fundamentally requires reasoning about          82
+25   generated rule code, and compares their action traces to detect be-          the program’ s semantic behavior over time, rather than analyzing       83
+26   havioral discrepancies and guide automated repairs via counterex-            its static syntax or a single snapshot of its output.                   84
+27   amples. On a benchmark of 382 natural-language automations, the                  Running example: Suppose a user requests “whenever the              85
+28   verifier caught 99.3% of 1,552 injected code faults. When the full           temperature rises above 25℃, turn on the air conditioner.” We           86
+29   pipeline ran end-to-end with local quantized ≤9B generators, the             read “rises above” as an edge-triggered intent: the AC should be        87
+30   gate flagged 35 candidates; 11 were repaired and 24 rejected fail-           switched on once per upward crossing, not continuously while it         88
+31   closed, and no divergent candidate reached deployment; 35,800                stays hot. Figure 1 shows three lowerings, sketched in JoI, the au-     89
+32   randomized dense replays independently confirmed the confor-                 tomation DSL of our target platform (§4). Implementation (a) de-        90
+33   mance of the final deployed set. The verdict is available on the             tects the crossing by comparing the previous and current temper-        91
+34   device at deployment time: the LLM-free gate decides in 0.97ms               ature readings while (b) keeps a flag that is set on firing and reset   92
+35   at the median on a Mac mini M4, and we integrate OVLA end-to-                when the temperature falls back below the threshold. (a) and (b)        93
+36   end with a commercial home-automation platform and physical                  share almost nothing syntactically yet behave identically, so no        94
+37   devices.                                                                     syntactic comparison can certify one against the other. Implemen-       95
+38                                                                                tation (c) appears to be the most intuitive translation because it      96
+39   Keywords                                                                     textually mirrors the natural-language request. However, it is the      97
+40                                                                                wrong one: under periodic execution it falsely re-fires on every        98
+     IoT automation, LLM code generation, reactive-temporal code, de-
+41                                                                                tick as long as the temperature stays above the threshold. All three    99
+     terministic verification, on-device, trace equivalence
+42                                                                                are syntactically valid and look plausible; they can only be differ-    100
+43                                                                                entiated by evaluating their execution traces over time; because        101
+44   1   Introduction                                                             repeated On() commands leave the AC in the same visible state,          102
+45   IoT automation is rapidly moving toward LLM-based code genera-               the user may see nothing wrong. This is a crucial failure mode our      103
+46   tion. A user states the desired behavior in natural language, and an         system eliminates: deployed code that silently diverges from            104
+47   LLM turns it into a reactive rule the platform can execute. Yet the          the user’s intended behavioral specification. (In the sketches,         105
+48   final step of this workflow, deciding whether the generated code is          cron sets when the script starts, period is the tick interval in mil-   106
+49   correct to deploy, has no deterministic gate. The missing piece is a         liseconds, and code is the body executed on every tick; := initial-     107
+50   reference to check the code against; the natural-language request            izes a persistent variable once, while = performs per-tick update.)     108
+51   contains the intent, but not in a form that can serve as a rigorous              Why existing checks fall short. Prior verification frame-           109
+52   baseline for automated testing.                                              works of IoT automations target fixed, predefined criteria rather       110
+53      Why this is hard: The core challenge stems from the absence               than the user’s intent. A large body of work checks hand-authored       111
+54   of a verifiable reference baseline. The target automations are in-           trigger-action rules [26]; for instance model checkers prove safety     112
+55   herently reactive-temporal. They are reactive because their execu-           properties, inter-rule conflicts, or security policies (e.g., Auto-     113
+56   tion is driven by asynchronous events and conditional triggers,              Tap [33], IoTSan [17], IoTGuard [3]), while runtime monitors flag       114
+57   and temporal because their behavior unfolds over time through                                                                                        115
+58                                                                            1                                                                           116
+                                                                                                                                                  Anon.
+
+
+117
+             cron:””                                                                  In that generation setting, the gap remains wide open, and bridg-     175
+118          period: 1000                                                          ing it hinges on a single question: does a test oracle already ex-       176
+             code:
+119                                                                                ist? Generators designed for algorithmic IoT code can readily val-       177
+             “prev := 0
+120
+             current = (#TemperatureSensor).temperature                            idate their output against executable test suites or labeled accu-       178
+121          if (prev <= 25 and current > 25) {                                    racy, similar to how text-to-SQL frameworks verify relational de-        179
+122             (#AC).on()                                                         notations. For these domains, intent-conformance is effectively          180
+             }
+123
+             prev = current”                                                       a solved problem (e.g., GPIoT [23], AutoIOT [24]). Reactive au-          181
+124                                                                                tomations, however, lack any such ready-made oracle. Hence nat-          182
+125                        (a) Previous/current comparison                         ural language-to-automation generators must settle for weaker            183
+126          cron:””                                                               proxies: schema validity (e.g., verifying that the framework ac-         184
+127          period: 1000                                                          cepts the JSON syntax), device grounding feasibility, lexical match-     185
+             code:
+128
+             “triggered := false
+                                                                                   ing against ground-truth commands, or evaluation by an LLM               186
+129
+             temp = (#TemperatureSensor).temperature                               judge [35]. Even frameworks that present the generated rule back         187
+130          if (temp > 25) {                                                      to the user rely on manual, error-prone human-in-the-loop con-           188
+                if (!triggered) {
+131                                                                                firmation rather than formal verification of the underlying exe-         189
+                      (#AC).on()
+132
+                      triggered = true                                             cutable code (e.g., AwareAuto [25]). To our knowledge, no existing       190
+133             }                                                                  system deterministically checks that reactive-temporal code faith-       191
+134          } else {                                                              fully executes the user’s behavioral intent over time. The funda-        192
+                triggered = false
+135
+             }”                                                                    mental missing piece is not a more capable language model, but a         193
+136                                                                                verifiable reference specification.                                      194
+                                  (b) Triggered flag
+137                                                                                   Why not an LLM judge. The remaining alternative that tar-             195
+138
+             cron:“”                                                               gets user intent directly is to ask another LLM whether the code         196
+139          period: 1000                                                          matches the request. But an LLM judge is too unstable to act as          197
+140          code:                                                                 a deployment gate. A deployment decision is binary: two behav-           198
+             “wait until ((#TemperatureSensor).temperature > 25)
+141
+             (#AC).on()”
+                                                                                   iorally identical programs must receive the same deploy/reject ver-      199
+142                                                                                dict. Yet we find that on behavior-preserving programs that differ       200
+143
+                           (c) Re-fires while the level holds                      only in idiom, an LLM judge’s verdict flips even at temperature 0        201
+144                                                                                (§3). Larger models still flip, and cloud models violate the privacy     202
+145     Temperature                             Rising
+                                                edge                               and latency constraints of the edge. A gate whose verdict tracks         203
+146                   25                                                           the surface form of the code is not fit to gate deployment.              204
+147                                                                                   OVLA. To address these challenges, we present OVLA. Its               205
+148                                                                                key idea is to derive the missing reference specification at author-     206
+149     Triggered (a)                                                              ing time and subsequently utilize it as a deterministic verifica-        207
+         Action
+150
+                  (b)                                                              tion baseline. First, OVLA builds a candidate Timeline IR from a         208
+151                                                                                natural-language request. Then, the system generates a determin-         209
+152                (c)            …                             …                  istic, plain-language rendering of this IR for the user to review and    210
+153
+                                   (d) Action traces                               confirm. This confirmed IR serves as a per-automation behavioral         211
+154                                                                                oracle. The generated JoI code is then verified against the oracle by    212
+155
+      Figure 1: Three lowering sketches of one intent (“whenever                   bounded trace-equivalence over the finite set of transition points       213
+156
+      the temperature rises above 25°C, turn on the air condi-                     defined by the IR. Both components are run on events synthe-             214
+157
+      tioner”) and their action traces. (a) and (b) produce identical              sized at those points (e.g., timer expirations, condition thresholds,    215
+158
+      traces; (c) fires on every tick while the threshold is exceeded.             and cycle restarts), and their resulting action traces are compared.     216
+159                                                                                While the LLM is confined to generation, proposing the IR and low-       217
+160                                                                                ering it to code, both the rendering step and the equivalence check      218
+161                                                                                are deterministic and LLM-free. This allows conformant automa-           219
+162   deviations from mined invariants [10]. This limitation is a con-             tions to be safely deployed at the edge without cloud-side review.       220
+163   sequence of design paradigm, not oversight. When a user writes               Precisely because lowering relies on a probabilistic LLM, a deter-       221
+164   the rule directly, the rule itself serves as the ground-truth intent,        ministic checker is needed.                                              222
+165   and critical risks worth verifying, such as rule conflicts and secu-            Scope and assumptions. OVLA targets natural-language com-             223
+166   rity violations, can be defined, without referencing the unique in-          mands specifying explicit reactive-temporal behaviors. Inferring         224
+167   tended behavior of a specific task. However, as the user transitions         intent from vague or affective goals (e.g., “make it cozy”) is a sepa-   225
+168   from author to prompter, the verification paradigm fundamentally             rate intent-elicitation challenge addressed by orthogonal literature     226
+169   changes. Once an LLM synthesizes code from a natural-language                (e.g., Sasha [15], SAGE [21]) and is strictly out of scope. Any resid-   227
+170   request, the user’ s original statement and the generated artifact be-       ual ambiguity within a specifiable command is intentionally sur-         228
+171   come distinct, decoupled entities that can silently diverge. In this         faced by OVLA’s deterministic rendering phase and resolved dur-          229
+172   generative workflow intent-conformance emerges as a critical, un-            ing user confirmation, rather than by the verifier itself. Confirm-      230
+173   addressed checkpoint.                                                        ing the IR is presented as a plain-language judgment rather than         231
+174                                                                            2                                                                            232
+      OVLA: On-device Verification of LLM-Generated IoT Automations via Timeline IR
+
+
+233   a programming task. The dimensions a user controls in reactive-                       millisecond at the median. OVLA’s verification guarantee does             291
+234   temporal automation are limited and enumerable (start time, pe-                       not depend on the size or quality of the generation model.                292
+235   riod, trigger and condition, action and its arguments, sustain and                  • C4. Evaluation: We evaluate rendering faithfulness (§8.1) and             293
+236   delay durations), Timeline IR expresses only these slots, and de-                     verifier detection accuracy (§8.2), empirically demonstrate sys-          294
+237   terministic rendering displays them verbatim as a readable time-                      tem safety by mitigating genuine silent IR-to-code divergence of          295
+238   line (§8.1). Approving an IR is thus a closed judgment over finite                    8.6% (9.2% flagged; strongest generator) down to zero (§8.3), and         296
+239   control slots the command named, not the authoring of arbitrary                       measure on-device execution overheads and deployment feasi-               297
+240   formal properties.                                                                    bility (§8.4) through rigorous component-by-component analy-              298
+241      Two-layer guarantee. We explicitly define the boundaries of                        sis.                                                                      299
+242   our verification scope. In Layer A (NL→IR), the system captures                        Focus of the contribution. OVLA removes a failure mode that              300
+243   intent as IR and presents it in plain language, but we do not mea-                  survives user approval: even when the approved IR is acceptable,            301
+244   sure non-expert confirmation success itself in this round via a                     the subsequent reactive-temporal lowering phase can introduce               302
+245   human-subjects study (§9). In Layer B (IR→code), once the IR                        subtle state, timer, and boundary errors that cause the deployed            303
+246   is approved, OVLA prevents the generated code from silently di-                     code to diverge. OVLA serves as the deterministic, on-device gate           304
+247   verging from that displayed IR within a bounded behavior region.                    specifically engineered to intercept and remediate exactly these er-        305
+248   OVLA’s technical guarantee lies firmly in Layer B.                                  rors.                                                                       306
+249      Deployment setting. We assume a home edge device rather                                                                                                      307
+250   than the cloud, to ensure privacy (sensor data never leaves the                                                                                                 308
+251   home) and reduce latency. This environment precludes a cloud                        2 Related Work and Positioning                                              309
+252   LLM judge, requiring the validation gate to be an LLM-free de-                      Verification of home automations did not begin as an open problem.          310
+253   terministic check. Consequently, a single design decision simulta-                  When users authored rules directly, the rule itself was the artifact        311
+254   neously delivers trust (via a non-probabilistic judge) and deploy-                  under analysis, and formal techniques could check it against fixed          312
+255   ability (millisecond-level localized execution with zero model-call                 properties; when code was generated in domains that ship exe-               313
+256   overhead).                                                                          cutable tests, the tests served as the oracle. In both settings, a check-   314
+257                                                                                       able reference existed before verification began. LLMs entered this         315
+258                                                                                       workflow for a practical reason: authoring is the bottleneck, as end        316
+259   Contributions. To the best of our knowledge, OVLA is the                            users struggle to write and debug even slot-based rules, and richer         317
+260   first system for LLM-generated reactive-temporal IoT automa-                        reactive-temporal behaviors require code they cannot write at all.          318
+261   tions that transforms intent-conformance into a deterministic, pre-                 This shift turns the user from an author into a prompter, separates         319
+262   deployment verification check. It achieves this by establishing                     the request from the artifact that implements it, and removes the           320
+263   a user-confirmed behavioral IR as the authoritative test oracle,                    very reference that earlier verification relied on. We therefore or-        321
+264   rather than relying on a probabilistic judge or superficial manual                  ganize prior work by the reference each system checks against.              322
+265   review.                                                                                When a verification reference already exists. A rich body                323
+266   • C1. Timeline IR: We introduce a unified representation that                       of work verifies hand-authored TAP rules with formal techniques.            324
+267      simultaneously serves dual roles: (a) a surface that is determin-                AutoTap [33] synthesizes or repairs TAP rules, modeled as tran-             325
+268      istically rendered to plain language for user validation, and (b) a              sition systems, so that they satisfy LTL safety property templates          326
+269      machine-checkable behavioral reference for validating reactive-                  chosen by the user. TAPInspector [31] model-checks timing-aware             327
+270      temporal code. While an approved NL sentence can serve only                      rule sets for safety and liveness violations and TAPFixer [32] re-          328
+271      (a) and a formal property only (b), our contribution lies in                     pairs such violations; related analyses uncover inter-rule and secu-        329
+272      a singular representation that achieves both. Given that prior                   rity vulnerabilities [2, 28]; and HAWatcher [10] monitors deployed          330
+273      works can already generate confirmable temporal IRs, our dis-                    automations against mined invariants at runtime. Deterministic              331
+274      tinct claim is the novel integration of deterministic, LLM-free                  verification is possible in this line because the reference is fixed        332
+275      verification, automatic rendering, and localized on-device oper-                 in advance: a safety property, conflict freedom, or a security pol-         333
+276      ation (§2).                                                                      icy. Because the user authors the rule directly, the rule is itself the     334
+277   • C2. Deterministic deployment gate: We propose an end-to-                          artifact under analysis, and a separate per-task intent reference is        335
+278      end pipeline, spanning IR→FSM→boundary event→bounded                             never required.                                                             336
+279      trace-equivalence, that executes entirely without LLM interven-                     The same holds for generation targets whose domain supplies              337
+280      tion. The gate operates under a fail-closed policy where a pass                  an executable oracle. GPIoT [23] generates signal-processing and            338
+281      triggers immediate deployment and a failure triggers automatic                   ML algorithm code from natural-language requirements using an               339
+282      repair or rejection. When the gate rejects a simulatable program,                on-device fine-tuned SLM and verifies the result with pass@k ex-            340
+283      the rejection is backed by an executable counterexample: a real                  ecution tests. Outside IoT, text-to-SQL verifies a generated query          341
+284      trace mismatch under the defined observation model (rejection-                   against the denotation of a gold query [30], and CodeT [4] and Self-        342
+285      soundness).                                                                      Debug [6] verify generated code with unit tests. Across both lines,         343
+286   • C3. On-device realization: The generation phase utilizes a 4-                     verification was enabled by a checkable target that was already avail-      344
+287      bit quantized model of at most 9 billion parameters without any                  able, whether a fixed property, a test suite, or a gold denotation.         345
+288      fine-tuning, while the verification gate bypasses LLM execution                     LLM-generated reactive automations: no ready-made ref-                   346
+289      entirely. Consequently, verification completes locally in about a                erence. LLM-generated reactive automations have no such target:             347
+290                                                                                   3                                                                               348
+                                                                                                                                                      Anon.
+
+
+349   the intended behavior is named only in the user’s request, and no             a model-judged verdict certifies itself, as in LACE’s reported “100%        407
+350   benchmark or test suite labels its future action sequence. The miss-          correctness”.                                                               408
+351   ing reference is also harder to substitute here than for TAP rules.               Two systems come nearest to OVLA, each along one axis of our            409
+352   TAP rules do carry temporal behavior, including triggers, stays-for           problem: LACE on the reference axis, since it checks a generated            410
+353   durations, and cron-style schedules, but there it is a platform prim-         artifact against the user’s request, and AwareAuto on the artifact          411
+354   itive: the author fills slots and the engine implements the mecha-            axis, since it builds a confirmable reactive-temporal representation.       412
+355   nism, so slot errors are visible on the face of the rule. In reactive-        LACE, however, judges probabilistically over static policies, and           413
+356   temporal code such as JoI scripts, no such primitive exists for edge          AwareAuto never verifies the behavior of the lowered code. OVLA             414
+357   detection, sustained conditions, or counting; the author, here an             starts precisely where both stop, treating the user as the only le-         415
+358   LLM, must realize the mechanism as an idiom built from persis-                gitimate source of the reference: it derives the missing reference          416
+359   tent variables, conditions, and per-tick execution. Mechanism er-             at authoring time, takes the user-confirmed IR as the behavioral            417
+360   rors are silent, and they are exactly where lowering bugs arise.              oracle, and checks the generated reactive-temporal code through             418
+361       Some systems in this regime do check LLM output determin-                 deterministic, LLM-free trace-equivalence, before deployment and            419
+362   istically, but still against fixed criteria. AutoIoT [7] checks LLM-          on the device. We note that merely combining generation with ver-           420
+363   generated rules against four inter-rule conflict types using Maude            ification is standard practice in this field and is not our claimed nov-    421
+364   rewriting logic. DS-IA [14] checks the device-grounding feasibility           elty; the novelty is that the user-confirmed IR itself becomes the          422
+365   of a command with a deterministic cascade and rejects infeasible              executable behavioral oracle, which is what makes deterministic,            423
+366   commands fail-closed before execution. TaskSense [16] translates a            LLM-free, on-device checking of reactive-temporal code possible;            424
+367   sensing query into an executable tool-calling DAG, screens it with            no single prior system provides this.                                       425
+368   an LLM-based solvability check, and then deterministically checks                                                                                         426
+369   that the plan’s dependency graph is a subgraph of the toolset                                                                                             427
+370   grammar; both checks establish structural well-formedness, and                                                                                            428
+371   its only behavioral reference, a hand-authored ground-truth plan,             3 Problem and Motivation                                                    429
+372   exists solely in offline evaluation. AgentSpec [27] enforces trigger-         Together, §1 and §2 leave a clear task: a gate is needed that decides,      430
+373   predicate safety rules on LLM agents at runtime through a deter-              before deployment, whether LLM-generated reactive-temporal                  431
+374   ministic DSL; however, its rules are fixed and hand-written rather            code behaves as the user intended. This section first establishes           432
+375   than derived from the request being served. Most of these checks              the requirements such a gate must meet in our setting. Next it              433
+376   are deterministic, yet their reference remains a predefined criterion;        weighs alternative candidate checking approaches against them,              434
+377   the behavior the user actually asked for is still never the reference.        and finally measures the one remaining candidate, an LLM judge,             435
+378       Generation systems themselves fall back to weaker checks. Cha-            motivating our proposed solution.                                           436
+379   tIoT [11] translates natural language into Home Assistant automa-                 Three requirements for a deployment gate.                               437
+380   tions with multiple LLM agents and has a separate “Evaluator”                 • R1 (Reference). No prior reference exists. The intended be-               438
+381   agent assess format compliance and request satisfaction; Giudici                 havior is determined solely by the user’ s recent request, mean-         439
+382   et al. [13] accept a generated routine if the framework parses its               ing it is not provided as a checkable artifact. Algorithmic code         440
+383   JSON; and IoTGPT [29] catches API violations and runtime er-                     carries an executable oracle in the form of input-output pairs           441
+384   rors, though not intent mismatches, in a virtual SmartThings en-                 and is checked by running tests (GPIoT [23], §2). For reactive-          442
+385   vironment. AwareAuto [25] goes furthest: it builds a confirmable                 temporal code, the “right output” is a future sequence of device         443
+386   reactive-temporal rule with event/state modes, delays, branches,                 actions that no external source labels. The reference must be con-       444
+387   and sequencing, presents it to the user in a panel, and lowers it to             structed, not looked up.                                                 445
+388   executable JSON. Across this line, automatic checking stops at for-           • R2 (Stability). A deployment decision is binary: two programs             446
+389   mat adequacy, API validity, or device-grounding feasibility. Even in             with the same behavior must receive the same deploy/reject ver-          447
+390   AwareAuto, intent consistency is evaluated through researcher anno-              dict. A checker whose verdict wavers under behavior-preserving           448
+391   tation, and the user-facing confirmation text is generated prose rather          rewrites is unsuitable as a gate, regardless of the quality of its in-   449
+392   than a deterministic rendering. Consequently, none of these systems              dividual judgments.                                                      450
+393   verifies that the generated code behaves as the user intended.                • R3 (On-device). Sensor data must not leave the home (privacy)             451
+394       Work that directly asks whether the generated artifact matches               and the verdict must be immediate (latency), so the gate must            452
+395   the user’s intent remains rare. LACE [8] back-translates a gener-                run on the edge without a cloud round-trip.                              453
+396   ated access-control policy into natural language with determinis-                 Candidate 1: syntactic or structural comparison. The most               454
+397   tic templates and judges semantic equivalence against the origi-              straightforward verification method is to match the generated code          455
+398   nal request with a fine-tuned NLI model. SimuHome [22] judges                 directly against a reference text. However, as demonstrated by the          456
+399   agent behavior against goal states in a time-accelerated simula-              temperature control example in §1 (Figure 1), identical user intent         457
+400   tor and shows that 18 LLM agents largely fail to self-correct their           can be realized through syntactically disparate idioms (a prev/curr         458
+401   own reactive-temporal errors (§3); its goals, however, are authored           comparison vs. a triggered flag), while the buggy implementation            459
+402   by the benchmark rather than confirmed by a user, and it eval-                is the one that most resembles the request. Indeed, near-miss bugs          460
+403   uates agents rather than gating deployment. Even where intent is              differing by only a single execution tick or a single comparison            461
+404   addressed directly, intent has no ground truth other than the user, so        can appear identical to valid code variants. Because syntactic or           462
+405                                                                                 structural matching can neither validate diverse correct variants           463
+406                                                                             4                                                                               464
+      OVLA: On-device Verification of LLM-Generated IoT Automations via Timeline IR
+
+
+465   nor isolate subtle bugs, it satisfies neither soundness nor complete-                                100                                                     523
+466   ness. Equivalence must be decided on execution behavior, not on                                              Qwen3.5- 9B                                     524
+467   syntax.                                                                                               80                                                     525
+                                                                                                                   GPT-5.1
+468       Candidate 2: self-checking by the generating model. One                                                                                                  526
+469   could ask the model that produced the code to inspect and repair                                      60                                                     527
+
+
+
+
+                                                                                           Flip rate (%)
+470   it. SimuHome [22] evaluated this method with 18 models; the self-                                                                                            528
+                                                                                                            40
+471   correction recovery rate was 8.0% for time-based errors, 18.5% for                                                                                           529
+472   event-based errors, and 0.0% for coordinated scheduling. Notably,                                                                                            530
+                                                                                                            20
+473   the success rate remained at or below 67% even when an oracle                                                                                                531
+474   was provided. Based on these findings, the authors concluded that                                                                                            532
+                                                                                                             0
+475   agents fail to detect flaws in their own plans. A post-hoc self-check                                      SEL   AND   VAR    ADD     BR     DN   DM   IDM
+                                                                                                                                                                   533
+476   entrusted to the same stochastic process that generated the code                                                             Rewrite Type                    534
+477   cannot serve as a reliable quality gate.                                                                                                                     535
+478       Candidate 3: human inspection of the code. One could                            Figure 2: LLM judge verdict flip rate by rewrite type on                 536
+479   show the generated code to the user for approval. However, prior                    behavior-identical programs (temperature 0).                             537
+480   research in TAP-Debug [34] demonstrated that non-experts fre-                                                                                                538
+481   quently misread even the basic IF (event) and WHILE (state) con-                    Table 1: Overall flip rate by judge configuration; OVLA’s                539
+482   ditions of raw rules; specifically, misreadings occurred in 21 out of               trace check flips on none of the same rewrites.                          540
+483   50 control-condition sessions, all of which subsequently failed the                                                                                          541
+484   task. Given that such errors occur even with a simple, two-slot TAP                                                                                          542
+                                                                                                                  Judge configuration       9B     GPT-5.1
+485   rule, it is untenable to expect users to successfully inspect complex                                                                                        543
+486   reactive-temporal code, which realizes its mechanism through per-                                           deterministic (temp=0)   27.0%    10.6%          544
+487   sistent variables and per-tick execution. What is shown to the user                                         + sampling (temp=0.7)    34.4%    12.8%          545
+488   must be a readable representation rather than the raw code; this                                            + majority vote (K=5)    31.2%    13.5%          546
+489   also motivates the deterministic rendering detailed in §5.                                                                                                   547
+490       The remaining candidate: an LLM judge. What remains is to                                                                                                548
+                                                                                          the reference must be derived from intent the user has confirmed;
+491   hand the request and the code to a separate LLM to verify whether                                                                                            549
+                                                                                          by R2, the check must be deterministic over behavior (traces), not
+492   they align. This approach appears plausible at first glance and is                                                                                           550
+                                                                                          syntax; by R3, it must be lightweight on the edge, with no LLM
+493   indeed used in practice (ChatIoT’s Evaluator, §2), and existing lit-                                                                                         551
+                                                                                          call. The artifact that satisfies all three at once is the Timeline IR
+494   erature does not rule it out. We therefore evaluate whether this                                                                                             552
+                                                                                          (§5), and the deterministic trace-equivalence check over it is the
+495   candidate meets R2 independent of OVLA’s IR and verifier.                                                                                                    553
+                                                                                          verifier (§6). The judge in this motivating experiment compares
+496       We presented pairs of programs exhibiting identical behavior                                                                                             554
+                                                                                          NL against code.
+497   (trace-exact) but differing in idiom, and measured how often the                                                                                             555
+498   judge’s accept/reject verdict flipped. Even under a deterministic                                                                                            556
+499   setting at temperature 0, a 9B model flipped on 27% of pairs and                    4 System Overview                                                        557
+500   a strong cloud-based model (GPT-5.1 [18]) flipped on 10.6%. The                     OVLA implements the aforementioned design as a two-phase                 558
+501   rewrite types are categorized into surface rewrites (SEL = selector                 pipeline. In the authoring phase, the system derives a Timeline IR       559
+502   order, AND = 𝐴∧𝐵↔𝐵∧𝐴, VAR = variable renaming) and logic/                           from the user’s command, renders that IR for confirmation, and           560
+503   arithmetic rewrites (ADD = 𝑥+𝑛↔𝑛+𝑥 , BR = branch swap, DN                           lowers the confirmed IR to executable code. In the verification          561
+504   = double negation, DM = De Morgan, IDM = idiom replacement).                        phase, the system checks the generated code against the confirmed        562
+505   As shown in Figure 2, purely surface rewrites flipped up to 9% of                   IR before deployment. The central boundary is fixed throughout           563
+506   the 9B judge’s verdicts (14% for the cloud judge), while logic and                  the pipeline: the LLM may propose candidate artifacts, but every ar-     564
+507   arithmetic rewrites caused flips up to 81%. No ground-truth label                   tifact that can affect deployment is checked by deterministic code.      565
+508   is required to demonstrate this; the flip itself evidences instability.                Execution target. We instantiate OVLA on the edge hub of a            566
+509       The core is not the miss rate; on cleanly injected bugs, strong                 commercial IoT platform whose execution DSL is JoI. A JoI automa-        567
+510   models are indeed competent detectors. The point is that any                        tion consists of a start schedule (cron), a re-execution interval (pe-   568
+511   probabilistic judge yields an unstable deployment policy un-                        riod), and a script body (code). When the period parameter is            569
+512   der behavior-preserving rewrites. This instability persists in                      positive, the body is executed on each tick, and temporal behavior       570
+513   larger models, and majority voting fails to reduce it below the                     such as edge detection, sustained conditions, and counting must be       571
+514   temperature-0 baseline, because voting mitigates sampling noise                     implemented with persistent variables and ordinary conditionals.         572
+515   but cannot counteract the systematic dependence on surface                          JoI therefore serves as the executable artifact produced by the low-     573
+516   form (Table 1). This violates R2, disqualifying the final candidate.                ering phase as well as the primary artifact checked by the verifier.     574
+517   In contrast, OVLA’s verdict depends only on behavior over a                            Figure 3 shows the complete pipeline. The first phase, authoring,     575
+518   bounded set of traces, so under the same rewrites its flip rate is 0                includes LLM-based generation steps and deterministic gates that         576
+519   by construction.                                                                    execute before the user approves the reference. The second phase,        577
+520       The surviving design. With every candidate eliminated,                          verification, takes the approved IR and the generated JoI code as        578
+521   rereading the requirements reveals the shape of the answer. By R1,                  inputs and runs without any LLM call.                                    579
+522                                                                                   5                                                                            580
+                                                                                                                                                                         Anon.
+
+
+581                                                                                                                                                                                639
+                    Authoring Phase                                                                          Verification Phase
+582                                                                                                                                                                                640
+583                       Semantic Parsing                    IR Extraction                                        Lowering                              JoI Code                  641
+584                                            2                                                                                                         Cron: …
+                                                                                                                                                                                   642
+                      - Intent Analysis                                                                                                                  Period: …
+585                                                                                                                                                      Code: …                   643
+                      - Device Mapping
+586                                                     Feasibility Check                                                       Fail                                               644
+                      - Service Mapping
+587
+                                                                                                    5                           counterexample                                     645
+                                                                                                                                                       Syntax Check
+588                                Command                                                                                                                                         646
+589                        1                                IR Rendering
+                                                                                                                                  6    Verifier                                    647
+590                                                                                                                                                                                648
+                                                             3                                                                   Event Synthesis
+591                                           Rendered IR                                                                                                                          649
+592                                                                                                                                                                                650
+                                                                             Timeline IR
+                                                                                                                              IR-Sim         JoI-Sim
+                                                                                                                                                             7
+593                                                                                                        Reference                                                               651
+594                                                                        start_at(now)                                                                                           652
+                                                                           wait{cond, for: T}                                                            Deploy
+595                                             4    Confirm               Cycle{ … }
+                                                                           → call (svc, args)
+                                                                                                                                Trace-Equivalence
+                                                                                                                                                         Reject                    653
+596                                                                                                                                                                                654
+597                                                                                                                                                                                655
+598                                                                                                                                                                                656
+      Figure 3: OVLA system overview. (1)–(5) Generation phase and (6)–(7) verification phase; the dashed arrow is the
+599                                                                                                                                                                                657
+      counterexample-guided repair loop.
+600                                                                                                                                                                                658
+601                                                                                                                                                                                659
+         Phase 1: Authoring (LLM generation with deterministic                                          of §6. (7) Deployment and Feedback Loop: A passing program is
+602                                                                                                                                                                                660
+      gates). (1) Command Analysis: OVLA first analyzes the user’s                                      deployed. A failing program is not deployed directly. Instead, the
+603                                                                                                                                                                                661
+      natural-language command. This analysis identifies the temporal                                   verifier returns a counterexample to the lowering stage to ini-
+604                                                                                                                                                                                662
+      and behavioral slots required for the automation, such as the start                               tiate regeneration of the JoI code alone. The confirmed IR is not
+605                                                                                                                                                                                663
+      time, repetition period, trigger or condition, delay or sustain dura-                             changed during this repair process; it remains the user-approved
+606                                                                                                                                                                                664
+      tion, and target actions. It also maps the command onto the con-                                  reference. If the repair budget is exhausted, OVLA rejects the au-
+607                                                                                                                                                                                665
+      nected device list, selecting the relevant devices and the services                               tomation under a fail-closed policy.
+608                                                                                                                                                                                666
+      that those devices must expose for the automation to be executable.                                  Three checks, three places. OVLA uses three deterministic
+609                                                                                                                                                                                667
+      (2) Candidate IR Extraction: OVLA then extracts a candidate Time-                                 checks, each operating on a different artifact. First, the feasibility
+610                                                                                                                                                                                668
+      line IR from this analysis. The word “candidate” underscores that,                                gate checks the structure of the IR as a typed tree, immediately af-
+611                                                                                                                                                                                669
+      prior to user confirmation, the IR merely represents the system’s                                 ter IR extraction and before lowering (§5). Second, the static syn-
+612                                                                                                                                                                                670
+      proposed interpretation of the command. Before code generation                                    tax check validates the generated JoI code, after lowering and be-
+613                                                                                                                                                                                671
+      begins, a deterministic feasibility gate (§5) checks whether this                                 fore simulation. Third, the behavioral trace-equivalence check
+614                                                                                                                                                                                672
+      IR complies with supported structural rules. It rejects structures                                compares the behavior of the confirmed IR and the generated JoI
+615                                                                                                                                                                                673
+      that cannot be realized by the target execution model, such as                                    code (§6). These checks serve independent, non-interchangeable
+616                                                                                                                                                                                674
+      nested cycles or misplaced branches. (3) IR rendering: If the IR                                  purposes: the behavioral check is the core deployment gate, while
+617                                                                                                                                                                                675
+      passes this gate, OVLA renders it into the deterministic Rendered                                 the feasibility and syntax checks prevent malformed artifacts from
+618                                                                                                                                                                                676
+      IR shown in Figure 3. The Rendered IR is a plain-language view of                                 reaching that gate.
+619                                                                                                                                                                                677
+      the IR, not a new natural-language command. (4) User Confirma-                                       Roles of the IR. A single Timeline IR plays four roles in OVLA.
+620                                                                                                                                                                                678
+      tion: The user reviews this Rendered IR. Once confirmed, the Time-                                First, it is the artifact exposed to the user through deterministic ren-
+621                                                                                                                                                                                679
+      line IR is finalized as the reference specification for the automation.                           dering. Second, upon user confirmation, it becomes the behavioral
+622                                                                                                                                                                                680
+      (5) Lowering to Code: Only after this reference is fixed does OVLA                                reference used by the verifier. Third, it serves as the structural scaf-
+623                                                                                                                                                                                681
+      lower the IR to JoI code.                                                                         fold from which the system lowers JoI code. Fourth, its structural
+624                                                                                                                                                                                682
+         Phase 2: Verification (deterministic, LLM-free). (6) Verifi-                                   signature is used to route lowering exemplars (§7). While OVLA
+625                                                                                                                                                                                683
+      cation Execution: The verifier receives two artifacts: the confirmed                              relies on semantic analysis and device/service mapping in its up-
+626                                                                                                                                                                                684
+      Timeline IR, which serves as the behavioral reference, and the gen-                               stream stages, the primary contribution of this paper centers on
+627                                                                                                                                                                                685
+      erated JoI code. The verifier first performs a static syntax check                                how the confirmed IR is rendered, fixed as a reference, lowered,
+628                                                                                                                                                                                686
+      on the JoI code. The behavioral check then follows the lower half                                 and verified.
+629                                                                                                                                                                                687
+      of Figure 3. From the confirmed IR, OVLA derives an FSM that
+630                                                                                                                                                                                688
+      makes the enabled obligations and their reachable states explicit.
+631                                                                                                                                                                                689
+      The Event Synthesis stage generates boundary events from this
+632                                                                                                                                                                                690
+      FSM (§6). The same synthesized event set is fed into two determin-                                5 Timeline IR
+633                                                                                                                                                                                691
+      istic simulators: IR-Sim, which executes the confirmed IR, and JoI-
+634
+      Sim, which executes the generated JoI code. Their action traces are                               Timeline IR serves as the critical artifact connecting user confir-        692
+635
+      passed to the Trace-Equivalence stage, which decides whether                                      mation to deterministic verification. While the NL→IR translation          693
+636
+      the code matches the approved IR under the observation model                                      relies on an LLM, the IR→rendering process does not. Because the           694
+637                                                                                                     latter is a deterministic transformation, the text presented to the        695
+638                                                                                             6                                                                                  696
+      OVLA: On-device Verification of LLM-Generated IoT Automations via Timeline IR
+
+
+697               Timeline IR                                                              Timeline IR                                                             755
+698              {“timeline”: [                                                            {“timeline”: [                                                          756
+699                  {“op”: “start_at”, “anchor”: “now”},                                      {“op”: “start_at”, “anchor”: “cron”, “cron”: “0 21 * * *”},         757
+700                  {“op”: “cycle”, “until”: null, “period”: “100 MSEC”, “body”:[             {“op”: “cycle”, “until”: null, “period”: “10 MIN”, “body”:[         758
+                        {“op”: “wait”,                                                            {“op”: “if”,
+701                                                                                                                                                                759
+                        “cond”: “TemperatureSensor.Temperature > 25”,                             “cond”: “HumiditySensor.Humidity > 70”,
+702                                                                                                                                                                760
+                        “edge”: “rising”},                                                        “then”: [
+703                                                                                                                                                                761
+                        {“op”: “call”,                                                               {“op”: “call”, “target”: “Switch.On”, “args”: {}},
+704                     “target”: “AirConditioner.On”,                                               {“op”: “delay”, “duration”: “5 MIN”},                         762
+705                      “args”: {}}                                                                 {“op”: “call”, “target”: “Switch.Off”, “args”: {}}            763
+706                  ]}                                                                           ]}                                                               764
+707              ]}                                                                            ]}                                                                  765
+708
+                                                                                           ]}                                                                      766
+                  Rendering Result
+709                                                                                        Rendering Result                                                        767
+                  Start:
+                                                                                           Start:
+710               ➢ Start now.                                                                                                                                     768
+                                                                                           ➢ Start at 9:00 PM every day.
+711                                                                                                                                                                769
+                  Repeat:
+712               ➢ Watch for each new occurrence where the temperature of the             Repeat:                                                                 770
+713                 temperature sensor is above 25.                                        ➢ Every 10 minutes, check the humidity.                                 771
+714
+                  ➢ Run the following behavior once for every new occurrence.                                                                                      772
+715                                                                                        Behavior:                                                               773
+                  Behavior:
+716               ➢ Turn on the air conditioner                                            ➢ If the humidity of the humidity sensor is above 70,                   774
+                                                                                               turn on the switch for 5 minutes.
+717                                                                                                                                                                775
+718                                   (a) Recurring edge trigger                                 (b) Scheduled periodic check with branch and delay                776
+719                                                                                                                                                                777
+720                                   Figure 4: Two Timeline IRs and their deterministic plain-language renderings.                                                778
+721                                                                                                                                                                779
+722   user is a faithful representation of the underlying IR that will sub-               recursion and no unbounded loops. It uses bounded timers, coun-          780
+723   sequently be verified. The rendering cannot introduce behavior ab-                  ters, branches, and cycles, so the verifier can enumerate the rele-      781
+724   sent from the IR, nor omit behaviors contained within it. In this                   vant obligations within its checking horizon. Timeline IR is not in-     782
+725   sense, what is displayed is what is checked. The Timeline IR gram-                  tended to be a full timed-automaton model-checking language [1].         783
+726   mar is summarized in the appendix.                                                  It provides a highly operational view that renders the target behav-     784
+727      Closed control dimensions and primitive ops. The control                         iors both finite and explicit.                                           785
+728   dimensions of a reactive-temporal automation are limited and enu-                       Typed tree and structural syntax G. Structurally, an IR is a         786
+729   merable. A user command may specify the following dimensions:                       typed tree. A structural syntax G specifies which parent-child rela-     787
+730   when the automation starts (start_at), how often it repeats (cy-                    tionships and control structures are legal (the full grammar is given    788
+731   cle.period), what trigger or condition it waits for (wait’s condi-                  in Appendix A). For example, an IR has exactly one start_at and          789
+732   tion and edge, or if’s condition), what action to perform and with                  at most one top-level cron schedule. A cycle cannot appear inside        790
+733   what arguments (call), how long to wait or delay (wait.for, de-                     another cycle.body. The then and else blocks can appear only             791
+734   lay), and how to count or stop repeated behavior (cycle.count,                      as children of an if. A break is legal only inside a cycle. A cy-        792
+735   break). Timeline IR maps primitive operations to these distinct di-                 cle must have a period; its until condition is optional, and if it       793
+736   mensions and places the named slots directly on a timeline.                         is absent the cycle repeats within the verifier’s bounded checking       794
+737      This representation is intentionally minimal. It avoids requiring                horizon (§6).                                                            795
+738   the user to approve arbitrary code or write formal properties. In-                      Whether an IR satisfies these structural rules is deterministic to   796
+739   stead, the deterministic rendering exposes a bounded set of con-                    decide. The same pass over the typed tree also produces the IR’s         797
+740   trol slots specified by the command, ordered precisely as the be-                   structural class, 𝜏 (IR), which records the combination of rules used    798
+741   havior unfolds. User approval is therefore a closed judgment over                   by that IR. OVLA uses 𝜏 (IR) later to route lowering exemplars with      799
+742   those explicit slots: whether the displayed start time, period, trig-               matching structure (§7). This structural class helps generation, but     800
+743   ger, condition, action, duration, and repetition behavior match the                 it does not affect the verifier’s accept/reject decision.                801
+744   intended automation. The same slots are also the ones the verifier                      Feasibility gate. The feasibility gate in §4 checks the structural   802
+745   consumes. Thus, the IR serves a dual purpose: as an intuitive ap-                   validity of the extracted IR against G. It runs immediately after        803
+746   proval surface through its rendering, and as a rigorous behavioral                  IR extraction and before lowering. If the extracted IR contains a        804
+747   reference for validating the generated code. The structural syntax                  nested cycle, a second top-level cron, a misplaced then/else, or         805
+748   G defined below ranges exactly over this closed set of operations.                  a break outside a cycle, the gate rejects it before any JoI code is      806
+749      Finite-state view. Timeline IR models an automation as a fi-                     generated. This decision is a structural decision, not an empirical      807
+750   nite set of obligations on a timeline. An obligation can manifest                   result: the gate checks the IR against the rules of G by construction.   808
+751   as a scheduled check, a wait whose condition must become true, a                        This gate does not prove that the IR captures the user’s true        809
+752   branch whose guard selects a path, a call that must be issued, or a                 intent. It only establishes that the IR is structurally supported by     810
+753   cycle body that must repeat at the next period. The IR admits no                    OVLA’s execution and verification pipeline. If the LLM extractor         811
+754                                                                                   7                                                                            812
+                                                                                                                                                   Anon.
+
+
+813   silently changes an unsupported request into a different but legal            verifier simulates one week, which contains a full recurrence of ev-     871
+814   IR, the feasibility gate will accept the legal IR with the wrong mean-        ery time-of-day and day-of-week schedule. Calendar fields such as        872
+815   ing. That residual semantic mismatch is intentionally left to user            day-of-month and month do not require longer simulation. They            873
+816   confirmation through rendering.                                               only select on which dates the weekly pattern is active; they do not     874
+817      The primitive operators comprise start_at, wait (condition,                change the behavior inside that active window. The verifier there-       875
+818   edge, and sustain duration), delay, read, call, if (then/else), cy-           fore statically checks that the IR and the JoI code name the same        876
+819   cle (period, count, until, and body), and break. Figure 4 illustrates         calendar dates, and then reuses the already-simulated weekly be-         877
+820   this design with two Timeline IR examples and their deterministic             havior.                                                                  878
+821   renderings. Each example shows how internal IR slots map directly                We call this observation model transition-boundary confor-            879
+822   onto user-facing approval text.                                               mance. Under this model, two programs conform if their action            880
+823      Figure 4(a) revisits the temperature example from §1. The                  traces agree, within the verifier’s tolerance, at the boundaries         881
+824   phrase “whenever the temperature rises above 25℃” is formal-                  where behavior can change: threshold crossings, condition edges,         882
+825   ized into a wait operator whose condition is Temperature > 25                 timer expirations, and next-cycle restarts, over the fixed bounded       883
+826   and whose edge is rising, placed inside a cycle. The rendering ex-            horizon. This is a boundary-focused equivalence judgment, not a          884
+827   poses this edge slot to the user as “each new occurrence” and the             proof over the entire input space. The restriction is deliberate. It     885
+828   call operator as “Turn on the air conditioner.” Figure 4(b) shows             makes the check deterministic, solver-free, and small enough to          886
+829   a schedule-driven automation. The start_at cron is rendered as                run on the edge hub. The verifier should therefore be read as a          887
+830   “Start at 9:00 PM every day,” the cycle.period slot is rendered               deployment-time filter, not as a replacement for heavyweight for-        888
+831   as “Every 10 minutes,” and the if-call-delay-call sequence is                 mal verification [9].                                                    889
+832   rendered as one conditional behavior. This rendering faithfulness                                                                                      890
+833   is evaluated in §8.1.                                                                                                                                  891
+834                                                                                 6.2    Boundary Event Synthesis                                          892
+835                                                                                 The event synthesizer is deterministic and LLM-free. It starts from      893
+836
+      6 Verifier                                                                    the approved IR and derives an FSM that records which IR oper-           894
+837                                                                                 ations are active at each point in the execution. Each primitive         895
+838
+      6.1 Observation Model: Transition-Boundary                                    operation contributes an obligation: call contributes an action          896
+839       Conformance                                                               obligation, wait and delay contribute temporal obligations, read         897
+840   The gate decides a single question: does the generated JoI code ex-           contributes a value-observation point, if contributes guarded            898
+841   hibit the same behavior as the approved IR? As observed in §2, the            branches, and cycle and break contribute iteration and termi-            899
+842   execution DSL has no primitives for the IR’s control dimensions,              nation structure. Sequencing between operations imposes order,           900
+843   so the LLM realizes each IR behavior as an idiom. For instance,               branches add guards, and cycles add the obligation to repeat the         901
+844   “sustained for 𝑁 minutes” is implemented as a counter that incre-             body at the next period.                                                 902
+845   ments on each poll tick and fires upon reaching a threshold. Simi-                The synthesizer’s goal is to create concrete events for the bound-   903
+846   larly, “edge (whenever)” becomes a triggered flag set on firing and           aries identified by the observation model. For a rising-edge condi-      904
+847   reset when the condition clears (or a prev/curr comparison), while            tion such as wait(Temperature > 25, edge: rising), a bound-              905
+848   “every N minutes” becomes periodic re-execution of the body. One              ary is the moment when the temperature changes from at most              906
+849   IR behavior thus appears as several valid idioms and as countless             25℃ to above 25℃. For a delay, the boundary is the time when             907
+850   near-misses one tick or one comparison off (Figure 1). This idiom-            the delay expires. For a cycle, the boundary is the start of the         908
+851   realization point is exactly where bugs enter. Equivalence must               next period.                                                             909
+852   therefore be decided based on execution behavior (traces), not on                 These boundary events cannot be placed arbitrarily. The same         910
+853   syntax.                                                                       temperature crossing matters only if the automation has already          911
+854       OVLA does not attempt to prove equivalence over every pos-                reached the wait(Temperature > 25, edge: rising) operation.              912
+855   sible environment trace. Instead, it checks the points at which               It is not useful before earlier waits or delays have completed, on       913
+856   reactive-temporal behavior can change. These transition points in-            a branch that was not selected, or in a cycle iteration that has not     914
+857   clude guard thresholds, condition edges, time landmarks such as               been reached.                                                            915
+858   delays and periods, and internal state transitions. Internal state                The synthesizer therefore needs to know where the automation         916
+859   transitions are changes in the program’s own persistent state, such           is in its execution. It must know which waits and delays have com-       917
+860   as a triggered flag being set or reset, a sustain counter reaching its        pleted, which branch was selected, which cycle iteration is active,      918
+861   firing threshold, or a cycle counter reaching the value that causes           and which IR operation is currently enabled. The FSM records this        919
+862   a break. They must be included because the same sensor value can              execution state explicitly.                                              920
+863   lead to different behavior depending on the internal state: for ex-               Using this FSM state, the synthesizer places each representative     921
+864   ample, the flag-based implementation in Figure 1(b) may fire be-              event at a time when the corresponding IR operation is active and        922
+865   fore the flag is set and stay silent afterward.                               able to change the trace. Within a cell, the exact value crossed is      923
+866       The checked space is finite for two reasons. First, Timeline IR ad-       not the important part; the timing and reachability of the event are.    924
+867   mits only bounded control: no recursion and no unbounded loops,               When a mismatch is found, the verifier attributes it to the obliga-      925
+868   so the reachable internal states within a run are finite. Second, the         tion associated with that boundary, and that attribution becomes         926
+869   verifier uses a bounded time horizon. In our implementation, the              the counterexample returned to the repair loop of §4.                    927
+870                                                                             8                                                                            928
+      OVLA: On-device Verification of LLM-Generated IoT Automations via Timeline IR
+
+
+929      The synthesis is based on IR semantics rather than JoI surface                      We do not claim absolute correctness upon passing (“pass ⇒            987
+930   syntax. It tracks read→sensor flows and seeds both ends of each                     correct”). A pass means only that the generated code matches             988
+931   relevant value domain, so scale and offset mistakes can be exposed.                 the approved IR on the synthesized boundary traces within the            989
+932   For expressions that read the same sensor twice and compare the                     bounded horizon and tolerance. The trusted computing base is             990
+933   results, it additionally seeds the relation between the two reads in                strictly confined to the deterministic verifier: the IR simulator, the   991
+934   three directions (equal, rising, and falling), so sign and direction                JoI simulator, the tolerance policy, and the trace-equivalence rela-     992
+935   mistakes are exercised. Some IR arithmetic helpers, such as abs,                    tion. The verdict therefore does not rely on trusting the LLM that       993
+936   min, and max, have no direct JoI counterpart. Lowering therefore                    generated the code. The soundness of a rejection reduces to simula-      994
+937   expands them into conditional code, and the synthesizer seeds the                   tor fidelity rather than to a proof over all environments. We evalu-     995
+938   internal boundaries of those expansions as well. This prevents, for                 ate the check empirically in two ways: §8.2 stress-tests verifier de-    996
+939   example, an inverted clamp from passing simply because only or-                     tection and the adequacy of the synthesized traces with construct-       997
+940   dinary threshold values were tested. The synthesizer also includes                  derived mutation tests and coverage measured on both the IR-FSM          998
+941   second-edge scenarios, where a condition clears and later becomes                   obligations and the generated JoI branches, and §8.3 measures the        999
+942   true again, because those cases are necessary to test whether the                   deployment outcome of applying the gate to generated automa-             1000
+943   trigger can fire again after the condition clears. Read-modify-write                tions. Surviving mutants are characterized individually.                 1001
+944   accumulators are excluded from this targeted boundary seeding                                                                                                1002
+945   and are treated as a residual limit of the check. The final synthe-                                                                                          1003
+946   sized event set is fed unchanged to both the IR simulator and the                   6.5    Limits of the Check                                               1004
+947   JoI simulator, so the two artifacts are compared on identical inputs.               The limitations of the check stem directly from the observation          1005
+948                                                                                       model. First, the one-week horizon, together with the static calen-      1006
+949
+      6.3     Trace-Equivalence and Omission Detection                                    dar check, covers time-of-day and day-of-week schedule behavior.         1007
+950                                                                                       It does not exercise behaviors whose own duration exceeds the            1008
+      The two simulators run on the same synthesized events and pro-
+951                                                                                       horizon, such as a month-long sustained condition, to completion.        1009
+      duce action traces. The verifier groups and deduplicates actions
+952                                                                                       Such automations can still be represented, but their long-duration       1010
+      within a timing tolerance that absorbs tick quantization and the
+953                                                                                       behavior is outside the exercised region.                                1011
+      lowering’s choice of polling period. Subsequently, it compares the
+954                                                                                           Second, the check is limited by arithmetic lacking explicit          1012
+      traces sequentially, preserving behavior-relevant differences in ac-
+955                                                                                       boundaries. The three-direction relational seeding of §6.2 exercises     1013
+      tion order, multiplicity, and boundary timing while avoiding ver-
+956                                                                                       sign and direction errors, but an expression whose value flows           1014
+      dict changes caused only by harmless polling-level timing varia-
+957                                                                                       into an argument, such as notify($t1-$t2), defines no threshold,         1015
+      tion.
+958                                                                                       edge, or timer at which the synthesizer can target a representative      1016
+         This trace comparison detects both commission and omission.
+959                                                                                       boundary. Consequently, value-specific bugs dependent on precise         1017
+      A commission error occurs when the JoI code performs an action
+960                                                                                       numerical relations may survive, even though generic seeds can           1018
+      that the IR does not allow. An omission error occurs when the IR
+961                                                                                       still detect sign errors or structural flaws. These limits do not make   1019
+      requires an action and the JoI code fails to produce it. Significantly,
+962                                                                                       the two simulators disagree about the same input; rather, they iden-     1020
+      silence is part of the trace. If the IR trace contains an empty interval,
+963                                                                                       tify places where the synthesized event set may fail to exercise a       1021
+      that interval is an oracle saying that no action should occur there.
+964                                                                                       bug.                                                                     1022
+965
+         This is why OVLA compares the JoI trace against the expected                                                                                              1023
+966
+      action trace produced by simulating the approved IR. The IR sim-                                                                                             1024
+967
+      ulator does not only produce the actions that should happen; by                     7 Implementation                                                         1025
+      producing no action during a time interval, it also specifies that
+968                                                                                       OVLA’s deterministic core is pure Python with no external depen-         1026
+      the interval should remain silent. For example, if the approved IR
+969                                                                                       dencies. The two simulators (about 3.7K lines), the verifier (1.1K),     1027
+      says “when the door opens, turn on the light after 5 minutes,” the
+970                                                                                       the rendering (0.7K), and the feasibility gate (0.1K) total roughly      1028
+      IR trace contains no action during the five-minute delay and then
+971                                                                                       5.7K lines of deterministic code, with no solver and no model call.      1029
+      contains Light.On() at the end of the delay. Code that turns on
+972                                                                                       Generation runs on off-the-shelf 4-bit-quantized models of at most       1030
+      the light immediately may reach the same final device state, but its
+973                                                                                       9B parameters, without fine-tuning (§8 Setup). Generation is de-         1031
+      JoI trace contains an action inside an interval where the IR trace is
+974                                                                                       composed into the stages of §4 (intent analysis, device and tool         1032
+      silent. Trace-equivalence detects this timing mismatch.
+975                                                                                       mapping, IR extraction, lowering), and the verifier’s guarantee is       1033
+976                                                                                       independent of which generator produces the code.                        1034
+977   6.4     What the Verdict Guarantees                                                    Structure-based example routing. Instead of carrying few-             1035
+978   The verifier yields a deterministic, LLM-independent verdict. It pro-               shot examples for every idiom family, the lowering prompt in-            1036
+979   vides two properties:                                                               cludes only the examples for the IR’s structural class from the fea-     1037
+980   • Determinism(T1): the same approved IR and generated JoI                           sibility pass (§5), reducing the prompt by 33% on average (38% for       1038
+981     code always produce the same verifier verdict.                                    acyclic IRs, 19% for cyclic ones) and thus memory and context pres-      1039
+982   • Rejection-Soundness(T2): when the verifier rejects a program,                     sure on the local model. Verified (IR, JoI) pairs, including repaired    1040
+983     it has found a real trace mismatch under the observation model                    ones, can be stored under their structural signature as examples for     1041
+984     defined above. In other words, rejection is tied to an executable                 future requests of the same class. Routing affects only the gener-       1042
+985     counterexample, not to a probabilistic judgment.                                  ator’s prompt; the accept/reject verdict remains the deterministic       1043
+986                                                                                   9                                                                            1044
+                                                                                                                                                    Anon.
+
+
+1045   check of §6, and we claim no accuracy benefit from routing in this            Table 2: Evaluation of rendering faithfulness against syn-               1103
+1046   submission.                                                                   thetic and real logic faults.                                            1104
+1047                                                                                                                                                          1105
+1048
+       8     Evaluation                                                                         Fault class                  count   Surfaced (%)             1106
+1049                                                                                                                                                          1107
+1050
+       Our evaluation asks four questions, ordered as the pipeline reaches                      comparator                    267            100
+                                                                                                                                                              1108
+       the user. Does the rendering the user approves faithfully display                        polarity                       85            100
+1051                                                                                                                                                          1109
+       the IR (§8.1)? Taking the approved IR as the reference, does the                         wrong arg value               235            100
+1052                                                                                                                                                          1110
+       verifier catch wrong code (§8.2)? Does the full pipeline, with the                       wrong device                  382            100
+1053                                                                                            timing/duration                74            100              1111
+       verifier as its gate, classify generated code correctly (§8.3)? And
+1054                                                                                            oneshot↔wait-until            150            100              1112
+1055
+       is all of this affordable on an edge device (§8.4)? Each answer is a                     single↔cycle (whenever)       273            100              1113
+1056
+       premise for the next: every later check takes the user-approved IR                       AND-conjunct drop              38            100              1114
+1057
+       as its reference, and the interpretation of the gate’s outcomes rests                                                                                  1115
+                                                                                                Synthetic total (Part A)     1,504           100
+1058
+       on the verifier’s detection quality.                                                                                                                   1116
+                                                                                                Real logic faults (Part B)      55           100
+1059
+           Setup. Hardware and models: The primary edge device is a Mac                                                                                       1117
+1060
+       mini M4 (16GB). Experiments that require many model genera-                                                                                            1118
+1061
+       tions run on GPU servers, while all on-device cost measurements               as distinct text. For example, in the oneshot↔wait-until class the       1119
+1062
+       run on the M4. Generation uses Qwen3.5-9B [20], with Qwen3-                   correct IR renders as “If the charging state of the charger is fully-    1120
+1063
+       8B [19] and Gemma-4-E4B [12] as additional generators (Table 5);              Charged, turn off the selected switch.” while the faulty IR renders      1121
+1064
+       all are 4-bit quantized without fine-tuning. The deterministic veri-          as “Wait until the charging state of the charger is fullyCharged is      1122
+1065
+       fier runs identically across backends.                                        true. Turn off the selected switch.”                                     1123
+1066
+           Dataset: The benchmark comprises 382 natural-language au-                                                                                          1124
+1067
+       tomation commands across 24 device/service categories. Com-                   8.2    RQ2: Verifier Detection                                           1125
+       mands cover representative reactive idiom families prone to low-
+1068                                                                                 To evaluate whether the verifier effectively detects incorrect code,     1126
+       ering errors in JoI (e.g., triggers, rising and falling edges, sus-
+1069                                                                                 we isolate it from the deployment pipeline and stress-test it            1127
+       tained conditions, periodic checks, delayed sequences, branches,
+1070                                                                                 using synthetic perturbations of correct JoI code. This keeps            1128
+       and bounded counting). The dataset was not curated to fit OVLA’s
+1071                                                                                 the detector’ s baseline capability separate from the downstream         1129
+       IR schema. Each command is paired with a manually authored ref-
+1072                                                                                 deployment-gate safety evaluation.                                       1130
+       erence Timeline IR, independently audited at the value level: start
+1073                                                                                     Mutation Testing: We take 328 valid (IR, correct code) pairs         1131
+       times, periods, trigger edges, sustain and delay durations, branch
+1074                                                                                 that pass the verifier as our baseline seeds. From each seed we mu-      1132
+       conditions, target services, and action arguments were checked
+1075                                                                                 tate exactly one spot of the correct code using twelve operators         1133
+       against the source command. The category breakdown is reported
+1076                                                                                 (Table 3), including numeric argument changes, enum swaps, call          1134
+       in the appendix B.
+1077                                                                                 deletions and insertions, tick scaling, guard polarity flips, compara-   1135
+1078                                                                                 tor swaps. We then feed each mutant, together with the original IR,      1136
+1079   8.1    RQ1: Rendering Faithfulness                                            to the verifier. A rejection means the fault is caught; a pass means     1137
+1080   In OVLA, users approve an automation by reviewing the plain-                  it is missed (a survivor).                                               1138
+1081   language rendering of its Timeline IR, which expresses behavioral                 To ensure deterministic coverage, we generate exactly one first-     1139
+1082   logic through a finite set of control slots. To ensure safety, any be-        order mutant per applicable site (e.g., 436 call sites yield 436 call_   1140
+1083   havioral variance within these slots must reflect as a distinct tex-          drop mutants). This systematic process generated 1,651 mutants           1141
+1084   tual change. If different slot configurations rendered identically,           (Gen.) as shown in Table 3. We exclude 99 equivalent mutants             1142
+1085   users could not distinguish a faulty IR from a correct one, compro-           (Equiv.) whose traces match the original under every scenario (e.g.,     1143
+1086   mising the verification gate.                                                 changes on unreachable branches). Of the remaining 1,552 genuine         1144
+1087      Design. We evaluated this fidelity in two parts (Table 2).                 mutants (Genuine), the verifier catches 1,541, or 99.3% (Caught).        1145
+1088   • Part A (Synthetic Check): We injected eight fault classes across                Only three operators in Table 3 fall short of 100%, and none         1146
+1089     every applicable slot of the 382 reference IRs, generating                  of the 11 survivors represent new structural weaknesses. Eight           1147
+1090     1,504 (correct, faulty) IR pairs. These classes spanned condi-              (comparator) replace >= with > on a sustain counter. This merely         1148
+1091     tion slots (comparator flips, polarity inversions, AND-conjunct             delayed the action by one tick (100ms), which fell within the            1149
+1092     drops), action slots (argument values, target devices), time slots          timing tolerance designed to absorb polling slack. Thus, passing         1150
+1093     (durations), and structure slots (oneshot↔wait-until and sin-               was the intended behavior. One of the two call_drop survivors            1151
+1094     gle↔cycle). A deterministic check flagged a fault as “surfaced”             deletes one of two identical commands sent to two rooms at               1152
+1095     if the rendered texts differed, and “blind” if they were identical.         the same instant. Because the final device state remains identi-         1153
+1096   • Part B (Real-fault Check): To align with realistic LLM error dis-           cal whether the command is sent once or twice, the deduplicated          1154
+1097     tributions, we evaluated 55 logic-faulty IRs generated during               trace showed no distinguishable difference. The remaining two, the       1155
+1098     NL→IR extraction by Qwen3.5-9B that successfully bypassed                   other call_drop and the single cmp_direction survivor, sit in a          1156
+1099     the static validation gates.                                                single read-modify-write arithmetic automation. As disclosed in          1157
+1100      Results. Both parts achieved 100% detection with zero blind                §6.2 this residual class is excluded from boundary seeding, making       1158
+1101   spots. All 1,504 synthetic pairs and all 55 real logic faults surfaced        this escape expected.                                                    1159
+1102                                                                            10                                                                            1160
+       OVLA: On-device Verification of LLM-Generated IoT Automations via Timeline IR
+
+
+1161   Table 3: Construct-derived mutation results (328 seeds, 12                           Table 5: Gate classification across generation models (382 au-             1219
+1162   operators).                                                                          tomations, confirmed IR). Flagged candidates comprise be-                  1220
+1163                                                                                        havioral divergences and unparseable code rejected before                  1221
+1164            Operator           Gen.    Equiv.    Genuine    Caught (%)                  simulation.                                                                1222
+1165                                                                                                                                                                   1223
+                arg_numeric         142         1         141     141 (100)
+1166                                                                                              Generator (4-bit, no FT)     Flagged    Rep. Rej.   Deployed         1224
+                enum_flip           111         2         109     109 (100)
+1167                                                                                                                                                                   1225
+                call_drop           436         4         432     430 (99.5)                      Qwen3.5-9B                  35 (9.2%)    11    24        358
+1168                                                                                                                                                                   1226
+                call_add            200         3         197     197 (100)                       Qwen3-8B                   63 (16.5%)    11    52        330
+1169            tick_scale           55         0          55      55 (100)                                                                                            1227
+                                                                                                  Gemma-4-E4B                55 (14.4%)    16    39        343
+1170            guard_polarity      198         0         198     198 (100)                                                                                            1228
+1171            comparator          159        34         125     117 (93.6)                                                                                           1229
+1172            assign_init          71        13          58      58 (100)                                                                                            1230
+                                                                                            347 deployed on the first candidate, 11 deployed after repair, and
+1173            cmp_direction       159        30         129     128 (99.2)                                                                                           1231
+                                                                                            24 rejected.
+1174            arith_op             37         7          30      30 (100)                                                                                            1232
+                break_drop           29         5          24      24 (100)                    Since this distribution is split by the gate’s own verdict, the ques-
+1175                                                                                                                                                                   1233
+                wait_drop            54         0          54      54 (100)                 tion to ask is not the distribution but the accuracy of the classifi-
+1176                                                                                                                                                                   1234
+                                                                                            cation: (1) does code classified as deployable really behave as the
+1177            Total             1,651        99       1,552   1,541 (99.3)                                                                                           1235
+                                                                                            user-approved IR, and (2) was code classified as rejected really di-
+1178                                                                                                                                                                   1236
+                                                                                            vergent? We re-examined both directions independently.
+1179   Table 4: Spec-side coverage of the synthesized scenarios: the                           Rejection Soundness: We audited all 35 candidates the gate              1237
+1180   fraction of IR-defined check points the scenarios actually                           flagged (9.2% of 382). The audit revealed that 33 are genuine be-          1238
+1181   reach.                                                                               havioral divergences (sustain mistimings, inverted logic, counter          1239
+1182                                                                                                                                                                   1240
+                                                                                            misuse, sign-ignoring arithmetic) while 2 are subset rejections of
+1183                                                                                                                                                                   1241
+             Obligation                                Total    Covered     (%)             unparseable code. Crucially, no correct program was rejected by
+1184                                                                                                                                                                   1242
+                                                                                            mistake. To further validate these findings, we replayed the 22 sim-
+1185         if: then branch                            166         166    100                                                                                         1243
+                                                                                            ulatable rejections under randomized dense scenarios unrelated
+1186         if: else branch                             37          28    75.7                                                                                        1244
+             wait (edge/sustain/second edge)            122         122    100              to the boundary synthesis. This replay reproduced the divergence
+1187                                                                                                                                                                   1245
+             arithmetic expr boundary (lo/hi/fall)       34          34    100              in 20 cases (the remainder are of the kind that requires hitting a
+1188                                                                                                                                                                   1246
+                                                                                            boundary precisely). Without the gate, the 33 behaviorally diver-
+1189         Total                                      359         350    97.5                                                                                        1247
+                                                                                            gent candidates would have deployed while silently diverging from
+1190                                                                                                                                                                   1248
+                                                                                            the approved IR.
+1191                                                                                                                                                                   1249
+          Coverage. Since detection relies entirely on the synthesized sce-                    Deployment Safety: We replayed every deployed (IR, code)
+1192                                                                                                                                                                   1250
+       narios from §6.2, we evaluated whether these scenarios adequately                    pair under 100 randomized dense scenarios each, 35,800 in to-
+1193                                                                                                                                                                   1251
+       reach every check point (Table 4). Check points include both sides                   tal, using the same trace-equivalence criteria. This re-examination
+1194                                                                                                                                                                   1252
+       of every if branch, the edge/sustain of every wait, and the value                    confirmed that every deployed automation conforms within the
+1195                                                                                                                                                                   1253
+       boundaries of every arithmetic expression. call, delay, and cy-                      bounded observation model. Specifically, 356 matched on every
+1196                                                                                                                                                                   1254
+       cle execute unconditionally and are verified via trace comparison,                   scenario; the remaining two differ only at the horizon edge, where
+1197                                                                                                                                                                   1255
+       so they are excluded here. The scenarios reach 97.5% (350/359) of                    a phase-late periodic lowering shifts one action group past the re-
+1198                                                                                                                                                                   1256
+       these points. All 9 unreached points are the else side of modulo                     play window, an artifact of the bounded horizon (§6.5), not a di-
+1199                                                                                                                                                                   1257
+       guards over a cycle’s iteration counter (n % k == c). Since the                      vergence within the active window.
+1200                                                                                                                                                                   1258
+       counter is not a sensor, no seeded value can steer it. Measuring                        Evaluation Across Generation Models: To evaluate robust-
+1201                                                                                                                                                                   1259
+       the same scenarios on the generated JoI code, 97.7% (676/692) of                     ness, we repeated the pipeline using two additional generators,
+1202                                                                                                                                                                   1260
+       the code’s own branches actually execute, proving that the scenar-                   one smaller and one from a different model family. Although they
+1203                                                                                                                                                                   1261
+       ios thoroughly test the implementation, not just the specification.                  produced up to 1.8× more flagged candidates and the error rate is
+1204                                                                                                                                                                   1262
+          The 99.3% recall rate warrants a caution: both the mutation op-                   not monotone in model size, the classification accuracy holds. All
+1205                                                                                                                                                                   1263
+       erators and the verifier’s check points are derived from the same                    flagged candidates are repaired or rejected, and no divergent candi-
+1206                                                                                                                                                                   1264
+       IR constructs. This high score indicates that the verifier effectively               date was classified as deployable (Table 5). Because the gate is de-
+1207                                                                                                                                                                   1265
+       catches the specific faults it was designed to target; it does not                   terministic, this property does not depend on generation stochas-
+1208                                                                                                                                                                   1266
+       vouch for bugs outside this defined scope.                                           ticity. Note that these metrics evaluate correctness relative to the
+1209                                                                                                                                                                   1267
+                                                                                            approved IR, distinct from whether the IR itself aligns with the
+1210                                                                                                                                                                   1268
+                                                                                            user’s latent intent (Layer A; §9).
+1211   8.3     RQ3: System Safety                                                                                                                                      1269
+1212   Finally, we evaluated the full pipeline across all 382 commands,                                                                                                1270
+1213   using the verifier as a deployment gate. The gate verifies each low-                 8.4    RQ4: On-Device Cost and Deployment                                  1271
+1214   ering candidate, deploys it if it passes, and otherwise enters a re-                 The remaining question is whether all of this is affordable on an          1272
+1215   pair loop that returns the counterexample to the generator (at most                  edge device. We evaluate verification costs via latency distribution       1273
+1216   two attempts), rejecting fail-closed if repair also fails. Using the 9B              with memory and power, and close with a live deployment on a               1274
+1217   generator, the pipeline yielded the following outcome distribution:                  physical testbed.                                                          1275
+1218                                                                                   11                                                                              1276
+                                                                                                                                                                       Anon.
+
+
+1277                                                                                   Table 6: Live-authored automations on the physical testbed:                             1335
+1278                                                                                   gate outcome and predicted-vs-observed behavior.                                        1336
+1279                                                                                                                                                                           1337
+1280                            Light                   Contact Sensor
+                                                                                       Automation                                   Pattern Gate            Observed           1338
+1281                                                                                                                                                                           1339
+                                                                                       presence absent 5min → TV plug off           sustain     repaired    off at 5:00
+1282                                                                                                                                                                           1340
+                                              IoT hub
+                                                                                       speak every 30s, 3 times only                count       pass        3 only, stops
+1283           AirQuality                                                                                                                                                      1341
+                Sensor
+                                                                         Smart
+                                                                         Switch        door opens → light on                        edge        pass        immediate
+1284                                                                                                                                                                           1342
+                                                                                       light off, on after 3min                     delay       pass        on at 3:00
+1285                                                                                   CO2 rises above 900 → announce               rising      pass        on crossing only   1343
+                            Presence Sensor             Smart Plug
+1286                                                                                   temp. rises above 28° → switch on            rising      pass        on crossing only   1344
+1287                                                                                                                                                                           1345
+       Figure 5: The physical testbed: a commercial edge hub with
+1288                                                                                                                                                                           1346
+       the sensors and actuators used in the deployment demon-
+1289                                                                                                                                                                           1347
+       stration.                                                                                                                                       Predicted at 5:00
+1290                                                                                                                                                                           1348
+                                                                                               IR-predicted
+1291                                                                                                                                                                           1349
+1292       On-device Cost: On the M4, the verifier checks one automation                         with gate
+                                                                                                                                                       Observed at 5:00
+                                                                                                                                                                               1350
+1293   with a median latency of 0.97ms (10 repetitions per automation)                           (repaired)                                                                    1351
+1294   peaking at 54MB of memory and drawing 5.5W with no GPU use.                             without gate
+                                                                                                                      Observed at 0:30
+                                                                                                                                                                               1352
+1295   The latency distribution is long-tailed (p95=0.7s, worst-case=8.4s).                  (natural buggy)                                                                   1353
+1296   This tail originates exclusively from a specific automation class                                           Silent divergence: fires 4.5 min early                      1354
+1297   whose 1-second polling period must be stepped through tick by                                                                                                           1355
+                                                                                                               0       1      2      3      4      5        6
+1298   tick across the multi-day verification horizon, amounting to hun-                                           minutes since the room was vacated                          1356
+1299   dreds of thousands of simulated ticks, and is bounded by the sim-                                                                                                       1357
+1300   ulator’s tick cap. Note that LLM cost is confined to the authoring              Figure 6: Observed TV-plug-off times for the first automa-                              1358
+1301   step, and a deployed automation makes zero LLM calls.                           tion of Table 6: the ungated lowering fires at 0:30 after the                           1359
+1302       Deployment: To demonstrate feasibility, we deployed the pipe-               room is vacated; the gate-repaired lowering at 5:00, as the IR                          1360
+1303   line on a commercial home-automation platform utilizing a Rasp-                 predicts.                                                                               1361
+1304   berry Pi based edge hub and physical devices (presence, contact,                                                                                                        1362
+1305   and air-quality sensors, plugs, lights, and a speaker; Figure 5). We            rendering provides a deterministic, faithful plain-language repre-                      1363
+1306   authored six new commands live through the entire pipeline (IR ex-              sentation. Accordingly, no human-participant data was collected.                        1364
+1307   traction, confirmation, lowering, and verification) and registered                 The technical boundaries of the check itself, what the synthe-                       1365
+1308   the gate-approved lowerings. This deployment serves as an exis-                 sized scenarios cannot reach and what the bounded observation                           1366
+1309   tence proof of end-to-end integration.                                          model does not cover, are stated where they arise (§6.5, §8.2, §8.3).                   1367
+1310       Table 6 summarizes the six registered automations, detailing                The principal open question is generalizing beyond a single target                      1368
+1311   their behavior pattern, gate outcome, and observed trace. Every                 platform and DSL.                                                                       1369
+1312   observed action sequence matched the IR-predicted trace at the                                                                                                          1370
+1313   platform’s logging resolution, including what must not happen (a                10    Conclusion                                                                        1371
+1314   counted cycle stopping after exactly 3 announcements; no more                                                                                                           1372
+                                                                                       Generative LLMs have made reactive-temporal IoT automations
+1315   while a crossed threshold stays high). Figure 6 plots the observed                                                                                                      1373
+                                                                                       easy to create, but verifying them before deployment has remained
+1316   trace of the first row, “if no one is present in the meeting room for                                                                                                   1374
+                                                                                       open for lack of a specification. OVLA derives that specification at
+1317   at least 5 minutes, turn off the TV plug.” The plot highlights a sharp                                                                                                  1375
+                                                                                       authoring time: the system extracts a Timeline IR from the request,
+1318   contrast in firing times: all four ungated lowerings suffered from                                                                                                      1376
+                                                                                       the user approves its deterministic plain-language rendering, and
+1319   a sustain fault, prematurely turning off the TV just 30 seconds af-                                                                                                     1377
+                                                                                       a deterministic checker then tests the generated code against the
+1320   ter the room was vacated. In contrast, the gate-repaired lowering                                                                                                       1378
+                                                                                       approved IR by bounded trace-equivalence, repairing or rejecting
+1321   fired precisely at 5:00, exactly as predicted by the IR. Authoring                                                                                                      1379
+                                                                                       divergent code fail-closed. Across 382 automations, every candi-
+1322   also exercised the upstream gates: two initial wordings produced                                                                                                        1380
+                                                                                       date flagged by the gate (9.2% for the strongest generator) was re-
+1323   a one-shot conditional IR whose rendering revealed the misread-                                                                                                         1381
+                                                                                       paired or rejected rather than deployed, and this classification was
+1324   ing at confirmation, and one out-of-catalog target was rejected fail-                                                                                                   1382
+                                                                                       confirmed by a full audit of the rejections and 35,800 randomized
+1325   closed at extraction validation.                                                                                                                                        1383
+                                                                                       dense replays of the deployed set. OVLA eliminates the silent di-
+1326                                                                                                                                                                           1384
+                                                                                       vergence between the specification the user approved and the code
+1327   9   Limitations and Future Work                                                 that runs.                                                                              1385
+1328   The primary limitation of this work is that aligning the natural-                                                                                                       1386
+1329   language intent with the generated IR (Layer A) remains an open                 References                                                                              1387
+1330   challenge. If a user inadvertently approves an incorrect IR, the                [1] Rajeev Alur and David L. Dill. 1994. A Theory of Timed Automata. Theoretical        1388
+1331   verifier will faithfully validate the code against that faulty speci-               Computer Science 126, 2 (1994), 183–235.                                            1389
+                                                                                       [2] Z. Berkay Celik, Patrick McDaniel, and Gang Tan. 2018. Soteria: Automated IoT
+1332   fication. Assessing human confirmation behavior fell outside the                    Safety and Security Analysis. In Proceedings of the 2018 USENIX Annual Technical
+                                                                                                                                                                               1390
+1333   scope of this study; we focused strictly on establishing that the                   Conference (USENIX ATC). USENIX Association, 147–158.                               1391
+1334                                                                              12                                                                                           1392
+       OVLA: On-device Verification of LLM-Generated IoT Automations via Timeline IR
+
+
+1393    [3] Z. Berkay Celik, Gang Tan, and Patrick McDaniel. 2019. IoTGuard: Dynamic                 [28] Qi Wang, Pubali Datta, Wei Yang, Si Liu, Adam Bates, and Carl A. Gunter. 2019.     1451
+1394        Enforcement of Security and Safety Policy in Commodity IoT. In Network and                    Charting the Attack Surface of Trigger-Action IoT Platforms. In Proceedings of     1452
+            Distributed System Security Symposium (NDSS).                                                 the 2019 ACM SIGSAC Conference on Computer and Communications Security
+1395                                                                                                                                                                                         1453
+        [4] Bei Chen, Fengji Zhang, Anh Nguyen, Daoguang Zan, Zeqi Lin, Jian-Guang Lou,                   (CCS). ACM, 1439–1453. doi:10.1145/3319535.3345662
+1396        and Weizhu Chen. 2023. CodeT: Code Generation with Generated Tests. In Pro-              [29] Chaerin Yu, Chihun Choi, Sunjae Lee, Hyosu Kim, Steven Y. Ko, Young-Bae Ko,        1454
+1397        ceedings of the 11th International Conference on Learning Representations (ICLR).             and Sangeun Oh. 2026. Leveraging LLMs for Efficient and Personalized Smart         1455
+        [5] Mark Chen, Jerry Tworek, Heewoo Jun, et al. 2021. Evaluating Large Language                   Home Automation. arXiv:2601.04680 [cs.HC]
+1398        Models Trained on Code. arXiv preprint arXiv:2107.03374 (2021).                          [30] Tao Yu, Rui Zhang, Kai Yang, Michihiro Yasunaga, Dongxu Wang, Zifan Li,            1456
+1399    [6] Xinyun Chen, Maxwell Lin, Nathanael Schärli, and Denny Zhou. 2024. Teaching                   James Ma, Irene Li, Qingning Yao, Shanelle Roman, Zilin Zhang, and Dragomir        1457
+1400
+            Large Language Models to Self-Debug. In Proceedings of the 12th International                 Radev. 2018. Spider: A Large-Scale Human-Labeled Dataset for Complex and           1458
+            Conference on Learning Representations (ICLR).                                                Cross-Domain Semantic Parsing and Text-to-SQL Task. In Proceedings of the
+1401    [7] Ye Cheng, Minghui Xu, Yue Zhang, Kun Li, Ruoxi Wang, and Lian Yang.                           2018 Conference on Empirical Methods in Natural Language Processing (EMNLP).       1459
+1402        2024. AutoIoT: Automated IoT Platform Using Large Language Models.                            Association for Computational Linguistics, 3911–3921. doi:10.18653/v1/D18-         1460
+            arXiv:2411.10665 [cs.SE]                                                                      1425
+1403                                                                                                                                                                                         1461
+        [8] Ye Cheng, Minghui Xu, Yue Zhang, Kun Li, Hao Wu, Yechao Zhang, Shaoyong                  [31] Yinbo Yu and Jiajia Liu. 2022. TAPInspector: Safety and Liveness Verification
+1404        Guo, Wangjie Qiu, Dongxiao Yu, and Xiuzhen Cheng. 2025. Say What You Mean:                    of Concurrent Trigger-Action IoT Systems. IEEE Transactions on Information         1462
+1405        Natural Language Access Control with Large Language Models for Internet of                    Forensics and Security 17 (2022), 3773–3788. doi:10.1109/TIFS.2022.3214084         1463
+            Things. arXiv:2505.23835 [cs.CR]                                                         [32] Yinbo Yu, Yuanqi Xu, Kepu Huang, and Jiajia Liu. 2024. TAPFixer: Automatic
+1406    [9] Edmund M. Clarke, Orna Grumberg, and Doron A. Peled. 1999. Model Checking.                    Detection and Repair of Home Automation Vulnerabilities Based on Negated-          1464
+1407        MIT Press.                                                                                    property Reasoning. In Proceedings of the 33rd USENIX Security Symposium           1465
+1408
+       [10] Chenglong Fu, Qiang Zeng, and Xiaojiang Du. 2021. HAWatcher: Semantics-                       (USENIX Security). USENIX Association.                                             1466
+            Aware Anomaly Detection for Appified Smart Homes. In Proceedings of the                  [33] Lefan Zhang, Weijia He, Jesse Martinez, Noah Brackenbury, Shan Lu, and Blase
+1409        30th USENIX Security Symposium (USENIX Security). USENIX Association, 4223–                   Ur. 2019. AutoTap: Synthesizing and Repairing Trigger-Action Programs Using        1467
+1410        4240.                                                                                         LTL Properties. In Proceedings of the 41st International Conference on Software    1468
+       [11] Yi Gao, Kaijie Xiao, Fu Li, Weifeng Xu, Jiaming Huang, and Wei Dong. 2024.                    Engineering (ICSE). IEEE/ACM, 281–291. doi:10.1109/ICSE.2019.00043
+1411                                                                                                                                                                                         1469
+            ChatIoT: Zero-code Generation of Trigger-action Based IoT Programs. Proceed-             [34] Lefan Zhang, Cyrus Zhou, Michael L. Littman, Blase Ur, and Shan Lu. 2022. Help-
+1412        ings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technologies 8,               ing Users Debug Trigger-Action Programs. Proceedings of the ACM on Interactive,    1470
+1413        3, Article 103 (2024). doi:10.1145/3678585                                                    Mobile, Wearable and Ubiquitous Technologies 6, 4, Article 196 (2022), 32 pages.   1471
+       [12] Gemma Team, Google DeepMind. 2026. Gemma 4 Model Card. https://ai.google.                     doi:10.1145/3569506
+1414        dev/gemma/docs/core/model_card_4.                                                        [35] Lianmin Zheng, Wei-Lin Chiang, Ying Sheng, et al. 2023. Judging LLM-as-a-          1472
+1415   [13] Mathyas Giudici, Alessandro Sironi, Ismaele Villa, Samuele Scherini, and Franca               Judge with MT-Bench and Chatbot Arena. In Advances in Neural Information           1473
+1416
+            Garzotto. 2025. Generating Home Assistant Automations Using an LLM-based                      Processing Systems (NeurIPS).                                                      1474
+            Chatbot. arXiv:2505.02802 [cs.HC]
+1417   [14] Xinxin Jin, Zhengwei Ni, Zhengguo Sheng, and Victor C. M. Leung. 2026. Proac-                                                                                                    1475
+1418        tive Rejection and Grounded Execution: A Dual-Stage Intent Analysis Paradigm             A Timeline IR Grammar                                                                   1476
+            for Safe and Efficient AIoT Smart Homes. arXiv:2603.16207 [cs.AI]
+1419
+       [15] Evan King, Haoxiang Yu, Sangsu Lee, and Christine Julien. 2024. Sasha: Cre-
+                                                                                                     A Timeline IR is serialized as a JSON object whose steps each carry                     1477
+1420        ative Goal-Oriented Reasoning in Smart Homes with Large Language Models.                 an op tag; the grammar below gives the abstract syntax in EBNF.                         1478
+1421        Proceedings of the ACM on Interactive, Mobile, Wearable and Ubiquitous Technolo-         Terminals are quoted; [ x ] marks an optional part and { x } zero-                      1479
+            gies 8, 1, Article 12 (2024), 38 pages. doi:10.1145/3643505
+1422   [16] Kaiwei Liu, Bufang Yang, Lilin Xu, Yunqi Guo, Guoliang Xing, Xian Shuai, Xi-             or-more repetition.                                                                     1480
+1423        aozhe Ren, Xin Jiang, and Zhenyu Yan. 2025. TaskSense: A Translation-like Ap-            ir          ::= start_at { step }                                                       1481
+1424
+            proach for Tasking Heterogeneous Sensor Systems with LLMs. In Proceedings of             step        ::= wait | delay | read | call                                              1482
+            the 23rd ACM Conference on Embedded Networked Sensor Systems (SenSys). ACM.
+1425        doi:10.1145/3715014.3722070                                                                            | if | cycle | break                                                      1483
+1426   [17] Dang Tu Nguyen, Chengyu Song, Zhiyun Qian, Srikanth V. Krishnamurthy, Ed-                start_at ::= "start_at" "(" ("now" | "cron" cron) ")"                                   1484
+            ward J. M. Colbert, and Patrick McDaniel. 2018. IotSan: Fortifying the Safety
+1427
+            of IoT Systems. In Proceedings of the 14th International Conference on emerging
+                                                                                                     wait     ::= "wait" "(" expr ["," "edge:" edge]                                         1485
+1428        Networking EXperiments and Technologies (CoNEXT).                                                     ["," "for:" duration] ")"                                                  1486
+1429   [18] OpenAI. 2025. GPT-5.1. https://openai.com.                                               edge     ::= "none" | "rising" | "falling"                                              1487
+       [19] Qwen Team. 2025. Qwen3 Technical Report. arXiv:2505.09388                                delay    ::= "delay" "(" duration ")"
+1430   [20] Qwen Team. 2026. Qwen3.5-9B Model Card. https://huggingface.co/Qwen/                                                                                                             1488
+            Qwen3.5-9B.
+                                                                                                     read     ::= "read" "(" ident "," service "." attr ")"
+1431                                                                                                                                                                                         1489
+       [21] Dmitriy Rivkin, Francois Hogan, Amal Feriani, Abhisek Konar, Adam Sigal,                 call     ::= "call" "(" service "." function
+1432                                                                                                                                                                                         1490
+            Steve Liu, and Gregory Dudek. 2023. SAGE: Smart home Agent with Grounded                              { "," name "=" (value | expr) } ")"
+1433        Execution. arXiv:2311.00772 [cs.AI]                                                                                                                                              1491
+                                                                                                     if       ::= "if" "(" expr ")" "{" { step } "}"
+1434   [22] Gyuhyeon Seo, Jungwoo Yang, Junseong Pyo, Nalim Kim, Jonggeun Lee, and                                                                                                           1492
+            Yohan Jo. 2025. SimuHome: A Temporal- and Environment-Aware Benchmark
+                                                                                                                  ["else" "{" { step } "}"]
+1435                                                                                                 cycle    ::= "cycle" "(" "period:" duration                                             1493
+            for Smart Home LLM Agents. arXiv:2509.24282 [cs.AI]
+1436   [23] Leming Shen, Qiang Yang, Xinyu Huang, Zijing Ma, and Yuanqing Zheng. 2025.                            ["," "count:" ident]                                                       1494
+1437        GPIoT: Tailoring Small Language Models for IoT Program Synthesis and De-                              ["," "until:" expr] ")"                                                    1495
+            velopment. In Proceedings of the 23rd ACM Conference on Embedded Networked
+1438        Sensor Systems (SenSys). ACM.
+                                                                                                                  "{" step { step } "}"                                                      1496
+1439   [24] Leming Shen, Qiang Yang, Yuanqing Zheng, and Mo Li. 2025. AutoIOT: LLM-                  break    ::= "break"                                                                    1497
+1440
+            Driven Automated Natural Language Programming for AIoT Applications. In                  duration ::= int ("HOUR" | "MIN" | "SEC" | "MSEC")                                      1498
+            Proceedings of the 31st Annual International Conference on Mobile Computing and
+1441        Networking (MobiCom). ACM.                                                               expr        ::=   expr ("or" | "and") expr | "not" expr                                 1499
+1442   [25] Yingtian Shi, Xiaoyi Liu, Chun Yu, Tianao Yang, Cheng Gao, Chen Liang, and                             |   arith [cmp arith]                                                     1500
+            Yuanchun Shi. 2024. Bridging the Gap Between Natural User Expression with
+1443
+            Complex Automation Programming in Smart Homes. arXiv:2408.12687 [cs.HC]
+                                                                                                     cmp         ::=   "==" | "!=" | "<" | "<=" | ">" | ">="                                 1501
+1444   [26] Blase Ur, Elyse McManus, Melwyn Pak Yong Ho, and Michael L. Littman. 2014.               arith       ::=   arith ("+" | "-" | "*" | "/") arith                                   1502
+1445        Practical Trigger-Action Programming in the Smart Home. In Proceedings of the                          |   "abs" "(" expr ")"                                                    1503
+            SIGCHI Conference on Human Factors in Computing Systems (CHI).                                         |   ("min" | "max") "(" expr "," expr ")"
+1446   [27] Haoyu Wang, Christopher M. Poskitt, and Jun Sun. 2026. AgentSpec: Customiz-                                                                                                      1504
+            able Runtime Enforcement for Safe and Reliable LLM Agents. In Proceedings
+                                                                                                                   |   service "." attr | "$" ident | literal
+1447                                                                                                                                                                                         1505
+1448
+            of the 48th IEEE/ACM International Conference on Software Engineering (ICSE).            service.attr denotes a live sensor read and $ident a persistent                         1506
+            ACM.
+1449                                                                                                 variable bound by read or cycle.count; literal ranges over                              1507
+1450                                                                                            13                                                                                           1508
+                                                                                                                                                      Anon.
+
+
+1509   numbers, booleans, and the enum values declared in the device                Table 7: Dataset categories (382 commands, 24 categories).                1567
+1510   catalog.                                                                                                                                               1568
+1511   Semantic conventions. wait.edge="rising" completes once per                       ID    Pattern                                           n            1569
+1512   upward crossing of cond; wait.for requires cond to hold contin-                                                                                        1570
+                                                                                         C01   Single device action                             28
+1513   uously for the duration, resetting if it flips false. cycle.period is             C02   Action with device selector                      33
+                                                                                                                                                              1571
+1514   the per-iteration cadence; when until is absent, the cycle repeats                C03   Single-condition if (incl. if-else)              34
+                                                                                                                                                              1572
+1515   within the verifier’s bounded horizon (§6).                                       C05   AND-compound if                                  30            1573
+1516   Context-sensitive rules (grammar G, §5). Beyond per-step shape, the               C06   OR-compound / chained if-elif-else                7            1574
+1517   feasibility gate enforces: (1) timeline[0] is the only start_at;                  C07   Level-triggered wait (“when X, do Y”)            32            1575
+1518   (2) start_at may not appear inside a branch or loop body; (3)                     C08   Rising-edge trigger (“whenever”)                 41            1576
+1519   at most one top-level cycle and no nested cycle; (4) break only                   C09   Sequential delay                                 18            1577
+1520   inside a cycle body; (5) cycle.period is required. Catalog con-                   C10   Trigger + delayed action                          9            1578
+                                                                                         C11   Snapshot, delay, and re-read comparison           8
+1521   formance (every Service.Attr and call.target names a service,                                                                                          1579
+                                                                                         C12   Phase lifecycle (“when X, every N thereafter”)   15
+1522   member, and argument that the connected-device catalog declares)                                                                                       1580
+                                                                                         C13   Alternation / binary toggle                       7
+1523   is checked at the same point and rejects out-of-catalog targets fail-             C14   Progressive update with counter and stop          7
+                                                                                                                                                              1581
+1524   closed.                                                                           C15   Cron-scheduled action                            21
+                                                                                                                                                              1582
+1525                                                                                                                                                          1583
+                                                                                         C16   Cron + branch                                    13
+1526   B    Dataset Category Breakdown                                                   C17   Periodic polling + branch                        12            1584
+1527
+       Table 7 reports the 24-category breakdown of the 382-command                      C18   Bounded duration (time-window cycle)             10            1585
+1528
+       benchmark. Each category corresponds to a structurally distinct                   C19   Hysteresis (double-threshold deadband)            8            1586
+1529                                                                                     C20   Sustained condition (“for at least N”)           17            1587
+       reactive pattern and its lowering idiom.
+1530                                                                                     C21   Group consensus (all/any quantifier)              7            1588
+1531                                                                                     C22   Counted repetition (“repeat N times, stop”)      10            1589
+1532
+                                                                                         C23   Sustained trigger + multi-step sequence           5            1590
+                                                                                         C24   Sustained trigger + repeating alert               5
+1533                                                                                                                                                          1591
+                                                                                         C25   Periodic polling + if-else                        5
+1534                                                                                                                                                          1592
+1535                                                                                           Total                                            382           1593
+1536                                                                                                                                                          1594
+1537                                                                                                                                                          1595
+1538                                                                                                                                                          1596
+1539                                                                                                                                                          1597
+1540                                                                                                                                                          1598
+1541                                                                                                                                                          1599
+1542                                                                                                                                                          1600
+1543                                                                                                                                                          1601
+1544                                                                                                                                                          1602
+1545                                                                                                                                                          1603
+1546                                                                                                                                                          1604
+1547                                                                                                                                                          1605
+1548                                                                                                                                                          1606
+1549                                                                                                                                                          1607
+1550                                                                                                                                                          1608
+1551                                                                                                                                                          1609
+1552                                                                                                                                                          1610
+1553                                                                                                                                                          1611
+1554                                                                                                                                                          1612
+1555                                                                                                                                                          1613
+1556                                                                                                                                                          1614
+1557                                                                                                                                                          1615
+1558                                                                                                                                                          1616
+1559                                                                                                                                                          1617
+1560                                                                                                                                                          1618
+1561                                                                                                                                                          1619
+1562                                                                                                                                                          1620
+1563                                                                                                                                                          1621
+1564                                                                                                                                                          1622
+1565                                                                                                                                                          1623
+1566                                                                           14                                                                             1624
+

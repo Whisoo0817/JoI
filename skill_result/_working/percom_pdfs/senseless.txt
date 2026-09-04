@@ -1,0 +1,1058 @@
+                                                                                                                                                                                             2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+                                                                                                                                                                            SenseLess: Minimal Vision, Maximum Insight for
+                                                                                                                                                                                            Smart Homes
+2026 IEEE International Conference on Pervasive Computing and Communications (PerCom) | 979-8-3315-7613-4/26/$31.00 ©2026 IEEE | DOI: 10.1109/PerCom67906.2026.11524273
+
+
+
+
+                                                                                                                                                                                                                        Norah Albazzai, Omer Rana, Charith Perera
+                                                                                                                                                                                                                                  Cardiff University, Cardiff, UK
+                                                                                                                                                                                                                            {albazzina, ranaof, pererac}@cardiff.ac.uk
+
+
+                                                                                                                                                                             Abstract—We present SenseLess, a hybrid anomaly detection                    integrate complementary signals while adapting to uncertainty,
+                                                                                                                                                                          framework for smart homes that, during the training phase,                      preserving privacy, and operating with minimal supervision.
+                                                                                                                                                                          automatically labels images without manual annotation by com-
+                                                                                                                                                                                                                                                             To address these limitations, we propose a hybrid anomaly
+                                                                                                                                                                          bining sensor-guided detection, self-supervised visual clustering,
+                                                                                                                                                                          and unsupervised multi-sensor delay estimation for precise align-               detection framework that combines non-vision data with self-
+                                                                                                                                                                          ment. During operation, the system relies primarily on non-                     supervised learning to build a vision model. During training,
+                                                                                                                                                                          vision sensors and activates a confidence-aware vision model                    an unsupervised sensor-based model detects anomalies in envi-
+                                                                                                                                                                          only under low-confidence, thereby preserving privacy while                     ronmental data and aligns them with camera frames to generate
+                                                                                                                                                                          maintaining adaptability. Evaluated in real home monitoring,
+                                                                                                                                                                                                                                                          initial image labels. In parallel, a contrastive self-supervised
+                                                                                                                                                                          SenseLess achieved an average label coverage of 97.65% with
+                                                                                                                                                                          94.9% accuracy and reduced vision usage to less than 4% of                      method learns visual representations from unlabelled images
+                                                                                                                                                                          wall-clock operating time. Calibration mechanisms and minimal                   and produces pseudo-labels through clustering. These outputs
+                                                                                                                                                                          configuration requirements support scalability and deployment                   are fused using a confidence-weighted refinement process
+                                                                                                                                                                          across diverse residential environments.                                        to create a high-quality self-labeled dataset for training a
+                                                                                                                                                                             Index Terms—smart homes, anomaly detection, self-supervised
+                                                                                                                                                                                                                                                          vision-based anomaly detector. During deployment, the non-
+                                                                                                                                                                          learning, sensor fusion, image labeling, privacy preservation
+                                                                                                                                                                                                                                                          vision model runs continuously, while the vision model is
+                                                                                                                                                                                                                                                          activated only when sensor predictions are uncertain. This
+                                                                                                                                                                                                I. INTRODUCTION
+                                                                                                                                                                                                                                                          design enables scalable anomaly detection with minimal visual
+                                                                                                                                                                             Anomaly detection in home care is vital for supporting                       exposure, no manual annotation, and ongoing adaptation to
+                                                                                                                                                                          older adults who live alone, where unnoticed events such as                     changing home environments, forming the basis of the pro-
+                                                                                                                                                                          unattended appliances pose safety risks. Monitoring systems                     posed SenseLess framework.
+                                                                                                                                                                          can enable early intervention but must operate continuously                        In designing SenseLess, we focus on four challenges that
+                                                                                                                                                                          while preserving privacy and reducing caregiver burden. Ef-                     arise when deploying anomaly detection in real-world homes:
+                                                                                                                                                                          fective solutions must adapt to changing behavior, limit false
+                                                                                                                                                                                                                                                             •   Scarcity of annotated image data. Vision-based
+                                                                                                                                                                          alarms, and provide actionable insights without intruding on
+                                                                                                                                                                                                                                                                 anomaly detection relies on large labeled image sets,
+                                                                                                                                                                          daily life. Balancing these requirements is essential for safe
+                                                                                                                                                                                                                                                                 which are difficult to obtain in home environments.
+                                                                                                                                                                          and respectful in-home care.
+                                                                                                                                                                                                                                                                 Manual annotation is costly, time-consuming, and often
+                                                                                                                                                                             Non-vision sensors are widely used in home care due to
+                                                                                                                                                                                                                                                                 infeasible for rare or privacy-sensitive events, as it re-
+                                                                                                                                                                          their low cost, unobtrusiveness, and continuous operation.
+                                                                                                                                                                                                                                                                 quires human involvement [10]. To address this, we adopt
+                                                                                                                                                                          Motion and door sensors detect abnormal activity and non-
+                                                                                                                                                                                                                                                                 a dual-labeling strategy:
+                                                                                                                                                                          response [1]. Smart plugs, tags, and gas or smoke detectors
+                                                                                                                                                                          enhance safety by detecting open doors, unattended stoves, or                           – Sensor-guided image labeling: Non-vision sensors
+                                                                                                                                                                          unauthorized access [2]. However, these systems often produce                             detect anomalies, which are aligned with camera
+                                                                                                                                                                          false alarms, lack context, and suffer from data drift [3]–[5].                           frames to generate initial labels automatically.
+                                                                                                                                                                             Vision-based systems provide rich contextual information                             – Self-supervised visual labeling: A contrastive learn-
+                                                                                                                                                                          and have been applied to illness monitoring [6], fall detection                           ing model learns representations from unlabelled
+                                                                                                                                                                          using RGB and 3D video [7], and behavioral anomaly recog-                                 images and clusters them to generate pseudo-labels
+                                                                                                                                                                          nition [8]. However, they require large annotated datasets and                            based on visual similarity.
+                                                                                                                                                                          are sensitive to privacy concerns, lighting changes, and limited                   •   Temporal misalignment between sensor and image.
+                                                                                                                                                                          camera coverage. Consequently, vision-based solutions remain                           Sensors such as CO2 respond with delay to environ-
+                                                                                                                                                                          difficult to adopt in personal living spaces, where privacy and                        mental changes, which complicates alignment with visual
+                                                                                                                                                                          user trust are critical.                                                               observations [11]. Our analysis confirms these delays
+                                                                                                                                                                             Hybrid approaches combine multiple sensing modalities to                            (Section II-B). We address this issue using backward syn-
+                                                                                                                                                                          improve robustness and coverage [9]. However, they often                               chronization that estimates and compensates for sensor
+                                                                                                                                                                          inherit the limitations of individual sensors and introduce                            response lag, improving labeling accuracy.
+                                                                                                                                                                          additional computational cost, as well as challenges in data                       •   Balancing privacy with contextual awareness. Always-
+                                                                                                                                                                          fusion and synchronization. Effective designs must therefore                           on cameras are intrusive. Our system activates vision only
+
+
+
+
+                                                                                                                                                                                    Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                                                                                                                                                                                979-8-3315-7613-4/26/$31.00 ©2026 IEEE
+                    2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+      when sensor predictions are uncertain, limiting exposure                            24.00
+                                                                                                                      Temperature          Anomaly start                                            Humidity             Anomaly start
+
+
+
+      while retaining interpretability.                                                   23.98
+                                                                                                                                                                         54.1
+
+
+
+  •   Drift in sensor performance. Sensor readings can shift                              23.96
+                                                                                                                                                                         54.0
+
+
+
+      over time with environmental or behavioral changes,
+
+
+
+
+                                                                                                       30
+
+
+
+                                                                                                                 00
+
+
+
+                                                                                                                            30
+
+
+
+                                                                                                                                      00
+
+
+
+                                                                                                                                                30
+
+
+
+                                                                                                                                                          00
+
+
+
+                                                                                                                                                                    30
+
+
+
+
+                                                                                                                                                                                     30
+
+
+
+                                                                                                                                                                                               00
+
+
+
+                                                                                                                                                                                                         30
+
+
+
+                                                                                                                                                                                                                    00
+
+
+
+                                                                                                                                                                                                                              30
+
+
+
+                                                                                                                                                                                                                                         00
+
+
+
+                                                                                                                                                                                                                                                   30
+                                                                                                   4:
+
+
+
+                                                                                                             5:
+
+
+
+                                                                                                                          5:
+
+
+
+                                                                                                                                    6:
+
+
+
+                                                                                                                                            6:
+
+
+
+                                                                                                                                                      7:
+
+
+
+                                                                                                                                                                7:
+
+
+
+
+                                                                                                                                                                                 4:
+
+
+
+                                                                                                                                                                                           5:
+
+
+
+                                                                                                                                                                                                       5:
+
+
+
+                                                                                                                                                                                                                6:
+
+
+
+                                                                                                                                                                                                                           6:
+
+
+
+                                                                                                                                                                                                                                     7:
+
+
+
+                                                                                                                                                                                                                                               7:
+                                                                                                  :4
+
+
+
+                                                                                                            :4
+
+
+
+                                                                                                                         :4
+
+
+
+                                                                                                                                    :4
+
+
+
+                                                                                                                                           :4
+
+
+
+                                                                                                                                                     :4
+
+
+
+                                                                                                                                                               :4
+
+
+
+
+                                                                                                                                                                                :4
+
+
+
+                                                                                                                                                                                          :4
+
+
+
+                                                                                                                                                                                                     :4
+
+
+
+                                                                                                                                                                                                               :4
+
+
+
+                                                                                                                                                                                                                          :4
+
+
+
+                                                                                                                                                                                                                                    :4
+
+
+
+                                                                                                                                                                                                                                              :4
+                                                                                                  09
+
+
+
+                                                                                                            09
+
+
+
+                                                                                                                       09
+
+
+
+                                                                                                                                 09
+
+
+
+                                                                                                                                           09
+
+
+
+                                                                                                                                                     09
+
+
+
+                                                                                                                                                               09
+
+
+
+
+                                                                                                                                                                                09
+
+
+
+                                                                                                                                                                                          09
+
+
+
+                                                                                                                                                                                                    09
+
+
+
+                                                                                                                                                                                                               09
+
+
+
+                                                                                                                                                                                                                         09
+
+
+
+                                                                                                                                                                                                                                   09
+
+
+
+                                                                                                                                                                                                                                              09
+      reducing accuracy [5]. We address this with a self-healing
+                                                                                 Fig. 1. Delayed temperature and humidity response after door opens. The
+      mechanism where the vision model retrains the sensor                       red dashed line marks the event onset.
+      model when drift is detected.
+                                                                                    •   Unsupervised vision labeling: Visual features extracted
+  This work is guided by three research questions:                                      via self-supervised learning must be clustered and inter-
+  •   RQ1: Can non-vision sensors be used to automati-                                  preted without access to ground truth.
+      cally generate accurate labels for training vision-based                      •   Deployment constraints: The final system must operate
+      anomaly detection models?                                                         under privacy constraints, manage data drift, and provide
+  •   RQ2: How can self-supervised learning be combined                                 confidence-aware decisions with minimal supervision.
+      with non-vision data to refine these labels and eliminate
+      the need for manual annotation?                                            B. Preliminary Investigation
+  •   RQ3: How can multi-modal sensor streams with variable                         Before system design, we ran experiments with real-world
+      response times be calibrated and aligned for accurate,                     home care sensor data. They revealed two key challenges
+      synchronized anomaly detection?                                            that shaped SenseLess: the limited accuracy of non-vision
+To address these questions, we contribute the following:                         anomaly detection without labels, and sensor response delays
+  •   We propose SenseLess, a hybrid anomaly detection sys-                      that complicate alignment with visual input.
+      tem that uses sensor-based and self-supervised pseudo-                           a) Limitations of non-vision anomaly detection.: We
+      labels to train vision models without manual annotation.                   first trained an unsupervised anomaly detection model using
+  •   We introduce the Hierarchical Event-Driven Synchro-                        only non-vision environmental data. Although effective in
+      nization (HEDS) algorithm, which performs unsuper-                         controlled settings, it performed poorly in real home envi-
+      vised multi-sensor delay estimation and compensates for                    ronments. The lack of ground truth hindered validation of
+      response lags during sensor-to-image alignment. This                       anomaly timing and cause, and many sensor patterns were
+      improves label precision across heterogeneous modalities,                  ambiguous without context. These findings motivated adding
+      ensuring reliable training data without manual calibration.                an image stream and a self-supervised model to provide
+  •   We present a self-healing feedback mechanism in which                      complementary cues for labeling.
+      the vision model retrains and recalibrates the non-vision                        b) Sensor delay and misalignment.: We analyzed sensor
+      model when drift or low-confidence conditions are de-                      responses around events and observed that some environmental
+      tected, enabling long-term robustness.                                     changes occurred gradually rather than immediately. For ex-
+                                                                                 ample, temperature and humidity often shifted several seconds
+The implementation of SenseLess is publicly available at                         after a door opened, as shown in Figure 1. This misalignment
+https://github.com/norahb/Senseless.                                             increases the risk of linking anomalies to incorrect image
+                                                                                 frames. Based on these observations, we designed the HEDS
+                      II. SYSTEM DESIGN                                          algorithm to detect and compensate for sensor delays during
+A. Problem Definition                                                            image alignment.
+
+   We consider the problem of automatically labeling im-                         C. System Overview
+ages captured in indoor environments to train a vision-based                        SenseLess, illustrated in Figure 2, operates in two sequential
+anomaly detection model, without relying on manual annota-                       phases: a training phase and a deployment phase.
+tion. Let I = {i1 , i2 , . . . , in } be a set of unlabelled images,                During training, the system integrates three modules. First,
+and S = {s1 , s2 , . . . , sm } be the corresponding aligned non-                a non-vision module is trained on normal sensor data to detect
+vision sensor readings associated with each image. The goal                      anomalies. Detected events are temporally aligned with images
+is to generate a refined label set L∗ = {ℓ1 , ℓ2 , . . . , ℓn }, where           using the HEDS algorithm, which estimates and compensates
+each label ℓk ∈ {Normal, Anomaly, Unknown}, such that                            for sensor delays. This aligns anomalies with their true vi-
+the resulting dataset {(ik , ℓk )} can be used to train a robust,                sual context and improves labeling accuracy. Second, a self-
+privacy-aware vision-based anomaly detector.                                     supervised vision module extracts features from unlabelled
+   This task involves several key challenges:                                    images and generates pseudo-labels via clustering. Third,
+  •   Sensor-to-image alignment: Sensor and image data must                      a label refinement module fuses sensor- and vision-derived
+      be temporally aligned despite variable response delays                     labels using confidence weighting, producing a dataset for
+      across sensor types.                                                       training a vision-based anomaly classifier.
+  •   Sensor label uncertainty: Labels generated from unsu-                         In deployment, the non-vision module runs continuously
+      pervised sensor models may be noisy or uncertain due to                    as the primary detector. When predictions are uncertain, the
+      environmental drift or hardware variability.                               vision module is selectively activated to validate the decision.
+
+
+
+
+           Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                         2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+ Training Phase                                                                                                                                    Deployment Phase
+                    1 Non-vision Module                                                                                  3 Label Refinement                           Non-vision Data
+                                                                                                                               Module
+  Non-vision                                                             !
+    Data           IRS        DRS                                                                                            Label Refinement
+                      Sensors           Multi-Model     Delay       Backward       Alignment and                                                                      Anomaly Detection
+                                                                                                                                                                                             High
+
+
+
+
+                                                                                                    Labelled Images
+                    Classification       Training     Calculation   Labelling     Image Labelling
+                                                                                                                                                                               Low
+                     2      Self-supervised Vision Module                                                                                                                                    Output
+                                                                                                                             Dataset Preparation
+                                                                                                                                                    Drift Detection    Capture Image
+    Images
+                            Data                  SSL Model          Feature      Clustering and
+                         Augmentation              Training         Extraction   Image Labelling                            Image Model Training
+                                                                                                                                                    Retrain Model     Image Classification
+
+
+Fig. 2. System architecture of SenseLess. The training phase integrates non-vision anomaly detection, self-supervised vision, and label refinement to generate
+labeled data. The deployment phase relies primarily on non-vision sensing and selectively activates the vision module when confidence is low.
+
+
+
+This selective activation preserves privacy by minimizing                                                             performance than the others, the system can use it alone. If
+visual exposure and supports adaptation through feedback-                                                             no method is clearly superior, the full ensemble is retained.
+driven retraining. Together, these modules enable SenseLess                                                                c) Delay Estimation and Calibration: For DRS, the
+to deliver accurate and privacy-aware anomaly detection.                                                              system estimates the delay ∆ts between the anomaly onset
+                                                                                                                      and the point when reconstruction error first exceeds the
+D. Training Phase                                                                                                     threshold. Anomalies are detected with the trained model,
+   1) Non-Vision Module: The non-vision module generates                                                              which produces per-sensor error traces and thresholds. For
+initial labels for image data by detecting anomalies in environ-                                                      each event, the anomaly start time tstart is identified by tracing
+mental sensor streams. This process is implemented using the                                                          backward from the error rise to where values stabilize near
+HEDS algorithm, which synchronizes sensor data with image                                                             baseline, and the threshold crossing time tcross is the first
+timestamps while accounting for response delays and align-                                                            index where the error exceeds the threshold. The onsite delay
+ment uncertainty. The algorithm is outlined in Algorithm 1                                                            is then computed as ∆ts = tcross − tstart . The final ∆ts for
+and described in detail below.                                                                                        each sensor is the mean of the filtered values, while IRS
+      a) Sensor Classification: Sensors are grouped into                                                              sensors are assigned ∆ts = 0. If ground truth event times are
+instant-response (IRS) and delayed-response (DRS) categories                                                          available, an optional lab-based calibration can be performed.
+based on their characteristics and observed response behavior.                                                        In this case, delays are measured as the average difference
+IRS sensors (e.g., motion detectors) react immediately and are                                                        between known event times and the first detected anomalies.
+assigned zero delay (∆ts = 0). DRS sensors (e.g., temperature                                                         Lab and onsite values may then be blended using configurable
+or humidity) exhibit measurable latency and are assigned a                                                            weights or adjusted relative to a reference sensor. Human-in-
+calibrated delay ∆ts > 0 estimated during delay calculation.                                                          the-loop review is also supported, allowing experts to inspect
+      b) Model Training: We train a multi-model ensemble of                                                           and correct selected cases. This multi-stage calibration process
+an autoencoder, Isolation Forest, and Elliptic Envelope, each                                                         ensures accurate temporal alignment between sensor events
+capturing different aspects of anomaly behavior. Sensor data                                                          and images, improving label precision across all sensor types.
+is cleaned in two stages: values outside physical ranges are                                                               d) Backward Labeling: An anomaly period Ps is a
+replaced by interpolation, and statistical outliers are removed                                                       contiguous segment where the reconstruction error of sensor s
+using a configurable method, with median absolute deviation                                                           exceeds its learned threshold, with the onset given by the first
+as the default and Z-score filtering as an alternative. The                                                           sample of that segment. For each sensor s, the calibrated delay
+autoencoder is trained on clean, normal-only data using mean                                                          ∆ts shifts the start of Ps backward to obtain Ps′ . All times-
+                                                                                                                                                                    (s)
+squared error loss, with architecture scaled to sensor dimen-                                                         tamps tk ∈ Ps′ are labeled anomalous (ℓk = Anomaly).
+sionality. Features are normalized with either RobustScaler or                                                        The global label ℓk is set to Anomaly if any sensor flags an
+StandardScaler, and thresholds are derived from the training                                                          anomaly; otherwise, it is set to Normal.
+error distribution and calibrated on validation data. During                                                               e) Image Alignment: Image–sensor synchronization is
+evaluation, anomaly scores from the three detectors are com-                                                          performed using a dual-window alignment strategy. For each
+bined, and sensitivity is tuned by requiring agreement from                                                           image captured at timestamp ti , the system first searches for
+one, two, or all detectors. This mechanism is optimized to                                                            sensor anomalies within a primary window of [ti − 2, ti + 2]
+maximize recall while limiting false positives. Confidence                                                            seconds. This window accounts for timestamp jitter and corre-
+           (s)
+scores ck are computed from reconstruction errors and                                                                 sponds to approximately two sensor sampling intervals at 1 Hz.
+sensor-specific error distributions, aggregated across sensors,                                                       If no anomaly is found, a fallback window is applied to handle
+and calibrated with isotonic regression to produce reliable                                                           delayed sensor responses. The fallback window size is defined
+probabilities. When one detector achieves higher validation                                                           as d = max(∆ts , 5 s), where ∆ts is the estimated delay for
+
+
+
+
+             Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                         2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+Algorithm 1 Hierarchical Event-Driven Synchronization (HEDS)                             of the sensor subsystem.
+ 1: Input: Sensor dataset S, image dataset I                                                We adopt a SimCLR framework with a ResNet-18 encoder
+ 2: Output: Initial labeled image dataset Ls
+ 3: Step 1: Sensor classification                                                        and projection head. Each image is stochastically augmented
+ 4: for all sensor s in sensor modalities do                                             twice (random crops, color jitter, grayscale, flipping) and the
+ 5:     if s exhibits an immediate response to state changes then
+ 6:          Assign s to the instant-response sensor (IRS) group and set ∆ts = 0         paired views are trained with the normalized temperature-
+ 7:     else                                                                             scaled cross-entropy (NT-Xent) loss. This pulls representations
+ 8:          Assign s to the delayed-response sensor (DRS) group
+ 9:     end if                                                                           of the same image together while separating others.
+10: end for                                                                                 After training, the SimCLR encoder produces feature em-
+11: Step 2: Model training
+12: Train anomaly detection model f on a filtered normal-only subset of S                beddings that are clustered using a Bayesian GMM with
+13: Use f to compute sensor-based confidence scores c(s)    k   for detected anomalies   a Dirichlet prior. For each image embedding xi assigned
+14: Step 3: Anomaly detection and delay estimation
+15: for all sensor s in available sensors do                                             to cluster k, we compute confidence score using a hybrid
+16:      Detect anomaly events for sensor s with start time tstart                       formulation:
+17:      if s is DRS then                                                                                                                        
+18:          Find threshold crossing tcross (first error > threshold for sensor s)                   (ssl)     1                       d(xi , µk )
+19:          Compute delay ∆ts = tcross
+                                        s
+                                            − tstart
+                                                                                                   ci = 2 P (k | xi ) + 1 −                           .   (1)
+                                        s                                                                                                dmax
+20:          Set ∆ts to mean of valid delays for sensor s
+21:      else                                                                            Here, P (k | xi ) is the GMM posterior probability, d(xi , µk )
+22:          Set ∆ts = 0
+23:      end if                                                                          is the Euclidean distance from sample to cluster mean, and
+24: end for                                                                              dmax is the maximum distance observed in the dataset. This
+25: Step 4: Backward labeling and multi-sensor aggregation
+26: for all sensor s in sensor modalities do                                             score yields confidence values in [0, 1].
+27:      for all anomaly periods Ps do                                                      The result is a pseudo-labeled dataset (Lssl ) where each
+28:          Shift start time backward by ∆ts to obtain Ps′
+29:          for all tk ∈ Ps′ do                                                         image has a cluster index and confidence score. These labels
+                                             (s)
+30:              Assign sensor-level label ℓk = Anomaly                                  are later fused with sensor-derived labels during refinement.
+31:          end for                                                                        3) Label Refinement Module: Each image ik receives two
+32:      end for                                                                                                             (s)                     (s)
+33: end for                                                                              candidate labels: a sensor label ℓk with confidence ck and an
+34: for all timestamps tk do                                                                             (ssl)                   (ssl)
+35:               (s)
+         if ∃s : ℓk = Anomaly then
+                                                                                         SSL label ℓk with confidence ck . Confidence values are
+36:          Set global label ℓk = Anomaly                                               calibrated using isotonic regression models trained for each
+37:      else
+38:          Set ℓk = Normal
+                                                                                         source and reused in later runs. Labels are then refined by the
+39:      end if                                                                          following rules:
+40: end for
+41: Step 5: Sensor-to-image alignment                                                       1) If both confidences fall below thresholds (τs , τssl ), assign
+42: for all image timestamps ti ∈ I do                                                          Unknown.
+43:      Define primary window: [ti − 2, ti + 2] seconds
+44:      Search for anomaly event within primary window                                     2) If both labels agree and at least one confidence exceeds
+45:      if match found then
+                       (s)      (s)
+                                                                                                its threshold, accept the shared label.
+46:          Assign ℓk and ck ; mark as Primary
+47:      else                                                                               3) If only one source exceeds its threshold and is more
+48:          Define fallback window: [ti − d, ti + d], where d = max(∆ts , 5 s)                 confident, select its label.
+49:          Search for anomaly event within fallback window
+50:          if match found then                                                            4) Otherwise, assign Unknown.
+                           (s)      (s)
+51:              Assign ℓk and ck ; mark as Fallback                                     Thresholds τs and τssl are obtained through isotonic calibration
+52:          else
+53:                        (s)
+                 Assign ℓk = Unknown with ck = 0
+                                                     (s)                                 against ground truth correctness flags, with the final cutoff
+54:          end if                                                                      selected by grid search to balance accuracy and coverage.
+55:      end if
+56: end for                                                                              Optional human review is supported for Unknown cases.
+57: return Ls                                                                            Reviewed labels are stored to avoid duplication in future
+                                                                                         runs. The result is the final dataset L∗ = {(ik , ℓk )} with
+sensor s, and 5 s corresponds to the maximum delay observed                              ℓk ∈ {Normal, Anomaly, Unknown}.
+across all sensors in our dataset. Images matched within the                                4) Vision Model Training: We use the final labeled dataset
+primary window are labeled Primary, while those matched                                  L∗ to train a supervised convolutional neural network for the
+only within the fallback window are labeled Fallback. If no                              detection of visual anomalies, excluding Unknown samples.
+sensor event is found in either window, the image is labeled                             We adopt MobileNetV2 for its favorable balance between
+Unknown with zero confidence.                                                            classification performance and computational efficiency. The
+                                                    (s)
+   Matched images inherit the sensor-derived label ℓk and its                            model is initialized with ImageNet weights, with the final layer
+             (s)                                                                         adapted for binary classification. Training is performed using
+confidence ck . Unknown images are resolved during label
+refinement using SSL pseudo-labels or optionally escalated                               cross-entropy loss and the Adam optimizer, with early stop-
+for human annotation. This process yields the labeled dataset                            ping based on validation loss. To improve generalization, we
+              (s) (s)                                                                    apply data augmentations such as random cropping, horizontal
+Ls = {(ik , ℓk , ck )}, enabling supervised training without
+manual annotation.                                                                       flipping, and color jitter.
+   2) Self-Supervised Vision Module: The self-supervised vi-                             E. Deployment Phase
+sion module learns visual representations from unlabelled                                  During deployment, SenseLess runs a two-stage decision
+images and produces cluster-based pseudo-labels independent                              pipeline. The non-vision module operates continuously as the
+
+
+
+
+              Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                   2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+primary anomaly detector, and the vision module is selectively                  labeled samples, replay buffer entries, and a small portion of
+activated when additional validation is required. This design                   the original training data. These sources are combined and
+minimizes visual exposure while maintaining robustness under                    filtered to ensure statistical quality and coverage diversity.
+uncertainty and sensor drift.                                                   A new non-vision model is then trained using the same
+   1) Primary Non-Vision Module: The non-vision module                          ensemble configuration as in the original deployment, and its
+operates continuously, analyzing sensor streams and identify-                   performance is evaluated against a validation set. If the new
+ing outliers using an ensemble model trained on normal data.                    model outperforms the current one by a predefined margin
+Sensor values are cleaned using a Z-score filter, and anomaly                   (e.g., ≥ 0.02 macro-F1 improvement), it is deployed to replace
+predictions are produced only for non-corrupted segments.                       the old model after creating a backup. To prevent overfitting
+Each prediction is assigned a label (Normal, Anomaly, or                        to recent events, the replay buffer maintains representative
+Sensor_Error) and accompanied by a confidence score                             samples across time and label types. This modular pipeline
+estimated from reconstruction error. When the confidence is                     ensures that retraining occurs only when sufficient, high-
+high, the prediction is accepted without further processing.                    quality data is available and performance gains are measurable.
+Sensor errors and the names of affected sensors are logged
+per instance to support inspection.                                                    III. IMPLEMENTATION AND EVALUATION
+   2) Fallback Vision Module: When the non-vision module                        A. Evaluation Setup and Dataset Overview
+produces low confidence predictions or sensor errors, the                          We evaluated SenseLess in a real home equipped with
+system activates the vision module to perform secondary                         environmental sensors and RGB and thermal cameras over
+validation. In this case, a new image is captured and pro-                      four weeks of continuous operation. The evaluation covered
+cessed by a pre-trained classification model. The image is                      four anomaly scenarios: open doors, appliance misuse, abnor-
+preprocessed and evaluated by the model, which returns a                        mal occupancy patterns, and obstructed pathways. Door and
+predicted class label (Normal or Anomaly) along with a                          obstructed pathway anomalies were intentionally induced by
+confidence score derived from softmax outputs or object count                   leaving doors open for extended periods and placing objects
+estimation. Vision-based predictions that exceed a configured                   to block paths. Appliance and occupancy anomalies were
+confidence threshold are logged and can override the original                   partly instructed, such as leaving the hob on unattended or
+decision. This selective activation strategy improves robustness                remaining seated to raise CO2 levels, and partly occurred
+in ambiguous cases while minimizing unnecessary visual                          during normal daily routines, capturing both controlled and
+processing. The captured image is processed solely for fallback                 realistic conditions.
+inference and is not retained, ensuring privacy is preserved.                      The setup included temperature, humidity, pressure, CO2 ,
+   3) Data Drift Handling: To support long-term reliability,                    and ultrasonic distance sensors, with data collected at 1 Hz
+the system maintains a reference baseline that characterizes                    during 12.5 hours of daily operation. Ground truth labels were
+normal sensor behavior under stable conditions. This base-                      generated automatically using simple, case-specific mecha-
+line is computed during an initial data collection period or                    nisms. For door, appliance, and occupancy scenarios, magnetic
+periodically updated using recent deployment logs filtered to                   switches provided binary ground truth signals (open/closed,
+exclude sensor errors. For each sensor, the system calculates                   on/off, occupied/unoccupied). For obstructed pathways, labels
+mean, standard deviation, and percentiles, storing these as                     were produced using a rule-based method based on ultrasonic
+reference statistics. Once deployed, incoming sensor readings                   distance measurements, where distances below a fixed thresh-
+are compared against this baseline to detect data drift. Drift                  old (e.g., 130 cm) indicated obstruction. These labels were
+is flagged when recent samples exhibit significant deviation in                 used only for evaluation and calibration, not for training.
+statistical properties, such as shifts in mean or variance, or an                  The dataset was split into 24 days for training and 6 days
+increased outlier rate relative to the baseline. In parallel, the               for testing. The image dataset contained 2,516 door images,
+system monitors reconstruction error from the autoencoder to                    2,575 appliance images, 1,511 occupancy images, and 1,960
+detect structural changes in sensor patterns that may not affect                abnormal object images. In practice, deployments begin with
+first-order statistics. When drift is detected consistently across              a 1–2 week period of normal data collection to train the initial
+multiple runs, the system activates a self-healing feedback                     sensor model and establish baseline behavior.
+loop. If the vision module is triggered due to low confidence
+and returns a high-confidence prediction that contradicts the                   B. Non-vision Sensor Model Performance
+non-vision decision, this prediction is logged and used as a                      Table I reports the results on temporally held-out test sets.
+trusted label. These vision-verified events are then used to                    Non-vision models achieved high accuracy and macro-F1 on
+retrain the non-vision model, ensuring that the system remains                  appliance and object use cases. Occupancy and door detection
+adaptive to changing environments without relying on manual                     were less reliable. Across door, appliance, and occupancy
+annotations.                                                                    cases, a single autoencoder consistently outperformed the en-
+   4) Model Retraining: When persistent data drift is detected,                 semble variant, indicating that additional methods introduced
+the system triggers a retraining workflow to update the non-                    more noise than benefit in these settings.
+vision anomaly detector. A data collector module first gathers a                  In the door case (Figure 3a), temperature, humidity, and
+retraining set composed of recent sensor data, fallback vision-                 pressure exhibited low variance and strong distributional
+
+
+
+
+          Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                                                                                                                      2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+                                                                  TABLE I                                                                                                                                                                                                         deviations below 1.2s for temperature and humidity, and 2.6s
+                                              N ON -V ISION M ODEL P ERFORMANCE BY U SE C ASE                                                                                                                                                                                     for pressure. Appliance sensors tracked short delays with er-
+   Use Case                                                                                                                                         Method                                                                           Accuracy                          Macro-F1   rors between 1.7s and 2.5s, while the occupancy case differed
+   Door                                                                                                                                       Single Autoencoder                                                                      86.0%                              0.73
+   Appliance                                                                                                                                  Single Autoencoder                                                                      100%                               0.98     by only 0.62s. These results confirm that onsite estimation
+   Occupancy (Incremental)                                                                                                                    Single Autoencoder                                                                      98.0%                              0.95     provides physically plausible and deployment-ready delays,
+   Abnormal Object                                                                                                                                Rule-based                                                                          100%                               1.00
+                                                                                                                                                                                                                                                                                  even in scenarios where environmental responses are gradual.
+                                                 D   ' R R U   / R Z  9 D U L D Q F H  	  2 Y H U O D S   E   & 2    2 Y H U O D S  	  6 L Q J O H  ) H D W X U H  / L P L W D W L R Q                                                                              Door sensors showed close agreement between RF baselines
+
+
+
+                                                                                                                                                               & 2   & R Q F H Q W U D W L R Q   S S P 
+                                                                                                                                     1 R U P D O                                                                                                  1 R U P D O
+                                                                                                                                                                                                                                                                               (3.36s, 1.80s, 1.25s for temperature, humidity, and pressure)
+        7 H P S H U D W X U H    & 
+
+
+
+
+                                                                                                                                          $ Q R P D O \                                                                                                $ Q R P D O \
+                                                                                                                                                                                                            
+                                                                                                                                                                                                                 
+                                                                                                                                                                                                                                                                                  and onsite estimates (3.17s, 2.92s, 3.84s). For appliances,
+                                                                                                                                                                                                                                                                          temperature and humidity delays were near-instantaneous (RF:
+                                               
+                                                                                                                                                                                                                                                                               1.07s, 1.04s; onsite: 2.80s, 3.49s), while CO2 exhibited slightly
+                                                                                                                                                                                                                                                              longer but consistent lags (RF: 3.59s, onsite: 1.12s). The
+Fig. 3. Signal factors affecting detection. (a) Door anomalies show subtle,                                                                                                                                                                                                       occupancy case showed the slowest dynamics, with CO2
+overlapping changes (b) CO2 anomalies overlap strongly with normal values,                                                                                                                                                                                                        delays of 5.99s (RF) and 5.37s (onsite), reflecting gradual
+highlighting the limitation of using a single feature. Red: anomaly periods.                                                                                                                                                                                                      diffusion compared to the sharper transitions of appliance
+overlap between normal and anomalous states. For example,                                                                                                                                                                                                                         events. If available, final delays can be blended with RF
+anomaly means were close to normal averages. Correlations                                                                                                                                                                                                                         baselines, reference-sensor adjustments, or human-in-the-loop
+across features were weak, and temporal patterns followed                                                                                                                                                                                                                         review to ensure robust alignment across deployment settings.
+smooth trends rather than abrupt shifts. These subtle changes                                                                                                                                                                                                                        Across all use cases, onsite estimates stayed within seconds
+reduced the contrast available to the autoencoder, making                                                                                                                                                                                                                         of RF-derived ground truth, while alternative unsupervised
+boundary precision and anomaly detection more difficult.                                                                                                                                                                                                                          baselines such as CUSUM or cross-correlation often mis-
+   Occupancy detection using only CO2 (Figure 3b) was                                                                                                                                                                                                                             estimated delays by minutes or produced negative lags. The
+hindered by strong overlap between normal and anomalous                                                                                                                                                                                                                           stability of our method ensures physically plausible estimates,
+ranges. Anomalies averaged 791 ppm (SD = 67.7) and normal                                                                                                                                                                                                                         which is essential for sensor–image alignment in multimodal
+periods 725 ppm (SD = 42.4), making elevated levels common                                                                                                                                                                                                                        anomaly detection systems.
+in both states. Additonally, this single-feature setup limited                                                                                                                                                                                                                    D. Sensor-Image Alignment
+the autoencoder’s ability to distinguish anomalies. Temporal
+patterns showed smooth drifts rather than sharp jumps, further                                                                                                                                                                                                                                                TABLE II
+reducing discriminability. Conventional full-dataset training                                                                                                                                                                                                                           S ENSOR – IMAGE ALIGNMENT RESULTS ACROSS USE CASES
+produced unstable boundaries, but incremental training in 5-                                                                                                                                                                                                                                 Use Case          Match Rate (%)   Accuracy (%)
+                                                                                                                                                                                                                                                                                             Door                   100             67.2
+day cycles with replay memory improved robustness, raising                                                                                                                                                                                                                                   Appliance              100             97.1
+macro-F1 from 0.72 to 0.95.                                                                                                                                                                                                                                                                  Occupancy              100             78.6
+                                                                                                                                                                                                                                                                                             Abnormal Object        100             100
+C. Delay Calculation                                                                                                                                                                                                                                                                 Alignment accuracy was evaluated by comparing the image
+   Delay baselines were established using labeled datasets and                                                                                                                                                                                                                    labels transferred from non-vision records with the ground
+a supervised Random Forest classifier (RF), which served as                                                                                                                                                                                                                       truth image labels (Table II). Since the alignment procedure
+a proxy ground truth for anomaly onset. For each use case,                                                                                                                                                                                                                        relies on previously labeled sensor data, its performance
+the classifier was trained to detect the first anomaly, and the                                                                                                                                                                                                                   reflects the effectiveness of the non-vision anomaly detector.
+average gap between event onset and first detection defined the                                                                                                                                                                                                                   Appliances achieved 97.1% accuracy, consistent with strong
+lab delay. These values provide a reference baseline but are not                                                                                                                                                                                                                  upstream sensor performance. Occupancy reached 78.6%,
+directly usable in deployment since true physical onset cannot                                                                                                                                                                                                                    where the autoencoder struggled to capture CO2 deviations,
+be measured at scale. When evaluated against the RF baseline,                                                                                                                                                                                                                     leading to reduced image-level agreement. Door alignment
+                                                                                                                                                                                                                                      ' R R U
+                                                                                                                                                                                                                                                                                  was lowest at 67.2%, mirroring the difficulty of detecting
+                                                                  3 U R S R V H G  0 H W K R G  ' H O D \   V 
+
+
+
+
+                                                                                                                                                                                                                                     $ S S O L D Q F H
+                                                                                                                                                                                                                                      2 F F X S D Q F \
+                                                                                                                                                                                                                                                                                  gradual environmental transitions in sensor data. Abnormal
+                                                                                                                       
+                                                                                                                                                                                                                                                                                  object events were straightforward to align, achieving 100%
+                                                                                                                                                                                                                                                                                  accuracy due to the clear signal from instant-response distance
+                                                                                                                                                                                                                                                                                 sensors. Overall, the observed performance variations reflect
+                                                                                                                                                                                                                                                                                  the inherent challenges of the upstream anomaly detection
+                                                                                                                                                                                                                                                                                 task, and therefore the alignment procedure performs best for
+                                                                                                                                                                             
+                                                                                                                                      * U R X Q G  7 U X W K  ' H O D \   V                                                                                                  events producing immediate and unambiguous sensor changes.
+Fig. 4. Comparison between proxy ground truth (RF) delays and the proposed                                                                                                                                                                                                        E. Self-Supervised Vision Module Performance
+delay estimation method. Each point represents a sensor measurement: door
+(circles), appliance (triangles), and occupancy (square). The dashed line                                                                                                                                                                                                            We evaluated multiple SSL models, including Barlow
+indicates close agreement (y = x).                                                                                                                                                                                                                                                Twins, DINO, FastSiam, MoCo, and SMoG. SimCLR
+our delay estimation achieved RMSE = 1.83s and MAE =                                                                                                                                                                                                                              achieved the best balance of accuracy, training time, and model
+1.60s (Figure 4). Door events showed strong agreement, with                                                                                                                                                                                                                       size, and was selected for our framework. For clustering,
+
+
+
+
+                                                 Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                                                                          2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+we compared K-Means, GMM, DBSCAN, and Agglomerative                                                                                                            with only 9.4% of door images requiring manual annotation.
+methods. The GMM was adopted as the default, as it adapts the                                                                                                  The appliance, occupancy, and abnormal object cases required
+number of active components through a Dirichlet prior, pro-                                                                                                    no human input, as automated refinement already provided
+vides well-calibrated confidence scores, and offered the most                                                                                                  near-perfect performance.
+consistent trade-off between accuracy and efficiency across use                                                                                                   Overall, the hybrid strategy reduced dependence on a
+cases. Figure 5 shows the performance of the selected SimCLR                                                                                                   single modality. Door events benefited from fusion, where
+                                                                                                                                       3 U H F L V L R Q
+                                                                                                                                                               SSL compensated for weak sensor signals, while appliance
+        3 H U I R U P D Q F H  6 F R U H
+
+
+
+
+                                                                                                                                       5 H F D O O         and abnormal object cases leveraged sensor reliability to
+                                                                                                                                           )   6 F R U H
+                                                                                                                                       $ F F X U D F \     correct SSL misclassifications. Occupancy detection benefited
+                                                
+                                                                                                                                                               strongly from visual clustering, with SSL and the hybrid ap-
+                                                
+                                                                                                                                                               proach achieving perfect accuracy. These results demonstrate
+                                                                ' R R U       $ S S O L D Q F H    2 F F X S D Q F \    $ E Q R U P D O                        that multimodal refinement not only recovers accuracy lost in
+                                                                                                                          2 E M H F W
+                                                                                                                                                               individual methods but also achieves robustness across diverse
+                                        Fig. 5. Performance of the SimCLR and GMM pipeline.
+                                                                                                                                                               event types.
++ GMM pipeline. Occupancy detection achieved perfect accu-
+racy (1.00), with both classes classified correctly. Appliance                                                                                                 G. Image Classification Model Performance
+detection reached 0.74 accuracy; anomaly recall was perfect                                                                                                       We evaluated an image-only MobileNetV2 classifier on
+(1.00) but precision was lower (0.61), indicating that some                                                                                                    the door, appliance, and abnormal object use cases. For
+normal frames were misclassified as anomalies, likely due to                                                                                                   occupancy, we used a pre-trained EfficientNet-based crowd
+thermal interference from nearby appliances. Abnormal object                                                                                                   counting model without additional training. For each image
+detection reached 0.75 accuracy with balanced F1 -scores for                                                                                                   classification task, we compare models trained using images
+both classes (anomaly 0.75, normal 0.71). Door detection                                                                                                       automatically labeled by the proposed sensor–SSL pipeline
+was the most challenging, reaching 0.75 accuracy. Anomaly                                                                                                      with models trained using ground-truth image labels as a fully
+precision was high (0.66) but recall was lower (0.33).                                                                                                         supervised image-only baseline. As shown in Fig. 7, training
+                                                                                                                                                               with automatically labeled data achieves strong performance,
+                                                                                                                                                               with accuracies of 91.67% (door), 95.74% (appliance), and
+                                                                                                                                                               90.31% (abnormal object). Fully supervised training using
+                                                                                                                                                               ground-truth labels yields higher accuracy, reaching 93.65%,
+                                                                                                                                                               100%, and 91.84%, respectively. This comparison shows that
+                                                                                                                                                               image-only models benefit from full supervision but require
+                                                                                                                                                               controlled data collection with manual labeling, whereas
+                                                         (a)                         (b)                                        (c)                            SenseLess attains competitive accuracy without manual anno-
+Fig. 6. Failure cases in SSL clustering: (a) overlapping door states, (b) thermal
+                                                                                                                                                               tation.
+overlap from nearby appliances, (c) shadows misclassified as objects.                                                                                                                                                                                                * 7  3 U H F L V L R Q
+                                                                                                                                                                                                                                                                        * 7  5 H F D O O
+                                                                                                                                                                       3 H U I R U P D Q F H  6 F R U H
+
+
+
+
+                                                                                                                                                                                                              
+   The observed errors were primarily due to visual ambigu-                                                                                                                                                                                                             * 7  )   6 F R U H
+                                                                                                                                                                                                                                                                        * 7  $ F F X U D F \
+                                                                                                                                                                                                              
+ity. In the door case, shadows and overlapping door states                                                                                                                                                                                                              $ X W R  3 U H F L V L R Q
+                                                                                                                                                                                                                                                                        $ X W R  5 H F D O O
+                                                                                                                                                                                                              
+reduced class separability (Figure 6a). Appliance detection                                                                                                                                                                                                             $ X W R  )   6 F R U H
+                                                                                                                                                                                                                                                                     $ X W R  $ F F X U D F \
+was affected by thermal interference from nearby devices
+(Figure 6b), while abnormal object detection was hindered                                                                                                                                                     
+                                                                                                                                                                                                                     ' R R U    $ S S O L D Q F H    $ E Q R U P D O
+                                                                                                                                                                                                                                                       2 E M H F W
+by shadows misinterpreted as obstructions (Figure 6c). These
+failures illustrate how limited visual separability and intra-                                                                                                 Fig. 7. Performance of image classification. GT denotes training with ground-
+class variability constrain SSL clustering quality.                                                                                                            truth labels, and Auto denotes training with automatically labeled data.
+
+F. Label Refinement                                                                                                                                            H. End-to-End Labeling Duration
+   Table III compares the non-vision, SSL, and hybrid meth-                                                                                                       Table IV reports the execution time of each stage in the hy-
+ods. The non-vision approach achieved high coverage but                                                                                                        brid labeling pipeline. Across the four use cases, anomaly de-
+variable accuracy, ranging from 67.2% in the door case to                                                                                                      tection was the most time-consuming step, ranging from 27.72
+100% for abnormal objects. SSL clustering offered more                                                                                                         seconds (abnormal object) to 142.95 seconds (door). Image-
+balanced performance, with stronger results for occupancy                                                                                                      sensor alignment required between 17.51 and 54.90 seconds,
+(100%) but lower accuracy in appliances and abnormal objects                                                                                                   with larger datasets incurring longer alignment times. SSL
+(74.0% and 75.2% respectively).                                                                                                                                labeling was comparatively fast, completing in 7.36–11.02
+   The hybrid method improved reliability by combining both                                                                                                    seconds across all scenarios. Label refinement varied de-
+sources. Overall, in automated mode, it achieved 97.65%                                                                                                        pending on dataset complexity: while door required 73.99
+coverage with 94.94% accuracy, yielding an effective accuracy                                                                                                  seconds (including human labeling), appliance, occupancy, and
+of 92.50%. When low-confidence cases (Unknown) were re-                                                                                                        abnormal object cases required less than one second each.
+viewed, coverage reached 100% and accuracy rose to 95.84%,                                                                                                     Overall, full dataset annotation was achieved in 71.38–259.39
+
+
+
+
+                                                       Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                           2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+                                                                              TABLE III
+                                                          C OMPREHENSIVE L ABELING P ERFORMANCE C OMPARISON
+
+                                    Non-Vision                                      SSL                                                                                               Hybrid (Ours)
+Use Case
+                                                                                                                                       Automated                                                                                                                         + Human
+                        Coverage Accuracy Effective Acc. Coverage Accuracy Effective Acc. Coverage Accuracy Effective Acc. Coverage Accuracy Effective Acc.
+                          (%)      (%)         (%)         (%)      (%)         (%)         (%)      (%)         (%)         (%)      (%)         (%)
+Door                      100         67.2         67.2             100           74.6    74.6        90.6                             82.81                                     75.02                                                      100                          84.4                                     84.4
+Appliance                 100         97.1         97.1             100           74.0    74.0        100                              96.97                                     96.97                                                      100                          96.97                                    96.97
+Occupancy                 100         78.6         78.6             100           100     100         100                               100                                       100                                                       100                           100                                      100
+Abnormal Object           100         100          100              100           75.2    75.2        100                               100                                       100                                                       100                           100                                      100
+Average                  100.00      85.73        85.73            100.00         80.95   80.95      97.65                             94.94                                     92.50                                                    100.00                         95.84                                    95.84
+    Notes: Coverage = Percentage of images labeled. Accuracy = Percentage correct among labeled images. Effective Acc. = Coverage × Accuracy.
+    Automated = Fusion without human input. + Human = Including optional human labeling for ambiguous cases. Bold = Best performing method.
+
+
+
+                                 TABLE IV                                                                                TABLE VI
+          L ABELING P IPELINE T IMING P ERFORMANCE (S ECONDS )                                     V ISION USAGE DURING DEPLOYMENT (6 DAYS , 12.5 H / DAY ).
+
+             Use Case             Non-Vision Alignment      SSL      Refinement                   Use Case                                        Fallback Rate (%) Inf. (ms) Sec/day Usage (%)
+                                                                              ∗
+             Door                   142.95       35.09      7.36       73.99                      Door                                                                   27.2                                                             39.5                    483.7                                      1.08
+             Appliance              136.82       54.90     7.39         0.26                      Appliance                                                              29.9                                                             35.4                    476.7                                      1.06
+             Occupancy               65.09       17.51     10.06        0.24                      Occupancy                                                              29.2                                                             35.4                    458.2                                      1.03
+             Abnormal Object         27.72       35.54     11.02        0.31                      Abnormal Object                                                         8.0                                                             31.4                    112.8                                      0.25
+             Average                93.15        35.76      8.96          18.70                   Overall                                                                94.3                                                             141.7                  1531.4                                      3.42
+
+∗ Includes
+         human annotation for 9.4% (Door). Total pipeline time:
+71.38–259.39 seconds.                                                                       J. Deployment Evaluation
+                                                                                               We evaluated SenseLess over the final six days of de-
+seconds per use case, representing a significant efficiency im-                             ployment, covering 270k records per use case. Figure 8 and
+provement over manual labeling, which would require hours to                                Table VI summarise accuracy, fallback behaviour, and vision
+days. These times exclude model training (non-vision anomaly                                usage. Appliance monitoring maintained strong performance
+detector and SimCLR).                                                                       (88.5%) with modest fallback use, while occupancy detection
+                                                                                            started at 21.1% accuracy but improved to 76.7% after re-
+                                                                                            training, though still requiring frequent fallback (29.2%). Door
+I. Ablation on Delay Compensation                                                           detection initially achieved 55.2% accuracy but recovered to
+                                                                                            69.3% following automatic retraining, and abnormal object
+                                                                                            detection achieved perfect accuracy with minimal fallback.
+                           TABLE V
+       A LIGNMENT ACCURACY WITH AND WITHOUT HEDS DELAY                                                                            3 H U I R U P D Q F H  0 H W U L F V                                            ) D O O E D F N  7 U L J J H U  ' L V W U L E X W L R Q
+                                                                                                                                                                                                                                                                               1 R  ) D O O E D F N
+                        COMPENSATION .                                                                       $ F F X U D F \                                                                                                                              / R Z  & R Q I L G H Q F H
+                                                                                                                                                                                                                                                                                  6 H Q V R U  ( U U R U
+                                                                                                                                                                                       3 H U F H Q W D J H    
+
+
+
+
+       Use Case              HEDS Alignment (%) No-Delay Alignment (%)                                       3 U H F L V L R Q                                    
+                                                                                                                                                                                                                         
+                                                                                                                                                                                                                                                                   
+       Door                            67.2                         62.5                                          5 H F D O O                                                                                                   
+       Appliance                       97.1                          97.0                                                                                                                                                
+       Occupancy                       78.6                          78.2                                & R Q I L G H Q F H                                      
+
+       Abnormal Object                 100.0                        100.0                                                                                                                                                 
+                                                                                                                                       ' R R U     $ S S O     2 F F      2 E M                                                 ' R R U     $ S S O    2 F F     2 E M
+
+   To quantify the contribution of the HEDS algorithm, we                                   Fig. 8. Deployment performance: (left) detection metrics and confidence
+conducted an ablation study comparing alignment performance                                 scores; (right) vision fallback triggers showing the share of decisions needing
+                                                                                            secondary validation due to low sensor confidence or errors.
+with and without delay compensation. Table V reports the
+accuracy of sensor-to-image label alignment across the four                                    Across all scenarios, fallback activation scaled with sensor
+evaluation use cases.                                                                       uncertainty and drift, providing secondary validation only
+   HEDS improved label alignment in cases where sensor                                      when required. Door and occupancy triggered the highest
+delays were present. The door scenario showed the largest                                   fallback rates, but each inference added just tens of millisec-
+gain, with accuracy increasing by 4.7%. Appliances benefited                                onds. Normalized over 270,000s of deployment (6 days, 12.5
+only marginally (+0.1%), reflecting their strong and immediate                              h/day), the cumulative vision overhead was 9188s, amounting
+thermal signatures. Occupancy showed a small improvement                                    to 3.42% of operating time.
+(+0.4%). No improvement was observed for abnormal object
+detection, since instant-response distance sensors incurred                                 K. Cross-Home Validation
+negligible delays. These results demonstrate that backward                                    We further evaluated the framework in a new home using the
+delay compensation is most effective in scenarios affected by                               door and occupancy use cases. For the door case, training on
+gradual environmental responses.                                                            two days of data and testing on a third yielded 96.0% accuracy
+
+
+
+
+               Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                   2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+with an F1-score of 0.84. During deployment, the initial model                  interpretation of temporally evolving events, motivating multi-
+achieved 24.4% accuracy, but automatic retraining adapted                       camera extensions. At the same time, expanding visual cov-
+within the same environment and improved performance to                         erage directly raises privacy concerns. Prior work reports low
+80.8% without manual intervention. For the occupancy case,                      acceptance of always-on cameras and higher acceptance when
+training on 2.5 days and testing on 1.5 days achieved 93.0%                     vision is restricted to specific situations and combined with
+accuracy with an F1-score of 0.91, and deployment maintained                    privacy-preserving measures [12]. SenseLess adopts this trade-
+89.6% accuracy with anomaly recall of 99.2%.                                    off by activating vision only under non-vision uncertainty.
+                                                                                Although user preferences are not directly evaluated, the
+                       IV. DISCUSSION                                           design aligns with reported privacy expectations.
+
+    SenseLess shows that a hybrid sensor–vision pipeline en-                                            V. RELATED WORK
+ables privacy-aware, and adaptive anomaly detection in homes                    A. Sensor-Based Anomaly Detection
+without manual image labeling. The HEDS algorithm corrects                        Unsupervised and semi-supervised methods are common
+sensor delays and improves label accuracy for gradual re-                       in smart home anomaly detection, including autoencoders
+sponses. The hybrid labeling strategy achieves high coverage                    [13] and Isolation Forest [14], with ensembles improving
+(97.65%) and accuracy (94.94%) with reduced annotation                          robustness [15]. Federated learning limits data sharing [16],
+effort. Selective fallback limits vision use to less than 4% of                 but most approaches assume homogeneous sensors and ignore
+operating time, supporting privacy.                                             camera fusion and sensor delay [15].
+    The self-healing enables adaptation under data drift by                       Vision-based systems provide spatial context for fall and
+retraining the non-vision model using vision-based corrections.                 indoor anomaly detection [3], [17], [18], but require labeled
+Door and occupancy accuracy improve after retraining, rising                    data and raise privacy and computational concerns [19]. Sur-
+from 55.2% to 69.3% and from 21.1% to 76.7%, respectively.                      veys highlight open challenges in multimodal fusion, drift
+Cross-home results show both generalization and its limits.                     adaptation, and privacy-aware design [10]. No prior work com-
+Physics-driven signals such as CO2 transfer well, while layout-                 bines ambient sensing and vision in a delay-aware, privacy-
+dependent signals require adaptation. Overall, generalization is                preserving, bidirectional framework.
+scenario-dependent but achievable through adaptation.
+    Still, our method has limitations that are reflected in the                 B. Image Labeling in Vision-Based Systems
+observed performance variations. Differences in non-vision                         Labeling large-scale visual data is a major bottleneck, es-
+sensor signals and availability lead to uneven sensitivity across               pecially for anomaly detection. Manual annotation is accurate
+scenarios. Strong and immediate signatures from appliances                      but costly and time-consuming [20], while semi-automated
+and distance sensors support accurate detection, while gradual                  methods combine model suggestions with human input [21],
+transitions in door and occupancy cases reduce sensitivity.                     [22]. Automated approaches rely on clustering [23], pre-
+Sensor types, placement, sampling rates, and reliability vary                   trained models [24], or domain-specific pipelines [25].
+across homes. Although the framework supports different                            Most methods assume well-defined categories, whereas
+sensor subsets, detection accuracy depends on signal quality                    anomalies are rare and context-dependent. Cross-modal la-
+and stability. Moreover, SenseLess focuses on anomalies man-                    beling using wearable sensors has been explored for activity
+ifested through environmental changes and does not directly                     recognition [26]–[28], but remains limited for image-based
+address human-centered events, such as falls, which rely on                     anomaly detection [29], [30]. We extend this line by using
+different sensing dynamics. Supporting such events would re-                    non-vision signals to label indoor images, enabling training
+quire additional sensing modalities or explicit behavioral mod-                 without manual supervision.
+eling. Environmental variability further affects performance,
+as differences in layout, ventilation, and occupant routines                                            VI. CONCLUSIONS
+shift baseline behavior. Abrupt changes such as renovations                        We presented SenseLess, a hybrid anomaly detection frame-
+or sensor relocation may temporarily reduce accuracy until                      work that generates image labels without manual annotation
+adaptation occurs. The delay estimation algorithm assumes a                     by combining sensor-guided and self-supervised learning with
+clear anomaly onset followed by a delayed sensor response at                    delay-aware alignment. The system integrates confidence-
+1-second sampling resolution. Weak or intermittent anomalies                    aware vision fallback, drift detection, and selective vision
+may violate this assumption. Lower sampling rates, such                         activation to preserve privacy while maintaining adaptability
+as minute-level data, reduce temporal resolution and would                      across scenarios. Evaluation across four home monitoring
+require architectural changes. In addition, although the vision                 tasks demonstrated high labeling coverage and competitive
+component uses selective activation and multimodal validation                   accuracy, with scalability to new environments supported by
+to limit visual uncertainty, constraints remain. Training-time                  modular design and minimal configuration requirements.
+augmentations improve robustness to lighting changes and
+partial visibility through random resized cropping and color                                              ACKNOWLEDGMENT
+jittering. However camera coverage is limited, anomalies may                      This work is partially supported by the GCHQ National
+be fully occluded, and reliance on single images restricts                      Resilience Fellowship (Charith Perera).
+
+
+
+
+          Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+                       2026 IEEE International Conference on Pervasive Computing and Communications (PerCom)
+
+
+
+
+                               R EFERENCES                                                 on Automation Science and Engineering, vol. 12, pp. 1225–1234, 10
+                                                                                           2015.
+ [1] J. H. Shin, B. Lee, and K. S. Park, “Detection of abnormal living patterns     [20]   C. Sager, C. Janiesch, and P. Zschech, “A survey of image labelling for
+     for elderly living alone using support vector data description,” IEEE                 computer vision applications,” pp. 91–110, 7 2021.
+     Transactions on Information Technology in Biomedicine, vol. 15, pp.            [21]   S. Bianco, G. Ciocca, P. Napoletano, and R. Schettini, “An interactive
+     438–448, 5 2011.                                                                      tool for manual, semi-automatic and automatic video annotation,” Com-
+ [2] S. Ramapatruni, S. N. Narayanan, S. Mittal, A. Joshi, and K. Joshi,                   puter Vision and Image Understanding, vol. 131, pp. 88–99, 2 2015.
+     “Anomaly detection models for smart home security,” in 2019 IEEE 5th           [22]   P. Denzler, M. Ziegler, A. Jacobs, V. Eiselein, P. Neumaier, and
+     Intl Conference on Big Data Security on Cloud (BigDataSecurity), IEEE                 M. Koppel, “Multi-sensor data annotation using sequence-based active
+     Intl Conference on High Performance and Smart Computing, (HPSC)                       learning,” in 2022 IEEE/RSJ International Conference on Intelligent
+     and IEEE Intl Conference on Intelligent Data and Security (IDS). IEEE,                Robots and Systems (IROS). IEEE, 10 2022, pp. 258–263.
+     5 2019, pp. 19–24.                                                             [23]   B. J. Boom, P. X. Huang, J. He, and R. B. Fisher, “Supporting ground-
+ [3] T. Han, W. Kang, and G. Choi, “Ir-uwb sensor based fall detection                     truth annotation of image datasets using clustering,” in Proceedings of
+     method using cnn algorithm,” Sensors (Switzerland), vol. 20, pp. 1–23,                the 21st International Conference on Pattern Recognition (ICPR2012),
+     10 2020.                                                                              2012, pp. 1542–1545.
+                                                                                    [24]   R. Aljundi, P. Chakravarty, and T. Tuytelaars, “Who’s that actor?
+ [4] Z. A. Almusaylim and N. Zaman, “A review on smart home present
+                                                                                           automatic labelling of actors in tv series starting from imdb images,”
+     state and challenges: linked to context-awareness internet of things (iot),”
+                                                                                           Lecture Notes in Computer Science (including subseries Lecture Notes in
+     Wireless Networks, vol. 25, pp. 3193–3204, 8 2019.
+                                                                                           Artificial Intelligence and Lecture Notes in Bioinformatics), vol. 10113
+ [5] M. Aly and M. H. Behiry, “Enhancing anomaly detection in iot-driven
+                                                                                           LNCS, pp. 467–483, 2017.
+     factories using logistic boosting, random forest, and svm: A comparative
+                                                                                    [25]   X. Zhuo, F. Fraundorfer, F. Kurz, and P. Reinartz, “Automatic annotation
+     machine learning approach,” Scientific Reports, vol. 15, pp. 1–17, 7
+                                                                                           of airborne images by label propagation based on a bayesian-crf model,”
+     2025.
+                                                                                           Remote Sensing 2019, Vol. 11, Page 145, vol. 11, p. 145, 1 2019.
+ [6] E. Vildjiounaite, S.-M. Mäkelä, T. Keränen, V. Kyllönen, V. Huotari,       [26]   M. Barz, M. M. Moniri, M. Weber, and D. Sonntag, “Multimodal
+     S. Järvinen, and G. Gimel’farb, “Unsupervised illness recognition via in-            multisensor activity annotation tool,” in Proceedings of the 2016 ACM
+     home monitoring by depth cameras,” Pervasive and Mobile Computing,                    International Joint Conference on Pervasive and Ubiquitous Computing:
+     vol. 38, pp. 166–187, 7 2017.                                                         Adjunct. ACM, 9 2016, pp. 17–20.
+ [7] G. Leite, G. Silva, and H. Pedrini, “Fall detection in video sequences         [27]   F. Cruciani, I. Cleland, C. Nugent, P. McCullagh, K. Synnes, and
+     based on a three-stream convolutional neural network,” in 2019 18th                   J. Hallberg, “Automatic annotation for human activity recognition in
+     IEEE International Conference On Machine Learning And Applications                    free living using a smartphone,” Sensors (Switzerland), vol. 18, 7 2018.
+     (ICMLA). IEEE, 12 2019, pp. 191–195.                                           [28]   A. Diete, T. Sztyler, and H. Stuckenschmidt, “Exploring semi-supervised
+ [8] S. S. Khan, P. K. Mishra, N. Javed, B. Ye, K. Newman, A. Mihailidis,                  methods for labeling support in multimodal datasets,” Sensors 2018, Vol.
+     and A. Iaboni, “Unsupervised deep learning to detect agitation from                   18, Page 2639, vol. 18, p. 2639, 8 2018.
+     videos in people with dementia,” IEEE Access, vol. 10, pp. 10 349–             [29]   D. Cook, K. D. Feuz, and N. C. Krishnan, “Transfer learning for activity
+     10 358, 2022.                                                                         recognition: a survey,” Knowl. Inf. Syst., vol. 36, no. 3, p. 537–556, Sep.
+ [9] F. M. Noori, M. Riegler, M. Z. Uddin, and J. Torresen, “Human                         2013.
+     activity recognition from multiple sensors data using multi-fusion rep-        [30]   N. P. Owoh, M. M. Singh, and Z. F. Zaaba, “Automatic annotation of
+     resentations and cnns,” ACM Transactions on Multimedia Computing,                     unlabeled data from smartphone-based motion and location sensors,”
+     Communications, and Applications, vol. 16, pp. 1–19, 5 2020.                          Sensors (Switzerland), vol. 18, 7 2018.
+[10] D. Fährmann, L. Martı́n, L. Sánchez, and N. Damer, “Anomaly detection
+     in smart environments: A comprehensive survey,” IEEE Access, vol. 12,
+     pp. 64 006–64 049, 2024.
+[11] S. Birnbach, S. Eberz, and I. Martinovic, “Haunted house: Physical smart
+     home event verification in the presence of compromised sensors,” ACM
+     Transactions on Internet of Things, vol. 3, pp. 1–28, 8 2022.
+[12] T. Mujirishvili, C. Maidhof, F. Florez-Revuelta, M. Ziefle, M. Richart-
+     Martinez, and J. Cabrero-Garcı́a, “Acceptance and privacy perceptions
+     toward video-based active and assisted living technologies: Scoping
+     review,” Journal of Medical Internet Research, vol. 25, p. e45297, 5
+     2023.
+[13] D. Gonzalez, M. A. Patricio, A. Berlanga, and J. M. Molina, “Variational
+     autoencoders for anomaly detection in the behaviour of the elderly using
+     electricity consumption data,” Expert Systems, vol. 39, p. e12744, 5
+     2022.
+[14] M. E. Bilgin, H. Kilinc, and A. H. Zaim, “An anomaly detection study
+     for the smart home environment,” in 2022 7th International Conference
+     on Computer Science and Engineering (UBMK). IEEE, 9 2022, pp.
+     31–36.
+[15] M. J. Reis and C. Serôdio, “Edge ai for real-time anomaly detection in
+     smart homes,” Future Internet 2025, Vol. 17, Page 179, vol. 17, p. 179,
+     4 2025.
+[16] R. A. Sater and A. B. Hamza, “A federated learning approach to anomaly
+     detection in smart buildings,” ACM Transactions on Internet of Things,
+     vol. 2, pp. 1–23, 8 2021.
+[17] I. Ahmed, G. Jeon, and F. Piccialli, “A deep-learning-based smart
+     healthcare system for patient’s discomfort detection at the edge of
+     internet of things,” IEEE Internet of Things Journal, vol. 8, pp. 10 318–
+     10 326, 7 2021.
+[18] J.-W. Hsieh, C.-H. Chuang, S. Alghyaline, H.-F. Chiang, and C.-H.
+     Chiang, “Abnormal scene change detection from a moving camera using
+     bags of patches and spider-web map,” IEEE Sensors Journal, vol. 15,
+     pp. 1–1, 2014.
+[19] C. Zhu, W. Sheng, and M. Liu, “Wearable sensor-based behavioral
+     anomaly detection in smart assisted living systems,” IEEE Transactions
+
+
+
+
+             Authorized licensed use limited to: Cardiff University. Downloaded on June 12,2026 at 21:19:45 UTC from IEEE Xplore. Restrictions apply.
+

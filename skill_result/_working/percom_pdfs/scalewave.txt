@@ -1,0 +1,797 @@
+ScaleWave: Breaking Through Resource Bottlenecks
+  to Scale Up Serverless Computing at the Edge
+               Summit Shrestha∗                                  Zheng Song†                                   Eli Tilevich
+           College of Computing                                CIS Department                       Department of Computer Science
+        Georgia Institute of Technology              University of Michigan at Dearborn                       Virginia Tech
+                Atlanta, USA                                   Dearborn, USA                               Blacksburg, USA
+         summitshrestha@gatech.edu                          zhesong@umich.edu                              tilevich@cs.vt.edu
+
+
+           Zhengquan Li                                  Christine Julien                               Probir Roy
+          CIS Department                       Department of Computer Science                        CIS Department
+University of Michigan at Dearborn                       Virginia Tech                     University of Michigan at Dearborn
+          Dearborn, USA                               Blacksburg, USA                                Dearborn, USA
+          zqli@umich.edu                            christinejulien@vt.edu                         probirr@umich.edu
+
+
+
+   Abstract—As demand grows, serverless computing systems               and managing resources, allowing them to concentrate on
+must scale to meet increasing throughput requirements. Cloud            application logic. It is particularly well suited for edge en-
+computing easily achieves scalability by allocating abundant and        vironments, where bringing computation closer to end users
+elastic resources. In contrast, edge computing pre-deploys scarce
+and inelastic resources on site. However, edge applications often       reduces latency and supports efficient processing of large
+need to scale dramatically to handle bursty demand. Because they        data streams—critical for latency-sensitive and data-intensive
+typically serve fewer users with highly variable workloads, our         applications such as real-time analytics, autonomous systems,
+study shows that peak usage may require up to 8× more resources         and interactive services [2]. However, serverless platforms at
+to be pre-deployed across edge nodes than in a centralized              the edge largely reuse systems originally designed for the
+cloud. We observe that a typical serverless request can often be
+satisfied by different implementations, with dissimilar resource        cloud [3], which raises challenges when applied to resource-
+consumption profiles. When an edge application fails to scale           constrained and heterogeneous edge environments.
+up, the culprit is often a single bottleneck resource being fully          A defining feature of serverless platforms is auto-scaling,
+consumed, with other resources readily available. Motivated             the automatic adjustment of function instances to match fluc-
+by this observation, we introduce S CALE WAVE, a middleware             tuating workloads [4]. Existing mechanisms, however, were
+for seamlessly scaling up with different implementations to
+fully utilize all available resources to achieve scalable serverless    developed primarily for the cloud and follow a “single-
+computing at the edge. Supporting multiple implementations,             implementation-based approach”: by reacting to request rates
+however, introduces new challenges for conventional auto-scaler         or predicting workloads in advance [5], [6], the auto-scaler
+designs. Reactive strategies tend to yield suboptimal performance,      decides when to create or remove instances of the same
+while proactive methods struggle with compatibility. S CALE -           function implementation provided by the service owner. This
+WAVE overcomes these limitations by proactively distributing
+traffic across implementations, while leveraging existing auto-         model is effective in cloud settings, where abundant and
+scalers to manage instance scaling reactively for each one.             homogeneous resources make scaling straightforward [7]. At
+Our evaluations using real workload traces on a heterogeneous           the edge, in contrast, resources are both limited and heteroge-
+cluster of edge devices demonstrate that our design allows edge         neous, meaning that cloud-specific scaling strategies often fail
+applications to serve 2x more requests with minimal latency and         to deliver the required performance for latency-sensitive and
+achieve 50% more successful requests during workload bursts —
+showcasing substantial gains in scalability and resource efficiency.    data-intensive applications.
+                                                                           Our preliminary study (Section II) confirms these limitations
+  Index Terms—Scalability, Edge Computing, Serverless                   in edge environments, using real-world mobility traces and
+                                                                        edge server deployments. We observed that workload fluctu-
+                       I. I NTRODUCTION                                 ations at edge nodes are far more volatile than in the cloud,
+   Serverless computing is a paradigm in which applications             driven by the smaller user base and user mobility. Under such
+are deployed as on-demand functions, with the resource                  conditions, scaling with a single implementation often depletes
+provider managing all underlying infrastructure [1]. This               the particular resource it relies on, creating bottlenecks that
+model frees developers from deploying their implementations             prevent further instance replication. For instance, as shown
+                                                                        in Fig. 1(a), a face recognition function running solely on
+   *The majority of this work was done when the author was a Master’s
+student at the University of Michigan at Dearborn.                      edge CPUs quickly saturates processing capacity and cannot
+   † Corresponding Author                                               scale further under a cloud-based auto-scaler, even though
+other resources such as memory, GPU, and bandwidth remain                                                 requires developers only to provide the implementations, while
+underutilized—ultimately resulting in poor throughput. Con-                                               S CALE WAVE handles profiling and dynamic management
+sequently, handling peak workloads in this way may require                                                under fluctuating workloads and constrained resources. The
+up to eight times more total computing resources across all                                               core idea behind our approach is simple yet effective: it
+edge nodes than in the cloud, while still yielding low average                                            controls how request traffic is distributed across implementa-
+utilization. These findings underscore the need for scaling                                               tions, while leaving the underlying auto-scaler to adjust the
+strategies tailored specifically to serverless edge environments.                                         number of instances for each one. This lightweight design
+(a)Cloud-based AutoScaler
+                                                                                                          enables S CALE WAVE to be integrated as an add-on to existing
+                                                 Edge Env 1   100%
+                                                                  CPU NW. Mem. GPU …
+                                                                                        Poor              serverless frameworks, providing plug-and-play support for
+                                                                                     Throughput
+                         Serverless
+
+
+
+
+                                                                       Bottleneck
+                                                                                                          equivalent implementations and ensuring effective scaling, as
+                          Platform
+
+
+
+
+    CPU-based                                    Edge Env 2            Under Utilized
+                                                                                                          demonstrated by our testbed evaluation.
+                                                 Edge Env 3    0%
+                                                                                                             The contributions of this paper are four-fold:
+(b)Ad hoc Solutions Leveraging Equivalent Impl.               100%
+                                                                            Under Utilized
+                                                                                                             1) Identifying Scalability Challenge at the Edge: Through
+                                                 Edge Env 1
+     Offloading
+                                                                                                                 an empirical study using real-world traces, we demon-
+                                                               0%
+      Caching
+                                                 Edge Env 2             …                      Medium            strate how a combination of limited in-situ resources and
+                                                              100%                           Throughput
+                                                                                                                 bursty workload requests causes the scalability challenge
+                                                 Edge Env 3
+    GPU-based
+                        Manually
+                                                              0%
+                                                                                                                 in serverless computing at the edge.
+(c) ScaleWave: Edge-based AutoScaler with Built-in Support for Eqv Impl.                                     2) Edge-native Auto-scaler Design Supporting Equivalent
+                                                                    Fully Utilized              High
+      CPU-based                          Edge Env 1        100%                              Throughput
+                                                                                                                 Implementations: With optimality and compatibility as
+                                                                                                                 core design principles, we introduce S CALE WAVE, a
+                         Serverless
+                          Platform
+
+
+
+
+     Offloading                                  Edge Env 2
+
+                                                 Edge Env 3
+                                                                                                                 lightweight layer atop existing single-implementation
+      Caching                                                 0%
+                                                                   CPU NW. Mem. GPU …
+                                                                                                                 auto-scalers that enable scaling across multiple equiv-
+     GPU-based                                                                                                   alent implementations of the same service (each utiliz-
+     Providing                            Deploying                            Execution                         ing different edge resources). S CALE WAVE redistributes
+  Serverless Funcs                    Servereless Funcs.                       Outcomes
+                                                                                                                 request traffic across multiple implementations while re-
+   Fig. 1: ScaleWave vs. Existing Edge Scaling Approaches                                                        lying on the underlying mechanisms to reactively adjust
+                                                                                                                 instances. To the best of our knowledge, S CALE WAVE is
+   Existing edge and mobile computing solutions often address                                                    the first serverless-native system that provides orchestra-
+resource bottlenecks by leveraging equivalent implementa-                                                        tion support for leveraging equivalent implementations
+tions—functionally identical variants with different resource                                                    to mitigate resource bottlenecks at the edge.
+consumption profiles. When one resource type becomes a                                                       3) Demand-aware Knapsack Formulation and Approxima-
+bottleneck, the system can switch to another implementation                                                      tion Algorithm: To maintain high QoS under fluctu-
+to exploit underutilized resources. For example, offloading                                                      ating workloads and limited resources, traffic distribu-
+computation to the cloud [8] increases throughput by utilizing                                                   tion is formulated as an unbounded, multi-dimensional,
+network bandwidth; caching matching results [9] reduces CPU                                                      demand-aware knapsack problem. S CALE WAVE em-
+demand by relying on memory; and GPU-based feature extrac-                                                       ploys an efficient approximation algorithm to solve this
+tion [10] shifts workload away from CPUs, as demonstrated                                                        problem, enabling practical traffic allocation that sus-
+in Fig. 1(b). However, these solutions require developers to                                                     tains performance while respecting resource constraints.
+implement ad hoc logic to monitor specific resource types                                                    4) Prototype System Realization: We implement S CALE -
+at an edge environment and adaptively scale, which conflicts                                                     WAVE based on Knative [11] by repurposing existing
+with the serverless principle that developers should focus on                                                    mechanisms (revisions and traffic splitting) to support
+functionality while the platform manages deployment. As a                                                        scaling across equivalent implementations without mod-
+result, despite many attempts to use equivalent implementa-                                                      ifying the underlying platform, and we open-source an
+tions to mitigate edge and mobile resource bottlenecks, exist-                                                   initial version on GitHub to motivate future work.
+ing approaches remain fragmented and cannot systematically                                                   Using real workload traces, we show that S CALE WAVE
+scale across all available resources in edge environments.                                                improves throughput/normalized performance and reduces tail
+Consequently, although they increase utilization of certain                                               latency compared to standalone Knative baselines. The re-
+resources, others remain underutilized, resulting in moderate                                             mainder of this paper is organized as follows: Section II
+improvements in overall throughput.                                                                       motivates the need for supporting equivalent implementations
+   This paper addresses this gap by introducing S CALE WAVE                                               in serverless edge computing; Section III presents the design
+(Scale With What You Have), an edge-native auto-scaler with                                               and implementation of S CALE WAVE; Section IV evaluates
+built-in support for equivalent implementations. As illustrated                                           S CALE WAVE; and Section V concludes the paper.
+in Fig. 1(c), S CALE WAVE automatically adapts to hetero-
+geneous edge resources and manages instances of different                                                            II. M OTIVATION AND R ELATED W ORK
+implementations to fully utilize these resources, ensuring high                                             In this section, we first present our empirical study, which
+throughput. In line with the serverless principle, this process                                           highlights the workload fluctuations in edge environments and
+            max        mean         std       min     25%         50%       75%        85%       95%         99%       99.9%    mean/max
+           1564.05   561.651953    533.0     907.5   1796.5      1983.25   2066.45    2152.35   2464.09    2603.897    2610.0   0.599253
+
+                                                 TABLE I: Request Distribution for Cloud
+
+           Base Station   max       mean          std     min       25%     50%      75%    85%     95%     99%       99.9%     mean/max
+                 1          6     0.983333     1.096843     0         0       1       2       2       3      4.41     5.641     0.163889
+                 2          5     0.405556     0.842448     0         0       0       0       1       2      3.41     4.641     0.081111
+                 3          3     0.077778     0.324583     0         0       0       0       0       1      1.41     2.641     0.025926
+                 4        18      3.447222     3.019434     0         1       3       5       6       8     13.82     17.282    0.191512
+                 5        11      0.863889     1.710471     0         0       0       1       2       5       8       10.282    0.078535
+                ...        ...        ...          ...     ...       ...     ...      ...    ...     ...      ...       ...        ...
+
+                                     TABLE II: Request Distribution for Edge (5 Base Stations)
+
+shows why traditional scalability solutions designed for the                    For edge workloads, we also divided the dataset into hourly
+cloud are insufficient at the edge. We then review how equiv-                intervals and filtered it by unique base stations. We then
+alent implementations have been used to overcome resource                    aggregated the hourly requests across all base stations, yielding
+bottlenecks in edge computing along with their limitations,                  a total of 996,840 hourly request entries. Fig. 2b shows the
+and then examine existing autoscaling solutions and their lack               hourly requests for 5 base stations to illustrate edge workload
+of support for scaling across equivalent implementations.                    properties. For each of the 2769 base stations, we calculated
+                                                                             the average and maximum request values and their (mean/max)
+A. Workload for Cloud and Edge
+                                                                             variation ratio. Table II presents the hourly request distribu-
+   The differing features between cloud and edge comput-                     tions for five randomly selected base stations. The average
+ing lead to their varying workloads. Edge computing brings                   (mean/max) variation ratio across all base stations was 0.07,
+computation closer to end users, leading to a widespread                     providing a comparable metric against the cloud workloads.
+distribution of edge nodes, each serving users within a limited                 This study found that the mean–max ratio of requests is
+geographical coverage to meet latency requirements. Users’                   much higher in the cloud (0.59) than at the edge (0.07). In
+mobility patterns across different edge nodes lead to highly                 other words, cloud workloads exhibit relatively stable demand,
+dynamic edge workloads. To better understand the workload                    while edge workloads experience far more severe bursts.
+differences between cloud and edge environments, we con-                     Assuming a linear relationship between requests and resources,
+ducted a case study based on a real edge connection trace                    sustaining these bursts would require nearly eight times more
+using the Shanghai Telecom dataset [12]. The trace captures                  redundant resource deployment at the edge ( 0.59    0.07 ∼ 8x).
+workload volatility in small-population edge sites and we use                Such redundancy is particularly problematic because current
+it as a conservative upper bound on volatility rather than an                serverless platforms tightly couple a function to a fixed type
+exact deployment plan. This dataset includes Internet access                 of resource so throughput collapses once that resource be-
+records through 3,233 base stations (BS) from 9,481 mobile                   comes a bottleneck. In cloud environments, abundant resources
+phones for a duration of six months. We preprocessed the data                allow auto-scalers to simply replicate instances of a single
+to remove null values for latitude and longitude, resulting in               implementation, but at the resource-scarce edge, this strategy
+563914 records from 6262 unique users. To map latitude and                   wastes capacity and incurs high cost without effectively ab-
+longitude data to base stations, we grouped them together and                sorbing workload spikes. These observations demonstrate why
+selected unique groups, resulting in 2769 base stations. We                  traditional “single-implementation” based scalability solutions
+assume that each base station here denotes an edge node.                     designed for the cloud are insufficient for edge environments.
+                                                                             B. Ad-hoc Solutions for Scaling with Equivalent Impls.
+                                                                                In resource-constrained edge environments, bottlenecks can
+                                                                             be alleviated by providing functionally equivalent implemen-
+                                                                             tations of a service that use different resource mixes while
+                                                                             producing the same result. For instance, a neural network
+                                                                             may execute on CPU, GPU, DSP, or NPU depending on
+   (a) Cloud Requests Pattern     (b) Edge Requests Pattern (5 BS)           availability [13]. Android’s Neural Networks API (NNAPI)
+                                                                             makes this process transparent: workloads automatically use
+         Fig. 2: Cloud Workload vs Edge Workload                             the most efficient accelerator when available, but fall back to
+   For cloud workloads, we aggregated workloads from all                     CPU if others are busy or absent [14].
+the base stations, as shown in Fig. 2a. Based on the request                    Beyond hardware accelerators, equivalent implementations
+distribution, we computed the average and maximum request                    also arise in dynamic offloading, where a task can either run
+values, which were 1564 and 2610, respectively. To obtain a                  locally on a device or be offloaded to an edge or cloud server.
+value representing the variation in between the two, we further              Both options yield identical outputs, but the choice depends on
+calculated their ratio (mean/max), which was found to be 0.59.               context: offloading can save energy and reduce latency when
+Table I shows the overall distribution of the cloud requests.                bandwidth is plentiful, while local execution avoids network
+delay when connectivity is poor [15]. A third example is           and redistributes traffic so existing autoscalers scale replicas
+caching, which offers an alternate path between recomputing        across heterogeneous resources without modification. This lets
+a result or retrieving it from storage. Systems can dynamically    the system continue scaling even when one resource (CPU,
+choose between the two, trading CPU cycles for memory              uplink) saturates by shifting traffic to implementations relying
+depending on load and urgency [16].                                on underutilized resources (GPU, memory), expanding scaling
+   Together, these strategies exploit multiple interchangeable     capability beyond optimizing a single bottleneck absent in
+execution paths to balance performance, energy, and resource       today’s serverless platforms.
+use. Yet existing solutions implement ad hoc logic to monitor
+specific resource types and scale adaptively. Despite their            III. S CALE WAVE : D ESIGN AND I MPLEMENTATION
+effectiveness, such mechanisms are generally supported only           Motivated by these observations, we present S CALE WAVE,
+in an ad hoc manner (e.g., [9], [13]–[15]), typically de-          a lightweight auto-scaler for edge-based serverless computing.
+signed for narrow application domains. As a result, although       S CALE WAVE systemically supports equivalent implementa-
+many equivalent implementation–based approaches have been          tions to scale bursty workloads under constrained, heteroge-
+proposed to mitigate edge and mobile resource bottlenecks,         neous resources. This section first outlines the challenges and
+they remain fragmented because each focuses on only certain        corresponding design choices, then details the system compo-
+types of resources (e.g., CPU, GPU, memory, or network)            nents, and finally describes our reference implementation.
+and lacks a unifying mechanism to coordinate them. Without
+systematic orchestration and a general scaling mechanism,          A. Challenges and Solution Overview
+these solutions cannot scale across the heterogeneous mix             Auto-scaling with equivalent implementation requires fun-
+of resources available in edge environments, leaving many          damentally reconsidering underlying assumptions and novel
+resources underutilized and bottlenecks unresolved. Next, we       system designs. Compared to scaling a single implementation,
+review existing autoscaling solutions to understand their sup-     multiple implementations possess distinct resource consump-
+port in scaling across equivalent implementations.                 tion patterns and Quality of Service (QoS) outcomes. One
+                                                                   intuitive approach is to adhere to existing reactive auto-
+C. Existing Auto-scaling Solutions                                 scaler designs and dynamically decide which implementation
+   Existing studies on auto-scalers can be broadly categorized     to spawn as requests increase. However, this approach can-
+as reactive [6], [17]–[19] or proactive [5], [20]–[24], focusing   not guarantee global optimality, as achieving optimal scaling
+on maximizing utilization through optimal allocation [25],         sometimes requires proactively terminating instances of certain
+[26], parallelism and multiplexing [27], [28], and profile- or     implementations to free resources for others. Alternatively,
+contention-aware placements [29], [30]. Yet, they mainly target    controlling both the number of instances and the allocation
+homogeneous cloud resources and overlook the constraints of        of requests proactively for each implementation can achieve
+heterogeneous, resource-limited edge environments.                 global optimality but introduces compatibility issues. This
+   Autoscaling at the edge faces tighter resource budgets and      approach complicates the interaction between the auto-scaler
+stricter latency constraints than the cloud, making function-      and other modules of the serverless framework, such as the
+based serverless deployments a popular choice. Prior autoscal-     concurrency controller and lifecycle manager.
+ing efforts at the edge primarily adjust capacity of a single         Our key innovation for scaling across equivalent function
+implementation by changing replica count and sometimes             implementations is scaling by traffic distribution, a mecha-
+per-instance resources and concurrency. Knative hybrid au-         nism that proactively directs incoming requests across equiv-
+toscaler [31] jointly tunes replicas, per-instance CPU/memory,     alent implementations and thereby triggers the underlying
+and concurrency using profiling and traffic prediction, but        single-implementation serverless autoscalers to scale instances
+it still scales a single service implementation saturated by       up/down according to their native policies. By explicitly con-
+CPU or memory. KneeScale [18] targets budget-constrained           trolling the distribution weights among implementations while
+edge deployments by scaling to a knee point of diminishing         relying on the platform’s implicit scaling actions, this approach
+returns to choose an efficient replica count, again assuming       provides a lightweight but effective abstraction that extends
+one implementation per function which depends on a single          existing serverless platforms to support equivalent implemen-
+type of resource. RIA [32] optimizes ROI (QoS per cost) using      tations, enhancing both generalizability and compatibility.
+a SHAP-based DQN to select scaling actions, but likewise              Fig. 3 presents an overview of our solution. S CALE WAVE
+adapts capacity within a single service implementation over        is introduced as an additional layer (highlighted in green) that
+time. To our knowledge, no existing auto-scaler supports           provides high-level abstractions to enable multiple equivalent
+scaling across multiple implementations of the same function,      implementations of application services on top of the existing
+and most approaches require platform modifications.                serverless framework (marked in blue). Internally, S CALE -
+   Prior work on offloading, caching, or accelerator fallback      WAVE treats each equivalent implementation as a stand-alone
+relies on ad-hoc, application-specific logic for which server-     serverless function, but it logically groups them as alternative
+less platforms lack orchestration support. Our approach with       implementations of the same service and exposes a unified
+S CALE WAVE provides a unified, lightweight layer that profiles    access interface at the top layer. For each implementation,
+each implementation, observes resource pressure at runtime,        the underlying serverless auto-scaler still manages the creation
+                                                                 Users
+                                                                                                                                              offline stage, the Config Handler reads the developer-supplied
+                                                    Requests                                                                                  configurations containing 1-to-M service-to-implementation
+                                                                                  SCALEWAVE
+                                                                                                                                              mappings 1 . The Config Handler then parses these config-
+                                                              Services
+                                                                                                                                              urations and invokes the Eqv. Handler with a create or update
+                                     X%
+                                                          Traffic      Distribution
+                                                                        y%                                z%
+                                                                                                                                              call 2 . The Eqv. Handler leverages the underlying serverless
+                     Implementation 1                    Implementation 2                     Implementation n
+                                                                                                                                              platform’s APIs to create each implementation as a separate
+                                                                                                                                              serverless function, logically grouping them as an Eqv. Service
+                                                                              SERVERLESS                                                      Set 3 . For each equivalent implementation (underlying server-
+                        Function 1                          Function 2                           Function n                                   less function), the Route Handler initially assigns a unique,
+                                                                         Autoscaling
+                                                                                                                                              addressable named route with equal traffic distribution weights
+                                                                                                                                              and communicates this to the Eqv. Handler for necessary
+                        Replicas
+                         Replicas
+                          Replicas
+                           Replicas
+                                                              Replicas
+                                                               Replicas
+                                                                Replicas
+                                                                 Replicas
+                                                                                                  Replicas
+                                                                                                   Replicas
+                                                                                                    Replicas
+                                                                                                     Replicas
+                                                                                                                                              bookkeeping 4 . This marks the completion of the offline
+                                                                                                                                              phase and triggers the start of the online phase.
+                                                                                  RESOURCES                                                      The online phase executes continuously in the background
+                       Resource 1                           Resource 2                           Resource m                                   as an independent daemon process at periodic intervals. It
+                                                                                                                                              begins with the Observer filtering the necessary “requests” and
+                Fig. 3: Solution Overview of S CALE WAVE                                                                                      “resources” metrics related to the Eqv. Service Set (metrics
+                                                                                                                                              for all underlying serverless functions) and relevant autoscaler
+and removal of replicas in response to incoming requests. At                                                                                  metrics, and then computing the performance 5 . The result
+runtime, S CALE WAVE directs requests to the most suitable                                                                                    is saved to the cache 6 for future reference 8 . If the
+implementation based on current resource availability and                                                                                     current performance is lower than the previous performance,
+performance benefits, thereby achieving scaling across equiva-                                                                                it triggers the Optimizer Component 7 . The Optimizer then
+lent implementations while leveraging the built-in autoscaling                                                                                solves the performance optimization problem to obtain the
+mechanisms of existing serverless platforms.                                                                                                  new replica counts, calculates the new traffic distribution
+                                                                                                                                              values accordingly, and triggers the Route Handler with those
+B. Traffic Distribution Workflow                                                                                                              values 9 . The Route Handler, using these updated weights, re-
+   S CALE WAVE consists of three components: an Equivalent                                                                                    configures traffic distribution for each named route associated
+Service Manager, an Optimizer, and an Observer. The                                                                                           with each equivalent implementation (underlying serverless
+Equivalent Service Manager is composed of a configuration                                                                                     function) 10 . Under the hood, the Autoscaler, which triggers
+handler, an equivalence handler, and a route handler, and                                                                                     the creation and deletion of replicas for each serverless func-
+it is responsible for interfacing with both end users and                                                                                     tion based on incoming request counts, is indirectly driven by
+the underlying serverless platform to deliver services. The                                                                                   ScaleWave, as ScaleWave determines the number of requests
+Observer and Optimizer operate together to analyze runtime                                                                                    sent to each underlying serverless function 11 .
+statistics and compute the optimal traffic distribution.
+   Fig. 4 illustrates our overall system workflow in a dis-                                                                                   C. Traffic Calculation Algorithm
+tributed edge environment, where the components highlighted                                                                                      1) Demand-based Dynamic Knapsack Problem: An intu-
+in green represent the physical and logical components of                                                                                     itive approach to maximizing the overall utility provided by
+S CALE WAVE, while the others represent components of the                                                                                     all implementations under limited resources is to formulate
+underlying serverless platforms. The overall system workflow                                                                                  the performance optimization problem as a classical knapsack
+is divided into two stages: offline and online. During the                                                                                    problem, where equivalent implementations are prioritized
+                                                                                                                                              based on their performance-to-resource ratio.
+                                                                                                                           = Logical Groups
+
+                                                                                                                           = Physical Pods                                                                Dynamic Demand-based                 NOT OPTIMAL
+                                                                                                                           = Pod Replicas                                                                      Knapsack
+  JSON Config                                            User Requests
+                                                                                                                                               Traditional Capacity-based            Highest value
+                                                                                                                       SCALEWAVE                        Knapsack                  OPTIMAL SOLUTION                                      al-
+                                                                                                                                                                                                                                     on
+                                                                                                                                                                                    Value = 6 + 6 = 12                            iti d          Item 1
+                                                                                                                                                                                                                                ad e
+                                                                                                                                                                                                                              Tr bas
+                                                                                                     8                        6
+                                                                                                                                                                                                                                                Weight = 5
+     1
+                  Eqv. Service Manager                                                                         Cache                                                                       Item 1
+                                                                                                                                                                                                                                                Value = 6
+                                                                                                                                                                  Item 2                  Weight = 5
+                                                                                                                                                 Item 1                       Optimize    Value = 6      Demand=1                             Highest value
+                                                                                                                                                                 Weight = 6                                          Buyer
+                 2                              4                                     9                          7                              Weight = 5                                                                                  OPTIMAL SOLUTION
+   Config                  Eqv.                             Route                                                                                                Value = 8                  Item 1                  Demand =          De
+                                                                                    traffic
+                                                                                              Optimizer                     Observer            Value = 6                                                                               ma
+   Handler                Handler                          Handler                                          pnow < pprev                                                                  Weight = 5                 1 Item
+                                                                                    values                                                                                                                                            ba nd
+                                                                                                                                                                                           Value = 6                                    se -
+                                 3                                                                                                                                                                                                        d
+                                                                                                                                                                                          Knapsack                                                Item 2
+                                                    10     traffic distribution                                                     5                                                    Capacity = 10                                           Weight = 6
+                                                                                                                                  metrics                                                                                                        Value = 8
+                      x% req                   y% req                             z% req
+
+                                                                                                                                                 Item = Eqv. Implementation          Knapsack Capacity =                 Buyer Demand =
+                                                                                                                                                  Weight = Resource Usage          Total Available Resources        In-flight Requests Count
+                          1                         2            …………….              n                    Metrics                                   Value = Performance
+                                                                                                          Server                                                                SCALEWAVE TERMINOLOGIES
+                                      Eqv. Service Set
+
+                  x determines
+                  replicas +/-
+                                           y determines
+                                           replicas +/-
+                                                            11             z determines
+                                                                           replicas +/-
+                                                                                                                                                       Fig. 5: Dynamic Demand-based Knapsack
+                                               Autoscaler
+                                                                                                                                                 However, when an edge system receives few requests,
+                                                                                                                                              solving the traditional knapsack problem may yield subop-
+                                                             EXISTING SERVERLESS PLATFORMS
+                                                                                                                                              timal performance. This is because the solution may favor
+                     Fig. 4: Traffic Distribution Workflow
+implementations with a higher performance-to-resource ratio,         can handle before requiring scaling, typically specified by the
+rather than those that deliver better performance per request.       developer. Let qe denote the number of in-flight or queued
+As illustrated in Fig. 5, consider a knapsack with capacity 10       requests forle,Pwhich can be measured
+                                                                                                      m  at runtime. We have:
+                                                                                      E
+                                                                                      e=1 qe
+                                                                                                PE
+(resource constraint) and two items: Item1 and Item2, with           xe ≤ max                 − e=1 ne , 0 + 1, ∀e ∈ E.
+                                                                                       ce
+weights of 5 and 6, and values (i.e., per-request performance)         Putting everything together, we formulate the performance
+of 6 and 8, respectively. The traditional solution selects Item1     optimization problem as below:
+twice (5×2=10) for a total value of 12 (6×2), which corre-                            E
+                                                                                      X
+sponds to creating two replicas of implementation 1 for two           X = arg max         pne × xe
+requests. However, if there is only one request, assigning it to                      e=1
+implementation 2 yields a higher performance (8 vs. 6). This                  ∀e∈E
+                                                                              X
+example shows that maximizing knapsack profit alone does             s.t. :       are × xe ≤ Ar , ∀r ∈ R
+not guarantee optimal performance when demand is fixed.                       E
+                                                                                                 &P
+                                                                                                    E          E
+                                                                                                                    ' !
+   To address this limitation, we introduce the concepts of                                         e=1 qe
+                                                                             X                                X
+                                                                      s.t. :     xe ≤ max                  −      ne , 0 + 1, ∀e ∈ E
+buyer and demand into the knapsack problem, resulting in a                   e=1
+                                                                                                     ce       e=1
+new formulation we call the Demand-based Dynamic Knap-                                                                             (1)
+sack. In this model, a buyer at time t requests a specific              By incorporating dynamic demand as a constraint, Equation
+number of items d, which may vary over time. The goal                1 becomes a multi-dimensional unbounded knapsack prob-
+is to select the most profitable d items within the resource         lem—an NP-hard problem that has been extensively studied.
+constraint. In the previous example, Item 2 would now be             To ensure efficient solving, we adopt a metaheuristic-based
+chosen, as it yields better performance under limited demand.        genetic programming approach. The additional replica counts
+In our system, demand corresponds to incoming serverless             obtained from solving the optimization problem in Eq. 1 are
+function requests, and item selection determines which equiv-        used to recompute the new traffic distribution weights. The
+alent implementation’s replicas to create.                           basic idea is to distribute the traffic to each implementation
+   2) System Modeling and Problem Formulation: We model              based on their replica counts (i.e., xe + ne ) and the throughput
+the edge system as a black box with finite amounts of resources      of each replica (i.e., tne ). Let T De denote the updated Traffic
+across multiple categories. Let R = {r = 1, 2, . . . , R} denote     Distribution weight for each equivalent implementation e,
+the set of resource categories, and let {Ar | ∀r ∈ R}                computed as:
+represent the amount of each resource currently available                                                     !
+for allocating new replicas. For a given service, we define                             tne × (xe + ne )
+                                                                        T De = P∀e∈E                            × 100%, ∀e ∈ E     (2)
+E = {e = 1, 2, . . . , E} as the set of its equivalent imple-                                tne × (xe + ne )
+mentations. As mentioned earlier, we adopt p = t/l as the
+target performance metric, where t is the throughput (i.e., the      D. Developer Support for Equivalence
+number of successful requests per time unit), and l is the end-         S CALE WAVE provides a language-agnostic, declarative
+to-end latency, including cold-start, queuing, and processing        model for defining equivalent implementations using JSON,
+delays. This metric p increases with higher throughput and           where developers quickly create implementations by speci-
+lower latency. As shown in Fig. 4, S CALE WAVE uses this             fying a "name" and container "image" for each. Func-
+observed ratio p = t/l, avoiding prediction and maintaining          tions map to multiple implementations (1-M), each tied to
+accuracy under fluctuating workloads.                                a single container image (1-1), as shown in Fig. 6. The
+   For each equivalent implementation e, let ne denote the           system integrates with the serverless platform to manage
+current number of replicas and xe the desired number of              their lifecycle and supports special-purpose resources (e.g.,
+additional replicas. At runtime, we measure the throughput           GPUs) by allowing developers to include a "resource" key
+te and end-to-end latency le of e, and compute the total             with the appropriate label. Each resource is represented by
+performance as pe = te /le . The performance per replica is          a static tag (e.g., "gpu") applied to cluster nodes, enabling
+then given by pne = pe /ne . Accordingly, our optimization           the system to add a "NodeSelector" constraint so that
+objective is to maximize the total performance
+                                       PE         contributed by     implementations deploy only on matching devices.
+the new replicas, formulated as: max e=1 pne × xe
+   Next, we define the constraints: 1) The primary constraint        E. Reference Implementation
+ensures that the total resource consumption by all new replicas         We implemented S CALE WAVE and released its initial ver-
+does not exceed the available capacity. Let are denote the           sion as open source on GitHub1 . S CALE WAVE is implemented
+average amount of resource r consumed
+                                    P∀e∈Eby each   replica of e to   as an add-on component that integrates seamlessly with the
+achieve performance pe , we have            are × xe ≤ Ar , ∀r ∈     existing Knative infrastructure, requiring no modifications to
+R; 2) Another constraint arises from service demand, i.e., the       the underlying platform. The implementation, written entirely
+number of additional replicas to be created should not exceed        in Python, comprises approximately 1,800 lines of code across
+the demand, implied by the currently queued and in-flight re-        the runtime system and the developer support module.
+quests. Let ce denote the concurrency target of e, representing
+the maximum number of concurrent requests that each replica            1 https://github.com/898djh/ScaleWave.git
+ 1   {"services": [{                                             functions in conjunction with Knative’s built-in auto-
+ 2         "name": "face-recognition",                           scaler—namely, the concurrency-based Knative Pod
+ 3         "equivalent_implementations": [{
+ 4              "name": "edge-cpu-based",                        Autoscaler (KPA)—as baseline approaches.
+ 5              "image": "docker.io/<user>/<img>",
+                                                                    • Offloading-only + default KPA (Offload): The offloading-
+ 6              "env": {"key1": "value", "key2": ".."}
+ 7           },                                                       only approach uploads the image directly to a cloud
+ 8           {
+ 9              "name": "edge-gpu-based",
+                                                                      server.
+10              "image": "docker.io/<user>/<img>",                  • Local-only + default KPA (Local): Here, it first finds the
+11              "resource": "gpu"
+12           }]
+                                                                      face region in a given image. Then, it extracts the features
+13       },                                                           of the face region into a float array of size 32. This
+14       .....
+15   ]}
+                                                                      encoding is compared with a set of given images, and
+                                                                      the name of the person is returned based on the closest
+                                                                      match in the feature database.
+          Fig. 6: JSON-based Equivalence Definition
+                                                                    • Local-Offloading + default KPA (Local-Offload): This
+   In particular, our reference implementation builds on Kna-         approach extracts the encoding at the network edge and
+tive’s built-in features—revisions, which represent snapshots         uploads only the serialized float array to the cloud.
+of application code and configuration [33], and traffic split-   Testbed Configuration: We set up a cluster of heterogeneous
+ting, which distributes incoming requests across multiple        edge devices: a stronger x86 node, a Pi-class device, and
+revisions [34]. While these features are typically used for      a Jetson GPU node (specifications in Table III) for our
+deployment strategies such as blue-green deployments [35]        deployment testbed. This mix mirrors common edge clusters
+and canary releases [36], we repurpose them to enable scaling    where devices with different resource capabilities jointly serve
+across equivalent implementations. On top of Knative’s static    requests. The cluster included one manager node and three
+traffic splitting, we build a dynamic runtime that monitors      worker nodes, differing in architecture and resources offerings.
+workload and resource usage at runtime and proactively ad-       We ranked these nodes based on a combination of their basic
+justs traffic allocation among revisions.                        resource configurations (CPU, Memory, Disk, and Network)
+                                                                 and selected the one offering the highest configuration as
+          IV. E VALUATION AND R ESULT A NALYSIS                  our manager node, while the others served as worker nodes.
+   By deploying the S CALE WAVE system in a real-world           Additionally, we hosted an instance of the application on a
+testbed, we conducted a comprehensive evaluation of our          cloud server using Knative Serving for our “Offloading-only”
+proposed approach and compared it with baseline methods.         baseline.
+Specifically, our evaluation was driven by the following eval-      Devices       Lenovo Thinkpad   HP ProDesk      Raspberry Pi 4B   Jetson Nano
+                                                                      Role            Manager          Worker           Worker           Worker
+uation questions:                                                 Architecture      Intel i7 x86     Intel i5 x86       ARMv8           ARMv7
+EQ1: Utilizing the same resources, what is S CALE WAVE’s              OS           Ubuntu 22.04     Ubuntu 20.04       Raspbian       Ubuntu 18.04
+                                                                  CPU (cores)            12                6               4                4
+impact on overall function performance?                           Memory (GB)            16                8               8                4
+                                                                   Disk (GB)            512              256              64               128
+Finding: S CALE WAVE improves the normalized function per-         Disk Type            SSD             HDD            MicroSD          MicroSD
+formance by almost 42%, successfully serving 2x more re-          GPU (cores)             x                x               x               128
+
+quests with minimal latency (under 50 seconds for over 6000                       TABLE III: Testbed Specifications
+requests per hour) using the same resources compared to
+baseline approaches (see Sec. IV-B for more details).            Application Function and Equivalent Implementations: For
+EQ2: What is S CALE WAVE’s impact on overall resource            the “face recognition” function, we developed three equivalent
+utilization?                                                     implementations relying on different resources, summarized
+Finding: S CALE WAVE improves overall resource utilization by    in Table IV. These implementations were provided as API
+over 20% with minimal resource wastage compared to baseline      endpoints developed using the Flask framework and built as
+approaches (see Sec. IV-C for more details).                     container images with Docker’s multi-architecture build.
+                                                                                 Eqv Method       Deployment          Resources
+A. Experimental Setup                                                                1          Offloading-only        Network
+                                                                                     2             Local-only         CPU, GPU
+   We setup a cluster of edge devices representing an edge                           3          Local-Offloading     CPU, Network
+node and implemented our motivating “face recognition”
+function and their equivalent implementations as container       TABLE IV: Equivalent Implementations for Face Recognition
+images for our test suite. The “face recognition” function       Workload Generation: As a real edge workload trace is
+was implemented using an open-source Python library [37].        not readily available, we still used the Shanghai Telecom
+We deployed our test function to the cluster and executed it     dataset from our empirical study to generate an hour-long
+following an inter-arrival pattern obtained from a real-world    edge workload trace. We randomly selected a month-long
+edge connection trace.                                           connection trace from one base station and sampled it to
+Baseline    Approaches: To compare with single-                  create an hour-long workload trace, ensuring enough data
+implementation-based auto-scaling, we use the following          points to showcase bursty scenarios. Finally, we used the
+sampled one-hour connection trace dataset and calculated the        Normalized Performance: Normalized Performance refers to
+differences between connection start times to obtain a set of       the system’s performance in terms of their throughput and
+inter-arrival times (in seconds) for each unique user. We played    average latency. We calculate normalized performance as the
+this previously generated workload trace for each baseline          ratio of throughput to average latency, with higher throughput
+approach and our approach at varying concurrency levels,            and lower latency indicating better performance. Based on
+collecting results for each run. To vary the data sent during       these two values collected during function executions, we
+requests, we defined a static list of images with different sizes   aggregated total throughput and computed the average latency
+in our script and randomly selected one for each request.           for each baseline across three concurrency values.
+Task Allocation: Task allocation maps each request to an               Fig. 7 compares the number of successful requests, their
+equivalent implementation and node. It proceeds via (1)             average latency values, and normalized performance over one
+resource-level filtering (e.g., GPU replicas only on GPU-           hour, with a total of 8846 requests issued for each baseline
+labeled nodes) and (2) node-level heuristic selection to            using three different concurrency values. For c=70, S CALE -
+best match implementation-to-resource needs. Once allocated,        WAVE achieved the highest number of successful requests,
+S CALE WAVE redistributes traffic accordingly.                      serving almost 3000 more requests than the offloading-only,
+Concurrency Targets (c): Concurrency targets, set by devel-         2000 requests more than the local-only, and almost 1000
+opers, define the number of concurrent requests a replica can       requests more than the local-offloading baseline approaches.
+handle before additional replicas are provisioned. To evaluate      In terms of latency, it reduced E2E latency by nearly 2x that
+the robustness and adaptability of both the baseline approaches     of the offloading-only, by 1.2x compared to local-offloading,
+and our proposed method, we conducted experiments under             and increased by 1.2x compared to the local-only, offering a
+three different concurrency settings (ce = 70, 35, 18), cor-        better balance in latency values. For lower concurrency values
+responding to high, medium, and low concurrency levels,             (c=35 and c=18), which impose more replica creation, our
+respectively. These settings simulate a range of deployment         approach maintained a similar throughput to the offloading-
+scenarios—from replicas designed to handle large volumes            only and achieved higher throughput than local-only and
+of traffic with minimal scaling (high concurrency) to those         the local-offloading approaches. This is caused due to the
+that are more sensitive to load changes and require more            cloud’s unlimited resources supporting more replicas thus
+frequent scaling (low concurrency). By varying c, we assess         handling more offloaded requests, unlike local-only and local-
+how each method performs under different resource-utilization       offloading, which fail to serve as many requests. However, this
+pressures and scaling behaviors, providing a comprehensive          advantage of the offloading-only approach comes with higher
+understanding of their effectiveness across diverse operational     latency due to network delay, while our approach consistently
+conditions.                                                         keeps latency under 50 seconds for serving over 6000 requests
+                                                                    in all cases.
+B. Throughput and Performance                                          An interesting observation in latency values for c=35 and
+   For latency-sensitive edge systems, evaluating performance       c=18 is that S CALE WAVE consistently has the lowest latency
+based solely on throughput can result in high latency. There-       among all baselines. This reduction is due to S CALE WAVE’s
+fore, both throughput and latency must be considered. These         unique design for supporting equivalent implementations,
+are competing measures, i.e., an edge system will have a high       which decouples function from specific resources and simul-
+performance if it can service more requests with minimal            taneously utilizes other non-competing resources, while other
+latency. Thus, we measure the normalized performance as the         baselines are tightly coupled to the same set of resources. This
+ratio of throughput to average latency.                             effect is more pronounced with lower concurrency (c=18), as
+Throughput: Throughput refers to the total number of re-            more replicas must be created quickly to handle high incoming
+quests an edge system can successfully serve over a time pe-        requests, soon throttling resources and resulting in higher
+riod. To measure and compare the throughput of our approach         cold-start and overall latency, thus increasing E2E latency.
+against other baselines, we ran the hour-long workload trace        Moreover, among all baselines and for each concurrency value,
+for each approach, with a default timeout of 5 minutes (300         S CALE WAVE offers the highest normalized performance, im-
+seconds) and varying concurrency values (ce = 70, 35, 18).          proving by up to 1.5x as target concurrency decreases.
+After the run, we summed the number of requests returning              Fig. 8 compares the tail average latency (p85/p90/p95)
+a 2xx status code (e.g. 200 STATUS OK, denoting successful          at three concurrency targets (c=70,35,18). Local is always
+HTTP response) to obtain the successful request count.              saturated at 300s; Local-Offload is 300s at c=70 and remains
+Latency: Latency refers to the total time taken by the sys-         ∼170–300s at lower c values. Offload helps only at lighter
+tem to serve user requests from the time they are issued,           loads (c=18, p85≈50–60s) but collapses to 300s by p95 for
+encompassing the time to achieve a certain throughput. Vari-        c≥35 and at all percentiles for c=70. ScaleWave consistently
+ous factors contribute to end-to-end (E2E) latency, including       achieves lower tail latencies, which degrades smoothly with
+processing time, queuing delay, cold-start latency, and network     percentile, representing ≈50–85% lower tails than the other
+latency. During function executions, we measured E2E latency        baselines.
+for each successful request by calculating the time difference      Summary: S CALE WAVE outperforms local-only and local-
+between request initiation and response received.                   offloading baselines by serving more requests with the same
+Fig. 7: Total Successful Requests VS. Average Latency VS. Performance over an hour interval for different concurrency values
+                                             Offload         Local     Local-Offload                              ScaleWave
+                     300                               300                                                      300
+                     250                               250                                                      250
+       Latency (s)
+
+
+
+
+                     200                               200                                                      200
+                     150                               150                                                      150
+                     100                               100                                                      100
+                      50                                50                                                       50
+                       0                                 0                                                        0
+                           p85     p90      p95                p85     p90                p95                                       p85               p90                p95
+                                 (a) c=70                            (b) c=35                                                                      (c) c=18
+                                     Fig. 8: Tail Latency Comparison for different concurrency values
+
+resources. It achieves higher throughput at high concurrency                                        Offload            Local          Local-Offload               ScaleWave
+and similar throughput at low concurrency compared to the                                          80                        78.3
+                                                                                                                                                          71.0                        68.6
+offloading-only baseline. S CALE WAVE also maintains higher                                        70
+                                                                                                                                                   60.0                        60.8
+                                                                                                   60
+                                                                                Avg. Normalized
+
+                                                                                                                      56.1                                              55.7
+                                                                                 Utilization (%)
+
+successful rates and lower latency than offloading-only and                                                    51.7
+                                                                                                   50                                       45.6
+local-offloading baselines, with only slightly higher latency                                      40   35.5
+                                                                                                                                     29.8
+than edge at high concurrency. Overall, S CALE WAVE im-                                            30                                                            28.2
+
+proves the normalized performance by up to 42%, serving up                                         20
+to 2x more requests with minimal latency (under 50 seconds),                                       10
+                                                                                                    0
+as compared with single-implementation based auto-scaling.                                                      c=70                         c=35                        c=18
+
+C. Resource Utilization Efficiency                                           Fig. 9: Resource Utilization VS. Concurrency Values
+   We measured and aggregated resource usage data every sec-           local-offloading approach maintains high utilization but falls
+ond from all three nodes. The psutil [38] library was used to          short of the S CALE WAVE approach. Overall, S CALE WAVE
+measure general resource utilization, while the tegrastats             consistently achieves better resource utilization due to its
+[39] command line utility measured GPU utilization on the              access to various resource categories.
+Jetson Nano. We used average normalized resource utilization              Moreover, we compared the maximum resource utilization
+to obtain a single metric representing overall resource usage          when using S CALE WAVE with the other baseline approaches,
+across different baselines. To obtain this metric, we first            as shown in Table V, varying concurrency values. We observed
+calculated the average utilization for each resource category.         that S CALE WAVE consistently accesses resources not utilized
+Then, we concatenated these averaged values across different           by other baselines. For instance, at c=70, the offloading-
+baselines and identified the maximum value for each resource           only approach underutilizes edge CPU (76.13%) and mem-
+category. We computed the ratio of each average utilization            ory (43.53%) but has the highest network upload bandwidth
+to the maximum utilization to get normalized average usage.            usage. The local-only and local-offloading approaches better
+Finally, we calculated the mean of these normalized values.            utilize CPU and memory, with local-only CPU at 99.5% and
+   Fig. 9 shows that using S CALE WAVE consistently achieves           memory at 81.67%, and local-offloading exceeding 90% for
+the highest average normalized utilization across different            both. However, both underutilize network upload bandwidth
+concurrency values, peaking at 78.34% for c=70. It showed              compared to the offloading-only. None of the baselines use
+a 42.87% improvement in average normalized resource uti-               GPU resources due to implementation limitations, despite
+lization compared to offloading-only, 26.6% compared to                availability. S CALE WAVE shows a better balance, efficiently
+local-only, and 22.26% compared to local-offloading. The               using CPU, memory, network upload bandwidth, and GPU
+offloading-only approach exhibits the lowest utilization, the          resources, showcasing more efficient edge resource utilization.
+local-only approach shows variable resource efficiency, and the        Summary: S CALE WAVE achieves the highest average normal-
+                          CPU Usage   Memory Usage   Network Upload   GPU Usage
+ Conc.     Eqv. Impl.
+                             (%)          (%)            (bytes/s)       (%)
+             Offload        76.13        43.53         6502413.00         0
+              Local         99.50        81.66         2171108.66         0
+ c = 70
+          Local-Offload     98.10        92.23          830653.00         0
+          S CALE WAVE       96.66        80.96         4371618.33       33.00
+             Offload        87.80        34.70         5512313.67         0
+              Local         100.00       91.60          682594.00         0
+ c = 35
+          Local-Offload     100.00       99.33         1126069.33         0
+          S CALE WAVE       99.90        84.07         5714055.00       33.00
+             Offload        95.87        43.43         6119026.00         0
+              Local         100.00       99.07         1484092.67         0
+ c = 18
+          Local-Offload     100.00       99.07         1456626.67         0
+          S CALE WAVE       99.93        92.83         6279394.00       33.00
+                                                                                                   Fig. 10: Resource Overhead
+            TABLE V: Maximum Resource Utilization
+                                                                                  E. Threats to Validity:
+ized resource utilization across different concurrency values,                       Although our study provides an end-to-end evaluation of
+peaking at 78.34% for c=70. It efficiently utilizes all available                 S CALE WAVE, it has a few limitations.
+edge resources in different dimensions, which other base-                         (i) Application scope: We evaluate S CALE WAVE using a sin-
+lines underutilize. S CALE WAVE’s gradual traffic adjustment                      gle motivating service (face recognition) with three equivalent
+mechanism ensures consistent performance, improving overall                       implementations, which isolates the core mechanism of scaling
+resource utilization.                                                             across equivalents but may not capture trade-offs in other
+                                                                                  applications or implementation families.
+D. S CALE WAVE System Overheads                                                   (ii) Hardware and network environment: Results are ob-
+                                                                                  tained on one heterogeneous micro-edge cluster (Table III);
+   Across our experiments, overhead from metrics collection,                      different device mixes, resource ratios (CPU/GPU/memory),
+optimization, and routing updates is negligible relative to                       and LAN/WiFi/cellular conditions may change the relative
+the orchestration frequency or per-request execution time                         benefits and reconfiguration frequency.
+(typically several seconds), enabled by isolating components                      (iii) Workload realism: Due to limited availability of real
+in separate processes and maintaining atomic bookkeeping                          edge workload traces, we use a synthetic request trace derived
+even under frequent reconfiguration. The Observer follows                         from the Shanghai Telecom dataset by sampling a base-
+Knative’s stable/panic monitoring windows (15s sampling in                        station connection trace to obtain inter-arrival behavior and
+stable; 6s in panic when request volume rises 1.5x over the                       replaying it at different concurrency levels. While this captures
+previous window), balancing responsiveness and overhead,                          volatility typical of small-population edge sites, it may not
+and is configurable. S CALE WAVE further limits control-plane                     reflect diurnal effects, multi-service interference, or workload
+churn by updating traffic only when performance degrades and                      composition shifts in production.
+by using gradual rollouts to prevent oscillation.                                 (iv) Generalizability: Although our trace is base-station-
+                                                                                  derived, S CALE WAVE is deployment-agnostic with its profil-
+      Components           Latency    Overhead@Stable     Overhead@Panic
+        Observer            63ms            N/A                 N/A               ing, resource load monitoring, and traffic redistribution mech-
+       Optimizer             2ms           0.01%               0.03%              anisms apply to any heterogeneous, resource-limited micro-
+     Routing Updates        50ms            0.3%               0.83%
+                                                                                  edge setting (e.g., buildings, campuses, enterprise clusters).
+                        TABLE VI: Latency Overhead                                However, in resource-abundant environments (e.g., regional
+                                                                                  data centers with ample bandwidth and compute), the bot-
+   Table VI summarizes the measured latency overheads:                            tlenecks S CALE WAVE targets occur less frequently, and the
+“Overhead@Stable” and “Overhead@Panic” quantify on-                               gains are therefore expected to be smaller.
+critical-path latency overhead from S CALE WAVE ’s control
+actions during stable and panic modes, respectively. These                                               V. C ONCLUSION
+overhead values are calculated by dividing the component
+                                                                                     This paper introduced S CALE WAVE, a scalable server-
+incured latency by the respective observer window (i.e.,
+                                                                                  less edge computing framework tailored for resource-
+overhead = component latency ÷ window size). Because
+                                                                                  constrained environments. By leveraging equivalent imple-
+the Observer runs as a separate background process (off the
+                                                                                  mentations—predefined variants of a function that fulfill the
+orchestration critical path), we report its per-cycle latency
+                                                                                  same semantics but utilize different resources—S CALE WAVE
+(63 ms) and mark Overhead@Stable/Panic as N/A. In con-
+                                                                                  decouples application logic from specific resource bottlenecks.
+trast, the Optimizer and Routing Updates execute on the
+                                                                                  Our empirical evaluations demonstrate S CALE WAVE improves
+orchestration/control-plane path when triggered, adding 2 ms
+                                                                                  normalized performance by up to 42% and achieves 2× higher
+and 50 ms latency respectively, with negligible overhead under
+                                                                                  throughput under bursty edge workloads, all with consistent
+both modes (0.01–0.03% for Optimizer and 0.3–0.83% for
+                                                                                  and efficient resource utilization.
+Routing Updates), thus enabling timely scaling within the
+observer window sizes and across resource-constrained micro-
+                                                                                                    VI. ACKNOWLEDGEMENT
+edge clusters with minimal resource footprint of 0.01% CPU
+and ≈ 4MB memory usage as presented in Fig. 10.                                     This research is supported by NSF through the grant
+                                                                                  #2104337.
+                              R EFERENCES                                         [21] T. P. da Silva, A. R. Neto, T. V. Batista, F. C. Delicato, P. F. Pires,
+                                                                                       and F. Lopes, “Online machine learning for auto-scaling in the edge
+ [1] H. Shafiei, A. Khonsari, and P. Mousavi, “Serverless computing: a
+                                                                                       computing,” Pervasive and Mobile Computing, vol. 87, p. 101722, 2022.
+     survey of opportunities, challenges, and applications,” ACM Computing
+                                                                                  [22] X. Ma, K. Zong, and A. Rezaeipanah, “Auto-scaling and computation
+     Surveys, vol. 54, no. 11s, pp. 1–32, 2022.
+                                                                                       offloading in edge/cloud computing: a fuzzy q-learning-based approach,”
+ [2] B. Wang, A. Ali-Eldin, and P. Shenoy, “Lass: Running latency sensi-
+                                                                                       Wireless Networks, vol. 30, no. 2, pp. 637–648, 2024.
+     tive serverless computations at the edge,” in Proceedings of the 30th
+                                                                                  [23] J. Dogani and F. Khunjush, “Proactive auto-scaling technique for web
+     international symposium on high-performance parallel and distributed
+                                                                                       applications in container-based edge computing using federated learning
+     computing, 2021, pp. 239–251.
+                                                                                       model,” Journal of Parallel and Distributed Computing, vol. 187, p.
+ [3] P. Raith, S. Nastic, and S. Dustdar, “Serverless edge computing—where
+                                                                                       104837, 2024.
+     we are and what lies ahead,” IEEE Internet Computing, vol. 27, no. 3,        [24] K. Cheng, S. Zhang, C. Tu, X. Shi, Z. Yin, S. Lu, Y. Liang, and
+     pp. 50–64, 2023.                                                                  Q. Gu, “Proscale: Proactive autoscaling for microservice with time-
+ [4] M. Tari, M. Ghobaei-Arani, J. Pouramini, and M. Ghorbian, “Auto-                  varying workload at the edge,” IEEE Transactions on Parallel and
+     scaling mechanisms in serverless computing: A comprehensive review,”              Distributed Systems, vol. 34, no. 4, pp. 1294–1312, 2023.
+     Computer Science Review, vol. 53, p. 100650, 2024.                           [25] H. Ko and S. Pack, “Function-aware resource management framework
+ [5] L. Ju, P. Singh, and S. Toor, “Proactive autoscaling for edge computing           for serverless edge computing,” IEEE Internet of Things Journal, vol. 10,
+     systems with kubernetes,” in 14th IEEE/ACM International Conference               no. 2, pp. 1310–1319, 2022.
+     on Utility and Cloud Computing, 2021, pp. 1–8.                               [26] A. Raza, N. Akhtar, V. Isahagian, I. Matta, and L. Huang, “Configuration
+ [6] S. Taherizadeh and V. Stankovski, “Dynamic multi-level auto-scaling               and placement of serverless applications using statistical learning,” IEEE
+     rules for containerized applications,” The Computer Journal, vol. 62,             Transactions on Network and Service Management, 2023.
+     no. 2, pp. 174–197, 2019.                                                    [27] Z. Wu, Y. Deng, Y. Zhou, J. Li, and S. Pang, “Faasbatch: Enhancing the
+ [7] P. Singh, P. Gupta, K. Jyoti, and A. Nayyar, “Research on auto-scaling of         efficiency of serverless computing by batching and expanding functions,”
+     web applications in cloud: survey, trends and future directions,” Scalable        in 2023 IEEE 43rd International Conference on Distributed Computing
+     Computing: Practice and Experience, vol. 20, no. 2, pp. 399–432, 2019.            Systems (ICDCS). IEEE, 2023, pp. 372–382.
+ [8] A. Koubaa, A. Ammar, A. Kanhouch, and Y. AlHabashi, “Cloud versus            [28] Z. Wu, Y. Deng, Y. Zhou, J. Li, S. Pang, and X. Qin, “Faasbatch:
+     edge deployment strategies of real-time face recognition inference,”              Boosting serverless efficiency with in-container parallelism and resource
+     IEEE Transactions on Network Science and Engineering, vol. 9, no. 1,              multiplexing,” IEEE Transactions on Computers, 2024.
+     pp. 143–160, 2021.                                                           [29] H. Tian, S. Li, A. Wang, W. Wang, T. Wu, and H. Yang,
+ [9] U. Drolia, K. Guo, J. Tan, R. Gandhi, and P. Narasimhan, “Cachier:                “Owl: Performance-aware scheduling for resource-efficient function-
+     Edge-caching for recognition applications,” in 2017 IEEE ICDCS.                   as-a-service cloud,” in Proceedings of the 13th Symposium on Cloud
+     IEEE, 2017, pp. 276–286.                                                          Computing, 2022, pp. 78–93.
+[10] Y. Yamato, T. Demizu, H. Noguchi, and M. Kataoka, “Automatic gpu             [30] K. Luo, T. Ouyang, Z. Zhou, and X. Chen, “Beeflow: Behavior
+     offloading technology for open iot environment,” IEEE Internet of                 tree-based serverless workflow modeling and scheduling for resource-
+     Things Journal, vol. 6, no. 2, pp. 2669–2678, 2018.                               constrained edge clusters,” Journal of Systems Architecture, vol. 143, p.
+[11] Knative, “Overview - knative,” 2024. [Online]. Available: https:                  102968, 2023.
+     //knative.dev/docs/serving/                                                  [31] M.-N. Tran and Y. Kim, “Optimized resource usage with hybrid auto-
+[12] S. Wang, Y. Zhao, J. Xu, J. Yuan, and C.-H. Hsu, “Edge server place-              scaling system for knative serverless edge computing,” Future Genera-
+     ment in mobile edge computing,” Journal of Parallel and Distributed               tion Computer Systems, vol. 152, pp. 304–316, 2024.
+     Computing, vol. 127, pp. 160–168, 2019.                                      [32] H. Li, H. Liu, A. Chen, X. Ma, Q. Liu, and J. Du, “Ria: Return on
+[13] Oak Ridge National Laboratory, “Iris: From edge to exascale,” https:              investment auto-scaler for serverless edge functions,” in ICPP, 2024,
+     //iris-programming.github.io/, 2025, accessed: 2025-09-14.                        pp. 772–781.
+[14] A. Pawar, “Nnapi explained: The ultimate 2025 guide to android’s             [33] Knative, “Revisions - knative,” 2024. [Online]. Available: https:
+     ai acceleration,” softAai Blog (Medium), 2025. [Online]. Available:               //knative.dev/docs/concepts/serving-resources/revisions/
+     https://medium.com                                                           [34] ——, “Traffic splitting - knative,” 2024. [Online]. Available: https:
+[15] E. Cuervo, A. Balasubramanian, D.-k. Cho, A. Wolman, S. Saroiu,                   //knative.dev/docs/getting-started/first-traffic-split/
+     R. Chandra, and P. Bahl, “Maui: Making smartphones last longer with          [35] B. Yang, A. Sailer, S. Jain, A. E. Tomala-Reyes, M. Singh, and
+     code offload,” in MobiSys’10, 2010, pp. 49–62.                                    A. Ramnath, “Service discovery based blue-green deployment technique
+[16] X. Liu et al., “Collaborative task offloading and service caching strategy        in cloud native environments,” in 2018 IEEE international conference
+     for mobile edge computing,” Sensors, vol. 22, no. 22, p. 8618, 2022.              on services computing (SCC). IEEE, 2018, pp. 185–192.
+[17] M. N. Fekri, K. Grolinger, and S. Mir, “Distributed load forecasting         [36] D. Ernst, A. Becker, and S. Tai, “Rapid canary assessment through
+     using smart meter data: Federated learning with recurrent neural net-             proxying and two-stage load balancing,” in 2019 IEEE International
+     works,” International Journal of Electrical Power & Energy Systems,               Conference on Software Architecture Companion (ICSA-C).              IEEE,
+     vol. 137, p. 107669, 2022.                                                        2019, pp. 116–122.
+[18] X. Li, P. Kang, J. Molone, W. Wang, and P. Lama, “Kneescale:                 [37] Ageitgey, “Github - ageitgey/face recognition: The world’s simplest
+     Efficient resource scaling for serverless computing at the edge,” in 2022         facial recognition api for python and the command line,” 2024.
+     22nd IEEE International Symposium on Cluster, Cloud and Internet                  [Online]. Available: https://github.com/ageitgey/face\ recognition
+     Computing (CCGrid). IEEE, 2022, pp. 180–189.                                 [38] “psutil documentation — psutil 6.0.0 documentation,” 2024. [Online].
+[19] S. Wang, X. Liu, M. Gao, M. Chen, K. L. Yung, and S. Jiang, “Multi-               Available: https://psutil.readthedocs.io/en/latest/
+     objective auto-scaling scheduling for micro-service workflows in hybrid      [39] NVIDIA,        “tegrastats    utility,”   2024.      [Online].   Available:
+     clouds,” Enterprise Information Systems, vol. 17, no. 7, p. 2069478,              https://docs.nvidia.com/drive/drive\ os\ 5.1.6.1L/nvvib\ docs/index.
+     2023.                                                                             html#page/DRIVE\ OS\ Linux\ SDK\ Development\ Guide/
+[20] K. Ray and A. Banerjee, “Horizontal auto-scaling for multi-access edge            Utilities/util\ tegrastats.html
+     computing using safe reinforcement learning,” ACM Transactions on
+     Embedded Computing Systems (TECS), vol. 20, no. 6, pp. 1–33, 2021.
+

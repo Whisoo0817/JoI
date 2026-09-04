@@ -35,8 +35,7 @@ CAND_BASE = os.path.join(ROOT, "explorer", "candidates")
 WORKER = r"""
 import os, sys, json, re
 sys.path.insert(0, os.environ['JOI_ROOT'])
-sys.path.insert(0, os.path.join(os.environ['JOI_ROOT'], 'paper'))
-from paper.run_local_ir import generate_joi_code, JoiGenerationError
+from lowering.run_local_ir import generate_joi_code, JoiGenerationError
 cmd, devs, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
 try:
     r = generate_joi_code(cmd, devs, {})
@@ -82,7 +81,7 @@ def key_of(r: dict) -> str:
 
 
 def model_tag() -> str:
-    from config import get_client, get_model_id
+    from timeline_ir.config import get_client, get_model_id
     mid = get_model_id(get_client())
     return mid.rsplit("/", 1)[-1].lower().replace(".", "_")
 

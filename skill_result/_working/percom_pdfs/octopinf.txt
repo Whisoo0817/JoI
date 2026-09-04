@@ -1,0 +1,873 @@
+                                         O CTOP I NF: Workload-Aware Inference Serving for
+                                                       Edge Video Analytics
+                                                  Thanh-Tung Nguyen, Lucas Liebe, Nhat-Quang Tau, Yuheng Wu, Jinghan Cheng, Dongman Lee
+                                                                              School of Computing, KAIST, Republic of Korea
+                                          {tungnt, lucasliebe, quangntau1223, yuhengwu, chengjh, dlee}@kaist.ac.kr (Correspondence: {tungnt, dlee}@kaist.ac.kr)
+
+
+                                           Abstract—Edge Video Analytics (EVA) has become a major                                                                         People
+                                                                                                                                                                          Cars
+                                        application of pervasive computing, enabling real-time visual
+                                        processing. EVA pipelines, composed of deep neural networks
+                                        (DNNs), typically demand efficient inference serving under
+arXiv:2502.01277v1 [cs.DC] 3 Feb 2025
+
+
+
+
+                                        stringent latency requirements, which is challenging due to
+                                        the dynamic Edge environments (e.g., workload variability and
+                                        network instability). Moreover, EVA pipelines face significant            Fig. 1: Real-world footage at 2 locations shows varying number of objects
+                                        resource contention due to resource (e.g., GPU) constraints at the        leading to variations in workload for pipeline models (e.g., car classification).
+                                        Edge. In this paper, we introduce O CTOP I NF, a novel resource-          limited capabilities, Edge devices can execute part of the
+                                        efficient and workload-aware inference serving system designed
+                                        for real-time EVA. O CTOP I NF tackles the unique challenges              EVA pipeline, enabling server-device cooperation to share
+                                        of dynamic edge environments through fine-grained resource                workloads [9], [14], [15] increasing efficiency and flex-
+                                        allocation, adaptive batching, and workload balancing between             ibility. However, implementing this deployment scenario
+                                        edge devices and servers. Furthermore, we propose a spatiotem-            to reap its full potential involves two key considerations.
+
+
+
+
+                                                                                                                          t
+                                        poral scheduling algorithm that optimizes the co-location of              (1) Highly dynamic environments. At the Edge, significant
+                                        inference tasks on GPUs, improving performance and ensuring
+                                                                                rin
+                                        service-level objectives (SLOs) compliance. Extensive evaluations
+                                        on a real-world testbed demonstrate the effectiveness of our
+                                                                                                                  variations in video content over time lead to changes in
+                                                                                                                  workloads for models within an EVA pipeline (Figure 1),
+                                        approach. It achieves an effective throughput increase of up to           and constant changes in network conditions (i.e., bandwidth
+                                        10× compared to the baselines and shows better robustness in              and latency) cause fluctuations in compute time budgets for
+                                        challenging scenarios. O CTOP I NF can be used for any DNN-based          the pipeline, complicating the workload distribution task.
+                                        EVA inference task with minimal adaptation and is available at
+                                                                              ep
+                                        https://github.com/tungngreen/PipelineScheduler.                          (2) Resource contention. At the Edge, multiple DNN models
+                                                                                                                  run concurrently, or co-located, on the same processing unit
+                                                                I. I NTRODUCTION                                  (e.g., GPUs), leading to unpredictable performance degrada-
+                                                                                                                  tions in terms of latency (defined as co-location interference
+                                           Recently, Edge Video Analytics (EVA) has emerged as
+                                                                                                                  [17]). While the adverse effects can be lessened by grouping
+                                                                            Pr
+
+                                        a major area of pervasive computing [1], offering real-
+                                                                                                                  models with low workloads, the workload dynamicity men-
+                                        time visual sensing and processing. The pervasive nature
+                                                                                                                  tioned above makes this impractical.
+                                        of EVA systems enables seamless integration into diverse
+                                                                                                                     Several solutions have been proposed. Jellyfish [13] lever-
+                                        tasks such as surveillance [2], [3], [4], [5], health care [6],
+                                                                                                                  ages dynamic batching to increase throughput and uses mul-
+                                        and activity recognition [7], [8]. These systems can perform
+                                                                                                                  tiple DNN versions to adapt to network latency variations.
+                                        continuous, on-site video stream analysis with reduced de-
+                                                                                                                  During network instability, it reduces data resolution by opting
+                                        pendency on remote cloud infrastructures. In practice, VA
+                                                                                                                  for less accurate model versions, and adjusts batch sizes to
+                                        services are typically organized as cascading pipelines of deep
+                                                                                                                  meet throughput demands. However, its centralized architec-
+                                        neural networks (DNNs) [9]. For instance, the pipeline of
+                                                                                                                  ture, which transfers raw videos to the server and assumes
+                                        [Object Detect → Vehicle Classify, Plate Detect] can be em-
+                                                                                                                  ample GPU resources to avoid co-location interference, is
+                                        ployed for traffic monitoring (Figure 1). The task of executing
+                                                                                                                  unsuitable for resource-constrained Edge environments. Fur-
+                                        the pipeline is defined as inference serving and is subjected to
+                                                                                                                  thermore, Jellyfish can only adjust batch sizes for different
+                                        stringent latency demands (e.g., 200 ms), specified by service-
+                                                                                                                  versions of the same model, not systematically schedule
+                                        level objectives (SLOs). It has been studied in works such as
+                                                                                                                  the whole pipeline. Distributed architectures like Distream
+                                        [10], [11], [12], [13], [14], [15] with the common goal of
+                                                                                                                  [14] and Rim [18] instead utilize Edge devices and balance
+                                        efficiently allocating and scheduling resources to meet SLOs.
+                                                                                                                  workloads between devices and servers. Distream introduces
+                                           Advancements in embedded computing now enable DNN
+                                                                                                                  a stochastic method to determine the ”split point,” adaptively
+                                        models to run on both Edge servers and nearby embed-
+                                                                                                                  dividing EVA pipelines between local and server-based work-
+                                        ded devices (e.g., Jetson Orin Nano) deployed next to
+                                                                                                                  loads. However, to reduce the optimization space, it uses a
+                                        data sources such as CCTV cameras [16]. Despite their
+                                                                                                                  static batch size for models, which fails to account for dynamic
+                                          ∗                                                                       workloads and network conditions. This is because while
+                                             This paper has been accepted to IEEE PerCom 2025. © 2025 IEEE. The
+                                        final version will be available at [DOI link when available].             batching improves throughput, it increases end-to-end latency
+   TABLE I: Comparisons to the state-of-the-art EVA inference systems
+                                                                        such as GPU memory and computation capability. Scheduling
+                Workload     Dynamic       Spatiotemporal Horizontal
+  System
+               Distribution Batching       GPU Scheduling Scaling
+                                                                        is further complicated by temporal dependencies, as upstream
+Jellyfish [13]  centralized single tasks          ✗           ✗         models must process data before the downstreams. Addi-
+Distream [14]       ✓            ✗                ✗           ✗         tionally, Current software stacks (e.g., NVIDIA CUDA, Intel
+ Rim [18]           ✓            ✗                ✗           ✗         OpenVINO) support only kernel-level scheduling, lacking
+O CTOP I NF         ✓         pipeline            ✓           ✓
+                                                                        model-level coordination. This limitation increases the chal-
+for queries in the batch, risking SLO violations [12]. Batch            lenge while creating opportunities for custom strategies to
+sizes must therefore be dynamically adjusted to real-time               improve resource usage and system performance.
+workloads and conditions. Rim [18] argues that Edge models                 Proposed Approach. In this paper, we propose O CTOP I NF,
+rarely benefit from batching due to lower workloads compared            a workload-aware real-time inference serving system for EVA,
+to the cloud. It selects the split point by maximizing concurrent       designed to tackle the mentioned challenges with 3 main
+model execution to improve hardware utilization. However,               components. First, the Cross-device Workload Distribu-
+this approach does not hold under dynamic Edge conditions.              tor (C WD), pronounced seaweed, employs a workload-aware
+For example, during rush-hour traffic, a car-type classifier may        greedy algorithm to optimize resource allocation through dy-
+experience high query volumes that benefit significantly from           namic batching and balanced workload distribution between
+batched inference. Otherwise, without batching, throughput              Edge devices and the server. C WD leverages environmental
+will suffer. Furthermore, all distributed architectures place           factors like workload burstiness to guide batch size exploration
+multiple inference models on the same GPU without ad-                   and uses IO ratios to filter out inefficient placement options,
+dressing the performance degradations caused by co-location             minimizing the optimization space for higher throughput and
+interference [17]. In short, these works can only solve a small         reduced latency. Second, the Co-location Inference Spa-
+part of the problem set, making their solutions incomplete.             tiotemporal Scheduler (C ORAL) coordinates the execution
+   Goal and Insight. We aim to propose a system that tackles            of co-located models. To enable C ORAL, we introduce the
+the complete problem of Edge inference serving, addressing              inference stream abstraction, simplifying resource allocation
+
+
+
+
+                                                                              t
+limitations of the SOTAs, improving throughput, and reducing            and model execution sequencing. Using a temporally best-fit
+                                          rin
+latency.. Our key insight is that (1) systematically adjusting
+model placements and dynamically configuring batch sizes
+                                                                        algorithm with spatial constraints, C ORAL ensures resource us-
+                                                                        age remains within hardware limits, reducing interference and
+can eliminate computation and communication bottlenecks,                enhancing efficiency while meeting SLO requirements. Addi-
+enhancing robustness to environmental dynamicity. Addition-             tionally, O CTOP I NF incorporates a Horizontal Auto Scaler
+ally, (2) temporally multiplexing model executions mitigates            to adapt to abrupt workload changes, ensuring scalability and
+                                        ep
+co-location interference, improving resource efficiency while           robustness in dynamic settings. Comparisons to SOTAs on
+ensuring compliance with SLO and throughput demands.                    various categories are summarized in Table I.
+   Technical Challenges. Inference serving at the Edge is a                O CTOP I NF is designed to integrate seamlessly with var-
+highly complex Integer Linear Program (section II) and poses            ious inference platforms (e.g., NVIDIA-TensorRT, Intel-
+                                      Pr
+
+
+two non-trivial challenges.                                             OpenVINO, ONNX) using native programming APIs. To
+   1) How can workloads be efficiently distributed while de-            validate its effectiveness, we implemented O CTOP I NF on a
+termining optimal batch sizes for pipeline models? Network              real-world testbed featuring industry-standard Edge devices
+and content dynamics significantly affect request rates, which          and EVA workloads. Our contributions are as follows:
+vary widely among models. During high workload periods,
+increasing a model’s batch size boosts throughput, raising                 • We provide a comprehensive formulation and analysis
+request rates for downstream neighbors. Yet, batch selection            of the EVA inference optimization problem, addressing the
+for multiple models must occur simultaneously, creating a               unique challenges posed by dynamic Edge environments and
+vast optimization space. Additionally, while larger batches             resource constraints at run-time (section II).
+enhance throughput, they also add latency, requiring a careful             • We propose C WD , an efficient Cross-device Workload
+balance based on workload dynamics and latency constraints.             Distributor, and a workload-aware greedy algorithm to adjust
+Moreover, executing the entire pipeline on the server is inef-          batch sizes dynamically and balances workloads, leveraging
+ficient, as transmitting raw data over unstable networks adds           factors such as workload burstiness and IO ratio, to minimize
+overhead and delay. Collaborative execution between servers             latency and maximize throughput (section III).
+and devices, where only essential information is transmitted,              • We introduce inference stream, a novel GPU resource
+mitigates these issues but adds complexity. Together, these             abstraction and present C ORAL, a Co-location Inference
+factors make a highly complex challenge.                                Spatiotemporal Scheduler, which uses stream to simplify
+   2) How can models be multiplexed to avoid interference               resource allocation and enable precise execution sequencing,
+while satisfying SLOs and maintaining resource efficiency?              reducing contention and enhancing throughput (section III).
+Multiplexing model executions on shared GPUs demands                       • We deploy O CTOP I NF on a real-world testbed with actual
+a balance between maximizing parallelism and minimizing                 Edge video data and show up to 10× effective throughput
+interference, which requires consideration of spatial aspects           improvement over state-of-the-arts (SOTAs) (section IV).
+                                                                                                            TABLE II: Summary of frequently used notations.
+                          Human?           Face Det          Face Recog
+                                         (RetinaFace)         (ArcFace)            Sink     Notation               Description
+                 Object Det
+                                             Car Type (ResNet18)                            p, P                   pipeline p and list of all pipelines including p
+                 (Yolov5n)                                                    Traffic
+                              Vehicle?                                       Monitoring
+                                                                                            m, mprev               model m and the upstream model of m
+                                              Plate Det (Yolov5Lite-n)
+    Source                                                                                  d, D                   host device d and list of all host devices including d
+                                                               Gender                       dm                     device that hosts an instance of model m
+                                             Face Det        (MobileNetv2)
+                                           (RetinaFace)                            Sink     g, Gd                  GPU g and list of available GPUs on device d
+                 Object Det                                    Emotion
+                 (Yolov5n)    Human?                         (MobileNetv1)    Building      Mg                     Total memory available on GPU g
+                                            Activity Recog                   Surveillance   bzm,g , BZm,g          optimal and list of available batch sizes of m on g
+    Source                                   (MoveNet)
+                                                                                            Inm , Outm             input and output of m (e.g., image - bounding box)
+               Fig. 2: Examples of common EVA pipelines.                                    Lm|bzm,g ,d,g,t        Inference latency of m under [bzm,g , d, g, t]
+                                                                                            Lio     infer
+                                                                                              m , Lm , Lm          Average IO, inference, and total latency of m
+                   II. P ROBLEM F ORMULATION                                                W m , Im , W g , I g   weight/intermediate memory of model m and all models on g
+                                                                                            Um,g , Ug              Utilization rates of m on GPU g and the current rate of g
+
+   We follow a common scenario, extensively considered by
+both academia [9], [14], [15] and the industry [19]. The                                                X                       X
+EVA pipeline consists of multiple DNN models (Figure 2),                                                       Lm .bzm,g =            Lworst
+                                                                                                                                       m     ≤ SLOp , ∀p ∈ P               (3)
+                                                                                                       m∈p                      m∈p
+organized as a directed acyclic graph (DAG). A cluster of
+Edge devices are connected to real-time data sources and the                                  b) The total memory consumption of all models on g,
+pipeline workload can be partially offloaded to an Edge server                              including persistent weights Wm and temporary intermedi-
+collaboratively [4], [20]. The main objective of O CTOP I NF is                             ate inference outputs Im [21], does not exceed g’s capacity.
+to maximize the effective throughput, defined as the number                                 This ensures noXmodel crashes during runtime.
+of inference results that meet SLOs every second while also                                                    Wm + Im ≤ Mg , ∀d ∈ D                 (4)
+minimizing GPU memory usage and end-to-end latency.                                                                m∈g
+   Optimization Problem. The serving of each model m in                                        c) The current GPU utilization rate Ug – the sum of
+our scenario demands a configuration of batch size, device                                  individual models’ GPU utilization rates Umg – does not
+selection, GPU selection, and execution time [bzm,g , d, g, t].                             exceed GPU’s maximum compute capability. This ensures
+
+
+
+
+                                                                                                     t
+The SOTAs [13], [14], [18] do not provide temporal scheduling                               all models yield expected performances.
+                                                    rin
+(t ∈ [−∞, +∞]), leading to severe co-location interference
+and unpredictable performance [17]. Instead, O CTOP I NF per-
+                                                                                                             X
+                                                                                                                 Um,g = Ug ≤ Ugmax , ∀g
+                                                                                                                     m∈g
+                                                                                                                                                (5)
+
+forms temporal scheduling to reduce interference and guar-                                     Since solving the ILP problem is NP-hard, finding an opti-
+antee that models perform as expected. Each configuration                                   mal solution in real-time, especially under resource constraints
+results in a batch inference latency of Lm|bzm,g ,d,g,t . Since                             at the Edge, is impractical. Instead, we break it into two
+                                                  ep
+all batched queries finish at the same time [12], the latency of                            sub-problems: cross-device workload distribution and co-
+                                                         Lm|bzm,g ,d,g,t
+each is averaged across the batch as Linfer                                                 location inference spatiotemporal scheduling, whose solu-
+                                                 m =         bzm,g       .
+                                                                                            tions will be detailed in the next section. For convenience, the
+   Furthermore, there is a latency in transferring the output
+                                                                                            notations are summarized in Table II.
+of the previous model, mprev , to m, which we define as
+                                                Pr
+
+        size(Inm )
+Lio
+  m =      BW      , where Im is the input of m and BW is the                                                        III. O CTOP I NF ’ S D ESIGN
+bandwidth of the transfer medium between two devices. For
+two models located on the same device, the bandwidth only                                   A. Overall Architecture
+depends on the device’s hardware, which can be considered a                                    O CTOP I NF’s architecture (Figure 3) comprises 3 main com-
+large constant ϵ, and the latency can be negligible. However,                               ponents: a Controller that oversees system-wide scheduling
+for two models located on two different devices, the bandwidth                              and resource allocation; a Device Agent responsible for run-
+is subjected to the network conditions. Thus, the average                                   ning containerized inference models on each device; and a
+latency for each query of m is Lm = Linfer                      io
+                                                      m + Lm . Thus,                        Knowledge Base (KB) to store system-wide metrics. The
+we can have:                    ( size(Inm )                                                operation cycle of O CTOP I NF contains 5 steps:
+          Lm|bzm,g ,d,g,t            ϵdm     ,        dm = dmprev                              1 Each round starts with pipeline generation upon user
+  Lm =                      +         size(Inm )                         (1)
+               bzm,g              BWdm ,dmprev , otherwise
+                                                                                            requests. The Controller collects network/workload statistics
+                                                              Pm∈p                          and model/device profiles necessary for scheduling from KB.
+The pipeline’s average latency is defined as Lp =                      Lm .
+                                                                                               2 Then the Controller runs C WD (Figure 4) to select batch
+The effective throughputs of p P            and the whole system are
+                                               p∈P                                          sizes, host devices, and container instance counts for pipeline
+calculated as Gp = 1/Lp and G =                    Gp , respectively. Our
+                                                                                            models to maximize throughput while meeting SLOs.
+problem can be presented as a integer linear program (ILP):
+                                 p∈P  t∈T
+                                                                                               3 The Controller runs C ORAL to calculate timings and
+                                 XX              1                                          perform spatiotemporal scheduling for all scheduled models
+                      max                   Pm∈p                         (2)
+                    bzm,g ,d,g,t                   Lm                                       from step 2 to minimize the interference among co-located
+which is subject to the following spatiotemporal constraints:                               models.
+   a) The SLO of all requests is met even in this worst-case                                   4 Once finished, the scheduling results are communicated
+scenario as the first request in each batch waits the longest                               to the Agent on each device. It then deploys the models in
+for the batch to fill, experiencing the highest latency.                                    containers, equipped with an inference engine (e.g., TensorRT)
+         OctopInf                        Device Agent                               Cross-device Workload Distributor
+                                                                                    Network, Device,
+                                                                                                                                                                Edge Server
+                                          Run-time Management                                                            Select device         Model-F_d
+ Controller                                                                          Model Profiles      Algorithm       and batch size         (bz = 16)
+ Run-time Adaptation                              Container Manager
+                                           4                                        Requested Pipeline                                         Model-G_d
+   2' Container Auto Scaler                       Monitoring Stacks
+                                                                                            Model-C_1
+                                                                                                                     Model-D_1 (bz = 8)
+                                                                                                                                                (bz = 16)
+                                                                                                                                               Model-H_d            Model-I_d
+                                                                                             (bz = 32)               Model-E_1 (bz = 8)         (bz = 32)            (bz = 4)
+                                          Inference Engine Container Engine
+    3   Co-location Temporal                                                                              Edge Device 1                   Edge Device d        *Note:
+        Inference Scheduler                                               5
+                                                Knowledge Base                      Model-A_1 (bz = 2)    Model-B_1 (bz = 8)      ...
+                                                                                                                                          Model-E_d (bz = 4)   ModelName_deviceID
+                                                                                                                                                                 (bz = batch size)
+        Cross-device Workload             Model Profiles Workload Stats
+    2         Distributor                                                     Fig. 4: C WD searches for the near-optimal model deployments (location and
+               Periodic Scheduling   1    Network Stats Device Profiles
+                                                                              batch size), considering requirements, network profiles, and device resources.
+               Fig. 3: The overall architecture of O CTOP I NF                     Algorithm 1: Cross-device Workload Distributor
+
+and managed by a container engine like Docker. The Agent                       1    Function cwd():
+                                                                               2       for Pipeline p ∈ unscheduledP ipelines do
+also monitors the containers’ metrics throughout the run time.                 3            for Model m ∈ p do
+   5 Container and device operation metrics including work-                    4                dm = server ; g = server gpu; bzm,g = 1
+                                                                               5                numInstancesm = 1; AddInstances(m) // minimum                           cfg
+loads, resource usage, and network bandwidth are monitored,
+and pushed to KB for monitoring and scheduling purposes.                       6                 ps = Sort m ∈ p descendingly on burstiness // Insight                     1
+                                                                               7                 repeat
+   During run time, when containers reach throughput limits,                   8                     tmp cfgp = NULL
+ 2’ the Auto Scaler is triggered to scale up the containers                    9                     for Model m ∈ ps do
+by cloning to increase capacity. These container instances are                10                         bzm,g ∗ = 2; ReduceInstances(m) // min=1
+                                                                              11                         if EstLat(p) > SLOp /2 then
+then removed when demand drops.                                               12                              bzm,g = bzm,g /2; AddInstances(m)
+                                                                              13                             else
+B. Cross-Device Workload Distributor – C WD                                   14                                     if EstThrpt(p) > max then
+                                                                              15                                          cfgm = [dm , g, bzm,g , 0] // set new          cfg
+   Selecting the optimal batch sizes and workload distribution                                                            Update max; Add cfgm → cfgp
+
+
+
+
+                                                                                           t
+                                                                              16
+can eliminate bottlenecks within the pipeline in response to
+                                             rin
+workload changes and network variations (Figure 4). However,                  17                 until tmp cfgp = NULL;
+due to the large number of configurations, finding an optimal                 18                 ToEdge(p[0])
+solution is prohibitively expensive. To efficiently navigate the              19                 Add p to scheduledP ipelines
+large search space, we propose a workload-aware greedy al-                    20          return scheduledP ipelines
+gorithm based on the naive greedy min-max cost optimization                   21    Function ToEdge(m) // DFS-style traverse                                                    :
+                                                                                       cfgp = Find a new configuration only for m.
+                                           ep
+                                                                              22
+algorithm proposed in [12], which treats all models in a
+                                                                              23       if cfgp = NULL then
+pipeline similarly. By incorporating observations and insights                24            return
+into workload characteristics such as burstiness and IO ratio,                25          for mnext sorted ascendingly on burstiness do
+we can choose better starting points and quickly remove                       26              ToEdge(mnext ) // Insight 1
+unfruitful configurations from consideration.
+                                         Pr
+
+                                                                              27          if Overhead(Inm ) · α < Overhead(Outm ) &&
+   Observation 1: Inference workloads are inherently bursty,                                downstreams are not on Edge then
+                                                                                                 // Insights 2 and 3
+with fluctuating intensity and varying from model to model                    28                 Revert cfgm
+depending on content dynamics. For example, an object
+detector suddenly detects a crowd, generating many human
+boxes, which in turn creates a surge of traffic to a downstream               the split point because this generates higher network overhead
+face detector. These surges can become even more pronounced                   than actually sending the raw frame to the server.
+during rush hour. Also, this burstiness can propagate to dif-                    Observation 3: More split points also increase the risk of
+ferent downstream models, affecting overall performance.                      SLO-violations. Multi splits offer flexibility in model place-
+⇒ Insight 1: It is beneficial to prioritize larger batches                    ment (e.g., edge→server→edge→server), but each additional
+for models with bursty workloads, which increases potential                   split increases network traffic, raising the risk.
+throughput. Additionally, since bursty workloads fill the batch               ⇒ Insight 3: Number of pipeline splits should be minimized.
+quickly, each request has a shorter waiting time, which reduces                  The operation of C WD’s algorithm (Algorithm 1) incorpo-
+the risk of SLO violations.                                                   rating the above insights is detailed as follows. C WD begins
+    Observation 2: Higher network traffic between Edge                        scheduling workloads for each pipeline p by initializing min-
+devices and the server raises SLO-violation risks. Optimized                  imal configurations for all models on the server and adding
+batch selections enable adaptation to workload variations,                    active instances to match incoming request rates (lines 3-5).
+removing computation bottlenecks. Still, unstable networks                    Then, the models are sorted in descending order based on their
+can be a bottleneck in the pipeline, slowing the whole pipeline.              burstiness, measured by the coefficient of variation of inter-
+⇒ Insight 2: Placements should be chosen to minimize                          request arrival times (line 6). Next, C WD greedily explores the
+network traffic bottlenecks, improving system stability. For                  configuration search space, increasing the batch size of each
+instance, during rush hour, an object detector capturing a high               model m starting with the burstiest (lines 9-10). This follows
+number of bounding boxes should not placed at the Edge being                  Insight 1 to maximize the throughput-enhancing capability
+  Model-A                             Model-C               Model-D
+                                                                                                                                                           Algorithm 2: Co-location Inference Spatiotemporal Scheduler
+ A starts                  A ends/B starts          B ends/C starts         C ends / duty cycle ends                   duty cycle ends
+                                                                      SLO
+                                                                                 A starts again                                                           1    Function Main():
+                                      C's portion                                                      duty cycle                                         2       instanceN umber = 0
+                                          (a) Execution timings of a simple pipeline.                                                                     3       while Has unscheduled instances do
+ Co-location Temporal Inference Scheduler                                                        Host (Edge device/Server)
+                                                                                                                                                           4           for p ∈ scheduledP ipelines do
+ Inference Timing
+                                    Scheduling
+                                                                                                                                                           5                for m ∈ p do
+      GPU Profiles                                            GPU stream                                                   GPU 0                                                if m has instanceN umber then
+                                     Algorithm                assignment
+                                                                                                                            GPU n
+                                                                                                                                                           6
+      GPU Profiles
+                                                                                                              Inference time                               7                        CORAL(m, instanceN umber)
+  Execution Streams
+
+
+
+
+                                                                                                                                 GPU capability (space)
+                                                      Stream Duty Cycle
+                           Model-C_1                   Model-D_1                                                                                           8            instanceN umber + +
+                          Model-F_d                    Model-E_1                                                                                          9    Function CORAL(m, instanceN umber):
+                        Model-G_d
+                                                        Stream Duty Cycle                                   An execution
+                                                                                                              portion
+                                                                                                                                                          10      r = m[instanceNumber]
+                                                                                                                                                          11      for portion pt in F reeP ortions do
+                            Model-H_d                    Model-I_d                                                                                        12           s = ptstream ; g = sgpu ;
+                                                                                                                                                          13           wg = Wg + Wm // total weight memory
+                               (b) Overview of co-location spatiotemporal scheduling.
+                                                                                                                                                          14           ig = IP g − Is + max(Is , Im ) // total intermediate memory
+                                                                                                                                                          15           ug = s′ ∈g maxr′ ∈s (Ur′ , Ur ) // total GPU utilization
+                      Fig. 5: Co-location Inference Spatiotemporal Scheduler (C ORAL)                                                                     16           if (ptstart ≤ mstart & ptend ≥ mend ) & // fully available
+                                                                                                                                                          17              (wg + ig ≤ Mg & ug ≤ Ugmax ) & // resource sufficiency
+of higher batch sizes. Though, due to the nature of batched                                                                                               18              (duty cycler ≥ duty cycles ) then
+inference, each request experiences a higher latency, the bursti-                                                                                         19                if duty cycles = 0 then
+                                                                                                                                                          20                       duty cycles = duty cycler // update stream’s
+ness helps minimize it by reducing the waiting time to fill the
+                                                                                                                                                          21                streamr = s; duty cycler = duty cycles // stats
+batch. Next, thanks to the higher throughput, the number of                                                                                               22                Wg = wg ; Ig = ig ; Ug = ug // update resource usage
+instances of m can be reduced to conserve resources (line                                                                                                 23                selected pt, freed pts = DividePortion(pt)
+12). However, if the new temporary configuration violates the                                                                                             24                UpdateList(freed pts, F reeP ortions)
+                                                                                                                                                          25                return selected pt
+pipeline’s SLO, it is dropped. Otherwise, if the configuration
+
+
+
+
+                                                                                                                                                                    t
+improves throughput without violating the end-to-end SLO                                                                                                  26       return not found
+of the pipeline, it is adopted as the new configuration for
+m (lines 14-16). This exploration process continues until no
+better configuration is found for p (line 17).
+                                                                                  rin                                                                     sharing, aiming to maximize utilization while ensuring models
+                                                                                                                                                          operate without resource starvation. To achieve this, C ORAL
+   Next, to distribute the workloads, we propose a DFS-                                                                                                   addresses challenges in navigating the dual dimensions of time
+style function, ToEdge() which incrementally distributes the                                                                                              and space (i.e., GPU hardware capacity at any moment). We
+models to the edge device where the data source is located.
+                                                                                ep
+                                                                                                                                                          introduce the inference stream (or simply stream abstraction
+This follows Insights 2 and 3 to choose a minimal number                                                                                                  to enable spatiotemporal GPU sharing and propose a best-fit
+of split points, each of which reduces the network traffic                                                                                                scheduling algorithm leveraging streams.
+and overhead. ToEdge() begins with the first model (line                                                                                                     1) Inference Stream: A GPU’s inference capacity is divided
+18) and applies a similar process as above to explore new                                                                                                 into multiple concurrently executed streams, as shown in
+                                                                              Pr
+
+configurations, though the search is constrained to avoid costly                                                                                          Figure 5. Each stream represents a temporal sequence of model
+explorations (line 22). If a suitable configuration is found,                                                                                             executions. Each model execution occupies a portion, whose
+it continues traversing downstream, temporarily treating each                                                                                             length and width represent the execution time and required
+model m as a split point (lines 25-26). In particular, m is first                                                                                         computation capability, respectively.
+assumed to fit Insight 2, significantly reducing network traffic.                                                                                            When considering a pipeline, the end-to-end latency can
+On the return, ToEdge() tests this assumption by evaluating                                                                                               be broken into the latencies of its models (Equation 2),
+m’s input-output size ratio which represents trade-offs between                                                                                           each of which occupies a portion of streams. The length of
+receiving inputs from the network and transmitting the output.                                                                                            each portion can be calculated based on their selected batch
+Particularly, if m’s output does not exceed that of its input                                                                                             sizes and batch inference profiles. The execution sequence
+data multiplied by a factor α, there are network benefits from                                                                                            is arranged according to p’s DAG following a natural order
+placing m at the Edge. However, if the condition does not hold                                                                                            ensuring downstream models immediately process data gen-
+(line 27, upper) and no downstream models serve as better                                                                                                 erated by their upstream. For example, scheduling Model-D
+split points (i.e., they are still on the server) (line 27, lower),                                                                                       before C would waste D’s portion, as its input has not yet
+ToEdge() reverts m’s configuration and returns it to the                                                                                                  been generated by C (Figure 5a). Each stream also has a duty
+server (line 28). Additionally, ToEdge() leverages Insight                                                                                                cycle, which lasts for half of p’s SLO. After D’s portion ends,
+1 by attempting to move less bursty models to the edge first,                                                                                             GPU access is cycled back to A, which processes the new
+as their outputs are less likely to cause network bottlenecks.                                                                                            requests that arrive during the executions of C and D.
+                                                                                                                                                             2) Spatiotemporal Scheduling Algorithm: The operation of
+C. Co-location Inference Spatiotemporal Scheduler – C ORAL
+                                                                                                                                                          C ORAL’s scheduling algorithm is shown in Algorithm 2. After
+  After completing Algorithm 1, O CTOP I NF retrieves the list                                                                                            C WD finishes, C ORAL retrieves the list of pipelines with
+of pipelines and their model instances, scheduledP ipelines.                                                                                              scheduled workloads, scheduledP ipelines. It loops through
+O CTOP I NF then invokes C ORAL to enable multi-model GPU                                                                                                 these and calls CORAL() for unscheduled instances (lines 3-
+7). In each iteration, only one instance per model is scheduled     server. On each device that handles workloads (including the
+to ensure fairness, so all pipelines have at least one active       server), a Device Agent is run as a separate process to manage
+instance when priorities are equal. Complex scenarios with          and monitor containers via the Docker API and NVIDIA driver
+different priority policies can easily be integrated into C ORAL.   APIs, reporting statistics to the PostgreSQL Knowledge Base
+   C ORAL’s objective is to schedule as many instances on           (KB). During scheduling, the Controller queries the KB, per-
+available GPU streams as possible, efficiently stacking execu-      forms scheduling and allocation, and communicates decisions
+tion portions one after another to minimize gaps, which waste       to the Agents, which enforces them on their containers.
+resources. For each container instance r of model m, C ORAL            2) Experiment Pipelines: Our experiments are conducted
+searches for the best-fitting portion pt among the list of free     using 2 pipelines depicted in Figure 2. The pipeline end-to-end
+portions (line 11). For each, C ORAL estimates the potential        SLOs are set at 200ms for traffic and 300ms for surveillance.
+resource consumptions of GPU g if r is scheduled on pt (lines       These values remain the same for all experiments except in
+12-15). Then C ORAL evaluates pt on three conditions:               section IV-C4, where we restrict the SLOs even further.
+   (1) pt fully contains r’s portion with minimal empty                3) Data: We collected nine 13-hour videos from real-world
+space, which ensures stream s is fully available during the         public online streams (e.g., www.earthcam.com) at 15 fps and
+execution of r (line 16).                                           1280x720 resolution. These streams, including 6 traffic and 3
+   (2) GPU g has sufficient memory and compute capacity             building surveillance, contain human and vehicle targets and
+for r (line 17) to satisfy Equation 4 and 5. This ensures no        were chosen to represent a wide range of target distributions
+model crashes due to insufficient memory and there is enough        and content dynamics. For the main experiments, we extracted
+computation to avoid co-location interference.                      30-min segments from three different times of the day to
+   (3) Pipeline p’s duty cycle must be longer than that of          capture varying content dynamics. For full replicability, the
+stream s (line 18). This ensures that having r on does not          code for data collection is also documented in the source code.
+prolong other models’ duty cycles and causes them to violate           4) Baselines: For fair comparisons, we implement three
+their SLOs, satisfying Equation 3.                                  state-of-the-art Edge inference, namely Distream [14], Jel-
+
+
+
+
+                                                                          t
+   Once the best-fit portion is found, r is assigned to stream
+                                     rin                            lyfish [13], and Rim [18], on top of the same source code and
+s, the duty cycle of s is adjusted, and g’s operational stats are   also make slight adjustments to show their best performances:
+updated (lines 19-22). If r cannot fully use the portion, the          • All baselines do not provide any GPU scheduling. Thus,
+original pt portion is divided and the leftover is added back       we implement a best-fit algorithm to spread models evenly
+to the F reeP ortions list for other instances (lines 23-24),       based on resource consumption across GPUs.
+ensuring optimal GPU resource utilization.                             • We adjust the static batch sizes for Distream and Rim
+                                   ep
+                                                                    to 4 at the edge, 8 at the server, and 2 for Object Det. This
+D. Run-time Horizontal AutoScaler
+                                                                    configuration shows the best performance.
+    During runtime, workload fluctuations in models can occur          • We implement lazy dropping of late requests to Distream
+due to content dynamics. While O CTOP I NF can generate             and Rim to give them a higher effective throughput.
+near-optimal schedules, frequently running C WD incurs higher          • Jellyfish does not consider pipelines but places multiple
+                                 Pr
+
+
+scheduling overhead, especially given the large search space.       YOLOv5 versions at the Server. We match the number of
+To address this, O CTOP I NF complement periodical scheduling       downstream model instances to that of YOLOv5 versions with
+with a quick response strategy for surges and dips. When            a static batch of 8 similar to Distream and Rim.
+O CTOP I NF detects significant workload surges for model m,           5) Experiment settings: Each collected video is assigned
+it triggers the AutoScaler (Figure 3 create additional instances    to an edge device, streamed like a real data source (e.g., cctv
+of m and schedules them temporally as described earlier.            camera). To emulate the real-world network conditions, we
+Conversely, unnecessary instances are removed, and their            extract network traces from an Irish 5G data set for all Edge
+assigned portions are reclaimed.                                    devices [22]. The time between scheduling periods is set to 6
+                       IV. E VALUATION                              minutes for all algorithms. For fairness, the averaged results
+                                                                    of 3 runs are reported for all experiments.
+A. Experiment Setups
+   1) Testbed & System Implementation: We evaluate O C -            B. Evaluation Metrics:
+TOP I NF on a real-world testbed comprising a server with 4            The following three key metrics are used to evaluate our
+NVIDIA RTX 3090 GPUs and 9 heterogeneous Jetson Edge                system and baselines:
+devices (1 AGX, 5 Xavier NXs, and 3 Orin Nanos). The Edge              • Effective throughput: The main metric for O CTOP I NF
+server and devices run Ubuntu 20.04 with CUDA 11.4.                 is end-to-end effective throughput – the number of objects
+   O CTOP I NF is implemented in over 25K lines of C++ at           arriving on time at the sink every second. We compare
+https://github.com/tungngreen/PipelineScheduler. It adopts a        effective throughput to total throughput, considering the dif-
+container-based architecture, where each model runs within          ference as wasted computations as requests arrive later than
+a container for seamless scaling and adaptation in dynamic          the specified service-level objectives (SLOs). This wasted
+environments. Containers communicate via gRPC for efficient         computation causes further delays and consumes additional
+inter-service communication. The Controller are run at the          energy.
+                   ×102          a) Throughput                      b) Latency Distribution        c) Avg GPU Mem (GB)                           ×102     traffic 1                      traffic 2                    traffic 3        ×102 3
+                                                                                              80                                             6
+                          1571                              Rim                                                                                               OctopInf                      Workload                       Bandwidth         2
+              15                  1347                                                                                                       3
+                                                                                              60
+Objects / s
+
+                                                              Jlf                                                                                                                                                                            1
+              10                                 995
+                                                                                              40                                             0                                                                                               0
+                                                                                                                                                          traffic 4                      traffic 5                    traffic 6
+
+
+
+
+                                                                                                                                                                                                                                             Bandwidth (Mb/s)
+                           Thrpt                             Dis
+               5           Effect. Thrpt   481                                                                                                                                                                                               3
+                                                                                              20                                             6
+
+
+
+
+                                                                                                                               Objects / s
+                           Workload                         OInf                                                                                                                                                                             2
+               0                                                                              0                                              3
+                          OInf     Dis     Jlf   Rim                0 150 300 450 600ms             OInf Dis   Jlf Rim                                                                                                                       1
+              25×10
+                    2                      d) Effective Throughput Comparison over time                                                      0                                                                                               0
+                                                                                               OctopInf        Rim                                        people 1                      people 2                      people 3
+              20                                                                                                                             6                                                                                               3
+                                                                                               Distream        Workload
+Objects / s
+
+
+
+
+              15                                                                               Jellyfish                                                                                                                                     2
+                                                                                                                                             3                                                                                               1
+              10
+                                                                                                                                             0                                                                                               0
+               5                                                                                                                                 0       10       20           300     10        20           300    10         20        30
+               0                                                                                                                                                                Minutes Passed since Start
+                 0                  5             10                   15            20                 25                30
+                                                       Minutes Passed since Start                                                 Fig. 7: Detailed workload, bandwidth and throughput patterns for O CTOP I NF.
+         Fig. 6: Overall performance comparisons under environmental dynamics                                                                            a) Throughput Comparisons under Higher Workloads                 b) Avg GPU Mem (GB)
+                                                                                                                                                 2500                         Thrpt               OctopInf           80
+    • End-to-end latency: A slim latency distribution indicates                                                                                  2000                         Effect. Thrpt       Distream
+                                                                                                                                                         1824                 Workload
+
+
+
+
+                                                                                                                                   Objects / s
+                                                                                                                                                                                                                     60
+ reliable performance and ability to satisfy stringent demands.                                                                                  1500                                             Jellyfish
+                                                                                                                                                               1102                               Rim                40
+    • Total memory allocation: A smaller memory footprint                                                                                        1000
+                                                                                                                                                                               611       597   450                   20
+                                                                                                                                                  500                    294                                   387
+ indicates better resource utilization.                                                                                                                                                                186
+                                                                                                                                                    0                                                                0
+                                                                                                                                                                  traffic                      surveillance                OInf Dis    Jlf Rim
+ C. Evaluation Results                                                                                                                                  Fig. 8: Performance comparisons under higher workloads.
+
+    1) Can O CTOP I NF outperform the baselines on real-                                                                          when many models are deployed simultaneously on the server
+ world dynamic workloads and network conditions? Figure 6a                                                                        (e.g., 30 for Jellyfish) without proper scheduling. Notably, Rim
+ and b show that O CTOP I NF significantly outperforms the                                                                        demonstrates the second lowest GPU memory usage as it seeks
+
+
+
+
+                                                                                                                                                        t
+ baselines with higher effective throughput and shorter latency.           rin                                                    to accommodate as many models as possible at the Edge.
+ While Distream and Rim achieve throughputs close to O C -                                                                           2) How effectively can O CTOP I NF handle real-world
+ TOP I NF, around 20% and 30% of their requests, respectively,                                                                    workload dynamics and network conditions? We assess
+ violate their SLOs, rendering them wasted computation. In                                                                        O CTOP I NF using individual data sources under LTE band-
+ terms of effective throughput, O CTOP I NF outperforms them                                                                      width traces [22]. Figure 7 shows that O CTOP I NF effec-
+ by 16% and 57% respectively. Also, Figure 6d shows that                                                                          tively adapts to fluctuating workloads, maintaining throughput
+                                                                         ep
+ O CTOP I NF finely adapts and matches the constantly changing                                                                    aligned with bandwidth changes. Yet, there are instances of
+ workload throughout the entirety of the experiment. These can                                                                    network disconnection (e.g., traffic 5 at the 19th and 25th
+ be achieved thanks to O CTOP I NF’s effective scheduling. First,                                                                 minutes) throughput unavoidably falls to 0. Otherwise, during
+ O CTOP I NF, with fine-grained batch size selection, can dis-                                                                    low bandwidth periods, O CTOP I NF remains resilient, closely
+ tribute the workload more efficiently and avoid communication                                                                    matching workload demands (e.g., people 2 at the 20th minute
+                                                                       Pr
+
+
+ and computation bottlenecks, which slow down the processing                                                                      and people 3 at the 28th minute).
+ of the whole pipeline and lead to SLO violation. Second, with                                                                       This performance is achieved through the intelligent design
+ GPU spatiotemporal scheduling to allow orderly GPU access                                                                        of C WD when considering the network instability. From an
+ avoiding co-location interference, O CTOP I NF’s requests are                                                                    analytics perspective, users prioritize identifying objects and
+ processed on time according to calculation instead of being                                                                      their attributes, making throughput (objects/s) a key metric.
+ delayed due to resource contention. Jellyfish shows the worst                                                                    However, content dynamics, such as changes in object shapes
+ throughput and 2nd worst latency due to its centralized ar-                                                                      and sizes, can lead to variations in network traffic for the
+ chitecture. Particularly, Jellyfish relies resolution reduction to                                                               same throughput. To address this, O CTOP I NF considers the
+ lower network latency. Yet these resized frames still constantly                                                                 input-output size ratio, which assesses the trade-off between
+ have to be transferred to the server requiring a significant band-                                                               receiving inputs over the network versus transmitting outputs.
+ width, which is unstable in real-world conditions. Moreover,                                                                     If yes, placing the model at the edge will certainly reduce
+ Rim shows the worst latency, because it attempts to move as                                                                      network traffic from the edge to the server. By incorporating
+ many models to the Edge as possible without accounting for                                                                       this practical view, O CTOP I NF mitigates network bottlenecks,
+ the workload dynamics and network conditions. More models                                                                        ultimately improving overall throughput.
+ on edge devices amplify the effects of co-location interference                                                                     3) Can O CTOP I NF scale to higher system-wide work-
+ due to reduced parallel capabilities.                                                                                            loads? We introduce an additional data source to each device
+    As illustrated in Figure 6c, O CTOP I NF utilizes significantly                                                               to simulate scenarios where multiple cameras (e.g., different
+ less memory compared to the baselines, primarily thanks to                                                                       angles) are connected to the same device, effectively doubling
+ temporal sharing of the GPU. When a model is idle, the GPU                                                                       the frame rate and system-wide workload to evalutate O C -
+ only needs to allocate memory for its relatively small weight.In                                                                 TOP I NF’s resilience. Figure 8 shows the baselines have signifi-
+ contrast, running a model demands substantial memory for I/O                                                                     cantly lower throughput ratios compared to Figure 6, with even
+ buffers and intermediate layers [21]. This issue is exacerbated                                                                  Distream only achieving a 50% ratio. This is because while
+                        1570                                   1558                                                                    2000
+              1500                                                                           1463            OctopInf
+                               1346                                                                          Distream
+              1250                                                                                           Jellyfish                 1500
+
+
+
+
+                                                                                                                         Objects / s
+Objects / s
+
+              1000                              994                   1001                                   Rim
+               750                                                                                                                     1000       Traffic Workload
+               500                       480                                 387 325                473                                           Traffic Throughput
+                                                                                                                                       500        Surveillance Workload
+               250        Thrpt              Effect. Thrpt            Workload                            150 204                                 Surveillance Throughput
+                 0
+                                  Full SLO                      SLO reduced by 50ms          SLO reduced by 100ms                             0      100         200        300   400   500   600   700min
+                     Fig. 9: Throughput comparisons under stricter SLO demands.                                              Fig. 11: Effective throughput of traffic and surveillance plotted over 13h.
+              a) Effective Thrpt of Both Pipelines in Different Configurations                b) End-to-End Latency      with spatiotemporal scheduling), and Server Only (dynamic
+                        1570                                                           200
+              1500                                      1443      1467                  ms                               batching for server-only deployments with spatiotemporal
+                                  1346
+                                                                                       150                               scheduling).
+Objects / s
+
+
+
+
+              1000                                                                                                          As shown in Figure 10, the best performance is achieved
+                                                                                       100
+                                                                             605                                         when all components of O CTOP I NF are active. The perfor-
+               500                             480
+                                                                                       50                                mance decreases about 10% for w/o Coral. Here, many models
+                           OctopInf               Jellyfish            Static Batch
+                           Distream               w/o Coral            Server Only                                       simultaneously submit their inference workloads to CUDA,
+                 0                                                                      0
+Fig. 10: Ablation Study of O CTOP I NF in comparison to Jellyfish and Distream.                                          which treats each workload as a set of computation kernels
+                                                                                                                         instead of a single unit that requires to be completed on time.
+the workload doubles, the relative burstiness ratio among more                                                           To ensure fairness, CUDA alternatively schedules hardware
+actually quadruples. It causes Jellyfish to encounter severe                                                             for kernels of different models, leading to higher latency for
+network bottlenecks, being able to complete only 14% of                                                                  all models (Figure 10b). O CTOP I NF schedules and reserves
+the requests. Distream and Rim, which do not have dynamic                                                                an exclusive portion for each model to ensure that it has
+batching, still fare better with workload distribution. Yet,                                                             enough resource to complete on time. A smaller performance
+due to fixed batch sizes, their coarse-grained distribution                                                              drop occurs with Static Batch, O CTOP I NF still maintains a
+
+
+
+
+                                                                                                                                              t
+overloads edge devices leading to poor performances and                                                                  high throughput by dynamically distributing the workloads
+does not account for network traffic, though less severely                                                               following C WD’s Insights 2 and 3. In this case, the present
+compared to Jellyfish. This proves the validity of our design,
+which uses workload dynamics (e.g., burstiness) to navigate
+                                                                             rin                                         of spatiotemporal scheduling also helps mitigate the issue
+                                                                                                                         of co-location interference. Interestingly, this setting achieves
+dynamic batching for workload allocation. Additionally, higher                                                           less throughput but has lower latency Figure 10. This proves
+workload means more hardware usage (Figure 8b), leading to                                                               that the latency-throughput balancing ability from dynamic
+more severe co-location interference. This further showcases                                                             batching is essential. It is also worth noting that both w/o
+                                                                           ep
+the positive effects of C ORAL’s spatiotemporal scheduling.                                                              Coral and Static Batch still outperform the baselines. The
+   4) Can O CTOP I NF flexibly adapt to stricter SLO de-                                                                 enormous performance drop occurs with Server Only. Similar
+mands? In this experiment, we gradually reduce the pipeline                                                              to Jellyfish, it suffers from severe network bottlenecks and
+SLOs by 50-100ms from their original value of 200ms and                                                                  thus high latency, though thanks to spatiotemporal scheduling
+                                                                         Pr
+
+
+300ms (traffic and surveillance pipelines respectively) to test                                                          it still outperforms Jellyfish. This shows the effectiveness
+how well the systems adapt to stricter demands. Figure 9                                                                 and necessity of O CTOP I NF’s contributions to solving the
+demonstrates that O CTOP I NF maintains its performance and                                                              challenges of EVA inference serving.
+continues to outperform the baselines, which experience sig-                                                                6) Is O CTOP I NF reliable for long-term operations? In
+nificant performance degradation. Compared to full SLOs,                                                                 this experiment, we test the long-term reliability of O CTOP I NF
+the baselines’ effective throughputs drop 3-5× (Rim) because                                                             using the complete dataset, which includes nine 13-hour video
+despite their attempts to adjust scheduling and allocation to                                                            segments. Each video records continuously from 9 AM to 10
+the new requirements, co-location interference has a greater                                                             PM, capturing the full range of content dynamics at the Edge.
+impact at tight latency targets. Moreover, beside Jellyfish                                                                 O CTOP I NF maintains high effective throughput for both
+which still suffers heavily from network bottlenecks, Distream                                                           pipelines throughout the entire runtime, following patterns that
+and Rim have less options to reduce the latency due to their                                                             align with human circadian rhythms as depicted in Figure 11.
+fixed batches (similar to assembling clunky latency chunks).                                                             The traffic pipeline starts with lower throughput, peaks around
+On the other hand, O CTOP I NF can effectively adjust its batch                                                          the 450th minute (3:30 PM), and tapers off by the 600th minute
+sizes and balance between latency and throughput (similar to                                                             (8 PM). During this period, the results show minimal through-
+having access to a much wider variety of chunks). With SLOs                                                              put reduction compared to the workload. This demonstrates
+reduced by 100ms, O CTOP I NF achieves staggering 7 and 10×                                                              that O CTOP I NF is stable, adaptable to real-world environments
+throughput improvements compared to Rim and Jellyfish.                                                                   over extended periods, and capable of maintaining optimal
+   5) How does each component contribute to O CTOP I NF’s                                                                performance with minimal resource usage.
+overall performance? To quantify the impacts of different
+                                                                                                                                                                       V. D ISCUSSION
+components, we conduct an ablation study by turning off
+specific features individually, leading to 3 settings: w/o Coral                                                           1) Scalability: We discuss how O CTOP I NF can work at
+(no spatiotemporal scheduling), Static Batch (fixed batches                                                              scale by reducing the complexity and being able to seamlessly
+integrate major inference platforms and model architectures.       Third, we plan to enhance O CTOP I NF with fine-grained,
+   Complexity Reduction. Let D, G, M , and BZ represent the        second-scale local adaptation. Each model container will use
+numbers of devices, GPUs, models, and available batch sizes        Reinforcement Learning to learn workload patterns and make
+for each model, respectively. The inference serving problem’s      runtime decisions, such as adjusting batch sizes or request
+optimization space has a complexity of O(D · (BZ · G)M ),          priorities, improving responsiveness to workload spikes.
+rendering the optimal solution computationally infeasible. O C -
+TOP I NF simplifies this by decomposing it into two manage-
+                                                                                       VI. R ELATED W ORK
+able subproblems: cross-device workload distribution and co-          1) Edge Video Analytics can be categorized into:
+location inference spatiotemporal scheduling. For workload            Centralized Architecture: dictates that video data is col-
+distribution, a workload-aware greedy algorithm approximates       lected from multiple sources and processed at a central loca-
+the solution with O(D · M · BZ). For spatiotemporal schedul-       tion. To reduce overhead, approaches like VideoStorm [27],
+ing, the stream abstraction reduces complexity to O(M · P T ),     [28], [29], [30], [31] exploit the resource-quality tradeoff by
+where P T , capped by the number of model instances, denotes       adjusting parameters such as encoding quality, frame rate, and
+the maximum number of free portions. This approach yields          resolution. Another strategy [32], [33] uses models of varying
+an overall complexity of O(D · M · BZ + M · P T ). While           accuracy, reserving high-precision models for complex tasks
+only near-optimal, O CTOP I NF surpasses SOTA methods and,         while employing cheaper ones for simpler tasks. Jellyfish [13]
+critically, operates in real-time – vital for EVA systems.         combines both methods and provides a dynamic programming
+   Inference Platform Heterogeneity. Scalability at the Edge       algorithm to handle network variability.
+requires generalizability across diverse hardware and software        Distributed Architecture: supports both device-server and
+platforms. O CTOP I NF achieves this through two key con-          device-device workload distributions. While better suited to
+cepts: batched inference and inference stream. The benefits of     dynamic environments, it creates a larger search space, includ-
+batched inference are supported by major platforms, including      ing the challenge of finding optimal split points for workload
+GPUs with TensorRT [23], CPUs with OpenVINO [24], and              partitioning. DRLTO [34] uses a fixed split and device-based
+
+
+
+
+                                                                         t
+TPUs with TensorFlow [25]. O CTOP I NF’s inference stream
+                                     rin                           analysis to optimize offloaded frames. Rim [18] maximizes
+abstraction leverages low-level APIs for asynchronous and          workload at one device to increase resource utilization while
+sequential execution, such as TensorRT streams, OpenVINO           approaches like Distream [14], [20], [35] use stochastic meth-
+streams, and ONNX threads. This design ensures O CTOP I NF         ods to explore the search space. EdgeVision [36] applies
+can scale efficiently and adapt to dynamic Edge environments.      reinforcement learning to learn optimal configurations.
+   Model Heterogeneity. While designed for EVA, O CTOP I NF           A common drawback of these systems is not fully utilizing
+                                   ep
+can extend to other domains like time-series analysis with         an effective tool, dynamic batching, to flexibly handle dynamic
+RNNs. Batched inference improves RNN throughput, as                environments, as it expands the complex search space. Addi-
+shown in [26], while their recurrent operations allow precise      tionally, they fail to address the challenges posed by GPU
+inference time estimation for scheduling. These features enable    execution of models, such as co-location interference.
+O CTOP I NF to scale its workload distribution and spatiotem-         2) Inference Serving beyond the Edge serves a inference
+                                 Pr
+
+
+poral scheduling to diverse applications.                          requests of various tasks at the Cloud [10], [11], [12], [37],
+   2) Co-location Interference among Streams: O CTOP I NF          [38], [39]. These systems consider large GPU clusters where
+mitigates co-location interference by ensuring the total re-       one can take several GPUs or a whole cluster to serve a
+source consumption of models is within GPU capability              high concentration of requests. Although they do not address
+enabling models’ peak performances. However, these peaks           challenges at the Edge, such as resource constraints and
+are typically brief in terms of memory consumption and             dynamic environments (e.g. network), techniques such as dy-
+utilization, and not all models within the same streams require    namic batching and GPU scheduling have inspired O CTOP I NF.
+the same amount of memory and achieve similar utilization
+due to factors like model architecture and implementations.                             VII. C ONCLUSION
+Aligning these peaks more precisely could allow for more              In this paper, we presented O CTOP I NF, a workload-aware
+streams and better GPU utilization, but this requires a detailed   inference serving system designed for Edge Video Analytics.
+analysis of workload patterns, which are highly diverse.           It uses dynamic inference batching combined with adap-
+   3) Future Work: We highlight the following future work to       tive cross-device workload distribution to manage fluctuat-
+improve O CTOP I NF. First, we plan to expand the testbed and      ing workloads and introduces a novel co-location inference
+integrate other inference platforms. Our first hardware target     spatiotemporal scheduling algorithm to mitigate resource con-
+is Raspberry Pi devices using software frameworks ONNX             tention. Our experiments demonstrate up to 10× improvement
+and Tensorflow for their high compatibility. Second, we aim        in effective throughput compared to state-of-the-art baselines
+to leverage fine-grained performance data as time series for a     across various experiments, with a stable end-to-end latency
+prediction model that estimates co-located model performance.      distribution even under challenging conditions. While our
+To accommodate the heterogeneity of model architectures, we        evaluation focused on Video Analytics, the proposed system
+plan to leverage techniques like Meta Learning and Test-time       can be extended to optimize any machine learning workload,
+Adaptation (TTA) for quick adaptation to new architectures.        with testing and optimization in those contexts left as future
+work. With its low-level optimizations, O CTOP I NF is poised                    [20] C.-C. Hung, G. Ananthanarayanan, P. Bodik, L. Golubchik, M. Yu,
+to be a key component of future Edge AI applications.                                 P. Bahl, and M. Philipose, “Videoedge: Processing camera streams using
+                                                                                      hierarchical clusters,” in 2018 IEEE/ACM Symp. on Edge Computing
+                                                                                      (SEC), 2018, pp. 115–131.
+                              R EFERENCES                                        [21] B. Cox, J. Galjaard, A. Ghiassi, R. Birke, and L. Y. Chen, “Masa:
+ [1] P. V. Bahl, R. Caceres, N. Davies, and R. Want, “Pervasive Computing             Responsive Multi-DNN Inference on the Edge,” in 2021 IEEE Int. Conf.
+     at the Edge,” IEEE Pervasive Computing, vol. 19, no. 4, pp. 8–9, 2020.           on Pervasive Computing and Communications, 2021, pp. 1–10.
+ [2] H. B. Pasandi and T. Nadeem, “CONVINCE: Collaborative Cross-                [22] D. Raca, D. Leahy, C. J. Sreenan, and J. J. Quinlan, “Beyond throughput,
+     Camera Video Analytics at the Edge,” in 2020 IEEE Int. Conf. on Per-             the next generation: A 5g dataset with channel and context metrics,” in
+     vasive Computing and Communications Workshops, PerCom Workshops                  Procs. of the 11th ACM multimedia systems Conf., 2020, pp. 303–308.
+     2020. IEEE, 2020, pp. 1–5.                                                  [23] Y. Zhou and K. Yang, “Exploring TensorRT to Improve Real-Time
+ [3] K. Hayashi, A. Hiromori, H. Yamaguchi, M. Suzuki, and T. Kitahara,               Inference for Deep Learning,” in Proc. of HPCC. IEEE, 2022, pp.
+     “Synthesizing Town-scale Vehicle Mobility from Traffic Surveillance              2011–2018.
+     Cameras: A Case Study,” in 2022 IEEE Int. Conf. on Pervasive Com-           [24] A. Demidovskij, A. Tugaryov, A. Suvorov, Y. Tarkan, M. Fatekhov,
+     puting and Communications Workshops. IEEE, 2022, pp. 593–598.                    I. Salnikov, A. Kashchikhin, V. Golubenko, G. Dedyukhina, A. Al-
+ [4] T.-T. Nguyen, S. Y. Jang, B. Kostadinov, and D. Lee, “PreActo:                   borova, R. Palmer, M. Fedorov, and Y. Gorbachev, “OpenVINO Deep
+     Efficient Cross-Camera Object Tracking System in Video Analytics                 Learning Workbench: A Platform for Model Optimization, Analysis and
+     Edge Computing,” in 2023 IEEE Int. Conf. on Pervasive Computing                  Deployment,” in 2020 IEEE 32nd Int. Conf. on Tools with Artificial
+     and Communications. IEEE, 2023, pp. 101–110.                                     Intelligence (ICTAI). IEEE, 2020, pp. 661–668.
+ [5] K. Anjum, T. Chowdhury, S. Mandava, B. Piccoli, and D. Pompili,             [25] Y. Kochura, Y. Gordienko, V. Taran, N. Gordienko, A. Rokovyi,
+     “Leveraging On-Board UAV Motion Estimation for Lightweight Macro-                O. Alienin, and S. Stirenko, “Batch Size Influence on Performance of
+     scopic Crowd Identification,” in 2024 IEEE Int. Conf. on Pervasive               Graphic and Tensor Processing Units During Training and Inference
+     Computing and Communications (PerCom), 2024, pp. 11–17.                          Phases,” in Proc. of ICCSEEA, 2020, pp. 658–668.
+ [6] S. K. Sahu, A. L. Ruscelli, G. Cecchetti, M. Gharbaoui, and P. Castoldi,    [26] F. Silfa, J. M. Arnau, and A. González, “E-BATCH: Energy-Efficient and
+     “A perspective of telemedicine videostreaming systems for emergency              High-Throughput RNN Batching,” ACM Transactions on Architecture
+     care,” in 2023 IEEE Int. Conf. on Pervasive Computing and Commu-                 and Code Optimization, vol. 19, no. 1, 2022.
+     nications Workshops and other Affiliated Events (PerCom Workshops),         [27] H. Zhang, G. Ananthanarayanan, P. Bodik, M. Philipose, P. Bahl, and
+     2023, pp. 122–127.                                                               M. J. Freedman, “Live video analytics at scale with approximation and
+ [7] T. Kumrai, J. Korpela, T. Maekawa, Y. Yu, and R. Kanai, “Human                   Delay-Tolerance,” in 14th USENIX Symp. on Networked Systems Design
+     Activity Recognition with Deep Reinforcement Learning using the                  and Implementation, 2017, pp. 377–392.
+
+
+
+
+                                                                                         t
+     Camera of a Mobile Robot,” in 2020 IEEE Int. Conf. on Pervasive             [28] J. Jiang, G. Ananthanarayanan, P. Bodik, S. Sen, and I. Stoica,
+     Computing and Communications (PerCom). IEEE, 2020, pp. 1–10.                     “Chameleon: scalable adaptation of video analytics,” in Proc. of the
+                                            rin
+ [8] N. Bicocchi, M. Lasagni, and F. Zambonelli, “Bridging vision and com-
+     monsense for multimodal situation recognition in pervasive systems,”
+     in 2012 IEEE Int. Conf. on Pervasive Computing and Communications.
+                                                                                      2018 Conf. of the ACM Special Interest Group on Data Communication.
+                                                                                      ACM, 2018, pp. 253–266.
+                                                                                 [29] T. Tan and G. Cao, “FastVA: Deep Learning Video Analytics Through
+     IEEE, 2012, pp. 48–56.                                                           Edge Processing and NPU in Mobile,” in IEEE Conf. on Computer
+ [9] S. Y. Jang, B. Kostadinov, and D. Lee, “Microservice-based Edge Device           Communications. IEEE, 2020, pp. 1947–1956.
+     Architecture for Video Analytics,” in 6th ACM/IEEE Symp. on Edge            [30] B. Zhang, X. Jin, S. Ratnasamy, J. Wawrzynek, and E. A. Lee,
+                                                                                      “AWStream: adaptive wide-area streaming analytics,” in Proc. of the
+                                          ep
+     Computing, SEC 2021. ACM, 2021, pp. 165–177.
+[10] H. Shen, L. Chen, Y. Jin, L. Zhao, B. Kong, M. Philipose, A. Krishna-            2018 Conf. of the ACM Special Interest Group on Data Communication.
+     murthy, and R. Sundaram, “Nexus: A gpu cluster engine for accelerating           ACM, 2018, pp. 236–252.
+     dnn-based video analysis,” in Proc. of the 27th ACM Symp. on Operating      [31] Y. Li, A. Padmanabhan, P. Zhao, Y. Wang, G. H. Xu, and R. Netravali,
+     Systems Principles, 2019, pp. 322–337.                                           “Reducto: On-Camera Filtering for Resource-Efficient Real-Time Video
+[11] S. Choi, S. Lee, Y. Kim, J. Park, Y. Kwon, and J. Huh, “Serving                  Analytics,” in Proc. of SIGCOMM. ACM, 2020, pp. 359–376.
+                                        Pr
+
+     heterogeneous machine learning models on Multi-GPU servers with             [32] D. Kang, J. Emmons, F. Abuzaid, P. Bailis, and M. Zaharia, “NoScope:
+     Spatio-Temporal sharing,” in 2022 USENIX ATC, 2022, pp. 199–216.                 optimizing neural network queries over video at scale,” Proc. of the
+[12] D. Crankshaw, G.-E. Sela, X. Mo, C. Zumar, I. Stoica, J. Gonzalez,               VLDB Endowment, vol. 10, no. 11, pp. 1586–1597, 2017.
+     and A. Tumanov, “Inferline: latency-aware provisioning and scaling for      [33] T. Zhang, A. Chowdhery, P. V. Bahl, K. Jamieson, and S. Banerjee,
+     prediction serving pipelines,” in Proc. of the 11th ACM Symp. on Cloud           “The Design and Implementation of a Wireless Video Surveillance
+     Computing, 2020, pp. 477–491.                                                    System,” in Proc. of the 21st Annual Int. Conf. on Mobile Computing
+[13] V. Nigade, P. Bauszat, H. Bal, and L. Wang, “Jellyfish: Timely inference         and Networking. ACM, 2015, pp. 426–438.
+     serving for dynamic edge networks,” in 2022 IEEE Real-Time Systems          [34] J. Wang, J. Hu, G. Min, W. Zhan, A. Y. Zomaya, and N. Georgalas,
+     Symp. (RTSS). IEEE, 2022, pp. 277–290.                                           “Dependent task offloading for edge computing based on deep rein-
+[14] X. Zeng, B. Fang, H. Shen, and M. Zhang, “Distream: scaling live video           forcement learning,” IEEE Transactions on Computers, vol. 71, no. 10,
+     analytics with workload-adaptive distributed edge intelligence,” in Proc.        pp. 2449–2461, 2022.
+     of the 18th SenSys Conf., 2020, pp. 409–421.                                [35] Y. Liang, S. Zhang, and J. Wu, “Splitstream: Distributed and workload-
+[15] X. Hou, Y. Guan, and T. Han, “Dystri: A Dynamic Inference based                  adaptive video analytics at the edge,” Journal of Network and Computer
+     Distributed DNN Service Framework on Edge,” in ACM Int. Conf.                    Applications, vol. 225, p. 103866, 2024.
+     Proceeding Series. ACM, 2023, pp. 625–634.                                  [36] G. Gao, Y. Dong, R. Wang et al., “Edgevision: Towards collaborative
+[16] M. Mendula, P. Bellavista, M. Levorato, and S. L. de Guevara Contr-              video analytics on distributed edges for performance maximization,”
+     eras, “Furcifer: a Context Adaptive Middleware for Real-world Object             IEEE Transactions on Multimedia, 2024.
+     Detection Exploiting Local, Edge, and Split Computing in the Cloud          [37] C. Tan, Z. Li, J. Zhang, Y. Cao, S. Qi, Z. Liu, Y. Zhu, and C. Guo,
+     Continuum,” in 2024 IEEE Int. Conf. on Pervasive Computing and                   “Serving DNN Models with Multi-Instance GPUs: A Case of the
+     Communications (PerCom), 2024, pp. 47–56.                                        Reconfigurable Machine Scheduling Problem,” arXiv, 2021.
+[17] J. Wu, L. Wang, Q. Pei, X. Cui, F. Liu, and T. Yang, “HiTDL: High-          [38] A. Gujarati, R. Karimi, S. Alzayat, W. Hao, A. Kaufmann, Y. Vigfusson,
+     Throughput Deep Learning Inference at the Hybrid Mobile Edge,” IEEE              and J. Mace, “Serving DNNs like clockwork: Performance predictability
+     Transactions on Parallel and Distributed Systems, vol. 33, no. 12, pp.           from the bottom up,” in 14th USENIX Symp. on Operating Systems
+     4499–4514, 2022.                                                                 Design and Implementation (OSDI 20), 2020, pp. 443–462.
+[18] Y. Hu, W. Pang, X. Liu, R. Ghosh, B. Ko, W.-H. Lee, and R. Govindan,        [39] H. Zhang, Y. Tang, A. Khandelwal, and I. Stoica, “SHEPHERD: Serving
+     “Rim: Offloading inference to the edge,” in Proc. of the Int. Conf. on           DNNs in the wild,” in 20th USENIX Symp. on Networked Systems
+     Internet-of-Things Design and Implementation, 2021, pp. 80–92.                   Design and Implementation, 2023, pp. 787–808.
+[19] “Microsoft rocket for live video analytics,” pp. 1–6, 2020.
+     [Online]. Available: https://www.microsoft.com/en-us/research/project/
+     live-video-analytics/
+
