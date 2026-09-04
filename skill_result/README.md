@@ -24,6 +24,9 @@ be modified by this workflow.
   Explorer, proof obligations, and lowering boundary.
 - `05_experiment_plan/`: structurally validated confirmatory plan for E1–E4;
   no experiments have been run.
+- `06_manuscript/`: manuscript-facing drafts and decisions synthesized from the
+  preceding phases. The current title candidates and fixed Korean abstract are
+  in [`06_manuscript/title_candidates_and_abstract.md`](06_manuscript/title_candidates_and_abstract.md).
 
 ## Source materials
 
