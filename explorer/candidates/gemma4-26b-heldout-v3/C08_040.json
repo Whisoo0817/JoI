@@ -1,0 +1,98 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#LivingRoom #MultiButton).multiButton_button2 == \"pushed\") {\nif (triggered == false) {\nall(#LivingRoom #Window).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#LivingRoom #MultiButton).multiButton_button2 == \\\"pushed\\\") {\\nif (triggered == false) {\\nall(#LivingRoom #Window).windowCovering_upOrOpen()\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "MultiButton.Button1": [
+      "(#LivingRoom #MultiButton)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#LivingRoom #Window)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼2가 눌릴 때마다 거실의 창문을 모두 열어줘.",
+  "command_eng": "Whenever button 2 of the multi-button is pressed, open all windows in the living room.",
+  "connected_devices": {
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LR_Win_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "LR_Win_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Win": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MultiButton.Button2 == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.6
+}

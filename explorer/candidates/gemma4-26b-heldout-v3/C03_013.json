@@ -1,0 +1,65 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Entrance).switch_switch == false) {\n(#Entrance).faceRecognizer_start()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Entrance).switch_switch == false) {\n(#Entrance).faceRecognizer_start()\n}\"\n}",
+  "precision": {
+    "Switch.Switch": [
+      "(#Entrance)"
+    ],
+    "FaceRecognizer.Start": [
+      "(#Entrance)"
+    ]
+  },
+  "command_kor": "입구의 얼굴 인식이 꺼져있으면, 얼굴 인식을 시작해줘",
+  "command_eng": "If face recognition at the entrance is off, start it.",
+  "connected_devices": {
+    "Entrance_FaceRecognizer": {
+      "category": [
+        "FaceRecognizer",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "FaceRecognizer"
+      ]
+    },
+    "Garage_FaceRecognizer": {
+      "category": [
+        "FaceRecognizer",
+        "Switch"
+      ],
+      "tags": [
+        "Garage",
+        "FaceRecognizer"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "Switch.Switch == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "FaceRecognizer.Start",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.7
+}

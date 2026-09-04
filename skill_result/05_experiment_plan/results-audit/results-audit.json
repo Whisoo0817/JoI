@@ -1,0 +1,511 @@
+{
+  "audits": [
+    {
+      "attained_assurance_class": "exploratory",
+      "audit_id": "E3-DEV-MANIFEST-H8",
+      "audited_claim_effect": "inconclusive",
+      "check_results": [
+        {
+          "check_id": "protocol_integrity",
+          "evidence_paths": ["skill_result/05_experiment_plan/ab-evaluation-protocol.md"],
+          "rationale": "The run is outcome-visible development work and followed an earlier discrepancy-driven Explorer repair; it is not held out.",
+          "status": "fail"
+        },
+        {
+          "check_id": "metric_validity",
+          "evidence_paths": ["explorer/ab_eval.py", "explorer/differential_sweep.py"],
+          "rationale": "A and B use separate exact-label denominators and Wilson 95% intervals; incomplete outcomes remain separate, and R excludes early-stopping divergent cases.",
+          "status": "pass"
+        },
+        {
+          "check_id": "baseline_fairness",
+          "evidence_paths": ["explorer/exact_tick.py", "explorer/differential_sweep.py"],
+          "rationale": "Exact search avoids Explorer reductions and consumes serialized domains, but both searches share one-step runners and the outcome-blind manifest builder shares static axis analysis.",
+          "status": "inconclusive"
+        },
+        {
+          "check_id": "outcome_accounting",
+          "evidence_paths": ["skill_result/05_experiment_plan/results/E3/differential-dev-manifest-h8-all/case_outcomes.jsonl"],
+          "rationale": "All 388 candidates remain visible: 356 compared, 27 unsupported, and five preparation errors.",
+          "status": "pass"
+        },
+        {
+          "check_id": "inferential_support",
+          "evidence_paths": ["skill_result/05_experiment_plan/results/E3/differential-dev-manifest-h8-all/summary.json"],
+          "rationale": "Agreement and directional Wilson bounds support further testing, but there is no held-out sampling basis.",
+          "status": "inconclusive"
+        },
+        {
+          "check_id": "confound_control",
+          "evidence_paths": ["skill_result/05_experiment_plan/ab-evaluation-protocol.md"],
+          "rationale": "Outcome-informed development, shared step semantics, and shared static domain analysis remain unresolved confounds.",
+          "status": "fail"
+        },
+        {
+          "check_id": "provenance",
+          "evidence_paths": ["skill_result/05_experiment_plan/results/E3/domain-manifest-dev-h8.json", "skill_result/05_experiment_plan/results/E3/differential-dev-manifest-h8-all/summary.json", "skill_result/05_experiment_plan/results/E3/differential-dev-manifest-h8-all/case_outcomes.jsonl"],
+          "rationale": "Machine-readable per-case outcomes, source-bound input domains, and artifact digests are recorded.",
+          "status": "pass"
+        },
+        {
+          "check_id": "snapshot_continuity",
+          "evidence_paths": ["skill_result/05_experiment_plan/ab-evaluation-protocol.md"],
+          "rationale": "The manifest checks source drift, but selection_frozen is false and the implementation is not a clean versioned snapshot.",
+          "status": "fail"
+        },
+        {
+          "check_id": "independence",
+          "evidence_paths": ["explorer/exact_tick.py"],
+          "rationale": "Exact traversal is separate, but evaluation is self-review and shares both one-step runners.",
+          "status": "fail"
+        }
+      ],
+      "claim_id": "EC-01",
+      "claim_text": "Behavioral Explorer agrees with exhaustive tick-level comparison on a finite bounded IR-code set while reducing explored transitions.",
+      "evidence_artifacts": [
+        {
+          "digest": "3257613b7e0ccf67d996c961eb969aca68e6ee79d36e867466991063a163e5f7",
+          "kind": "development summary",
+          "path": "skill_result/05_experiment_plan/results/E3/differential-dev-manifest-h8-all/summary.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "06d16e9f204ea46e486a6b00d17af48d8782728858c00f48a33034074f106468",
+          "kind": "complete per-case outcomes",
+          "path": "skill_result/05_experiment_plan/results/E3/differential-dev-manifest-h8-all/case_outcomes.jsonl",
+          "source": "experiment"
+        },
+        {
+          "digest": "9536677a9a48a595428bdbec50d7c7750b0fe8dbb9f7a5d7247fb6db7dc761ca",
+          "kind": "development runner source",
+          "path": "explorer/differential_sweep.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "19a99f1b6a2e1a9b4484cf66e05497412e226a4b6a6747f0e28f879972787739",
+          "kind": "A/B aggregation source",
+          "path": "explorer/ab_eval.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "e2d544686fa519f7ef6bd2567d24b4eb3babad98ea53f24323267434e88d1e03",
+          "kind": "exact oracle source",
+          "path": "explorer/exact_tick.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "c185c93606adebe78a454cd4fd5d8b044144a5c52a29d1d9dbc1477eb3e86e39",
+          "kind": "outcome-blind serialized input-domain manifest",
+          "path": "skill_result/05_experiment_plan/results/E3/domain-manifest-dev-h8.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "4b0e1f8f4daf07f57f50c2a0f5dc5e1b1aafe14adf981cd2be4ee304fd1462ae",
+          "kind": "domain manifest builder source",
+          "path": "explorer/domain_manifest.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "",
+          "kind": "protocol and status narrative",
+          "path": "skill_result/05_experiment_plan/ab-evaluation-protocol.md",
+          "source": "audit"
+        }
+      ],
+      "independence": {
+        "dimensions": ["implementation"],
+        "evidence": "Exact traversal is separate but shares runner semantics and the same workstream.",
+        "self_review": true
+      },
+      "limitations": [
+        "The 388 candidates were visible during development and one case directly caused a bounded-mode fix.",
+        "The exact and optimized searches share IR and code one-step runners.",
+        "The serialized domains are outcome-blind, but their keys and constants are produced by shared static axis analysis rather than an independent reviewer.",
+        "The eight-tick horizon is bounded rather than an unbounded equivalence guarantee.",
+        "Twenty-seven unsupported and five malformed cases do not contribute to A/B denominators."
+      ],
+      "minimum_corrective_action": "Independently audit and freeze the input manifest and a distinct held-out set after versioning the implementation, then run E1 conformance and confirmatory A/B evaluation.",
+      "narrative_anchor": "## Audit E3-DEV-MANIFEST-H8",
+      "predecessor_failures": [
+        {
+          "failure_id": "OLD-VERIFIER-NO-INDEPENDENT-ORACLE",
+          "rationale": "Separate traversal improves search evidence, but shared semantics and non-held-out cases leave this concern open.",
+          "status": "open"
+        }
+      ],
+      "requested_assurance_class": "confirmatory",
+      "run_selection": {
+        "excluded_runs": [],
+        "selection_rule": "Include every one of the 388 existing generated candidates and retain every unsupported, malformed, and completed outcome."
+      },
+      "scope": "Existing 388 Qwen-generated JoI candidates; source-bound serialized boundary-neighborhood input model; eight logical ticks; search-layer agreement and full-space transition evaluations.",
+      "source_mode": "standalone",
+      "source_runs": [],
+      "verdict": "inconclusive"
+    },
+    {
+      "attained_assurance_class": "exploratory",
+      "audit_id": "E3-HELDOUT-GEMMA-V2-H32",
+      "audited_claim_effect": "strengthen",
+      "check_results": [
+        {
+          "check_id": "protocol_integrity",
+          "evidence_paths": ["skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest.json", "skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest_v2.json", "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v2_h32.json"],
+          "rationale": "All 388 cases were selected before generation; the failed v1 attempt is retained, v2 changed only fenced-JSON normalization before any A/B outcome, and the v2 input manifest was frozen before evaluation.",
+          "status": "pass"
+        },
+        {
+          "check_id": "metric_validity",
+          "evidence_paths": ["explorer/differential_sweep.py", "skill_result/05_experiment_plan/results/E3/heldout-gemma-v2-h32-retry1/summary.json"],
+          "rationale": "A and B have direction-specific exact-label denominators and Wilson intervals; R uses only full-space equivalent pairs; verifier completion is separated from end-to-end evaluability.",
+          "status": "pass"
+        },
+        {
+          "check_id": "baseline_fairness",
+          "evidence_paths": ["explorer/exact_tick.py"],
+          "rationale": "Exact traversal avoids Explorer input representatives, deduplication, normalization, and time jumps, but both searches share the same concrete IR and code runners.",
+          "status": "inconclusive"
+        },
+        {
+          "check_id": "outcome_accounting",
+          "evidence_paths": ["skill_result/05_experiment_plan/results/E3/heldout-gemma-v2-h32-retry1/case_outcomes.jsonl"],
+          "rationale": "All 388 selected cases remain visible: 309 completed READY pairs, 63 generation errors, 15 unsupported cases, and one preparation error. The 388-error v1 predecessor is also retained.",
+          "status": "pass"
+        },
+        {
+          "check_id": "inferential_support",
+          "evidence_paths": ["skill_result/05_experiment_plan/results/E3/heldout-gemma-v2-h32-retry1/summary.json"],
+          "rationale": "The complete frozen READY subset has 228 equivalent and 81 divergent pairs, zero observed A/B disagreements, and direction-specific Wilson bounds; inference is limited to this corpus and H=32 model.",
+          "status": "pass"
+        },
+        {
+          "check_id": "confound_control",
+          "evidence_paths": ["explorer/exact_tick.py", "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v2_h32.json"],
+          "rationale": "Held-out output selection and domains are outcome-blind, but the exact oracle shares one-step runner semantics and E1 currently covers only a six-case common subset.",
+          "status": "inconclusive"
+        },
+        {
+          "check_id": "provenance",
+          "evidence_paths": ["skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest_v2.json", "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v2_h32.json", "skill_result/05_experiment_plan/results/E3/heldout-gemma-v2-h32-retry1/case_outcomes.jsonl"],
+          "rationale": "Model identity, selection rule, source digests, every candidate digest, frozen input values, and raw outcomes are recorded.",
+          "status": "pass"
+        },
+        {
+          "check_id": "snapshot_continuity",
+          "evidence_paths": ["skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v2_h32.json"],
+          "rationale": "The runner enforced candidate, dataset, input-key, period, and horizon continuity, but evaluator source digests were not bound before the first outcome and the worktree was not a clean committed snapshot.",
+          "status": "inconclusive"
+        },
+        {
+          "check_id": "independence",
+          "evidence_paths": ["explorer/exact_tick.py"],
+          "rationale": "Traversal implementations differ, but evaluation is self-review, runner semantics are shared, and the independent conformance pilot is incomplete.",
+          "status": "fail"
+        }
+      ],
+      "claim_id": "EC-01",
+      "claim_text": "Within the frozen Gemma candidate set and H=32 finite input models, bounded Behavioral Explorer agrees with exhaustive tick traversal while evaluating fewer pair-transitions.",
+      "evidence_artifacts": [
+        {
+          "digest": "52d8b7daea578c4990c5d49aae5cc6b59afba788a258c82a3646060e77493641",
+          "kind": "held-out technical-retry summary",
+          "path": "skill_result/05_experiment_plan/results/E3/heldout-gemma-v2-h32-retry1/summary.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "b96e89b42108efccac12fbe46d373dd17b21a6b7b5f6628a745897dfb0c5c9d6",
+          "kind": "complete held-out per-case outcomes",
+          "path": "skill_result/05_experiment_plan/results/E3/heldout-gemma-v2-h32-retry1/case_outcomes.jsonl",
+          "source": "experiment"
+        },
+        {
+          "digest": "2ccf0c7e6f8a6fb858428bb724529f1ff7345703d67c7d2bcba8cf6dca41a16d",
+          "kind": "failed v1 generation snapshot",
+          "path": "skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "70b4ab0c5aafb0b7ace486b6844921f1f210ce7a18321e06585ddb08540c1a06",
+          "kind": "v2 generation snapshot",
+          "path": "skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest_v2.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "6c3f2931c7d1e470f47276aeb1fe451563a0bc743b74cfba4eb62ad1e076e11b",
+          "kind": "frozen v2 input-domain and candidate manifest",
+          "path": "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v2_h32.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "5ed68b71a28743ffeaf03269d6c6e203f478be2eb0c4a3be7925c35330e01e9b",
+          "kind": "held-out runner source after metadata correction",
+          "path": "explorer/differential_sweep.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "e2d544686fa519f7ef6bd2567d24b4eb3babad98ea53f24323267434e88d1e03",
+          "kind": "exact traversal source",
+          "path": "explorer/exact_tick.py",
+          "source": "experiment"
+        }
+      ],
+      "independence": {
+        "dimensions": ["implementation"],
+        "evidence": "Exact traversal is separate from the optimized Explorer, but runner semantics and evaluation authority are shared.",
+        "self_review": true
+      },
+      "limitations": [
+        "The exact and optimized searches share IR and code one-step runners.",
+        "The serialized domains are outcome-blind but produced by shared static axis analysis.",
+        "The independent conformance pilot covers only six common-subset cases.",
+        "The result is bounded to 32 logical ticks and the declared finite input values.",
+        "Sixty-three generation failures, 15 unsupported cases, and one preparation error do not contribute to A/B denominators.",
+        "Zero observed errors does not prove zero population error; Wilson upper bounds are 4.53% and 1.66%."
+      ],
+      "minimum_corrective_action": "Complete and freeze E1 across the claimed semantics, independently review the input manifest, and bind evaluator source in a clean snapshot before promoting the abstract numbers.",
+      "narrative_anchor": "## Audit E3-HELDOUT-GEMMA-V2-H32",
+      "predecessor_failures": [
+        {
+          "failure_id": "E3-GEMMA-V1-FENCED-JSON",
+          "rationale": "The full failed attempt is retained; v2 changed only response normalization before any A/B outcome and added regression coverage.",
+          "status": "resolved"
+        },
+        {
+          "failure_id": "OLD-VERIFIER-NO-INDEPENDENT-ORACLE",
+          "rationale": "Held-out cases resolve outcome-informed selection, but shared runner semantics leave full oracle independence open.",
+          "status": "open"
+        }
+      ],
+      "requested_assurance_class": "confirmatory",
+      "run_selection": {
+        "excluded_runs": [],
+        "selection_rule": "Retain the 388-error v1 attempt, the complete v2 first measurement, and the metadata-only retry; include every selected case and terminal outcome."
+      },
+      "scope": "All 388 frozen Gemma-4-26B candidate attempts over the fixed dataset; 309 statically READY IR-code pairs; serialized finite boundary domains; 32 logical ticks.",
+      "source_mode": "standalone",
+      "source_runs": [],
+      "verdict": "supports_exploratory_follow_up"
+    },
+    {
+      "attained_assurance_class": "confirmatory",
+      "audit_id": "E3-HELDOUT-GEMMA-V3-H32",
+      "audited_claim_effect": "strengthen",
+      "check_results": [
+        {
+          "check_id": "protocol_integrity",
+          "evidence_paths": [
+            "skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest_v3.json",
+            "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v3_h32.json"
+          ],
+          "rationale": "All 388 cases and generator/source identities were frozen before v3 generation; candidate hashes, domains, initial states, periods, and H=32 were frozen before any v3 A/B outcome was read.",
+          "status": "pass"
+        },
+        {
+          "check_id": "metric_validity",
+          "evidence_paths": [
+            "explorer/differential_sweep.py",
+            "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-h32/summary.json",
+            "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-h32/environment.md"
+          ],
+          "rationale": "A and B use direction-specific exact-label denominators and Wilson intervals; incomplete outcomes remain separate; R includes only equivalent pairs for which both algorithms traverse the full bounded space.",
+          "status": "pass"
+        },
+        {
+          "check_id": "baseline_fairness",
+          "evidence_paths": [
+            "explorer/exact_tick.py",
+            "explorer/product.py"
+          ],
+          "rationale": "Both methods answer the same H=32 transition-system question. Exact traversal enumerates frozen raw input histories without Explorer cells, normalization, time jumps, or feasibility deduplication; shared one-step semantics hold the transition relation constant for this search-layer comparison.",
+          "status": "pass"
+        },
+        {
+          "check_id": "outcome_accounting",
+          "evidence_paths": [
+            "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-h32/case_outcomes.jsonl"
+          ],
+          "rationale": "Every selected attempt is visible: 311 completed READY pairs, 61 generation errors, 15 unsupported pairs, and one preparation error. No incomplete or post-outcome-excluded case occurred.",
+          "status": "pass"
+        },
+        {
+          "check_id": "inferential_support",
+          "evidence_paths": [
+            "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-h32/summary.json"
+          ],
+          "rationale": "All 231 equivalent and 80 divergent READY pairs agreed, with zero observed A/B errors, directional Wilson bounds, and complete traversal counts. Support is explicitly limited to the frozen corpus, finite domains, and H=32.",
+          "status": "pass"
+        },
+        {
+          "check_id": "confound_control",
+          "evidence_paths": [
+            "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-domain-audit/summary.json",
+            "skill_result/05_experiment_plan/ab-evaluation-protocol.md"
+          ],
+          "rationale": "The v2 axis omission was repaired and regression-tested before v3 generation. A static audit that does not consult runner.axes or derive_axes then covered 311/311 frozen READY cases. Shared runner semantics limit the claim to search equivalence and are not presented as independent semantic validation.",
+          "status": "pass"
+        },
+        {
+          "check_id": "provenance",
+          "evidence_paths": [
+            "skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest_v3.json",
+            "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v3_h32.json",
+            "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-domain-audit/case_outcomes.jsonl",
+            "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-h32/case_outcomes.jsonl"
+          ],
+          "rationale": "The record binds the model, fixed case-selection rule, clean source commit and file digests, every candidate digest, explicit finite inputs, all static dispositions, raw outcomes, and aggregate results.",
+          "status": "pass"
+        },
+        {
+          "check_id": "snapshot_continuity",
+          "evidence_paths": [
+            "skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest_v3.json",
+            "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v3_h32.json"
+          ],
+          "rationale": "Evaluator source was committed before v3 generation, the generation manifest records that commit and relevant source hashes, and the measured runner rejected candidate, dataset, input-key, period, or horizon drift.",
+          "status": "pass"
+        },
+        {
+          "check_id": "independence",
+          "evidence_paths": [
+            "explorer/exact_tick.py",
+            "skill_result/05_experiment_plan/results/E1/legacy-conformance-dev/summary.json"
+          ],
+          "rationale": "Exact and optimized traversal implementations differ, but the evaluation is self-reviewed and shares the IR/code one-step runners; the separate legacy conformance pilot covers only six common-subset cases.",
+          "status": "inconclusive"
+        }
+      ],
+      "claim_id": "EC-01",
+      "claim_text": "Within the frozen v3 Gemma candidate set, declared finite input models, and H=32, bounded Behavioral Explorer agrees with exhaustive tick-by-tick traversal while evaluating fewer pair transitions.",
+      "evidence_artifacts": [
+        {
+          "digest": "088753695b8fb96323d14498f3921cafb6e98647152a836d8d6b89306db328a0",
+          "kind": "v3 held-out summary",
+          "path": "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-h32/summary.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "513207e82db1a307bb4b7f824df829fc45093c72b505b41f3dc530a1af24aedb",
+          "kind": "complete v3 per-case outcomes",
+          "path": "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-h32/case_outcomes.jsonl",
+          "source": "experiment"
+        },
+        {
+          "digest": "5d153bf5d4edb1f2797edcefd07ccdd02e0b60571932377251a7a129bd9abbe7",
+          "kind": "pre-generation v3 selection and source snapshot",
+          "path": "skill_result/05_experiment_plan/snapshots/E3_heldout_generation_manifest_v3.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "7166cdd2c1af0bd15397e9ad0fa8cd8caaed2e14f92ba3ca803bb5cd10fe8e06",
+          "kind": "frozen v3 candidate and input-domain manifest",
+          "path": "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v3_h32.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "2405124d0904f4f803a4e5e8f3646a24264ed4eba98b8fcb5c395f8118a25cf3",
+          "kind": "v3 static domain-audit summary",
+          "path": "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-domain-audit/summary.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "0c904f06221b446804f8b4a8e0ce549ca028f8f2c8133fa612a08c027337ea89",
+          "kind": "complete v3 static domain-audit outcomes",
+          "path": "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-domain-audit/case_outcomes.jsonl",
+          "source": "experiment"
+        },
+        {
+          "digest": "e2d544686fa519f7ef6bd2567d24b4eb3babad98ea53f24323267434e88d1e03",
+          "kind": "exact traversal source",
+          "path": "explorer/exact_tick.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "bcf91cf9f51df270d75e02e8dbf48daa3e285a36e552c87bb7c7b97ba4bc6f22",
+          "kind": "Behavioral Explorer source",
+          "path": "explorer/product.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "987433e4b0e17a9973e2cda25571d133b72488b8f9c7f6075be46d71d56ffc52",
+          "kind": "independent-axis audit source",
+          "path": "explorer/domain_audit.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "5ed68b71a28743ffeaf03269d6c6e203f478be2eb0c4a3be7925c35330e01e9b",
+          "kind": "paired evaluation and metric source",
+          "path": "explorer/differential_sweep.py",
+          "source": "experiment"
+        },
+        {
+          "digest": "aaa7444912f833b6dd94d9e0351a6c45e6b5d5e489d099d50ab8958851aa38c3",
+          "kind": "A/B protocol and status narrative",
+          "path": "skill_result/05_experiment_plan/ab-evaluation-protocol.md",
+          "source": "audit"
+        },
+        {
+          "digest": "7ecfc3d3ce7c893489373c230b5269fbd57fb3ba19fb7d701979941fe33878e5",
+          "kind": "legacy common-subset conformance summary",
+          "path": "skill_result/05_experiment_plan/results/E1/legacy-conformance-dev/summary.json",
+          "source": "experiment"
+        },
+        {
+          "digest": "926ec81b413b89ba284afe055334e8540f813705ff499c5f1b91cb91f99a600d",
+          "kind": "v3 measurement environment",
+          "path": "skill_result/05_experiment_plan/results/E3/heldout-gemma-v3-h32/environment.md",
+          "source": "experiment"
+        }
+      ],
+      "independence": {
+        "dimensions": [
+          "implementation"
+        ],
+        "evidence": "Exact traversal and static axis audit are separately implemented, but one-step semantics and evaluation authority are shared.",
+        "self_review": true
+      },
+      "limitations": [
+        "The exact and optimized searches share IR and code one-step runners, so the result validates search reductions rather than independently proving runner semantics.",
+        "The static input audit avoids Explorer axes but shares parsing, grounding, and IR compilation.",
+        "The result is bounded to 32 logical ticks and each case's frozen finite input values.",
+        "Sixty-one generation errors, 15 unsupported pairs, and one preparation error do not contribute to A/B denominators.",
+        "Zero observed errors does not prove zero population error; Wilson 95% upper bounds are 4.58% and 1.64%."
+      ],
+      "minimum_corrective_action": "No correction is required for the bounded search-layer claim. Expand E1 interpreter conformance and E2 adequacy before broadening it to end-to-end semantic correctness or population-wide verifier accuracy.",
+      "narrative_anchor": "## Audit E3-HELDOUT-GEMMA-V3-H32",
+      "predecessor_failures": [
+        {
+          "failure_id": "E3-V2-UNMODELED-VALUE-FLOW",
+          "rationale": "The omitted observable-read axes were repaired and regression-tested on v2 before a distinct v3 model sample was generated; the v3 static audit passed all 311 READY cases.",
+          "status": "resolved"
+        },
+        {
+          "failure_id": "OLD-VERIFIER-NO-INDEPENDENT-ORACLE",
+          "rationale": "An independent traversal validates the optimized search layer, but shared one-step semantics leave broad end-to-end semantic correctness outside this claim.",
+          "status": "open"
+        }
+      ],
+      "requested_assurance_class": "confirmatory",
+      "run_selection": {
+        "excluded_runs": [
+          {
+            "run_id": "R-E3-GEMMA-V2",
+            "rationale": "The v2 output exposed a domain-axis omission and was used for repair regression, so it is retained as exploratory lineage rather than confirmatory evidence."
+          },
+          {
+            "run_id": "R-E3-V2-POSTAUDIT",
+            "rationale": "This was an outcome-visible regression on v2 candidates after the repair, not a new held-out sample."
+          }
+        ],
+        "selection_rule": "Use every READY pair from the preregistered post-repair v3 sample and retain every non-READY terminal outcome in total-case accounting."
+      },
+      "scope": "All 388 frozen post-repair Gemma-4-26B attempts over the fixed dataset; 311 statically READY IR-code pairs; audited finite input domains; 32 logical ticks; search-layer agreement, transition evaluations, and latency.",
+      "source_mode": "standalone",
+      "source_runs": [],
+      "verdict": "supports_confirmatory_claim"
+    }
+  ],
+  "identity_version": 1,
+  "paper_id": "new-ovla-percom2027",
+  "schema_version": "1.0",
+  "status": "complete"
+}

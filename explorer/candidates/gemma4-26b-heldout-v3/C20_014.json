@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif (all(#Office #PresenceSensor).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#AC).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif (all(#Office #PresenceSensor).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#AC).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "all(#Office #PresenceSensor)"
+    ],
+    "Switch.Off": [
+      "(#AC)"
+    ]
+  },
+  "command_kor": "사무실에 10분 이상 사람이 없으면 사무실 에어컨을 꺼줘.",
+  "command_eng": "If no one is present in the office for at least 10 minutes, turn off the office air conditioner.",
+  "connected_devices": {
+    "Office_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Office",
+        "PresenceSensor"
+      ]
+    },
+    "Office_AC": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "AC",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Meeting_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == false",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.3
+}

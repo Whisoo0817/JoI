@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#GuestRoom #MotionSensor).motionSensor_motion == true and (#AirConditioner #GuestRoom).switch_switch == false) {\n(#AirConditioner #GuestRoom).airConditioner_setAirConditionerMode(\"auto\")\n(#AirConditioner #GuestRoom).airConditioner_setTargetTemperature(24.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#GuestRoom #MotionSensor).motionSensor_motion == true and (#AirConditioner #GuestRoom).switch_switch == false) {\n(#AirConditioner #GuestRoom).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n(#AirConditioner #GuestRoom).airConditioner_setTargetTemperature(24.0)\\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#GuestRoom #MotionSensor)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "(#AirConditioner #GuestRoom)"
+    ]
+  },
+  "command_kor": "게스트룸에 움직임이 감지되고 있고 에어컨이 꺼져 있으면, 에어컨을 자동 모드로 설정하고 목표 온도를 24도로 설정해줘.",
+  "command_eng": "If the motion is detected in the guest room and the air conditioner is off, set the air conditioner to auto mode and set the target temperature to 24.",
+  "connected_devices": {
+    "GuestRoom_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "GuestRoom",
+        "MotionSensor"
+      ]
+    },
+    "Bedroom_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "MotionSensor"
+      ]
+    },
+    "GuestRoom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "GuestRoom",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == true and Switch.Switch == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "auto"
+            }
+          },
+          {
+            "op": "call",
+            "target": "AirConditioner.SetTargetTemperature",
+            "args": {
+              "Temperature": 24.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.2
+}

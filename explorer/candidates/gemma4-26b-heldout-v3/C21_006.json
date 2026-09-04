@@ -1,0 +1,92 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((all(#LightSensor).lightSensor_brightness <= 50) and (all(#LightSensor).lightSensor_brightness <= 50)) {\n(#MoodLight).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((all(#LightSensor).lightSensor_brightness <= 50) and (all(#LightSensor).lightSensor_brightness <= 50)) {\n(#MoodLight).switch_on()\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "all(#LightSensor)"
+    ],
+    "Switch.On": [
+      "(#MoodLight)"
+    ]
+  },
+  "command_kor": "거실과 부엌 조도가 모두 50lux 이하이면 거실 무드등 플러그를 켜줘.",
+  "command_eng": "If both the living room and the kitchen illuminance are at most 50 lux, turn on the living room mood-light plug.",
+  "connected_devices": {
+    "LivingRoom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "LightSensor"
+      ]
+    },
+    "Kitchen_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "LightSensor"
+      ]
+    },
+    "LivingRoom_MoodLight": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "MoodLight"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LightSensor.Brightness <= 50 and LightSensor.Brightness <= 50",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.0
+}

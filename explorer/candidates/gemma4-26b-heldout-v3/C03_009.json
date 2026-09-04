@@ -1,0 +1,65 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#AirPurifier).airPurifier_airPurifierMode ==| \"quiet\") {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#AirPurifier).airPurifier_airPurifierMode ==| \\\"quiet\\\") {\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n}\"\n}",
+  "precision": {
+    "AirPurifier.AirPurifierMode": [
+      "any(#AirPurifier)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)"
+    ]
+  },
+  "command_kor": "공기청정기가 저소음 모드이면, 강풍 모드로 바꿔줘.",
+  "command_eng": "If the air purifier is in quiet mode, switch it to high speed mode.",
+  "connected_devices": {
+    "Living_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Living",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirPurifier.AirPurifierMode == \"quiet\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "high"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.2
+}

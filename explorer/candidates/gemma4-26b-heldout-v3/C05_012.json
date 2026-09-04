@@ -1,0 +1,111 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '스피커 재생' 는 '멈추고' 를 수행할 수 없음",
+  "command_kor": "소음이 80 이상이고 사람이 없으면, 스피커 재생을 멈추고 긴급 사이렌을 울려줘.",
+  "command_eng": "If the noise level is 80 or higher and no person is being detected, stop speaker playbackand sound the emergency siren.",
+  "connected_devices": {
+    "Living_Sound": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Living",
+        "SoundSensor"
+      ]
+    },
+    "Entrance_Sound": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "SoundSensor"
+      ]
+    },
+    "Living_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "SoundSensor.Sound >= 80 and PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Stop",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.4
+}

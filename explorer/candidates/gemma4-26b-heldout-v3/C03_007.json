@@ -1,0 +1,70 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "currentMode = any(#Pump).pump_pumpMode\nif (currentMode == \"normal\") {\nall(#Pump).pump_setPumpMode(\"maximum\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"currentMode = any(#Pump).pump_pumpMode\nif (currentMode == \\\"normal\\\") {\\nall(#Pump).pump_setPumpMode(\\\"maximum\\\")\\n}\"\n}",
+  "precision": {
+    "Pump.PumpMode": [
+      "any(#Pump)"
+    ],
+    "Pump.SetPumpMode": [
+      "all(#Pump)"
+    ]
+  },
+  "command_kor": "펌프가 노말 모드이면 맥시멈 모드로 설정해줘.",
+  "command_eng": "If the pump is in normal mode, set it to maximum mode.",
+  "connected_devices": {
+    "Main_Pump": {
+      "category": [
+        "Pump"
+      ],
+      "tags": [
+        "Main",
+        "Pump"
+      ]
+    },
+    "Garage_Pump": {
+      "category": [
+        "Pump"
+      ],
+      "tags": [
+        "Garage",
+        "Pump"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "currentMode",
+        "src": "Pump.PumpMode"
+      },
+      {
+        "op": "if",
+        "cond": "currentMode == \"normal\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Pump.SetPumpMode",
+            "args": {
+              "PumpMode": "maximum"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.7
+}

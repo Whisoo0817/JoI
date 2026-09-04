@@ -1,0 +1,86 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 900) {\nif (triggered == false) {\nall(#Valve).valve_close()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 900) {\nif (triggered == false) {\nall(#Valve).valve_close()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.DustLevel": [
+      "any(#AirQualitySensor)"
+    ],
+    "Valve.Close": [
+      "all(#Valve)"
+    ]
+  },
+  "command_kor": "이산화탄소 농도가 900ppm 이상이 될때마다 벨브를 닫아줘.",
+  "command_eng": "Each time the carbon dioxide level reaches 900ppm or higher, close the valve.",
+  "connected_devices": {
+    "Living_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Living",
+        "AirQualitySensor"
+      ]
+    },
+    "Bedroom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirQualitySensor"
+      ]
+    },
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "AirQualitySensor.CarbonDioxide >= 900",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.4
+}

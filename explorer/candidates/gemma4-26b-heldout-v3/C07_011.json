@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((all(#HumiditySensor).humiditySensor_humidity >| 80))\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((all(#HumiditySensor).humiditySensor_humidity >| 80))\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "any(#HumiditySensor)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "command_kor": "습도가 80%보다 커지면 제습기를 건조 모드로 작동시켜줘.",
+  "command_eng": "When the humidity exceeds 80%, start the dehumidifier in drying mode.",
+  "connected_devices": {
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Dehumidifier"
+      ]
+    },
+    "Bathroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "HumiditySensor.Humidity > 80",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "drying"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.3
+}

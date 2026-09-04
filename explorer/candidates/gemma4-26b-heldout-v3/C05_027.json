@@ -1,0 +1,102 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '메인 밸브' 는 '잠그고' 를 수행할 수 없음",
+  "command_kor": "지하에서 누수가 감지되고 메인 밸브가 열려 있으면, 모든 메인 밸브를 잠그고 경찰 사이렌을 울려줘.",
+  "command_eng": "If a water leak is detected in the basement and the main valve is open, close all main valves and sound the police siren.",
+  "connected_devices": {
+    "Basement_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Basement",
+        "LeakSensor"
+      ]
+    },
+    "Garage_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Garage",
+        "LeakSensor"
+      ]
+    },
+    "Main_Valve_1": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Main_Valve_2": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Garage_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Garage",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LeakSensor.Leakage == true and Valve.ValveState == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "police"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.7
+}

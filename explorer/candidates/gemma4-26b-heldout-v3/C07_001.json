@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#ContactSensor).contactSensor_contact == true)\n(#Light).light_moveToBrightness(100.0, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#ContactSensor).contactSensor_contact == true)\n(#Light).light_moveToBrightness(100.0, 0.0)\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#ContactSensor)"
+    ],
+    "Switch.On": [
+      "all(#ColorControl)"
+    ]
+  },
+  "command_kor": "접촉 센서가 감지되면 조명을 켜줘.",
+  "command_eng": "When the contact sensor is detected, turn on the light.",
+  "connected_devices": {
+    "Entrance_Contact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "ContactSensor"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 100.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.8
+}

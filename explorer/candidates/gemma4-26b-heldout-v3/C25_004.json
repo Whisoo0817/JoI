@@ -1,0 +1,73 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '에어컨' 는 '멈춰줘' 를 수행할 수 없음 — 가능한 카테고리: ['AudioRecorder', 'Camera', 'Printer']",
+  "command_kor": "30분마다 사무실 온도를 확인해서 26도 이상이면 에어컨을 냉방으로, 아니면 자동으로 설정하고, 5번 후 멈춰줘.",
+  "command_eng": "Every 30 minutes, check the office temperature; if it is 26 degrees or higher set the air conditioner to cool, otherwise auto. Stop after 5 times.",
+  "connected_devices": {
+    "Office_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Office",
+        "TemperatureSensor"
+      ]
+    },
+    "Office_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Office",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 5",
+        "period": "30 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "read",
+            "var": "v",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "v >= 26",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "cool"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.6
+}

@@ -1,0 +1,93 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '200 이상 떨어졌으면': 해당하는 연결 디바이스 없음",
+  "command_kor": "지금 거실 조도를 확인하고 1시간 뒤 다시 확인해서 200 이상 떨어졌으면 거실 무드등 플러그를 켜줘.",
+  "command_eng": "Check the living room illuminance now and again in 1 hour. If it dropped by at least 200 lux, turn on the living room mood-light plug.",
+  "connected_devices": {
+    "LivingRoom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "LightSensor"
+      ]
+    },
+    "Bedroom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "LightSensor"
+      ]
+    },
+    "LivingRoom_MoodLight": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "MoodLight"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "LightSensor.Brightness"
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "LightSensor.Brightness"
+      },
+      {
+        "op": "if",
+        "cond": "($t1 - $t2) >= 200",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.7
+}

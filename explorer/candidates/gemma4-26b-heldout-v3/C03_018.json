@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Entrance).contactSensor_contact == true) {\nall(#Siren).siren_setSirenMode(\"emergency\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Entrance).contactSensor_contact == true) {\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#Entrance)"
+    ],
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ]
+  },
+  "command_kor": "입구의 접촉 센서가 감지 상태이면, 긴급 사이렌을 울려줘.",
+  "command_eng": "If the contact sensor at the entrance is in detected state, sound the emergency siren.",
+  "connected_devices": {
+    "Entrance_Contact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "ContactSensor"
+      ]
+    },
+    "Garage_Contact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Garage",
+        "ContactSensor"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Garage_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Garage",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "ContactSensor.Contact == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.2
+}

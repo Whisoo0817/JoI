@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "purpose": "Development-only non-vacuity pilot; never report as confirmatory evidence.",
+  "selection_frozen": false,
+  "cases": [
+    {
+      "id": "DEV-ACTION-EQUIV-01",
+      "split": "development",
+      "gold_label": "EQUIV",
+      "gold_provenance": "Manually constructed identical immediate action with independently parsed IR and JoI forms.",
+      "ir": {
+        "timeline": [
+          {"op": "start_at", "anchor": "now"},
+          {"op": "call", "target": "Light.MoveToBrightness", "args": {"Brightness": 50.0, "Rate": 0.0}}
+        ]
+      },
+      "binding": {"Light": ["L1"]},
+      "devices": {"L1": {"category": ["Light"], "tags": ["Light"]}},
+      "joi_block": {"script": "(#Light).light_moveToBrightness(50, 0)", "period": 0, "cron": ""},
+      "input_domains": {},
+      "horizon_ticks": 1
+    },
+    {
+      "id": "DEV-ACTION-ARG-01",
+      "split": "development",
+      "gold_label": "DIVERGE",
+      "gold_provenance": "Predeclared action-argument fault changes brightness 50 to 40.",
+      "ir": {
+        "timeline": [
+          {"op": "start_at", "anchor": "now"},
+          {"op": "call", "target": "Light.MoveToBrightness", "args": {"Brightness": 50.0, "Rate": 0.0}}
+        ]
+      },
+      "binding": {"Light": ["L1"]},
+      "devices": {"L1": {"category": ["Light"], "tags": ["Light"]}},
+      "joi_block": {"script": "(#Light).light_moveToBrightness(40, 0)", "period": 0, "cron": ""},
+      "input_domains": {},
+      "horizon_ticks": 1
+    },
+    {
+      "id": "DEV-EDGE-EQUIV-01",
+      "split": "development",
+      "gold_label": "EQUIV",
+      "gold_provenance": "Manually reviewed rising-edge IR and syntax-different previous-value JoI idiom.",
+      "ir": {
+        "timeline": [
+          {"op": "start_at", "anchor": "now"},
+          {"op": "cycle", "period": "1 SEC", "until": null, "body": [
+            {"op": "wait", "cond": "ContactSensor.Contact == \"open\"", "edge": "rising"},
+            {"op": "call", "target": "Light.On", "args": {}}
+          ]}
+        ]
+      },
+      "binding": {"ContactSensor": ["D1"], "Light": ["L1"]},
+      "devices": {
+        "D1": {"category": ["ContactSensor"], "tags": ["ContactSensor"]},
+        "L1": {"category": ["Light"], "tags": ["Light"]}
+      },
+      "joi_block": {
+        "script": "was_open := false\nx = (#ContactSensor).contact\nif (x == \"open\" and was_open == false) { (#Light).light_on() }\nif (x != \"open\") { was_open = false }\nif (x == \"open\") { was_open = true }",
+        "period": 1000,
+        "cron": ""
+      },
+      "input_domains": {"D1.contact": ["closed", "ajar", "locked", "open"]},
+      "horizon_ticks": 5
+    },
+    {
+      "id": "DEV-EDGE-LEVEL-01",
+      "split": "development",
+      "gold_label": "DIVERGE",
+      "gold_provenance": "Predeclared edge-to-level fault repeats the action while the input remains open.",
+      "ir": {
+        "timeline": [
+          {"op": "start_at", "anchor": "now"},
+          {"op": "cycle", "period": "1 SEC", "until": null, "body": [
+            {"op": "wait", "cond": "ContactSensor.Contact == \"open\"", "edge": "rising"},
+            {"op": "call", "target": "Light.On", "args": {}}
+          ]}
+        ]
+      },
+      "binding": {"ContactSensor": ["D1"], "Light": ["L1"]},
+      "devices": {
+        "D1": {"category": ["ContactSensor"], "tags": ["ContactSensor"]},
+        "L1": {"category": ["Light"], "tags": ["Light"]}
+      },
+      "joi_block": {
+        "script": "x = (#ContactSensor).contact\nif (x == \"open\") { (#Light).light_on() }",
+        "period": 1000,
+        "cron": ""
+      },
+      "input_domains": {"D1.contact": ["closed", "ajar", "locked", "open"]},
+      "horizon_ticks": 5
+    },
+    {
+      "id": "DEV-COUNT-EQUIV-01",
+      "split": "development",
+      "gold_label": "EQUIV",
+      "gold_provenance": "Manually reviewed three-repetition IR and explicit JoI counter idiom.",
+      "ir": {
+        "timeline": [
+          {"op": "start_at", "anchor": "now"},
+          {"op": "cycle", "period": "1 SEC", "count": 3, "until": null, "body": [
+            {"op": "call", "target": "Speaker.Speak", "args": {"Text": "hi"}}
+          ]}
+        ]
+      },
+      "binding": {"Speaker": ["S1"]},
+      "devices": {"S1": {"category": ["Speaker"], "tags": ["Speaker"]}},
+      "joi_block": {
+        "script": "n := 0\nif (n < 3) {\n  (#Speaker).speaker_speak(\"hi\")\n  n = n + 1\n}",
+        "period": 1000,
+        "cron": ""
+      },
+      "input_domains": {},
+      "horizon_ticks": 5
+    },
+    {
+      "id": "DEV-COUNT-OFFBYONE-01",
+      "split": "development",
+      "gold_label": "DIVERGE",
+      "gold_provenance": "Predeclared count-boundary fault changes three executions to four.",
+      "ir": {
+        "timeline": [
+          {"op": "start_at", "anchor": "now"},
+          {"op": "cycle", "period": "1 SEC", "count": 3, "until": null, "body": [
+            {"op": "call", "target": "Speaker.Speak", "args": {"Text": "hi"}}
+          ]}
+        ]
+      },
+      "binding": {"Speaker": ["S1"]},
+      "devices": {"S1": {"category": ["Speaker"], "tags": ["Speaker"]}},
+      "joi_block": {
+        "script": "n := 0\nif (n <= 3) {\n  (#Speaker).speaker_speak(\"hi\")\n  n = n + 1\n}",
+        "period": 1000,
+        "cron": ""
+      },
+      "input_domains": {},
+      "horizon_ticks": 5
+    }
+  ]
+}

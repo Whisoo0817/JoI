@@ -1,0 +1,72 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '조명' 는 '20%로 낮추고' 를 수행할 수 없음",
+  "command_kor": "서재에 15분 이상 사람이 없으면 조명을 20%로 낮추고, 10분 뒤에 꺼줘.",
+  "command_eng": "If no one is present in the study for at least 15 minutes, dim the study light to 20%, then turn it off 10 minutes later.",
+  "connected_devices": {
+    "Study_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Study",
+        "PresenceSensor"
+      ]
+    },
+    "Study_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Study",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Office_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Office",
+        "PresenceSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == false",
+        "edge": "none",
+        "for": "15 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 20.0,
+          "Rate": 0.0
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.7
+}

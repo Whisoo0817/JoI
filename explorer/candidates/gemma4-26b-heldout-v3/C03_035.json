@@ -1,0 +1,103 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Bedroom #ContactSensor).contactSensor_contact == false) {\n(#AirPurifier).switch_off()\n}\nelse {\n(#AirPurifier).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bedroom #ContactSensor).contactSensor_contact == false) {\n(#AirPurifier).switch_off()\n}\nelse {\n(#AirPurifier).switch_on()\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#Bedroom #ContactSensor)"
+    ],
+    "Switch.Off": [
+      "(#AirPurifier)"
+    ],
+    "Switch.On": [
+      "(#AirPurifier)"
+    ]
+  },
+  "command_kor": "침실 문이 열려있으면 침실 공기청정기 플러그를 꺼주고, 아니면 켜줘.",
+  "command_eng": "If the bedroom door is open, turn off the bedroom air purifier plug; otherwise turn it on.",
+  "connected_devices": {
+    "Bedroom_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "FrontContactSensor_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Bedroom_AirPurifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "AirPurifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "ContactSensor.Contact == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 10.7
+}

@@ -1,0 +1,90 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#Window).windowCovering_currentPosition >| 0) {\nif (triggered == false) {\nall(#Speaker).speaker_speak(\"The window is open\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#Window).windowCovering_currentPosition >| 0) {\nif (triggered == false) {\nall(#Speaker).speaker_speak(\\\"The window is open\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "WindowCovering.CurrentPosition": [
+      "any(#Window)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "창문이 열릴 때마다 스피커로 '창문이 열렸습니다'라고 말해줘.",
+  "command_eng": "Whenever the window opens, make the speaker speak 'The window is open'.",
+  "connected_devices": {
+    "Main_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Main_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Main",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WindowCovering.CurrentPosition > 0",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The window is open"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 9.1
+}

@@ -1,0 +1,104 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "livingRoomHumidity = (#HumiditySensor #LivingRoom).humiditySensor_humidity\nbedroomHumidity = (#Bedroom).airQualitySensor_humidity\nif (livingRoomHumidity <= 30 or bedroomHumidity <= 30) {\n(#Humidifier).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"livingRoomHumidity = (#HumiditySensor #LivingRoom).humiditySensor_humidity\nbedroomHumidity = (#Bedroom).airQualitySensor_humidity\nif (livingRoomHumidity <= 30 or bedroomHumidity <= 30) {\n(#Humidifier).switch_on()\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#HumiditySensor #LivingRoom)",
+      "(#Bedroom)"
+    ],
+    "Switch.On": [
+      "(#Humidifier)"
+    ]
+  },
+  "command_kor": "거실 습도가 30% 이하이거나 침실 습도가 30% 이하이면 거실 가습기 플러그를 켜줘.",
+  "command_eng": "If the living room humidity is at most 30% or the bedroom humidity is at most 30%, turn on the living room humidifier plug.",
+  "connected_devices": {
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_Humidifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Humidifier"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "livingRoomHumidity",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "read",
+        "var": "bedroomHumidity",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "if",
+        "cond": "livingRoomHumidity <= 30 or bedroomHumidity <= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.8
+}

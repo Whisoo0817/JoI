@@ -1,0 +1,72 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '복도에 3분 이상 동작이 없으면': 해당하는 연결 디바이스 없음",
+  "command_kor": "복도에 3분 이상 동작이 없으면 복도 조명을 50%로 낮추고, 2분 뒤에 꺼줘.",
+  "command_eng": "If no motion is detected in the hallway for at least 3 minutes, dim the hallway light to 50%, then turn it off 2 minutes later.",
+  "connected_devices": {
+    "Hallway_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "MotionSensor"
+      ]
+    },
+    "Hallway_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Lobby_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Lobby",
+        "MotionSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == false",
+        "edge": "none",
+        "for": "3 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 50.0,
+          "Rate": 0.0
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "2 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 3.3
+}

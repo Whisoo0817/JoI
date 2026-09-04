@@ -1,0 +1,87 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * 6",
+    "period": 5000,
+    "script": "if ((#Clock).clock_weekday == \"monday\") {\nbreak\n}\nif (all(#Pump).switch_switch ==| false) {\nall(#Pump).switch_on()\n}\nelse {\nall(#Pump).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * 6\",\n  \"period\": 5000,\n  \"script\": \"if ((#Clock).clock_weekday == \\\"monday\\\") {\\nbreak\\n}\\nif (all(#Pump).switch_switch ==| false) {\\nall(#Pump).switch_on()\\n}\\nelse {\\nall(#Pump).switch_off()\\n}\"\n}",
+  "precision": {
+    "Pump.PumpMode": [
+      "any(#Pump)"
+    ],
+    "Switch.On": [
+      "all(#Pump)"
+    ],
+    "Switch.Switch": [
+      "any(#Pump)"
+    ],
+    "Switch.Off": [
+      "all(#Pump)"
+    ]
+  },
+  "command_kor": "주말에 5초마다 체크해서 펌프가 꺼져 있으면 켜고, 켜져 있으면 꺼줘.",
+  "command_eng": "Every 5 seconds on weekends, if the pump is off, turn it on; if it is on, turn it off.",
+  "connected_devices": {
+    "Main_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Garden_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Garden",
+        "Pump",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * 6"
+      },
+      {
+        "op": "cycle",
+        "until": "Clock.Weekday == \"monday\"",
+        "period": "5 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Switch.Switch == false",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 12.2
+}

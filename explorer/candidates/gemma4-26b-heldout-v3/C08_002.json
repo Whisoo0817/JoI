@@ -1,0 +1,91 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Bedroom #MultiButton).multiButton_button2 == \"pushed\")\nall(#Bedroom #Light).light_moveToBrightness(0.0, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bedroom #MultiButton).multiButton_button2 == \\\"pushed\\\")\\nall(#Bedroom #Light).light_moveToBrightness(0.0, 0.0)\"\n}",
+  "precision": {
+    "MultiButton.Button1": [
+      "(#Bedroom #MultiButton)"
+    ],
+    "Light.MoveToBrightness": [
+      "all(#Bedroom #Light)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼2가 눌리면 침실 조명을 모두 꺼줘.",
+  "command_eng": "When button 2 of the multi-button is pressed, turn off all lights in the bedroom.",
+  "connected_devices": {
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "Hall_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Hallway",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    },
+    "Bedroom_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button2 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.4
+}

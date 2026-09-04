@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#LightSensor).lightSensor_brightness < 200) {\nif (triggered == false) {\nall(#Light).light_moveToBrightness(100.0, 0.0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#LightSensor).lightSensor_brightness < 200) {\nif (triggered == false) {\nall(#Light).light_moveToBrightness(100.0, 0.0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "(#LightSensor)"
+    ],
+    "Switch.On": [
+      "all(#Light)"
+    ]
+  },
+  "command_kor": "조도가 200럭스보다 낮아질 때마다 모든 조명을 켜줘.",
+  "command_eng": "Whenever the brightness drops below 200 lux, turn on all lights.",
+  "connected_devices": {
+    "LightSens": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LightSensor"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Out_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Outdoor",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "LightSensor.Brightness < 200",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.2
+}

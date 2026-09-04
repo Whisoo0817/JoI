@@ -1,0 +1,69 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '비가 오고 있으면': 해당하는 연결 디바이스 없음",
+  "command_kor": "지금 비가 오고 있으면, 집안의 모든 제습기를 건조 모드로 설정해줘.",
+  "command_eng": "If it is raining, set all dehumidifiers in the house to drying mode.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "House_Dehum_1": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "House",
+        "Dehumidifier"
+      ]
+    },
+    "House_Dehum_2": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "House",
+        "Dehumidifier"
+      ]
+    },
+    "Garage_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Garage",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.5
+}

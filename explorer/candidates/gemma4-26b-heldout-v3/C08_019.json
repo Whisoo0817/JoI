@@ -1,0 +1,65 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '비': 해당하는 연결 디바이스 없음",
+  "command_kor": "비가 그칠 때마다 창문을 열어줘.",
+  "command_eng": "Whenever the rain stops, open the window.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Main_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WeatherProvider.Weather != \"rain\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 2.6
+}

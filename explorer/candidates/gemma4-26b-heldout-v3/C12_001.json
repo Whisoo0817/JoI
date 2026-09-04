@@ -1,0 +1,90 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until(all(#ContactSensor).contactSensor_contact ==| false)\n    phase = 1\n    all(#Speaker).speaker_speak(\"Welcome\")\n}\nelse {\nall(#Speaker).speaker_speak(\"Welcome\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until(all(#ContactSensor).contactSensor_contact ==| false)\n    phase = 1\n    all(#Speaker).speaker_speak(\\\"Welcome\\\")\\n}\\nelse {\\nall(#Speaker).speaker_speak(\\\"Welcome\\\")\\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "any(#ContactSensor)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "문이 열리면 이후에 1분마다 스피커로 \"어서오세요\"를 출력해줘.",
+  "command_eng": "When the door opens, make the speaker speak \"Welcome\" every minute thereafter.",
+  "connected_devices": {
+    "Entrance_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Garage_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Garage",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Welcome"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.7
+}

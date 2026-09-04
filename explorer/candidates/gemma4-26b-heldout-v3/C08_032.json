@@ -1,0 +1,128 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#ContactSensor).contactSensor_contact ==| false) {\nif (triggered == false) {\n(#Hall_Light_1).switch_on()\n(#Hall_Light_2).switch_on()\n(#LR_Light_1).switch_on()\n(#LR_Light_2).switch_on()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#ContactSensor).contactSensor_contact ==| false) {\nif (triggered == false) {\n(#Hall_Light_1).switch_on()\n(#Hall_Light_2).switch_on()\n(#LR_Light_1).switch_on()\n(#LR_Light_2).switch_on()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "any(#ContactSensor)"
+    ],
+    "Switch.On": [
+      "(#Hall_Light_1)",
+      "(#Hall_Light_2)",
+      "(#LR_Light_1)",
+      "(#LR_Light_2)"
+    ]
+  },
+  "command_kor": "문이 열릴 때마다, 복도와 거실의 조명을 모두 켜줘.",
+  "command_eng": "Each time the door is opened, turn on all lights in the hallway and living room.",
+  "connected_devices": {
+    "ContactSensor_1": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "ContactSensor_2": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Garage",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Hall_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Hall_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LR_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LR_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "ContactSensor.Contact == false",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 10.2
+}

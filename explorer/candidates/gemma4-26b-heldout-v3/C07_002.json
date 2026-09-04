@@ -1,0 +1,74 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#PresenceSensor).presenceSensor_presence == true)\nall(#Television).switch_on()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#PresenceSensor).presenceSensor_presence == true)\nall(#Television).switch_on()\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#PresenceSensor)"
+    ],
+    "Switch.On": [
+      "all(#Television)"
+    ]
+  },
+  "command_kor": "재실 센서가 감지되면 TV를 켜줘.",
+  "command_eng": "When the presence sensor detects someone, turn on the TV.",
+  "connected_devices": {
+    "LivingRoom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "LivingRoom_TV": {
+      "category": [
+        "Television",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Television",
+        "Switch"
+      ]
+    },
+    "Bedroom_TV": {
+      "category": [
+        "Television",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Television",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.6
+}

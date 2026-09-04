@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#DoorLock #MeetingRoom).doorLock_lock()\ndelay(3 SEC)\n(#Camera #MeetingRoom).camera_captureImage()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#DoorLock #MeetingRoom).doorLock_lock()\ndelay(3 SEC)\n(#Camera #MeetingRoom).camera_captureImage()\"\n}",
+  "precision": {
+    "DoorLock.Lock": [
+      "(#DoorLock #MeetingRoom)"
+    ],
+    "Camera.CaptureImage": [
+      "(#Camera #MeetingRoom)"
+    ]
+  },
+  "command_kor": "회의실 문을 잠그고 3초 뒤에 회의실 카메라로 촬영해줘.",
+  "command_eng": "Lock the meeting room door. After 3 seconds take a picture with the meeting room camera.",
+  "connected_devices": {
+    "MeetingRoom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "DoorLock"
+      ]
+    },
+    "Office_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Office",
+        "DoorLock"
+      ]
+    },
+    "MeetingRoom_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Camera"
+      ]
+    },
+    "Lobby_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Lobby",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "DoorLock.Lock",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "3 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Camera.CaptureImage",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.3
+}

@@ -1,0 +1,104 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Sector1 #TemperatureSensor).temperatureSensor_temperature >= 30) {\n(#AirConditioner #Sector1).airConditioner_setTargetTemperature(22.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Sector1 #TemperatureSensor).temperatureSensor_temperature >= 30) {\n(#AirConditioner #Sector1).airConditioner_setTargetTemperature(22.0)\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Sector1 #TemperatureSensor)"
+    ],
+    "AirConditioner.SetTargetTemperature": [
+      "(#AirConditioner #Sector1)"
+    ]
+  },
+  "command_kor": "구역1 온도가 30도 이상이면, 구역1 에어컨의 목표 온도를 22도로 설정해줘.",
+  "command_eng": "If the sector 1 temperature is 30 degrees or higher, set the sector 1 air conditioner target temperature to 22 degrees.",
+  "connected_devices": {
+    "S1_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Sector1",
+        "TemperatureSensor"
+      ]
+    },
+    "S2_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Sector2",
+        "TemperatureSensor"
+      ]
+    },
+    "S3_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Sector3",
+        "TemperatureSensor"
+      ]
+    },
+    "S1_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Sector1",
+        "AirConditioner"
+      ]
+    },
+    "S2_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Sector2",
+        "AirConditioner"
+      ]
+    },
+    "S3_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Sector3",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetTargetTemperature",
+            "args": {
+              "Temperature": 22.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.8
+}

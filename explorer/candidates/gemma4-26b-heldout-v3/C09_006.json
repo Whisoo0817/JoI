@@ -1,0 +1,85 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '외부 미세먼지 농도': 해당하는 연결 디바이스 없음; '문': 해당하는 연결 디바이스 없음",
+  "command_kor": "외부 미세먼지 농도가 2000 이상이면 문을 잠그고 4시간 뒤에 밸브를 잠궈줘.",
+  "command_eng": "If the dust level concentration is 2000ppm or above, lock the door and close the valve after 4 hours.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Front_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Front",
+        "DoorLock"
+      ]
+    },
+    "Back_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Back",
+        "DoorLock"
+      ]
+    },
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Basement_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Basement",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Pm25Weather >= 2000",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "delay",
+            "duration": "4 HOUR"
+          },
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.2
+}

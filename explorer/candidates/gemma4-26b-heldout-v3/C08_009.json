@@ -1,0 +1,95 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Entrance #MultiButton).multiButton_button1 == \"pushed\")\n(#Entrance #Light).light_moveToBrightness(100.0, 0.0)\ndelay(5 MIN)\n(#Entrance #Light).light_moveToBrightness(0.0, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Entrance #MultiButton).multiButton_button1 == \\\"pushed\\\")\\n(#Entrance #Light).light_moveToBrightness(100.0, 0.0)\\ndelay(5 MIN)\\n(#Entrance #Light).light_moveToBrightness(0.0, 0.0)\"\n}",
+  "precision": {
+    "MultiButton.Button1": [
+      "(#Entrance #MultiButton)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Entrance #Light)",
+      "(#Entrance #Light)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼1이 눌리면 현관 조명을 켜고 5분 후에 꺼줘.",
+  "command_eng": "When button 1 of the multi-button is pressed, turn on the entrance light and turn it off after 5 minutes.",
+  "connected_devices": {
+    "Entrance_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Entrance",
+        "MultiButton"
+      ]
+    },
+    "Hall_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Hallway",
+        "MultiButton"
+      ]
+    },
+    "Entrance_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Entrance",
+        "Light"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button1 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 100.0,
+          "Rate": 0.0
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "5 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.7
+}

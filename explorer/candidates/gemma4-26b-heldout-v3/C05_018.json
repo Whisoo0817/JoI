@@ -1,0 +1,113 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '사진': 해당하는 연결 디바이스 없음",
+  "command_kor": "움직임이 감지되지 않는데 문이 열려 있으면, 사진을 찍고 스피커로 \"경고\"라고 말해줘.",
+  "command_eng": "If no motion is detected but the door is open, take a photo and output \"Warning\" through the speaker.",
+  "connected_devices": {
+    "Entrance_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Living_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Living",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Bedroom_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == false and ContactSensor.Contact == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Warning"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.5
+}

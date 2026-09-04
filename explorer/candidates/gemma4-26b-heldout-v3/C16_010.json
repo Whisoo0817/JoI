@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 8 * * *",
+    "period": 0,
+    "script": "all(#Speaker).speaker_speak(\"Get up\")\nif (all(#Window).windowCovering_currentPosition ==| 0) {\nall(#Window).windowCovering_upOrOpen()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#Speaker).speaker_speak(\\\"Get up\\\")\\nif (all(#Window).windowCovering_currentPosition ==| 0) {\\nall(#Window).windowCovering_upOrOpen()\\n}\"\n}",
+  "precision": {
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ],
+    "WindowCovering.CurrentPosition": [
+      "any(#Window)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#Window)"
+    ]
+  },
+  "command_kor": "매일 아침 8시에 스피커로 '일어나세요'라고 말해 줘. 그리고 창문이 닫혀있으면 열어줘.",
+  "command_eng": "Every morning at 8 AM, make the speaker speak 'Get up'. Additionally, if the window is closed, open it.",
+  "connected_devices": {
+    "Main_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Main",
+        "Speaker"
+      ]
+    },
+    "Main_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Get up"
+        }
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition == 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 10.2
+}

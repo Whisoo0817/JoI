@@ -1,0 +1,109 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '밸브' 는 '차단해줘' 를 수행할 수 없음",
+  "command_kor": "비가 오고 아무도 없는 상태면, 도어락을 잠그고 밸브를 차단해줘.",
+  "command_eng": "If the weather is rainy and no one is being detected, lock the door and close the valve.",
+  "connected_devices": {
+    "Main_Weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Main",
+        "WeatherProvider"
+      ]
+    },
+    "Outdoor_Weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Outdoor",
+        "WeatherProvider"
+      ]
+    },
+    "Living_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\" and PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.2
+}

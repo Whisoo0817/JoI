@@ -1,0 +1,93 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '2도 이상 올랐으면': 해당하는 연결 디바이스 없음",
+  "command_kor": "지금 와인셀러 온도를 확인하고 1시간 뒤 다시 확인해서 2도 이상 올랐으면 거실 스피커로 알려줘.",
+  "command_eng": "Check the wine cellar temperature now and again in 1 hour. If it rose by at least 2 degrees, announce through the living room speaker.",
+  "connected_devices": {
+    "WineCellar_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "WineCellar",
+        "TemperatureSensor"
+      ]
+    },
+    "Kitchen_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "$t2 - $t1 >= 2",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The wine cellar temperature rose by at least 2 degrees."
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.2
+}

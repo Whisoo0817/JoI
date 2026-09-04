@@ -1,0 +1,92 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#HumiditySensor).humiditySensor_humidity <| 50) {\nif (triggered == false) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#HumiditySensor).humiditySensor_humidity <| 50) {\nif (triggered == false) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "any(#HumiditySensor)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "command_kor": "습도가 50% 밑으로 떨어질 때마다 제습기를 건조모드로 작동해줘.",
+  "command_eng": "Each time the humidity drops below 50%, set the dehumidifier to drying mode.",
+  "connected_devices": {
+    "Main_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Main",
+        "HumiditySensor"
+      ]
+    },
+    "Main_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Bathroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Dehumidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "HumiditySensor.Humidity < 50",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.3
+}

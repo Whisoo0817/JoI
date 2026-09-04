@@ -1,0 +1,61 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 180000,
+    "script": "n := 0\nif (n >= 3) {\nbreak\n}\n(#Garage).doorLock_unlock()\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 180000,\n  \"script\": \"n := 0\nif (n >= 3) {\nbreak\n}\n(#Garage).doorLock_unlock()\nn = n + 1\"\n}",
+  "precision": {
+    "DoorLock.Unlock": [
+      "(#Garage)"
+    ]
+  },
+  "command_kor": "3분마다 차고 문 잠금을 해제해줘. 3번만 반복.",
+  "command_eng": "Every 3 minutes, unlock the garage door. Repeat 3 times.",
+  "connected_devices": {
+    "Entrance_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "3 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "DoorLock.Unlock",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.3
+}

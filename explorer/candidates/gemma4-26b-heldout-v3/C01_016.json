@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "Power = all(#Charger).charger_power\nall(#Speaker).speaker_speak(\"The charger's power consumption is \" + Power)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"Power = all(#Charger).charger_power\nall(#Speaker).speaker_speak(\\\"The charger's power consumption is \\\" + Power)\"\n}",
+  "precision": {
+    "Charger.Power": [
+      "all(#Charger)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "충전기의 전력소모량을 스피커로 출력해줘.",
+  "command_eng": "Output the charger's power consumption through the speaker.",
+  "connected_devices": {
+    "LivingRoom_Charger": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Charger"
+      ]
+    },
+    "Bedroom_Charger": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "Bedroom",
+        "Charger"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "Power",
+        "src": "Charger.Power"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "The charger's power consumption is $Power"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.7
+}

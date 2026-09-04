@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 30000,
+    "script": "hold_ticks := 0\nn := 0\nif ((#Vault).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 30) {\nif (n >= 5) {\nbreak\n}\n(#Camera).camera_captureImage()\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 30000,\n  \"script\": \"hold_ticks := 0\nn := 0\nif ((#Vault).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 30) {\nif (n >= 5) {\nbreak\n}\n(#Camera).camera_captureImage()\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#Vault)"
+    ],
+    "Camera.CaptureImage": [
+      "(#Camera)"
+    ]
+  },
+  "command_kor": "금고 문이 30초 이상 닫혀 있으면 30초마다 카메라로 사진을 최대 5번 찍어줘.",
+  "command_eng": "If the safe door stays closed for at least 30 seconds, capture an image with the camera every 30 seconds, up to 5 times.",
+  "connected_devices": {
+    "Safe_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Safe",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Safe_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Safe",
+        "Camera"
+      ]
+    },
+    "Vault_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Vault",
+        "Door",
+        "ContactSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "edge": "none",
+        "for": "30 SEC"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 5",
+        "period": "30 SEC",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.6
+}

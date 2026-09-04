@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#ServerRoom).airQualitySensor_carbonDioxide >= 5000)\nall(#Siren).siren_setSirenMode(\"emergency\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#ServerRoom).airQualitySensor_carbonDioxide >= 5000)\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\"\n}",
+  "precision": {
+    "AirQualitySensor.DustLevel": [
+      "(#ServerRoom)"
+    ],
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ]
+  },
+  "command_kor": "서버실 이산화탄소 농도가 5000 ppm 이상이되면 모든 사이렌을 비상모드로 울려줘.",
+  "command_eng": "When the carbon dioxide level in the server room becomes 5000 ppm or above, sound all sirens in emergency mode.",
+  "connected_devices": {
+    "ServerRoom_AirQualitySensor": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "ServerRoom",
+        "AirQualitySensor"
+      ]
+    },
+    "Office_AirQualitySensor": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Office",
+        "AirQualitySensor"
+      ]
+    },
+    "Siren_Main": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Siren_Back": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Back",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "AirQualitySensor.CarbonDioxide >= 5000",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Siren.SetSirenMode",
+        "args": {
+          "Mode": "emergency"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.3
+}

@@ -1,0 +1,83 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '비': 해당하는 연결 디바이스 없음; '문': 해당하는 연결 디바이스 없음",
+  "command_kor": "비가 오고 문이 잠겨 있지 않으면, 문을 잠그고 제습기를 건조 모드로 설정해줘.",
+  "command_eng": "If it is raining and the door is unlocked, lock the door and set the dehumidifier to drying mode.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Living_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Living",
+        "DoorLock"
+      ]
+    },
+    "Bedroom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Bedroom",
+        "DoorLock"
+      ]
+    },
+    "Living_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Living",
+        "Dehumidifier"
+      ]
+    },
+    "Bedroom_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\" and DoorLock.DoorLockState == \"open\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "internalCare"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.7
+}

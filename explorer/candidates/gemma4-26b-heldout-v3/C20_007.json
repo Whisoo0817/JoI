@@ -1,0 +1,93 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif ((#ContactSensor #Kitchen).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#ContactSensor #Kitchen).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#ContactSensor #Kitchen)"
+    ],
+    "Switch.On": [
+      "(#Fan)"
+    ]
+  },
+  "command_kor": "부엌 문이 10분 이상 열려있으면 부엌 환기팬 플러그를 켜줘.",
+  "command_eng": "If the kitchen door stays open for at least 10 minutes, turn on the kitchen ventilation fan plug.",
+  "connected_devices": {
+    "Kitchen_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "FrontContactSensor_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Kitchen_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.7
+}

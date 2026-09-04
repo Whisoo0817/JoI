@@ -1,0 +1,104 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#Sector1 #TemperatureSensor).temperatureSensor_temperature >= 35) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\"cool\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#Sector1 #TemperatureSensor).temperatureSensor_temperature >= 35) {\nall(#AirConditioner #Sector1).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "all(#Sector1 #TemperatureSensor)"
+    ],
+    "AirConditioner.SetTargetTemperature": [
+      "all(#AirConditioner #Sector1)"
+    ]
+  },
+  "command_kor": "구역1에 있는 모든 온도 센서의 값이 모두 35도 이상이면, 구역1의 모든 에어컨을 냉방 모드로 설정해줘.",
+  "command_eng": "If all temperature sensors in sector 1 read 35 degrees or higher, set all air conditioners in sector 1 to cool mode.",
+  "connected_devices": {
+    "S1_Temp_1": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Sector1",
+        "TemperatureSensor"
+      ]
+    },
+    "S1_Temp_2": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Sector1",
+        "TemperatureSensor"
+      ]
+    },
+    "S2_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Sector2",
+        "TemperatureSensor"
+      ]
+    },
+    "S1_AC_1": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Sector1",
+        "AirConditioner"
+      ]
+    },
+    "S1_AC_2": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Sector1",
+        "AirConditioner"
+      ]
+    },
+    "S2_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Sector2",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 35",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "cool"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.2
+}

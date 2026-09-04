@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 10000,
+    "script": "n := 0\nif (n >= 6) {\nbreak\n}\nall(#Siren).siren_setSirenMode(\"emergency\")\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 10000,\n  \"script\": \"n := 0\nif (n >= 6) {\nbreak\n}\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\\nn = n + 1\"\n}",
+  "precision": {
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ]
+  },
+  "command_kor": "10초마다 사이렌을 emergency 모드로 울려줘. 6번만.",
+  "command_eng": "Every 10 seconds, sound the siren in emergency mode. Stop after 6 bursts.",
+  "connected_devices": {
+    "Basement_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Basement",
+        "LeakSensor"
+      ]
+    },
+    "Kitchen_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "LeakSensor"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 6",
+        "period": "10 SEC",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.8
+}

@@ -1,0 +1,90 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '그만해': 해당하는 연결 디바이스 없음",
+  "command_kor": "움직임이 감지될 때마다 조명의 밝기를 10씩 높여줘. 최대 밝기가 되면 그만해.",
+  "command_eng": "Whenever motion is detected, increase the light brightness by 10. If it reaches max, stop it.",
+  "connected_devices": {
+    "Entrance_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Living_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Living",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "LevelControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": "min($Light.CurrentBrightness + 10, 100)",
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "if",
+            "cond": "Light.CurrentBrightness >= 100",
+            "then": [
+              {
+                "op": "break"
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.9
+}

@@ -1,0 +1,58 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '서재 공기청정기' 는 '강풍으로 틀고' 를 수행할 수 없음",
+  "command_kor": "서재 공기청정기를 강풍으로 틀고 2시간 뒤에 꺼줘.",
+  "command_eng": "Set the study air purifier to high and turn it off after 2 hours.",
+  "connected_devices": {
+    "Study_AP": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Study",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AirPurifier.SetAirPurifierMode",
+        "args": {
+          "Mode": "high"
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "2 HOUR"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 3.4
+}

@@ -1,0 +1,82 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 6 * * 1,3",
+    "period": 0,
+    "script": "Weather = all(#WeatherProvider).weatherProvider_weather\nall(#Speaker).speaker_speak(\"Today's weather is \" + Weather)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 6 * * 1,3\",\n  \"period\": 0,\n  \"script\": \"Weather = all(#WeatherProvider).weatherProvider_weather\nall(#Speaker).speaker_speak(\\\"Today's weather is \\\" + Weather)\"\n}",
+  "precision": {
+    "WeatherProvider.GetWeatherInfo": [
+      "all(#WeatherProvider)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "월요일과 수요일 오전 6시에 날씨 정보를 스피커로 알려줘.",
+  "command_eng": "At 6 AM on Mondays and Wednesdays, announce the weather information through the speaker.",
+  "connected_devices": {
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    },
+    "Main_Weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Main",
+        "WeatherProvider"
+      ]
+    },
+    "Outdoor_Weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Outdoor",
+        "WeatherProvider"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 6 * * 1,3"
+      },
+      {
+        "op": "read",
+        "var": "Weather",
+        "src": "WeatherProvider.Weather"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Today's weather is $Weather"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.5
+}

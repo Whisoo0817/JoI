@@ -1,0 +1,131 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#TemperatureSensor).temperatureSensor_temperature >= 15 and (#HumiditySensor #WineCellar).humiditySensor_humidity >= 60) {\nall(#AirConditioner).switch_on()\nall(#Humidifier).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#TemperatureSensor).temperatureSensor_temperature >= 15 and (#HumiditySensor #WineCellar).humiditySensor_humidity >= 60) {\nall(#AirConditioner).switch_on()\nall(#Humidifier).switch_off()\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#HumiditySensor #WineCellar)"
+    ],
+    "Switch.On": [
+      "all(#AirConditioner)"
+    ],
+    "Switch.Off": [
+      "all(#Humidifier)"
+    ]
+  },
+  "command_kor": "와인 셀러 온도가 15도 이상이고 습도가 60% 이상이면, 에어컨을 켜고 가습기를 꺼줘.",
+  "command_eng": "If the wine cellar temperature is 15 degrees or higher and humidity is 60% or higher, turn on the air conditioner and turn off the humidifier.",
+  "connected_devices": {
+    "WineCellar_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "WineCellar",
+        "TemperatureSensor"
+      ]
+    },
+    "Basement_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Basement",
+        "TemperatureSensor"
+      ]
+    },
+    "WineCellar_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "WineCellar",
+        "HumiditySensor"
+      ]
+    },
+    "Basement_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Basement",
+        "HumiditySensor"
+      ]
+    },
+    "AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "WineCellar_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Humidifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Humidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 15 and HumiditySensor.Humidity >= 60",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 10.2
+}

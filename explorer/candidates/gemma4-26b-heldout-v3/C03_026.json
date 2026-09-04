@@ -1,0 +1,108 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LightSensor #LivingRoom).lightSensor_brightness < 50) {\n(#Light #LivingRoom).light_moveToBrightness(100.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LightSensor #LivingRoom).lightSensor_brightness < 50) {\n(#Light #LivingRoom).light_moveToBrightness(100.0, 0.0)\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "(#LightSensor #LivingRoom)"
+    ],
+    "Switch.On": [
+      "(#Light #LivingRoom)"
+    ]
+  },
+  "command_kor": "거실 조도가 50 럭스 미만이면, 거실 조명을 켜줘.",
+  "command_eng": "If the living room illuminance is below 50 lux, turn on the living room light.",
+  "connected_devices": {
+    "LR_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "LightSensor"
+      ]
+    },
+    "Bedroom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "LightSensor"
+      ]
+    },
+    "Office_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Office",
+        "LightSensor"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Office_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LightSensor.Brightness < 50",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.4
+}

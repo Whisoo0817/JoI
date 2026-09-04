@@ -1,0 +1,56 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '스피커 볼륨' 는 '40으로 높여줘' 를 수행할 수 없음",
+  "command_kor": "스피커 볼륨을 20으로 설정하고 10분 뒤에 40으로 높여줘.",
+  "command_eng": "Set the speaker volume to 20 and increase it to 40 after 10 minutes.",
+  "connected_devices": {
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.SetVolume",
+        "args": {
+          "Volume": 20
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.SetVolume",
+        "args": {
+          "Volume": 40
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.0
+}

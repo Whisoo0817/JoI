@@ -1,0 +1,93 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Entrance).motionSensor_motion == true or (#Balcony).motionSensor_motion == true) {\n(#LivingRoom).speaker_speak(\"Motion is detected at the entrance or motion is detected on the balcony\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Entrance).motionSensor_motion == true or (#Balcony).motionSensor_motion == true) {\n(#LivingRoom).speaker_speak(\\\"Motion is detected at the entrance or motion is detected on the balcony\\\")\\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#Entrance)",
+      "(#Balcony)"
+    ],
+    "Speaker.Speak": [
+      "(#LivingRoom)"
+    ]
+  },
+  "command_kor": "현관 움직임이 감지되거나 베란다 움직임이 감지되면 거실 스피커로 알려줘.",
+  "command_eng": "If motion is detected at the entrance or motion is detected on the balcony, announce through the living room speaker.",
+  "connected_devices": {
+    "Entrance_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Balcony_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Balcony",
+        "MotionSensor"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == true or MotionSensor.Motion == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Motion is detected at the entrance or motion is detected on the balcony"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.2
+}

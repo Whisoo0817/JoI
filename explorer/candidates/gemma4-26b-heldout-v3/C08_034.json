@@ -1,0 +1,86 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '비가 올때마다': 해당하는 연결 디바이스 없음; '창문' 는 '닫고' 를 수행할 수 없음",
+  "command_kor": "비가 올때마다, 모든 창문을 닫고 모든 문을 잠가줘",
+  "command_eng": "Whenever it rains, close all windows and lock all doors.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Win_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Win_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "DoorLock_1": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "DoorLock"
+      ]
+    },
+    "DoorLock_2": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WeatherProvider.Weather == \"rain\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.6
+}

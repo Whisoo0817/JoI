@@ -1,0 +1,78 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "n := 0\nif (n % 2 == 0) {\n(#LivingRoom).airPurifier_setAirPurifierMode(\"sleep\")\n}\nelse {\n(#LivingRoom).airPurifier_setAirPurifierMode(\"auto\")\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"n := 0\nif (n % 2 == 0) {\n(#LivingRoom).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\n}\\nelse {\\n(#LivingRoom).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n}\\nn = n + 1\"\n}",
+  "precision": {
+    "AirPurifier.SetAirPurifierMode": [
+      "(#LivingRoom)"
+    ]
+  },
+  "command_kor": "30분마다 거실 공기청정기를 수면모드와 자동모드 사이에서 전환해줘.",
+  "command_eng": "Every 30 minutes, toggle the living room air purifier between sleep mode and auto mode.",
+  "connected_devices": {
+    "LivingRoom_AirPurifier": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AirPurifier": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "if",
+            "cond": "n % 2 == 0",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirPurifier.SetAirPurifierMode",
+                "args": {
+                  "Mode": "sleep"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "AirPurifier.SetAirPurifierMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.2
+}

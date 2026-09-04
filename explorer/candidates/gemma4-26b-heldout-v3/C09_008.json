@@ -1,0 +1,67 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\ndelay(30 MIN)\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"manual\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\ndelay(30 MIN)\\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"manual\\\")\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "all(#RobotVacuumCleaner)",
+      "all(#RobotVacuumCleaner)"
+    ]
+  },
+  "command_kor": "로봇 청소기를 자동 모드로 시작하고 30분 뒤에 수동 모드로 바꿔줘.",
+  "command_eng": "Start the robot vacuum cleaner in auto mode and switch to manual mode after 30 minutes.",
+  "connected_devices": {
+    "LivingRoom_RobotVacuumCleaner": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "LivingRoom",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Kitchen_RobotVacuumCleaner": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Kitchen",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+        "args": {
+          "Mode": "auto"
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "30 MIN"
+      },
+      {
+        "op": "call",
+        "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+        "args": {
+          "Mode": "manual"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.5
+}

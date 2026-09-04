@@ -1,0 +1,88 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nhold_ticks := 0\nif ((#WeatherProvider).weatherProvider_humidityWeather == \"rain\")) {\nif (triggered == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 18000) {\nif (all(#Window).windowCovering_currentPosition !=| 0) {\nall(#Window).windowCovering_downOrClose()\n}\ntriggered = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    triggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nhold_ticks := 0\nif ((#WeatherProvider).weatherProvider_humidityWeather == \\\"rain\\\")) {\\nif (triggered == false) {\\nhold_ticks = hold_ticks + 1\\n        if (hold_ticks >= 18000) {\\nif (all(#Window).windowCovering_currentPosition !=| 0) {\\nall(#Window).windowCovering_downOrClose()\\n}\\ntriggered = true\\n}\\n}\\n}\\nelse {\\nhold_ticks = 0\\n    triggered = false\\n}\"\n}",
+  "precision": {
+    "WeatherProvider.HumidityWeather": [
+      "(#WeatherProvider)"
+    ],
+    "WindowCovering.WindowCoveringType": [
+      "any(#Window)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "all(#Window)"
+    ]
+  },
+  "command_kor": "비가 오기 시작할 때마다, 3분 안에 창문이 닫히지 않으면 닫아줘.",
+  "command_eng": "Whenever it starts raining, if the window is not closed within 3 minutes, close it.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Living_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WeatherProvider.Weather == \"rain\"",
+            "edge": "rising"
+          },
+          {
+            "op": "wait",
+            "cond": "WindowCovering.CurrentPosition == 0",
+            "timeout": "3 MIN",
+            "on_timeout": [
+              {
+                "op": "call",
+                "target": "WindowCovering.DownOrClose",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.4
+}

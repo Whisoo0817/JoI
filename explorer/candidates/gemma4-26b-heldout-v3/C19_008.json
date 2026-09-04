@@ -1,0 +1,116 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#Bathroom #HumiditySensor).humiditySensor_humidity >= 75) {\n(#Fan).switch_on()\n}\nelse {\nif ((#Bathroom #HumiditySensor).humiditySensor_humidity <= 55) {\n(#Fan).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#Bathroom #HumiditySensor).humiditySensor_humidity >= 75) {\n(#Fan).switch_on()\n}\nelse {\nif ((#Bathroom #HumiditySensor).humiditySensor_humidity <= 55) {\n(#Fan).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#Bathroom #HumiditySensor)",
+      "(#Bathroom #HumiditySensor)"
+    ],
+    "Switch.On": [
+      "(#Fan)"
+    ],
+    "Switch.Off": [
+      "(#Fan)"
+    ]
+  },
+  "command_kor": "1초마다 욕실 습도가 75% 이상이면 욕실 환기팬 플러그를 켜고, 그렇지 않고 55% 이하이면 꺼줘.",
+  "command_eng": "Every 1 second, if the bathroom humidity is at least 75%, turn on the bathroom ventilation fan plug; otherwise if it is 55% or below, turn off the bathroom ventilation fan plug.",
+  "connected_devices": {
+    "Bathroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bathroom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Bathroom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity >= 75",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "HumiditySensor.Humidity <= 55",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 11.1
+}
