@@ -1,0 +1,76 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "멀티버튼의 버튼2가 눌릴 때마다 복도 조명 밝기를 10씩 낮춰줘. 최소 0까지.",
+  "command_eng": "Each time button 2 of the multi-button is pressed, decrease the hallway light brightness by 10, down to a minimum of 0.",
+  "connected_devices": {
+    "Hall_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Hallway",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MultiButton.Button2 == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": "max($Light.CurrentBrightness - 10, 0)",
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.5
+}

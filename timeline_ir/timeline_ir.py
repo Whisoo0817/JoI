@@ -363,13 +363,15 @@ def _scan_expr(src: Any, valid: set, out: list, path: str) -> None:
 
 def validate_ir_against_catalog(ir: Any, catalog: dict) -> None:
     """Raise IRValidationError if any `Service.Member` in the IR is not a real
-    function/value of that catalog service, OR if any call.args key is not
-    declared by the catalog function's argument list.
+    function/value of that catalog service, if call argument names differ
+    from the declared signature, or if a VOID call assigns a return value.
 
     Produces structured violations with codes:
       - service_not_in_catalog
       - member_not_in_service       (with did_you_mean hint when possible)
       - arg_not_in_catalog          (with valid_args hint)
+      - missing_required_arg        (all declared arguments are required)
+      - void_return_assignment
     """
     if not isinstance(ir, dict) or "timeline" not in ir or "error" in ir:
         return
@@ -390,7 +392,7 @@ def validate_ir_against_catalog(ir: Any, catalog: dict) -> None:
     )
     if violations:
         raise IRValidationError(
-            "IR references service.member pairs not in catalog: "
+            "IR violates service catalog contract: "
             + "; ".join(v.message for v in violations),
             violations=violations,
         )
@@ -406,7 +408,16 @@ def _check_steps_catalog(steps: list, catalog: dict,
         if op == "call":
             target = s.get("target", "")
             _check_pair(target, catalog, member_to_services, out, f"{sp}.target",
-                        expect_function=True, args=s.get("args"))
+                        expect_function=True, args=s.get("args") or {})
+            if isinstance(target, str) and "." in target:
+                svc, member = target.split(".", 1)
+                return_type = (catalog.get(svc) or {}).get("return_types", {}).get(member)
+                if s.get("var") is not None and return_type == "VOID":
+                    out.append(IRViolation(
+                        code="void_return_assignment", path=f"{sp}.var",
+                        message=f"{sp}.var: {target!r} returns VOID; remove its return binding",
+                        hint={"target": target, "var": s["var"]},
+                    ))
         elif op == "read":
             _scan_expr_catalog(s.get("src", ""), catalog, member_to_services, out, f"{sp}.src")
         elif op == "wait":
@@ -456,6 +467,13 @@ def _check_pair(target: Any, catalog: dict, member_to_services: dict,
     if expect_function and member in funcs and isinstance(args, dict):
         fn_arg_order = funcs[member]  # list of declared arg ids
         valid_keys = set(fn_arg_order) if isinstance(fn_arg_order, list) else set()
+        for k in sorted(valid_keys - args.keys()):
+            out.append(IRViolation(
+                code="missing_required_arg", path=path,
+                message=f"{path}: required arg {k!r} missing for {target!r}",
+                hint={"target": target, "missing_arg": k,
+                      "required_args": sorted(valid_keys)},
+            ))
         for k in args.keys():
             if k not in valid_keys:
                 out.append(IRViolation(

@@ -1,0 +1,929 @@
+{
+  "semantics": "contract-v1",
+  "manifest_sha256": "2cade16536404121d527cd8713bf0c7f95497862ccbd5c91445f79f80ce8100b",
+  "evaluator_sha256": "6742008b73e0dbf4475b95386766534084a66f227667ce49a9f71031195dc946",
+  "cases": [
+    {
+      "id": "named_argument_order",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {},
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "input_domain_basis": "catalog domains with certified predicate representatives/exact observable values",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221",
+        "members": {
+          "Light.MoveToColor:function": {
+            "id": "MoveToColor",
+            "descriptor": "Move to the specified CIE 1931 XY color coordinates over a given transition time",
+            "arguments": [
+              {
+                "id": "ColorX",
+                "descriptor": "Target CIE 1931 X chromaticity coordinate (0.0-1.0)",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "id": "ColorY",
+                "descriptor": "Target CIE 1931 Y chromaticity coordinate (0.0-1.0)",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "id": "TransitionTime",
+                "descriptor": "Transition time in seconds",
+                "type": "DOUBLE",
+                "unit": "s"
+              }
+            ],
+            "return_type": "VOID",
+            "examples": [
+              "Red:    MoveToColor(ColorX=0.67, ColorY=0.32, TransitionTime=0.0)",
+              "Green:  MoveToColor(ColorX=0.40, ColorY=0.50, TransitionTime=0.0)",
+              "Blue:   MoveToColor(ColorX=0.15, ColorY=0.06, TransitionTime=0.0)",
+              "White:  MoveToColor(ColorX=0.33, ColorY=0.33, TransitionTime=0.0)",
+              "Yellow: MoveToColor(ColorX=0.43, ColorY=0.50, TransitionTime=0.0)",
+              "Purple: MoveToColor(ColorX=0.27, ColorY=0.13, TransitionTime=0.0)"
+            ],
+            "service": "Light",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "missing/None included; catalog does not generally declare nullable",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "EQUIV_BOUNDED",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 1,
+        "seconds": 0.00018277578055858612,
+        "divergence_ms": null,
+        "actions_a": [],
+        "actions_b": [],
+        "path": [],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 0,
+        "n_steps": 2,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.0001653260551393032,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "valid_argument_order_mutation",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {},
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "input_domain_basis": "catalog domains with certified predicate representatives/exact observable values",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221",
+        "members": {
+          "Light.MoveToColor:function": {
+            "id": "MoveToColor",
+            "descriptor": "Move to the specified CIE 1931 XY color coordinates over a given transition time",
+            "arguments": [
+              {
+                "id": "ColorX",
+                "descriptor": "Target CIE 1931 X chromaticity coordinate (0.0-1.0)",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "id": "ColorY",
+                "descriptor": "Target CIE 1931 Y chromaticity coordinate (0.0-1.0)",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  1
+                ]
+              },
+              {
+                "id": "TransitionTime",
+                "descriptor": "Transition time in seconds",
+                "type": "DOUBLE",
+                "unit": "s"
+              }
+            ],
+            "return_type": "VOID",
+            "examples": [
+              "Red:    MoveToColor(ColorX=0.67, ColorY=0.32, TransitionTime=0.0)",
+              "Green:  MoveToColor(ColorX=0.40, ColorY=0.50, TransitionTime=0.0)",
+              "Blue:   MoveToColor(ColorX=0.15, ColorY=0.06, TransitionTime=0.0)",
+              "White:  MoveToColor(ColorX=0.33, ColorY=0.33, TransitionTime=0.0)",
+              "Yellow: MoveToColor(ColorX=0.43, ColorY=0.50, TransitionTime=0.0)",
+              "Purple: MoveToColor(ColorX=0.27, ColorY=0.13, TransitionTime=0.0)"
+            ],
+            "service": "Light",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "missing/None included; catalog does not generally declare nullable",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 1,
+        "seconds": 0.00012164702638983727,
+        "divergence_ms": 0,
+        "actions_a": [
+          [
+            [
+              "light",
+              "movetocolor",
+              [
+                "tuple",
+                [
+                  [
+                    "number",
+                    0.1
+                  ],
+                  [
+                    "number",
+                    0.2
+                  ],
+                  [
+                    "number",
+                    3
+                  ]
+                ]
+              ],
+              [
+                "light"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [
+          [
+            [
+              "light",
+              "movetocolor",
+              [
+                "tuple",
+                [
+                  [
+                    "number",
+                    0.2
+                  ],
+                  [
+                    "number",
+                    0.1
+                  ],
+                  [
+                    "number",
+                    3
+                  ]
+                ]
+              ],
+              [
+                "light"
+              ]
+            ]
+          ]
+        ],
+        "path": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 0,
+        "n_steps": 2,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {},
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "light",
+                  "movetocolor",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "number",
+                        0.1
+                      ],
+                      [
+                        "number",
+                        0.2
+                      ],
+                      [
+                        "number",
+                        3
+                      ]
+                    ]
+                  ],
+                  [
+                    "light"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "light",
+                  "movetocolor",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "number",
+                        0.2
+                      ],
+                      [
+                        "number",
+                        0.1
+                      ],
+                      [
+                        "number",
+                        3
+                      ]
+                    ]
+                  ],
+                  [
+                    "light"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00015578977763652802,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "light",
+                "movetocolor",
+                [
+                  "tuple",
+                  [
+                    [
+                      "number",
+                      0.1
+                    ],
+                    [
+                      "number",
+                      0.2
+                    ],
+                    [
+                      "number",
+                      3
+                    ]
+                  ]
+                ],
+                [
+                  "light"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "light",
+                "movetocolor",
+                [
+                  "tuple",
+                  [
+                    [
+                      "number",
+                      0.2
+                    ],
+                    [
+                      "number",
+                      0.1
+                    ],
+                    [
+                      "number",
+                      3
+                    ]
+                  ]
+                ],
+                [
+                  "light"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "forecast_string_mutation",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "weather.forecast(3)": [
+            null,
+            "rain",
+            "clear"
+          ]
+        },
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "input_domain_basis": "catalog domains with certified predicate representatives/exact observable values",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221",
+        "members": {
+          "WeatherProvider.Forecast:function": {
+            "id": "Forecast",
+            "descriptor": "Get the forecasted weather condition N hours from now, returned as a WeatherEnum value name string (e.g. \"rain\", \"clouds\", \"clear\") so a scenario can warn about rain before it starts",
+            "arguments": [
+              {
+                "id": "Hour",
+                "descriptor": "Number of hours from now to forecast (0 = current conditions)",
+                "type": "INTEGER",
+                "bound": [
+                  0,
+                  120
+                ],
+                "unit": "h"
+              }
+            ],
+            "return_type": {
+              "type": "STRING"
+            },
+            "service": "WeatherProvider",
+            "kind": "function",
+            "return_spec": {
+              "type": "STRING",
+              "members": [
+                "thunderstorm",
+                "drizzle",
+                "rain",
+                "snow",
+                "mist",
+                "smoke",
+                "haze",
+                "dust",
+                "fog",
+                "sand",
+                "ash",
+                "squall",
+                "tornado",
+                "clear",
+                "clouds"
+              ],
+              "domain_basis": "descriptor: WeatherEnum value names"
+            }
+          },
+          "Switch.On:function": {
+            "id": "On",
+            "descriptor": "Turn a Switch on",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "missing/None included; catalog does not generally declare nullable",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 2,
+        "seconds": 0.0001627262681722641,
+        "divergence_ms": 0,
+        "actions_a": [
+          [
+            [
+              "switch",
+              "on",
+              [
+                "tuple",
+                []
+              ],
+              [
+                "lamp"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [],
+        "path": [
+          [
+            0,
+            {
+              "weather.forecast(3)": "rain"
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 0,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "weather.forecast(3)": "rain"
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "switch",
+                  "on",
+                  [
+                    "tuple",
+                    []
+                  ],
+                  [
+                    "lamp"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00022874725982546806,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "switch",
+                "on",
+                [
+                  "tuple",
+                  []
+                ],
+                [
+                  "lamp"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "integer_boundary_mutation",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "speaker.volume": [
+            null,
+            31,
+            32
+          ]
+        },
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "input_domain_basis": "catalog domains with certified predicate representatives/exact observable values",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221",
+        "members": {
+          "Speaker.Volume:value": {
+            "id": "Volume",
+            "descriptor": "Current volume level",
+            "type": "INTEGER",
+            "bound": [
+              0,
+              100
+            ],
+            "unit": "%",
+            "service": "Speaker",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.On:function": {
+            "id": "On",
+            "descriptor": "Turn a Switch on",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "missing/None included; catalog does not generally declare nullable",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 2,
+        "seconds": 0.00013564666733145714,
+        "divergence_ms": 0,
+        "actions_a": [
+          [
+            [
+              "switch",
+              "on",
+              [
+                "tuple",
+                []
+              ],
+              [
+                "lamp"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [],
+        "path": [
+          [
+            0,
+            {
+              "speaker.volume": 31
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 0,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "speaker.volume": 31
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "switch",
+                  "on",
+                  [
+                    "tuple",
+                    []
+                  ],
+                  [
+                    "lamp"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00017133913934230804,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "switch",
+                "on",
+                [
+                  "tuple",
+                  []
+                ],
+                [
+                  "lamp"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "bool_state_condition",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "lamp.switch": [
+            null,
+            true
+          ]
+        },
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "input_domain_basis": "catalog domains with certified predicate representatives/exact observable values",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221",
+        "members": {
+          "Switch.Switch:value": {
+            "id": "Switch",
+            "descriptor": "The state of the Switch device",
+            "type": "BOOL",
+            "service": "Switch",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "missing/None included; catalog does not generally declare nullable",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "EQUIV_BOUNDED",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 2,
+        "seconds": 0.00011259503662586212,
+        "divergence_ms": null,
+        "actions_a": [],
+        "actions_b": [],
+        "path": [],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 0,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.0001580147072672844,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "enum_wait_exact_delay",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "weather.weather": [
+            null,
+            "rain"
+          ]
+        },
+        "horizon_ms": 300,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "input_domain_basis": "catalog domains with certified predicate representatives/exact observable values",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221",
+        "members": {
+          "WeatherProvider.Weather:value": {
+            "id": "Weather",
+            "descriptor": "Current weather condition",
+            "type": "ENUM",
+            "format": "WeatherEnum",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "members": [
+              "thunderstorm",
+              "drizzle",
+              "rain",
+              "snow",
+              "mist",
+              "smoke",
+              "haze",
+              "dust",
+              "fog",
+              "sand",
+              "ash",
+              "squall",
+              "tornado",
+              "clear",
+              "clouds"
+            ],
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.On:function": {
+            "id": "On",
+            "descriptor": "Turn a Switch on",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "missing/None included; catalog does not generally declare nullable",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "EQUIV_BOUNDED",
+        "horizon_ms": 300,
+        "input_step_ms": 100,
+        "n_states": 804,
+        "n_transitions": 808,
+        "seconds": 0.03467714600265026,
+        "divergence_ms": null,
+        "actions_a": [],
+        "actions_b": [],
+        "path": [],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 14,
+        "n_steps": 36,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.0009516086429357529,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 300,
+        "input_step_ms": 100,
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "returning_effect_refused",
+      "status": "AGREE",
+      "reason": "return-assigned/effectful or unreviewed function cannot be a silent input: ('Switch', 'Toggle')",
+      "refused": true
+    },
+    {
+      "id": "invalid_forecast_hour_refused",
+      "status": "AGREE",
+      "reason": "catalog bound mismatch: ('WeatherProvider', 'Forecast').Hour got 121, bound=[0, 120]",
+      "refused": true
+    }
+  ]
+}

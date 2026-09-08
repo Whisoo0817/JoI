@@ -1,0 +1,3820 @@
+{
+  "semantics": "contract-v1",
+  "manifest_sha256": "44db458872ab87704affb41af8138e29ffd5b5cf5fadf9f5a479bdd8a9c9b97a",
+  "evaluator_sha256": "56d78a47a7ebb6f8c8d40b132172c8a6f9141534d44a91a860406985c988f799",
+  "cases": [
+    {
+      "id": "SMT_AVERAGE_3_EQUAL",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 53,
+        "n_steps": 106,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.12258384376764297,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather1.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather2.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather2.temperatureweather:0| 0))",
+                "(= |kind_27:Weather2.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 0,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [],
+          "both_terminated": true,
+          "complete": true,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "SMT_AVERAGE_WRONG_DIVISOR",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 35,
+        "n_steps": 42,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "Weather0.temperatureweather": 1,
+              "Weather1.temperatureweather": 0,
+              "Weather2.temperatureweather": 0
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "avg=0.3333333333333333"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "avg=0.3333333333333333"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "avg=0.5"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "avg=0.5"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 1.0568007831461728,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather1.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather2.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 0,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [
+            {
+              "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun mod!0 () Int)\n(declare-fun |n_27:Weather1.temperatureweather:0| () Int)\n(declare-fun |n_27:Weather2.temperatureweather:0| () Int)\n(declare-fun python_float_str ((_ BitVec 64)) String)\n(assert\n (>= mod!0 (- 470)))\n(assert\n (<= mod!0 10000))\n(assert\n (>= |n_27:Weather1.temperatureweather:0| (- 4700)))\n(assert\n (<= |n_27:Weather1.temperatureweather:0| 100000))\n(assert\n (>= |n_27:Weather2.temperatureweather:0| (- 4700)))\n(assert\n (<= |n_27:Weather2.temperatureweather:0| 100000))\n(assert\n (let ((?x141 (fp.to_ieee_bv ((_ to_fp 11 53) roundNearestTiesToEven (* (/ 1.0 2.0) (to_real mod!0))))))\n(let ((?x137 (fp.to_ieee_bv ((_ to_fp 11 53) roundNearestTiesToEven (* (/ 1.0 3.0) (to_real mod!0))))))\n(not (= (python_float_str ?x137) (python_float_str ?x141))))))\n(check-sat)\n",
+              "result": "unknown",
+              "seconds": 1.033399824053049
+            }
+          ],
+          "both_terminated": true,
+          "counterexample_basis": "concrete replay after SMT resource exhaustion; never sampled EQUIV",
+          "complete": false,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "avg=0.3333333333333333"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "avg=0.3333333333333333"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "avg=0.5"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "avg=0.5"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "SMT_AVERAGE_WRONG_SOURCE",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 35,
+        "n_steps": 42,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "Weather0.temperatureweather": 1,
+              "Weather1.temperatureweather": 0,
+              "Weather2.temperatureweather": 0
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "avg=0.3333333333333333"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "avg=0.3333333333333333"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "avg=0.6666666666666666"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "avg=0.6666666666666666"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 1.0620670090429485,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather1.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather2.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(= |kind_27:Weather2.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 0,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [
+            {
+              "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun mod!15 () Int)\n(declare-fun |n_27:Weather1.temperatureweather:0| () Int)\n(declare-fun |n_27:Weather2.temperatureweather:0| () Int)\n(declare-fun python_float_str ((_ BitVec 64)) String)\n(assert\n (>= mod!15 (- 470)))\n(assert\n (<= mod!15 10000))\n(assert\n (>= |n_27:Weather1.temperatureweather:0| (- 4700)))\n(assert\n (<= |n_27:Weather1.temperatureweather:0| 100000))\n(assert\n (>= |n_27:Weather2.temperatureweather:0| (- 4700)))\n(assert\n (<= |n_27:Weather2.temperatureweather:0| 100000))\n(assert\n (let ((?x21323 (fp.to_ieee_bv ((_ to_fp 11 53) roundNearestTiesToEven (* (/ 2.0 3.0) (to_real mod!15))))))\n(let ((?x10647 (fp.to_ieee_bv ((_ to_fp 11 53) roundNearestTiesToEven (* (/ 1.0 3.0) (to_real mod!15))))))\n(not (= (python_float_str ?x10647) (python_float_str ?x21323))))))\n(check-sat)\n",
+              "result": "unknown",
+              "seconds": 1.0397566799074411
+            }
+          ],
+          "both_terminated": true,
+          "counterexample_basis": "concrete replay after SMT resource exhaustion; never sampled EQUIV",
+          "complete": false,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "avg=0.3333333333333333"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "avg=0.3333333333333333"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "avg=0.6666666666666666"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "avg=0.6666666666666666"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "SMT_JOINT_GUARD_EQUAL",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 33,
+        "n_steps": 66,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.06391657935455441,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather1.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (not (<= (div |n_27:Weather0.temperatureweather:0| 10) 40)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (<= (div |n_27:Weather0.temperatureweather:0| 10) 40))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(let ((a!1 (ite (and (= |n_27:Weather0.temperatureweather:0| 0)\n                     |negzero_27:Weather0.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather0.temperatureweather:0|))))))\n(let ((a!2 (not (<= (fp.to_real (fp.add roundNearestTiesToEven\n                                        a!1\n                                        (_ +zero 11 53)))\n                    40.0))))\n  (not a!2)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(let ((a!1 (ite (and (= |n_27:Weather0.temperatureweather:0| 0)\n                     |negzero_27:Weather0.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather0.temperatureweather:0|))))))\n  (not (<= (fp.to_real (fp.add roundNearestTiesToEven a!1 (_ +zero 11 53)))\n           40.0)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (not (<= (div |n_27:Weather1.temperatureweather:0| 10) 40)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (<= (div |n_27:Weather1.temperatureweather:0| 10) 40))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(let ((a!1 (ite (and (= |n_27:Weather1.temperatureweather:0| 0)\n                     |negzero_27:Weather1.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather1.temperatureweather:0|))))))\n(let ((a!2 (not (<= (fp.to_real (fp.add roundNearestTiesToEven\n                                        (_ +zero 11 53)\n                                        a!1))\n                    40.0))))\n  (not a!2)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(let ((a!1 (ite (and (= |n_27:Weather1.temperatureweather:0| 0)\n                     |negzero_27:Weather1.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather1.temperatureweather:0|))))))\n  (not (<= (fp.to_real (fp.add roundNearestTiesToEven (_ +zero 11 53) a!1))\n           40.0)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(let ((a!1 (not (<= (+ (div |n_27:Weather0.temperatureweather:0| 10)\n                       (div |n_27:Weather1.temperatureweather:0| 10))\n                    40))))\n  (not a!1))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (<= (+ (div |n_27:Weather0.temperatureweather:0| 10)\n            (div |n_27:Weather1.temperatureweather:0| 10))\n         40))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(let ((a!1 (ite (and (= |n_27:Weather1.temperatureweather:0| 0)\n                     |negzero_27:Weather1.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather1.temperatureweather:0|))))))\n(let ((a!2 (fp.add roundNearestTiesToEven\n                   ((_ to_fp 11 53)\n                     roundNearestTiesToEven\n                     (to_real (div |n_27:Weather0.temperatureweather:0| 10)))\n                   a!1)))\n  (not (not (<= (fp.to_real a!2) 40.0)))))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(let ((a!1 (ite (and (= |n_27:Weather1.temperatureweather:0| 0)\n                     |negzero_27:Weather1.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather1.temperatureweather:0|))))))\n(let ((a!2 (fp.add roundNearestTiesToEven\n                   ((_ to_fp 11 53)\n                     roundNearestTiesToEven\n                     (to_real (div |n_27:Weather0.temperatureweather:0| 10)))\n                   a!1)))\n  (not (<= (fp.to_real a!2) 40.0))))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(let ((a!1 (ite (and (= |n_27:Weather0.temperatureweather:0| 0)\n                     |negzero_27:Weather0.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather0.temperatureweather:0|))))))\n(let ((a!2 (fp.add roundNearestTiesToEven\n                   a!1\n                   ((_ to_fp 11 53)\n                     roundNearestTiesToEven\n                     (to_real (div |n_27:Weather1.temperatureweather:0| 10))))))\n  (not (not (<= (fp.to_real a!2) 40.0)))))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(let ((a!1 (ite (and (= |n_27:Weather0.temperatureweather:0| 0)\n                     |negzero_27:Weather0.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather0.temperatureweather:0|))))))\n(let ((a!2 (fp.add roundNearestTiesToEven\n                   a!1\n                   ((_ to_fp 11 53)\n                     roundNearestTiesToEven\n                     (to_real (div |n_27:Weather1.temperatureweather:0| 10))))))\n  (not (<= (fp.to_real a!2) 40.0))))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(let ((a!1 (ite (and (= |n_27:Weather0.temperatureweather:0| 0)\n                     |negzero_27:Weather0.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather0.temperatureweather:0|)))))\n      (a!2 (ite (and (= |n_27:Weather1.temperatureweather:0| 0)\n                     |negzero_27:Weather1.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather1.temperatureweather:0|))))))\n(let ((a!3 (not (<= (fp.to_real (fp.add roundNearestTiesToEven a!1 a!2)) 40.0))))\n  (not a!3)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(= |kind_27:Weather1.temperatureweather:0| 2)",
+                "(let ((a!1 (ite (and (= |n_27:Weather0.temperatureweather:0| 0)\n                     |negzero_27:Weather0.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather0.temperatureweather:0|)))))\n      (a!2 (ite (and (= |n_27:Weather1.temperatureweather:0| 0)\n                     |negzero_27:Weather1.temperatureweather:0|)\n                (_ -zero 11 53)\n                ((_ to_fp 11 53)\n                  roundNearestTiesToEven\n                  (* (/ 1.0 10.0)\n                     (to_real |n_27:Weather1.temperatureweather:0|))))))\n  (not (<= (fp.to_real (fp.add roundNearestTiesToEven a!1 a!2)) 40.0)))"
+              ],
+              "mismatch": "false"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 0,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [],
+          "both_terminated": true,
+          "complete": true,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "SMT_JOINT_GUARD_MISSING_OPERAND",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 37,
+        "n_steps": 48,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "Weather0.temperatureweather": null,
+              "Weather1.temperatureweather": 41
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "on"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "on"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.0337865361943841,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather1.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (not (<= (div |n_27:Weather0.temperatureweather:0| 10) 40)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (<= (div |n_27:Weather0.temperatureweather:0| 10) 40))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (not (<= (div |n_27:Weather1.temperatureweather:0| 10) 40)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": false,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather1.temperatureweather:0| 2))",
+                "(not (<= (div |n_27:Weather1.temperatureweather:0| 10) 40))"
+              ],
+              "mismatch": "true"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 0,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [
+            {
+              "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun |n_27:Weather0.temperatureweather:0| () Int)\n(declare-fun |kind_27:Weather0.temperatureweather:0| () Int)\n(declare-fun |n_27:Weather1.temperatureweather:0| () Int)\n(declare-fun |kind_27:Weather1.temperatureweather:0| () Int)\n(assert\n (let (($x29 (= (mod |n_27:Weather0.temperatureweather:0| 10) 0)))\n (let (($x7 (= |kind_27:Weather0.temperatureweather:0| 1)))\n (let (($x95 (= |kind_27:Weather0.temperatureweather:0| 0)))\n (let (($x96 (= |kind_27:Weather0.temperatureweather:0| 2)))\n (let (($x33 (<= |n_27:Weather0.temperatureweather:0| 100000)))\n (let (($x9 (>= |n_27:Weather0.temperatureweather:0| (- 4700))))\n (and $x9 $x33 (or $x7 $x96 $x95) (=> $x7 $x29)))))))))\n(assert\n (let (($x54 (= (mod |n_27:Weather1.temperatureweather:0| 10) 0)))\n (let (($x13 (= |kind_27:Weather1.temperatureweather:0| 1)))\n (let (($x48 (= |kind_27:Weather1.temperatureweather:0| 0)))\n (let (($x74 (= |kind_27:Weather1.temperatureweather:0| 2)))\n (let (($x40 (<= |n_27:Weather1.temperatureweather:0| 100000)))\n (let (($x39 (>= |n_27:Weather1.temperatureweather:0| (- 4700))))\n (and $x39 $x40 (or $x13 $x74 $x48) (=> $x13 $x54)))))))))\n(assert\n (= |kind_27:Weather0.temperatureweather:0| 0))\n(assert\n (let (($x48 (= |kind_27:Weather1.temperatureweather:0| 0)))\n (not $x48)))\n(assert\n (let (($x74 (= |kind_27:Weather1.temperatureweather:0| 2)))\n (not $x74)))\n(assert\n (not (<= (div |n_27:Weather1.temperatureweather:0| 10) 40)))\n(check-sat)\n",
+              "result": "sat",
+              "seconds": 0.0010539363138377666
+            }
+          ],
+          "both_terminated": true,
+          "complete": false,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "on"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "on"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "SMT_JOINT_GUARD_BOUNDARY",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 57,
+        "n_steps": 64,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "Weather0.temperatureweather": 40,
+              "Weather1.temperatureweather": null
+            },
+            "dwell_ms": 0,
+            "actions_a": [],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "on"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "on"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.05175802996382117,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            },
+            "Weather1.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (not (<= (div |n_27:Weather0.temperatureweather:0| 10) 40)))",
+                "(not (<= 40 (div |n_27:Weather0.temperatureweather:0| 10)))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": false,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather1.temperatureweather:0| 0)",
+                "(not (not (<= (div |n_27:Weather0.temperatureweather:0| 10) 40)))",
+                "(<= 40 (div |n_27:Weather0.temperatureweather:0| 10))"
+              ],
+              "mismatch": "true"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 0,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [
+            {
+              "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun |n_27:Weather0.temperatureweather:0| () Int)\n(declare-fun |kind_27:Weather0.temperatureweather:0| () Int)\n(declare-fun |n_27:Weather1.temperatureweather:0| () Int)\n(declare-fun |kind_27:Weather1.temperatureweather:0| () Int)\n(assert\n (let (($x24 (= (mod |n_27:Weather0.temperatureweather:0| 10) 0)))\n (let (($x76 (= |kind_27:Weather0.temperatureweather:0| 1)))\n (let (($x54 (= |kind_27:Weather0.temperatureweather:0| 0)))\n (let (($x88 (= |kind_27:Weather0.temperatureweather:0| 2)))\n (let (($x48 (<= |n_27:Weather0.temperatureweather:0| 100000)))\n (let (($x13 (>= |n_27:Weather0.temperatureweather:0| (- 4700))))\n (and $x13 $x48 (or $x76 $x88 $x54) (=> $x76 $x24)))))))))\n(assert\n (let (($x37 (= (mod |n_27:Weather1.temperatureweather:0| 10) 0)))\n (let (($x14 (= |kind_27:Weather1.temperatureweather:0| 1)))\n (let (($x29 (= |kind_27:Weather1.temperatureweather:0| 0)))\n (let (($x35 (= |kind_27:Weather1.temperatureweather:0| 2)))\n (let (($x95 (<= |n_27:Weather1.temperatureweather:0| 100000)))\n (let (($x96 (>= |n_27:Weather1.temperatureweather:0| (- 4700))))\n (and $x96 $x95 (or $x14 $x35 $x29) (=> $x14 $x37)))))))))\n(assert\n (let (($x54 (= |kind_27:Weather0.temperatureweather:0| 0)))\n (not $x54)))\n(assert\n (let (($x88 (= |kind_27:Weather0.temperatureweather:0| 2)))\n (not $x88)))\n(assert\n (= |kind_27:Weather1.temperatureweather:0| 0))\n(assert\n (let ((?x99 (div |n_27:Weather0.temperatureweather:0| 10)))\n (let (($x103 (<= ?x99 40)))\n (let (($x38 (not $x103)))\n (not $x38)))))\n(assert\n (let ((?x99 (div |n_27:Weather0.temperatureweather:0| 10)))\n (<= 40 ?x99)))\n(check-sat)\n",
+              "result": "sat",
+              "seconds": 0.0012494111433625221
+            }
+          ],
+          "both_terminated": true,
+          "complete": false,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "on"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "on"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "SMT_INT_FLOAT_TEXT",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 5,
+        "n_steps": 8,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "Weather0.temperatureweather": null
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=0.0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=0.0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.0039057224057614803,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": false,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "true"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 0,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [
+            {
+              "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun |n_27:Weather0.temperatureweather:0| () Int)\n(declare-fun |kind_27:Weather0.temperatureweather:0| () Int)\n(assert\n (let (($x37 (= (mod |n_27:Weather0.temperatureweather:0| 10) 0)))\n (let (($x14 (= |kind_27:Weather0.temperatureweather:0| 1)))\n (let (($x29 (= |kind_27:Weather0.temperatureweather:0| 0)))\n (let (($x35 (= |kind_27:Weather0.temperatureweather:0| 2)))\n (let (($x95 (<= |n_27:Weather0.temperatureweather:0| 100000)))\n (let (($x96 (>= |n_27:Weather0.temperatureweather:0| (- 4700))))\n (and $x96 $x95 (or $x14 $x35 $x29) (=> $x14 $x37)))))))))\n(assert\n (= |kind_27:Weather0.temperatureweather:0| 0))\n(check-sat)\n",
+              "result": "sat",
+              "seconds": 0.0007009007968008518
+            }
+          ],
+          "both_terminated": true,
+          "complete": false,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=0"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=0"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=0.0"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=0.0"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "SMT_FLOAT_ROUNDING",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 5,
+        "n_steps": 12,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "Weather0.temperatureweather": 1
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=0.0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=0.0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=1.0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=1.0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 1.0424234946258366,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 0,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [
+            {
+              "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun mod!32 () Int)\n(declare-fun python_float_str ((_ BitVec 64)) String)\n(assert\n (>= mod!32 (- 470)))\n(assert\n (<= mod!32 10000))\n(assert\n (let ((?x34227 ((_ to_fp 11 53) roundNearestTiesToEven (to_real mod!32))))\n(let ((?x21330 (python_float_str (fp.to_ieee_bv (fp.add roundNearestTiesToEven ?x34227 (_ +zero 11 53))))))\n(let ((?x69 (fp.add roundNearestTiesToEven (fp.add roundNearestTiesToEven ?x34227 (fp #b0 #b10000110100 #x1c37937e08000)) (fp #b1 #b10000110100 #x1c37937e08000))))\n(not (= (python_float_str (fp.to_ieee_bv ?x69)) ?x21330))))))\n(check-sat)\n",
+              "result": "unknown",
+              "seconds": 1.0360940038226545
+            }
+          ],
+          "both_terminated": true,
+          "counterexample_basis": "concrete replay after SMT resource exhaustion; never sampled EQUIV",
+          "complete": false,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=0.0"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=0.0"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=1.0"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=1.0"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "SMT_RAW_NUMBER_TO_STRING",
+      "status": "AGREE",
+      "reason": "catalog type/domain mismatch: Speak expects STRING, got 10",
+      "refused": true
+    },
+    {
+      "id": "SMT_NONLINEAR",
+      "status": "AGREE",
+      "reason": "SMT v1 refuses multiplication of two input-dependent terms",
+      "refused": true
+    },
+    {
+      "id": "SMT_DYNAMIC_DIVISOR",
+      "status": "AGREE",
+      "reason": "SMT v1 requires a constant divisor",
+      "refused": true
+    },
+    {
+      "id": "SMT_FRESH_READ_50MS",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 50,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 8,
+        "n_steps": 16,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.006305085960775614,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 50,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 50,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 50,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 50,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 50,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [],
+          "both_terminated": true,
+          "complete": true,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "SMT_FRESH_READ_150MS",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 150,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 21,
+        "n_steps": 36,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 2,
+            "input_": {
+              "Weather0.temperatureweather": null
+            },
+            "dwell_ms": 50,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=2"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=2"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [
+              [
+                {
+                  "Weather0.temperatureweather": 1
+                },
+                0
+              ],
+              [
+                {
+                  "Weather0.temperatureweather": null
+                },
+                100
+              ]
+            ],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.01604643277823925,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 150,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 100,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 100,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 100,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 150,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)",
+                "(= |kind_27:Weather0.temperatureweather:1| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 150,
+              "equal": false,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))",
+                "(= |kind_27:Weather0.temperatureweather:1| 0)"
+              ],
+              "mismatch": "(let ((a!1 (str.++ \"v=\"\n                   (str.from_int (+ 1\n                                    (div |n_27:Weather0.temperatureweather:0|\n                                         10)))))\n      (a!2 (str.from_int (+ (- 1)\n                            (* (- 1)\n                               (div |n_27:Weather0.temperatureweather:0| 10))))))\n(let ((a!3 (= (ite (<= (- 1) (div |n_27:Weather0.temperatureweather:0| 10))\n                   a!1\n                   (str.++ \"v=-\" a!2))\n              \"v=1\")))\n  (not a!3)))"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 150,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [
+            {
+              "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun |n_27:Weather0.temperatureweather:0| () Int)\n(declare-fun |kind_27:Weather0.temperatureweather:0| () Int)\n(declare-fun |n_27:Weather0.temperatureweather:1| () Int)\n(declare-fun |kind_27:Weather0.temperatureweather:1| () Int)\n(assert\n (let (($x74 (= (mod |n_27:Weather0.temperatureweather:0| 10) 0)))\n (let (($x16 (= |kind_27:Weather0.temperatureweather:0| 1)))\n (let (($x39 (= |kind_27:Weather0.temperatureweather:0| 0)))\n (let (($x55 (= |kind_27:Weather0.temperatureweather:0| 2)))\n (let (($x16246 (<= |n_27:Weather0.temperatureweather:0| 100000)))\n (let (($x54 (>= |n_27:Weather0.temperatureweather:0| (- 4700))))\n (and $x54 $x16246 (or $x16 $x55 $x39) (=> $x16 $x74)))))))))\n(assert\n (let (($x6 (= (mod |n_27:Weather0.temperatureweather:1| 10) 0)))\n (let (($x49 (= |kind_27:Weather0.temperatureweather:1| 1)))\n (let (($x76 (= |kind_27:Weather0.temperatureweather:1| 0)))\n (let (($x9 (= |kind_27:Weather0.temperatureweather:1| 2)))\n (let (($x92 (<= |n_27:Weather0.temperatureweather:1| 100000)))\n (let (($x30 (>= |n_27:Weather0.temperatureweather:1| (- 4700))))\n (and $x30 $x92 (or $x49 $x9 $x76) (=> $x49 $x6)))))))))\n(assert\n (let (($x39 (= |kind_27:Weather0.temperatureweather:0| 0)))\n (not $x39)))\n(assert\n (let (($x55 (= |kind_27:Weather0.temperatureweather:0| 2)))\n (not $x55)))\n(assert\n (= |kind_27:Weather0.temperatureweather:1| 0))\n(assert\n (let ((?x43340 (str.from_int (+ (- 1) (* (- 1) (div |n_27:Weather0.temperatureweather:0| 10))))))\n(let ((?x66 (div |n_27:Weather0.temperatureweather:0| 10)))\n(let ((?x17 (+ 1 ?x66)))\n(let ((?x34056 (str.from_int ?x17)))\n(let (($x32005 (= (ite (<= (- 1) ?x66) (str.++ \"v=\" ?x34056) (str.++ \"v=-\" ?x43340)) \"v=1\")))\n(not $x32005)))))))\n(check-sat)\n",
+              "result": "sat",
+              "seconds": 0.006722043268382549
+            }
+          ],
+          "both_terminated": true,
+          "complete": false,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 2,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=2"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=2"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=1"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=1"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "SMT_CAPTURED_READ_150MS",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 150,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 11,
+        "n_steps": 22,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.007066821213811636,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 150,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 100,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 100,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 100,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 150,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 150,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 150,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 150,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [],
+          "both_terminated": true,
+          "complete": true,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "SMT_INCLUSIVE_H_99MS",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 99,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 5,
+        "n_steps": 10,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.003988827113062143,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 99,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 99,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [],
+          "both_terminated": false,
+          "complete": true,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "SMT_INCLUSIVE_H_100MS",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 100,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic inputs",
+      "verification_method": "smt-linear-trace-v1",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 8,
+        "n_steps": 16,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 1,
+            "input_": {
+              "Weather0.temperatureweather": null
+            },
+            "dwell_ms": 100,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "v=1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [],
+            "path": [
+              [
+                {
+                  "Weather0.temperatureweather": null
+                },
+                0
+              ]
+            ],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.005908446852117777,
+        "notes": [
+          "smt-linear-trace-v1: all feasible bounded paths; no numeric value enumeration"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 100,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "smt-linear-trace-v1",
+          "input_specs": {
+            "Weather0.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(not (= |kind_27:Weather0.temperatureweather:0| 2))"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 0,
+              "equal": true,
+              "path": [
+                "(not (= |kind_27:Weather0.temperatureweather:0| 0))",
+                "(= |kind_27:Weather0.temperatureweather:0| 2)"
+              ],
+              "mismatch": "false"
+            },
+            {
+              "offset_ms": 100,
+              "equal": false,
+              "path": [
+                "(= |kind_27:Weather0.temperatureweather:0| 0)"
+              ],
+              "mismatch": "true"
+            }
+          ],
+          "t0_ms": 2419200000,
+          "horizon_ms": 100,
+          "input_step_ms": 100,
+          "z3_version": "4.15.4",
+          "numeric_model": "exact integers / IEEE binary64 RNE; 0.1 DOUBLE grid, int representations, signed zero, declared None",
+          "text_model": "exact integer formatting; shared uninterpreted binary64 formatting, SAT requires replay",
+          "scope": "bounded acyclic one-shot numeric programs with waits/fixed delays; no GV/clock/loop",
+          "caps": {
+            "query_ms": 1000,
+            "total_ms": 10000,
+            "queries": 10000
+          },
+          "queries": [
+            {
+              "smt2": "; benchmark generated from python API\n(set-info :status unknown)\n(declare-fun |n_27:Weather0.temperatureweather:0| () Int)\n(declare-fun |kind_27:Weather0.temperatureweather:0| () Int)\n(assert\n (let (($x88 (= (mod |n_27:Weather0.temperatureweather:0| 10) 0)))\n (let (($x92 (= |kind_27:Weather0.temperatureweather:0| 1)))\n (let (($x49 (= |kind_27:Weather0.temperatureweather:0| 0)))\n (let (($x13 (= |kind_27:Weather0.temperatureweather:0| 2)))\n (let (($x36 (<= |n_27:Weather0.temperatureweather:0| 100000)))\n (let (($x10 (>= |n_27:Weather0.temperatureweather:0| (- 4700))))\n (and $x10 $x36 (or $x92 $x13 $x49) (=> $x92 $x88)))))))))\n(assert\n (= |kind_27:Weather0.temperatureweather:0| 0))\n(check-sat)\n",
+              "result": "sat",
+              "seconds": 0.0008519608527421951
+            }
+          ],
+          "both_terminated": true,
+          "complete": false,
+          "cache_hits": 0,
+          "exact_state_memo_hits": 0
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 1,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=1"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "v=1"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "SMT_C01_006_INVALID_CHANNEL",
+      "status": "AGREE",
+      "reason": "SMT ACTION domain is not universally valid: SetChannel",
+      "refused": true
+    },
+    {
+      "id": "SMT_PERIODIC_REFUSED",
+      "status": "AGREE",
+      "reason": "explicit input domain required for observable large/unbounded catalog value",
+      "refused": true
+    },
+    {
+      "id": "SMT_TEXT_GUARD_REFUSED",
+      "status": "AGREE",
+      "reason": "SMT operation is outside the typed numeric/text-output fragment",
+      "refused": true
+    },
+    {
+      "id": "SMT_BOOL_ARITHMETIC_REFUSED",
+      "status": "AGREE",
+      "reason": "SMT operation is outside the typed numeric/text-output fragment",
+      "refused": true
+    }
+  ]
+}

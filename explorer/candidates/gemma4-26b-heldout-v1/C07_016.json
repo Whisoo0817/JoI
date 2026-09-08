@@ -1,0 +1,70 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "서재 미세먼지 농도가 30 이상이 되면 서재 공기청정기를 켜줘.",
+  "command_eng": "When the fine dust level in the study reaches 30 or higher, turn on the study air purifier.",
+  "connected_devices": {
+    "Study_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Study",
+        "AirQualitySensor"
+      ]
+    },
+    "LivingRoom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirQualitySensor"
+      ]
+    },
+    "Study_AP": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Study",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "AirQualitySensor.FineDustLevel >= 30",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.4
+}

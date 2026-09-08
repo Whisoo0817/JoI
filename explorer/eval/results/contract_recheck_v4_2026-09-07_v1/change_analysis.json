@@ -1,0 +1,70 @@
+{
+  "scope": "Post-run attribution of four changed verdicts, not an ablation or new engine run",
+  "changed_cases": [
+    {
+      "id": "C01_009",
+      "before": "REFUSED",
+      "after": "EQUIV-BOUNDED",
+      "reason": "Symbolic value flow certifies temperature-to-text identity across full declared input domain without exact enumeration."
+    },
+    {
+      "id": "C01_017",
+      "before": "REFUSED",
+      "after": "EQUIV-BOUNDED",
+      "reason": "Previously approved removal of VOID Speak return assignment plus symbolic arbitrary-string value flow."
+    },
+    {
+      "id": "C01_018",
+      "before": "REFUSED",
+      "after": "EQUIV-BOUNDED",
+      "reason": "User-approved non-null STRING GetMenu return plus raw typed symbolic value flow."
+    },
+    {
+      "id": "C21_001",
+      "before": "DIVERGE",
+      "after": "EQUIV-BOUNDED",
+      "reason": "User-approved strict BOOL excludes original None witness. Four allowed Boolean combinations yield the same Off action.",
+      "old_witness": {
+        "Bedroom_PresenceSensor.presence": null,
+        "LivingRoom_PresenceSensor.presence": true
+      },
+      "boolean_truth_table": [
+        {
+          "living": false,
+          "bedroom": false,
+          "ir_off": true,
+          "code_off": true
+        },
+        {
+          "living": false,
+          "bedroom": true,
+          "ir_off": true,
+          "code_off": true
+        },
+        {
+          "living": true,
+          "bedroom": false,
+          "ir_off": true,
+          "code_off": true
+        },
+        {
+          "living": true,
+          "bedroom": true,
+          "ir_off": false,
+          "code_off": false
+        }
+      ]
+    }
+  ],
+  "remaining_incomplete": {
+    "id": "C01_014",
+    "verdict": "INCONCLUSIVE",
+    "reason": "input/initial-state combination cap reached"
+  },
+  "sources": {
+    "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl": "faae0777fa96e121532ca89bd6ba073a2c02ee22c4cd57234f0a46574834d313",
+    "explorer/eval/results/contract_recheck_v4_2026-09-07_v1/case_outcomes.jsonl": "28be01697910d3a3ea3f11e5f756157a80cb3283e885b69b392635f6af5d5bd5",
+    "explorer/eval/results/contract_recheck_v4_2026-09-07_v1_manifest.json": "34df4445a0d0bde0ddc5ee58c768ecef6e0d4da90bc9397f2d0e6c1bf6478dc7"
+  },
+  "causal_limit": "Multiple declared model, reference and verifier changes occurred together; no isolated causal attribution of aggregate improvement."
+}

@@ -59,7 +59,7 @@ from timeline_ir.ir_renderer import render_ir_with_devices
 # 나란히 비교해 EQUIV / DIVERGE(반례) / REFUSED(조각 밖)를 낸다. 재시도는
 # 없다 — NL → IR → 코드는 무조건 한 번에 확정되고, 판정은 결과와 흔적
 # (trace) 파일에 남긴다. 옛 SenSys 검증기와 JOI_VERIFY 경로는 제거.
-from explorer.gate import gate_pair as _gate_pair  # noqa: E402
+from explorer.verification.gate import gate_pair as _gate_pair  # noqa: E402
 
 # 흔적(trace) 저장 — 파이프라인 어느 단계에서 무엇이 나왔고 어디서 막혔는지
 # 나중에 볼 수 있게 호출마다 JSON 한 개. JOI_TRACE_DIR (기본 <root>/traces),

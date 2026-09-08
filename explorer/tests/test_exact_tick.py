@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from explorer.exact_tick import exact_tick_product
-from explorer.ab_eval import summarize, wilson_interval
-from explorer.gate import prepare_pair
-from explorer.product import product_runners
-from explorer.runner import JoiRunner
+from explorer.tests.oracles.exact_tick import exact_tick_product
+from explorer.eval.ab_eval import summarize, wilson_interval
+from explorer.tests.synthetic_gate import prepare_pair
+from explorer.verification.product import product_runners
+from explorer.runtime.runner import JoiRunner
 
 
 def _run(a: str, b: str, *, horizon: int = 4,

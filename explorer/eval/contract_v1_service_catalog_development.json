@@ -1,0 +1,550 @@
+{
+  "semantics": "contract-v1",
+  "service_catalog": true,
+  "purpose": "Actual-catalog development regression; independent expected outcomes. Not held-out or real server conformance.",
+  "cases": [
+    {
+      "id": "named_argument_order",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToColor",
+            "args": {
+              "TransitionTime": 3,
+              "ColorY": 0.2,
+              "ColorX": 0.1
+            }
+          }
+        ]
+      },
+      "joi_block": {
+        "script": "(#Light).light_moveToColor(0.1, 0.2, 3)",
+        "period": 0
+      },
+      "binding": {
+        "Light": [
+          "light"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        },
+        "light": {
+          "category": [
+            "Light"
+          ],
+          "tags": [
+            "Light"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "weather": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        }
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "valid_argument_order_mutation",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToColor",
+            "args": {
+              "TransitionTime": 3,
+              "ColorY": 0.2,
+              "ColorX": 0.1
+            }
+          }
+        ]
+      },
+      "joi_block": {
+        "script": "(#Light).light_moveToColor(0.2, 0.1, 3)",
+        "period": 0
+      },
+      "binding": {
+        "Light": [
+          "light"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        },
+        "light": {
+          "category": [
+            "Light"
+          ],
+          "tags": [
+            "Light"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "weather": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        }
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "forecast_string_mutation",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "call",
+            "target": "WeatherProvider.Forecast",
+            "args": {
+              "Hour": 3
+            },
+            "var": "w"
+          },
+          {
+            "op": "if",
+            "cond": "$w == \"rain\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      },
+      "joi_block": {
+        "script": "w = (#WeatherProvider).weatherProvider_forecast(3)\nif (w == \"clear\") { (#Switch).switch_on() }",
+        "period": 0
+      },
+      "binding": {
+        "WeatherProvider": [
+          "weather"
+        ],
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        },
+        "light": {
+          "category": [
+            "Light"
+          ],
+          "tags": [
+            "Light"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "weather": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        }
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "integer_boundary_mutation",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "if",
+            "cond": "Speaker.Volume > 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      },
+      "joi_block": {
+        "script": "if ((#Speaker).speaker_volume > 31) { (#Switch).switch_on() }",
+        "period": 0
+      },
+      "binding": {
+        "Speaker": [
+          "speaker"
+        ],
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        },
+        "light": {
+          "category": [
+            "Light"
+          ],
+          "tags": [
+            "Light"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "weather": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        }
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "bool_state_condition",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "if",
+            "cond": "Switch.Switch == true",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      },
+      "joi_block": {
+        "script": "if ((#Switch).switch_switch == true) { (#Switch).switch_off() }",
+        "period": 0
+      },
+      "binding": {
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        },
+        "light": {
+          "category": [
+            "Light"
+          ],
+          "tags": [
+            "Light"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "weather": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        }
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "enum_wait_exact_delay",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "wait",
+            "cond": "WeatherProvider.Weather == \"rain\""
+          },
+          {
+            "op": "delay",
+            "duration": "150ms"
+          },
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ]
+      },
+      "joi_block": {
+        "script": "wait until ((#WeatherProvider).weatherProvider_weather == \"rain\")\ndelay(150 MSEC)\n(#Switch).switch_on()",
+        "period": 0
+      },
+      "binding": {
+        "WeatherProvider": [
+          "weather"
+        ],
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        },
+        "light": {
+          "category": [
+            "Light"
+          ],
+          "tags": [
+            "Light"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "weather": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        }
+      },
+      "horizon_ms": 300,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "returning_effect_refused",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Toggle",
+            "args": {},
+            "var": "x"
+          }
+        ]
+      },
+      "joi_block": {
+        "script": "x = (#Switch).switch_toggle()",
+        "period": 0
+      },
+      "binding": {
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        },
+        "light": {
+          "category": [
+            "Light"
+          ],
+          "tags": [
+            "Light"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "weather": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        }
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "REFUSED"
+    },
+    {
+      "id": "invalid_forecast_hour_refused",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "call",
+            "target": "WeatherProvider.Forecast",
+            "args": {
+              "Hour": 121
+            },
+            "var": "x"
+          }
+        ]
+      },
+      "joi_block": {
+        "script": "x = (#WeatherProvider).weatherProvider_forecast(121)",
+        "period": 0
+      },
+      "binding": {
+        "WeatherProvider": [
+          "weather"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        },
+        "light": {
+          "category": [
+            "Light"
+          ],
+          "tags": [
+            "Light"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "weather": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        }
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "REFUSED"
+    }
+  ]
+}

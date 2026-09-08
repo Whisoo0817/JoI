@@ -1,0 +1,74 @@
+{
+  "semantics": "contract-v1",
+  "service_catalog": false,
+  "purpose": "Development frontend regression witnesses, hand-derived expectations; not held-out or actual JoI runtime evidence.",
+  "cases": [
+    {
+      "id": "any_second_device_mutation",
+      "ir": {"timeline": [
+        {"op": "start_at", "anchor": "now"},
+        {"op": "if", "cond": "Sensor.Value > 10", "then": [{"op": "call", "target": "Switch.On"}]}
+      ]},
+      "binding": {"Sensor": {"any": ["a", "b"]}, "Switch": ["lamp"]},
+      "devices": {
+        "a": {"category": ["Sensor"], "tags": ["Sensor", "A"]},
+        "b": {"category": ["Sensor"], "tags": ["Sensor", "B"]},
+        "lamp": {"category": ["Switch"], "tags": ["Switch"]}
+      },
+      "joi_block": {"script": "if ((#Sensor #A).sensor_value > 10) { (#Switch).switch_on() }", "period": 0},
+      "input_domains": {"a.value": [0, 20], "b.value": [0, 20]},
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "query_device_alias_mutation",
+      "ir": {"timeline": [
+        {"op": "start_at", "anchor": "now"},
+        {"op": "call", "target": "Sensor.Query", "args": {"p": 1.0}, "var": "x"},
+        {"op": "call", "target": "Sensor.Query", "args": {"p": 1.0}, "var": "y"},
+        {"op": "if", "cond": "$x > 10 and $y < 10", "then": [{"op": "call", "target": "Switch.On"}]}
+      ]},
+      "binding": {"Sensor": ["a"], "Sensor#2": ["b"], "Switch": ["lamp"]},
+      "devices": {
+        "a": {"category": ["Sensor"], "tags": ["Sensor", "A"]},
+        "b": {"category": ["Sensor"], "tags": ["Sensor", "B"]},
+        "lamp": {"category": ["Switch"], "tags": ["Switch"]}
+      },
+      "joi_block": {"script": "x = (#A #Sensor).sensor_query(1.0)\ny = (#A #Sensor).sensor_query(1.0)\nif (x > 10 and y < 10) { (#Switch).switch_on() }", "period": 0},
+      "input_domains": {"a.query(1.0)": [0, 20], "b.query(1.0)": [0, 20]},
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "not_precedence",
+      "ir": {"timeline": [
+        {"op": "start_at", "anchor": "now"},
+        {"op": "if", "cond": "not Sensor.Value > 10", "then": [{"op": "call", "target": "Switch.On"}]}
+      ]},
+      "binding": {"Sensor": ["a"], "Switch": ["lamp"]},
+      "devices": {
+        "a": {"category": ["Sensor"], "tags": ["Sensor"]},
+        "lamp": {"category": ["Switch"], "tags": ["Switch"]}
+      },
+      "joi_block": {"script": "if (not (#Sensor).sensor_value > 10) { (#Switch).switch_on() }", "period": 0},
+      "input_domains": {"a.value": [null, 0, 10, 20]},
+      "horizon_ms": 0,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "nested_cycle_reentry",
+      "ir": {"timeline": [
+        {"op": "start_at", "anchor": "now"},
+        {"op": "cycle", "period": "100 MSEC", "count": 2, "body": [
+          {"op": "cycle", "period": "100 MSEC", "count": 2, "body": [{"op": "call", "target": "Switch.On"}]}
+        ]}
+      ]},
+      "binding": {"Switch": ["lamp"]},
+      "devices": {"lamp": {"category": ["Switch"], "tags": ["Switch"]}},
+      "joi_block": {"script": "(#Switch).switch_on()\ndelay(100 MSEC)\n(#Switch).switch_on()\ndelay(100 MSEC)\n(#Switch).switch_on()\ndelay(100 MSEC)\n(#Switch).switch_on()", "period": 0},
+      "input_domains": {},
+      "horizon_ms": 500,
+      "expected_verdict": "EQUIV-BOUNDED"
+    }
+  ]
+}

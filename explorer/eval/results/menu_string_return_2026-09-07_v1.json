@@ -1,0 +1,2528 @@
+{
+  "semantics": "contract-v1",
+  "manifest_sha256": "91e951dbcf00fd60ad59ee3cff8a91db013a464c61911dbcb83a55bb708c2800",
+  "evaluator_sha256": "7173c7a21b4d9a850e4f7794d5c54c86ea85a5f9de23ce96c2a118df8deca02d",
+  "cases": [
+    {
+      "id": "C01_009",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 1,
+        "n_steps": 2,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.00017364276573061943,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_WeatherProvider.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": true
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced",
+          "both_terminated": true
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "C01_017",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "MenuProvider.TodayMenu:value": {
+            "id": "TodayMenu",
+            "descriptor": "Today's menu",
+            "type": "STRING",
+            "service": "MenuProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 1,
+        "n_steps": 2,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.00017549283802509308,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_MenuProvider.todaymenu": {
+              "id": "TodayMenu",
+              "descriptor": "Today's menu",
+              "type": "STRING",
+              "service": "MenuProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "Today's menu is ",
+                            {
+                              "key": "System_MenuProvider.todaymenu",
+                              "epoch": 0,
+                              "type": "STRING",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "Today's menu is ",
+                            {
+                              "key": "System_MenuProvider.todaymenu",
+                              "epoch": 0,
+                              "type": "STRING",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "Today's menu is ",
+                            {
+                              "key": "System_MenuProvider.todaymenu",
+                              "epoch": 0,
+                              "type": "STRING",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "Today's menu is ",
+                            {
+                              "key": "System_MenuProvider.todaymenu",
+                              "epoch": 0,
+                              "type": "STRING",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": true
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced",
+          "both_terminated": true
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "C01_018",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "MenuProvider.GetMenu:function": {
+            "id": "GetMenu",
+            "descriptor": "Get the menu - Return the menu list",
+            "arguments": [
+              {
+                "id": "Command",
+                "descriptor": "The command to get the menu - format: [오늘|내일] [학생식당|수의대식당|전망대(3식당)|예술계식당(아름드리)|기숙사식당|아워홈|동원관식당(113동)|웰스토리(220동)|투굿(공대간이식당)|자하연식당|301동식당] [아침|점심|저녁]",
+                "type": "STRING"
+              }
+            ],
+            "return_type": {
+              "type": "STRING"
+            },
+            "service": "MenuProvider",
+            "kind": "function",
+            "return_spec": {
+              "type": "STRING",
+              "nullable": false,
+              "domain_basis": "menu-string-return-v1: user contract"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 1,
+        "n_steps": 2,
+        "closed": true,
+        "divergences": [],
+        "seconds": 9.324401617050171e-05,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_MenuProvider.getmenu('오늘 301동식당 점심')": {
+              "type": "STRING",
+              "nullable": false,
+              "domain_basis": "menu-string-return-v1: user contract"
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "key": "System_MenuProvider.getmenu('오늘 301동식당 점심')",
+                          "epoch": 0,
+                          "type": "STRING",
+                          "nullable": false
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "key": "System_MenuProvider.getmenu('오늘 301동식당 점심')",
+                          "epoch": 0,
+                          "type": "STRING",
+                          "nullable": false
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "key": "System_MenuProvider.getmenu('오늘 301동식당 점심')",
+                          "epoch": 0,
+                          "type": "STRING",
+                          "nullable": false
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "key": "System_MenuProvider.getmenu('오늘 301동식당 점심')",
+                          "epoch": 0,
+                          "type": "STRING",
+                          "nullable": false
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": true
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced",
+          "both_terminated": true
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "temperature_static",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 1,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "System_WeatherProvider.temperatureweather": 0
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 31"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 31"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00040170876309275627,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_WeatherProvider.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        [
+                          "string",
+                          "The outdoor temperature is 31"
+                        ]
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        [
+                          "string",
+                          "The outdoor temperature is 31"
+                        ]
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": false
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced"
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 0"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 0"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 31"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 31"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "temperature_overwritten",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 1,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "System_WeatherProvider.temperatureweather": 0
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 31"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 31"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00033820606768131256,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_WeatherProvider.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        [
+                          "string",
+                          "The outdoor temperature is 31"
+                        ]
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        [
+                          "string",
+                          "The outdoor temperature is 31"
+                        ]
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": false
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced"
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 0"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 0"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 31"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 31"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "temperature_fresh_after_50ms",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 2,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.0001616431400179863,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_WeatherProvider.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [],
+              "code": [],
+              "equal": true
+            },
+            {
+              "offset_ms": 50,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": true
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced",
+          "both_terminated": true
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "temperature_fresh_after_100ms",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 2,
+        "n_steps": 12,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 1,
+            "input_": {
+              "System_WeatherProvider.temperatureweather": 0
+            },
+            "dwell_ms": 100,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [
+              [
+                {
+                  "System_WeatherProvider.temperatureweather": 1
+                },
+                0
+              ]
+            ],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.0005839960649609566,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_WeatherProvider.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [],
+              "code": [],
+              "equal": true
+            },
+            {
+              "offset_ms": 100,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 1,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 1,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": false
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced"
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 1,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 1"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 1"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 0"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 0"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "temperature_fresh_after_150ms",
+      "status": "DIVERGE_CONFIRMED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "WeatherProvider.TemperatureWeather:value": {
+            "id": "TemperatureWeather",
+            "descriptor": "Current temperature level",
+            "type": "DOUBLE",
+            "bound": [
+              -470,
+              10000
+            ],
+            "unit": "°C",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 3,
+        "n_steps": 18,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 2,
+            "input_": {
+              "System_WeatherProvider.temperatureweather": 0
+            },
+            "dwell_ms": 50,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "Kitchen_Speaker"
+                  ]
+                ],
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "The outdoor temperature is 0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "LivingRoom_Speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [
+              [
+                {
+                  "System_WeatherProvider.temperatureweather": 1
+                },
+                0
+              ],
+              [
+                {
+                  "System_WeatherProvider.temperatureweather": 0
+                },
+                100
+              ]
+            ],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.0006494112312793732,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_WeatherProvider.temperatureweather": {
+              "id": "TemperatureWeather",
+              "descriptor": "Current temperature level",
+              "type": "DOUBLE",
+              "bound": [
+                -470,
+                10000
+              ],
+              "unit": "°C",
+              "service": "WeatherProvider",
+              "kind": "value",
+              "return_spec": {
+                "type": "VOID"
+              }
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [],
+              "code": [],
+              "equal": true
+            },
+            {
+              "offset_ms": 100,
+              "ir": [],
+              "code": [],
+              "equal": true
+            },
+            {
+              "offset_ms": 150,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 0,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 1,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "The outdoor temperature is ",
+                            {
+                              "key": "System_WeatherProvider.temperatureweather",
+                              "epoch": 1,
+                              "type": "DOUBLE",
+                              "nullable": true
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": false
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced"
+        },
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 2,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 1"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 1"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 0"
+                    ]
+                  ]
+                ],
+                [
+                  "Kitchen_Speaker"
+                ]
+              ],
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "The outdoor temperature is 0"
+                    ]
+                  ]
+                ],
+                [
+                  "LivingRoom_Speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "menu_query_converted_fixture",
+      "status": "SYMBOLIC_CERTIFIED",
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "initial_gv_domains": null,
+        "input_domains": null
+      },
+      "input_domain_basis": "universal catalog symbolic value flow",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "e69e5e442441197ff7d8eece70ad59fe966d82469fb07fc9dfc57c2446c4df9c",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "members": {
+          "MenuProvider.GetMenu:function": {
+            "id": "GetMenu",
+            "descriptor": "Get the menu - Return the menu list",
+            "arguments": [
+              {
+                "id": "Command",
+                "descriptor": "The command to get the menu - format: [오늘|내일] [학생식당|수의대식당|전망대(3식당)|예술계식당(아름드리)|기숙사식당|아워홈|동원관식당(113동)|웰스토리(220동)|투굿(공대간이식당)|자하연식당|301동식당] [아침|점심|저녁]",
+                "type": "STRING"
+              }
+            ],
+            "return_type": {
+              "type": "STRING"
+            },
+            "service": "MenuProvider",
+            "kind": "function",
+            "return_spec": {
+              "type": "STRING",
+              "nullable": false,
+              "domain_basis": "menu-string-return-v1: user contract"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "exact": {
+        "verdict": "NOT_APPLICABLE",
+        "reason": "finite enumeration oracle does not certify symbolic domains"
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 1,
+        "n_steps": 2,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.00010426389053463936,
+        "notes": [
+          "symbolic-value-flow-v1: structural term equality under every input valuation"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 3200,
+        "input_step_ms": 100,
+        "symbolic_certificate": {
+          "schema": "symbolic-value-flow-v1",
+          "basis": "universal catalog inputs, not sampled representatives",
+          "input_specs": {
+            "System_MenuProvider.getmenu('오늘 301동식당 점심')": {
+              "type": "STRING",
+              "nullable": false,
+              "domain_basis": "menu-string-return-v1: user contract"
+            }
+          },
+          "events": [
+            {
+              "offset_ms": 0,
+              "ir": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "menu: ",
+                            {
+                              "key": "System_MenuProvider.getmenu('오늘 301동식당 점심')",
+                              "epoch": 0,
+                              "type": "STRING",
+                              "nullable": false
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "menu: ",
+                            {
+                              "key": "System_MenuProvider.getmenu('오늘 301동식당 점심')",
+                              "epoch": 0,
+                              "type": "STRING",
+                              "nullable": false
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "code": [
+                [
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "menu: ",
+                            {
+                              "key": "System_MenuProvider.getmenu('오늘 301동식당 점심')",
+                              "epoch": 0,
+                              "type": "STRING",
+                              "nullable": false
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "Kitchen_Speaker"
+                    ]
+                  ],
+                  [
+                    "speaker",
+                    "speak",
+                    [
+                      "tuple",
+                      [
+                        {
+                          "parts": [
+                            "menu: ",
+                            {
+                              "key": "System_MenuProvider.getmenu('오늘 301동식당 점심')",
+                              "epoch": 0,
+                              "type": "STRING",
+                              "nullable": false
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      "LivingRoom_Speaker"
+                    ]
+                  ]
+                ]
+              ],
+              "equal": true
+            }
+          ],
+          "t0_ms": 2419200000,
+          "proof_scope": "sequential one-shot copies/text/fixed delays; D7 enforced",
+          "both_terminated": true
+        },
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    }
+  ]
+}

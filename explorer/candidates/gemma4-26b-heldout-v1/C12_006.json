@@ -1,0 +1,75 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "충전기 전압이 4V 이하로 떨어지면, 그 이후로 30분마다 \"충전 전압이 낮습니다\"라고 스피커로 말해줘.",
+  "command_eng": "When the charger voltage drops to 4V or lower, speak \"The charging voltage is low\" through the speaker every 30 minutes thereafter.",
+  "connected_devices": {
+    "Main_Charger": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "Main",
+        "Charger"
+      ]
+    },
+    "Garage_Charger": {
+      "category": [
+        "Charger"
+      ],
+      "tags": [
+        "Garage",
+        "Charger"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Charger.Voltage <= 4000",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The charging voltage is low"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.6
+}

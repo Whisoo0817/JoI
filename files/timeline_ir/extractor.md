@@ -209,7 +209,7 @@ Same device attribute compared at two different moments → use `read` for each 
 
 - **R2. Single call for multi-device actions**: "turn on all bedroom lights" → ONE `call` op. Device scope/quantity ("all bedroom", "in sector 1", "any sensor") is resolved by a separate downstream stage and never appears in the IR; write the bare `Category.Service`.
 
-- **R-var**: a `call` has `var:"<X>"` iff `<X>` is in `[Bind Hints]`. Methods absent from `[Bind Hints]` MUST NOT carry `var`.
+- **R-var**: `call.var` binds that call's return value, never an argument it consumes. A VOID method MUST NOT carry `var`, even if an argument references `$TodayMenu` or `$Service.Attr`. For a returning method, add `var:"<X>"` when its result is requested in `[Bind Hints]`. Methods absent from `[Bind Hints]` MUST NOT carry `var`.
 
 - **R3. Trust `[Resolved Args]` verbatim**. Copy byte-for-byte into matching `call.args`. JSON types preserved (`300.0` stays number; booleans stay booleans; strings stay strings). Resolved `{}` → emit `args:{}`.
   - **No selector/scope/filter/target fields in args.** Tag-based device scoping (`Selector`, `Scope`, `Filter`, `Target`, `Devices`, `Tags`, `Category`) belongs to the downstream selector stage. Scope phrases in the command ("all safes with odd tags", "every bedroom light") do NOT add args fields; the call stays `args:{}` (or its real schema args).

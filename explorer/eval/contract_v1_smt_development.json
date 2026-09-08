@@ -1,0 +1,1633 @@
+{
+  "semantics": "contract-v1",
+  "service_catalog": true,
+  "evidence_class": "development fixtures; familiar cases and deliberate mutations; not held-out or a proof by testing",
+  "cases": [
+    {
+      "id": "SMT_AVERAGE_3_EQUAL",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "C",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"avg=\" + ($A+$B+$C)/3"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ],
+        "WeatherProvider#3": [
+          "Weather2"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        },
+        "Weather2": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather2",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nC = (#Weather2 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"avg=\" + (A+B+C)/3)"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "SMT_AVERAGE_WRONG_DIVISOR",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "C",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"avg=\" + ($A+$B+$C)/3"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ],
+        "WeatherProvider#3": [
+          "Weather2"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        },
+        "Weather2": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather2",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nC = (#Weather2 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"avg=\" + (A+B+C)/2)"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "SMT_AVERAGE_WRONG_SOURCE",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "C",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"avg=\" + ($A+$B+$C)/3"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ],
+        "WeatherProvider#3": [
+          "Weather2"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        },
+        "Weather2": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather2",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nC = (#Weather2 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"avg=\" + (A+A+C)/3)"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "SMT_JOINT_GUARD_EQUAL",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "if",
+            "cond": "$A+$B>40",
+            "then": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "on"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nif (A+B>40) { all(#Speaker).speaker_speak(\"on\") }"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "SMT_JOINT_GUARD_MISSING_OPERAND",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "if",
+            "cond": "$A+$B>40",
+            "then": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "on"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nif (A>40) { all(#Speaker).speaker_speak(\"on\") }"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "SMT_JOINT_GUARD_BOUNDARY",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "if",
+            "cond": "$A+$B>40",
+            "then": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "on"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nif (A+B>=40) { all(#Speaker).speaker_speak(\"on\") }"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "SMT_INT_FLOAT_TEXT",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + ($A+0)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"v=\" + (A+0.0))"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "SMT_FLOAT_ROUNDING",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + (($A+10000000000000000.0)-10000000000000000.0)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"v=\" + (A+0.0))"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "SMT_RAW_NUMBER_TO_STRING",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "$A+10"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(A+10)"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "REFUSED"
+    },
+    {
+      "id": "SMT_NONLINEAR",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + ($A*$B)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"v=\" + (A*B))"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "REFUSED"
+    },
+    {
+      "id": "SMT_DYNAMIC_DIVISOR",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + ($A/$B)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"v=\" + (A/B))"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "REFUSED"
+    },
+    {
+      "id": "SMT_FRESH_READ_50MS",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "delay",
+            "duration": "50 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + ($A+1)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "delay(50 MSEC)\nA = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"v=\" + (A+1))"
+      },
+      "horizon_ms": 50,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "SMT_FRESH_READ_150MS",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "delay",
+            "duration": "150 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + ($A+1)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "delay(150 MSEC)\nA = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"v=\" + (A+1))"
+      },
+      "horizon_ms": 150,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "SMT_CAPTURED_READ_150MS",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "delay",
+            "duration": "150 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + ($A+1)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\ndelay(150 MSEC)\nall(#Speaker).speaker_speak(\"v=\" + (A+1))"
+      },
+      "horizon_ms": 150,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "SMT_INCLUSIVE_H_99MS",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "delay",
+            "duration": "100 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + ($A+1)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\ndelay(101 MSEC)\nall(#Speaker).speaker_speak(\"v=\" + (A+1))"
+      },
+      "horizon_ms": 99,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "SMT_INCLUSIVE_H_100MS",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "delay",
+            "duration": "100 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"v=\" + ($A+1)"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\ndelay(101 MSEC)\nall(#Speaker).speaker_speak(\"v=\" + (A+1))"
+      },
+      "horizon_ms": 100,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "SMT_C01_006_INVALID_CHANNEL",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "call",
+            "target": "Television.SetChannel",
+            "args": {
+              "Channel": "$Television.Channel - 1"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Television": [
+          "LivingRoom_TV"
+        ]
+      },
+      "devices": {
+        "LivingRoom_TV": {
+          "category": [
+            "Television",
+            "Switch"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Television",
+            "Switch"
+          ]
+        },
+        "Bedroom_TV": {
+          "category": [
+            "Television",
+            "Switch"
+          ],
+          "tags": [
+            "Bedroom",
+            "Television",
+            "Switch"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "(#Television).television_setChannel((#Television).television_channel - 1)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "REFUSED"
+    },
+    {
+      "id": "SMT_PERIODIC_REFUSED",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "A",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "B",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "read",
+            "var": "C",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "\"avg=\" + ($A+$B+$C)/3"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "WeatherProvider": [
+          "Weather0"
+        ],
+        "WeatherProvider#2": [
+          "Weather1"
+        ],
+        "WeatherProvider#3": [
+          "Weather2"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Weather0": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather0",
+            "WeatherProvider"
+          ]
+        },
+        "Weather1": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather1",
+            "WeatherProvider"
+          ]
+        },
+        "Weather2": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "Weather2",
+            "WeatherProvider"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 100,
+        "script": "A = (#Weather0 #WeatherProvider).weatherProvider_temperatureWeather\nB = (#Weather1 #WeatherProvider).weatherProvider_temperatureWeather\nC = (#Weather2 #WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"avg=\" + (A+B+C)/3)"
+      },
+      "horizon_ms": 0,
+      "expected_verdict": "REFUSED"
+    }
+  ]
+}

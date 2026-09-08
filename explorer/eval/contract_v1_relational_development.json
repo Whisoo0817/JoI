@@ -1,0 +1,1463 @@
+{
+  "semantics": "contract-v1",
+  "evidence_class": "development fixtures; not held-out; expectations specified before execution",
+  "cases": [
+    {
+      "id": "REL_COUNTER_RENAMED",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "EQUIV-FIXPOINT",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_DELAY_150MS",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "delay",
+                "duration": "150 MSEC"
+              },
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\ndelay(150 MSEC)\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "EQUIV-FIXPOINT",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_COUNTER_GUARD",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "if",
+                "cond": "$n >= 3",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Speaker.Speak",
+                    "args": {
+                      "Text": "count: $n"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nif (k >= 3) { all(#Speaker).speaker_speak(\"count: \" + k) }\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "EQUIV-FIXPOINT",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_WAIT_BOOL",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "wait",
+                "cond": "MotionSensor.Motion == true",
+                "edge": "none"
+              },
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "MotionSensor": [
+          "Motion"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Motion": {
+          "category": [
+            "MotionSensor"
+          ],
+          "tags": [
+            "MotionSensor"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nwait until ((#MotionSensor).motionSensor_motion == true)\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "EQUIV-FIXPOINT",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_DEAD_COPY",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nold = k\nall(#Speaker).speaker_speak(\"count: \" + old)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "EQUIV-FIXPOINT",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_FANOUT_REVERSED",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "Kitchen_Speaker",
+          "LivingRoom_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "EQUIV-FIXPOINT",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_INIT",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 1\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "DIVERGE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_UPDATE",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 2"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "INCONCLUSIVE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_TEXT",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nall(#Speaker).speaker_speak(\"wrong: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "DIVERGE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_RESET",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k = 0\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "REFUSED",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_DOUBLE",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "INCONCLUSIVE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_FLOAT",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0.0\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "REFUSED",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_1000TH",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nif (k >= 1000) { all(#Speaker).speaker_speak(\"wrong\") } else { all(#Speaker).speaker_speak(\"count: \" + k) }\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "INCONCLUSIVE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_OLD_SNAPSHOT",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nif (k >= 1) { all(#Speaker).speaker_speak(\"count: \" + old) } else { all(#Speaker).speaker_speak(\"count: \" + k) }\nold = k\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "INCONCLUSIVE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_RAW_INTEGER_STRING",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nall(#Speaker).speaker_speak(k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "INCONCLUSIVE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MODULO_RAW_OUTPUT",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "if",
+                "cond": "$n % 2 == 0",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Speaker.Speak",
+                    "args": {
+                      "Text": "count: $n"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nif (k % 2 == 0) { all(#Speaker).speaker_speak(\"count: \" + k) }\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "REFUSED",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_STATE_CAP",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nall(#Speaker).speaker_speak(\"count: \" + k)\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "explorer_caps": {
+        "max_states": 1,
+        "max_transitions": 5000
+      },
+      "expected_verdict": "INCONCLUSIVE"
+    },
+    {
+      "id": "REL_MUTANT_MOVED_INCREMENT",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nk = k + 1\nall(#Speaker).speaker_speak(\"count: \" + k)"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "DIVERGE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_WAIT_MISSING_UPDATE",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "wait",
+                "cond": "MotionSensor.Motion == true",
+                "edge": "none"
+              },
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "count: $n"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ],
+        "MotionSensor": [
+          "Motion"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        },
+        "Motion": {
+          "category": [
+            "MotionSensor"
+          ],
+          "tags": [
+            "MotionSensor"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nwait until ((#MotionSensor).motionSensor_motion == true)\nall(#Speaker).speaker_speak(\"count: \" + k)\n"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "INCONCLUSIVE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    },
+    {
+      "id": "REL_MUTANT_GUARD",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "cycle",
+            "period": "1 SEC",
+            "count": "n",
+            "body": [
+              {
+                "op": "if",
+                "cond": "$n >= 3",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Speaker.Speak",
+                    "args": {
+                      "Text": "count: $n"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "period": 1000,
+        "script": "k := 0\nif (k >= 4) { all(#Speaker).speaker_speak(\"count: \" + k) }\nk = k + 1"
+      },
+      "horizon_ms": null,
+      "verification_mode": "relational",
+      "expected_verdict": "INCONCLUSIVE",
+      "explorer_caps": {
+        "max_states": 500,
+        "max_transitions": 5000
+      }
+    }
+  ]
+}

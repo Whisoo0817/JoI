@@ -1,0 +1,78 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "멀티버튼의 버튼3이 눌리면 1층 조명을 모두 켜줘.",
+  "command_eng": "When button 3 of the multi-button is pressed, turn on all lights on floor 1.",
+  "connected_devices": {
+    "F1_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Floor1",
+        "MultiButton"
+      ]
+    },
+    "F2_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Floor2",
+        "MultiButton"
+      ]
+    },
+    "F1_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor1",
+        "Light"
+      ]
+    },
+    "F1_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor1",
+        "Light"
+      ]
+    },
+    "F2_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor2",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button3 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 100.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.3
+}

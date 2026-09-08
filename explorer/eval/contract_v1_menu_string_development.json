@@ -1,0 +1,646 @@
+{
+  "semantics": "contract-v1",
+  "evidence_class": "development; not fresh generation or held-out evaluation",
+  "cases": [
+    {
+      "id": "C01_009",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "TemperatureWeather",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The outdoor temperature is $TemperatureWeather"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "WeatherProvider": [
+          "System_WeatherProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "TemperatureWeather = (#WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"The outdoor temperature is \" + TemperatureWeather)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "EQUIV-BOUNDED",
+      "evidence_class": "current-reference-historical-candidate"
+    },
+    {
+      "id": "C01_017",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "TodayMenu",
+            "src": "MenuProvider.TodayMenu"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Today's menu is $TodayMenu"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "MenuProvider": [
+          "System_MenuProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_MenuProvider": {
+          "category": [
+            "MenuProvider"
+          ],
+          "tags": [
+            "MenuProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "TodayMenu = (#MenuProvider).menuProvider_todayMenu\nall(#Speaker).speaker_speak(\"Today's menu is \" + TodayMenu)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "EQUIV-BOUNDED",
+      "evidence_class": "current-reference-historical-candidate"
+    },
+    {
+      "id": "C01_018",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "call",
+            "target": "MenuProvider.GetMenu",
+            "args": {
+              "Command": "오늘 301동식당 점심"
+            },
+            "var": "GetMenu"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "$GetMenu"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "MenuProvider": [
+          "System_MenuProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_MenuProvider": {
+          "category": [
+            "MenuProvider"
+          ],
+          "tags": [
+            "MenuProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "GetMenu = (#MenuProvider).menuProvider_getMenu(\"오늘 301동식당 점심\")\nall(#Speaker).speaker_speak(GetMenu)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "EQUIV-BOUNDED",
+      "evidence_class": "current-reference-historical-candidate"
+    },
+    {
+      "id": "temperature_static",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "TemperatureWeather",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The outdoor temperature is $TemperatureWeather"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "WeatherProvider": [
+          "System_WeatherProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "TemperatureWeather = (#WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"The outdoor temperature is \" + 31)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "DIVERGE",
+      "evidence_class": "manual-development-mutation-or-fixture"
+    },
+    {
+      "id": "temperature_overwritten",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "TemperatureWeather",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The outdoor temperature is $TemperatureWeather"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "WeatherProvider": [
+          "System_WeatherProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "TemperatureWeather = (#WeatherProvider).weatherProvider_temperatureWeather\nTemperatureWeather = 31\nall(#Speaker).speaker_speak(\"The outdoor temperature is \" + TemperatureWeather)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "DIVERGE",
+      "evidence_class": "manual-development-mutation-or-fixture"
+    },
+    {
+      "id": "temperature_fresh_after_50ms",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "TemperatureWeather",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "delay",
+            "duration": "50 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The outdoor temperature is $TemperatureWeather"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "WeatherProvider": [
+          "System_WeatherProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "delay(50 MSEC)\nTemperatureWeather = (#WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"The outdoor temperature is \" + TemperatureWeather)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "EQUIV-BOUNDED",
+      "evidence_class": "manual-development-mutation-or-fixture"
+    },
+    {
+      "id": "temperature_fresh_after_100ms",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "TemperatureWeather",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "delay",
+            "duration": "100 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The outdoor temperature is $TemperatureWeather"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "WeatherProvider": [
+          "System_WeatherProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "delay(100 MSEC)\nTemperatureWeather = (#WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"The outdoor temperature is \" + TemperatureWeather)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "DIVERGE",
+      "evidence_class": "manual-development-mutation-or-fixture"
+    },
+    {
+      "id": "temperature_fresh_after_150ms",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "TemperatureWeather",
+            "src": "WeatherProvider.TemperatureWeather"
+          },
+          {
+            "op": "delay",
+            "duration": "150 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The outdoor temperature is $TemperatureWeather"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "WeatherProvider": [
+          "System_WeatherProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_WeatherProvider": {
+          "category": [
+            "WeatherProvider"
+          ],
+          "tags": [
+            "WeatherProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "delay(150 MSEC)\nTemperatureWeather = (#WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"The outdoor temperature is \" + TemperatureWeather)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "DIVERGE",
+      "evidence_class": "manual-development-mutation-or-fixture"
+    },
+    {
+      "id": "menu_query_converted_fixture",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "call",
+            "target": "MenuProvider.GetMenu",
+            "args": {
+              "Command": "오늘 301동식당 점심"
+            },
+            "var": "GetMenu"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "menu: $GetMenu"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "MenuProvider": [
+          "System_MenuProvider"
+        ],
+        "Speaker": [
+          "LivingRoom_Speaker",
+          "Kitchen_Speaker"
+        ]
+      },
+      "devices": {
+        "System_MenuProvider": {
+          "category": [
+            "MenuProvider"
+          ],
+          "tags": [
+            "MenuProvider"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        },
+        "Kitchen_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Kitchen",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "GetMenu = (#MenuProvider).menuProvider_getMenu(\"오늘 301동식당 점심\")\nall(#Speaker).speaker_speak(\"menu: \" + GetMenu)"
+      },
+      "horizon_ms": 3200,
+      "expected_verdict": "EQUIV-BOUNDED",
+      "evidence_class": "manual-development-mutation-or-fixture"
+    }
+  ],
+  "input_policy": "menu-string-return-v1: MenuProvider.GetMenu returns non-null STRING"
+}

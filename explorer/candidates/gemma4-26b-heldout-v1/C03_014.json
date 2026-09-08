@@ -1,0 +1,54 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "쉐이드가 30%이하로 열려있으면, 50%로 설정해줘.",
+  "command_eng": "If the shade is 30% or less open, set it to 50%.",
+  "connected_devices": {
+    "LivingRoom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition <= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.SetLevel",
+            "args": {
+              "Level": 50
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.4
+}

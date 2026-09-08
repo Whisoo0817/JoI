@@ -1,0 +1,342 @@
+{
+  "semantics": "contract-v1",
+  "manifest_sha256": "f19b294ecb5557d7e62c4db35d67ba9d378f470c2d15aafdd2ffed9eb34f8a4e",
+  "evaluator_sha256": "0efc6cb9a0773cb043d5ce51077dc71b7313d86029be4dceb55397aef008d38c",
+  "cases": [
+    {
+      "id": "any_second_device_mutation",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "a.value": [
+            0,
+            20
+          ],
+          "b.value": [
+            0,
+            20
+          ]
+        },
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 2,
+        "seconds": 0.0001137428916990757,
+        "divergence_ms": 0,
+        "actions_a": [
+          [
+            [
+              "switch",
+              "on",
+              [
+                "tuple",
+                []
+              ],
+              [
+                "lamp"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [],
+        "path": [
+          [
+            0,
+            {
+              "a.value": 0,
+              "b.value": 20
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 0,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "a.value": 0,
+              "b.value": 20
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "switch",
+                  "on",
+                  [
+                    "tuple",
+                    []
+                  ],
+                  [
+                    "lamp"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00015191175043582916,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "switch",
+                "on",
+                [
+                  "tuple",
+                  []
+                ],
+                [
+                  "lamp"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "query_device_alias_mutation",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "a.query(1.0)": [
+            0,
+            20
+          ],
+          "b.query(1.0)": [
+            0,
+            20
+          ]
+        },
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 3,
+        "seconds": 0.00014947401359677315,
+        "divergence_ms": 0,
+        "actions_a": [
+          [
+            [
+              "switch",
+              "on",
+              [
+                "tuple",
+                []
+              ],
+              [
+                "lamp"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [],
+        "path": [
+          [
+            0,
+            {
+              "a.query(1.0)": 20,
+              "b.query(1.0)": 0
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 0,
+        "n_steps": 6,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "a.query(1.0)": 20,
+              "b.query(1.0)": 0
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "switch",
+                  "on",
+                  [
+                    "tuple",
+                    []
+                  ],
+                  [
+                    "lamp"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.0002412218600511551,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "switch",
+                "on",
+                [
+                  "tuple",
+                  []
+                ],
+                [
+                  "lamp"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "not_precedence",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "a.value": [
+            null,
+            0,
+            10,
+            20
+          ]
+        },
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "EQUIV_BOUNDED",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 4,
+        "seconds": 0.00012516789138317108,
+        "divergence_ms": null,
+        "actions_a": [],
+        "actions_b": [],
+        "path": [],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 0,
+        "n_steps": 8,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.00017434917390346527,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "nested_cycle_reentry",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {},
+        "horizon_ms": 500,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "EQUIV_BOUNDED",
+        "horizon_ms": 500,
+        "input_step_ms": 100,
+        "n_states": 300,
+        "n_transitions": 301,
+        "seconds": 0.007626016158610582,
+        "divergence_ms": null,
+        "actions_a": [],
+        "actions_b": [],
+        "path": [],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 3,
+        "n_steps": 8,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.00039691803976893425,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 500,
+        "input_step_ms": 100,
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    }
+  ]
+}

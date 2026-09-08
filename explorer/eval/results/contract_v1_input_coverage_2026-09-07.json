@@ -1,0 +1,997 @@
+{
+  "semantics": "contract-v1",
+  "manifest_sha256": "bb408aac1eaa2a7a56252e7ab755f2add6ae76cfbb47945c540707783af679c4",
+  "evaluator_sha256": "b9bd33b5f92e3753997755839615c3e97e20520d9b2672f3e5103d17879c4497",
+  "cases": [
+    {
+      "id": "delay_0",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {},
+        "horizon_ms": 250,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "EQUIV_BOUNDED",
+        "horizon_ms": 250,
+        "input_step_ms": 100,
+        "n_states": 150,
+        "n_transitions": 151,
+        "seconds": 0.0034798020496964455,
+        "divergence_ms": null,
+        "actions_a": [],
+        "actions_b": [],
+        "path": [],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 2,
+        "n_steps": 6,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.00022267503663897514,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 250,
+        "input_step_ms": 100,
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "delay_1",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {},
+        "horizon_ms": 250,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 250,
+        "input_step_ms": 100,
+        "n_states": 150,
+        "n_transitions": 151,
+        "seconds": 0.003298511728644371,
+        "divergence_ms": 150,
+        "actions_a": [
+          [
+            [
+              "switch",
+              "on",
+              [
+                "tuple",
+                []
+              ],
+              [
+                "lamp"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [],
+        "path": [
+          [
+            0,
+            {}
+          ],
+          [
+            100,
+            {}
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 2,
+        "n_steps": 6,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 2,
+            "input_": {},
+            "dwell_ms": 50,
+            "actions_a": [
+              [
+                [
+                  "switch",
+                  "on",
+                  [
+                    "tuple",
+                    []
+                  ],
+                  [
+                    "lamp"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [],
+            "path": [
+              [
+                {},
+                0
+              ],
+              [
+                {},
+                100
+              ]
+            ],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00017545511946082115,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 250,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 2,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "switch",
+                "on",
+                [
+                  "tuple",
+                  []
+                ],
+                [
+                  "lamp"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "delay_2",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {},
+        "horizon_ms": 250,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "EQUIV_BOUNDED",
+        "horizon_ms": 250,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 1,
+        "seconds": 4.690093919634819e-05,
+        "divergence_ms": null,
+        "actions_a": [],
+        "actions_b": [],
+        "path": [],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "n_states": 0,
+        "n_steps": 2,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.0001293150708079338,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 250,
+        "input_step_ms": 100,
+        "claim": "EQUIV-BOUNDED"
+      },
+      "replays": []
+    },
+    {
+      "id": "bare_wait_input",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "sensor.motion": [
+            false,
+            true
+          ]
+        },
+        "horizon_ms": 100,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 100,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 2,
+        "seconds": 7.890118286013603e-05,
+        "divergence_ms": 0,
+        "actions_a": [
+          [
+            [
+              "switch",
+              "on",
+              [
+                "tuple",
+                []
+              ],
+              [
+                "lamp"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [],
+        "path": [
+          [
+            0,
+            {
+              "sensor.motion": true
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 1,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "sensor.motion": true
+            },
+            "dwell_ms": 0,
+            "actions_a": [
+              [
+                [
+                  "switch",
+                  "on",
+                  [
+                    "tuple",
+                    []
+                  ],
+                  [
+                    "lamp"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00011244462803006172,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 100,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "switch",
+                "on",
+                [
+                  "tuple",
+                  []
+                ],
+                [
+                  "lamp"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "stored_numeric_string_difference",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "sensor.temperature": [
+            1,
+            1.0
+          ]
+        },
+        "horizon_ms": 100,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 100,
+        "input_step_ms": 100,
+        "n_states": 200,
+        "n_transitions": 203,
+        "seconds": 0.0051611787639558315,
+        "divergence_ms": 100,
+        "actions_a": [
+          [
+            [
+              "speaker",
+              "speak",
+              [
+                "tuple",
+                [
+                  [
+                    "string",
+                    "1"
+                  ]
+                ]
+              ],
+              [
+                "speaker"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [
+          [
+            [
+              "speaker",
+              "speak",
+              [
+                "tuple",
+                [
+                  [
+                    "string",
+                    "1.0"
+                  ]
+                ]
+              ],
+              [
+                "speaker"
+              ]
+            ]
+          ]
+        ],
+        "path": [
+          [
+            0,
+            {
+              "sensor.temperature": 1.0
+            }
+          ],
+          [
+            100,
+            {
+              "sensor.temperature": 1
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 2,
+        "n_steps": 10,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 1,
+            "input_": {
+              "sensor.temperature": 1
+            },
+            "dwell_ms": 100,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "1"
+                      ]
+                    ]
+                  ],
+                  [
+                    "speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "1.0"
+                      ]
+                    ]
+                  ],
+                  [
+                    "speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [
+              [
+                {
+                  "sensor.temperature": 1.0
+                },
+                0
+              ]
+            ],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.0002944660373032093,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 100,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 1,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "1"
+                    ]
+                  ]
+                ],
+                [
+                  "speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "1.0"
+                    ]
+                  ]
+                ],
+                [
+                  "speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "missing_boolean_input",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "sensor.value": [
+            null,
+            false,
+            true
+          ]
+        },
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 1,
+        "seconds": 6.822263821959496e-05,
+        "divergence_ms": 0,
+        "actions_a": [],
+        "actions_b": [
+          [
+            [
+              "speaker",
+              "speak",
+              [
+                "tuple",
+                [
+                  [
+                    "string",
+                    "hit"
+                  ]
+                ]
+              ],
+              [
+                "speaker"
+              ]
+            ]
+          ]
+        ],
+        "path": [
+          [
+            0,
+            {
+              "sensor.value": null
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 0,
+        "n_steps": 2,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "sensor.value": null
+            },
+            "dwell_ms": 0,
+            "actions_a": [],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "hit"
+                      ]
+                    ]
+                  ],
+                  [
+                    "speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.00011972011998295784,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "hit"
+                    ]
+                  ]
+                ],
+                [
+                  "speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "lexical_string_interval",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "sensor.value": [
+            "a",
+            "aa",
+            "b"
+          ]
+        },
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 0,
+        "input_step_ms": 100,
+        "n_states": 0,
+        "n_transitions": 2,
+        "seconds": 9.872205555438995e-05,
+        "divergence_ms": 0,
+        "actions_a": [],
+        "actions_b": [
+          [
+            [
+              "speaker",
+              "speak",
+              [
+                "tuple",
+                [
+                  [
+                    "string",
+                    "hit"
+                  ]
+                ]
+              ],
+              [
+                "speaker"
+              ]
+            ]
+          ]
+        ],
+        "path": [
+          [
+            0,
+            {
+              "sensor.value": "aa"
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 1,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 0,
+            "input_": {
+              "sensor.value": "aa"
+            },
+            "dwell_ms": 0,
+            "actions_a": [],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "string",
+                        "hit"
+                      ]
+                    ]
+                  ],
+                  [
+                    "speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.0001506377011537552,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 0,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 0,
+          "mirror_init": {},
+          "actions_a": [],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "string",
+                      "hit"
+                    ]
+                  ]
+                ],
+                [
+                  "speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    },
+    {
+      "id": "initializer_captures_input",
+      "status": "AGREE",
+      "model": {
+        "input_domains": {
+          "sensor.value": [
+            0,
+            9.9
+          ]
+        },
+        "horizon_ms": 100,
+        "input_step_ms": 100,
+        "initial_gv_domains": {},
+        "t0_ms": 2419200000
+      },
+      "exact": {
+        "verdict": "DIVERGE",
+        "horizon_ms": 100,
+        "input_step_ms": 100,
+        "n_states": 200,
+        "n_transitions": 203,
+        "seconds": 0.005046626087278128,
+        "divergence_ms": 100,
+        "actions_a": [
+          [
+            [
+              "speaker",
+              "speak",
+              [
+                "tuple",
+                [
+                  [
+                    "number",
+                    0
+                  ]
+                ]
+              ],
+              [
+                "speaker"
+              ]
+            ]
+          ]
+        ],
+        "actions_b": [
+          [
+            [
+              "speaker",
+              "speak",
+              [
+                "tuple",
+                [
+                  [
+                    "number",
+                    9.9
+                  ]
+                ]
+              ],
+              [
+                "speaker"
+              ]
+            ]
+          ]
+        ],
+        "path": [
+          [
+            0,
+            {
+              "sensor.value": 9.9
+            }
+          ],
+          [
+            100,
+            {
+              "sensor.value": 0
+            }
+          ]
+        ],
+        "notes": []
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "n_states": 2,
+        "n_steps": 10,
+        "closed": true,
+        "divergences": [
+          {
+            "depth": 1,
+            "input_": {
+              "sensor.value": 0
+            },
+            "dwell_ms": 100,
+            "actions_a": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "number",
+                        0
+                      ]
+                    ]
+                  ],
+                  [
+                    "speaker"
+                  ]
+                ]
+              ]
+            ],
+            "actions_b": [
+              [
+                [
+                  "speaker",
+                  "speak",
+                  [
+                    "tuple",
+                    [
+                      [
+                        "number",
+                        9.9
+                      ]
+                    ]
+                  ],
+                  [
+                    "speaker"
+                  ]
+                ]
+              ]
+            ],
+            "path": [
+              [
+                {
+                  "sensor.value": 9.9
+                },
+                0
+              ]
+            ],
+            "initial_gv": {},
+            "t0_ms": 2419200000
+          }
+        ],
+        "seconds": 0.0002676532603800297,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "explicit external input domains (no value reduction)"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": 100,
+        "input_step_ms": 100,
+        "claim": "DIVERGE"
+      },
+      "replays": [
+        {
+          "confirmed": true,
+          "at_step": 1,
+          "mirror_init": {},
+          "actions_a": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "number",
+                      0
+                    ]
+                  ]
+                ],
+                [
+                  "speaker"
+                ]
+              ]
+            ]
+          ],
+          "actions_b": [
+            [
+              [
+                "speaker",
+                "speak",
+                [
+                  "tuple",
+                  [
+                    [
+                      "number",
+                      9.9
+                    ]
+                  ]
+                ],
+                [
+                  "speaker"
+                ]
+              ]
+            ]
+          ],
+          "note": ""
+        }
+      ]
+    }
+  ]
+}

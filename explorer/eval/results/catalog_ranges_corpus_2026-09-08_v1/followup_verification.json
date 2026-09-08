@@ -1,0 +1,98 @@
+{
+  "same388_case_ids": true,
+  "same_candidate_hashes_payloads_models_and_preparation_statuses": true,
+  "changed_cases": [
+    {
+      "id": "C15_005",
+      "before": "TIMEOUT",
+      "after": "EQUIV-FIXPOINT"
+    },
+    {
+      "id": "C18_003",
+      "before": "TIMEOUT",
+      "after": "EQUIV-FIXPOINT"
+    }
+  ],
+  "all_positive_closed_and_H_none": true,
+  "all_divergences_replay_confirmed": true,
+  "source_and_candidate_hashes_match_after_run": true,
+  "source_count": 122,
+  "regressions": 289,
+  "tested_source_continuity": "All executable code matches test record; timed.py module docstring updated after validation (verified exact reversal restores validated hash).",
+  "positive_methods": {
+    "concrete-event-BFS": 185,
+    "symbolic-value-flow-v1": 4
+  },
+  "newly_certified": {
+    "C15_005": {
+      "status": "EQUIV",
+      "result": {
+        "verdict": "EQUIV",
+        "n_states": 1,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.0029185540042817593,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded",
+          "explicit external input domains (no value reduction)",
+          "catalog-range-v1: every clock read is inside a proved constant integer comparison; original programs executed unchanged"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": null,
+        "input_step_ms": 100,
+        "symbolic_certificate": null
+      },
+      "claim": "EQUIV-FIXPOINT",
+      "replays": [],
+      "worker_seconds": 0.029102890752255917,
+      "peak_rss_kib": 25036,
+      "process_wall_seconds": 0.07835319871082902
+    },
+    "C18_003": {
+      "status": "EQUIV",
+      "result": {
+        "verdict": "EQUIV",
+        "n_states": 1,
+        "n_steps": 4,
+        "closed": true,
+        "divergences": [],
+        "seconds": 0.0021436610259115696,
+        "notes": [
+          "contract-v1: input grid + exact deadlines; concrete state BFS",
+          "silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded",
+          "explicit external input domains (no value reduction)",
+          "catalog-range-v1: every clock read is inside a proved constant integer comparison; original programs executed unchanged"
+        ],
+        "bounded_horizon_ticks": null,
+        "bounded_horizon_ms": null,
+        "input_step_ms": 100,
+        "symbolic_certificate": null
+      },
+      "claim": "EQUIV-FIXPOINT",
+      "replays": [],
+      "worker_seconds": 0.029634287115186453,
+      "peak_rss_kib": 25036,
+      "process_wall_seconds": 0.08019558619707823
+    }
+  },
+  "development_failures": [
+    {
+      "kind": "test expectation",
+      "detail": "Expected zero states on immediate termination; DoneLatch stores one absorbing state. Replaced with no ACTION/no wake behavioral checks; no engine fix needed."
+    },
+    {
+      "kind": "diagnostic invocation",
+      "detail": "prepare_pair first called with joi_block keyword instead of positional jb; corrected before targeted run."
+    },
+    {
+      "kind": "archive lookup",
+      "detail": "Catalog archived under absolute-path-derived ZIP entry; corrected lookup before diff check."
+    },
+    {
+      "kind": "manifest serialization",
+      "detail": "Python helper received Path where protocol_path JSON needs str; partial manifest preserved, preparation rerun with same protocol/source and string args. No search run failed or excluded."
+    }
+  ]
+}

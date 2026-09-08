@@ -198,8 +198,8 @@ def cache_groups(key):
         return None
     try:
         sys.path.insert(0, ".")
-        from explorer.interp import parse
-        from explorer.m3_check import build_maps
+        from explorer.runtime.interp import parse
+        from explorer.diagnostics.m3_check import build_maps
         d = json.load(open(path))
         jb = d.get("joi_block")
         if not jb:

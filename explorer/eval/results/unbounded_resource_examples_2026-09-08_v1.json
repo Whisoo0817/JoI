@@ -1,0 +1,406 @@
+{
+  "evidence_class": "targeted diagnostic examples; not all-case evaluation or latency benchmark",
+  "selection": "three long-wait cases from bounded exact-oracle incomplete rows; chosen before unbounded execution",
+  "parent_protocol": "explorer/eval/results/contract_recheck_v4_2026-09-08_v4_protocol.json",
+  "caps": {
+    "max_states": 200000,
+    "max_transitions": 500000,
+    "max_input_combinations": 100000,
+    "smt_timeout_ms": 1000,
+    "smt_total_timeout_ms": 10000,
+    "smt_max_queries": 10000
+  },
+  "engine_limits": {
+    "wall_seconds": 20,
+    "address_space_mib": 768
+  },
+  "cases": [
+    {
+      "id": "C08_011",
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Main_MB.button3": [
+            null,
+            "pushed"
+          ],
+          "Hall_MB.button3": [
+            null,
+            "pushed"
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "MultiButton.Button3 == \"pushed\"",
+              "edge": "none"
+            },
+            {
+              "op": "delay",
+              "duration": "1 HOUR"
+            },
+            {
+              "op": "call",
+              "target": "Light.MoveToBrightness",
+              "args": {
+                "Brightness": 0.0,
+                "Rate": 0.0
+              }
+            }
+          ]
+        },
+        "binding": {
+          "MultiButton": [
+            "Main_MB"
+          ],
+          "Light": [
+            "LR_Light",
+            "Hall_Light",
+            "Bedroom_Light"
+          ]
+        },
+        "devices": {
+          "Main_MB": {
+            "category": [
+              "MultiButton"
+            ],
+            "tags": [
+              "LivingRoom",
+              "MultiButton"
+            ]
+          },
+          "Hall_MB": {
+            "category": [
+              "MultiButton"
+            ],
+            "tags": [
+              "Hallway",
+              "MultiButton"
+            ]
+          },
+          "LR_Light": {
+            "category": [
+              "Light"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Light"
+            ]
+          },
+          "Hall_Light": {
+            "category": [
+              "Light"
+            ],
+            "tags": [
+              "Hallway",
+              "Light"
+            ]
+          },
+          "Bedroom_Light": {
+            "category": [
+              "Light"
+            ],
+            "tags": [
+              "Bedroom",
+              "Light"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until((all(#MultiButton).multiButton_button3 ==| \"pushed\"))\ndelay(1 HOUR)\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+        }
+      },
+      "result": {
+        "status": "UNKNOWN",
+        "result": {
+          "verdict": "UNKNOWN",
+          "n_states": 126004,
+          "n_steps": 1000000,
+          "closed": false,
+          "divergences": [],
+          "seconds": 18.87816270813346,
+          "notes": [
+            "contract-v1: input grid + exact deadlines; concrete state BFS",
+            "explicit external input domains (no value reduction)",
+            "transition cap reached"
+          ],
+          "bounded_horizon_ticks": null,
+          "bounded_horizon_ms": null,
+          "input_step_ms": 100,
+          "symbolic_certificate": null
+        },
+        "claim": "INCONCLUSIVE",
+        "replays": [],
+        "worker_seconds": 19.31761204218492,
+        "peak_rss_kib": 412228
+      },
+      "wall_seconds": 19.415660833008587
+    },
+    {
+      "id": "C10_001",
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Entrance_PresenceSensor.presence": [
+            false,
+            true
+          ],
+          "Hallway_PresenceSensor.presence": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "PresenceSensor.Presence == true",
+              "edge": "none"
+            },
+            {
+              "op": "delay",
+              "duration": "1 MIN"
+            },
+            {
+              "op": "call",
+              "target": "Camera.CaptureImage",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "PresenceSensor": {
+            "any": [
+              "Entrance_PresenceSensor",
+              "Hallway_PresenceSensor"
+            ]
+          },
+          "Camera": [
+            "Entrance_Camera",
+            "LivingRoom_Camera"
+          ]
+        },
+        "devices": {
+          "Entrance_PresenceSensor": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Entrance",
+              "PresenceSensor"
+            ]
+          },
+          "Hallway_PresenceSensor": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Hallway",
+              "PresenceSensor"
+            ]
+          },
+          "Entrance_Camera": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "Entrance",
+              "Camera"
+            ]
+          },
+          "LivingRoom_Camera": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Camera"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\ndelay(1 MIN)\nall(#Camera).camera_captureImage()"
+        }
+      },
+      "result": {
+        "status": "EQUIV",
+        "result": {
+          "verdict": "EQUIV",
+          "n_states": 2400,
+          "n_steps": 19208,
+          "closed": true,
+          "divergences": [],
+          "seconds": 0.3171275989152491,
+          "notes": [
+            "contract-v1: input grid + exact deadlines; concrete state BFS",
+            "explicit external input domains (no value reduction)"
+          ],
+          "bounded_horizon_ticks": null,
+          "bounded_horizon_ms": null,
+          "input_step_ms": 100,
+          "symbolic_certificate": null
+        },
+        "claim": "EQUIV-FIXPOINT",
+        "replays": [],
+        "worker_seconds": 0.34930381597951055,
+        "peak_rss_kib": 28180
+      },
+      "wall_seconds": 0.40928329760208726
+    },
+    {
+      "id": "C12_001",
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Garage_ContactSensor.contact": [
+            false,
+            true
+          ],
+          "Entrance_ContactSensor.contact": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "ContactSensor.Contact == false",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "1 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Speaker.Speak",
+                  "args": {
+                    "Text": "Welcome"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "ContactSensor": {
+            "any": [
+              "Entrance_ContactSensor",
+              "Garage_ContactSensor"
+            ]
+          },
+          "Speaker": [
+            "Living_Speaker",
+            "Bedroom_Speaker"
+          ]
+        },
+        "devices": {
+          "Entrance_ContactSensor": {
+            "category": [
+              "ContactSensor"
+            ],
+            "tags": [
+              "Entrance",
+              "Door",
+              "ContactSensor"
+            ]
+          },
+          "Garage_ContactSensor": {
+            "category": [
+              "ContactSensor"
+            ],
+            "tags": [
+              "Garage",
+              "Door",
+              "ContactSensor"
+            ]
+          },
+          "Living_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Living",
+              "Speaker"
+            ]
+          },
+          "Bedroom_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Bedroom",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 60000,
+          "script": "phase := 0\nif (phase == 0) {\nwait until(all(#ContactSensor).contactSensor_contact ==| false)\n    phase = 1\n    all(#Speaker).speaker_speak(\"Welcome\")\n}\nelse {\nall(#Speaker).speaker_speak(\"Welcome\")\n}"
+        }
+      },
+      "result": {
+        "status": "EQUIV",
+        "result": {
+          "verdict": "EQUIV",
+          "n_states": 2401,
+          "n_steps": 19216,
+          "closed": true,
+          "divergences": [],
+          "seconds": 0.3531070561148226,
+          "notes": [
+            "contract-v1: input grid + exact deadlines; concrete state BFS",
+            "explicit external input domains (no value reduction)"
+          ],
+          "bounded_horizon_ticks": null,
+          "bounded_horizon_ms": null,
+          "input_step_ms": 100,
+          "symbolic_certificate": null
+        },
+        "claim": "EQUIV-FIXPOINT",
+        "replays": [],
+        "worker_seconds": 0.39174714498221874,
+        "peak_rss_kib": 29616
+      },
+      "wall_seconds": 0.44705435959622264
+    }
+  ]
+}

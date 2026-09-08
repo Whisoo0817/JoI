@@ -1,0 +1,195 @@
+{
+  "schema_version": "1.0",
+  "paper_id": "VETS",
+  "identity_version": 1,
+  "status": "complete",
+  "audits": [
+    {
+      "audit_id": "E3-V4-REFUSAL-TRIAGE",
+      "claim_id": "E3-REFUSAL-ATTRIBUTION",
+      "claim_text": "The 46 fresh-v4 preparation refusals have distinct causes: 23 generated-contract mismatches, 6 reference/catalog mismatches, 14 intentional unsupported cases, 2 input-model limits and 1 frontend extension candidate.",
+      "scope": "All 46 preparation REFUSED cases only; first blocker attribution plus secondary findings. Excludes generation failures, parsing errors and search incompleteness from this denominator.",
+      "source_mode": "standalone",
+      "requested_assurance_class": "exploratory",
+      "attained_assurance_class": "exploratory",
+      "verdict": "internally_consistent_only",
+      "audited_claim_effect": "unchanged",
+      "source_runs": [],
+      "run_selection": {
+        "selection_rule": "All and only 46 REFUSED cases from the frozen fresh-v4 manifest; copied C18_006 explicit-bool probe is separate diagnostic evidence.",
+        "excluded_runs": [
+          {
+            "run_id": "fresh-v4-non-refused-342",
+            "rationale": "Different outcome classes, outside the requested refusal-attribution scope; remain in the original benchmark."
+          }
+        ]
+      },
+      "evidence_artifacts": [
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+          "kind": "diagnostic evidence",
+          "source": "experiment",
+          "digest": "3ade7a5e2a7c14d7be5017f63eb4f4585f424251b76df9abc2b9c1e33044e17d"
+        },
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+          "kind": "frozen benchmark manifest",
+          "source": "experiment",
+          "digest": "aaae3d7269274ceeb7a13354031f0dbea5055b9c4c0bd59708065f391743ea20"
+        },
+        {
+          "path": "explorer/eval/triage_refusals.py",
+          "kind": "diagnostic evidence",
+          "source": "audit",
+          "digest": "88dcd0e29b62822ef9256b82ffd637c3c9e73dd4467842ea5c1bd272d1122bce"
+        },
+        {
+          "path": "explorer/eval/REFUSAL_TRIAGE_V4.md",
+          "kind": "diagnostic evidence",
+          "source": "audit",
+          "digest": "946d726d03a29480d1c878965830a036ef6ca80e3302a35bc05751d2e237de27"
+        },
+        {
+          "path": "docs/JOI_SPEC.md",
+          "kind": "diagnostic evidence",
+          "source": "experiment",
+          "digest": "e09f878214bb1322c93f0a827e2da2edef2e7500164468f5970664d54434673c"
+        },
+        {
+          "path": "files/service_list_ver2.0.7.json",
+          "kind": "diagnostic evidence",
+          "source": "experiment",
+          "digest": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221"
+        },
+        {
+          "path": "explorer/SUPPORTED_FRAGMENT.md",
+          "kind": "diagnostic evidence",
+          "source": "experiment",
+          "digest": "e898b11efab4a1a2663b5847ad63572cf88915d379f45b5019cda66d71d126c2"
+        },
+        {
+          "path": "explorer/SERVICE_MODEL.md",
+          "kind": "diagnostic evidence",
+          "source": "experiment",
+          "digest": "0f23090c2eaede30513127281aeeecc13b8a8f12622d7478e60dc1fbca0e5e1c"
+        },
+        {
+          "path": "explorer/ground.py",
+          "kind": "diagnostic evidence",
+          "source": "experiment",
+          "digest": "317f351b5b0f03b63711f13a4af70650b4c061fb366b2e54c2f73db3b31038b5"
+        },
+        {
+          "path": "explorer/service_model.py",
+          "kind": "diagnostic evidence",
+          "source": "experiment",
+          "digest": "562d029868e9e2ac852e08ac09eae02f61776245dc8b14e145385e8fae48b11f"
+        }
+      ],
+      "check_results": [
+        {
+          "check_id": "protocol_integrity",
+          "status": "pass",
+          "rationale": "Post-outcome diagnostic attribution, explicitly separated from frozen benchmark; no claim of prespecified categories.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        },
+        {
+          "check_id": "metric_validity",
+          "status": "pass",
+          "rationale": "Each of 46 REFUSED rows has one primary reason; secondary findings overlap. Static contract mismatches are not ground-truth ACTION labels.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        },
+        {
+          "check_id": "baseline_fairness",
+          "status": "not_assessed",
+          "rationale": "No speed or algorithm accuracy comparison is made in this attribution audit.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        },
+        {
+          "check_id": "outcome_accounting",
+          "status": "pass",
+          "rationale": "All and only 46 manifest REFUSED IDs were reproduced with their exact original first-error string; no original outcome changed.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        },
+        {
+          "check_id": "inferential_support",
+          "status": "inconclusive",
+          "rationale": "One known finite corpus, post-hoc self-review; counts are descriptive and do not establish whole-language correctness.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        },
+        {
+          "check_id": "confound_control",
+          "status": "inconclusive",
+          "rationale": "Gold IR, generated code and catalog issues separated; early refusals can hide secondary problems, and contract interpretation is not deployment evidence.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        },
+        {
+          "check_id": "provenance",
+          "status": "pass",
+          "rationale": "Frozen payload/candidate hashes, diagnostic source hashes, catalog returns, stage reproductions and copied-variant probe persisted.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        },
+        {
+          "check_id": "snapshot_continuity",
+          "status": "pass",
+          "rationale": "Triage verified source and all 46 candidate hashes before/after diagnostic execution. No production or raw-result mutation.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        },
+        {
+          "check_id": "independence",
+          "status": "fail",
+          "rationale": "Same agent performed attribution and review, using current parser/catalog adapters; no independent adjudication.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_refusal_triage_2026-09-07_v1.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json"
+          ]
+        }
+      ],
+      "independence": {
+        "self_review": true,
+        "dimensions": [],
+        "evidence": "Source inspection, exact-refusal reproduction and one diagnostic copied variant by the same agent; not independent semantic validation."
+      },
+      "limitations": [
+        "Primary cause is not the complete set of issues in a case.",
+        "Generated-contract mismatch is scoped to current scalar/selector semantics and fixed binding, not universal JoI-language invalidity.",
+        "Reference/catalog mismatch requires source-data/specification review, not automatic candidate blame.",
+        "C18_006 original remains REFUSED; the edited in-memory copy diverges and is not counted as a new benchmark result.",
+        "Missing STRING domain cannot be repaired by treating a few samples as all strings."
+      ],
+      "predecessor_failures": [
+        {
+          "failure_id": "TRIAGE-PATH-SETUP",
+          "status": "resolved",
+          "rationale": "Initial relative __file__ snapshot lookup failed before any artifact/probe; resolved using absolute path, then all 46 original refusals reproduced."
+        }
+      ],
+      "minimum_corrective_action": "Review six reference/catalog inconsistencies; evaluate BOOL any normalization as a separate frontend change and the two domain limits as explicit model/cost decisions; preserve deliberate refusals and raw outcomes.",
+      "narrative_anchor": "E3-V4-REFUSAL-TRIAGE"
+    }
+  ]
+}

@@ -1,5 +1,11 @@
 # @ArgResolve
 
+`IsAvailable()` checks whether the selected cloud provider is available and returns
+BOOL (`true` or `false`). It has **no arguments**: emit `args: {}`; do not supply
+`ServiceName`. Bind its return to a local variable and compare it with `true`.
+Keep the provider selected by the request when performing a subsequent upload;
+a request about Main must not upload to every connected provider.
+
 For query / prompt args (`ChatWithAI.Prompt`, `ExplainImage.*`, etc.), reformulate the NL phrase as a **complete, grammatical question or imperative**, not a fragment.
 - ❌ `Prompt: "what LLM is"`, `Prompt: "the weather"`.
 - ✅ `Prompt: "What is an LLM?"`, `Prompt: "What is the weather?"`.

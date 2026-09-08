@@ -1,0 +1,213 @@
+{
+  "schema_version": "1.0",
+  "paper_id": "VETS",
+  "identity_version": 1,
+  "status": "complete",
+  "audits": [
+    {
+      "audit_id": "E3-CONTRACT-FRESH-V4",
+      "claim_id": "E3-SEARCH-AGREEMENT",
+      "claim_text": "Under the frozen contract-v1 model and 3200ms horizon, timed Explorer agrees with dense 1ms search on jointly completed new generated samples from the familiar 388-task corpus.",
+      "scope": "All 388 prespecified generation attempts on familiar dataset tasks; catalog-backed inputs and predicate-family GV model; 3200ms only; conditional comparison and unconditional outcomes reported separately.",
+      "source_mode": "standalone",
+      "requested_assurance_class": "exploratory",
+      "attained_assurance_class": "exploratory",
+      "verdict": "supports_exploratory_follow_up",
+      "audited_claim_effect": "strengthen",
+      "source_runs": [],
+      "run_selection": {
+        "selection_rule": "Include complete fresh-v4 attempt; five-case old-v3 development pilot is retained separately. No fresh-v4 row excluded or retried.",
+        "excluded_runs": [
+          {
+            "run_id": "contract-pilot-2026-09-07",
+            "rationale": "Prespecified five-case old-candidate development smoke check, not a fresh-generation sample."
+          },
+          {
+            "run_id": "historical-v1-v2-v3",
+            "rationale": "Historical model and outcome-visible development data, not current-contract fresh-generation evidence."
+          }
+        ]
+      },
+      "evidence_artifacts": [
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+          "kind": "protocol",
+          "source": "experiment",
+          "digest": "50c18ffd59ce0ad41d88886415b9d81c2142b8b2a2ef8dd78a1b4676f9278d53"
+        },
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+          "kind": "manifest",
+          "source": "experiment",
+          "digest": "aaae3d7269274ceeb7a13354031f0dbea5055b9c4c0bd59708065f391743ea20"
+        },
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+          "kind": "summary",
+          "source": "experiment",
+          "digest": "8b5555864c393a84f4df55dfe8acd85b2a11d8d4b08a6ca902e644421d6ae7f7"
+        },
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl",
+          "kind": "outcomes",
+          "source": "experiment",
+          "digest": "faae0777fa96e121532ca89bd6ba073a2c02ee22c4cd57234f0a46574834d313"
+        },
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_2026-09-07_generation.log",
+          "kind": "generation",
+          "source": "experiment",
+          "digest": "d2f0a7dbf9f448d23938981e59c851d204649d2bfb6f615e306da371ff4f025f"
+        },
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_2026-09-07_sources.zip",
+          "kind": "source_archive",
+          "source": "experiment",
+          "digest": "6a14583d4d85eec5e58dadbea80f12879c31c6cd1033b1343b8b97a8c26a64c6"
+        },
+        {
+          "path": "explorer/eval/report_frozen.py",
+          "kind": "reporter",
+          "source": "audit",
+          "digest": "aa57574a947a46e16bdf453d49c3dfd0fd21571c0ce770dd5a90fa567550adc6"
+        },
+        {
+          "path": "explorer/eval/results/contract_fresh_v4_2026-09-07/metrics.json",
+          "kind": "metrics",
+          "source": "experiment",
+          "digest": "ae8697de46c2c0c258877b8cb6abb25e136cf9b0831ecc559e38bde78ae6e4f8"
+        }
+      ],
+      "check_results": [
+        {
+          "check_id": "protocol_integrity",
+          "status": "pass",
+          "rationale": "All 388 case IDs, generator sources, model/domain derivation and caps frozen before fresh generation; domains serialized before searches. Task corpus remains familiar.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        },
+        {
+          "check_id": "metric_validity",
+          "status": "pass",
+          "rationale": "Completed-pair agreement is separated from all-case coverage; refusals and incomplete results are retained. Dense search is a comparator, not independently established ground truth.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        },
+        {
+          "check_id": "baseline_fairness",
+          "status": "pass",
+          "rationale": "Both engines use identical serialized domains, horizon, start time and caps in separate sequential processes; transition ratios use paired completed equivalent cases.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        },
+        {
+          "check_id": "outcome_accounting",
+          "status": "pass",
+          "rationale": "Every selected ID occurs once in manifest and outcomes, including missing/failed generation, preparation refusal and resource failures.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        },
+        {
+          "check_id": "inferential_support",
+          "status": "inconclusive",
+          "rationale": "Descriptive finite-corpus results only; familiar tasks, one generation sample per task, no task-independent test split or independent ground truth. No population accuracy confidence claim.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        },
+        {
+          "check_id": "confound_control",
+          "status": "inconclusive",
+          "rationale": "Source and model frozen. Shared interpreters, catalog, input inference and observation can share bugs; internal E1 evidence does not remove all common-mode failures.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        },
+        {
+          "check_id": "provenance",
+          "status": "pass",
+          "rationale": "Protocol, candidate and model manifest, complete outcomes, logs and source hashes retained; generation seed unspecified by existing helper.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        },
+        {
+          "check_id": "snapshot_continuity",
+          "status": "pass",
+          "rationale": "Evaluation checked recorded source and candidate hashes before and after execution. This is local continuity, not sandbox isolation or external timestamp authentication.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        },
+        {
+          "check_id": "independence",
+          "status": "fail",
+          "rationale": "This is self-review. Search traversal differs but semantic adapters and observation are shared; tasks were used in development. 308/329 valid generated scripts are identical to the same-task old-v3 script; fresh generation is weak code-level holdout evidence.",
+          "evidence_paths": [
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_protocol.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07_manifest.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/summary.json",
+            "explorer/eval/results/contract_fresh_v4_2026-09-07/case_outcomes.jsonl"
+          ]
+        }
+      ],
+      "independence": {
+        "self_review": true,
+        "dimensions": [],
+        "evidence": "Same agent prepares evaluation and audit; dense search uses separate traversal but shares production semantics."
+      },
+      "limitations": [
+        "repository digest continuity is not filesystem isolation",
+        "familiar tasks are not unseen-task heldout",
+        "search engines share adapters and observation; no independent ground truth labels",
+        "3.2 seconds is a bounded evaluation horizon, not a completeness bound",
+        "308/329 valid generated scripts match the old-v3 script exactly; only 21 differ. Do not present all fresh invocations as unseen code.",
+        "Peak RSS includes interpreter/preparation overhead; timeout RSS is missing, not zero.",
+        "Declared GV families are normative model domains, not measured deployed GV stores.",
+        "No formal proof or full-language accuracy established by benchmark agreement."
+      ],
+      "predecessor_failures": [
+        {
+          "failure_id": "HARNESS-PREFREEZE-PATH",
+          "status": "resolved",
+          "rationale": "Initial protocol construction failed because __file__ was relative; fixed before any protocol/candidate freeze or search. Dependent missing-file commands produced no evaluation artifacts."
+        },
+        {
+          "failure_id": "HISTORICAL-INPUT-MODEL",
+          "status": "accepted_with_narrowing",
+          "rationale": "Historical v3 numbers are not carried forward after semantics/input repairs; this run uses current catalog-backed model and bounded scope."
+        }
+      ],
+      "minimum_corrective_action": "Use only bounded descriptive results; obtain task-independent samples and stronger independent semantic coverage before stronger generalization/accuracy claims.",
+      "narrative_anchor": "E3-CONTRACT-FRESH-V4"
+    }
+  ]
+}

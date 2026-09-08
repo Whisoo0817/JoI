@@ -1,0 +1,1433 @@
+{
+  "evidence_class": "development_only_model_boundary_probes",
+  "actual_runtime_status": "UNAVAILABLE",
+  "actual_runtime_runs": 0,
+  "target_runtime_contract": "runtime-contract-v1",
+  "e1_complete": false,
+  "semantics": "contract-v1",
+  "probe_sha256": "069438a6c73f5e22223f19fcf6ada6bfc543e390f75a2279adeaee30ad07483d",
+  "evaluator_sha256": "2035063a9033176a7a669dff385354fb04e307c2fc11a533369a96a1f1574776",
+  "sources": {
+    "local_language_description": {
+      "path": "/home/gnltnwjstk/joi/docs/JOI_SPEC.md",
+      "available": true,
+      "sha256": "e09f878214bb1322c93f0a827e2da2edef2e7500164468f5970664d54434673c"
+    },
+    "lowering_rules": {
+      "path": "/home/gnltnwjstk/joi/files/joi_common.md",
+      "available": true,
+      "sha256": "16d09cbb676f9b8207053e4d8cc1772aa99d3d4480c44e6e3a8e31bfadcb0fb1"
+    },
+    "lowering_cycle_rules": {
+      "path": "/home/gnltnwjstk/joi/files/joi_cycle.md",
+      "available": true,
+      "sha256": "ee0d80022f454890f5d06acb7d3360a90732fc997de757435ec4d1fff5619dd3"
+    },
+    "local_grammar": {
+      "path": "/home/gnltnwjstk/joi/lowering/parser/JOILang.g4",
+      "available": true,
+      "sha256": "34e39b3dd7112ca14ab9d5b354ee0d34e981ec8d01b35275da5769fe909d656a"
+    },
+    "generated_lexer": {
+      "path": "/home/gnltnwjstk/joi/lowering/parser/generated/JOILangLexer.py",
+      "available": true,
+      "sha256": "e9822c045419c9cdcd5ce17a09ff6da11eb48d057dd3af145396c31135dc26c5"
+    },
+    "generated_parser": {
+      "path": "/home/gnltnwjstk/joi/lowering/parser/generated/JOILangParser.py",
+      "available": true,
+      "sha256": "e040d8d3ad245a3b2f50f99a2683728f2a028baf2fc02ed9f9d6337cd5cf9c1e"
+    },
+    "legacy_simulator": {
+      "path": "/home/gnltnwjstk/joi/sensys/simulators/joi_simulator.py",
+      "available": true,
+      "sha256": "9814f02b30eb896f2c738f5ac447795632f9c45be2fe7bee51f69b71852ead35"
+    },
+    "hub_api_client": {
+      "path": "/home/gnltnwjstk/joi-agent/mcp_server/tools.py",
+      "available": true,
+      "sha256": "8a7c982dfdbece64adfe173317bfc61e99afd70f8f3388c0eb62a2baa10d2fc5"
+    },
+    "other_project_mock": {
+      "path": "/home/gnltnwjstk/mysmax/execution/mock.py",
+      "available": true,
+      "sha256": "e49ec98d3c2024338d02f11872fc9299654f0cbcbee9629b9e6a595858dc8c7c"
+    },
+    "catalog": {
+      "path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+      "available": true,
+      "sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221"
+    },
+    "target_runtime_contract": {
+      "path": "/home/gnltnwjstk/joi/explorer/RUNTIME_CONTRACT.md",
+      "available": true,
+      "sha256": "a57ec18b9eb4450df47cc7fc2ca1a16ba22db1fc95fcc32c1df7ff2a40a76f4a"
+    }
+  },
+  "devices": {
+    "lamp": {
+      "category": [
+        "Switch"
+      ],
+      "tags": [
+        "Lamp"
+      ]
+    },
+    "input": {
+      "category": [
+        "Switch"
+      ],
+      "tags": [
+        "Input"
+      ]
+    },
+    "weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Weather"
+      ]
+    },
+    "speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Speaker"
+      ]
+    }
+  },
+  "input_step_ms": 100,
+  "timer_step_ms": 1,
+  "cases": [
+    {
+      "id": "delay_150",
+      "probe": {
+        "id": "delay_150",
+        "rule": "delay resumes at its exact deadline",
+        "period": 0,
+        "horizon_ms": 300,
+        "script": "(#Lamp).switch_on()\ndelay(150 MSEC)\n(#Lamp).switch_off()",
+        "inputs": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 150,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 150,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "period_after_completion",
+      "probe": {
+        "id": "period_after_completion",
+        "rule": "period starts after body completion",
+        "period": 1000,
+        "horizon_ms": 2500,
+        "script": "(#Lamp).switch_on()\ndelay(150 MSEC)\n(#Lamp).switch_off()",
+        "inputs": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 150,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 1150,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 1300,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 2300,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 2450,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 150,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 1150,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 1300,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 2300,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 2450,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "wait_preserves_continuation",
+      "probe": {
+        "id": "wait_preserves_continuation",
+        "rule": "wait resumes without repeating preceding ACTION",
+        "period": 1000,
+        "horizon_ms": 1400,
+        "script": "(#Lamp).switch_on()\nwait until((#Input).switch_switch == true)\n(#Lamp).switch_off()",
+        "inputs": [
+          [
+            0,
+            {
+              "input.switch": false
+            }
+          ],
+          [
+            300,
+            {
+              "input.switch": true
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 300,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 1300,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 1300,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 300,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 1300,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 1300,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "nested_delay_keeps_branch",
+      "probe": {
+        "id": "nested_delay_keeps_branch",
+        "rule": "resumption does not re-evaluate outer if",
+        "period": 0,
+        "horizon_ms": 300,
+        "script": "if ((#Input).switch_switch == true) {\n(#Lamp).switch_on()\ndelay(150 MSEC)\n(#Lamp).switch_off()\n}",
+        "inputs": [
+          [
+            0,
+            {
+              "input.switch": true
+            }
+          ],
+          [
+            100,
+            {
+              "input.switch": false
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 150,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 150,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "input_at_delay_expiry",
+      "probe": {
+        "id": "input_at_delay_expiry",
+        "rule": "new input is visible at coincident timer expiry",
+        "period": 0,
+        "horizon_ms": 300,
+        "script": "delay(200 MSEC)\nx = (#Input).switch_switch\nif (x == true) { (#Lamp).switch_on() } else { (#Lamp).switch_off() }",
+        "inputs": [
+          [
+            0,
+            {
+              "input.switch": true
+            }
+          ],
+          [
+            200,
+            {
+              "input.switch": false
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 200,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 200,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "zero_delay",
+      "probe": {
+        "id": "zero_delay",
+        "rule": "zero delay preserves same-time sequential ACTIONs",
+        "period": 0,
+        "horizon_ms": 100,
+        "script": "(#Lamp).switch_on()\ndelay(0 MSEC)\n(#Lamp).switch_off()",
+        "inputs": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "break_absorbs",
+      "probe": {
+        "id": "break_absorbs",
+        "rule": "top-level break prevents later iterations and statements",
+        "period": 100,
+        "horizon_ms": 300,
+        "script": "(#Lamp).switch_on()\nbreak\n(#Lamp).switch_off()",
+        "inputs": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "initial_value_persists",
+      "probe": {
+        "id": "initial_value_persists",
+        "rule": "executed top-level initializer persists",
+        "period": 100,
+        "horizon_ms": 200,
+        "script": "x := (#Input).switch_switch\nif (x == true) { (#Lamp).switch_on() } else { (#Lamp).switch_off() }",
+        "inputs": [
+          [
+            0,
+            {
+              "input.switch": true
+            }
+          ],
+          [
+            100,
+            {
+              "input.switch": false
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 100,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 200,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 100,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 200,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "edge_latch",
+      "probe": {
+        "id": "edge_latch",
+        "rule": "initial true fires once; observed false re-arms latch",
+        "period": 100,
+        "horizon_ms": 400,
+        "script": "fired := false\nif ((#Input).switch_switch == true) {\nif (fired == false) {\n(#Lamp).switch_on()\nfired = true\n}\n} else { fired = false }",
+        "inputs": [
+          [
+            0,
+            {
+              "input.switch": true
+            }
+          ],
+          [
+            200,
+            {
+              "input.switch": false
+            }
+          ],
+          [
+            300,
+            {
+              "input.switch": true
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 300,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 300,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "query_same_snapshot",
+      "probe": {
+        "id": "query_same_snapshot",
+        "rule": "same query key shares held value within a reaction",
+        "period": 0,
+        "horizon_ms": 100,
+        "script": "a = (#Weather).weatherProvider_forecast(3)\nb = (#Weather).weatherProvider_forecast(3)\nif (a == \"rain\" and b == \"rain\") { (#Lamp).switch_on() }",
+        "inputs": [
+          [
+            0,
+            {
+              "weather.forecast(3)": "rain"
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "on",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "query_after_delay",
+      "probe": {
+        "id": "query_after_delay",
+        "rule": "later query sees latest held input and STRING result",
+        "period": 0,
+        "horizon_ms": 300,
+        "script": "a = (#Weather).weatherProvider_forecast(3)\ndelay(150 MSEC)\nb = (#Weather).weatherProvider_forecast(3)\nif (a == \"rain\" and b == \"clear\") { (#Speaker).speaker_speak(b) }",
+        "inputs": [
+          [
+            0,
+            {
+              "weather.forecast(3)": "rain"
+            }
+          ],
+          [
+            100,
+            {
+              "weather.forecast(3)": "clear"
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 150,
+            "service": "speaker",
+            "method": "speak",
+            "args": [
+              "clear"
+            ],
+            "target": [
+              "speaker"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 150,
+          "service": "speaker",
+          "method": "speak",
+          "args": [
+            "clear"
+          ],
+          "target": [
+            "speaker"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "missing_query",
+      "probe": {
+        "id": "missing_query",
+        "rule": "model represents missing query result as None",
+        "period": 0,
+        "horizon_ms": 100,
+        "script": "w = (#Weather).weatherProvider_forecast(3)\nif (w == \"rain\") { (#Lamp).switch_on() } else { (#Lamp).switch_off() }",
+        "inputs": [
+          [
+            0,
+            {
+              "weather.forecast(3)": null
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "effectful_return_refused",
+      "probe": {
+        "id": "effectful_return_refused",
+        "rule": "return assignment must not erase Toggle ACTION",
+        "period": 0,
+        "horizon_ms": 0,
+        "script": "x = (#Lamp).switch_toggle()",
+        "inputs": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected_refusal": "silent input"
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "reason": "return-assigned/effectful or unreviewed function cannot be a silent input: ('Switch', 'Toggle')",
+      "model_status": "EXPECTED_REFUSAL"
+    },
+    {
+      "id": "initializer_after_delay",
+      "probe": {
+        "id": "initializer_after_delay",
+        "rule": "initial-iteration assignment reads when reached, including after delay",
+        "period": 100,
+        "horizon_ms": 400,
+        "script": "delay(150 MSEC)\nx := (#Input).switch_switch\nif (x == true) { (#Lamp).switch_on() } else { (#Lamp).switch_off() }",
+        "inputs": [
+          [
+            0,
+            {
+              "input.switch": true
+            }
+          ],
+          [
+            100,
+            {
+              "input.switch": false
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 150,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 400,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 150,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 400,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    },
+    {
+      "id": "initializer_in_late_branch",
+      "probe": {
+        "id": "initializer_in_late_branch",
+        "rule": "initializer skipped in first iteration stays skipped in later iterations",
+        "period": 100,
+        "horizon_ms": 300,
+        "script": "if ((#Input).switch_switch == true) { x := true }\nif (x == true) { (#Lamp).switch_on() } else { (#Lamp).switch_off() }",
+        "inputs": [
+          [
+            0,
+            {
+              "input.switch": false
+            }
+          ],
+          [
+            100,
+            {
+              "input.switch": true
+            }
+          ]
+        ],
+        "expected": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 100,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 200,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 300,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ]
+      },
+      "grammar": {
+        "status": "ACCEPTED",
+        "errors": []
+      },
+      "actual_runtime_status": "UNAVAILABLE",
+      "observed_model_trace": [
+        {
+          "t_ms": 0,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 100,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 200,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        },
+        {
+          "t_ms": 300,
+          "service": "switch",
+          "method": "off",
+          "args": [],
+          "target": [
+            "lamp"
+          ]
+        }
+      ],
+      "model_status": "PASS"
+    }
+  ],
+  "program_mutation_controls": [
+    {
+      "id": "delay_150",
+      "replacement": [
+        "150 MSEC",
+        "200 MSEC"
+      ],
+      "detected": true,
+      "observation": {
+        "id": "delay_150",
+        "probe": {
+          "id": "delay_150",
+          "rule": "delay resumes at its exact deadline",
+          "period": 0,
+          "horizon_ms": 300,
+          "script": "(#Lamp).switch_on()\ndelay(200 MSEC)\n(#Lamp).switch_off()",
+          "inputs": [
+            [
+              0,
+              {}
+            ]
+          ],
+          "expected": [
+            {
+              "t_ms": 0,
+              "service": "switch",
+              "method": "on",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            },
+            {
+              "t_ms": 150,
+              "service": "switch",
+              "method": "off",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            }
+          ]
+        },
+        "grammar": {
+          "status": "ACCEPTED",
+          "errors": []
+        },
+        "actual_runtime_status": "UNAVAILABLE",
+        "observed_model_trace": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 200,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ],
+        "model_status": "FAIL"
+      }
+    },
+    {
+      "id": "wait_preserves_continuation",
+      "replacement": [
+        "wait until((#Input).switch_switch == true)\n(#Lamp).switch_off()",
+        "if ((#Input).switch_switch == true) { (#Lamp).switch_off() }"
+      ],
+      "detected": true,
+      "observation": {
+        "id": "wait_preserves_continuation",
+        "probe": {
+          "id": "wait_preserves_continuation",
+          "rule": "wait resumes without repeating preceding ACTION",
+          "period": 1000,
+          "horizon_ms": 1400,
+          "script": "(#Lamp).switch_on()\nif ((#Input).switch_switch == true) { (#Lamp).switch_off() }",
+          "inputs": [
+            [
+              0,
+              {
+                "input.switch": false
+              }
+            ],
+            [
+              300,
+              {
+                "input.switch": true
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "t_ms": 0,
+              "service": "switch",
+              "method": "on",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            },
+            {
+              "t_ms": 300,
+              "service": "switch",
+              "method": "off",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            },
+            {
+              "t_ms": 1300,
+              "service": "switch",
+              "method": "on",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            },
+            {
+              "t_ms": 1300,
+              "service": "switch",
+              "method": "off",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            }
+          ]
+        },
+        "grammar": {
+          "status": "ACCEPTED",
+          "errors": []
+        },
+        "actual_runtime_status": "UNAVAILABLE",
+        "observed_model_trace": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 1000,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 1000,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ],
+        "model_status": "FAIL"
+      }
+    },
+    {
+      "id": "initial_value_persists",
+      "replacement": [
+        ":=",
+        "="
+      ],
+      "detected": true,
+      "observation": {
+        "id": "initial_value_persists",
+        "probe": {
+          "id": "initial_value_persists",
+          "rule": "executed top-level initializer persists",
+          "period": 100,
+          "horizon_ms": 200,
+          "script": "x = (#Input).switch_switch\nif (x == true) { (#Lamp).switch_on() } else { (#Lamp).switch_off() }",
+          "inputs": [
+            [
+              0,
+              {
+                "input.switch": true
+              }
+            ],
+            [
+              100,
+              {
+                "input.switch": false
+              }
+            ]
+          ],
+          "expected": [
+            {
+              "t_ms": 0,
+              "service": "switch",
+              "method": "on",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            },
+            {
+              "t_ms": 100,
+              "service": "switch",
+              "method": "on",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            },
+            {
+              "t_ms": 200,
+              "service": "switch",
+              "method": "on",
+              "args": [],
+              "target": [
+                "lamp"
+              ]
+            }
+          ]
+        },
+        "grammar": {
+          "status": "ACCEPTED",
+          "errors": []
+        },
+        "actual_runtime_status": "UNAVAILABLE",
+        "observed_model_trace": [
+          {
+            "t_ms": 0,
+            "service": "switch",
+            "method": "on",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 100,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          },
+          {
+            "t_ms": 200,
+            "service": "switch",
+            "method": "off",
+            "args": [],
+            "target": [
+              "lamp"
+            ]
+          }
+        ],
+        "model_status": "FAIL"
+      }
+    }
+  ],
+  "grammar_boundary": {
+    "script": "delay(1.5 SEC)\n(#Lamp).switch_on()",
+    "local_antlr": {
+      "status": "REJECTED",
+      "errors": [
+        {
+          "line": 1,
+          "column": 6,
+          "message": "mismatched input '1.5' expecting INTEGER"
+        }
+      ]
+    }
+  }
+}

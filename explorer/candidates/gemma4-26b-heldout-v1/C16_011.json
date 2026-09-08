@@ -1,0 +1,62 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "오후 10시부터 11시까지 5분마다 체크해서 충전이 완료되면 꺼줘.",
+  "command_eng": "Check every 5 minutes from 10 PM to 11 PM and turn it off when charging is complete.",
+  "connected_devices": {
+    "Main_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Charger",
+        "Switch"
+      ]
+    },
+    "Phone_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Phone",
+        "Charger",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 22 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2300",
+        "period": "5 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Charger.ChargingState == \"fullyCharged\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.3
+}

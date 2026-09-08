@@ -12,12 +12,12 @@ from __future__ import annotations
 
 import traceback
 
-from .. import product as product_mod
-from ..explore import explore, reps_from_preds
-from ..gate import GateResult, fold_verdict, gate_pair, prepare_pair
-from ..product import (Divergence, ProductResult, ReplayResult, merge_axes,
-                       product_explore)
-from ..runner import JoiRunner
+from explorer.verification import product as product_mod
+from explorer.analysis.explore import explore, reps_from_preds
+from explorer.verification.gate import GateResult, fold_verdict
+from explorer.tests.synthetic_gate import gate_pair, prepare_pair
+from explorer.verification.product import Divergence, ProductResult, ReplayResult, merge_axes, product_explore
+from explorer.runtime.runner import JoiRunner
 
 PERIOD = 60_000
 
@@ -56,7 +56,7 @@ def test_unpredicated_value_flow_is_an_explicit_input_axis():
            "(#Speaker).speaker_speak(t)\n")
     runner = JoiRunner.from_src(src)
     assert "temperaturesensor.temperature" in runner.axes.cells
-    assert len(runner.axes.cells["temperaturesensor.temperature"]) >= 2
+    assert "temperaturesensor.temperature" in runner.axes.exact_reads
 
 
 def test_zero_arg_ir_query_uses_grounded_device_key():
@@ -225,7 +225,7 @@ def test_gate_refuses_generated_code_parse_error():
 
 # ── P1 Day 1: 미지원 무늬 fail-closed (2026-09-02 개정 계획) ─────────────────
 
-from ..interp import Unsupported
+from explorer.runtime.interp import Unsupported
 
 TEMP = "(#TemperatureSensor).temperatureSensor_temperature"
 HUMID = "(#HumiditySensor).humiditySensor_humidity"
@@ -291,7 +291,11 @@ def test_arith_transformed_arg_is_refused():
 
 def test_identity_arg_flow_is_allowed():
     src = f"t = {TEMP}\nif (t > 10) {{ (#Speaker).speaker_speak(t) }}\n"
-    assert product_explore(src, src, PERIOD).verdict == "EQUIV"
+    from explorer.verification.input_model import decimal_domain
+    from explorer.verification.product import product_runners
+    runner = JoiRunner.from_src(src)
+    assert product_runners(runner, runner, PERIOD,
+        input_domains={"temperaturesensor.temperature": decimal_domain(9, 10)}).verdict == "EQUIV"
 
 
 _TWO_TIMERS = (
@@ -325,9 +329,9 @@ def test_two_timers_threshold_mutation_diverges():
 def test_deadline_region_separates_states():
     # 같은 zone·같은 선후 부호라도 차이가 임계차(30)를 넘느냐로 미래
     # 교차 순서가 갈린다 — 상태 키가 갈라야 한다 (구 부호 방식은 병합)
-    from ..interp import parse
-    from ..predicates import classify_vars
-    from ..explore import derive_axes, normalize
+    from explorer.runtime.interp import parse
+    from explorer.analysis.predicates import classify_vars
+    from explorer.analysis.explore import derive_axes, normalize
     stmts = parse(_TWO_TIMERS % (30, 60))
     vinfo = classify_vars(stmts)
     axes = derive_axes(stmts, vinfo)
@@ -368,9 +372,9 @@ TOD = 'if (clock.time >= %d) { (#Speaker).speaker_speak("night") }\n'
 
 
 def test_clock_time_axes_and_selfpair():
-    from ..interp import parse
-    from ..predicates import classify_vars
-    from ..explore import derive_axes
+    from explorer.runtime.interp import parse
+    from explorer.analysis.predicates import classify_vars
+    from explorer.analysis.explore import derive_axes
     stmts = parse(TOD % 2300)
     axes = derive_axes(stmts, classify_vars(stmts))
     assert (">=", 2300) in axes.tod_ops, axes.tod_ops

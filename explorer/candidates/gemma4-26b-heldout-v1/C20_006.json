@@ -1,0 +1,78 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "침실에 1분 이상 움직임이 감지되지 않으면 침실 스탠드 플러그를 꺼줘.",
+  "command_eng": "If no motion is detected in the bedroom for at least 1 minute, turn off the bedroom floor lamp plug.",
+  "connected_devices": {
+    "Bedroom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "MotionSensor"
+      ]
+    },
+    "LivingRoom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MotionSensor"
+      ]
+    },
+    "Bedroom_FloorLamp": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "FloorLamp"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == false",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.5
+}

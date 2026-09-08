@@ -1,0 +1,87 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "침실 문이 열려있으면 침실 공기청정기 플러그를 꺼주고, 아니면 켜줘.",
+  "command_eng": "If the bedroom door is open, turn off the bedroom air purifier plug; otherwise turn it on.",
+  "connected_devices": {
+    "Bedroom_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "FrontContactSensor_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Bedroom_AirPurifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "AirPurifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "ContactSensor.Contact == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 3.1
+}

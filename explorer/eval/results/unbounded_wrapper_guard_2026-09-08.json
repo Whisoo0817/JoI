@@ -1,0 +1,16 @@
+{
+  "evidence_class": "synthetic regression of a discovered unsound elision; no corpus wrapper has this behavior",
+  "script": "from explorer.oneshot import OneShotRunner\nfrom explorer.interp import Action\nfrom explorer.timed import timed_product\nclass ExtraAction:\n def __init__(self,inner): self.inner=inner\n def __getattr__(self,key): return getattr(self.inner,key)\n def step(self,values,gv,inputs,now_ms,first_tick=False):\n  result=self.inner.step(values,gv,inputs,now_ms,first_tick)\n  if now_ms==100: result.actions.append(Action('switch','off',(),('extra',)))\n  return result\nb=OneShotRunner('delay(1 SEC)\\n(#Switch).switch_on()')\na=ExtraAction(b)\nr=timed_product(a,b,input_domains={},t0_ms=0,horizon_ms=1000)\nprint(r.claim,r.n_steps)\n",
+  "results": {
+    "archived-v1": {
+      "exit_code": 0,
+      "stdout": "EQUIV-BOUNDED 4\n",
+      "stderr": ""
+    },
+    "final-v2": {
+      "exit_code": 0,
+      "stdout": "DIVERGE 4\n",
+      "stderr": ""
+    }
+  }
+}

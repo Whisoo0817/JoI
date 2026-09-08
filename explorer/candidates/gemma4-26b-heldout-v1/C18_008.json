@@ -1,0 +1,68 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "주말에 5초마다 체크해서 펌프가 꺼져 있으면 켜고, 켜져 있으면 꺼줘.",
+  "command_eng": "Every 5 seconds on weekends, if the pump is off, turn it on; if it is on, turn it off.",
+  "connected_devices": {
+    "Main_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Garden_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Garden",
+        "Pump",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * 6"
+      },
+      {
+        "op": "cycle",
+        "until": "Clock.Weekday == \"monday\"",
+        "period": "5 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Switch.Switch == false",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 3.5
+}

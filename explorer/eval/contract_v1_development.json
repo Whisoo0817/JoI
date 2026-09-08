@@ -1,0 +1,249 @@
+{
+  "semantics": "contract-v1",
+  "service_catalog": false,
+  "purpose": "Development smoke cases; not held-out evaluation or runtime conformance evidence",
+  "cases": [
+    {
+      "id": "delay_0",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "delay",
+            "duration": "150 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.On"
+          }
+        ]
+      },
+      "binding": {
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        }
+      },
+      "joi_block": {
+        "script": "delay(150 MSEC)\n(#Switch).switch_on()",
+        "period": 0
+      },
+      "input_domains": {},
+      "input_step_ms": 100,
+      "horizon_ms": 250,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "delay_1",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "delay",
+            "duration": "150 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.On"
+          }
+        ]
+      },
+      "binding": {
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        }
+      },
+      "joi_block": {
+        "script": "delay(200 MSEC)\n(#Switch).switch_on()",
+        "period": 0
+      },
+      "input_domains": {},
+      "input_step_ms": 100,
+      "horizon_ms": 250,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "delay_2",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "delay",
+            "duration": "0 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.On"
+          }
+        ]
+      },
+      "binding": {
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        }
+      },
+      "joi_block": {
+        "script": "delay(0 MSEC)\n(#Switch).switch_on()",
+        "period": 0
+      },
+      "input_domains": {},
+      "input_step_ms": 100,
+      "horizon_ms": 250,
+      "expected_verdict": "EQUIV-BOUNDED"
+    },
+    {
+      "id": "bare_wait_input",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion"
+          },
+          {
+            "op": "call",
+            "target": "Switch.On"
+          }
+        ]
+      },
+      "binding": {
+        "MotionSensor": [
+          "sensor"
+        ],
+        "Switch": [
+          "lamp"
+        ]
+      },
+      "devices": {
+        "sensor": {
+          "category": [
+            "MotionSensor"
+          ],
+          "tags": [
+            "MotionSensor"
+          ]
+        },
+        "lamp": {
+          "category": [
+            "Switch"
+          ],
+          "tags": [
+            "Switch"
+          ]
+        }
+      },
+      "joi_block": {
+        "script": "wait until(false)",
+        "period": 0
+      },
+      "input_domains": {
+        "sensor.motion": [
+          false,
+          true
+        ]
+      },
+      "input_step_ms": 100,
+      "horizon_ms": 100,
+      "expected_verdict": "DIVERGE"
+    },
+    {
+      "id": "stored_numeric_string_difference",
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "delay",
+            "duration": "100 MSEC"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "text": "1"
+            }
+          }
+        ]
+      },
+      "binding": {
+        "Speaker": [
+          "speaker"
+        ]
+      },
+      "devices": {
+        "sensor": {
+          "category": [
+            "TemperatureSensor"
+          ],
+          "tags": [
+            "TemperatureSensor"
+          ]
+        },
+        "speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "script": "x = (#TemperatureSensor).temperatureSensor_temperature\ndelay(100 MSEC)\n(#Speaker).speaker_speak(\"\" + x)",
+        "period": 0
+      },
+      "input_domains": {
+        "sensor.temperature": [
+          1,
+          1.0
+        ]
+      },
+      "input_step_ms": 100,
+      "horizon_ms": 100,
+      "expected_verdict": "DIVERGE"
+    }
+  ]
+}

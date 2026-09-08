@@ -1,0 +1,383 @@
+{
+  "protocol_path": "explorer/eval/results/contract_pilot_2026-09-07_protocol.json",
+  "protocol_sha256": "744a6896f9a3cde7c3f6be9ad41ff7d2f14fe6e1f3cddbe614437bf3a40b1c21",
+  "cases": [
+    {
+      "id": "C01_001",
+      "candidate_path": "explorer/candidates/gemma4-26b-heldout-v3/C01_001.json",
+      "status": "READY",
+      "candidate_sha256": "86d00e1e195ae41cd1104ef8851de5167609bdf52e4bfd65da4f24cab96ac3b0",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "Dehumidifier.SetDehumidifierMode",
+              "args": {
+                "Mode": "drying"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "Dehumidifier": [
+            "Kitchen_Dehumidifier",
+            "Utility_Dehumidifier"
+          ]
+        },
+        "devices": {
+          "Kitchen_Dehumidifier": {
+            "category": [
+              "Dehumidifier"
+            ],
+            "tags": [
+              "Kitchen",
+              "Dehumidifier"
+            ]
+          },
+          "Utility_Dehumidifier": {
+            "category": [
+              "Dehumidifier"
+            ],
+            "tags": [
+              "Utility",
+              "Dehumidifier"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")"
+        }
+      },
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives; exact observable domains; None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221",
+        "members": {
+          "Dehumidifier.SetDehumidifierMode:function": {
+            "id": "SetDehumidifierMode",
+            "descriptor": "Set the dehumidifier mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the dehumidifier mode",
+                "type": "ENUM",
+                "format": "DehumidifierModeEnum",
+                "members": [
+                  "cooling",
+                  "delayWash",
+                  "drying",
+                  "finished",
+                  "refreshing",
+                  "weightSensing",
+                  "wrinklePrevent",
+                  "dehumidifying",
+                  "AIDrying",
+                  "sanitizing",
+                  "internalCare",
+                  "freezeProtection",
+                  "continuousDehumidifying",
+                  "thawingFrozenInside"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Dehumidifier",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "missing/None included; catalog does not generally declare nullable",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221"
+      ]
+    },
+    {
+      "id": "C02_001",
+      "candidate_path": "explorer/candidates/gemma4-26b-heldout-v3/C02_001.json",
+      "status": "READY",
+      "candidate_sha256": "9caf6992cde6bbe90a5dc93378c1a656ac9a9e71812a37297a5a243ed41b036b",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "Camera.CaptureImage",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "Camera": [
+            "MeetingRoom_Camera"
+          ]
+        },
+        "devices": {
+          "MeetingRoom_Camera": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "MeetingRoom",
+              "Camera"
+            ]
+          },
+          "Hallway_Camera": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "Hallway",
+              "Camera"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "(#MeetingRoom).camera_captureImage()"
+        }
+      },
+      "model": {
+        "horizon_ms": 3200,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives; exact observable domains; None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221",
+        "members": {
+          "Camera.CaptureImage:function": {
+            "id": "CaptureImage",
+            "descriptor": "Capture a still image from the camera and return it as binary JPEG data",
+            "return_type": {
+              "type": "BINARY"
+            },
+            "service": "Camera",
+            "kind": "function",
+            "return_spec": {
+              "type": "BINARY"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "missing/None included; catalog does not generally declare nullable",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: ac35c8b78c05ce7f379b7fe7b8dfa49b18172d68f69aec169169768c49e5a221"
+      ]
+    },
+    {
+      "id": "C03_002",
+      "candidate_path": "explorer/candidates/gemma4-26b-heldout-v3/C03_002.json",
+      "status": "REFUSED",
+      "candidate_sha256": "aee9c39b8355316df0b99a629ba02d4470528c69a1984b3b4b236bffe83d0925",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "CloudServiceProvider.IsAvailable",
+              "args": {},
+              "var": "IsAvailable"
+            },
+            {
+              "op": "if",
+              "cond": "$IsAvailable == true",
+              "then": [
+                {
+                  "op": "call",
+                  "target": "CloudServiceProvider.UploadFile",
+                  "args": {
+                    "File": "test.png"
+                  }
+                }
+              ],
+              "else": []
+            }
+          ]
+        },
+        "binding": {
+          "CloudServiceProvider": [
+            "Main_CloudServiceProvider",
+            "Backup_CloudServiceProvider"
+          ]
+        },
+        "devices": {
+          "Main_CloudServiceProvider": {
+            "category": [
+              "CloudServiceProvider"
+            ],
+            "tags": [
+              "CloudServiceProvider",
+              "Main"
+            ]
+          },
+          "Backup_CloudServiceProvider": {
+            "category": [
+              "CloudServiceProvider"
+            ],
+            "tags": [
+              "CloudServiceProvider",
+              "Backup"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "IsAvailable = any(#CloudServiceProvider).cloudServiceProvider_isAvailable()\nif (IsAvailable == true) {\nall(#CloudServiceProvider).cloudServiceProvider_uploadFile(\"test.png\")\n}"
+        }
+      },
+      "reason": "missing named arguments for CloudServiceProvider.IsAvailable"
+    },
+    {
+      "id": "C05_001",
+      "candidate_path": "explorer/candidates/gemma4-26b-heldout-v3/C05_001.json",
+      "status": "GENERATION_ERROR",
+      "candidate_sha256": "777eb1d458a301791ae7f5a2e2fc77893243d36829627fb1bcf73bcfdd915ef9",
+      "reason": "device_not_connected"
+    },
+    {
+      "id": "C06_001",
+      "candidate_path": "explorer/candidates/gemma4-26b-heldout-v3/C06_001.json",
+      "status": "REFUSED",
+      "candidate_sha256": "7e012b15064e4ff665118f99bfc1fa7215f5f092e3377f356a14ba3e71cf681b",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "if",
+              "cond": "TemperatureSensor.Temperature >= 28 or TemperatureSensor.Temperature >= 30",
+              "then": [
+                {
+                  "op": "call",
+                  "target": "Switch.On",
+                  "args": {}
+                }
+              ],
+              "else": []
+            }
+          ]
+        },
+        "binding": {
+          "TemperatureSensor": [
+            "LivingRoom_TempSensor"
+          ],
+          "TemperatureSensor#2": [
+            "Bedroom_TempSensor"
+          ],
+          "Switch": [
+            "LivingRoom_AC"
+          ]
+        },
+        "devices": {
+          "LivingRoom_TempSensor": {
+            "category": [
+              "TemperatureSensor"
+            ],
+            "tags": [
+              "LivingRoom",
+              "TemperatureSensor"
+            ]
+          },
+          "Bedroom_TempSensor": {
+            "category": [
+              "TemperatureSensor"
+            ],
+            "tags": [
+              "Bedroom",
+              "TemperatureSensor"
+            ]
+          },
+          "LivingRoom_AC": {
+            "category": [
+              "AirConditioner",
+              "Switch"
+            ],
+            "tags": [
+              "LivingRoom",
+              "AirConditioner"
+            ]
+          },
+          "Kitchen_Humidifier": {
+            "category": [
+              "Humidifier"
+            ],
+            "tags": [
+              "Kitchen",
+              "Humidifier"
+            ]
+          },
+          "Study_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Study",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "if (((#LivingRoom #TemperatureSensor).temperatureSensor_temperature >= 28) or ((#Bedroom).airQualitySensor_temperature >= 30)) {\n(#AirConditioner).switch_on()\n}"
+        }
+      },
+      "reason": "device Bedroom_TempSensor does not declare capability AirQualitySensor"
+    }
+  ]
+}

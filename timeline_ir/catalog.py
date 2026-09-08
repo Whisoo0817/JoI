@@ -9,6 +9,7 @@ single canonical form.
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 from functools import lru_cache
 from typing import Any
@@ -24,7 +25,8 @@ def load_catalog(path: str = _DEFAULT_CATALOG_PATH) -> dict[str, dict]:
     """Load and index the service catalog.
 
     Returns a dict keyed by service id (e.g., "Light", "Dishwasher") with
-    sub-dicts {functions: {fn_id: [arg_id, ...]}, values: {val_id: type}}.
+    sub-dicts functions (ordered arg ids), values (types), and return_types.
+    The argument-list interface stays unchanged for lowering and simulators.
     """
     with open(path, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -39,18 +41,25 @@ def load_catalog(path: str = _DEFAULT_CATALOG_PATH) -> dict[str, dict]:
         if not sid:
             continue
         functions: dict[str, list[str]] = {}
+        return_types: dict[str, str] = {}
         for fn in sk.get("functions", []):
             fn_id = fn.get("id")
             if not fn_id:
                 continue
             args = [a.get("id") for a in fn.get("arguments", []) if a.get("id")]
             functions[fn_id] = args
+            ret = fn.get("return_type")
+            if isinstance(ret, dict):
+                ret = ret.get("type")
+            if isinstance(ret, str):
+                return_types[fn_id] = ret
         values: dict[str, str] = {}
         for v in sk.get("values", []):
             vid = v.get("id")
             if vid:
                 values[vid] = v.get("type", "")
-        indexed[sid] = {"functions": functions, "values": values}
+        indexed[sid] = {"functions": functions, "values": values,
+                        "return_types": return_types}
 
     return indexed
 
@@ -129,3 +138,20 @@ def split_target(target: str) -> tuple[str, str]:
         return ("", target)
     service, _, method = target.rpartition(".")
     return (service, method)
+
+
+def load_service_specs(path: str = _DEFAULT_CATALOG_PATH) -> dict:
+    """Lossless, hashed snapshot for verification (including return/enum specs).
+
+    Unlike the small lowering index, this preserves descriptors and types.
+    Read once so the digest describes exactly the parsed bytes; do not cache
+    mutable verification snapshots across edits of the catalog.
+    """
+    from pathlib import Path
+    raw = Path(path).read_bytes()
+    data = json.loads(raw)
+    skills = data.get("skills") if isinstance(data, dict) else data
+    if not isinstance(skills, list):
+        raise ValueError(f"unexpected catalog shape at {path}")
+    return {"path": str(Path(path).resolve()),
+            "sha256": hashlib.sha256(raw).hexdigest(), "skills": skills}

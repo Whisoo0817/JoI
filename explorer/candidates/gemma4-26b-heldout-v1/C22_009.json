@@ -1,0 +1,51 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "3분마다 차고 문 잠금을 해제해줘. 3번만 반복.",
+  "command_eng": "Every 3 minutes, unlock the garage door. Repeat 3 times.",
+  "connected_devices": {
+    "Entrance_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "3 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "DoorLock.Unlock",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 1.5
+}
