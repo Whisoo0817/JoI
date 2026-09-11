@@ -47,6 +47,12 @@ explorer/
 
 ## 현재 상태와 다음 작업
 
+- 2026-09-09 논문 방향 결정: **LLM-generated 자동화의 IR–코드 행동 검증**을 유지한다.
+  결정론적 IR→JoI compiler는 future work다. [기존 논문 구성안](../docs/VETS_PAPER_STRUCTURE_AND_CLAIMS.md)을
+  기준으로 Explorer 방법·증명·평가의 배치를 이어간다.
+- 2026-09-11 binding 범위 결정: `Service.Method`당 서로 다른 selector는 하나만
+  허용한다. selector 하나의 multi-device `all(...)` fan-out은 지원하며, 복수
+  selector가 필요한 mapping은 실험 전에 fail-closed로 거절한다.
 - Explorer 개발·증명은 **일시 중단**했다. H 없는 탐색, 서비스 명세 입력, typed 값 흐름,
   제한된 SMT 산술, 정수 관계 검증, 무관찰 대기 생략과 catalog clock 범위를 구현했다.
 - [D/S 통합 증명](docs/proof/PROOF_OBLIGATIONS.md#통합-정리의-도출)은 독립 검토 보완까지 완료했다.

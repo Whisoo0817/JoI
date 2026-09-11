@@ -70,8 +70,9 @@ _TRACE_DIR = os.environ.get("JOI_TRACE_DIR", os.path.join(_ROOT_DIR, "traces"))
 def _live_binding(resolved: dict, ir: dict, connected_devices: dict) -> dict:
     """매핑 산출(df_resolved: 서비스 → {q, devices}) → 게이트 바인딩 표.
 
-    스킬별 한 자리(모든 등장에 같은 집합). 수량사: 조건 읽기의 any/all은
-    {"any"/"all": ids}로, 액션은 기기 목록으로. IR의 스칼라 자리(read op·
+    스킬별 한 자리(모든 등장에 같은 집합). 여러 기기의 any/all 수량사는
+    {"any"/"all": ids}로 보존한다(call 접지는 같은 ids를 fan-out한다).
+    IR의 스칼라 자리(read op·
     인자 안 읽기)에 쓰이는 스킬이 여러 대면 JoI 실행 규약과 같은 1대
     (Main 태그 1대 → 아니면 인벤토리 첫 후보)로 줄인다 — 게이트 IR 쪽은
     스칼라 자리에 여러 대를 못 놓는다."""
@@ -115,7 +116,7 @@ def _live_binding(resolved: dict, ir: dict, connected_devices: dict) -> dict:
             ids = [mains[0]] if len(mains) == 1 else ids[:1]
         if len(ids) > 1 and "any" in e["quants"]:
             out[skill] = {"any": ids}
-        elif len(ids) > 1 and "all" in e["quants"] and skill in scalar_skills:
+        elif len(ids) > 1 and "all" in e["quants"]:
             out[skill] = {"all": ids}
         else:
             out[skill] = ids

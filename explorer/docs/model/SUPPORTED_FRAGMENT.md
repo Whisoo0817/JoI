@@ -51,6 +51,13 @@ REFUSED할 수 있다. synthetic model은 service_catalog=False로 명시하며
 거절한다. 비BOOL의 결측 정책은 유지한다. bool 입력 모델 ID는
 `strict-two-valued-v1`; 이전 nullable BOOL 평가 수치는 역사적 결과다.
 
+**생성·평가 binding 범위 확정 (2026-09-11):** 하나의 `Service.Method`에는
+서로 다른 selector를 최대 하나만 허용한다. `all(#...)` 하나가 여러 concrete
+device에 fan-out하는 것은 지원한다. 같은 service에 서로 다른 selector가 필요하면
+mapping 단계에서 fail-closed로 거절하며 E1에서는 지원 경계, E3에서는 generation/
+preparation refusal로 분리한다. 이 제한은 임의 후보 JoI를 읽는 gate parser의 문법
+제한이 아니라, 논문에서 다루는 confirmed binding과 lowering 입력의 범위다.
+
 **파서·실행기 검토 갱신 (2026-09-07):**
 [FRONTEND_CORRECTNESS.md](../proof/FRONTEND_CORRECTNESS.md)에 모델 내부의 의미 보존·결정론성
 논증과 서비스 명세에 남은 전제를 구분했다. any 비교는 전체 매칭 장치를
