@@ -1,6 +1,6 @@
 # VETS / JoI — PerCom 논문 작업
 
-2026-09-08 정리. 이 문서는 프로젝트 배경과 논문 방향의 진입점이다.
+2026-09-11 갱신. 이 문서는 프로젝트 배경과 논문 방향의 진입점이다.
 **Explorer의 현재 상태·다음 작업은 [Explorer README](explorer/README.md) 한 곳에서 관리한다.**
 검증 범위와 평가 수치를 이 파일에 복제하지 않는다.
 
@@ -11,6 +11,19 @@ SenSys 2027에 제출했던 OVLA의 reject 리뷰를 바탕으로 PerCom 2027 �
 중심 질문은 **LLM이 생성한 스마트홈 자동화 코드가 기준 행동을 구현하는가**이다.
 Timeline IR 자체를 독립적인 언어 연구로 전면에 내세우지는 않는다.
 
+2026-09-11 framing 결정에 따라 Timeline을 모든 IoT automation을 위한 범용 공용 IR로
+정당화하지 않는다. Timeline은 **NL→JoI 생성에서 표현력 높은 구현 언어의 여러 코드 idiom과
+미세한 시간·상태·제어 흐름 오류를 syntax만으로 판별할 수 없기 때문에 필요한,
+지원 JoI 범위의 per-automation executable behavioral specification**이다.
+논문의 대비 축은 primitive/declarative 플랫폼과 code-based 플랫폼의 이분법이 아니라,
+닫히고 명시적인 검증 기준과 표현력 높은 구현 언어의 역할 차이다.
+현재 구현·평가 backend는 JoI 하나이며 openHAB/Home Assistant/SmartThings는 현재의
+platform-general guarantee가 아니다. 상세 결정은
+[2026-09-11 problem framing](skill_result/06_manuscript/problem_framing_codegen_validation_2026-09-11.md)을 따른다.
+
+2026-09-09 교수님과 논의한 결정에 따라 **LLM-generated와 기존 생성·검증 흐름을 유지**한다.
+결정론적 IR→JoI compiler는 **future work**로 두며, 현재 논문의 구현·실험 범위에 포함하지 않는다.
+
 ```text
 자연어 → Timeline IR 후보 → 사용자 확인 → 기준 명세
                                          ├→ 코드 생성
@@ -19,14 +32,25 @@ Timeline IR 자체를 독립적인 언어 연구로 전면에 내세우지는 �
 ```
 
 - 확인된 IR을 검증 기준으로 삼는다. IR 확인이 자연어 의도 정확성이나 사용자 확인 성공률을 보장하지 않는다.
+- 정확한 검증 기준은 selector-free IR과 확정 binding plan의 쌍이다. 현재는
+  `Service.Method`당 서로 다른 selector 하나만 허용하며, 한 `all(...)` selector의
+  multi-device fan-out은 지원한다.
 - 고정된 프로그램·초기 상태·시간별 입력에 대한 실행 결과의 유일성이 결정론성이다. LLM 생성의 재현성과 다르다.
 - 결정론성과 검증 soundness는 정리·증명으로, 구현 적합성은 코드 대응·실험으로 뒷받침한다.
 - 표현 범위는 문법·연산자·합성·제외 사례로 설명한다. 유한 corpus를 전체 자동화의 모집단으로 보지 않는다.
 - 스마트홈/JoI가 현재 범위다. 다른 플랫폼·물리 시스템의 정확성이나 일반화를 이미 입증했다고 쓰지 않는다.
-- on-device와 특정 LLM 크기는 핵심 전제가 아니다. deterministic compiler도 가능한 대안이다.
+- on-device와 특정 LLM 크기는 핵심 전제가 아니다. IR→코드는 LLM lowering을 사용한다.
 - user study는 진행하지 않는 방향이다. 논문의 중심은 확인된 명세에 대한 코드 행동 검증이다.
 
 ## 처음 읽을 자료
+
+현재 논문 Flow 대화는 [2026-09-11 problem framing](skill_result/06_manuscript/problem_framing_codegen_validation_2026-09-11.md)과
+[canonical paper flow](skill_result/06_manuscript/paper_flow_ir_contract_2026-09-10.md)에서 이어간다.
+현재 위치는 **NL→JoI 생성 결과 검증을 중심으로 절별 flow와 contribution wording을 동결하는 단계**이며,
+구체적 실험 설계는 본체 Flow 완성 뒤다.
+[Related Work 원문 대조와 통합 목록](skill_result/02_literature/related_work_review_2026-09-09/README.md)에
+OVLA 인용·최근 문헌·예상 반박·차별성 후보를 정리했다. 기존의 넓은 novelty 설명보다 이 대조를 우선 참고한다.
+매 논의에서 전체 논문 내 위치를 먼저 짚고 구체적인 설명·후보를 제시한다.
 
 도메인 배경이 필요할 때 아래 순서로 읽고, 구현 작업 재개는 Explorer README에서 시작한다.
 
