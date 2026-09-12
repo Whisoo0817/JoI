@@ -1,0 +1,9 @@
+# System Overview and Scope — PerCom working draft
+
+VETS separates specification fixation from implementation validation. In the authoring frontend, an LLM maps a natural-language request to a Timeline and a binding plan. The user confirms that these artifacts capture the intended behavior and targets. This confirmation is an explicit assumption of the technical guarantee: VETS does not infer whether the confirmed specification matches an unobserved user intention.
+
+The confirmed Timeline and binding then serve two downstream roles. They guide an LLM that lowers the behavior to JoI, and they define an executable reference that remains independent of the generated code. The JoI candidate is parsed, grounded, and checked against the supported fragment. VETS executes the reference and candidate under the same model of initial state, typed sensor inputs, logical time, service returns, and observable ACTIONs. Behavioral Explorer then compares the two executions across the modeled input histories.
+
+VETS distinguishes three classes of outcome. `EQUIV` is a certificate only when a supported verification path completes under its declared conditions. `DIVERGE` includes a timed input history that can be replayed to expose different ACTION traces. Refusal, timeout, resource exhaustion, and an unfinished frontier are non-certifying outcomes rather than evidence of equivalence or divergence.
+
+The present implementation targets JoI as its only backend. A binding may map each `Service.Method` to one distinct selector, and a selector may fan out to multiple concrete devices. Requests that require different selectors for the same service-method pair are rejected by the current mapping contract. The verifier covers one automation pair at a time and does not model parallel Timeline branches, overlapping cron instances, arbitrary physical dynamics, network failure, or interaction among multiple deployed automations.
