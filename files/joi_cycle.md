@@ -8,9 +8,9 @@ The IR timeline contains a top-level `{"op":"cycle",...}`. The hub re-runs the s
 
 | # | Trigger (IR signal) | Idiom | Wrapper.period |
 |---|---|---|---|
-| 1 | `cycle.until != null` | D-9 (until window) | `parse_ms(cycle.period)` |
+| 1 | `cycle.until != null` AND body has NO `wait` | D-9 (until window) | `parse_ms(cycle.period)` |
 | 2 | body has `if{break}` step | D-6 (progressive update) | `parse_ms(cycle.period)` |
-| 3 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`) | D-3 / D-10 (edge / sustained) | **1000 (fixed, 1-sec polling)** |
+| 3 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`), with or without `cycle.until` | D-3 / D-10 (edge / sustained); a `cycle.until` adds only the D-9 break-guard at the top | **1000 (fixed, 1-sec polling)** |
 | 4 | pre-cycle `wait(edge:"none"\|null)` at top level | D-4 (phase lifecycle) | `parse_ms(cycle.period)` |
 | 5 | else | B-2 (simple periodic) | `parse_ms(cycle.period)` |
 
@@ -24,11 +24,31 @@ When the IR's `cycle` carries a `count` field (e.g. `count:"n"`), the cycle uses
 
 1. **Prepend** `<count> := 0` as the FIRST statement of the script (a single persistent init).
 2. **Emit the idiom body** exactly as Step 3 dictates (the body references `<count>` in `if`/`until` expressions verbatim — no translation).
-3. **Append** `<count> = <count> + 1` as the LAST statement of the script (advances the counter every tick).
+3. **Advance** the counter once per IR iteration:
+   - Idioms where every tick runs one whole iteration (B-2, D-6, D-9 without `wait`): **append** `<count> = <count> + 1` as the LAST statement of the script.
+   - Idioms with a `wait` in the body (D-3, D-10): one IR iteration ends only when Y has run, NOT on every polling tick. Put `<count> = <count> + 1` inside the innermost block, right after Y (next to `triggered = true` / `fired = true`). ❌ Never append it at the end of the script — that counts polling ticks and ends the cycle after a few seconds.
 
 `cycle.until` referencing `<count>` (e.g. `until:"n >= 10"`) is the D-9 idiom: emit `if (n >= 10) { break }` at the top of the body, same as any other `until` expression.
 
-This handling is composable with every Step-1 idiom row — it adds two lines around the existing template.
+This handling is composable with every Step-1 idiom row — it adds the init line plus one increment line whose position follows item 3.
+
+D-3 + `cycle.count` + `cycle.until` (e.g. `until:"n >= K"`, body `wait(C, rising); Y`):
+```
+n := 0
+triggered := false
+if (n >= K) {
+    break
+}
+if (C) {
+    if (triggered == false) {
+        Y
+        triggered = true
+        n = n + 1
+    }
+} else {
+    triggered = false
+}
+```
 
 ---
 
