@@ -60,7 +60,7 @@ CASES.append(dict(
           "detected for 120 s continuously, call Switch.Off at the end of those 120 s. A new motion during the "
           "120 s cancels the pending Off and (being a motion rising edge) emits On again. The automation never ends."),
     assumptions=["[가정] no_motion_wait 기본값 120초 사용",
-                 "[가정] HA restart 모드를 문자 그대로 해석: 재감지마다 turn_on을 다시 호출한다(중복 On 호출도 관측 ACTION)",
+                 "[가정] HA restart 모드를 문자 그대로 해석: 새로운 motion off→on 재트리거마다 turn_on을 다시 호출한다(중복 On 호출도 관측 ACTION)",
                  "[가정] 시작 시 이미 motion=true면 사건이 아니므로 On을 내지 않는다"],
     devices={**dev("Hall_Motion", "MotionSensor", "Hallway"), **dev("Hall_Light", "Switch", "Hallway", "Light")},
     binding={"MotionSensor": ["Hall_Motion"], "Switch": ["Hall_Light"]},
@@ -297,6 +297,7 @@ CASES.append(dict(
     assumptions=["[가정] Roomba on = OperatingState == 'running'; 끄기 = SetRobotVacuumCleanerRunMode('idle') "
                  "(2026-09-12 해시 후 수정: 처음 쓴 'cleaning'/'stop' 은 catalog enum 에 없음 — 값 이름만 바꿈, 행동 해석 불변)",
                  "[가정] 커튼 열림 = CurrentPosition > 0", "[가정] 동시 변화면 (a) 다음 (b) 순서로 둘 다 호출",
+                 "[메모] 이 사례의 두 rule 에는 delay·중첩 인스턴스·action→trigger 되먹임이 없어 직전 snapshot 판별이 두 독립 rule 과 같은 trace 를 낸다. 일반적으로 snapshot 이 병렬 rule 을 대체한다는 주장이 아님(감사 2026-09-12)",
                  "[가정] 자동화의 ACTION 이 만든 상태 변화(커튼 닫힘 등)는 입력 이력에 명시된 시점에만 반영"],
     devices={**dev("LR_Vacuum", "RobotVacuumCleaner", "LivingRoom"), **dev("LR_Curtain", "WindowCovering", "LivingRoom", "Curtain")},
     binding={"RobotVacuumCleaner": ["LR_Vacuum"], "WindowCovering": ["LR_Curtain"]},
@@ -451,6 +452,13 @@ CASES.append(dict(
         dict(name="arrive_exactly_0900", kind="boundary", horizon=4 * H,
              events=[(0, {"Office_Presence.Presence": False}), (3 * H, {"Office_Presence.Presence": True})],
              expected=[act(3 * H, "EmailProvider.SendMail", ["me@example.com", "On time", "I got to work on time!"], "My_Mail")]),
+        # added after the B audit (2026-09-12): the audit found the real risk is a presence already true at 06:00
+        dict(name="already_present_at_start_no_mail", kind="boundary", horizon=4 * H,
+             events=[(0, {"Office_Presence.Presence": True})],
+             expected=[]),
+        dict(name="arrive_0900_30_no_mail", kind="boundary", horizon=4 * H,
+             events=[(0, {"Office_Presence.Presence": False}), (3 * H + 30 * S, {"Office_Presence.Presence": True})],
+             expected=[]),
     ]))
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -461,14 +469,14 @@ CASES.append(dict(
     source_url="https://par.nsf.gov/biblio/10106413", accessed="2026-09-12",
     verbatim=("IF Sally enters the bedroom AND AFTERWARDS the sun sets WITHIN 2 hours THEN turn on the bedroom lights. "
               "(unordered variant: IF Sally enters the bedroom AND the sun sets WITHIN 2 hours THEN ...)"),
-    elements=["R1", "R2", "B3", "B1"], boundary_intent=True,
+    elements=["R1", "R2", "B1"], boundary_intent=True,   # B3 removed after the B audit: the unordered variant is a separate requirement
     spec=("ORDERED variant (evaluated): when bedroom presence changes absent->present, open a 2-hour window. If the "
           "outdoor brightness changes from ≥50 to <50 (sunset) inside the window, call Switch.On at that instant and "
           "close the window. A new absent->present change during an open window restarts the window. If the window "
           "expires, nothing happens. Never ends. UNORDERED variant (recorded as B3, not executed): the rule also fires "
           "if sunset happened up to 2 hours BEFORE the entry."),
     assumptions=["[가정] 해넘이 = LightSensor.Brightness 가 50 아래로 떨어지는 사건", "[가정] 창 안 재입장은 창을 다시 시작(restart)",
-                 "[가정] 실행 확인은 순서 있는 변형만; 순서 없는 변형은 look-back 기억이 필요해 B3 로 기록"],
+                 "[감사 2026-09-12] 이 사례는 순서형 문장(AND AFTERWARDS)만을 대상으로 확정. paired unordered variant requires look-back event memory and is excluded from this ordered-variant case — Stage B limitation candidate (B3)"],
     devices={**dev("Bed_Presence", "PresenceSensor", "Bedroom"), **dev("Outdoor_Lux", "LightSensor", "Outdoor"),
              **dev("Bed_Light", "Switch", "Bedroom", "Light")},
     binding={"PresenceSensor": ["Bed_Presence"], "LightSensor": ["Outdoor_Lux"], "Switch": ["Bed_Light"]},

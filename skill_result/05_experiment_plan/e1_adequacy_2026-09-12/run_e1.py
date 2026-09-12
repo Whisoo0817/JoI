@@ -203,6 +203,10 @@ def main(argv):
                 print(f"    ✗ {h['name']}: {h.get('error') or h.get('first_diff')}")
     out = HERE / "runs" / "e1_stageA.json"
     out.parent.mkdir(exist_ok=True)
+    if len(ids) < len(CASES) and out.exists():      # partial rerun: merge into the existing full result
+        old = {r["id"]: r for r in json.loads(out.read_text())}
+        old.update({r["id"]: r for r in rows})
+        rows = [old[c["id"]] for c in CASES if c["id"] in old]
     out.write_text(json.dumps(rows, ensure_ascii=False, indent=1, default=str))
     print(f"-> {out}")
 

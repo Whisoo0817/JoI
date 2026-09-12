@@ -1,6 +1,6 @@
 # E1 — 경계 표 중심의 외부 요구 표현 적합성 사례 연구
 
-시작 2026-09-12. **Stage A(12건): 기계 열(A-frontend·C·D·E) 채움 완료, B 의미 감사(whisoo) 대기. 논문 결과가 아니다.** 결과 표: `results.md`.
+시작 2026-09-12. **Stage A(12건): B 의미 감사(whisoo, 2026-09-12) 완료·반영. 논문 결과가 아니다.** 결과 표: `results.md`. 감사 전 결과 보존: `runs/e1_stageA_before_audit.json`, `runs/results_before_audit.md`.
 설계 배경과 결정은 세션 논의(2026-09-12)에 따른다. 상위 계획: `../confirmed_ir_evaluation_2026-09-10.md`, `../e1_ir_adequacy_design_2026-09-10.md`
 (두 문서의 "완전 표현 비율" 지표는 이 문서의 경계 표로 대체 예정 — whisoo 확정 후 갱신).
 
@@ -79,7 +79,8 @@ D·E 결과는 A 판정을 바꾸지 못한다.
     2. C07 `closes_during_first_blinking` 닫힘 시각 903.25 s → 903.2 s (입력 100 ms 격자 위로 이동).
     3. C11 enum 값 `cleaning`/`stop` → catalog 실제 멤버 `running`/`idle` (이름만 교체).
   - 수정 후 sha256 `ce657f9b88c699afa58b0595998bfa4c5659633d0a2d357f7718605fd04afb53`.
-- `irs.py` 의 encoding 수정 이력은 각 항목의 `history` 필드에 남긴다(C01 v1→v3, C03 v1→v2, C07 v1→v2, C09 v1→v2, C20 v1→v2). 실행기·계약은 바꾸지 않았다.
+- `irs.py` 의 encoding 수정 이력은 각 항목의 `history` 필드에 남긴다(C01 v1→v3, C03 v1→v2, C07 v1→v3, C09 v1→v2, C20 v1→v2, 감사 후 C05 v2·C19 v2). 실행기·계약은 바꾸지 않았다.
+- 감사 후 `cases.py` 변경: C01 가정 문구(“새로운 motion off→on 재트리거마다”), C11 메모, C19 이력 2개 추가(`already_present_at_start_no_mail`, `arrive_0900_30_no_mail`), C20 `elements` 에서 B3 제거(순서형 문장만 사례로 확정).
 - 실행기 의미나 tolerance 를 결과에 맞춰 바꾸지 않는다. 수정이 필요하면 전후와 영향을 이 문서에 기록한다.
 
 관측 계약: `explorer/docs/model/VERIFICATION_CONTRACT.md` 그대로. 입력 100 ms 격자, 만료 1 ms 정확, 같은 시각은 입력 먼저, edge 는 wait 평가 시점에만, period 는 회차 종료 후 대기, 단일 시나리오. Clock 은 t=0 = 월요일 00:00 에서 파생(`interp.clock_state`).
@@ -89,6 +90,7 @@ D·E 결과는 A 판정을 바꾸지 못한다.
 - 실행기는 `start_at.anchor == "cron"` 을 거절한다(`ir_step.compile_ir`). 실행 확인은 `gate.prepare_pair` 와 같은 방식으로 앵커를 소거하고 한 발화 창만 재생했다.
 - `cycle.period` 는 회차 종료 후 대기다. 따라서 "매 N" cadence 를 원하면 회차 시간을 빼야 한다(C05: 100 ms/회차 누적, 1 초 허용 안; C07: blink 를 맞추기 위해 timeout 400 ms 사용).
 - edge 대기는 처음 평가 시 조건이 이미 참이면 발화한다(초기 참 발화). "사건" 의미가 필요하면 선행 level 대기를 둔다(C03, C09). 다른 대기 중 일어난 edge 는 latch 에 반영되지 않는다(C01 v1/v2 실패 원인).
+- `cycle.period: "0 MSEC"` 은 body 가 반드시 wait/timeout 으로 block 하는 event-driven loop 에서만 쓴다(무한 즉시 loop 허용이 아님). period 가 회차 종료 후 대기이므로, body 의 timeout 이 이미 cadence 를 담당하면 0 이 맞다(감사 결정, C05·C07). 실행기 `parse_duration` 과 frontend `parse_duration_to_ms` 모두 0 을 받는다.
 - 실행기 입력 키는 속성명을 전부 소문자로 쓴다(`carbondioxide`). 파일럿의 첫 글자만 소문자 규칙은 한 단어 속성에서만 우연히 맞았다.
 
 ## 5. Stage A 사례 (12)

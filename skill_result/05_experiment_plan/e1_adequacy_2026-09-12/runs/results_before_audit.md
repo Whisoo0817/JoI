@@ -4,20 +4,20 @@
 
 ## 사례별
 
-| ID | 요소 | 경계 | A-언어 | A-frontend | B 감사(whisoo) | C 실행 일치 (정확) | D 실행기 | E Explorer(참고) | F binding | G JoI | 최종 | 메모 |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| C01 | R1 R3 R7 B1 | ★ | full | accepted | **보존** — 새 motion off→on 재트리거는 종료 대기를 취소하고 On 재호출, 마지막 no-motion 후 120 s Off. HA 는 인스턴스 재시작·IR 은 내부 반복이지만 action trace 동일 | 4/4 (4/4) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 | encoding 수정 이력 있음(irs.py) |
-| C03 | R1 R2 |  | full | accepted | **보존** — ≤1000→>1000 에 On, 정확히 15분 후 Off, 종료 뒤 다음 crossing 에 새 실행. 진행 중 재교차 무시는 원문 미정 부분의 명시적 [가정]으로 승인 | 4/4 (4/4) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 | encoding 수정 이력 있음(irs.py) |
-| C04 | R9 R2 |  | full | accepted | **보존** — 'At noon' = 매일 12:00. cron→On→15 min→Off 가 직접 보존. 실행기는 cron 소거 후 한 창만 재생(단서 유지) | 1/1 (1/1) | compiled (cron anchor erased; one firing window executed) | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 |  |
-| C05 | R3 R7 |  | full | accepted | **수정 후 보존** — 2분 연속 열림에 첫 SMS, 열린 동안 정확히 60 s 마다, 닫히면 즉시 종료. inner period 100 MSEC 가 회차마다 100 ms 누적 → 0 MSEC 로 수정(E-ZERO-PERIOD) | 4/4 (4/4) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 | encoding 수정 이력 있음(irs.py) |
-| C07 | R9 R3 R5 R8 B5 B1 | ★ | full | accepted | **수정 후 보존** — 22:00 이후 10분 열림→B0 snapshot→(blink 10·restore·5분 pause)×≤7 승인. 500+400+period 100 구조는 닫힘 뒤 복원이 최대 100 ms 늦음 → 500+500, inner period 0 MSEC 로 수정 | 4/4 (4/4) | compiled | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 | encoding 수정 이력 있음(irs.py) |
-| C09 | R1 R4 |  | full | accepted | **보존 [연구자 변환]** — 원문은 안전 속성 → '귀가 absent→present 순간 Lock' 자동화로 구체화해 평가. 초기 absence 확인 후 각 신규 arrival 에 Lock. 원문 속성 자체를 검증했다고 쓰지 않음 | 3/3 (3/3) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 | encoding 수정 이력 있음(irs.py) |
-| C11 | R1 B2 | ★ | full | accepted | **보존** — 두 독립 TAP rule 을 직전 snapshot(E-PREV)으로 한 흐름에서 판별. 이 사례는 delay·중첩 인스턴스·되먹임이 없어 trace 가 두 rule 과 같음. 동시 변화 시 curtain close→vacuum idle 순서는 [가정]. 이 사례 한정, 일반화 아님 | 4/4 (4/4) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 |  |
-| C15 | R4 R7 R9 |  | full | accepted | **보존** — 밤 22:00–06:00, 입·퇴실 = presence 변화. 밤 입실에만 On, 06:00 이후 퇴실도 Off. 밤 시작 시 이미 재실이면 On 없음. IR·3 이력이 정확히 보존 | 3/3 (3/3) | compiled | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 |  |
-| C16 | R9 R6 |  | full | accepted | **보존** — 'if it is 10:00pm' = 매일 22:00 정각 한 번 검사. 그 순간 문 닫힘·조명 Off 일 때만 TV Off. Switch binding slot 분리 확인. cron 한 회차 단서 유지 | 2/2 (2/2) | compiled (cron anchor erased; one firing window executed) | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 |  |
-| C18 | R1 R9 R2 |  | full | accepted | **보존** — '3:00 pm' = 15:00–15:59 창, 진행 중 재누름 무시로 구체화([가정] 유지, 원 논문도 해석이 갈림). 새 버튼 사건에 즉시 Unlock, 정확히 10 s 뒤 Lock 보존 | 3/3 (3/3) | compiled | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 |  |
-| C19 | R10 R9 |  | full | accepted | **수정 후 보존** — '분 단위 과허용' 설명은 오류(race 가 09:00 에 끝나므로 09:00:30 은 통과 안 함). 실제 결함은 시작 시 이미 present 를 arrival 로 오인 → wait(absent) 선행, 마지막 if 단순화, 이력 2개 추가 | 5/5 (5/5) | compiled (cron anchor erased; one firing window executed) | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 | encoding 수정 이력 있음(irs.py) |
-| C20 | R1 R2 B1 | ★ | full | accepted | **보존 — ordered variant 만** — 'AND AFTERWARDS … WITHIN 2 hours' 문장만 사례로 확정. 퇴장이 창을 끝내고 재입장이 새 창 → 재시작 의미와 같은 trace. paired unordered variant requires look-back event memory and is excluded from this ordered-variant case | 4/4 (4/4) | compiled | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ | 미확인(불가/부분 없음) | 완전 | encoding 수정 이력 있음(irs.py) |
+| ID | 요소 | 경계 | A-언어(작성자 주장) | A-frontend | B 감사 | C 실행 일치 (정확) | D 실행기 | E Explorer(참고) | F binding | G JoI | 메모 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| C01 | R1 R3 R7 B1 | ★ | full | accepted |  | 4/4 (4/4) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ |  | encoding 수정 이력 있음(irs.py) |
+| C03 | R1 R2 |  | full | accepted |  | 4/4 (4/4) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ |  | encoding 수정 이력 있음(irs.py) |
+| C04 | R9 R2 |  | full | accepted |  | 1/1 (1/1) | compiled (cron anchor erased; one firing window executed) | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ |  |  |
+| C05 | R3 R7 |  | full | accepted |  | 4/4 (0/4) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ |  |  |
+| C07 | R9 R3 R5 R8 B5 B1 | ★ | full | accepted |  | 4/4 (3/4) | compiled | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ |  | encoding 수정 이력 있음(irs.py) |
+| C09 | R1 R4 |  | full | accepted |  | 3/3 (3/3) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ |  | encoding 수정 이력 있음(irs.py) |
+| C11 | R1 B2 | ★ | full | accepted |  | 4/4 (4/4) | compiled | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ |  |  |
+| C15 | R4 R7 R9 |  | full | accepted |  | 3/3 (3/3) | compiled | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ |  |  |
+| C16 | R9 R6 |  | full | accepted |  | 2/2 (2/2) | compiled (cron anchor erased; one firing window executed) | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ |  |  |
+| C18 | R1 R9 R2 |  | full | accepted |  | 3/3 (3/3) | compiled | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ |  |  |
+| C19 | R10 R9 |  | partial | accepted |  | 3/3 (3/3) | compiled (cron anchor erased; one firing window executed) | EQUIV (EQUIV-FIXPOINT) | selector/Service.Method 1 ✓ |  |  |
+| C20 | R1 R2 B3 B1 | ★ | partial | accepted |  | 4/4 (4/4) | compiled | UNKNOWN (INCONCLUSIVE) | selector/Service.Method 1 ✓ |  | encoding 수정 이력 있음(irs.py) |
 
 ## 요소 × 사례 (경계 표)
 
@@ -29,27 +29,17 @@
 | R4 | 사건 한 번/재무장 | C09 C15 | 2/2 |  |
 | R5 | 저장값 흐름 | C07 | 1/1 |  |
 | R6 | 순차·분기 | C16 | 1/1 |  |
-| R7 | 조건까지 반복(주기) | C01 C05 C15 | 3/3 | C05 v1 은 정확 일치 0/4(period 가 회차 종료 후 대기라 100 ms 누적) → v2 inner period 0 MSEC 로 수정(감사) |
+| R7 | 조건까지 반복(주기) | C01 C05 C15 | 3/3 | C05: 정확 일치 0/4 — period 가 회차 종료 후 대기라 회차마다 100 ms 누적(1초 허용 안) |
 | R8 | 고정 횟수 반복 | C07 | 1/1 |  |
 | R9 | 시계 앵커·시간대 | C04 C07 C15 C16 C18 C19 | 6/6 | cron 앵커 3건(C04 C16 C19)은 실행기가 거절 → 앵커 소거 후 한 창만 실행. Clock 은 분 단위(C19 근사) |
 | R10 | 시각 vs 사건 경쟁 | C19 | 1/1 |  |
-| B1 | 즉시 취소·재시작 | C01 C07 C20 | 3/3 | C07 v3: 닫힘 시각에 B0 복원(감사 후 정확 일치). C01/C20: 재시작·취소를 timeout+break 조합으로 표현 |
+| B1 | 즉시 취소·재시작 | C01 C07 C20 | 3/3 | C07: 취소가 100 ms 격자에서 감지(정확 일치 1건 실패, 1초 허용 안). C01/C20: 재시작·취소를 timeout+break 조합으로 표현 |
 | B2 | 독립 두 흐름/인스턴스 | C11 | 1/1 | C11: 두 흐름을 만들지 않고 이전 회차 snapshot(read)으로 '무엇이 바뀌었나'를 판별. 두 TAP 규칙과 같은 행동인지는 감사 판단 |
-| B3 | 이벤트 기억·look-back | (Stage A 없음) | - | Stage B 후보 필요 |
+| B3 | 이벤트 기억·look-back | C20 | 1/1 | C20 은 순서 있는 변형만 통과. 순서 없는(look-back) 변형은 **작성하지 않음** — B3 자체는 Stage A 에서 미평가 |
 | B4 | 가변 간격 반복 | (Stage A 없음) | - | Stage B 후보 필요 |
 | B5 | 중첩 반복 | C07 | 1/1 |  |
 
-최종 판정: 완전 12/12 (완전 = A full ∧ B 보존 ∧ C 모든 이력 일치). 선정한 12건 중의 건수이며 coverage 비율이 아니다.
-
-Explorer 참고 열: IR×IR 자기 product, 120 s 예산. UNKNOWN 은 표현 실패가 아니라 탐색 미완(cap)이며 A 판정을 바꾸지 않는다.
-
-## 감사 후 수정 전후 (exact 열)
-
-| 사례 | 수정 | 전 (match/exact) | 후 (match/exact) |
-|---|---|---|---|
-| C05 | inner cycle period 100 MSEC → 0 MSEC | 4/4 / 0/4 | 4/4 / 4/4 |
-| C07 | half-blink 500+400 → 500+500, inner period 0 MSEC | 4/4 / 3/4 | 4/4 / 4/4 |
-| C19 | wait(absent) 선행, branch 단순화, 이력 +2 | 3/3 / 3/3 | 5/5 / 5/5 |
+Explorer 참고 열: EQUIV-FIXPOINT 8건, UNKNOWN 4건(C07·C20 transition cap, C15·C18 state cap — 120 s 예산 안, IR×IR 자기 product). UNKNOWN 은 표현 실패가 아니라 탐색 미완이며 A 판정을 바꾸지 않는다.
 
 ## 실행 세부 (이력별)
 
@@ -57,7 +47,7 @@ Explorer 참고 열: IR×IR 자기 product, 120 s 예산. UNKNOWN 은 표현 실
 
 원문: description: "Turn on a light when motion is detected." / no_motion_wait: "Time to leave the light on after last motion is detected." / mode: restart / actions: light.turn_on -> wait_for_trigger(motion on->off) -> delay(no_motion_wait) -> light.turn_off
 
-가정: [가정] no_motion_wait 기본값 120초 사용 / [가정] HA restart 모드를 문자 그대로 해석: 새로운 motion off→on 재트리거마다 turn_on을 다시 호출한다(중복 On 호출도 관측 ACTION) / [가정] 시작 시 이미 motion=true면 사건이 아니므로 On을 내지 않는다
+가정: [가정] no_motion_wait 기본값 120초 사용 / [가정] HA restart 모드를 문자 그대로 해석: 재감지마다 turn_on을 다시 호출한다(중복 On 호출도 관측 ACTION) / [가정] 시작 시 이미 motion=true면 사건이 아니므로 On을 내지 않는다
 
 encoding: Restart mode as one flow. Outer: rising motion -> On. Inner cycle: wait no-motion; wait motion with a 2-minute timeout -> on timeout Off and `break` out of the inner cycle (E-TIMEOUT-ABORT + break); motion returned in time -> explicit On and back to 'wait no-motion'. After the break the outer loop-top rising wait observes the false level and re-arms for the next pass.
 
@@ -107,14 +97,12 @@ encoding: Calendar anchor + delay. Reference runner rejects the cron anchor; exe
 
 encoding: Sustain 2 min, then an inner cycle: send; wait up to 60 s for the door to close (E-TIMEOUT-ABORT with empty block = just continue). Inner `until` checks closed at each iteration start; a close during the 60 s makes the wait succeed at once, so the next until-check exits without sending. Nested cycle: frontend may refuse.
 
-수정 이력: v1 (2026-09-12): inner period 100 MSEC -> match 4/4 but exact 0/4 (100 ms added per iteration: 130.0, 190.1, 250.2, ...). B audit: the body's 60 s timeout already carries the cadence, so v2 sets the inner period to 0 MSEC (E-ZERO-PERIOD). Expected after v2: exact 4/4.
-
 | 이력 | 종류 | 일치 | 정확 | 기대 n | 실제 n | 첫 차이 |
 |---|---|---|---|---|---|---|
-| open_then_close_at_400 | nominal | ✓ | ✓ | 5 | 5 |  |
-| closed_before_2min_restarts | boundary | ✓ | ✓ | 2 | 2 |  |
-| reopen_after_close | boundary | ✓ | ✓ | 4 | 4 |  |
-| brief_close_between_notifications | boundary | ✓ | ✓ | 7 | 7 |  |
+| open_then_close_at_400 | nominal | ✓ | ✗ | 5 | 5 |  |
+| closed_before_2min_restarts | boundary | ✓ | ✗ | 2 | 2 |  |
+| reopen_after_close | boundary | ✓ | ✗ | 4 | 4 |  |
+| brief_close_between_notifications | boundary | ✓ | ✗ | 7 | 7 |  |
 
 ### C07 — Home Assistant Community thread 783900 (2024-10-20)
 
@@ -124,13 +112,13 @@ encoding: Sustain 2 min, then an inner cycle: send; wait up to 60 s for the door
 
 encoding: Sustained conjunction (clock >= 22 and open) for 10 min; snapshot B0; outer cycle (count c, period 5 MIN = pause after the body) with until 'c >= 7 or closed'; inner blink cycle (count k, until 'k >= 10 or closed'). Each half-blink delay is a wait-for-close with 500 ms timeout, so a close interrupts at the exact instant and the following restore(B0) is emitted then. After the inner loop the restore is emitted once; a close during the pause exits at the next until-check with no ACTION. Nested cycles and count/until on the same cycle: frontend may refuse.
 
-수정 이력: v1 (2026-09-12): both half-blink timeouts 500 ms -> 1/4; each blink iteration took 1.1 s because cycle.period is waited AFTER the body, so 10 blinks drifted 1 s and the next cycle started 1.1 s late. v2 sets the second timeout to 400 ms so body + period = 1.0 s -> match 4/4, exact 3/4: the restore after a close during blinking was up to 100 ms late because the inner period ran after the body. B audit: v3 uses 500 ms + 500 ms and inner period 0 MSEC (E-ZERO-PERIOD), so blink cadence stays 1 s and a close is answered at its own instant. Expected after v3: exact 4/4.
+수정 이력: v1 (2026-09-12): both half-blink timeouts 500 ms -> 1/4; each blink iteration took 1.1 s because cycle.period is waited AFTER the body, so 10 blinks drifted 1 s and the next cycle started 1.1 s late. v2 sets the second timeout to 400 ms so body + period = 1.0 s. This is encoding to the declared period semantics, not a change of the contract; note that 'every N' cadences need the body time subtracted (see C05 exact-time column).
 
 | 이력 | 종류 | 일치 | 정확 | 기대 n | 실제 n | 첫 차이 |
 |---|---|---|---|---|---|---|
 | stays_open_all_7_cycles | nominal | ✓ | ✓ | 147 | 147 |  |
 | closes_during_second_pause | boundary | ✓ | ✓ | 42 | 42 |  |
-| closes_during_first_blinking | boundary | ✓ | ✓ | 8 | 8 |  |
+| closes_during_first_blinking | boundary | ✓ | ✗ | 8 | 8 |  |
 | closed_before_10min_no_run | boundary | ✓ | ✓ | 0 | 0 |  |
 
 ### C09 — AutoTap (ICSE 2019) §III, Event-Event Conditional sample
@@ -153,7 +141,7 @@ encoding: Rising presence -> Lock, forever. The contract fires a rising-edge wai
 
 원문: "IF Roomba becomes on WHILE the curtain is open, THEN close the curtain; IF curtain becomes open WHILE Roomba is on, THEN turn off Roomba" (property: "Roomba is on should NEVER be active WHILE curtain is open")
 
-가정: [가정] Roomba on = OperatingState == 'running'; 끄기 = SetRobotVacuumCleanerRunMode('idle') (2026-09-12 해시 후 수정: 처음 쓴 'cleaning'/'stop' 은 catalog enum 에 없음 — 값 이름만 바꿈, 행동 해석 불변) / [가정] 커튼 열림 = CurrentPosition > 0 / [가정] 동시 변화면 (a) 다음 (b) 순서로 둘 다 호출 / [메모] 이 사례의 두 rule 에는 delay·중첩 인스턴스·action→trigger 되먹임이 없어 직전 snapshot 판별이 두 독립 rule 과 같은 trace 를 낸다. 일반적으로 snapshot 이 병렬 rule 을 대체한다는 주장이 아님(감사 2026-09-12) / [가정] 자동화의 ACTION 이 만든 상태 변화(커튼 닫힘 등)는 입력 이력에 명시된 시점에만 반영
+가정: [가정] Roomba on = OperatingState == 'running'; 끄기 = SetRobotVacuumCleanerRunMode('idle') (2026-09-12 해시 후 수정: 처음 쓴 'cleaning'/'stop' 은 catalog enum 에 없음 — 값 이름만 바꿈, 행동 해석 불변) / [가정] 커튼 열림 = CurrentPosition > 0 / [가정] 동시 변화면 (a) 다음 (b) 순서로 둘 다 호출 / [가정] 자동화의 ACTION 이 만든 상태 변화(커튼 닫힘 등)는 입력 이력에 명시된 시점에만 반영
 
 encoding: Two reactions in one flow via E-PREV: poll every 100 ms; the previous iteration's snapshots decide which input changed. Both `if`s may fire in one iteration (both changed together), in the required order. Does not spawn two flows; whether this is 'the same behavior' as two TAP rules is the audit's call (B2).
 
@@ -211,25 +199,21 @@ encoding: Rising 'pushed' event, hour-window branch, unlock/delay/lock. Presses 
 
 가정: [가정] 감시 시작 06:00 (cron '0 6 * * *'); 실행 확인은 하루 창만 / [가정] '정시' = 09:00:00 이하 (같음 포함) / [가정] 도착 = PresenceSensor 가 present 로 바뀜
 
-encoding: Wait for absence first (a presence already true at 06:00 is not an arrival), then race arrival against 09:00 as a disjunctive wait. The race itself enforces the deadline: at 09:00:00 the wait fires with the clock, so a later arrival never reaches the branch; the branch only needs 'present'. Cron anchor erased at 06:00.
-
-수정 이력: v1 (2026-09-12): no leading absence wait; branch 'Hour < 9 or (Hour == 9 and Minute == 0)' claimed as a minute-resolution approximation (lang=partial), match 3/3. B audit: that explanation was wrong (the race already ends at 09:00:00, so 09:00:30 never passes); the real defect was treating a presence already true at start as an arrival. v2 adds wait(absent) first, simplifies the branch to 'present', lang=full; two histories added to cases.py.
+encoding: Race between arrival and 09:00 as a disjunctive wait, then a branch. The clock has minute resolution in the model, so 'at or before 09:00:00' is encoded as 'before 09:01:00' (over-inclusive by <60 s). Cron anchor erased at 06:00.
 
 | 이력 | 종류 | 일치 | 정확 | 기대 n | 실제 n | 첫 차이 |
 |---|---|---|---|---|---|---|
 | arrive_0800 | nominal | ✓ | ✓ | 1 | 1 |  |
 | arrive_0930_no_mail | boundary | ✓ | ✓ | 0 | 0 |  |
 | arrive_exactly_0900 | boundary | ✓ | ✓ | 1 | 1 |  |
-| already_present_at_start_no_mail | boundary | ✓ | ✓ | 0 | 0 |  |
-| arrive_0900_30_no_mail | boundary | ✓ | ✓ | 0 | 0 |  |
 
 ### C20 — Brackenbury et al., How Users Interpret Bugs in TAP (CHI 2019), Table 1
 
 원문: IF Sally enters the bedroom AND AFTERWARDS the sun sets WITHIN 2 hours THEN turn on the bedroom lights. (unordered variant: IF Sally enters the bedroom AND the sun sets WITHIN 2 hours THEN ...)
 
-가정: [가정] 해넘이 = LightSensor.Brightness 가 50 아래로 떨어지는 사건 / [가정] 창 안 재입장은 창을 다시 시작(restart) / [감사 2026-09-12] 이 사례는 순서형 문장(AND AFTERWARDS)만을 대상으로 확정. paired unordered variant requires look-back event memory and is excluded from this ordered-variant case — Stage B limitation candidate (B3)
+가정: [가정] 해넘이 = LightSensor.Brightness 가 50 아래로 떨어지는 사건 / [가정] 창 안 재입장은 창을 다시 시작(restart) / [가정] 실행 확인은 순서 있는 변형만; 순서 없는 변형은 look-back 기억이 필요해 B3 로 기록
 
-encoding: ORDERED variant only (the case is defined as the 'AND AFTERWARDS' sentence; B audit 2026-09-12). The paired unordered variant requires look-back event memory and is excluded from this ordered-variant case (Stage B limitation candidate, B3). Rising entry opens the window; then wait (rising) for 'dark or left' with a 2 h timeout (E-TIMEOUT-ABORT). Leaving ends the window; a later re-entry opens a new one, which coincides with 'restart on re-entry' for entries that require a leave first. 'Dark already before entry' must NOT fire: relies on the edge latch not firing on an initially-true condition. The UNORDERED (look-back) variant is not encoded: B3.
+encoding: ORDERED variant only. Rising entry opens the window; then wait (rising) for 'dark or left' with a 2 h timeout (E-TIMEOUT-ABORT). Leaving ends the window; a later re-entry opens a new one, which coincides with 'restart on re-entry' for entries that require a leave first. 'Dark already before entry' must NOT fire: relies on the edge latch not firing on an initially-true condition. The UNORDERED (look-back) variant is not encoded: B3.
 
 수정 이력: v1 (2026-09-12): no guard -> On at the entry instant when it was already dark (initial-true edge fires). v2 guards the window with 'bright at entry'.
 

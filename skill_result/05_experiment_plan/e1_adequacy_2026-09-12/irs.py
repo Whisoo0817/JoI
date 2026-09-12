@@ -12,6 +12,10 @@ Encoding devices used more than once (kept explicit so the audit can judge them)
   E-TIMEOUT-ABORT : a `wait` with `timeout` and a NON-empty `on_timeout` ends the current iteration
                     (runner: GOTO -1). With an EMPTY on_timeout the program continues past the wait.
                     A `read` into a dummy variable is used as the smallest non-observable statement.
+  E-ZERO-PERIOD   : `cycle.period: "0 MSEC"` is used ONLY for event-driven loops whose body always blocks on a
+                    wait/timeout, so the loop cannot spin; it is not a licence for an instantaneous unbounded loop.
+                    Rationale: period is waited AFTER the body, so a non-zero period would delay a cadence that the
+                    body's own timeout already provides (audit 2026-09-12).
   E-PREV          : previous-iteration snapshot via `read` at the end of a 100 ms polling cycle, so that
                     "which input changed" can be decided in the next iteration.
 """
@@ -75,11 +79,14 @@ IRS["C05"] = dict(lang="full", note=(
         {"op": "start_at", "anchor": "now"},
         {"op": "cycle", "until": None, "period": "100 MSEC", "body": [
             {"op": "wait", "cond": "ContactSensor.Contact == false", "edge": "none", "for": "2 MIN"},
-            {"op": "cycle", "until": "ContactSensor.Contact == true", "period": "100 MSEC", "body": [
+            {"op": "cycle", "until": "ContactSensor.Contact == true", "period": "0 MSEC", "body": [
                 {"op": "call", "target": "MessageSender.SendSms", "args": {"To": "owner", "Text": "Back door is open", "Subject": "door"}},
                 {"op": "wait", "cond": "ContactSensor.Contact == true", "edge": "none", "timeout": "1 MIN"},
             ]},
         ]}]})
+IRS["C05"]["history"] = ("v1 (2026-09-12): inner period 100 MSEC -> match 4/4 but exact 0/4 (100 ms added per iteration: 130.0, 190.1, "
+    "250.2, ...). B audit: the body's 60 s timeout already carries the cadence, so v2 sets the inner period to 0 MSEC "
+    "(E-ZERO-PERIOD). Expected after v2: exact 4/4.")
 
 IRS["C07"] = dict(lang="full", note=(
     "Sustained conjunction (clock >= 22 and open) for 10 min; snapshot B0; outer cycle (count c, period 5 MIN = pause "
@@ -92,19 +99,20 @@ IRS["C07"] = dict(lang="full", note=(
         {"op": "wait", "cond": "Clock.Hour >= 22 and ContactSensor.Contact == false", "edge": "none", "for": "10 MIN"},
         {"op": "read", "var": "b0", "src": "Light.CurrentBrightness"},
         {"op": "cycle", "until": "c >= 7 or ContactSensor.Contact == true", "period": "5 MIN", "count": "c", "body": [
-            {"op": "cycle", "until": "k >= 10 or ContactSensor.Contact == true", "period": "100 MSEC", "count": "k", "body": [
+            {"op": "cycle", "until": "k >= 10 or ContactSensor.Contact == true", "period": "0 MSEC", "count": "k", "body": [
                 {"op": "call", "target": "Light.MoveToBrightness", "args": {"Brightness": 10, "Rate": 0}},
                 {"op": "wait", "cond": "ContactSensor.Contact == true", "edge": "none", "timeout": "500 MSEC", "on_timeout": [
                     {"op": "call", "target": "Light.MoveToBrightness", "args": {"Brightness": 100, "Rate": 0}},
-                    {"op": "wait", "cond": "ContactSensor.Contact == true", "edge": "none", "timeout": "400 MSEC", "on_timeout": [NOOP]},
+                    {"op": "wait", "cond": "ContactSensor.Contact == true", "edge": "none", "timeout": "500 MSEC", "on_timeout": [NOOP]},
                 ]},
             ]},
             {"op": "call", "target": "Light.MoveToBrightness", "args": {"Brightness": "$b0", "Rate": 0}},
         ]}]})
 IRS["C07"]["history"] = ("v1 (2026-09-12): both half-blink timeouts 500 ms -> 1/4; each blink iteration took 1.1 s because cycle.period is "
     "waited AFTER the body, so 10 blinks drifted 1 s and the next cycle started 1.1 s late. v2 sets the second timeout to "
-    "400 ms so body + period = 1.0 s. This is encoding to the declared period semantics, not a change of the contract; "
-    "note that 'every N' cadences need the body time subtracted (see C05 exact-time column).")
+    "400 ms so body + period = 1.0 s -> match 4/4, exact 3/4: the restore after a close during blinking was up to 100 ms "
+    "late because the inner period ran after the body. B audit: v3 uses 500 ms + 500 ms and inner period 0 MSEC "
+    "(E-ZERO-PERIOD), so blink cadence stays 1 s and a close is answered at its own instant. Expected after v3: exact 4/4.")
 
 IRS["C09"] = dict(lang="full", note=(
     "Rising presence -> Lock, forever. The contract fires a rising-edge wait when its condition is already true at "
@@ -171,19 +179,26 @@ IRS["C18"] = dict(lang="full", note="Rising 'pushed' event, hour-window branch, 
             ]},
         ]}]})
 
-IRS["C19"] = dict(lang="partial", note=(
-    "Race between arrival and 09:00 as a disjunctive wait, then a branch. The clock has minute resolution in the "
-    "model, so 'at or before 09:00:00' is encoded as 'before 09:01:00' (over-inclusive by <60 s). Cron anchor erased at 06:00."),
+IRS["C19"] = dict(lang="full", note=(
+    "Wait for absence first (a presence already true at 06:00 is not an arrival), then race arrival against 09:00 as a "
+    "disjunctive wait. The race itself enforces the deadline: at 09:00:00 the wait fires with the clock, so a later "
+    "arrival never reaches the branch; the branch only needs 'present'. Cron anchor erased at 06:00."),
     ir={"timeline": [
         {"op": "start_at", "anchor": "cron", "cron": "0 6 * * *"},
+        {"op": "wait", "cond": "PresenceSensor.Presence == false", "edge": "none"},
         {"op": "wait", "cond": "PresenceSensor.Presence == true or Clock.Hour >= 9", "edge": "none"},
-        {"op": "if", "cond": "PresenceSensor.Presence == true and (Clock.Hour < 9 or (Clock.Hour == 9 and Clock.Minute == 0))", "then": [
+        {"op": "if", "cond": "PresenceSensor.Presence == true", "then": [
             {"op": "call", "target": "EmailProvider.SendMail", "args": {"ToAddress": "me@example.com", "Title": "On time", "Body": "I got to work on time!"}},
         ]},
     ]})
+IRS["C19"]["history"] = ("v1 (2026-09-12): no leading absence wait; branch 'Hour < 9 or (Hour == 9 and Minute == 0)' claimed as a "
+    "minute-resolution approximation (lang=partial), match 3/3. B audit: that explanation was wrong (the race already ends at "
+    "09:00:00, so 09:00:30 never passes); the real defect was treating a presence already true at start as an arrival. v2 "
+    "adds wait(absent) first, simplifies the branch to 'present', lang=full; two histories added to cases.py.")
 
-IRS["C20"] = dict(lang="partial", note=(
-    "ORDERED variant only. Rising entry opens the window; then wait (rising) for 'dark or left' with a 2 h timeout "
+IRS["C20"] = dict(lang="full", note=(
+    "ORDERED variant only (the case is defined as the 'AND AFTERWARDS' sentence; B audit 2026-09-12). The paired unordered "
+    "variant requires look-back event memory and is excluded from this ordered-variant case (Stage B limitation candidate, B3). Rising entry opens the window; then wait (rising) for 'dark or left' with a 2 h timeout "
     "(E-TIMEOUT-ABORT). Leaving ends the window; a later re-entry opens a new one, which coincides with 'restart on "
     "re-entry' for entries that require a leave first. 'Dark already before entry' must NOT fire: relies on the edge "
     "latch not firing on an initially-true condition. The UNORDERED (look-back) variant is not encoded: B3."),
