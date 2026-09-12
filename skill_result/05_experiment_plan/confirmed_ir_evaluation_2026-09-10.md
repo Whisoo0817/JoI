@@ -23,7 +23,12 @@
 - 절차: 출처·원문 고정 → 해석·가정·기대 trace를 IR 작성 **전에** 고정(해시) → IR 작성(A) → 독립 의미 감사(B, whisoo) → 참조 실행기 재생 비교(C, 1초 허용·정확 일치 별도) → 실행기 지원(D)·Explorer 자기 product(E, 참고)·binding(F)·JoI 가능성(G, 불가/부분만).
 - 완전 = A 완전 ∧ B 보존 ∧ C 전 이력 일치. D·E는 A를 바꾸지 못한다. 결과에 맞춰 허용 오차·실행기·계약을 바꾸지 않는다(버전 고정).
 - 선례: AutoTap ICSE'19 §III–IV·VI, Dwyer ICSE'99 §3. 두 연구의 수집 자료는 표현 체계 설계에 쓰였으므로 held-out 선례로 과장하지 않는다. AutoTap 속성→자동화 변환은 `[연구자 변환]`으로 표시.
-- 상태: Stage A 12건 완료·감사 반영(완전 12/12, exact 41/41). B3(look-back)·B4(가변 간격)는 Stage A 미평가, Stage B 후보 8건 미착수. 세부: `../../PerCom/6_Evaluation/E1_adequacy/README.md`, 결과 `results.md`.
+- 상태(2026-09-12): Stage A 12건 완료·감사 반영(완전 12/12, exact 41/41) + 경계 probe 3건 완료. 세부: `../../PerCom/6_Evaluation/E1_adequacy/README.md` §0 결론, 결과 `results.md`.
+- **probe 결과로 E1 의 질문이 바뀌었다.** 경계 후보 3건(B3 이벤트 기억 2건, B4 가변 간격 1건)이 전부 표현 가능했고,
+  셋 다 Explorer 만 거절했다(사유 동일: 실행 중 값끼리 비교하는 guard). 따라서 E1 은 표현 경계가 아니라
+  **표현과 인증의 격차**를 보고하며, 그 격차의 크기는 E2·E4 가 답한다.
+- 언어에 남는 한계 3가지(유한 상태 / 대입 없음 / 단일 제어 흐름)는 정의에서 유도한 논증이며 **probe 미실시**다. Stage B 1순위.
+- 자동화 시작 전 이력은 언어가 아닌 서비스·카탈로그 문제로 분류한다. Stage B 후보 8건 미착수.
 - E1에서 드러난 계약 사실은 Timeline 절에 반영한다: period는 회차 종료 후 대기, 초기 참인 edge 발화, 다른 대기 중 edge는 latch 미반영, 실행기의 cron 앵커 거절(소거 후 한 창), `wait.timeout`이 extractor 문법에 없음, frontend 검사는 구조만.
 - 보류: 타 표현(TAP/LTL/FSM)과의 동일 행동 encoding 비교(구 E1b). 본문 결과: 경계 표 + 복합 사례 2개 정도의 의미 전개.
 
