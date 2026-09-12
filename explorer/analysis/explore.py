@@ -606,6 +606,9 @@ def finiteness_check(vars_: dict[str, VarInfo], axes: Axes,
             from explorer.analysis.predicates import _reg_is_counter
             if _reg_is_counter(nm, defs, vars_):
                 continue
+            dlist = defs.get(nm, [])
+            if dlist and all(_input_copy(d, defs, frozenset({nm})) for d in dlist):
+                continue                   # compared copy of an external read
             bad.append(f"{nm} (compared but non-counter update)")
             continue
         # string-valued state compared by enum? treat via defs: all literal
@@ -617,8 +620,35 @@ def finiteness_check(vars_: dict[str, VarInfo], axes: Axes,
                           and d.op in ("and", "or") + CMP_OPS)
                          for d in dlist):
             continue                       # finite literal/bool range
+        if dlist and all(_input_copy(d, defs, frozenset({nm})) for d in dlist):
+            continue                       # copies of external reads (prev/curr)
         bad.append(nm)
     return bad
+
+
+def _input_copy(node: Any, defs: dict, visiting: frozenset) -> bool:
+    """Every value the expression can produce is an external read value, a
+    literal, a bool, or None (unassigned), possibly through variable copies.
+
+    Such a carried variable ranges over the finite input domain of its sources
+    plus finitely many constants, so the concrete state key stays finite. The
+    input-coverage collector already follows the same copy edges, so comparisons
+    on the copy refine the source partition (INPUT_COVERAGE.md §2)."""
+    if isinstance(node, expr_mod.Lit):
+        return True
+    key = _read_key(node)
+    if key is not None:
+        return not key.startswith("clock.")    # clock values are not input domains
+    if isinstance(node, expr_mod.VarRef):
+        if node.name in visiting:
+            return True
+        dl = defs.get(node.name)
+        return bool(dl) and all(_input_copy(d, defs, visiting | {node.name}) for d in dl)
+    if isinstance(node, expr_mod.BinaryOp) and node.op in ("and", "or") + CMP_OPS:
+        return True
+    if isinstance(node, expr_mod.UnaryOp) and node.op == "not":
+        return True
+    return False
 
 
 # ── Canonicalization (the state key) ─────────────────────────────────────────

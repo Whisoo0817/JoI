@@ -50,6 +50,9 @@ class Feature:
     kind: str          # joint-guard | derived-guard | opaque-guard |
     #                    arith-arg | observable-counter | multi-timer
     detail: str
+    # joint/derived-guard only: external input keys the compared values come
+    # from. Empty when a source cannot be named (then no exemption applies).
+    sources: frozenset = frozenset()
 
 
 # ── 공용 조각 ────────────────────────────────────────────────────────────────
@@ -200,7 +203,7 @@ def analyze_stmts(stmts: list, vars_: dict[str, VarInfo],
             return                    # bool×bool — 도메인 전량 열거로 정확
         src = li.sources | ri.sources
         kind = "joint-guard" if len(src) >= 2 else "derived-guard"
-        feats.append(Feature(kind, _unparse(atom)))
+        feats.append(Feature(kind, _unparse(atom), frozenset(src)))
 
     def atoms_in(node: Any) -> None:
         """임의 식 안의 비교 원자를 전부 검사 (bool wire 정의 포함)."""
@@ -569,7 +572,9 @@ def analyze_ir(prog) -> list[Feature]:
             src: set = set()
             _t_reads(n, src)
             kind = "joint-guard" if len(src) >= 2 else "derived-guard"
-            feats.append(Feature(kind, _t_unparse(n)))
+            keys = {prog.var_keys.get(k[4:]) if k.startswith("var:") else k for k in src}
+            feats.append(Feature(kind, _t_unparse(n),
+                                 frozenset() if None in keys else frozenset(keys)))
             return
         if n[0] in ("read", "var", "lit"):
             return                    # truthy
@@ -617,6 +622,20 @@ def analyze_runner(r) -> list[Feature]:
         vars_ = getattr(r, "_joi_vars", None) or r.vars_info
         return analyze_stmts(r.stmts, vars_, getattr(r, "axes", None))
     return []
+
+
+def exact_enumerated(feats: list[Feature], exact_reads, input_domains) -> list[Feature]:
+    """Drop joint/derived guards whose every source is enumerated exactly.
+
+    These guards are refused because one-dimensional representative cells can
+    miss a combined boundary. A source in `exact_reads` never gets representative
+    cells: the product requires an explicit (or catalog-exact) finite domain for
+    it and explores every value, so the concrete search sees every combination.
+    Guards with an unnamed source keep the refusal."""
+    exact, given = set(exact_reads), set(input_domains or {})
+    return [f for f in feats
+            if not (f.kind in ("joint-guard", "derived-guard") and f.sources
+                    and f.sources <= exact and f.sources <= given)]
 
 
 def enforce(feats: list[Feature]) -> None:

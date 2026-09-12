@@ -81,8 +81,9 @@ def check_supported_pair(runner_a, runner_b, axes: Axes | None = None,
     bad = runner_a.check_finite(axes) + runner_b.check_finite(axes)
     if bad:
         raise Unsupported(f"unbounded carried vars: {bad}")
-    from explorer.analysis.features import analyze_runner, enforce
-    enforce(analyze_runner(runner_a) + analyze_runner(runner_b))
+    from explorer.analysis.features import analyze_runner, enforce, exact_enumerated
+    enforce(exact_enumerated(analyze_runner(runner_a) + analyze_runner(runner_b),
+                             axes.exact_reads, input_domains))
     missing = set(axes.observable_reads) - set(input_domains or {})
     if missing:
         raise Unsupported("explicit input domain required for observable value flow: "

@@ -267,6 +267,18 @@ bool 연산 결과는 실제 bool, 그 밖 계산 결과는 사용한 피연산�
 각 프로그램의 원래 실행과 그 프로그램의 대표 실행을 먼저 연결한다. BFS가 두 대표
 실행의 ACTION을 비교하므로 동등성의 추이성으로 두 원래 실행의 ACTION도 같아진다.
 
+**입력 복사 상태와 exact 출처 guard의 사전조건 완화 (2026-09-11).** 위 논증은 복사값의
+출처와 exact 출처를 이미 다루므로 두 사전 거절을 좁혔다. (i) `finiteness_check`는 모든
+정의가 외부 읽기(clock 제외)·리터럴·bool 결과·그런 변수의 복사인 carried 변수를 유한으로
+본다(`explore._input_copy`). 값은 출처 도메인 값·유한 상수·bool·None 중 하나이고 상태 키가
+그 값을 그대로 담으므로 이 검사는 종료성 사전 점검일 뿐 새 치환 규칙이 아니다. 산술을 거친
+복사는 계속 거절한다. (ii) joint/derived-guard(D7)는 1차원 대표값이 결합 경계를 놓칠 수
+있어 거절한다. guard의 모든 출처 키가 `E`(exact)에 있고 주어진 도메인 키이면 L1에서 `ρₖ`가
+항등이므로 놓칠 대표값이 없다. `features.exact_enumerated`는 이 경우만 finding을 제거하고,
+출처를 이름으로 대응시키지 못한 guard는 그대로 거절한다. 이 긍정 판정은 주어진 유한
+도메인에 대한 전수 검증이며 도메인이 실제 센서 값을 포괄한다는 전제는 남는다. 회귀는
+`test_input_copy_state.py`(손 trace 증인 포함; 변경 전 코드에서 4/5 실패)다.
+
 ### L3 — 반응 규칙의 보존과 결정론성
 
 표의 원시 규칙에 식 귀납(L2 또는 L5–L7)을 적용하고, 실행된 내부 문장 수에 귀납한다.
@@ -511,6 +523,7 @@ L4의 진행성으로 임의 유한 `t₀+T` prefix도 같다. 첫 차이가 있
 | `count` 출력·증가 vs 1000회 뒤 다른 출력 | 임의 정수에서 갱신 관계를 보존해야 인증. 관계 실패 자체를 구체 불일치라 쓰지 않음 | `test_relational_fixpoint.py` |
 | 항상 false wait; 한쪽 종료; zero delay/반응 무한 loop | 침묵은 허용, 오류는 인증 금지. 종료한 쪽 이후에도 상대의 미래 ACTION 검사 | `test_contract.py`, `test_time_elision.py`, `ir_step.ir_step` |
 | `hour>=24` vs `hour==12`; 숨은 동작을 가진 wrapper | catalog 전 구간 상수인 비교만 제거. 실제 clock/알 수 없는 wrapper는 보수 처리 | `test_catalog_ranges.py`, `test_time_elision.py` |
+| `last := door` prev/curr 엣지, `cur != prev`, `t2 - t1 >= 2` | 입력 복사 상태는 출처 도메인으로 유한. exact 도메인 출처만 가진 결합 guard는 전수 탐색, 도메인 없는 관계·산술 복사는 거절 | `test_input_copy_state.py` |
 | 낮은 cap, solver unknown, 비어 있는 도메인 | 유한 샘플 성공이나 공허한 전칭 성공으로 승격 금지 | `test_search_correctness.py`, `test_smt_trace.py`, `input_model.validate_domains` |
 
 ## 논문 주장과 근거의 배치
