@@ -134,7 +134,12 @@ Stage A 12건은 요소 R1–R10 과 경계 B1·B2 만 건드렸고 B3·B4 에�
 | P2 | B3 look-back (이동 시간창) | HA 커뮤니티 363863 "door opened within the last x minutes" | **완전** 4/4 정확. Explorer 는 거절 |
 | P3 | B4 가변 간격 | HA 커뮤니티 541232 "repeat every n minutes where n is variable" | **부분** 1/3. 요구대로 쓴 encoding 을 실행기가 거절 |
 
-요약: **B3 는 언어의 경계가 아니었다.** `Clock.Timestamp` 스냅샷과 `$t != null` 판별로 표현되고 실행도 정확히 일치한다.
+요약: **"도는 중에 일어난 일을 기억하기" 는 언어의 경계가 아니었다.** `Clock.Timestamp` 스냅샷과 `$t != null` 판별로 표현되고 실행도 정확히 일치한다.
+다만 B3 를 두 가지로 나눠 적어야 한다. 지금까지 이 문서는 둘을 섞어 썼다.
+- **(가) 자동화가 켜지기 전의 과거** — 불가. 실행 모델은 t=0 에 각 입력의 현재 값만 주고, "10분 전에 문이 열렸었다" 를 이력으로 쓸 방법 자체가 없다.
+  이는 Timeline 의 표현력 문제가 아니라 **관측 모델의 경계**다. HA 는 플랫폼이 기기별 `last_changed` 를 따로 저장하므로 이 질문에 답한다
+  (해당 스레드의 답변도 `as_timestamp(states.cover.garage_door.last_changed)` 를 쓴다). P2 의 판정은 (나) 에 한정된다.
+- **(나) 도는 중에 다른 대기를 하느라 놓친 과거** — 가능. P1·P2 가 이쪽이고 각각 4/4 정확 일치다.
 대신 두 가지 실제 경계가 드러났다.
 1. **언어 경계 — B4.** duration 피연산자는 컴파일 시점 리터럴이다. 요구대로 쓴 `delay "$d_min MIN"` 은
    `Unsupported: duration format: '$d_min MIN'` 로 거절된다. `LevelControl.CurrentLevel` 은 DOUBLE 이라 분기 열거도 유한하지 않다.

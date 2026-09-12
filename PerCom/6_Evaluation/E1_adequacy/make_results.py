@@ -34,7 +34,9 @@ ELEMENT_NOTE = {
     "B2": ("C11 한 건뿐이고, 두 흐름을 만든 것이 아니라 **단일 흐름으로 환원**한 것이다. 이 사례에는 delay·중첩 인스턴스·"
            "action→trigger 되먹임이 없어 직전 snapshot 판별이 두 TAP 규칙과 같은 trace 를 낸다(감사 확인). 진짜 중첩 "
            "인스턴스가 필요한 요구는 Stage A·probe 모두에서 **미평가**이며, 실행 계약상 단일 제어 흐름이라는 한계로 보고한다"),
-    "B3": "Stage A 에는 사례가 없었고 **probe P1·P2 로 따로 시도**했다. 둘 다 언어로 표현되고 실행도 정확 일치했으나 Explorer 는 둘 다 거절했다(아래 probe 절)",
+    "B3": ("두 가지를 나눠야 한다. **(가) 자동화가 켜지기 전의 과거**는 불가 — 실행 모델이 t=0 에 현재 값만 주므로 이력으로 쓸 수조차 없다"
+           "(Timeline 표현력이 아니라 관측 모델의 경계. HA 는 플랫폼의 `last_changed` 로 답한다). **(나) 도는 중에 놓친 과거**는 가능 — "
+           "probe P1·P2 가 각각 4/4 정확 일치. 단 Explorer 는 둘 다 거절한다(아래 probe 절)"),
     "B4": "Stage A 에는 사례가 없었고 **probe P3 로 시도**했다. duration 이 컴파일 시점 리터럴이라 표현되지 않는다(아래 probe 절)",
     "R9": "cron 앵커 3건(C04 C16 C19)은 실행기가 거절 → 앵커 소거 후 한 창만 실행. Clock.Hour/Minute 은 분 단위, Clock.Timestamp 는 초 단위",
     "R7": "C05 v1 은 정확 일치 0/4(period 가 회차 종료 후 대기라 100 ms 누적) → 감사에서 inner period 0 MSEC 로 수정, 현재 4/4",
@@ -73,6 +75,8 @@ def probe_section():
                 f"원문: {pr['verbatim']}", "", f"왜 probe 인가: {pr['why_probe']}", "",
                 f"해석: {pr['spec']}", "", "가정: " + " / ".join(pr["assumptions"]), "",
                 f"시도한 encoding: {a['note']}", "", f"시도 이력: {a['history']}", ""]
+        if a.get("scope_limit"):
+            out += [f"**판정 범위 제한: {a['scope_limit']}**", ""]
         if a.get("missing"):
             out += [f"**빠진 실행 기능: {a['missing']}**", ""]
         if r.get("attempt_a_runner"):

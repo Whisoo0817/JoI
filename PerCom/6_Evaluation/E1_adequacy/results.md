@@ -35,7 +35,7 @@
 | R10 | 시각 vs 사건 경쟁 | C19 | 1/1 |  |
 | B1 | 즉시 취소·재시작 | C01 C07 C20-O | 3/3 | C07 v3: 닫힘 시각에 B0 복원(감사 후 정확 일치). C01/C20-O: 재시작·취소를 timeout+break 조합으로 표현 |
 | B2 | 독립 두 흐름/인스턴스 | C11 | 1/1 | C11 한 건뿐이고, 두 흐름을 만든 것이 아니라 **단일 흐름으로 환원**한 것이다. 이 사례에는 delay·중첩 인스턴스·action→trigger 되먹임이 없어 직전 snapshot 판별이 두 TAP 규칙과 같은 trace 를 낸다(감사 확인). 진짜 중첩 인스턴스가 필요한 요구는 Stage A·probe 모두에서 **미평가**이며, 실행 계약상 단일 제어 흐름이라는 한계로 보고한다 |
-| B3 | 이벤트 기억·look-back | (Stage A 없음) | - | Stage A 에는 사례가 없었고 **probe P1·P2 로 따로 시도**했다. 둘 다 언어로 표현되고 실행도 정확 일치했으나 Explorer 는 둘 다 거절했다(아래 probe 절) |
+| B3 | 이벤트 기억·look-back | (Stage A 없음) | - | 두 가지를 나눠야 한다. **(가) 자동화가 켜지기 전의 과거**는 불가 — 실행 모델이 t=0 에 현재 값만 주므로 이력으로 쓸 수조차 없다(Timeline 표현력이 아니라 관측 모델의 경계. HA 는 플랫폼의 `last_changed` 로 답한다). **(나) 도는 중에 놓친 과거**는 가능 — probe P1·P2 가 각각 4/4 정확 일치. 단 Explorer 는 둘 다 거절한다(아래 probe 절) |
 | B4 | 가변 간격 반복 | (Stage A 없음) | - | Stage A 에는 사례가 없었고 **probe P3 로 시도**했다. duration 이 컴파일 시점 리터럴이라 표현되지 않는다(아래 probe 절) |
 | B5 | 중첩 반복 | C07 | 1/1 |  |
 
@@ -101,6 +101,8 @@ extractor 문법 밖 구성: `Clock.Timestamp` (extractor.md documents Clock.Hou
 시도한 encoding: Same E-PREV + E-STAMP + E-NULL pattern. The door-open timestamp is overwritten by each new opening, which is what the requirement's sliding window needs, and the motion branch re-tests it on every motion, so several motions inside one window each send.
 
 시도 이력: v1 measured the window with a `wait(motion rising, timeout "10 MIN")` restarted per motion inside the door-open loop. Executed: 3/4 histories. It measures ten minutes from the previous motion rather than from the opening, because a wait's timeout restarts with the wait and the remaining time cannot be computed (durations are compile-time literals, see P3). On `open_then_motions_in_and_out` it emits a third SMS at 960 s, which is 11 min after the opening but only 4 min after the previous motion. v2 uses the timestamp test below.
+
+**판정 범위 제한: This covers only openings the automation observes WHILE RUNNING. The execution model gives t=0 the current value of each input and has no way to state that the door opened before t=0, so an opening inside the ten minutes preceding start is invisible and cannot even be written as a history. Home Assistant answers that case because the platform stores each entity's last_changed independently of any automation, which is how the thread's own reply solves it (`as_timestamp(states.cover.garage_door.last_changed)`). So the verdict is: remembering events that happen during the run is expressible; pre-start history is outside the model, not merely outside Timeline.**
 
 Explorer: REFUSED: 'joint-guard: ((clock.timestamp - $t_open) <= 600)' is listed fail-closed as an unsupported pattern. The look-back window that makes this requirement expressible is outside the fragment the Explorer certifies.
 

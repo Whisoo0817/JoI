@@ -64,6 +64,14 @@ ATTEMPTS["P2"] = dict(
     note=("Same E-PREV + E-STAMP + E-NULL pattern. The door-open timestamp is overwritten by each new opening, "
           "which is what the requirement's sliding window needs, and the motion branch re-tests it on every "
           "motion, so several motions inside one window each send."),
+    scope_limit=("This covers only openings the automation observes WHILE RUNNING. The execution model gives t=0 the "
+                 "current value of each input and has no way to state that the door opened before t=0, so an opening "
+                 "inside the ten minutes preceding start is invisible and cannot even be written as a history. "
+                 "Home Assistant answers that case because the platform stores each entity's last_changed "
+                 "independently of any automation, which is how the thread's own reply solves it "
+                 "(`as_timestamp(states.cover.garage_door.last_changed)`). So the verdict is: remembering events "
+                 "that happen during the run is expressible; pre-start history is outside the model, not merely "
+                 "outside Timeline."),
     history=("v1 measured the window with a `wait(motion rising, timeout \"10 MIN\")` restarted per motion inside the "
              "door-open loop. Executed: 3/4 histories. It measures ten minutes from the previous motion rather than "
              "from the opening, because a wait's timeout restarts with the wait and the remaining time cannot be "
