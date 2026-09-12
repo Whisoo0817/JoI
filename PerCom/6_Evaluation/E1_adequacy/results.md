@@ -36,7 +36,7 @@
 | B1 | 즉시 취소·재시작 | C01 C07 C20-O | 3/3 | C07 v3: 닫힘 시각에 B0 복원(감사 후 정확 일치). C01/C20-O: 재시작·취소를 timeout+break 조합으로 표현 |
 | B2 | 독립 두 흐름/인스턴스 | C11 | 1/1 | C11 한 건뿐이고, 두 흐름을 만든 것이 아니라 **단일 흐름으로 환원**한 것이다. 이 사례에는 delay·중첩 인스턴스·action→trigger 되먹임이 없어 직전 snapshot 판별이 두 TAP 규칙과 같은 trace 를 낸다(감사 확인). 진짜 중첩 인스턴스가 필요한 요구는 Stage A·probe 모두에서 **미평가**이며, 실행 계약상 단일 제어 흐름이라는 한계로 보고한다 |
 | B3 | 이벤트 기억·look-back | (Stage A 없음) | - | 두 가지를 나눠야 한다. **(가) 자동화가 켜지기 전의 과거**는 불가 — 실행 모델이 t=0 에 현재 값만 주므로 이력으로 쓸 수조차 없다(Timeline 표현력이 아니라 관측 모델의 경계. HA 는 플랫폼의 `last_changed` 로 답한다). **(나) 도는 중에 놓친 과거**는 가능 — probe P1·P2 가 각각 4/4 정확 일치. 단 Explorer 는 둘 다 거절한다(아래 probe 절) |
-| B4 | 가변 간격 반복 | (Stage A 없음) | - | Stage A 에는 사례가 없었고 **probe P3 로 시도**했다. duration 이 컴파일 시점 리터럴이라 표현되지 않는다(아래 probe 절) |
+| B4 | 가변 간격 반복 | (Stage A 없음) | - | Stage A 에는 사례가 없었고 **probe P3 로 시도**했다. duration 피연산자 자체는 리터럴이라 `delay "$d MIN"` 은 거절되지만, `cycle(until "k >= $n", count "k"){ delay "1 단위" }` 로 펼치면 **표현된다**(3/3 정확). 단위가 곧 해상도이자 상태 수다. Explorer 는 거절한다(아래 probe 절) |
 | B5 | 중첩 반복 | C07 | 1/1 |  |
 
 최종 판정: 완전 12/12 (완전 = A full ∧ B 보존 ∧ C 모든 이력 일치). 선정한 12건 중의 건수이며 coverage 비율이 아니다.
@@ -59,7 +59,7 @@ Stage A 가 건드리지 못한 경계 B3·B4 를 **따로 지정한 요구**로
 |---|---|---|---|---|---|---|---|---|
 | P1 | B3 | IF Sally enters the bedroom AND the sun sets WITHIN 2 hours THEN turn on the bed… | full | **밖**: Clock.Timestamp, null operand, period 0 MSEC | 4/4 (4/4) | compiled | REFUSED: Unsupported: explicit input domain required for observable large/unbou | **완전** |
 | P2 | B3 | I have an automation which sends a notification along with a camera capture for … | full | **밖**: Clock.Timestamp, null operand, period 0 MSEC | 4/4 (4/4) | compiled | REFUSED: Unsupported: 미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $t_ | **완전** |
-| P3 | B4 | turn on a GPIO at a repeatable interval where the interval is configurable via a… | partial | 안 | 1/3 (1/3) | compiled | EQUIV | **부분** |
+| P3 | B4 | turn on a GPIO at a repeatable interval where the interval is configurable via a… | full | **밖**: nested cycle, period 0 MSEC | 3/3 (3/3) | compiled | REFUSED: Unsupported: 미지원 무늬(fail-closed): joint-guard: ($k >= $d_min); joint-g | **완전 (단위 해상도)** |
 
 ### probe 세부
 
@@ -125,21 +125,21 @@ extractor 문법 밖 구성: `Clock.Timestamp` (extractor.md documents Clock.Hou
 
 가정: [가정] input_number 두 개 = LevelControl.CurrentLevel 두 대(분 단위). 원문 ESPHome GPIO = Switch / [가정] I > D 이며 값은 회차 시작에 읽는다(회차 중 변경은 그 회차에 영향 없음) / [가정] 첫 회차는 t_start 에 시작
 
-시도한 encoding: Attempt B below fixes the two settings at their initial values (20 min interval, 5 min on-time) and therefore reproduces the requirement only while the settings do not change. The body takes 5 min and cycle.period is waited after the body, so period 15 MIN gives a 20 min cadence.
+시도한 encoding: Attempt C: `cycle(until "k >= $d_min", count "k"){ delay "1 MIN" }` waits d_min minutes, where d_min was read from the device at the start of the outer iteration. The same shape waits (i_min - d_min) minutes for the rest of the period. Cost and resolution: the loop runs one iteration per unit, so the unit chosen (1 MIN here, 1 SEC or 100 MSEC for finer control) sets both the granularity of the interval and the number of states. This is unrolling, not a variable duration operand.
 
-시도 이력: Attempt A writes the durations as variables, exactly as the requirement states them. The reference runner refuses it at compile time with `Unsupported: duration format: '$d_min MIN'`; run_probes.py reproduces the message rather than quoting it. Attempt C, enumerating the possible settings with nested `if` branches and a literal delay per branch, is not written out: LevelControl.CurrentLevel is typed DOUBLE in the service catalog, so the branch set is not finite. Attempt B is the closest encoding that compiles.
+시도 이력: Attempt A writes the durations as variables, exactly as the requirement states them. The reference runner refuses it at compile time with `Unsupported: duration format: '$d_min MIN'`; run_probes.py reproduces the message rather than quoting it. Attempt B fixed both settings at their initial literal values (period 15 MIN after a 5 MIN body) and scored 1/3: it cannot follow a setting change. Enumerating the settings with one literal delay per branch was rejected as an approach because LevelControl.CurrentLevel is typed DOUBLE, so the branch set is not finite. Attempt C, the reported encoding, waits a variable number of units with a counted loop and scores 3/3 exact. Note on the expected traces: `interval_changed_to_10` originally listed 8 ACTIONs; re-deriving it from the requirement text showed it had omitted the On at the 60 min horizon, and probes.py was corrected after the hash with that reason recorded in README §6. The correction was derived from the requirement, not from any encoding, and attempt B still scores 1/3 against the corrected trace.
 
-**빠진 실행 기능: a duration operand that is read at run time. `delay.duration`, `wait.for`, `wait.timeout` and `cycle.period` are all resolved by explorer.runtime.ir_step.parse_duration at compile time and accept only a literal number or '<n> <UNIT>' string.**
+**빠진 실행 기능: nothing in the language. A duration OPERAND cannot be read at run time — `delay.duration`, `wait.for`, `wait.timeout` and `cycle.period` are all resolved by explorer.runtime.ir_step.parse_duration at compile time — but a variable-length WAIT is still expressible, because `cycle.until` does accept a variable and arithmetic. Attempt C below waits `$n` units by iterating a one-unit `delay` until the loop counter reaches `$n`.**
 
 요구대로 쓴 attempt A 에 대한 실행기 응답: `refused: Unsupported: duration format: '$d_min MIN'`
 
-Explorer: EQUIV-FIXPOINT on attempt B. A constant-cadence loop is inside the certified fragment; the refusal is in the language, not in the verifier.
+extractor 문법 밖 구성: `nested cycle` (extractor.md line 20 lists 'Nested loops are requested' as a refusal reason); `period 0 MSEC` (extractor.md §D7b requires a period and prescribes 1 SEC / N UNIT values)
 
 | 이력 | 종류 | 일치 | 정확 | 기대 n | 실제 n | 첫 차이 |
 |---|---|---|---|---|---|---|
 | constant_20_5 | nominal | ✓ | ✓ | 6 | 6 |  |
-| interval_changed_to_10 | boundary | ✗ | ✗ | 8 | 7 | {'index': 6, 'expected': [3000000, 'switch', 'on', [], ['Hydro_Pump']], 'actual': [3600000, 'switch', 'on', [], ['Hydro_ |
-| ontime_changed_to_10 | boundary | ✗ | ✗ | 7 | 8 | {'index': 5, 'expected': [3000000, 'switch', 'off', [], ['Hydro_Pump']], 'actual': [2700000, 'switch', 'off', [], ['Hydr |
+| interval_changed_to_10 | boundary | ✓ | ✓ | 9 | 9 |  |
+| ontime_changed_to_10 | boundary | ✓ | ✓ | 7 | 7 |  |
 
 
 ## 실행 세부 (이력별)

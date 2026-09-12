@@ -112,26 +112,38 @@ P3_ATTEMPT_A = {"timeline": [
     ]}]}
 
 ATTEMPTS["P3"] = dict(
-    lang="partial", verdict_claim="부분",
-    missing=("a duration operand that is read at run time. `delay.duration`, `wait.for`, `wait.timeout` and "
-             "`cycle.period` are all resolved by explorer.runtime.ir_step.parse_duration at compile time and accept "
-             "only a literal number or '<n> <UNIT>' string."),
-    note=("Attempt B below fixes the two settings at their initial values (20 min interval, 5 min on-time) and "
-          "therefore reproduces the requirement only while the settings do not change. The body takes 5 min and "
-          "cycle.period is waited after the body, so period 15 MIN gives a 20 min cadence."),
+    lang="full", verdict_claim="완전 (단위 해상도)",
+    missing=("nothing in the language. A duration OPERAND cannot be read at run time — `delay.duration`, `wait.for`, "
+             "`wait.timeout` and `cycle.period` are all resolved by explorer.runtime.ir_step.parse_duration at compile "
+             "time — but a variable-length WAIT is still expressible, because `cycle.until` does accept a variable and "
+             "arithmetic. Attempt C below waits `$n` units by iterating a one-unit `delay` until the loop counter "
+             "reaches `$n`."),
+    note=("Attempt C: `cycle(until \"k >= $d_min\", count \"k\"){ delay \"1 MIN\" }` waits d_min minutes, where "
+          "d_min was read from the device at the start of the outer iteration. The same shape waits (i_min - d_min) "
+          "minutes for the rest of the period. Cost and resolution: the loop runs one iteration per unit, so the unit "
+          "chosen (1 MIN here, 1 SEC or 100 MSEC for finer control) sets both the granularity of the interval and the "
+          "number of states. This is unrolling, not a variable duration operand."),
     history=("Attempt A writes the durations as variables, exactly as the requirement states them. The reference "
              "runner refuses it at compile time with `Unsupported: duration format: '$d_min MIN'`; run_probes.py "
-             "reproduces the message rather than quoting it. Attempt C, enumerating the "
-             "possible settings with nested `if` branches and a literal delay per branch, is not written out: "
-             "LevelControl.CurrentLevel is typed DOUBLE in the service catalog, so the branch set is not finite. "
-             "Attempt B is the closest encoding that compiles."),
-    explorer=("EQUIV-FIXPOINT on attempt B. A constant-cadence loop is inside the certified fragment; the refusal is "
-              "in the language, not in the verifier."),
+             "reproduces the message rather than quoting it. Attempt B fixed both settings at their initial literal "
+             "values (period 15 MIN after a 5 MIN body) and scored 1/3: it cannot follow a setting change. "
+             "Enumerating the settings with one literal delay per branch was rejected as an approach because "
+             "LevelControl.CurrentLevel is typed DOUBLE, so the branch set is not finite. Attempt C, the reported "
+             "encoding, waits a variable number of units with a counted loop and scores 3/3 exact. "
+             "Note on the expected traces: `interval_changed_to_10` originally listed 8 ACTIONs; re-deriving it from "
+             "the requirement text showed it had omitted the On at the 60 min horizon, and probes.py was corrected "
+             "after the hash with that reason recorded in README §6. The correction was derived from the requirement, "
+             "not from any encoding, and attempt B still scores 1/3 against the corrected trace."),
     attempt_a=P3_ATTEMPT_A,
     ir={"timeline": [
         {"op": "start_at", "anchor": "now"},
-        {"op": "cycle", "until": None, "period": "15 MIN", "body": [
+        {"op": "cycle", "until": None, "period": "0 MSEC", "body": [
+            {"op": "read", "var": "i_min", "src": "LevelControl.CurrentLevel"},
+            {"op": "read", "var": "d_min", "src": "LevelControl.CurrentLevel"},   # second read -> slot #2 by walk order
             {"op": "call", "target": "Switch.On", "args": {}},
-            {"op": "delay", "duration": "5 MIN"},
+            {"op": "cycle", "until": "k >= $d_min", "period": "0 MSEC", "count": "k",
+             "body": [{"op": "delay", "duration": "1 MIN"}]},
             {"op": "call", "target": "Switch.Off", "args": {}},
+            {"op": "cycle", "until": "j >= $i_min - $d_min", "period": "0 MSEC", "count": "j",
+             "body": [{"op": "delay", "duration": "1 MIN"}]},
         ]}]})

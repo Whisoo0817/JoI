@@ -37,7 +37,9 @@ ELEMENT_NOTE = {
     "B3": ("두 가지를 나눠야 한다. **(가) 자동화가 켜지기 전의 과거**는 불가 — 실행 모델이 t=0 에 현재 값만 주므로 이력으로 쓸 수조차 없다"
            "(Timeline 표현력이 아니라 관측 모델의 경계. HA 는 플랫폼의 `last_changed` 로 답한다). **(나) 도는 중에 놓친 과거**는 가능 — "
            "probe P1·P2 가 각각 4/4 정확 일치. 단 Explorer 는 둘 다 거절한다(아래 probe 절)"),
-    "B4": "Stage A 에는 사례가 없었고 **probe P3 로 시도**했다. duration 이 컴파일 시점 리터럴이라 표현되지 않는다(아래 probe 절)",
+    "B4": ("Stage A 에는 사례가 없었고 **probe P3 로 시도**했다. duration 피연산자 자체는 리터럴이라 `delay \"$d MIN\"` 은 거절되지만, "
+           "`cycle(until \"k >= $n\", count \"k\"){ delay \"1 단위\" }` 로 펼치면 **표현된다**(3/3 정확). 단위가 곧 해상도이자 상태 수다. "
+           "Explorer 는 거절한다(아래 probe 절)"),
     "R9": "cron 앵커 3건(C04 C16 C19)은 실행기가 거절 → 앵커 소거 후 한 창만 실행. Clock.Hour/Minute 은 분 단위, Clock.Timestamp 는 초 단위",
     "R7": "C05 v1 은 정확 일치 0/4(period 가 회차 종료 후 대기라 100 ms 누적) → 감사에서 inner period 0 MSEC 로 수정, 현재 4/4",
 }

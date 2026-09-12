@@ -173,7 +173,11 @@ PROBES.append(dict(
              expected=[act(0, "Switch.On", [], "Hydro_Pump"), act(5 * M, "Switch.Off", [], "Hydro_Pump"),
                        act(20 * M, "Switch.On", [], "Hydro_Pump"), act(25 * M, "Switch.Off", [], "Hydro_Pump"),
                        act(40 * M, "Switch.On", [], "Hydro_Pump"), act(45 * M, "Switch.Off", [], "Hydro_Pump"),
-                       act(50 * M, "Switch.On", [], "Hydro_Pump"), act(55 * M, "Switch.Off", [], "Hydro_Pump")]),
+                       act(50 * M, "Switch.On", [], "Hydro_Pump"), act(55 * M, "Switch.Off", [], "Hydro_Pump"),
+                       # 2026-09-12 해시 후 수정 1건: horizon 60분에서 마지막 On 누락이었다. 요구 원문
+                       # ("start the next cycle exactly I minutes after this cycle's On", I=10 이후)에서 직접
+                       # 유도하면 50분 회차의 다음 회차는 60분이고 horizon 안이다. 인코딩을 보고 고친 것이 아니다.
+                       act(60 * M, "Switch.On", [], "Hydro_Pump")]),
         dict(name="ontime_changed_to_10", kind="boundary", horizon=65 * M,
              events=[(0, {"Interval_Setting.CurrentLevel": 20.0, "OnTime_Setting.CurrentLevel": 5.0,
                           "Hydro_Pump.Switch": False}),

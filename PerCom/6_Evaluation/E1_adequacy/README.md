@@ -125,27 +125,47 @@ Stage A 12건은 요소 R1–R10 과 경계 B1·B2 만 건드렸고 B3·B4 에�
 규칙:
 - probe 는 12건 성공 분모에 들어가지 않는다. 성공률을 만들기 위해 사례를 뺀 것이 아니라, 애초에 다른 요구다.
 - 요구·해석·가정·기대 trace 를 인코딩 시도 전에 `probes.py` 에 고정하고 해시했다. sha256 `9ffee57593f6731e3216b6b23af1792c7a59ff86c1ad87b9b754ac4a5b219e1c`. 시도는 그 뒤 `probe_attempts.py` 에 쓴다.
+  - 해시 후 수정 1건: P3 `interval_changed_to_10` 의 기대 ACTION 8개 → 9개. horizon 60분에서 마지막 On 을 빠뜨렸었다.
+    요구 원문("start the next cycle exactly I minutes after this cycle's On")에서 직접 재유도해 확인했고, 인코딩을 보고 고친 것이 아니다.
+    이 수정 뒤에도 attempt B 는 여전히 1/3 이다. 수정 후 sha256 `5833ef3eb1ea258cbaf345376083681fff8866491f6fb8977ee33325c6197f40`.
 - **시도하지 않고 불가로 적지 않는다.** 실패한 시도도 `history` 에 남기고, 요구대로 쓴 encoding 이 거절되면 그 메시지를 실행기에서 재현해 기록한다.
 - probe 가 "완전" 으로 끝나는 것도 정상 결과다. 경계 후보가 사실은 표현 가능했다는 뜻이며, 그대로 보고한다.
 
 | ID | 경계 | 출처 | 결과 |
 |---|---|---|---|
-| P1 | B3 look-back (순서 없는 짝) | Brackenbury CHI'19 Table 1 의 unordered 문장 (C20-O 의 짝) | **완전** 4/4 정확. Explorer 는 거절 |
-| P2 | B3 look-back (이동 시간창) | HA 커뮤니티 363863 "door opened within the last x minutes" | **완전** 4/4 정확. Explorer 는 거절 |
-| P3 | B4 가변 간격 | HA 커뮤니티 541232 "repeat every n minutes where n is variable" | **부분** 1/3. 요구대로 쓴 encoding 을 실행기가 거절 |
+| P1 | B3 이벤트 기억(순서 없는 짝) | Brackenbury CHI'19 Table 1 의 unordered 문장 (C20-O 의 짝) | **완전** 4/4 정확. Explorer 거절 |
+| P2 | B3 이벤트 기억(이동 시간창) | HA 커뮤니티 363863 "door opened within the last x minutes" | **완전** 4/4 정확. Explorer 거절 |
+| P3 | B4 가변 간격 | HA 커뮤니티 541232 "repeat every n minutes where n is variable" | **완전(단위 해상도)** 3/3 정확. Explorer 거절 |
 
-요약: **"도는 중에 일어난 일을 기억하기" 는 언어의 경계가 아니었다.** `Clock.Timestamp` 스냅샷과 `$t != null` 판별로 표현되고 실행도 정확히 일치한다.
-다만 B3 를 두 가지로 나눠 적어야 한다. 지금까지 이 문서는 둘을 섞어 썼다.
-- **(가) 자동화가 켜지기 전의 과거** — 불가. 실행 모델은 t=0 에 각 입력의 현재 값만 주고, "10분 전에 문이 열렸었다" 를 이력으로 쓸 방법 자체가 없다.
-  이는 Timeline 의 표현력 문제가 아니라 **관측 모델의 경계**다. HA 는 플랫폼이 기기별 `last_changed` 를 따로 저장하므로 이 질문에 답한다
-  (해당 스레드의 답변도 `as_timestamp(states.cover.garage_door.last_changed)` 를 쓴다). P2 의 판정은 (나) 에 한정된다.
-- **(나) 도는 중에 다른 대기를 하느라 놓친 과거** — 가능. P1·P2 가 이쪽이고 각각 4/4 정확 일치다.
-대신 두 가지 실제 경계가 드러났다.
-1. **언어 경계 — B4.** duration 피연산자는 컴파일 시점 리터럴이다. 요구대로 쓴 `delay "$d_min MIN"` 은
-   `Unsupported: duration format: '$d_min MIN'` 로 거절된다. `LevelControl.CurrentLevel` 은 DOUBLE 이라 분기 열거도 유한하지 않다.
-2. **검증 경계 — look-back encoding.** P1·P2 는 언어·실행기에서 통과하지만 Explorer 가 fail-closed 로 거절한다
-   (P2: `joint-guard: ((clock.timestamp - $t_open) <= 600)`, P1: 관측 가능한 무한 도메인). 즉 B3 요구는 **표현은 되지만 현재 인증되지 않는다.**
-   A(언어)·D(실행기)·E(Explorer) 를 따로 둔 이유가 여기서 드러난다. E2·E4 에 직접 연결된다.
+**세 후보 모두 언어의 경계가 아니었다.** 시험 전 예상과 반대다.
+
+- **B4 가변 간격.** duration 피연산자 자체는 컴파일 시점 리터럴이라 `delay "$d MIN"` 은 거절된다
+  (`Unsupported: duration format: '$d_min MIN'`, attempt A). 그러나 `cycle.until` 은 변수와 산술을 받으므로
+  `cycle(until "k >= $d_min", count "k"){ delay "1 MIN" }` 로 **가변 길이 대기를 펼쳐서** 만들 수 있다(attempt C, 3/3 정확).
+  대가는 단위당 회차 1개이므로 단위(1 MIN·1 SEC·100 MSEC)가 곧 해상도이자 상태 수다.
+- **B3 도는 중 이벤트 기억.** `Clock.Timestamp` 스냅샷 + `$t != null` 로 표현된다(P1·P2 각 4/4 정확).
+- **켜지기 전의 과거.** 이건 언어 문제가 아니라 **서비스/카탈로그 문제**다. JoI 에 `GlobalVariable` 처럼
+  기기별 변경 시각을 주는 서비스를 두면 IR 은 `read` 한 줄로 쓴다. "Timeline 은 못 한다" 고 쓰면 안 된다.
+  현재 catalog 에 그 서비스가 없다는 사실만 기록한다.
+
+**실제로 확인된 구속은 언어가 아니라 검증기다.** probe 3건 모두 언어·실행기는 통과하고 Explorer 만 거절했다.
+거절 사유가 셋 다 같은 종류다 — 실행 중 값끼리 비교하는 guard.
+
+| probe | Explorer 거절 사유 |
+|---|---|
+| P1 | `explicit input domain required for observable large/unbounded catalog value` |
+| P2 | `미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $t_open) <= 600)` |
+| P3 | `미지원 무늬(fail-closed): joint-guard: ($k >= $d_min); joint-guard: ($j >= ($i_min - $d_min))` |
+
+**구조적으로 남는 한계(논증이며 아직 probe 로 시험하지 않았다 — 별도 표시).**
+
+1. **유한 상태.** IR 은 고정된 유한 프로그램이고 변수는 `read`/`count` 로 작성 시점에 정해진다.
+   겹치는 인스턴스 수·기억할 사건 수가 입력에 따라 무한히 늘어나는 요구는 불가. 상한 k 가 정해지면 k 칸으로 가능.
+2. **계산 결과를 변수에 저장할 수 없다.** 대입 연산이 없다(`_STEP_OPS = {start_at, wait, delay, read, call, if, cycle, break}`).
+   변수는 `read` 스냅샷이나 `call` 반환값만 받는다. 누적합·평균 같은 집계는 IR 안에서 유지할 수 없다.
+   `GlobalVariable` 로 우회하면 그 쓰기가 관측 ACTION 에 찍히므로(`globalvariable#G.setinteger('n', 1)`) 검증 대상 trace 자체가 바뀐다.
+3. **단일 제어 흐름.** 병렬은 폴링으로 수동 인터리브해야 하고, 그러면 blocking `delay`/`wait.for` 를 쓸 수 없으며
+   동시 활동 수가 작성 시점에 고정된다(1 번과 같은 뿌리).
 
 B2(진짜 중첩 인스턴스)는 probe 를 만들지 않았다. 단일 제어 흐름이라는 실행 계약에서 곧바로 따라오는 한계이므로
 계약 근거로 보고하고, C11 의 B2 는 "두 흐름 지원" 이 아니라 **단일 흐름으로 환원된 특수 사례**로 표기한다.
