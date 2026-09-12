@@ -86,7 +86,7 @@ IRS["C05"] = dict(lang="full", note=(
         ]}]})
 IRS["C05"]["history"] = ("v1 (2026-09-12): inner period 100 MSEC -> match 4/4 but exact 0/4 (100 ms added per iteration: 130.0, 190.1, "
     "250.2, ...). B audit: the body's 60 s timeout already carries the cadence, so v2 sets the inner period to 0 MSEC "
-    "(E-ZERO-PERIOD). Expected after v2: exact 4/4.")
+    "(E-ZERO-PERIOD). Verified after v2: match 4/4, exact 4/4.")
 
 IRS["C07"] = dict(lang="full", note=(
     "Sustained conjunction (clock >= 22 and open) for 10 min; snapshot B0; outer cycle (count c, period 5 MIN = pause "
@@ -112,7 +112,7 @@ IRS["C07"]["history"] = ("v1 (2026-09-12): both half-blink timeouts 500 ms -> 1/
     "waited AFTER the body, so 10 blinks drifted 1 s and the next cycle started 1.1 s late. v2 sets the second timeout to "
     "400 ms so body + period = 1.0 s -> match 4/4, exact 3/4: the restore after a close during blinking was up to 100 ms "
     "late because the inner period ran after the body. B audit: v3 uses 500 ms + 500 ms and inner period 0 MSEC "
-    "(E-ZERO-PERIOD), so blink cadence stays 1 s and a close is answered at its own instant. Expected after v3: exact 4/4.")
+    "(E-ZERO-PERIOD), so blink cadence stays 1 s and a close is answered at its own instant. Verified after v3: match 4/4, exact 4/4.")
 
 IRS["C09"] = dict(lang="full", note=(
     "Rising presence -> Lock, forever. The contract fires a rising-edge wait when its condition is already true at "
@@ -129,7 +129,9 @@ IRS["C09"]["history"] = "v1 (2026-09-12): no leading wait -> Lock at t=0 in 'pre
 IRS["C11"] = dict(lang="full", note=(
     "Two reactions in one flow via E-PREV: poll every 100 ms; the previous iteration's snapshots decide which input "
     "changed. Both `if`s may fire in one iteration (both changed together), in the required order. Does not spawn "
-    "two flows; whether this is 'the same behavior' as two TAP rules is the audit's call (B2)."),
+    "two flows: the audit confirmed that this case has no delay, no overlapping instance and no action->trigger "
+    "feedback, so the single-flow trace equals the two rules' trace. That is a statement about this case, not a "
+    "general claim that snapshots replace concurrent rules (B2)."),
     ir={"timeline": [
         {"op": "start_at", "anchor": "now"},
         {"op": "read", "var": "v_prev", "src": "RobotVacuumCleaner.RobotVacuumCleanerOperatingState"},
@@ -196,12 +198,12 @@ IRS["C19"]["history"] = ("v1 (2026-09-12): no leading absence wait; branch 'Hour
     "09:00:00, so 09:00:30 never passes); the real defect was treating a presence already true at start as an arrival. v2 "
     "adds wait(absent) first, simplifies the branch to 'present', lang=full; two histories added to cases.py.")
 
-IRS["C20"] = dict(lang="full", note=(
-    "ORDERED variant only (the case is defined as the 'AND AFTERWARDS' sentence; B audit 2026-09-12). The paired unordered "
-    "variant requires look-back event memory and is excluded from this ordered-variant case (Stage B limitation candidate, B3). Rising entry opens the window; then wait (rising) for 'dark or left' with a 2 h timeout "
+IRS["C20-O"] = dict(lang="full", note=(
+    "The case is the ordered 'AND AFTERWARDS' sentence (B audit 2026-09-12); the paired unordered sentence is probe P1. "
+    "Rising entry opens the window; then wait (rising) for 'dark or left' with a 2 h timeout "
     "(E-TIMEOUT-ABORT). Leaving ends the window; a later re-entry opens a new one, which coincides with 'restart on "
     "re-entry' for entries that require a leave first. 'Dark already before entry' must NOT fire: relies on the edge "
-    "latch not firing on an initially-true condition. The UNORDERED (look-back) variant is not encoded: B3."),
+    "latch not firing on an initially-true condition. The unordered sentence is encoded separately in probe_attempts.py (P1)."),
     ir={"timeline": [
         {"op": "start_at", "anchor": "now"},
         {"op": "cycle", "until": None, "period": "100 MSEC", "body": [
@@ -214,5 +216,5 @@ IRS["C20"] = dict(lang="full", note=(
                 ]},
             ]},
         ]}]})
-IRS["C20"]["history"] = ("v1 (2026-09-12): no guard -> On at the entry instant when it was already dark (initial-true edge fires). "
+IRS["C20-O"]["history"] = ("v1 (2026-09-12): no guard -> On at the entry instant when it was already dark (initial-true edge fires). "
     "v2 guards the window with 'bright at entry'.")

@@ -462,21 +462,20 @@ CASES.append(dict(
     ]))
 
 # ─────────────────────────────────────────────────────────────────────────────
-# C20  Brackenbury et al. CHI 2019, Table 1 Event–Event paradigm
+# C20-O  Brackenbury et al. CHI 2019, Table 1 Event–Event paradigm
 # ─────────────────────────────────────────────────────────────────────────────
 CASES.append(dict(
-    id="C20", source="Brackenbury et al., How Users Interpret Bugs in TAP (CHI 2019), Table 1",
+    id="C20-O", source="Brackenbury et al., How Users Interpret Bugs in TAP (CHI 2019), Table 1",
     source_url="https://par.nsf.gov/biblio/10106413", accessed="2026-09-12",
-    verbatim=("IF Sally enters the bedroom AND AFTERWARDS the sun sets WITHIN 2 hours THEN turn on the bedroom lights. "
-              "(unordered variant: IF Sally enters the bedroom AND the sun sets WITHIN 2 hours THEN ...)"),
-    elements=["R1", "R2", "B1"], boundary_intent=True,   # B3 removed after the B audit: the unordered variant is a separate requirement
-    spec=("ORDERED variant (evaluated): when bedroom presence changes absent->present, open a 2-hour window. If the "
-          "outdoor brightness changes from ≥50 to <50 (sunset) inside the window, call Switch.On at that instant and "
-          "close the window. A new absent->present change during an open window restarts the window. If the window "
-          "expires, nothing happens. Never ends. UNORDERED variant (recorded as B3, not executed): the rule also fires "
-          "if sunset happened up to 2 hours BEFORE the entry."),
+    verbatim=("IF Sally enters the bedroom AND AFTERWARDS the sun sets WITHIN 2 hours THEN turn on the bedroom lights."),
+    elements=["R1", "R2", "B1"], boundary_intent=True,   # B3 belongs to the unordered sentence, which is probe P1
+    spec=("When bedroom presence changes absent->present, open a 2-hour window. If the outdoor brightness changes "
+          "from >=50 to <50 (sunset) inside the window, call Switch.On at that instant and close the window. A new "
+          "absent->present change during an open window restarts the window. If the window expires, nothing happens. "
+          "Never ends."),
     assumptions=["[가정] 해넘이 = LightSensor.Brightness 가 50 아래로 떨어지는 사건", "[가정] 창 안 재입장은 창을 다시 시작(restart)",
-                 "[감사 2026-09-12] 이 사례는 순서형 문장(AND AFTERWARDS)만을 대상으로 확정. paired unordered variant requires look-back event memory and is excluded from this ordered-variant case — Stage B limitation candidate (B3)"],
+                 "[감사 2026-09-12] 이 사례는 CHI'19 Table 1 의 순서형 문장(AND AFTERWARDS)만을 대상으로 확정한다. "
+                 "짝을 이루는 unordered 문장은 별개의 요구이므로 경계 probe P1 (probes.py) 로 분리해 따로 시도·실행했다. 성공 분모에서 뺀 것이 아니다"],
     devices={**dev("Bed_Presence", "PresenceSensor", "Bedroom"), **dev("Outdoor_Lux", "LightSensor", "Outdoor"),
              **dev("Bed_Light", "Switch", "Bedroom", "Light")},
     binding={"PresenceSensor": ["Bed_Presence"], "LightSensor": ["Outdoor_Lux"], "Switch": ["Bed_Light"]},
