@@ -1,0 +1,2544 @@
+[
+ {
+  "id": "T01",
+  "family": "sustain",
+  "level": 1,
+  "command": "If the front door stays open for 1 minute, announce 'Please close the front door' through the hallway speaker.",
+  "spec": "Monitor the front door contact sensor from the start. When the door has been open continuously for 60 seconds, speak 'Please close the front door' once on the hallway speaker and then stop the automation for good. If the door closes before 60 seconds have elapsed, discard the elapsed time; timing starts again from zero the next time the door opens.",
+  "devices": {
+   "Front_Door": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Entrance",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Hall_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Hallway",
+     "Speaker"
+    ]
+   }
+  },
+  "binding": {
+   "ContactSensor": [
+    "Front_Door"
+   ],
+   "Speaker": [
+    "Hall_Speaker"
+   ]
+  },
+  "selectors": {
+   "ContactSensor.Contact": "(#Entrance #ContactSensor)",
+   "Speaker.Speak": "(#Hallway #Speaker)"
+  },
+  "services": [
+   "ContactSensor.Contact",
+   "Speaker.Speak"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {
+      "Text": "Please close the front door"
+     }
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "open_and_stay",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 240000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      70000,
+      "Speaker.Speak",
+      [
+       "Please close the front door"
+      ],
+      "Hall_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "closed_before_minute",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 300000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      50000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      55000,
+      {
+       "Front_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      115000,
+      "Speaker.Speak",
+      [
+       "Please close the front door"
+      ],
+      "Hall_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "no_second_announcement",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 300000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      80000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      90000,
+      {
+       "Front_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      70000,
+      "Speaker.Speak",
+      [
+       "Please close the front door"
+      ],
+      "Hall_Speaker"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T04",
+  "family": "edge",
+  "level": 1,
+  "command": "The next time the garage door opens, turn on the garage light.",
+  "spec": "Wait until the garage door contact sensor reports open. At that moment turn on the garage light once and stop the automation for good; any later openings do nothing.",
+  "devices": {
+   "Garage_Door": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Garage",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Garage_Light": {
+    "category": [
+     "Light",
+     "Switch"
+    ],
+    "tags": [
+     "Garage",
+     "Light"
+    ]
+   }
+  },
+  "binding": {
+   "ContactSensor": [
+    "Garage_Door"
+   ],
+   "Switch": [
+    "Garage_Light"
+   ]
+  },
+  "selectors": {
+   "ContactSensor.Contact": "(#Garage #ContactSensor)",
+   "Switch.On": "(#Garage #Light)"
+  },
+  "services": [
+   "ContactSensor.Contact",
+   "Switch.On"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "single_opening",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 120000,
+    "events": [
+     [
+      0,
+      {
+       "Garage_Door.Contact": true
+      }
+     ],
+     [
+      30000,
+      {
+       "Garage_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      30000,
+      "Switch.On",
+      [],
+      "Garage_Light"
+     ]
+    ]
+   },
+   {
+    "name": "repeated_openings",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 180000,
+    "events": [
+     [
+      0,
+      {
+       "Garage_Door.Contact": true
+      }
+     ],
+     [
+      30000,
+      {
+       "Garage_Door.Contact": false
+      }
+     ],
+     [
+      40000,
+      {
+       "Garage_Door.Contact": true
+      }
+     ],
+     [
+      50000,
+      {
+       "Garage_Door.Contact": false
+      }
+     ],
+     [
+      60000,
+      {
+       "Garage_Door.Contact": true
+      }
+     ],
+     [
+      70000,
+      {
+       "Garage_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      30000,
+      "Switch.On",
+      [],
+      "Garage_Light"
+     ]
+    ]
+   },
+   {
+    "name": "open_for_long",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 180000,
+    "events": [
+     [
+      0,
+      {
+       "Garage_Door.Contact": true
+      }
+     ],
+     [
+      30000,
+      {
+       "Garage_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      30000,
+      "Switch.On",
+      [],
+      "Garage_Light"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T07",
+  "family": "snapshot",
+  "level": 1,
+  "command": "Remember the living room TV channel, switch the TV to channel 7, and switch back to the remembered channel after 30 minutes.",
+  "spec": "At the start, read the TV's current channel C. Immediately set the channel to 7. Exactly 30 minutes later set the channel to C, the value read at the start, even if the channel was changed in the meantime. Then stop.",
+  "devices": {
+   "LR_TV": {
+    "category": [
+     "Television"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Television"
+    ]
+   }
+  },
+  "binding": {
+   "Television": [
+    "LR_TV"
+   ]
+  },
+  "selectors": {
+   "Television.Channel": "(#LivingRoom #Television)",
+   "Television.SetChannel": "(#LivingRoom #Television)"
+  },
+  "services": [
+   "Television.Channel",
+   "Television.SetChannel"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "ch",
+     "src": "Television.Channel"
+    },
+    {
+     "op": "call",
+     "target": "Television.SetChannel",
+     "args": {
+      "Channel": 7
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "30 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Television.SetChannel",
+     "args": {
+      "Channel": "$ch"
+     }
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "channel_follows_command",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 2100000,
+    "events": [
+     [
+      0,
+      {
+       "LR_TV.Channel": 11
+      }
+     ],
+     [
+      1000,
+      {
+       "LR_TV.Channel": 7
+      }
+     ]
+    ],
+    "expected": [
+     [
+      0,
+      "Television.SetChannel",
+      [
+       7
+      ],
+      "LR_TV"
+     ],
+     [
+      1800000,
+      "Television.SetChannel",
+      [
+       11
+      ],
+      "LR_TV"
+     ]
+    ]
+   },
+   {
+    "name": "channel_changed_meanwhile",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 2100000,
+    "events": [
+     [
+      0,
+      {
+       "LR_TV.Channel": 11
+      }
+     ],
+     [
+      1000,
+      {
+       "LR_TV.Channel": 7
+      }
+     ],
+     [
+      600000,
+      {
+       "LR_TV.Channel": 9
+      }
+     ]
+    ],
+    "expected": [
+     [
+      0,
+      "Television.SetChannel",
+      [
+       7
+      ],
+      "LR_TV"
+     ],
+     [
+      1800000,
+      "Television.SetChannel",
+      [
+       11
+      ],
+      "LR_TV"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T10",
+  "family": "repetition",
+  "level": 1,
+  "command": "Starting now, check every 5 minutes whether the living room window is open, and if it is, announce 'Please close the window' through the living room speaker. Stop after 4 checks.",
+  "spec": "Check the window contact sensor exactly at t = 0, 5, 10 and 15 minutes (4 checks in total). At each check, if the window reads open at that instant, speak 'Please close the window' once. Changes between checks are not reacted to. After the 4th check, stop for good.",
+  "devices": {
+   "LR_Window": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Window",
+     "ContactSensor"
+    ]
+   },
+   "LR_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Speaker"
+    ]
+   }
+  },
+  "binding": {
+   "ContactSensor": [
+    "LR_Window"
+   ],
+   "Speaker": [
+    "LR_Speaker"
+   ]
+  },
+  "selectors": {
+   "ContactSensor.Contact": "(#LivingRoom #Window)",
+   "Speaker.Speak": "(#LivingRoom #Speaker)"
+  },
+  "services": [
+   "ContactSensor.Contact",
+   "Speaker.Speak"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 4",
+     "period": "5 MIN",
+     "count": "n",
+     "body": [
+      {
+       "op": "if",
+       "cond": "ContactSensor.Contact == false",
+       "then": [
+        {
+         "op": "call",
+         "target": "Speaker.Speak",
+         "args": {
+          "Text": "Please close the window"
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "open_whole_time",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 1800000,
+    "events": [
+     [
+      0,
+      {
+       "LR_Window.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      0,
+      "Speaker.Speak",
+      [
+       "Please close the window"
+      ],
+      "LR_Speaker"
+     ],
+     [
+      300000,
+      "Speaker.Speak",
+      [
+       "Please close the window"
+      ],
+      "LR_Speaker"
+     ],
+     [
+      600000,
+      "Speaker.Speak",
+      [
+       "Please close the window"
+      ],
+      "LR_Speaker"
+     ],
+     [
+      900000,
+      "Speaker.Speak",
+      [
+       "Please close the window"
+      ],
+      "LR_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "open_between_checks",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 1800000,
+    "events": [
+     [
+      0,
+      {
+       "LR_Window.Contact": true
+      }
+     ],
+     [
+      120000,
+      {
+       "LR_Window.Contact": false
+      }
+     ],
+     [
+      240000,
+      {
+       "LR_Window.Contact": true
+      }
+     ],
+     [
+      590000,
+      {
+       "LR_Window.Contact": false
+      }
+     ],
+     [
+      660000,
+      {
+       "LR_Window.Contact": true
+      }
+     ],
+     [
+      1020000,
+      {
+       "LR_Window.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      600000,
+      "Speaker.Speak",
+      [
+       "Please close the window"
+      ],
+      "LR_Speaker"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T02",
+  "family": "sustain",
+  "level": 2,
+  "command": "Whenever there is no motion in the living room for 2 minutes, turn off the living room light.",
+  "spec": "Keep running. Each time motion in the living room has been continuously absent for 120 seconds, turn off the living room light once. If motion is detected before 120 seconds have elapsed, the countdown is cancelled and restarts from zero when motion stops again. After turning the light off, do not turn it off again until motion has been detected and then been absent again for a full 120 seconds.",
+  "devices": {
+   "LR_Motion": {
+    "category": [
+     "MotionSensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "MotionSensor"
+    ]
+   },
+   "LR_Light": {
+    "category": [
+     "Light",
+     "Switch"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Light"
+    ]
+   }
+  },
+  "binding": {
+   "MotionSensor": [
+    "LR_Motion"
+   ],
+   "Switch": [
+    "LR_Light"
+   ]
+  },
+  "selectors": {
+   "MotionSensor.Motion": "(#LivingRoom #MotionSensor)",
+   "Switch.Off": "(#LivingRoom #Light)"
+  },
+  "services": [
+   "MotionSensor.Motion",
+   "Switch.Off"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MotionSensor.Motion == false",
+       "edge": "none",
+       "for": "2 MIN"
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      },
+      {
+       "op": "wait",
+       "cond": "MotionSensor.Motion == true",
+       "edge": "none"
+      }
+     ]
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "motion_stops_once",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 420000,
+    "events": [
+     [
+      0,
+      {
+       "LR_Motion.Motion": true
+      }
+     ],
+     [
+      10000,
+      {
+       "LR_Motion.Motion": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      130000,
+      "Switch.Off",
+      [],
+      "LR_Light"
+     ]
+    ]
+   },
+   {
+    "name": "motion_interrupts_countdown",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 420000,
+    "events": [
+     [
+      0,
+      {
+       "LR_Motion.Motion": true
+      }
+     ],
+     [
+      10000,
+      {
+       "LR_Motion.Motion": false
+      }
+     ],
+     [
+      100000,
+      {
+       "LR_Motion.Motion": true
+      }
+     ],
+     [
+      105000,
+      {
+       "LR_Motion.Motion": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      225000,
+      "Switch.Off",
+      [],
+      "LR_Light"
+     ]
+    ]
+   },
+   {
+    "name": "rearm_after_motion",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 540000,
+    "events": [
+     [
+      0,
+      {
+       "LR_Motion.Motion": true
+      }
+     ],
+     [
+      10000,
+      {
+       "LR_Motion.Motion": false
+      }
+     ],
+     [
+      200000,
+      {
+       "LR_Motion.Motion": true
+      }
+     ],
+     [
+      210000,
+      {
+       "LR_Motion.Motion": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      130000,
+      "Switch.Off",
+      [],
+      "LR_Light"
+     ],
+     [
+      330000,
+      "Switch.Off",
+      [],
+      "LR_Light"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T05",
+  "family": "edge",
+  "level": 2,
+  "command": "Every time the living room temperature rises above 28°C, turn on the living room fan plug.",
+  "spec": "Keep running. Each time the living room temperature changes from 28°C or below to above 28°C, turn on the fan plug once. While the temperature stays above 28°C, do nothing more; it must first return to 28°C or below before the next rise can trigger again.",
+  "devices": {
+   "LR_Temp": {
+    "category": [
+     "TemperatureSensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "TemperatureSensor"
+    ]
+   },
+   "LR_FanPlug": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Plug"
+    ]
+   }
+  },
+  "binding": {
+   "TemperatureSensor": [
+    "LR_Temp"
+   ],
+   "Switch": [
+    "LR_FanPlug"
+   ]
+  },
+  "selectors": {
+   "TemperatureSensor.Temperature": "(#LivingRoom #TemperatureSensor)",
+   "Switch.On": "(#LivingRoom #Plug)"
+  },
+  "services": [
+   "TemperatureSensor.Temperature",
+   "Switch.On"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "TemperatureSensor.Temperature > 28",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "single_rise",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 120000,
+    "events": [
+     [
+      0,
+      {
+       "LR_Temp.Temperature": 25.0
+      }
+     ],
+     [
+      10000,
+      {
+       "LR_Temp.Temperature": 29.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Switch.On",
+      [],
+      "LR_FanPlug"
+     ]
+    ]
+   },
+   {
+    "name": "oscillating",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 120000,
+    "events": [
+     [
+      0,
+      {
+       "LR_Temp.Temperature": 25.0
+      }
+     ],
+     [
+      10000,
+      {
+       "LR_Temp.Temperature": 29.0
+      }
+     ],
+     [
+      20000,
+      {
+       "LR_Temp.Temperature": 27.0
+      }
+     ],
+     [
+      30000,
+      {
+       "LR_Temp.Temperature": 29.0
+      }
+     ],
+     [
+      40000,
+      {
+       "LR_Temp.Temperature": 28.0
+      }
+     ],
+     [
+      50000,
+      {
+       "LR_Temp.Temperature": 28.5
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Switch.On",
+      [],
+      "LR_FanPlug"
+     ],
+     [
+      30000,
+      "Switch.On",
+      [],
+      "LR_FanPlug"
+     ],
+     [
+      50000,
+      "Switch.On",
+      [],
+      "LR_FanPlug"
+     ]
+    ]
+   },
+   {
+    "name": "exactly_threshold",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 120000,
+    "events": [
+     [
+      0,
+      {
+       "LR_Temp.Temperature": 25.0
+      }
+     ],
+     [
+      10000,
+      {
+       "LR_Temp.Temperature": 28.0
+      }
+     ],
+     [
+      20000,
+      {
+       "LR_Temp.Temperature": 28.1
+      }
+     ]
+    ],
+    "expected": [
+     [
+      20000,
+      "Switch.On",
+      [],
+      "LR_FanPlug"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T08",
+  "family": "snapshot",
+  "level": 2,
+  "command": "Check the wine cellar temperature now and again 10 minutes later. If it has risen by 2°C or more, set the cellar air conditioner's target temperature to the first reading.",
+  "spec": "Read the cellar temperature t1 at the start. Exactly 10 minutes later read it again as t2. If t2 - t1 >= 2, set the air conditioner's target temperature to t1 once at that moment; otherwise do nothing. A drop in temperature never triggers. Readings between the two checks are ignored. Then stop.",
+  "devices": {
+   "Cellar_Temp": {
+    "category": [
+     "TemperatureSensor"
+    ],
+    "tags": [
+     "WineCellar",
+     "TemperatureSensor"
+    ]
+   },
+   "Cellar_AC": {
+    "category": [
+     "AirConditioner"
+    ],
+    "tags": [
+     "WineCellar",
+     "AirConditioner"
+    ]
+   }
+  },
+  "binding": {
+   "TemperatureSensor": [
+    "Cellar_Temp"
+   ],
+   "AirConditioner": [
+    "Cellar_AC"
+   ]
+  },
+  "selectors": {
+   "TemperatureSensor.Temperature": "(#WineCellar #TemperatureSensor)",
+   "AirConditioner.SetTargetTemperature": "(#WineCellar #AirConditioner)"
+  },
+  "services": [
+   "TemperatureSensor.Temperature",
+   "AirConditioner.SetTargetTemperature"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "t1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "delay",
+     "duration": "10 MIN"
+    },
+    {
+     "op": "read",
+     "var": "t2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "if",
+     "cond": "$t2 - $t1 >= 2",
+     "then": [
+      {
+       "op": "call",
+       "target": "AirConditioner.SetTargetTemperature",
+       "args": {
+        "Temperature": "$t1"
+       }
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "steady_rise",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 900000,
+    "events": [
+     [
+      0,
+      {
+       "Cellar_Temp.Temperature": 14.0
+      }
+     ],
+     [
+      600000,
+      {
+       "Cellar_Temp.Temperature": 17.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      600000,
+      "AirConditioner.SetTargetTemperature",
+      [
+       14.0
+      ],
+      "Cellar_AC"
+     ]
+    ]
+   },
+   {
+    "name": "spike_between_checks",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 900000,
+    "events": [
+     [
+      0,
+      {
+       "Cellar_Temp.Temperature": 14.0
+      }
+     ],
+     [
+      300000,
+      {
+       "Cellar_Temp.Temperature": 17.0
+      }
+     ],
+     [
+      600000,
+      {
+       "Cellar_Temp.Temperature": 15.0
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "exactly_two",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 900000,
+    "events": [
+     [
+      0,
+      {
+       "Cellar_Temp.Temperature": 14.0
+      }
+     ],
+     [
+      600000,
+      {
+       "Cellar_Temp.Temperature": 16.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      600000,
+      "AirConditioner.SetTargetTemperature",
+      [
+       14.0
+      ],
+      "Cellar_AC"
+     ]
+    ]
+   },
+   {
+    "name": "drop",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 900000,
+    "events": [
+     [
+      0,
+      {
+       "Cellar_Temp.Temperature": 14.0
+      }
+     ],
+     [
+      600000,
+      {
+       "Cellar_Temp.Temperature": 11.0
+      }
+     ]
+    ],
+    "expected": []
+   }
+  ]
+ },
+ {
+  "id": "T11",
+  "family": "repetition",
+  "level": 2,
+  "command": "Each time the mailbox is opened, announce 'Mail has arrived' through the kitchen speaker, but stop after the third announcement.",
+  "spec": "Keep running until three announcements have been made. On each change of the mailbox from closed to open, speak 'Mail has arrived' once; staying open does not repeat it. After the third announcement, stop for good; later openings do nothing.",
+  "devices": {
+   "Mailbox": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Mailbox",
+     "ContactSensor"
+    ]
+   },
+   "Kitchen_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Kitchen",
+     "Speaker"
+    ]
+   }
+  },
+  "binding": {
+   "ContactSensor": [
+    "Mailbox"
+   ],
+   "Speaker": [
+    "Kitchen_Speaker"
+   ]
+  },
+  "selectors": {
+   "ContactSensor.Contact": "(#Mailbox #ContactSensor)",
+   "Speaker.Speak": "(#Kitchen #Speaker)"
+  },
+  "services": [
+   "ContactSensor.Contact",
+   "Speaker.Speak"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "100 MSEC",
+     "count": "n",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "ContactSensor.Contact == false",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Mail has arrived"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "three_short_openings",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 300000,
+    "events": [
+     [
+      0,
+      {
+       "Mailbox.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Mailbox.Contact": false
+      }
+     ],
+     [
+      15000,
+      {
+       "Mailbox.Contact": true
+      }
+     ],
+     [
+      60000,
+      {
+       "Mailbox.Contact": false
+      }
+     ],
+     [
+      65000,
+      {
+       "Mailbox.Contact": true
+      }
+     ],
+     [
+      120000,
+      {
+       "Mailbox.Contact": false
+      }
+     ],
+     [
+      125000,
+      {
+       "Mailbox.Contact": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Speaker.Speak",
+      [
+       "Mail has arrived"
+      ],
+      "Kitchen_Speaker"
+     ],
+     [
+      60000,
+      "Speaker.Speak",
+      [
+       "Mail has arrived"
+      ],
+      "Kitchen_Speaker"
+     ],
+     [
+      120000,
+      "Speaker.Speak",
+      [
+       "Mail has arrived"
+      ],
+      "Kitchen_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "long_opening_and_fourth",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 360000,
+    "events": [
+     [
+      0,
+      {
+       "Mailbox.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Mailbox.Contact": false
+      }
+     ],
+     [
+      100000,
+      {
+       "Mailbox.Contact": true
+      }
+     ],
+     [
+      110000,
+      {
+       "Mailbox.Contact": false
+      }
+     ],
+     [
+      115000,
+      {
+       "Mailbox.Contact": true
+      }
+     ],
+     [
+      200000,
+      {
+       "Mailbox.Contact": false
+      }
+     ],
+     [
+      205000,
+      {
+       "Mailbox.Contact": true
+      }
+     ],
+     [
+      250000,
+      {
+       "Mailbox.Contact": false
+      }
+     ],
+     [
+      255000,
+      {
+       "Mailbox.Contact": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Speaker.Speak",
+      [
+       "Mail has arrived"
+      ],
+      "Kitchen_Speaker"
+     ],
+     [
+      110000,
+      "Speaker.Speak",
+      [
+       "Mail has arrived"
+      ],
+      "Kitchen_Speaker"
+     ],
+     [
+      200000,
+      "Speaker.Speak",
+      [
+       "Mail has arrived"
+      ],
+      "Kitchen_Speaker"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T03",
+  "family": "sustain",
+  "level": 3,
+  "command": "Every time the front door is opened, if it is not closed within 3 minutes, announce 'The front door is still open' through the hallway speaker.",
+  "spec": "Keep running. Each time the front door changes from closed to open, start a 180-second countdown. If the door closes before the countdown ends, cancel it silently. If the countdown ends while the door is still open, speak 'The front door is still open' once. A new countdown starts only at the next closed-to-open change.",
+  "devices": {
+   "Front_Door": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Entrance",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Hall_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Hallway",
+     "Speaker"
+    ]
+   }
+  },
+  "binding": {
+   "ContactSensor": [
+    "Front_Door"
+   ],
+   "Speaker": [
+    "Hall_Speaker"
+   ]
+  },
+  "selectors": {
+   "ContactSensor.Contact": "(#Entrance #ContactSensor)",
+   "Speaker.Speak": "(#Hallway #Speaker)"
+  },
+  "services": [
+   "ContactSensor.Contact",
+   "Speaker.Speak"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "ContactSensor.Contact == false",
+       "edge": "rising"
+      },
+      {
+       "op": "wait",
+       "cond": "ContactSensor.Contact == true",
+       "timeout": "3 MIN",
+       "on_timeout": [
+        {
+         "op": "call",
+         "target": "Speaker.Speak",
+         "args": {
+          "Text": "The front door is still open"
+         }
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "left_open",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 420000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      190000,
+      "Speaker.Speak",
+      [
+       "The front door is still open"
+      ],
+      "Hall_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "closed_then_reopened",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 540000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      60000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      120000,
+      {
+       "Front_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      300000,
+      "Speaker.Speak",
+      [
+       "The front door is still open"
+      ],
+      "Hall_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "two_separate_episodes",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 660000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      250000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      260000,
+      {
+       "Front_Door.Contact": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      190000,
+      "Speaker.Speak",
+      [
+       "The front door is still open"
+      ],
+      "Hall_Speaker"
+     ],
+     [
+      440000,
+      "Speaker.Speak",
+      [
+       "The front door is still open"
+      ],
+      "Hall_Speaker"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T06",
+  "family": "edge",
+  "level": 3,
+  "command": "Every time motion is detected at the entrance, turn on the entrance light, then turn it off 1 minute later.",
+  "spec": "Keep running. When the entrance motion sensor changes from no motion to motion, turn on the entrance light, wait exactly 60 seconds, then turn it off. Motion changes during those 60 seconds are ignored: they neither extend the timer nor turn the light on again. After the light is turned off, the next cycle starts only at a new change from no motion to motion.",
+  "devices": {
+   "Entrance_Motion": {
+    "category": [
+     "MotionSensor"
+    ],
+    "tags": [
+     "Entrance",
+     "MotionSensor"
+    ]
+   },
+   "Entrance_Light": {
+    "category": [
+     "Light",
+     "Switch"
+    ],
+    "tags": [
+     "Entrance",
+     "Light"
+    ]
+   }
+  },
+  "binding": {
+   "MotionSensor": [
+    "Entrance_Motion"
+   ],
+   "Switch": [
+    "Entrance_Light"
+   ]
+  },
+  "selectors": {
+   "MotionSensor.Motion": "(#Entrance #MotionSensor)",
+   "Switch.On": "(#Entrance #Light)",
+   "Switch.Off": "(#Entrance #Light)"
+  },
+  "services": [
+   "MotionSensor.Motion",
+   "Switch.On",
+   "Switch.Off"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MotionSensor.Motion == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      },
+      {
+       "op": "delay",
+       "duration": "1 MIN"
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "short_motion",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 180000,
+    "events": [
+     [
+      0,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ],
+     [
+      10000,
+      {
+       "Entrance_Motion.Motion": true
+      }
+     ],
+     [
+      15000,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Switch.On",
+      [],
+      "Entrance_Light"
+     ],
+     [
+      70000,
+      "Switch.Off",
+      [],
+      "Entrance_Light"
+     ]
+    ]
+   },
+   {
+    "name": "second_motion_while_on",
+    "kind": "boundary",
+    "nl_determined": false,
+    "horizon_ms": 180000,
+    "events": [
+     [
+      0,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ],
+     [
+      10000,
+      {
+       "Entrance_Motion.Motion": true
+      }
+     ],
+     [
+      15000,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ],
+     [
+      30000,
+      {
+       "Entrance_Motion.Motion": true
+      }
+     ],
+     [
+      35000,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Switch.On",
+      [],
+      "Entrance_Light"
+     ],
+     [
+      70000,
+      "Switch.Off",
+      [],
+      "Entrance_Light"
+     ]
+    ]
+   },
+   {
+    "name": "motion_lasts_past_off",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 240000,
+    "events": [
+     [
+      0,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ],
+     [
+      10000,
+      {
+       "Entrance_Motion.Motion": true
+      }
+     ],
+     [
+      100000,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Switch.On",
+      [],
+      "Entrance_Light"
+     ],
+     [
+      70000,
+      "Switch.Off",
+      [],
+      "Entrance_Light"
+     ]
+    ]
+   },
+   {
+    "name": "two_separate_detections",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 240000,
+    "events": [
+     [
+      0,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ],
+     [
+      10000,
+      {
+       "Entrance_Motion.Motion": true
+      }
+     ],
+     [
+      15000,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ],
+     [
+      100000,
+      {
+       "Entrance_Motion.Motion": true
+      }
+     ],
+     [
+      105000,
+      {
+       "Entrance_Motion.Motion": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Switch.On",
+      [],
+      "Entrance_Light"
+     ],
+     [
+      70000,
+      "Switch.Off",
+      [],
+      "Entrance_Light"
+     ],
+     [
+      100000,
+      "Switch.On",
+      [],
+      "Entrance_Light"
+     ],
+     [
+      160000,
+      "Switch.Off",
+      [],
+      "Entrance_Light"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T09",
+  "family": "snapshot",
+  "level": 3,
+  "command": "Every time the front door opens, remember the living room speaker's volume, lower it to 10, and restore the remembered volume 2 minutes later.",
+  "spec": "Keep running. On each change of the front door from closed to open: read the speaker's current volume V at that moment, set the volume to 10, wait exactly 120 seconds, then set the volume back to V. Door changes during those 120 seconds are ignored. Every episode uses the volume read at its own start. The next episode begins only at a closed-to-open change after the volume was restored.",
+  "devices": {
+   "Front_Door": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Entrance",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "LR_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Speaker"
+    ]
+   }
+  },
+  "binding": {
+   "ContactSensor": [
+    "Front_Door"
+   ],
+   "Speaker": [
+    "LR_Speaker"
+   ]
+  },
+  "selectors": {
+   "ContactSensor.Contact": "(#Entrance #ContactSensor)",
+   "Speaker.Volume": "(#LivingRoom #Speaker)",
+   "Speaker.SetVolume": "(#LivingRoom #Speaker)"
+  },
+  "services": [
+   "ContactSensor.Contact",
+   "Speaker.Volume",
+   "Speaker.SetVolume"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "100 MSEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "ContactSensor.Contact == false",
+       "edge": "rising"
+      },
+      {
+       "op": "read",
+       "var": "vol",
+       "src": "Speaker.Volume"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.SetVolume",
+       "args": {
+        "Volume": 10
+       }
+      },
+      {
+       "op": "delay",
+       "duration": "2 MIN"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.SetVolume",
+       "args": {
+        "Volume": "$vol"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "one_visit",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 300000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true,
+       "LR_Speaker.Volume": 40
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      11000,
+      {
+       "LR_Speaker.Volume": 10
+      }
+     ],
+     [
+      20000,
+      {
+       "Front_Door.Contact": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Speaker.SetVolume",
+      [
+       10
+      ],
+      "LR_Speaker"
+     ],
+     [
+      130000,
+      "Speaker.SetVolume",
+      [
+       40
+      ],
+      "LR_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "volume_changed_before_second_visit",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 600000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true,
+       "LR_Speaker.Volume": 40
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      11000,
+      {
+       "LR_Speaker.Volume": 10
+      }
+     ],
+     [
+      20000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      131000,
+      {
+       "LR_Speaker.Volume": 40
+      }
+     ],
+     [
+      300000,
+      {
+       "LR_Speaker.Volume": 55
+      }
+     ],
+     [
+      400000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      401000,
+      {
+       "LR_Speaker.Volume": 10
+      }
+     ],
+     [
+      410000,
+      {
+       "Front_Door.Contact": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Speaker.SetVolume",
+      [
+       10
+      ],
+      "LR_Speaker"
+     ],
+     [
+      130000,
+      "Speaker.SetVolume",
+      [
+       40
+      ],
+      "LR_Speaker"
+     ],
+     [
+      400000,
+      "Speaker.SetVolume",
+      [
+       10
+      ],
+      "LR_Speaker"
+     ],
+     [
+      520000,
+      "Speaker.SetVolume",
+      [
+       55
+      ],
+      "LR_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "reopened_during_wait",
+    "kind": "boundary",
+    "nl_determined": false,
+    "horizon_ms": 300000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true,
+       "LR_Speaker.Volume": 40
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      11000,
+      {
+       "LR_Speaker.Volume": 10
+      }
+     ],
+     [
+      20000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      30000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      40000,
+      {
+       "Front_Door.Contact": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "Speaker.SetVolume",
+      [
+       10
+      ],
+      "LR_Speaker"
+     ],
+     [
+      130000,
+      "Speaker.SetVolume",
+      [
+       40
+      ],
+      "LR_Speaker"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "T12",
+  "family": "repetition",
+  "level": 3,
+  "command": "Each time the front door is left open for 1 minute, announce 'Please close the door' through the hallway speaker, and stop after 3 announcements.",
+  "spec": "Keep running until three announcements have been made. Each time the front door has been open continuously for 60 seconds, speak 'Please close the door' once. If the door closes before 60 seconds, the countdown is cancelled. While the door stays open after an announcement, do not repeat it; the next announcement requires the door to close and then stay open for another full 60 seconds. After the third announcement, stop for good.",
+  "devices": {
+   "Front_Door": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Entrance",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Hall_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Hallway",
+     "Speaker"
+    ]
+   }
+  },
+  "binding": {
+   "ContactSensor": [
+    "Front_Door"
+   ],
+   "Speaker": [
+    "Hall_Speaker"
+   ]
+  },
+  "selectors": {
+   "ContactSensor.Contact": "(#Entrance #ContactSensor)",
+   "Speaker.Speak": "(#Hallway #Speaker)"
+  },
+  "services": [
+   "ContactSensor.Contact",
+   "Speaker.Speak"
+  ],
+  "ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "100 MSEC",
+     "count": "n",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "ContactSensor.Contact == false",
+       "edge": "none",
+       "for": "1 MIN"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Please close the door"
+       }
+      },
+      {
+       "op": "wait",
+       "cond": "ContactSensor.Contact == true",
+       "edge": "none"
+      }
+     ]
+    }
+   ]
+  },
+  "histories": [
+   {
+    "name": "three_long_openings",
+    "kind": "nominal",
+    "nl_determined": true,
+    "horizon_ms": 900000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      100000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      200000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      300000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      400000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      500000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      600000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      700000,
+      {
+       "Front_Door.Contact": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      70000,
+      "Speaker.Speak",
+      [
+       "Please close the door"
+      ],
+      "Hall_Speaker"
+     ],
+     [
+      260000,
+      "Speaker.Speak",
+      [
+       "Please close the door"
+      ],
+      "Hall_Speaker"
+     ],
+     [
+      460000,
+      "Speaker.Speak",
+      [
+       "Please close the door"
+      ],
+      "Hall_Speaker"
+     ]
+    ]
+   },
+   {
+    "name": "interrupted_and_held_open",
+    "kind": "boundary",
+    "nl_determined": true,
+    "horizon_ms": 900000,
+    "events": [
+     [
+      0,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      10000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      50000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      55000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      130000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      200000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      400000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      450000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      520000,
+      {
+       "Front_Door.Contact": true
+      }
+     ],
+     [
+      600000,
+      {
+       "Front_Door.Contact": false
+      }
+     ],
+     [
+      700000,
+      {
+       "Front_Door.Contact": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      115000,
+      "Speaker.Speak",
+      [
+       "Please close the door"
+      ],
+      "Hall_Speaker"
+     ],
+     [
+      260000,
+      "Speaker.Speak",
+      [
+       "Please close the door"
+      ],
+      "Hall_Speaker"
+     ],
+     [
+      510000,
+      "Speaker.Speak",
+      [
+       "Please close the door"
+      ],
+      "Hall_Speaker"
+     ]
+    ]
+   }
+  ]
+ }
+]

@@ -1,0 +1,2828 @@
+{
+ "T01_c7c4c1f4": {
+  "id": "T01_c7c4c1f4",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "hold_ticks := 0\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T01",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T01",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T01",
+    3
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T01",
+    1
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T01",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T01",
+    1
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T01",
+    2
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T01",
+    3
+   ]
+  ]
+ },
+ "T02_177eba9a": {
+  "id": "T02_177eba9a",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "hold_ticks := 0\nfired := false\nif ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 1200) {\n(#LivingRoom #Light).switch_off()\n            wait until((#LivingRoom #MotionSensor).motionSensor_motion == true)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T02",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T02",
+    2
+   ]
+  ]
+ },
+ "T02_9f4468e3": {
+  "id": "T02_9f4468e3",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "hold_ticks := 0\nfired := false\nif ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 120) {\n(#LivingRoom #Light).switch_off()\n            wait until((#LivingRoom #MotionSensor).motionSensor_motion == true)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T02",
+    3
+   ]
+  ]
+ },
+ "T03_700ecf74": {
+  "id": "T03_700ecf74",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "triggered := false\nhold_ticks := 0\nfired := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\ntriggered = true\n        hold_ticks = 0\n        fired = false\n}\n}\nelse {\ntriggered = false\n    hold_ticks = 0\n    fired = false\n}\nif (triggered == true) {\nif ((#Entrance #ContactSensor).contactSensor_contact == true) {\ntriggered = false\n        hold_ticks = 0\n        fired = false\n}\nelse {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n            if (hold_ticks >= 180) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n                fired = true\n}\n}\n}\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T03",
+    1
+   ]
+  ]
+ },
+ "T03_5010df69": {
+  "id": "T03_5010df69",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "triggered := false\nhold_ticks := 0\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 1800) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n            triggered = true\n}\n}\n}\nelse {\ntriggered = false\n    hold_ticks = 0\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T03",
+    2
+   ]
+  ]
+ },
+ "T03_c827fc39": {
+  "id": "T03_c827fc39",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "triggered := false\nfired := false\nhold_ticks := 0\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\ntriggered = true\n        hold_ticks = 0\n        fired = false\n}\nelse {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 180) {\nif (fired == false) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n                fired = true\n}\n}\n}\n}\nelse {\ntriggered = false\n    hold_ticks = 0\n    fired = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T03",
+    3
+   ]
+  ]
+ },
+ "T04_e118dc84": {
+  "id": "T04_e118dc84",
+  "task": "T04",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "wait until((#Garage #ContactSensor).contactSensor_contact == false)\n(#Garage #Light).switch_on()"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T04",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T04",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T04",
+    3
+   ],
+   [
+    "gpt54mini",
+    "SPEC",
+    "T04",
+    1
+   ],
+   [
+    "gpt54mini",
+    "SPEC",
+    "T04",
+    2
+   ],
+   [
+    "gpt54mini",
+    "SPEC",
+    "T04",
+    3
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T04",
+    1
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T04",
+    2
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T04",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T04",
+    1
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T04",
+    2
+   ]
+  ]
+ },
+ "T05_36e8abd4": {
+  "id": "T05_36e8abd4",
+  "task": "T05",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "triggered := false\nif ((#LivingRoom #TemperatureSensor).temperatureSensor_temperature > 28) {\nif (triggered == false) {\n(#LivingRoom #Plug).switch_on()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T05",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T05",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T05",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T05",
+    2
+   ]
+  ]
+ },
+ "T06_6f89873f": {
+  "id": "T06_6f89873f",
+  "task": "T06",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "triggered := false\nif ((#Entrance #MotionSensor).motionSensor_motion == true) {\nif (triggered == false) {\n(#Entrance #Light).switch_on()\n        delay(1 MIN)\n(#Entrance #Light).switch_off()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T06",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T06",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T06",
+    3
+   ]
+  ]
+ },
+ "T07_ab8bc847": {
+  "id": "T07_ab8bc847",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "ch = (#LivingRoom #Television).television_channel\n(#LivingRoom #Television).television_setChannel(7)\ndelay(30 MIN)\n(#LivingRoom #Television).television_setChannel(ch)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T07",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T07",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T07",
+    3
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T07",
+    1
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T07",
+    2
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T07",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T07",
+    1
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T07",
+    2
+   ]
+  ]
+ },
+ "T08_f3af7a63": {
+  "id": "T08_f3af7a63",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "t1 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndelay(10 MIN)\nt2 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\nif (t2 - t1 >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(t1)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T08",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T08",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T08",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T08",
+    1
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T08",
+    2
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T08",
+    3
+   ]
+  ]
+ },
+ "T09_86d5f2e8": {
+  "id": "T09_86d5f2e8",
+  "task": "T09",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "triggered := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\nvol = (#LivingRoom #Speaker).speaker_volume\n        (#LivingRoom #Speaker).speaker_setVolume(10)\n        delay(2 MIN)\n(#LivingRoom #Speaker).speaker_setVolume(vol)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T09",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T09",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T09",
+    3
+   ]
+  ]
+ },
+ "T10_bf7ae5dc": {
+  "id": "T10_bf7ae5dc",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 300000,
+   "script": "n := 0\nif (n >= 4) {\nbreak\n}\nif ((#LivingRoom #Window).contactSensor_contact == false) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\nn = n + 1"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T10",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T10",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T10",
+    3
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T10",
+    1
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T10",
+    2
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T10",
+    3
+   ]
+  ]
+ },
+ "T11_a8e74140": {
+  "id": "T11_a8e74140",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "n := 0\ntriggered := false\nif (n >= 3) {\nbreak\n}\nif ((#Mailbox #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n        triggered = true\n        n = n + 1\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T11",
+    1
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T11",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T11",
+    3
+   ]
+  ]
+ },
+ "T12_33e0aaf8": {
+  "id": "T12_33e0aaf8",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\nhold_ticks := 0\nfired := false\nif (n >= 3) {\nbreak\n}\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 600) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n            wait until((#Entrance #ContactSensor).contactSensor_contact == true)\n            n = n + 1\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T12",
+    1
+   ]
+  ]
+ },
+ "T12_07e4cc99": {
+  "id": "T12_07e4cc99",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "n := 0\nhold_ticks := 0\nfired := false\nif (n >= 3) {\nbreak\n}\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n            wait until((#Entrance #ContactSensor).contactSensor_contact == true)\n            fired = true\n            n = n + 1\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "IR",
+    "T12",
+    2
+   ],
+   [
+    "gpt54mini",
+    "IR",
+    "T12",
+    3
+   ]
+  ]
+ },
+ "T01_2afcf547": {
+  "id": "T01_2afcf547",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "openSeconds := 0\nannounced := false\nif (not (#Entrance #ContactSensor).contactSensor_contact) {\nopenSeconds = 0\n    announced = false\n}\nelse {\nopenSeconds = openSeconds + 1\n    if (openSeconds >= 60 and not announced) {\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\n        announced = true\n}\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "inverted_condition",
+  "group": "static",
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T01",
+    1
+   ]
+  ]
+ },
+ "T01_44225716": {
+  "id": "T01_44225716",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "openCount := 0\nannounced := false\nif (not (#Entrance #ContactSensor).contactSensor_contact) {\nopenCount = openCount + 1\n}\nelse {\nopenCount = 0\n    announced = false\n}\nif (openCount >= 61 and not announced) {\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\n    announced = true\n}"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "repeat_policy",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T01",
+    2
+   ]
+  ]
+ },
+ "T01_1478bbf9": {
+  "id": "T01_1478bbf9",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "openSeconds := 0\nwasOpen := false\nannounced := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (wasOpen == false) {\nwasOpen = true\n        openSeconds = 0\n        announced = false\n}\nelse {\nopenSeconds = openSeconds + 1\n}\nif (openSeconds >= 60 and announced == false) {\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\n        announced = true\n}\n}\nelse {\nwasOpen = false\n    openSeconds = 0\n    announced = false\n}"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "repeat_policy",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T01",
+    3
+   ]
+  ]
+ },
+ "T02_dc545eef": {
+  "id": "T02_dc545eef",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "if ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\ndelay(2 MIN)\n    if ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\n(#LivingRoom #Light).switch_off()\n}\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "sustain_as_delay_recheck",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T02",
+    1
+   ]
+  ]
+ },
+ "T02_71db78c6": {
+  "id": "T02_71db78c6",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "wait until((#LivingRoom #MotionSensor).motionSensor_motion == false)\ndelay(2 MIN)\nif ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\n(#LivingRoom #Light).switch_off()\n}\nwait until((#LivingRoom #MotionSensor).motionSensor_motion == true)"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "sustain_as_delay_recheck",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T02",
+    2
+   ],
+   [
+    "gpt54mini",
+    "NL",
+    "T02",
+    3
+   ]
+  ]
+ },
+ "T03_7f772803": {
+  "id": "T03_7f772803",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "prev := true\narmed := false\nelapsed := 0\ncurrent = (#Entrance #ContactSensor).contactSensor_contact\nif (current == false and prev == true) {\narmed = true\n    elapsed = 0\n}\nelse {\nif (current == true) {\narmed = false\n        elapsed = 0\n}\nelse {\nif (armed == true) {\nelapsed = elapsed + 1000\n            if (elapsed >= 180000) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n                armed = false\n}\n}\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T03",
+    2
+   ]
+  ]
+ },
+ "T03_2ce73f4d": {
+  "id": "T03_2ce73f4d",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "openSeconds := 0\nalerted := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (alerted == false) {\nopenSeconds = openSeconds + 1\n        if (openSeconds >= 180) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n            alerted = true\n}\n}\n}\nelse {\nopenSeconds = 0\n    alerted = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T03",
+    3
+   ]
+  ]
+ },
+ "T04_0eb09e92": {
+  "id": "T04_0eb09e92",
+  "task": "T04",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "last := (#Garage #ContactSensor).contactSensor_contact\ncurrent = (#Garage #ContactSensor).contactSensor_contact\nif (last == true and current == false) {\n(#Garage #Light).switch_on()\n    break\n}\nlast = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T04",
+    1
+   ]
+  ]
+ },
+ "T04_9a46fda2": {
+  "id": "T04_9a46fda2",
+  "task": "T04",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "wait until((#Garage #ContactSensor).contactSensor_contact == true)\nwait until((#Garage #ContactSensor).contactSensor_contact == false)\n(#Garage #Light).switch_on()"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T04",
+    2
+   ]
+  ]
+ },
+ "T04_c03e467f": {
+  "id": "T04_c03e467f",
+  "task": "T04",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "if ((#Garage #ContactSensor).contactSensor_contact == false) {\nwait until((#Garage #ContactSensor).contactSensor_contact == true)\n    wait until((#Garage #ContactSensor).contactSensor_contact == false)\n}\nelse {\nwait until((#Garage #ContactSensor).contactSensor_contact == false)\n}\n(#Garage #Light).switch_on()"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T04",
+    3
+   ]
+  ]
+ },
+ "T05_5fda22bf": {
+  "id": "T05_5fda22bf",
+  "task": "T05",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "prev := (#LivingRoom #TemperatureSensor).temperatureSensor_temperature\ncurrent = (#LivingRoom #TemperatureSensor).temperatureSensor_temperature\nif (prev <= 28 and current > 28) {\n(#LivingRoom #Plug).switch_on()\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T05",
+    1
+   ],
+   [
+    "gpt54mini",
+    "SPEC",
+    "T05",
+    1
+   ]
+  ]
+ },
+ "T05_8390fe4c": {
+  "id": "T05_8390fe4c",
+  "task": "T05",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "prev := (#LivingRoom #TemperatureSensor).temperatureSensor_temperature\ncurrent = (#LivingRoom #TemperatureSensor).temperatureSensor_temperature\nif (current > 28 and prev <= 28) {\n(#LivingRoom #Plug).switch_on()\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T05",
+    3
+   ]
+  ]
+ },
+ "T06_0f154918": {
+  "id": "T06_0f154918",
+  "task": "T06",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "wait until((#Entrance #MotionSensor).motionSensor_motion)\n(#Entrance #Light).switch_on()\ndelay(1 MIN)\n(#Entrance #Light).switch_off()\nwait until(not (#Entrance #MotionSensor).motionSensor_motion)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T06",
+    1
+   ],
+   [
+    "gpt54mini",
+    "NL",
+    "T06",
+    3
+   ]
+  ]
+ },
+ "T06_7a2d432d": {
+  "id": "T06_7a2d432d",
+  "task": "T06",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "if ((#Entrance #MotionSensor).motionSensor_motion) {\n(#Entrance #Light).switch_on()\n    delay(1 MIN)\n(#Entrance #Light).switch_off()\n    wait until(not (#Entrance #MotionSensor).motionSensor_motion)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T06",
+    2
+   ]
+  ]
+ },
+ "T07_5bb608ab": {
+  "id": "T07_5bb608ab",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "rememberedChannel = (#LivingRoom #Television).television_channel\n(#LivingRoom #Television).television_setChannel(7)\ndelay(30 MIN)\n(#LivingRoom #Television).television_setChannel(rememberedChannel)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T07",
+    1
+   ]
+  ]
+ },
+ "T07_f5e0f515": {
+  "id": "T07_f5e0f515",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "remembered = (#LivingRoom #Television).television_channel\n(#LivingRoom #Television).television_setChannel(7)\ndelay(30 MIN)\n(#LivingRoom #Television).television_setChannel(remembered)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T07",
+    2
+   ]
+  ]
+ },
+ "T07_ea551c87": {
+  "id": "T07_ea551c87",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "currentChannel = (#LivingRoom #Television).television_channel\n(#LivingRoom #Television).television_setChannel(7)\ndelay(30 MIN)\n(#LivingRoom #Television).television_setChannel(currentChannel)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T07",
+    3
+   ]
+  ]
+ },
+ "T08_7122b436": {
+  "id": "T08_7122b436",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "first = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndelay(10 MIN)\nsecond = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\nif (second >= first + 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(first)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T08",
+    1
+   ]
+  ]
+ },
+ "T08_dc484be5": {
+  "id": "T08_dc484be5",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "first := (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndelay(10 MIN)\nif ((#WineCellar #TemperatureSensor).temperatureSensor_temperature >= first + 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(first)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T08",
+    2
+   ]
+  ]
+ },
+ "T08_c3f4f15f": {
+  "id": "T08_c3f4f15f",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "first = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\n    delay(10 MIN)\n    second = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\n    if (second - first >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(first)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T08",
+    3
+   ]
+  ]
+ },
+ "T09_d3d71820": {
+  "id": "T09_d3d71820",
+  "task": "T09",
+  "block": {
+   "cron": "",
+   "period": 1,
+   "script": "wait until((#Entrance #ContactSensor).contactSensor_contact == true)\nwait until((#Entrance #ContactSensor).contactSensor_contact == false)\nrememberedVolume = (#LivingRoom #Speaker).speaker_volume\n(#LivingRoom #Speaker).speaker_setVolume(10)\ndelay(2 MIN)\n(#LivingRoom #Speaker).speaker_setVolume(rememberedVolume)\nwait until((#Entrance #ContactSensor).contactSensor_contact == true)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T09",
+    1
+   ]
+  ]
+ },
+ "T09_2732b163": {
+  "id": "T09_2732b163",
+  "task": "T09",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "prev := (#Entrance #ContactSensor).contactSensor_contact\ncurrent = (#Entrance #ContactSensor).contactSensor_contact\nif (prev and not current) {\nsavedVolume = (#LivingRoom #Speaker).speaker_volume\n    (#LivingRoom #Speaker).speaker_setVolume(10)\n    delay(2 MIN)\n(#LivingRoom #Speaker).speaker_setVolume(savedVolume)\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T09",
+    2
+   ]
+  ]
+ },
+ "T09_2e6ae172": {
+  "id": "T09_2e6ae172",
+  "task": "T09",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "prevContact := (#Entrance #ContactSensor).contactSensor_contact\nsavedVolume := 0\nrestoreCountdown := 0\nactive := false\ncurrentContact = (#Entrance #ContactSensor).contactSensor_contact\nif (active == false and prevContact == true and currentContact == false) {\nsavedVolume = (#LivingRoom #Speaker).speaker_volume\n    (#LivingRoom #Speaker).speaker_setVolume(10)\n    restoreCountdown = 120\n    active = true\n}\nif (active == true) {\nif (restoreCountdown > 0) {\nrestoreCountdown = restoreCountdown - 1\n}\nif (restoreCountdown == 0) {\n(#LivingRoom #Speaker).speaker_setVolume(savedVolume)\n        active = false\n}\n}\nprevContact = currentContact"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T09",
+    3
+   ]
+  ]
+ },
+ "T10_1bb8b9bb": {
+  "id": "T10_1bb8b9bb",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 300000,
+   "script": "checks := 0\nif (checks >= 4) {\nbreak\n}\nif ((#LivingRoom #Window).contactSensor_contact == false) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\nchecks = checks + 1"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T10",
+    1
+   ]
+  ]
+ },
+ "T10_4992545b": {
+  "id": "T10_4992545b",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 300000,
+   "script": "count := 0\ncount = count + 1\nif ((#LivingRoom #Window).contactSensor_contact == false) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\nif (count >= 4) {\nbreak\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T10",
+    2
+   ],
+   [
+    "gpt54mini",
+    "NL",
+    "T10",
+    3
+   ]
+  ]
+ },
+ "T11_1e1382ac": {
+  "id": "T11_1e1382ac",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "prev := (#Mailbox #ContactSensor).contactSensor_contact\ncount := 0\ncurrent = (#Mailbox #ContactSensor).contactSensor_contact\nif (prev == true and current == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n    count = count + 1\n    if (count == 3) {\nbreak\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T11",
+    1
+   ]
+  ]
+ },
+ "T11_fc997279": {
+  "id": "T11_fc997279",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "seen := (#Mailbox #ContactSensor).contactSensor_contact\ncount := 0\ncurrent = (#Mailbox #ContactSensor).contactSensor_contact\nif (seen == true and current == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n    count = count + 1\n    if (count == 3) {\nbreak\n}\n}\nseen = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T11",
+    2
+   ]
+  ]
+ },
+ "T11_f7660b34": {
+  "id": "T11_f7660b34",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 500,
+   "script": "prev := (#Mailbox #ContactSensor).contactSensor_contact\nannouncements := 0\ncurrent = (#Mailbox #ContactSensor).contactSensor_contact\nif (prev == true and current == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n    announcements = announcements + 1\n    if (announcements == 3) {\nbreak\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T11",
+    3
+   ]
+  ]
+ },
+ "T12_8a61910b": {
+  "id": "T12_8a61910b",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 1,
+   "script": "count := 0\nif (count >= 3) {\nbreak\n}\nwait until(not (#Entrance #ContactSensor).contactSensor_contact)\ndelay(1 MIN)\nif (not (#Entrance #ContactSensor).contactSensor_contact) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n    count = count + 1\n    if (count >= 3) {\nbreak\n}\n}"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "sustain_as_delay_recheck",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T12",
+    1
+   ]
+  ]
+ },
+ "T12_1944d704": {
+  "id": "T12_1944d704",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "count := 0\nopenSeconds := 0\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nopenSeconds = openSeconds + 1\n    if (openSeconds >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n        count = count + 1\n        openSeconds = 0\n        if (count >= 3) {\nbreak\n}\n}\n}\nelse {\nopenSeconds = 0\n}"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "repeat_policy",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T12",
+    2
+   ]
+  ]
+ },
+ "T12_eff2c363": {
+  "id": "T12_eff2c363",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 1,
+   "script": "count := 0\nwait until((#Entrance #ContactSensor).contactSensor_contact == false)\ndelay(1 MIN)\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n    count = count + 1\n    if (count >= 3) {\nbreak\n}\n}"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "sustain_as_delay_recheck",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "NL",
+    "T12",
+    3
+   ]
+  ]
+ },
+ "T01_8df13c06": {
+  "id": "T01_8df13c06",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "openSeconds := 0\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nopenSeconds = openSeconds + 1\n    if (openSeconds >= 61) {\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\n        break\n}\n}\nelse {\nopenSeconds = 0\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T01",
+    1
+   ]
+  ]
+ },
+ "T01_4a9f25dc": {
+  "id": "T01_4a9f25dc",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "elapsed := 0\nseenOpen := false\nif (not (#Entrance #ContactSensor).contactSensor_contact) {\nif (seenOpen) {\nelapsed = elapsed + 100\n}\nelse {\nseenOpen = true\n        elapsed = 0\n}\nif (elapsed >= 60000) {\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\n        break\n}\n}\nelse {\nseenOpen = false\n    elapsed = 0\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T01",
+    2
+   ]
+  ]
+ },
+ "T01_dbd0932a": {
+  "id": "T01_dbd0932a",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "openSeconds := 0\nif (not ((#Entrance #ContactSensor).contactSensor_contact)) {\nif (openSeconds >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\n        break\n}\nelse {\nopenSeconds = openSeconds + 1\n}\n}\nelse {\nopenSeconds = 0\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T01",
+    3
+   ]
+  ]
+ },
+ "T02_5fbaed18": {
+  "id": "T02_5fbaed18",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "noMotionSeconds := -1\nmotion = (#LivingRoom #MotionSensor).motionSensor_motion\nif (motion) {\nnoMotionSeconds = -1\n}\nelse {\nnoMotionSeconds = noMotionSeconds + 1\n    if (noMotionSeconds == 120) {\n(#LivingRoom #Light).switch_off()\n}\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T02",
+    1
+   ]
+  ]
+ },
+ "T02_cb9044e9": {
+  "id": "T02_cb9044e9",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "motion = (#LivingRoom #MotionSensor).motionSensor_motion\nif (motion) {\nabsentMs = 0\n    fired = false\n}\nelse {\nabsentMs = absentMs + 1000\n    if (not fired and absentMs >= 120000) {\n(#LivingRoom #Light).switch_off()\n        fired = true\n}\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T02",
+    2
+   ]
+  ]
+ },
+ "T02_f3841950": {
+  "id": "T02_f3841950",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "absent := 0\noffed := false\nif ((#LivingRoom #MotionSensor).motionSensor_motion) {\nabsent = 0\n    offed = false\n}\nelse {\nabsent = absent + 1\n    if (absent == 120 and not offed) {\n(#LivingRoom #Light).switch_off()\n        offed = true\n}\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T02",
+    3
+   ]
+  ]
+ },
+ "T03_8c8b05b7": {
+  "id": "T03_8c8b05b7",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "prev := (#Entrance #ContactSensor).contactSensor_contact\nremaining := 0\ncurrent = (#Entrance #ContactSensor).contactSensor_contact\nif (prev == true and current == false) {\nremaining = 180\n}\nelse {\nif (current == true) {\nremaining = 0\n}\nelse {\nif (remaining > 0) {\nremaining = remaining - 1\n            if (remaining == 0) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n                remaining = -1\n}\n}\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T03",
+    1
+   ]
+  ]
+ },
+ "T03_26170613": {
+  "id": "T03_26170613",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "active := false\nelapsed := 0\nprev := (#Entrance #ContactSensor).contactSensor_contact\ncurrent = (#Entrance #ContactSensor).contactSensor_contact\nif (prev == true and current == false) {\nactive = true\n    elapsed = 0\n}\nif (active == true) {\nif (current == true) {\nactive = false\n}\nelse {\nelapsed = elapsed + 1000\n        if (elapsed >= 180000) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n            active = false\n}\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T03",
+    2
+   ]
+  ]
+ },
+ "T03_4060c2e9": {
+  "id": "T03_4060c2e9",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "current = (#Entrance #ContactSensor).contactSensor_contact\nprev := current\nopenTicks := 0\nannounced := false\ninitialized := false\nif (initialized == false) {\ninitialized = true\n}\nelse {\nif (current == false and prev == true) {\nopenTicks = 0\n        announced = false\n}\nif (current == false) {\nif (prev == false) {\nopenTicks = openTicks + 1\n}\nelse {\nopenTicks = 0\n}\nif (openTicks >= 180 and announced == false) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n            announced = true\n}\n}\nelse {\nopenTicks = 0\n        announced = false\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T03",
+    3
+   ]
+  ]
+ },
+ "T05_3a12eac4": {
+  "id": "T05_3a12eac4",
+  "task": "T05",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "prev = (#LivingRoom #TemperatureSensor).temperatureSensor_temperature\nif (prev <= 28) {\nif ((#LivingRoom #TemperatureSensor).temperatureSensor_temperature > 28) {\n(#LivingRoom #Plug).switch_on()\n}\n}\nelse {\nif ((#LivingRoom #TemperatureSensor).temperatureSensor_temperature <= 28) {\nprev = (#LivingRoom #TemperatureSensor).temperatureSensor_temperature\n}\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "broken_state_logic",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T05",
+    2
+   ]
+  ]
+ },
+ "T06_057e9667": {
+  "id": "T06_057e9667",
+  "task": "T06",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "prev := (#Entrance #MotionSensor).motionSensor_motion\ncurrent = (#Entrance #MotionSensor).motionSensor_motion\nif (current and not prev) {\n(#Entrance #Light).switch_on()\n    delay(60 SEC)\n(#Entrance #Light).switch_off()\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T06",
+    1
+   ]
+  ]
+ },
+ "T06_83ec532b": {
+  "id": "T06_83ec532b",
+  "task": "T06",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "prevMotion := (#Entrance #MotionSensor).motionSensor_motion\nif ((#Entrance #MotionSensor).motionSensor_motion and not prevMotion) {\n(#Entrance #Light).switch_on()\n    delay(60 SEC)\n(#Entrance #Light).switch_off()\n}\nprevMotion = (#Entrance #MotionSensor).motionSensor_motion"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T06",
+    2
+   ]
+  ]
+ },
+ "T07_84bdda65": {
+  "id": "T07_84bdda65",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "c := (#LivingRoom #Television).television_channel\n(#LivingRoom #Television).television_setChannel(7)\ndelay(30 MIN)\n(#LivingRoom #Television).television_setChannel(c)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T07",
+    1
+   ]
+  ]
+ },
+ "T07_0e84a729": {
+  "id": "T07_0e84a729",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "C = (#LivingRoom #Television).television_channel\n(#LivingRoom #Television).television_setChannel(7)\ndelay(30 MIN)\n(#LivingRoom #Television).television_setChannel(C)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T07",
+    2
+   ]
+  ]
+ },
+ "T07_7165e7ab": {
+  "id": "T07_7165e7ab",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "C := (#LivingRoom #Television).television_channel\n(#LivingRoom #Television).television_setChannel(7)\ndelay(30 MIN)\n(#LivingRoom #Television).television_setChannel(C)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T07",
+    3
+   ],
+   [
+    "qwen9b",
+    "SPEC",
+    "T07",
+    3
+   ]
+  ]
+ },
+ "T08_ddc096e4": {
+  "id": "T08_ddc096e4",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "t1 := (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndelay(10 MIN)\nif ((#WineCellar #TemperatureSensor).temperatureSensor_temperature - t1 >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(t1)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T08",
+    1
+   ]
+  ]
+ },
+ "T08_ee09dd54": {
+  "id": "T08_ee09dd54",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "t1 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\n    delay(10 MIN)\nt2 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\n    if (t2 - t1 >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(t1)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T08",
+    2
+   ]
+  ]
+ },
+ "T08_f876ba09": {
+  "id": "T08_f876ba09",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "t1 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\n    delay(10 MIN)\n    t2 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\n    if (t2 - t1 >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(t1)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T08",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "SPEC",
+    "T08",
+    1
+   ]
+  ]
+ },
+ "T09_38040997": {
+  "id": "T09_38040997",
+  "task": "T09",
+  "block": {
+   "cron": "",
+   "period": 1,
+   "script": "prev := (#Entrance #ContactSensor).contactSensor_contact\nwait until((#Entrance #ContactSensor).contactSensor_contact != prev)\ncur = (#Entrance #ContactSensor).contactSensor_contact\nif (prev == true and cur == false) {\nvolume := (#LivingRoom #Speaker).speaker_volume\n    (#LivingRoom #Speaker).speaker_setVolume(10)\n    delay(120 SEC)\n(#LivingRoom #Speaker).speaker_setVolume(volume)\n    prev = (#Entrance #ContactSensor).contactSensor_contact\n}\nelse {\nprev = cur\n}"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "snapshot_lifetime",
+  "group": "runtime",
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T09",
+    2
+   ]
+  ]
+ },
+ "T10_059e4d4e": {
+  "id": "T10_059e4d4e",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 300000,
+   "script": "checks := 0\nif (not (#LivingRoom #Window).contactSensor_contact) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\nchecks = checks + 1\nif (checks == 4) {\nbreak\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T10",
+    1
+   ]
+  ]
+ },
+ "T10_609bfd71": {
+  "id": "T10_609bfd71",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "if (not (#LivingRoom #Window).contactSensor_contact) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\ndelay(5 MIN)\nif (not (#LivingRoom #Window).contactSensor_contact) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\ndelay(5 MIN)\nif (not (#LivingRoom #Window).contactSensor_contact) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\ndelay(5 MIN)\nif (not (#LivingRoom #Window).contactSensor_contact) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T10",
+    2
+   ]
+  ]
+ },
+ "T10_1362eefc": {
+  "id": "T10_1362eefc",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 300000,
+   "script": "check := 0\ncheck = check + 1\nif ((#LivingRoom #Window).contactSensor_contact == false) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\nif (check == 4) {\nbreak\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T10",
+    3
+   ]
+  ]
+ },
+ "T11_9dd6a618": {
+  "id": "T11_9dd6a618",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 1,
+   "script": "prev := (#Mailbox #ContactSensor).contactSensor_contact\ncount := 0\nwait until((#Mailbox #ContactSensor).contactSensor_contact != prev)\ncurrent = (#Mailbox #ContactSensor).contactSensor_contact\nif (prev and not current) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n    count = count + 1\n    if (count == 3) {\nbreak\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T11",
+    1
+   ]
+  ]
+ },
+ "T11_8bcc8515": {
+  "id": "T11_8bcc8515",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "prev := (#Mailbox #ContactSensor).contactSensor_contact\ncount := 0\ncurrent = (#Mailbox #ContactSensor).contactSensor_contact\nif (prev == true and current == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n    count = count + 1\n    if (count >= 3) {\nbreak\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T11",
+    2
+   ]
+  ]
+ },
+ "T11_f54c1644": {
+  "id": "T11_f54c1644",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "prev := (#Mailbox #ContactSensor).contactSensor_contact\ncount := 0\ncurrent = (#Mailbox #ContactSensor).contactSensor_contact\nif (prev and not current) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n    count = count + 1\n    if (count == 3) {\nbreak\n}\n}\nprev = current"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T11",
+    3
+   ]
+  ]
+ },
+ "T12_14a39e66": {
+  "id": "T12_14a39e66",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "announcements := 0\ncounting := true\nopenSeconds := -1\nif (announcements >= 3) {\nbreak\n}\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (counting == true) {\nif (openSeconds < 0) {\nopenSeconds = 0\n}\nelse {\nopenSeconds = openSeconds + 1\n}\nif (openSeconds >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n            announcements = announcements + 1\n            openSeconds = -1\n            counting = false\n            if (announcements >= 3) {\nbreak\n}\n}\n}\n}\nelse {\nopenSeconds = -1\n    counting = true\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T12",
+    1
+   ]
+  ]
+ },
+ "T12_518d71ec": {
+  "id": "T12_518d71ec",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "announcements := 0\nopenSeconds := 0\nannouncedThisOpen := false\nif (not (#Entrance #ContactSensor).contactSensor_contact) {\nopenSeconds = openSeconds + 1\n    if (openSeconds >= 60 and not announcedThisOpen) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n        announcements = announcements + 1\n        announcedThisOpen = true\n        if (announcements >= 3) {\nbreak\n}\n}\n}\nelse {\nopenSeconds = 0\n    announcedThisOpen = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T12",
+    2
+   ]
+  ]
+ },
+ "T12_5299b31c": {
+  "id": "T12_5299b31c",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 1,
+   "script": "announcements := 0\nif (announcements >= 3) {\nbreak\n}\nwait until((#Entrance #ContactSensor).contactSensor_contact == false)\ndelay(60 SEC)\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n    announcements = announcements + 1\n    if (announcements >= 3) {\nbreak\n}\nwait until((#Entrance #ContactSensor).contactSensor_contact == true)\n}"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "sustain_as_delay_recheck",
+  "group": "temporal",
+  "sources": [
+   [
+    "gpt54mini",
+    "SPEC",
+    "T12",
+    3
+   ]
+  ]
+ },
+ "T01_f66c7e57": {
+  "id": "T01_f66c7e57",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "hold_ticks := 0\nif (all(#Entrance #ContactSensor).contactSensor_contact ==| false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T01",
+    2
+   ]
+  ]
+ },
+ "T02_830c0715": {
+  "id": "T02_830c0715",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "hold_ticks := 0\nif ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n(#LivingRoom #Light).switch_off()\n        hold_ticks = 0\n}\n}\nelse {\nhold_ticks = 0\n}\nif ((#LivingRoom #MotionSensor).motionSensor_motion == true) {\nhold_ticks = 0\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "tick_conversion",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T02",
+    1
+   ]
+  ]
+ },
+ "T02_0e50cf43": {
+  "id": "T02_0e50cf43",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "hold_ticks := 0\nif ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 120) {\n(#LivingRoom #Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\nif ((#LivingRoom #MotionSensor).motionSensor_motion == true) {\nbreak\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "control_misuse",
+  "group": "static",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T02",
+    2
+   ]
+  ]
+ },
+ "T02_913c4484": {
+  "id": "T02_913c4484",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "hold_ticks := 0\nif ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\n(#LivingRoom #Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "tick_conversion",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T02",
+    3
+   ]
+  ]
+ },
+ "T03_009e8baf": {
+  "id": "T03_009e8baf",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "hold_ticks := 0\nfired := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 1800) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T03",
+    1
+   ]
+  ]
+ },
+ "T03_18697764": {
+  "id": "T03_18697764",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "triggered := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 1800000) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n            triggered = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    triggered = false\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "tick_conversion",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T03",
+    2
+   ]
+  ]
+ },
+ "T03_907b13ab": {
+  "id": "T03_907b13ab",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "hold_ticks := 0\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (hold_ticks == 0) {\nhold_ticks = hold_ticks + 1\n}\n}\nelse {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1800) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n        hold_ticks = 0\n}\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "broken_state_logic",
+  "group": "temporal",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T03",
+    3
+   ]
+  ]
+ },
+ "T05_007cacb0": {
+  "id": "T05_007cacb0",
+  "task": "T05",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "triggered := false\nif ((#LivingRoom #TemperatureSensor).temperatureSensor_temperature > 28) {\nif (triggered == false) {\n(#LivingRoom #Plug).switch_on()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T05",
+    1
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T05",
+    2
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T05",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T05",
+    3
+   ]
+  ]
+ },
+ "T06_4ff5efd5": {
+  "id": "T06_4ff5efd5",
+  "task": "T06",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "triggered := false\nif ((#Entrance #MotionSensor).motionSensor_motion == true) {\nif (triggered == false) {\n(#Entrance #Light).switch_on()\n        delay(1 MIN)\n(#Entrance #Light).switch_off()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T06",
+    1
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T06",
+    2
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T06",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T06",
+    3
+   ]
+  ]
+ },
+ "T08_36ba0d09": {
+  "id": "T08_36ba0d09",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "t1 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndelay(10 MIN)\nt2 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(t1)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T08",
+    1
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T08",
+    2
+   ]
+  ]
+ },
+ "T08_aeaef19e": {
+  "id": "T08_aeaef19e",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "t1 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndelay(10 MIN)\nt2 = (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(t1)\n}"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "spurious_operation",
+  "group": "static",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T08",
+    3
+   ]
+  ]
+ },
+ "T09_2e3d6041": {
+  "id": "T09_2e3d6041",
+  "task": "T09",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "triggered := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\nvol = (#LivingRoom #Speaker).speaker_volume\n        (#LivingRoom #Speaker).speaker_setVolume(10)\n        delay(2 MIN)\n(#LivingRoom #Speaker).speaker_setVolume(vol)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T09",
+    1
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T09",
+    2
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T09",
+    3
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T09",
+    1
+   ]
+  ]
+ },
+ "T10_8574c741": {
+  "id": "T10_8574c741",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 300000,
+   "script": "n := 0\nif (n >= 4) {\nbreak\n}\nif ((#LivingRoom #Window).contactSensor_contact == false) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}\nelse {\nn = n + 1\n}\nn = n + 1"
+  },
+  "label": "wrong",
+  "kind": "silent",
+  "mechanism": "broken_state_logic",
+  "group": "temporal",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T10",
+    2
+   ]
+  ]
+ },
+ "T11_e2365fa0": {
+  "id": "T11_e2365fa0",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\ntriggered := false\nif (n >= 3) {\nbreak\n}\nif ((#Mailbox #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n        triggered = true\n        n = n + 1\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T11",
+    1
+   ],
+   [
+    "qwen9b",
+    "IR",
+    "T11",
+    2
+   ]
+  ]
+ },
+ "T11_3602a30a": {
+  "id": "T11_3602a30a",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\ntriggered := false\nif (n >= 3) {\nbreak\n}\nif ((#Mailbox #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n        triggered = true\n        n = n + 1\n}\n}\nelse {\ntriggered = false\n}\nif (n >= 3) {\nbreak\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T11",
+    3
+   ]
+  ]
+ },
+ "T12_72cba8c5": {
+  "id": "T12_72cba8c5",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\nhold_ticks := 0\nfired := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n            fired = true\n            n = n + 1\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}\nif (n >= 3) {\nbreak\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "tick_conversion",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T12",
+    1
+   ]
+  ]
+ },
+ "T12_427cc5bd": {
+  "id": "T12_427cc5bd",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\nhold_ticks := 0\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n        n = n + 1\n        if (n >= 3) {\nbreak\n}\n}\n}\nelse {\nhold_ticks = 0\n}\nif ((#Entrance #ContactSensor).contactSensor_contact == true) {\nbreak\n}\nn = n + 1"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "counter_per_tick",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T12",
+    2
+   ]
+  ]
+ },
+ "T12_fae345e2": {
+  "id": "T12_fae345e2",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\nhold_ticks := 0\nfired := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 60) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n            fired = true\n            n = n + 1\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}\nif (n >= 3) {\nbreak\n}\nn = n + 1"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "counter_per_tick",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b",
+    "IR",
+    "T12",
+    3
+   ]
+  ]
+ },
+ "T01_2028c30d": {
+  "id": "T01_2028c30d",
+  "task": "T01",
+  "block": {
+   "cron": "",
+   "period": 60000,
+   "script": "if ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (false) {\nbreak\n}\n}\n(#Hallway #Speaker).speaker_speak(\"Please close the front door\")\nbreak"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "no_temporal_logic",
+  "group": "static",
+  "sources": [
+   [
+    "qwen9b",
+    "NL",
+    "T01",
+    1
+   ]
+  ]
+ },
+ "T02_9eacfd1d": {
+  "id": "T02_9eacfd1d",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 120000,
+   "script": "if ((#LivingRoom #MotionSensor).motionSensor_motion) {\nbreak\n}\ndelay(2 MIN)\n(#LivingRoom #Light).switch_off()"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "control_misuse",
+  "group": "static",
+  "sources": [
+   [
+    "qwen9b",
+    "NL",
+    "T02",
+    1
+   ]
+  ]
+ },
+ "T02_84ee3426": {
+  "id": "T02_84ee3426",
+  "task": "T02",
+  "block": {
+   "cron": "",
+   "period": 120000,
+   "script": "if ((#LivingRoom #MotionSensor).motionSensor_motion == false) {\n(#LivingRoom #Light).switch_off()\n}\nbreak"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "no_temporal_logic",
+  "group": "static",
+  "sources": [
+   [
+    "qwen9b",
+    "NL",
+    "T02",
+    3
+   ]
+  ]
+ },
+ "T04_e86dc91d": {
+  "id": "T04_e86dc91d",
+  "task": "T04",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "if ((#Garage #ContactSensor).contactSensor_contact == false) {\n(#Garage #Light).switch_on()\n  break\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "no_temporal_logic",
+  "group": "static",
+  "sources": [
+   [
+    "qwen9b",
+    "NL",
+    "T04",
+    3
+   ],
+   [
+    "qwen9b",
+    "SPEC",
+    "T04",
+    2
+   ],
+   [
+    "qwen9b",
+    "SPEC",
+    "T04",
+    3
+   ]
+  ]
+ },
+ "T06_e965a7c6": {
+  "id": "T06_e965a7c6",
+  "task": "T06",
+  "block": {
+   "cron": "",
+   "period": 100000,
+   "script": "triggered := false\nif ((#Entrance #MotionSensor).motionSensor_motion == true) {\nif (triggered == false) {\n(#Entrance #Light).switch_on()\n        delay(1 MIN)\n(#Entrance #Light).switch_off()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "tick_conversion",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b_think",
+    "IR",
+    "T06",
+    1
+   ]
+  ]
+ },
+ "T09_84a5fcce": {
+  "id": "T09_84a5fcce",
+  "task": "T09",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "triggered := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\nvol = (#LivingRoom #Speaker).speaker_volume\n        (#LivingRoom #Speaker).speaker_setVolume(10)\n        delay(2 MIN)\n        vol = (#LivingRoom #Speaker).speaker_volume\n        (#LivingRoom #Speaker).speaker_setVolume(vol)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "snapshot_lifetime",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b_think",
+    "IR",
+    "T09",
+    3
+   ]
+  ]
+ },
+ "T11_76e74539": {
+  "id": "T11_76e74539",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\ntriggered := false\nif (n >= 3) {\nbreak\n}\nif ((#Mailbox #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\nn = n + 1"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "counter_per_tick",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b_think",
+    "IR",
+    "T11",
+    1
+   ]
+  ]
+ },
+ "T11_5036efee": {
+  "id": "T11_5036efee",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\nif (n >= 3) {\nbreak\n}\ntriggered := false\nif ((#Mailbox #ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\nn = n + 1"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "counter_per_tick",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b_think",
+    "IR",
+    "T11",
+    2
+   ],
+   [
+    "qwen9b_think",
+    "IR",
+    "T11",
+    3
+   ]
+  ]
+ },
+ "T12_73e82c6a": {
+  "id": "T12_73e82c6a",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\nif (n >= 3) {\nbreak\n}\nhold_ticks := 0\nfired := false\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 600) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n            wait until((#Entrance #ContactSensor).contactSensor_contact == true)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}\nn = n + 1"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "counter_per_tick",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b_think",
+    "IR",
+    "T12",
+    1
+   ]
+  ]
+ },
+ "T12_d6a18c48": {
+  "id": "T12_d6a18c48",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 100,
+   "script": "n := 0\nhold_ticks := 0\nif (n >= 3) {\nbreak\n}\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\nn = n + 1"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "counter_per_tick",
+  "group": "runtime",
+  "sources": [
+   [
+    "qwen9b_think",
+    "IR",
+    "T12",
+    3
+   ]
+  ]
+ },
+ "T04_9f8d59b9": {
+  "id": "T04_9f8d59b9",
+  "task": "T04",
+  "block": {
+   "cron": "",
+   "period": 10000,
+   "script": "lastState := true\ncurrentState = (#Garage #ContactSensor).contactSensor_contact\nif (currentState == false and lastState == true) {\n(#Garage #Light).switch_on()\n  break\n}\nlastState = currentState"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "NL",
+    "T04",
+    2
+   ]
+  ]
+ },
+ "T07_3257738a": {
+  "id": "T07_3257738a",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "currentChannel = (#LivingRoom #Television).television_channel\n    (#LivingRoom #Television).television_setChannel(7)\n    delay(30 MIN)\n(#LivingRoom #Television).television_setChannel(currentChannel)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "NL",
+    "T07",
+    1
+   ]
+  ]
+ },
+ "T07_abc7fbac": {
+  "id": "T07_abc7fbac",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "remembered := (#LivingRoom #Television).television_channel\n(#LivingRoom #Television).television_setChannel(7)\ndelay(30 MIN)\n(#LivingRoom #Television).television_setChannel(remembered)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "NL",
+    "T07",
+    3
+   ]
+  ]
+ },
+ "T08_0adf530a": {
+  "id": "T08_0adf530a",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "firstTemp := (#WineCellar #TemperatureSensor).temperatureSensor_temperature\n    delay(10 MIN)\n    currentTemp := (#WineCellar #TemperatureSensor).temperatureSensor_temperature\n    if (currentTemp - firstTemp >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(firstTemp)\n}\nbreak"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "NL",
+    "T08",
+    3
+   ]
+  ]
+ },
+ "T10_0757ee49": {
+  "id": "T10_0757ee49",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 300000,
+   "script": "checks := 0\n    checks = checks + 1\n    if (checks > 4) {\nbreak\n}\nif ((#LivingRoom #Window).contactSensor_contact == false) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "NL",
+    "T10",
+    2
+   ]
+  ]
+ },
+ "T11_e3d10d80": {
+  "id": "T11_e3d10d80",
+  "task": "T11",
+  "block": {
+   "cron": "",
+   "period": 10000,
+   "script": "count := 0\nif (not ((#Mailbox #ContactSensor).contactSensor_contact)) {\ncount := count + 1\n    if (count <= 3) {\n(#Kitchen #Speaker).speaker_speak(\"Mail has arrived\")\n}\nelse {\nbreak\n}\nwait until ((#Mailbox #ContactSensor).contactSensor_contact)\n    delay(1 SEC)\n}\nelse {\nwait until (not ((#Mailbox #ContactSensor).contactSensor_contact))\n    delay(1 SEC)\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "broken_state_logic",
+  "group": "temporal",
+  "sources": [
+   [
+    "qwen9b_think",
+    "NL",
+    "T11",
+    3
+   ]
+  ]
+ },
+ "T12_f6f7d7e4": {
+  "id": "T12_f6f7d7e4",
+  "task": "T12",
+  "block": {
+   "cron": "",
+   "period": 60000,
+   "script": "count := 0\nif (count == 0) {\ndelay(1 MIN)\n}\nif ((#Entrance #ContactSensor).contactSensor_contact == false) {\ncount := count + 1\n  if (count <= 3) {\n(#Hallway #Speaker).speaker_speak(\"Please close the door\")\n}\nif (count >= 3) {\nbreak\n}\n}"
+  },
+  "label": "wrong",
+  "kind": "visible",
+  "mechanism": "sustain_as_delay_recheck",
+  "group": "temporal",
+  "sources": [
+   [
+    "qwen9b_think",
+    "NL",
+    "T12",
+    3
+   ]
+  ]
+ },
+ "T03_06e790fd": {
+  "id": "T03_06e790fd",
+  "task": "T03",
+  "block": {
+   "cron": "",
+   "period": 1000,
+   "script": "lastState := (#Entrance #ContactSensor).contactSensor_contact\nisCounting := false\ncountdown := 0\ncurrentState = (#Entrance #ContactSensor).contactSensor_contact\nif (lastState == true and currentState == false and isCounting == false) {\nisCounting = true\n    countdown = 180\n}\nif (isCounting == true) {\nif (currentState == true) {\nisCounting = false\n        countdown = 0\n}\nelse {\ncountdown = countdown - 1\n        if (countdown == 0) {\n(#Hallway #Speaker).speaker_speak(\"The front door is still open\")\n            isCounting = false\n}\n}\n}\nlastState = currentState"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "SPEC",
+    "T03",
+    1
+   ]
+  ]
+ },
+ "T07_18b8a7ba": {
+  "id": "T07_18b8a7ba",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "C := (#LivingRoom #Television).television_channel\n    (#LivingRoom #Television).television_setChannel(7)\n    delay(30 MIN)\n(#LivingRoom #Television).television_setChannel(C)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "SPEC",
+    "T07",
+    2
+   ]
+  ]
+ },
+ "T07_af6c0541": {
+  "id": "T07_af6c0541",
+  "task": "T07",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "C = (#LivingRoom #Television).television_channel\n    (#LivingRoom #Television).television_setChannel(7)\n    delay(30 MIN)\n(#LivingRoom #Television).television_setChannel(C)"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "SPEC",
+    "T07",
+    3
+   ]
+  ]
+ },
+ "T08_0f598cf8": {
+  "id": "T08_0f598cf8",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "firstTemp := (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndelay(10 MIN)\nsecondTemp := (#WineCellar #TemperatureSensor).temperatureSensor_temperature\nif (secondTemp - firstTemp >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(firstTemp)\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "SPEC",
+    "T08",
+    2
+   ]
+  ]
+ },
+ "T08_e1527c69": {
+  "id": "T08_e1527c69",
+  "task": "T08",
+  "block": {
+   "cron": "",
+   "period": 0,
+   "script": "t1 := (#WineCellar #TemperatureSensor).temperatureSensor_temperature\ndelay(10 MIN)\nt2 := (#WineCellar #TemperatureSensor).temperatureSensor_temperature\nif (t2 - t1 >= 2) {\n(#WineCellar #AirConditioner).airConditioner_setTargetTemperature(t1)\n}\nbreak"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "SPEC",
+    "T08",
+    3
+   ]
+  ]
+ },
+ "T10_bb335969": {
+  "id": "T10_bb335969",
+  "task": "T10",
+  "block": {
+   "cron": "",
+   "period": 300000,
+   "script": "count := 0\n    count = count + 1\n    if (count > 4) {\nbreak\n}\nif ((#LivingRoom #Window).contactSensor_contact == false) {\n(#LivingRoom #Speaker).speaker_speak(\"Please close the window\")\n}"
+  },
+  "label": "correct",
+  "kind": null,
+  "mechanism": null,
+  "group": null,
+  "sources": [
+   [
+    "qwen9b_think",
+    "SPEC",
+    "T10",
+    2
+   ]
+  ]
+ }
+}
