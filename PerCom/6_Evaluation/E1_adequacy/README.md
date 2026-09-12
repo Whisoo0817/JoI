@@ -72,7 +72,7 @@ D·E 결과는 A 판정을 바꾸지 못한다.
 - **결과 artifact commit**(이 폴더의 자료가 기록된 커밋, 실행기 상태와 구분한다):
   - `9b01ec9` — Stage A 12건 + whisoo B 감사 반영(감사 전 결과 보존 포함).
   - `7d989c3` — 작업 공간을 `skill_result/05_experiment_plan/e1_adequacy_2026-09-12/` 에서 `PerCom/6_Evaluation/E1_adequacy/` 로 이동(내용 동일).
-  - 경계 probe 추가 커밋은 이 절에 이어서 기록한다.
+  - `4a43629` — 경계 probe P1·P2·P3 추가, A-extractor 문법 열, C20→C20-O 분리, 감사 전 문구 정리.
 - `explorer/runtime/ir_step.py` sha256 `c21875d7…ecc21d`
 - `timeline_ir/timeline_ir.py` sha256 `6cab4f2c…b00598`
 - `explorer/verification/gate.py` sha256 `6e2e9696…3280f1`
