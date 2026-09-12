@@ -32,7 +32,7 @@
 | 8 | [Limitations and Future Work](8_Limitations_and_Future_Work/) |
 | 9 | [Conclusion](9_Conclusion/) |
 
-`PerCom_version.md`는 계획 메모가 아니라 본문에 들어갈 문장으로 작성한다. 미완성 근거는 대괄호 placeholder로 남기며, `HANDOFF.md`의 제한을 해소하기 전에는 결과처럼 단정하지 않는다. 섹션 폴더의 직접 파일은 위 세 개를 유지하고, 그림·표 작업 자료는 해당 섹션의 `Figures/` 같은 하위 폴더에 둔다.
+`PerCom_version.md`는 계획 메모가 아니라 본문에 들어갈 문장으로 작성한다. 미완성 근거는 대괄호 placeholder로 남기며, `HANDOFF.md`의 제한을 해소하기 전에는 결과처럼 단정하지 않는다. 섹션 폴더의 직접 파일은 위 세 개를 유지하고, 그림·표 작업 자료는 해당 섹션의 `Figures/` 같은 하위 폴더에 둔다. **실험의 방식·코드·데이터·결과는 2026-09-12부터 `6_Evaluation/` 아래 실험별 하위 폴더(`E1_adequacy/`, 이후 `E2_*/`, `E3_*/`, `E4_*/`)에 둔다.** `skill_result/`에는 새 실험 자료를 만들지 않는다.
 
 두 문서는 2026-09-12 사용자 메모를 정리한 **집필 준비 자료**다. 새 구현, 실험 실행, 그림 수정, 완성 원고 또는 결과 감사가 아니다. 사용자 결정과 구현으로 확인된 사실, 증거가 필요한 해석을 구별한다. 체크박스는 앞으로 수행할 작업이며 완료를 뜻하지 않는다.
 
@@ -40,10 +40,11 @@
 
 | 용도 | 기준 자료 |
 | --- | --- |
-| 최신 논문 논의와 이전 결정 | [세션 인계](../skill_result/SESSION_HANDOFF_2026-09-10.md) |
+| 최신 논문 논의와 이전 결정 | [skill_result 진입점](../skill_result/README.md) |
 | 문제 정의·연구 경계 | [2026-09-11 framing](../skill_result/06_manuscript/problem_framing_codegen_validation_2026-09-11.md) |
 | 본문 절 구성 | [Paper flow](../skill_result/06_manuscript/paper_flow_ir_contract_2026-09-10.md) |
 | 현재 E1–E4 골격 | [평가 계획](../skill_result/05_experiment_plan/confirmed_ir_evaluation_2026-09-10.md) |
+| E1 실험 코드·데이터·결과 | [E1_adequacy](6_Evaluation/E1_adequacy/README.md) (2026-09-12 Stage A 12건, 감사 반영) |
 | 실제 시간·입력·관찰·인증 계약 | [Explorer 검증 계약](../explorer/docs/model/VERIFICATION_CONTRACT.md) |
 | 증명과 신뢰 기반 | [증명 의무](../explorer/docs/proof/PROOF_OBLIGATIONS.md) |
 | 기존 평가와 한계 | [평가 요약](../explorer/docs/paper/EVALUATION.md) |

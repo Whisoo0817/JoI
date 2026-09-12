@@ -1,6 +1,6 @@
 # 확정 Timeline을 출발점으로 하는 Evaluation 재설계
 
-2026-09-10. standalone 토론용 설계안. 실행을 위한 frozen pack 또는 새 결과가 아니다.
+2026-09-10 작성, 2026-09-12 E1 절 갱신. standalone 토론용 설계안. E2–E4는 아직 frozen pack이 아니다.
 사용자 결정: 올바른 Timeline 확인을 가정하고, 기술적 IR와 플랫폼 구현 보존에 초점을 둔다.
 [최신 paper flow](../06_manuscript/paper_flow_ir_contract_2026-09-10.md)의 C1/C2를 평가한다.
 이전 두 단계 평가안에서 NL→IR/이해도/표현별 생성 정확도를 필수로 삼던 제안은 대체한다.
@@ -16,16 +16,16 @@
 
 ## 2. 핵심 네 실험 묶음
 
-### E1 — IR adequacy: 어떤 행동을 표현하는가?
+### E1 — IR adequacy: 경계 표 중심의 외부 요구 표현 적합성 사례 연구 (2026-09-12 갱신)
 
-- 질문: 도메인 요구를 어느 범위까지 의미를 손실하지 않고 Timeline으로 표현하는가?
-- 자료: 기존 388개 사례는 개발 corpus임을 유지하고, 논문/실제 자동화 등 출처 기반의 별도 사례를 결과 확인 전에 선정한다.
-- temporal taxonomy: 지연, 지속 조건, edge/재무장, 저장값, 순차/분기/반복 및 지원 조합. 현재 없는 병렬/중첩 cron 등은 경계 사례로 보존한다.
-- 방법: 기술적 annotator가 기준 동작을 확정하고 수작업 IR를 구성한다. LLM 추출 정확도를 평가하지 않는다.
-- 지표: exact/partial/unsupported; 구성별 지원 수와 실패 원인. partial을 완전 지원/후단 정답으로 사용하지 않는다.
-- 비교: 실제 다른 IR의 동일 의미 encoding은 표현상의 차이를 주장할 때 공통 subset에서 추가한다. 표현 feature table만으로 타 언어 불가능을 결론 내리지 않는다.
-- 판단: 체계적인 미지원이 있으면 도메인 범위를 좁힌다. 실패 사례를 보고 operator를 추가한 후 같은 데이터를 독립 확인 자료로 재사용하지 않는다.
-- 본문 결과: 행동 구성별 지원 표 + 복합 사례 2개 정도의 의미 전개.
+- 질문: 사용자 행동으로 정의한 범위(단일 자동화, 입력 이력이 주어지면 호출의 시각·대상·인자·횟수·순서가 정해지는 요구)의 외부 요구를 Timeline이 의미 손실 없이 표현하는가, 경계(B1–B5)는 어디인가?
+- 지표는 "완전 표현 비율"이 **아니다**. 요소 R1–R10과 경계 B1–B5의 표에 사례별 판정(완전/부분/불가/보류)을 놓는다. 선정 건수 중의 건수이며 coverage 비율로 해석하지 않는다.
+- 절차: 출처·원문 고정 → 해석·가정·기대 trace를 IR 작성 **전에** 고정(해시) → IR 작성(A) → 독립 의미 감사(B, whisoo) → 참조 실행기 재생 비교(C, 1초 허용·정확 일치 별도) → 실행기 지원(D)·Explorer 자기 product(E, 참고)·binding(F)·JoI 가능성(G, 불가/부분만).
+- 완전 = A 완전 ∧ B 보존 ∧ C 전 이력 일치. D·E는 A를 바꾸지 못한다. 결과에 맞춰 허용 오차·실행기·계약을 바꾸지 않는다(버전 고정).
+- 선례: AutoTap ICSE'19 §III–IV·VI, Dwyer ICSE'99 §3. 두 연구의 수집 자료는 표현 체계 설계에 쓰였으므로 held-out 선례로 과장하지 않는다. AutoTap 속성→자동화 변환은 `[연구자 변환]`으로 표시.
+- 상태: Stage A 12건 완료·감사 반영(완전 12/12, exact 41/41). B3(look-back)·B4(가변 간격)는 Stage A 미평가, Stage B 후보 8건 미착수. 세부: `../../PerCom/6_Evaluation/E1_adequacy/README.md`, 결과 `results.md`.
+- E1에서 드러난 계약 사실은 Timeline 절에 반영한다: period는 회차 종료 후 대기, 초기 참인 edge 발화, 다른 대기 중 edge는 latch 미반영, 실행기의 cron 앵커 거절(소거 후 한 창), `wait.timeout`이 extractor 문법에 없음, frontend 검사는 구조만.
+- 보류: 타 표현(TAP/LTL/FSM)과의 동일 행동 encoding 비교(구 E1b). 본문 결과: 경계 표 + 복합 사례 2개 정도의 의미 전개.
 
 ### E2 — Validation fidelity: 검증 결과를 신뢰할 수 있는가?
 
@@ -81,6 +81,6 @@
 
 ## 4. 이전 문서와의 연결
 
-- `experiment-plan.md`의 기존 의미 적합성/지원 범위/판정/비용 골격을 재사용할 수 있다. 해당 파일의 옛 bounded-only 및 shortest/parallel-merge 표현은 최신 계약과 대조해 수정해야 한다.
+- 2026-09-04 계획서(`experiment-plan.md` 등)는 2026-09-12에 삭제했다(git 이력). bounded-only 및 shortest/parallel-merge 표현은 사용하지 않는다.
 - 현재 `explorer/docs/paper/EVALUATION.md`의 H=None 388개 집계는 기존 후보 재평가다. 새 독립 결과나 검증기 정확도 100%로 사용하지 않는다.
 - 기준 의미와 H 없는 성공 조건은 `explorer/docs/model/VERIFICATION_CONTRACT.md`; 수작업 논증 상태는 `explorer/docs/proof/PROOF_OBLIGATIONS.md`를 따른다.
