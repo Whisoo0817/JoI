@@ -91,6 +91,27 @@ DIVERGE with witness / REF-UNSUPPORTED / reference error). Reported separately:
 - refusals, incomplete, errors — never counted as false verdicts;
 - per fault family detection table; one history-dependent counterexample in the paper.
 
+### Run definition (`run_e2.py`)
+
+- **Histories:** `histories/make_e1_histories.py` (E1 20: seeds = author-audited E1 histories without E1-092
+  fault injection; ±100 ms shifts; single-input pulses at IR-derived instants; same-instant two-input flips;
+  ≤ 300 pulses per case, seeded) → 4,597 histories. `histories/make_388_histories.py` (40 sample: default seed from
+  the reference smoke test, same pulse rules, horizon max(10 s, 3 × longest IR duration + 10 s) ≤ 6 h) → 6,980.
+  Both read IR literals and seed histories only.
+- **Reference outcome per pair:** REF-DIVERGE if any history with both sides ok differs; REF-EQUIV-CHECKED if every
+  history ran ok on both sides with equal traces; otherwise REF-UNSUPPORTED/REF-ERROR with the side named.
+- **Explorer verdict per pair:** the steps of `gate_pair` (prepare_pair → timed_product with `horizon_ms=None` →
+  replay_divergence → fold_verdict), with `t0_ms = 2,419,200,000 + t_start_ms` so both tools start at the same
+  clock time (gate_pair has no start-time argument); 120 s budget per pair (TIMEOUT); exceptions folded to REFUSED
+  as in gate_pair. Depth IR device atoms are lowered with the E1 tool `run_depth.lower`.
+- **Explorer witness:** for DIVERGE, the first confirmed witness path is converted to reference events and run on the
+  reference.
+- **Agreement:** AGREE-EQUIV-ON-CHECKED; AGREE-DIVERGE; FALSE-EQUIV-CANDIDATE (Explorer EQUIV, REF-DIVERGE);
+  FALSE-DIVERGE-CANDIDATE (Explorer DIVERGE whose witness is equal on the reference and REF-EQUIV-CHECKED);
+  EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS (the histories missed a real difference); EXPLORER-REFUSED/TIMEOUT/
+  ERROR and REF-UNSUPPORTED/ERROR kept apart. Every candidate false verdict is inspected by hand before it is
+  reported as an Explorer error (it may be a reference error or a spec disagreement).
+
 ## 5. Freeze and change policy
 
 - Explorer commit fixed before the run. See open decision D4 for what happens if a disagreement is an Explorer bug.
@@ -134,6 +155,16 @@ DIVERGE with witness / REF-UNSUPPORTED / reference error). Reported separately:
   - In a `period > 0` script, a `loop` still running blocks the next period tick (R5, no overlap).
 - **`for (x : list)`: excluded.** The reference reports REF-UNSUPPORTED (whisoo: `for` exists to iterate `all(...)`
   devices and is not used now).
+
+### Decisions on the reference's spec gaps (whisoo 2026-09-14; `reference/SPEC_GAPS.md`)
+
+- **G1 selectors match `tags` only.** To select a device by its ID, that ID must be present as a tag on the device.
+  (Binding and selection are fixed inputs of the experiment, not something E2 measures.)
+- **G2 `(#Clock)` is the built-in clock** of S11; no Clock device is needed; `IsHoliday` stays an input.
+- **G6** IR `call.args` string values by catalog argument type (number/BOOL → expression; STRING/ENUM with `$` → template)
+  and **G8** binding slots `Service#k` by occurrence order in the IR: accepted as written in SPEC_GAPS.
+- **JoI `%` is allowed as integer remainder** in the reference, following the lowering documents (`joi_cycle.md` Ex5),
+  although `JOILang.g4` has no `%`. The grammar/document mismatch is recorded as a finding.
 
 ## 8. Author independence
 

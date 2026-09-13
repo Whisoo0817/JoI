@@ -58,10 +58,22 @@ def main():
             problems.append(f"sys.modules contains {mod}")
         if top.startswith("JOILang") and top not in ALLOWED_GENERATED:
             problems.append(f"unexpected generated module {mod}")
-    gen = sys.modules.get("JOILangParser")
-    if gen is not None and "lowering/parser/generated" not in str(getattr(gen, "__file__", "")).replace("\\", "/"):
-        problems.append(f"JOILangParser loaded from {gen.__file__}")
-    print(f"scanned {len(files)} files: {[f.name for f in files]}")
+    for name in ("JOILangParser", "JOILangLexer"):
+        gen = sys.modules.get(name)
+        expected = str(HERE / "grammar")
+        if gen is None or not str(getattr(gen, "__file__", "")).startswith(expected):
+            problems.append(f"{name} not loaded from {expected}: {getattr(gen, '__file__', None)}")
+    g4 = (HERE / "grammar" / "JOILang.g4").read_text(encoding="utf-8")
+    if "MODULO" not in g4:
+        problems.append("reference/grammar/JOILang.g4 lacks the `%` (MODULO) author extension")
+    for f in sorted((HERE / "grammar").glob("*.py")):   # generated files: only antlr4 / stdlib imports
+        for node in ast.walk(ast.parse(f.read_text(encoding="utf-8"))):
+            mods = [a.name for a in node.names] if isinstance(node, ast.Import) else (
+                [node.module or ""] if isinstance(node, ast.ImportFrom) else [])
+            for m in mods:
+                if m.split(".")[0] not in {"antlr4", "io", "sys", "typing", "JOILangParser", "JOILangListener", ""}:
+                    problems.append(f"grammar/{f.name} imports {m}")
+    print(f"scanned {len(files)} files: {[f.name for f in files]} + grammar/*.py")
     if problems:
         print("FAIL")
         for p in problems:

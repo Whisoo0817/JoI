@@ -2,19 +2,22 @@
 
 Semantics from docs/JOI_SPEC.md, files/joi_common.md, RUNTIME_CONTRACT R1–R13, VERIFICATION_CONTRACT,
 SERVICE_MODEL, FRONTEND_CORRECTNESS §1–§3 and PROTOCOL_DRAFT S5–S11, L1. Open points: SPEC_GAPS.md.
-Only the generated lexer/parser are imported (from their own directory, not via the `lowering` package).
+The parser is regenerated in reference/grammar/ from a copy of JOILang.g4 plus `%` (author decision, G11).
 """
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 
-from common import (REPO, Delay, Wait, RefUnsupported, UNIT_MS, arith, check_typed, cmp_values,
+from common import (Delay, Wait, RefUnsupported, UNIT_MS, arith, check_typed, cmp_values,
                     resolve_device_member)
 
-_GEN = REPO / "lowering" / "parser" / "generated"
+# Parser generated inside reference/grammar/ from a copy of lowering/parser/JOILang.g4 with `%` added at the
+# precedence of `*` and `/` (author decision 2026-09-14, SPEC_GAPS G11). The deployment grammar is not modified.
+_GEN = Path(__file__).resolve().parent / "grammar"
 if str(_GEN) not in sys.path:
     sys.path.insert(0, str(_GEN))
-sys.dont_write_bytecode = True        # do not write .pyc files into lowering/parser/generated
+sys.dont_write_bytecode = True
 
 from antlr4 import CommonTokenStream, InputStream                     # noqa: E402
 from antlr4.error.ErrorListener import ErrorListener                   # noqa: E402

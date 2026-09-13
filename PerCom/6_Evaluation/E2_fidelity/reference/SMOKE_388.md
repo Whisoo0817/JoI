@@ -8,9 +8,9 @@ Artefacts of this single default history (not program faults): `arg-range` for `
 
 | status | count |
 |---|---|
-| ok | 286 |
+| ok | 294 |
 | no-joi-block | 59 |
-| unsupported | 42 |
+| unsupported | 34 |
 | error | 1 |
 
 ### unsupported by reason
@@ -18,9 +18,9 @@ Artefacts of this single default history (not program faults): `arg-range` for `
 | reason | count | example |
 |---|---|---|
 | set-valued-selector | 11 | C01_008: REF-UNSUPPORTED[set-valued-selector]: all(#TemperatureSensor).temperatureSensor_temperature outside a comparison |
-| syntax | 11 | C13_001: REF-UNSUPPORTED[syntax]: 2:6 mismatched input '%' expecting ')'; 4:0 mismatched input '}' expecting <EOF> |
 | capability | 9 | C06_001: REF-UNSUPPORTED[capability]: Bedroom_TempSensor lacks category AirQualitySensor for airQualitySensor_temperature |
 | multi-device-query | 3 | C03_002: REF-UNSUPPORTED[multi-device-query]: IsAvailable = any(#CloudServiceProvider).cloudServiceProvider_isAvailable(...) |
+| syntax | 3 | C21_001: REF-UNSUPPORTED[syntax]: 1:54 no viable alternative at input '(all(#PresenceSensor).presenceSensor_presence=='; 1:29 extraneous input '.' expecting {' |
 | effectful-return | 2 | C01_015: REF-UNSUPPORTED[effectful-return]: GenerateImage = CloudServiceProvider.GenerateImage(...) (SERVICE_MODEL §2) |
 | arg-domain | 2 | C01_023: REF-UNSUPPORTED[arg-domain]: RobotVacuumCleaner.SetRobotVacuumCleanerRunMode.Mode: 'stop' not in RobotVacuumCleanerRunModeEnum |
 | selector-no-device | 2 | C08_032: REF-UNSUPPORTED[selector-no-device]: (#Hall_Light_1) |

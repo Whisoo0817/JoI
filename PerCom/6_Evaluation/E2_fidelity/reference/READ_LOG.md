@@ -65,6 +65,16 @@ Directory listings (`ls`) that only showed file names are listed at the end. No 
 | lowering/parser/generated/JOILangLexer.py, JOILangParser.py | ANTLR-generated parser (imported from its directory; first 5 lines of JOILangParser.py viewed, `grep antlr4`, class introspection) |
 | ~/temp/lib/python3.12/site-packages/antlr4 | ANTLR runtime (imported) |
 
+## Update 2026-09-14 (author decisions on SPEC_GAPS)
+
+| Path | Purpose |
+|---|---|
+| lowering/parser/JOILang.g4 | copied (unchanged source) to reference/grammar/JOILang.g4, `%` added there |
+| lowering/parser/antlr-4.13.2-complete.jar | run with `java -jar` to regenerate the Python3 parser into reference/grammar/ (not imported) |
+| reference/grammar/JOILangLexer.py, JOILangParser.py, JOILangListener.py | generated; now the parser imported by joi_ref.py (lowering/parser/generated is no longer imported) |
+
+Not opened: `../pairs/`, `../histories/`.
+
 ## Directory listings only (names, no content)
 
 `PerCom/6_Evaluation/E2_fidelity/`, `PerCom/6_Evaluation/E1_adequacy/` (+ `breadth/`, `breadth/depth/`, `breadth/depth/runs/`,

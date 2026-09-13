@@ -9,18 +9,20 @@ first candidates for author review.
 
 **G1 Selector tag matching.** JOI_SPEC §1.3 ("devices carrying the tags", `(#A #B)` intersection) and FRONTEND §3
 (B(T) = tag-set match in inventory order) do not say whether `category` or the device ID also match a tag.
-**[choice]** Match the `tags` list only, exact case. Consequences: E1-095 JoI v3 `(#Pool_Report #Pool)` →
+**Author decision (whisoo, 2026-09-14):** match the `tags` list only, exact case. To select a device by its ID, the
+ID must be present as a tag on that device. Consequences: E1-095 JoI v3 `(#Pool_Report #Pool)` →
 unsupported (`Pool_Report` is an ID, not a tag); candidate C08_032 `(#Hall_Light_1)` → unsupported.
 
 **G2 `(#Clock)`.** JOI_SPEC §1.4 says time conditions read the Clock service; VERIFICATION_CONTRACT says
 `clock.hour/minute/weekday/timestamp` are functions of logical time, `clock.isholiday` is a BOOL input. Inventories
-normally have no Clock device. **[choice]** A selector whose tag list is exactly `Clock`, or a member name with the
+normally have no Clock device. **Author decision (whisoo, 2026-09-14):** `(#Clock)` is the built-in S11 clock; no
+Clock device is needed; IsHoliday stays an input. Implementation: a selector whose tag list is exactly `Clock`, or a member name with the
 `clock_` prefix, reads the built-in S11 clock; `IsHoliday` is input key `Clock.IsHoliday`. Clock Day/Month/Year/
 Second/Date/Datetime/Time → unsupported (S11). Quantified Clock and Clock functions (`Delay`) → unsupported.
 
 **G8 IR binding slots.** FRONTEND §3: "`Service#2`는 JSON key 나열 순서와 무관하게 두 번째 자리. 단일 자리의 모든 등장
 재사용 규칙은 유지"; SERVICE_MODEL §1: "binding의 원래 등장 순서로 접지"; "사용 중인 자리 수 불일치" is refused.
-The exact walk order is not written. **[choice]** Occurrences of a service counted in IR document order: steps
+The exact walk order is not written. **Author decision (whisoo, 2026-09-14): confirmed as written here.** Occurrences of a service counted in IR document order: steps
 pre-order, fields in their JSON key order, left to right inside an expression or template, a call's target at its key
 position. One slot → every occurrence. k > 1 slots → i-th occurrence ↔ slot i; count mismatch → unsupported.
 Version note: the first draft matched slots to *distinct members*; the 388 smoke run showed 15 dataset rows binding two
@@ -62,7 +64,8 @@ exponent → unsupported.
 
 **G6 IR `call.args` string values.** extractor: "The expression grammar applies inside cond … and read-derived arg
 expressions"; joi_common lowers `"Channel": "$Television.Channel - 1"` (INTEGER) inline as an expression and
-`"Text": "Current $t degrees"` (STRING) as concatenation. Nothing states the general rule. **[choice]** By catalog
+`"Text": "Current $t degrees"` (STRING) as concatenation. Nothing states the general rule. **Author decision (whisoo,
+2026-09-14): confirmed as written here.** By catalog
 argument type: INTEGER/DOUBLE/BOOL given as a JSON string → parsed as an expression (E1-095 `"($ph1 + …) / 5"`, E1 C07
 `"$b0"`); STRING/ENUM containing `$` → template with references `$name`, `$Svc.Attr`, `$Svc[dev].Attr` (ASCII
 identifier characters, so `$Hour시` reads `Hour`); a template that is exactly one reference passes the raw value (then
@@ -71,6 +74,13 @@ type-checked); other strings are literals; non-string JSON values are literals. 
 **G11 IR functions and `%`.** extractor lists `abs(x)`; lists `min`/`max` as forbidden, while joi_common defines them
 ("min(a, b) → result is the SMALLER of a and b") and dataset IRs use them. Choice: abs/min/max implemented for numbers.
 `%` (used in extractor D7c) defined only for integers a ≥ 0, b > 0; other operands → unsupported.
+**JoI `%` — author decision (whisoo, 2026-09-14):** the deployment grammar `lowering/parser/JOILang.g4` has no `%`;
+the reference accepts it as integer remainder (following files/joi_cycle.md Ex5 `n % 2 == 0`). Implemented by a
+copy of the grammar in `reference/grammar/JOILang.g4` with `('*'|'/'|'%')` in `arithmetic_expression` (same
+precedence as `*` and `/`, left-associative) and a `MODULO : '%'` token, regenerated with
+antlr-4.13.2-complete.jar (Python3 target) into `reference/grammar/`; `joi_ref.py` uses that parser. Same operand
+restriction as IR `%` (no allowed spec says more). The deployment grammar is not modified, so a script using `%` is
+accepted by the reference but still rejected by the deployment parser.
 
 **G12 IR lexical points.** `null` literal accepted (E1 IRs, HANDOFF); a bare identifier is a local variable (extractor
 R1.2); `&&`, `||`, `!` → unsupported (extractor forbids them, although its D7 table prints `||`); double-quoted strings
