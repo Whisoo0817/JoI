@@ -107,6 +107,18 @@ DIVERGE with witness / REF-UNSUPPORTED / reference error). Reported separately:
   pairs" restriction is withdrawn. Constructs whose meaning no spec states need an author definition first (§1.4).
 - **D4 Explorer bug: report the frozen-version result as found, and also rerun a fixed version**, reporting both.
 
+### Scale (whisoo 2026-09-14)
+
+- E1 20 base IRs: one correct JoI implementation each + 3–4 single-fault JoI variants each (about 80–100 pairs).
+  Fault families are spread so that each family (missing/extra call, timing, snapshot value, order, sustain reset,
+  edge re-arming, repetition state) occurs on several cases; a family that does not apply to a case is not forced.
+- 388 sample: 40 candidates with a generated script, chosen **without reading any Explorer outcome**: fixed seed
+  20260914, up to 1 per task category (`C01`…`C26`), then the remainder uniformly at random from the rest
+  (`pairs/select_388_sample.py`, output `pairs/sample_388.json`). Each is paired with its dataset IR and binding.
+  (The first version said "up to 2 per category"; it failed before producing any sample because 23 categories have
+  a generated script and 23 × 2 > 40. Changed to 1 per category; no candidate content or verdict was looked at.)
+- All pairs and histories are frozen (hash, commit) before either the reference or the Explorer runs on them.
+
 ## 7. Reference semantics decisions (whisoo 2026-09-14)
 
 - **S1–S10: confirmed as proposed** in §1.4.
