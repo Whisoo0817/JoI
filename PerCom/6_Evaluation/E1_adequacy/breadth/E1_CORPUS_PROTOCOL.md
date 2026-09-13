@@ -66,12 +66,12 @@ This follows the useful procedural ideas in AutoTap (classify elicited requireme
 
 ## 6. Depth subset
 
-The target is 20 cases: the completed 12 seeds plus 8 new maximum-variation candidates. The current proposal is:
+The depth subset is 20 cases: the completed 12 seeds plus 8 new maximum-variation cases. The final selection is:
 
 | Rank | ID | Main reason |
 |---:|---|---|
-| 1 | E1-092 | True independent parallel flows and failure isolation |
-| 2 | E1-095 | Post-start observations requiring sum/average state |
+| 1 | E1-092 | Independent flows and failure isolation |
+| 2 | E1-095 | Post-start observations aggregated into a daily mean |
 | 3 | E1-086 | Mid-run cancellation of a sequential automation |
 | 4 | E1-099 | Minimum-on deadline extended by later events |
 | 5 | E1-028 | Rate/count constraint; separates history service from IR |
@@ -79,18 +79,22 @@ The target is 20 cases: the completed 12 seeds plus 8 new maximum-variation cand
 | 7 | E1-072 | Separate arrival and vacancy flows in an official example |
 | 8 | E1-062 | Bidirectional synchronization in an official example |
 
-This list is provisional until ambiguity resolution and the author's manual coding. Selection is for semantic variation and boundary pressure, not success probability.
+This selection is final (author screening and R/B coding completed 2026-09-13; all eight are `IN_SCOPE`). Selection is for semantic variation and boundary pressure, not success probability.
 
 ### Resolved semantic decisions
 
-- **E1-092 (2026-09-13):** The two groups start together. A failed or blocked Alexa group must not stop or delay the house-shutdown group. The reference behavior adds no deadline that is absent from the source request.
-- **E1-095 (2026-09-13):** Read pH and chlorine at 10:00, 11:00, 12:00, 13:00, and 14:00; at 15:00, report each five-reading arithmetic mean. The reference history has no missing readings. Initialize the internal sum and count at the start of every daily window; do not use a platform history/statistics service in the primary version.
-- **E1-086 (2026-09-13):** Run sprinkler zone 1 for 10 minutes, wait 30 seconds, then run zone 2 for 10 minutes. If the controlling input boolean turns off during the run, immediately turn both zones off and cancel the remaining program. Restart behavior is excluded.
-- **E1-099 (2026-09-13):** A manual switch-on starts with a five-minute off deadline. Every motion event while the light is on adds two minutes to the current deadline. At the deadline, turn the light off only if there was no motion in the preceding two minutes.
-- **E1-028 (2026-09-13):** Treat “every 4 hours” as a rolling four-hour window. A dispense request succeeds only when fewer than two bowls were dispensed in the preceding window; an over-limit request emits no action or notification.
-- **E1-034 (2026-09-13):** At four hours of continuous oven-on time, send a confirmation alert. If `ConfirmContinue` does not arrive within one minute, turn the oven off; if it arrives, leave the oven on for the bounded reference history.
-- **E1-072 (source-specified):** On HOME, turn on two lights only between sunset and sunrise. On AWAY, turn off three lights only between sunrise and sunset. No behavior is inferred for the complementary time ranges.
-- **E1-062 (source-specified):** Synchronize two lights with four event-triggered, state-difference-guarded rules. A matching target state must not cause a feedback command.
+The decisions below are the current author adjudication (`depth/AUTHOR_ADJUDICATION_2026-09-13.md`); results are in `depth/RESULTS.md` (v2 run). The frozen records in `frozen_cases/` and the v1 transcription, encodings and run are kept unchanged as the pre-audit record; where an interpretation changed, the v2 case records (`depth/depth_cases_v2.py`, `depth/fixture_v2.py`) were hashed and committed before v2 encoding.
+
+- **E1-092:** The two groups start together. A failed or blocked Alexa group must not stop or delay the house-shutdown group; the reference behavior adds no deadline absent from the source request. The flows share no state, join or order dependency, so they are deployed as two independent Timeline IRs (Alexa; house), each lowered to its own JoI block, with no `IsAvailable` precondition. The single-Timeline v1 result (0/1) is kept. v2: IR 1/1 and JoI 1/1 exact — `complete via multi-Timeline decomposition`. This does not extend to fork–join or shared-state parallelism.
+- **E1-095:** Read pH and chlorine at 10:00, 11:00, 12:00, 13:00, and 14:00; at 15:00, report each five-reading arithmetic mean. The reference history has no missing readings. Five snapshot variables and the arithmetic expression `(v1+…+v5)/5` satisfy this interpretation; no internal sum/count is required. 1/1 exact — `complete for fixed-cardinality aggregation`. General dynamic aggregation (input-dependent counts, averages, history) is not a Timeline capability and is described as delegation to a backend history/statistics service.
+- **E1-086:** Run sprinkler zone 1 for 10 minutes, wait 30 seconds, then run zone 2 for 10 minutes. If the controlling input boolean turns off during the run, immediately turn both zones off and cancel the remaining program. Restart behavior is excluded. 1/1 exact — `complete`.
+- **E1-099:** A manual switch-on starts with a five-minute off deadline. Every motion event while the light is on adds two minutes to the current deadline. At the deadline, turn the light off only if there was no motion in the preceding two minutes. When motion and the deadline fall on the same instant, motion is handled first and extends the deadline by two minutes. v2 adds that same-instant history (v1, deadline-first, is kept). 2/2 exact — `complete`.
+- **E1-028:** Treat “every 4 hours” as a rolling four-hour window. A dispense request succeeds only when fewer than two bowls were dispensed in the preceding window; an over-limit request emits no action or notification. 1/1 exact — `complete for the fixed bound of two`; nothing is claimed for a run-time N or unbounded history.
+- **E1-034:** Repeating policy. At four hours of continuous oven-on time, send a confirmation alert. If `ContinueConfirmed` (an external platform input event; E1 stub `Notify.ConfirmContinue`) does not arrive within one minute, turn the oven off. If it arrives, keep the oven on, reset the four-hour timer, and repeat. v2 runs the histories "first alert, no response → off" and "first alert confirmed → timer restart → second alert, no response → off". 3/3 exact — `complete`.
+- **E1-072:** On HOME, turn on two lights only between sunset and sunrise. On AWAY, turn off three lights only between sunrise and sunset. No behavior is inferred for the complementary time ranges. The IR does not hard-code 06:00/18:00; it reads the platform's sunrise/sunset or daylight input (v2: `Sun.IsDaylight`), and sunrise/sunset computation is the platform's responsibility. 06:00/18:00 (and 07:30 in the added history) are fixture input values of individual runs. 2/2 exact — `complete`.
+- **E1-062:** Synchronize two lights with four event-triggered, state-difference-guarded rules. A matching target state must not cause a feedback command; syncing lights that start in different states is not required. 1/1 exact — `complete`.
+
+E1 adequacy counts use the author audit and reference execution only; Explorer results are auxiliary.
 
 ## 7. Freeze rule for each new depth case
 

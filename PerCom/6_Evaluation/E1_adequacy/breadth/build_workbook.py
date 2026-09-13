@@ -92,7 +92,7 @@ code_rows=[
  ('topic_family','Similar-topic group; not a duplicate mark.'),
  ('text_form','Whether text is verbatim, source-extracted, or researcher-normalized.'),
  ('completed_seed','One of the existing 12 depth cases.'),
- ('proposed_depth_addition','One of eight new candidates; freeze before encoding.'),
+ ('proposed_depth_addition','One of the eight new depth cases (final selection; value name kept for file compatibility). Results: depth/RESULTS.md.'),
 ]
 for r,row in enumerate(code_rows,1):
  for c,v in enumerate(row,1): code.cell(r,c,v)
