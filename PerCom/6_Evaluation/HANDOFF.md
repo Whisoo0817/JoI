@@ -3,7 +3,8 @@
 상태: **E1 Stage A 완료(2026-09-12), E2–E4 미착수**.
 
 - 실험의 방식·코드·데이터·결과는 이 폴더의 실험별 하위 폴더에 둔다. E1: [`E1_adequacy/`](E1_adequacy/README.md) (README = protocol·결정·버전 고정, `cases.py` = 출처·해석·기대 trace, `irs.py` = IR, `run_e1.py`/`make_results.py` = 실행·표, `results.md` = 결과, `runs/` = 원본·감사 전 보존본).
-- E1 Stage A: 12건 완전 12/12, exact 41/41, whisoo B 감사 반영. C05·C07·C19 수정 전후 보존. B3·B4 미평가 → Stage B 8건 후보 또는 limitation. C20 unordered variant는 B3 limitation 후보.
+- E1 Stage A: 12건 완전 12/12, exact 41/41, whisoo B 감사 반영. C05·C07·C19 수정 전후 보존. B3·B4 는 Stage A 사례에 없었고, 아래 경계 probe P1–P3 로 따로 시험했다(언어·실행기 통과, Explorer 만 거절). C20 unordered variant 는 probe P1.
+- **E1 breadth corpus(2026-09-13 가져옴, pre-audit).** `E1_adequacy/breadth/` — 100건(층별 25), 선별 기록 150건, 새 depth 8건의 IR 없는 frozen case(해시 `FREEZE_MANIFEST.md`). 출처 감사 완료(`audit/PROVENANCE_AUDIT.md`): URL 36/36 접속, 원문 전부 확인, locator 60행·제목 26행 교정. **층 분포·screen_status·R/B label 은 논문 결과로 확정하지 않았다**(두 코더 코딩·판정 전). 다음: 코더 결정 → 새 depth 8건 인코딩(frozen case 무수정).
 - E1 원고 문단은 `PerCom_version.md`에 초안으로 넣었다. 수치·표는 `results.md` 기준이며 Stage B 결정 뒤 최종 문구 확정.
 - E1 계약 사실(period 회차 후 대기, 초기 참 edge, latch 미반영, cron 소거, timeout 문법 부재, **미초기화 변수 = null**)은 3_Timeline_IR HANDOFF에도 반영해야 한다.
 - **경계 probe(2026-09-12 추가).** Stage A 는 성공 사례뿐이라 경계를 말할 수 없었다. B3·B4 를 사전 지정 요구 3건으로 따로 시도했다(성공 분모와 분리, `probes.py` 해시 후 `probe_attempts.py` 작성).
