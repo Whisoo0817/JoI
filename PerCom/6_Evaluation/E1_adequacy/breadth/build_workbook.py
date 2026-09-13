@@ -90,6 +90,7 @@ code_rows=[
  ('rb_adjudicated','The author\'s R/B labels (single author; column name kept for compatibility).'),
  ('duplicate_family','Verified duplicate group under protocol §2; empty for all 100 (no retained duplicate).'),
  ('topic_family','Similar-topic group; not a duplicate mark.'),
+ ('trigger_class / temporal_class / control_class / memory_class / action_cardinality / lifetime','Preliminary machine-assisted descriptors. Only the corrections the author stated on 2026-09-13 were applied; they are not reconciled with rb_adjudicated and are not used in any statistic.'),
  ('text_form','Whether text is verbatim, source-extracted, or researcher-normalized.'),
  ('completed_seed','One of the existing 12 depth cases.'),
  ('proposed_depth_addition','One of the eight new depth cases (final selection; value name kept for file compatibility). Results: depth/RESULTS.md.'),

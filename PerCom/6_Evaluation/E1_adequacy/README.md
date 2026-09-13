@@ -207,3 +207,5 @@ B2(진짜 중첩 인스턴스)는 probe 를 만들지 않았다. 단일 제어 �
   `E1_CORPUS_PROTOCOL.md`·`CLAUDE_E1_HANDOFF.md` 가 절차, `FREEZE_MANIFEST.md` 가 가져온 파일과 frozen case 의 해시,
   `audit/PROVENANCE_AUDIT.md` 가 출처 감사 결과, `audit/AUTHOR_SCREENING_2026-09-13.md` 가 저자 수동 선별(확정)이다.
   `audit/AUTHOR_RB_CODING_2026-09-13.md` 가 저자 R/B 코딩(확정, IN_SCOPE 92건 분모)이다.
+- `E1_SUMMARY.md` — depth 20건(Stage A 12 + depth v2 8)과 corpus 분포·R/B 건수를 한 곳에 모은 표.
+  `make_e1_summary.py` 가 기록된 결과만 읽어 만든다(재실행 없음).
