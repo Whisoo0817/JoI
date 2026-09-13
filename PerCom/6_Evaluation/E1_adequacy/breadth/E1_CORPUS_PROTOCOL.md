@@ -44,7 +44,7 @@ Candidate status is one of:
 - `UNMATCHED`: the behavior is clear but depends on a platform/catalog facility absent from the current JoI setup. This is separated from an IR-language failure.
 - `DUPLICATE`: semantically equivalent to an earlier item under the duplicate rule. Duplicates remain in the screening log and do not enter the retained 100.
 
-The imported `screen_status` values (91 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, 1 `UNMATCHED`) are a machine-assisted first pass, not a result; the author's manual screening replaces them. Difficult cases remain visible in the 100; the paper should report both the full 100 and the in-scope denominator once the author's labels are final. The screening log contains 150 candidates: all 100 retained items plus 50 released AutoTap statements beyond the fixed elicited-source cap.
+The imported machine-assisted first pass (91 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, 1 `UNMATCHED`) was replaced by the author's manual screening on 2026-09-13: 92 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, 0 `UNMATCHED`, and no retained duplicate (`audit/AUTHOR_SCREENING_2026-09-13.md`). Similar-topic groups are kept in `topic_family`, not in `duplicate_family`. Difficult cases remain visible in the 100; the paper should report both the full 100 and the in-scope denominator once the author's labels are final. The screening log contains 150 candidates: all 100 retained items plus 50 released AutoTap statements beyond the fixed elicited-source cap.
 
 For every retained item, preserve the URL, document/table/thread locator, access date, and text handling. `VERBATIM_*` identifies text copied from a task/data record. `OFFICIAL_DESCRIPTION_OR_STRUCTURED_EXTRACTION` identifies behavior reconstructed from structured official examples. Community items currently contain a concise researcher normalization linked to the opening post; they must not be described as verbatim quotations.
 
@@ -58,7 +58,7 @@ Before paper reporting, one author performs manual screening and R/B coding (dec
 2. The author's labels go in `rb_adjudicated` (column name kept for file compatibility; no adjudication between coders takes place). `rb_coder_1`/`rb_coder_2` stay empty.
 3. Preserve unresolved and excluded cases in the public artifact.
 
-No second coder, Cohen's κ, or inter-rater reliability is used or claimed. The paper's wording is limited to: “We manually screened candidate requirements using predefined eligibility and duplicate criteria, retaining ambiguous, out-of-scope, and unmatched cases rather than replacing them with easier examples.” No corpus distribution is reported before the author's labels are entered.
+No second coder, Cohen's κ, or inter-rater reliability is used or claimed. The paper's wording is limited to: “We manually screened candidate requirements using predefined eligibility and duplicate criteria.” Corpus distributions are computed only from the author's values: screening status is final (2026-09-13); no R/B distribution is reported while `rb_adjudicated` is incomplete.
 
 This follows the useful procedural ideas in AutoTap (classify elicited requirements and retain ambiguous/out-of-scope cases) and Dwyer et al. (preserve unmatched cases and distinguish authored from external examples). It does not present either prior corpus as held-out data, because those data helped shape the systems being studied.
 
@@ -135,7 +135,7 @@ After those gates, further corpus expansion has diminishing value for E1 and sho
 
 ## 10. Evidence files
 
-- `corpus_100.csv`: retained corpus and preliminary coding.
+- `corpus_100.csv`: retained corpus, the author's screening status and R/B labels (`rb_adjudicated`), and the preliminary triage fields.
 - `screening_log_150.csv`: retained and not-retained candidate decisions.
 - `E1_CORPUS_WORKBOOK.xlsx`: reviewer-facing workbook with summaries and filters.
 - `CLAUDE_E1_HANDOFF.md`: exact execution and repository-update sequence for the server agent.

@@ -1,32 +1,25 @@
 # Items the author must complete by hand (E1 breadth)
 
-Status 2026-09-13: the semantic audit of the eight depth encodings is done (`depth/AUTHOR_ADJUDICATION_2026-09-13.md`,
-v2 run in `depth/RESULTS.md`). What remains is the manual corpus coding. Until it is done, no IN_SCOPE count,
-R/B distribution or other corpus statistic goes into the paper, and no kappa or inter-rater agreement is computed.
+Status 2026-09-13:
+- The semantic audit of the eight depth encodings is done (`depth/AUTHOR_ADJUDICATION_2026-09-13.md`, v2 run in
+  `depth/RESULTS.md`).
+- The manual screening is done (`audit/AUTHOR_SCREENING_2026-09-13.md`): 92 IN_SCOPE, 6 AMBIGUOUS, 2 OUT_OF_SCOPE,
+  0 UNMATCHED, no retained duplicate.
+
+What remains is R/B coding. No R/B distribution goes into the paper until it is done, and no kappa or inter-rater
+agreement is computed.
 
 Paper wording is limited to: "We manually screened candidate requirements using predefined eligibility and
 duplicate criteria."
 
-## Manual corpus coding — procedure
+## R/B coding — open
 
-Work in `E1_CORPUS_WORKBOOK.xlsx` (sheet `Corpus_100`) or directly in `corpus_100.csv`; if you edit the workbook,
-copy the final values back to the CSV, which is the source file. Definitions: `E1_CORPUS_PROTOCOL.md` §2 (unit,
-duplicate rule), §4 (status values), §5 (coding); R1–R10 / B1–B5 in `../README.md`.
+`rb_adjudicated` is filled for 8 rows (E1-042, 050, 056, 058, 069, 071, 072, 088), taken from your behavior statements.
+The open questions are in `audit/AUTHOR_SCREENING_2026-09-13.md` §6:
 
-For each of the 100 rows:
-1. Read `original_text` and open `source_url` at `source_locator` if the text alone is unclear.
-2. `screen_status`: choose IN_SCOPE / AMBIGUOUS / OUT_OF_SCOPE / UNMATCHED yourself. The current value is a
-   machine/GPT pass; do not copy it.
-   - [ ] **E1-095 is still `AMBIGUOUS` from the preliminary pass, but its meaning is now fixed** (five hourly samples,
-         mean at 15 h). Do not carry the preliminary label over.
-3. `duplicate_family`: keep, change or clear. It currently marks similar groups, not verified duplicates
-   (e.g. E1-039 sunset vs E1-040 19:00 are not duplicates under §2).
-4. `rb_adjudicated`: enter your R/B elements (comma-separated). `rb_preliminary` is reference only; do not copy it.
-   `rb_coder_1` / `rb_coder_2` stay empty.
-5. Leave provenance columns as they are (audited; see `audit/`).
+- [ ] R/B for the other 92 rows: code them, or state which `rb_preliminary` values you accept. For the 12 seeds,
+      `rb_preliminary` equals the Stage A codes in `../README.md` §5.
+- [ ] Codes for E1-099, E1-073, E1-082, E1-100, E1-093, E1-097, E1-020, E1-031, E1-095.
 
-When all 100 rows are done, tell Claude; it will rebuild the workbook and compute the counts from your labels only.
-
-- [ ] screen_status × 100
-- [ ] duplicate_family reviewed
-- [ ] rb_adjudicated × 100
+Definitions: R1–R10 / B1–B5 in `../README.md` §1. Enter labels in `corpus_100.csv` (source file) or tell Claude. When
+the codes are complete, Claude rebuilds the workbook and computes the R/B counts from your labels only.

@@ -20,7 +20,7 @@ Use these files together:
 - `E1_CORPUS_WORKBOOK.xlsx`: human-review view.
 - `frozen_cases/`: eight IR-free depth-case records. Each fixes its interpretation, binding plan, bounded input history, and expected ACTION trace before encoding.
 
-The `rb_preliminary` field is triage, not a paper result. `rb_coder_1`, `rb_coder_2`, and `rb_adjudicated` are intentionally blank. Community `original_text` values are normalized requirements linked to opening posts and must not be called verbatim quotations.
+The `rb_preliminary` field is triage, not a paper result. `rb_coder_1` and `rb_coder_2` are intentionally blank. `screen_status` and `duplicate_family` hold the author's final screening (2026-09-13, `audit/AUTHOR_SCREENING_2026-09-13.md`); `rb_adjudicated` holds the author's R/B labels and is filled for 8 rows so far. Community `original_text` values are normalized requirements linked to opening posts and must not be called verbatim quotations.
 
 ## Work order
 

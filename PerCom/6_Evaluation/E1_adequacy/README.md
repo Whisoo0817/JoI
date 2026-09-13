@@ -205,4 +205,5 @@ B2(진짜 중첩 인스턴스)는 probe 를 만들지 않았다. 단일 제어 �
 - `results.md` — 경계 표와 사례별 판정(감사 열은 whisoo 가 채움).
 - `breadth/` — 100건 breadth corpus 와 새 depth 8건의 frozen case (2026-09-13 가져옴, **pre-audit**).
   `E1_CORPUS_PROTOCOL.md`·`CLAUDE_E1_HANDOFF.md` 가 절차, `FREEZE_MANIFEST.md` 가 가져온 파일과 frozen case 의 해시,
-  `audit/PROVENANCE_AUDIT.md` 가 출처 감사 결과다. 층 분포·R/B label 은 아직 논문 결과가 아니다.
+  `audit/PROVENANCE_AUDIT.md` 가 출처 감사 결과, `audit/AUTHOR_SCREENING_2026-09-13.md` 가 저자 수동 선별(확정)이다.
+  R/B label 은 아직 논문 결과가 아니다.
