@@ -15,10 +15,10 @@
     P3 는 duration 피연산자가 리터럴이라 `delay "$d MIN"` 은 거절되지만 `cycle(until "k >= $n", count "k"){ delay "1 단위" }` 로 펼치면 된다. 단위 = 해상도 = 상태 수.
     B3 는 두 가지로 나눠 쓴다. (가) 켜지기 전 과거 = **서비스/카탈로그 문제**(SensorHistory 류 서비스를 만들면 `read` 한 줄. "Timeline 이 못 한다" 고 쓰지 말 것). (나) 도는 중 과거 = 가능.
   - **실제 구속은 검증기다.** probe 3건 전부 Explorer 거절, 사유가 같은 종류(실행 중 값끼리 비교하는 joint-guard). E2·E4 의 핵심 입력.
-  - **구조적으로 남는 언어 한계(논증, probe 미실시 — 표시 유지):** ① 유한 상태(겹치는 인스턴스·기억 사건 수가 입력에 따라 무한히 늘면 불가) ② 대입 없음(누적 집계 불가; GV 우회는 관측 ACTION 에 찍혀 검증 대상이 바뀜) ③ 단일 제어 흐름.
-    셋 다 probe 로 확인하는 것이 Stage B 의 1순위다. 지금까지 예상한 경계가 두 번 연속 틀렸으므로 논증만으로 쓰지 않는다.
+  - ~~구조적으로 남는 언어 한계 3가지(유한 상태·대입 없음·단일 제어 흐름)~~ — **2026-09-13 저자 감사로 대체.** 쓸 수 있는 문장은 `../3_Timeline_IR/HANDOFF.md` "쓸 수 있는 것"(Timeline 하나에 병렬 branch 없음 → 독립 흐름만 분해, 고정 개수 집계·고정 한도 2, 일반 누적은 backend 위임). "고정 프로그램이라 finite-state" 는 쓰지 않는다.
   - B2 진짜 중첩 인스턴스는 probe 없이 실행 계약(단일 제어 흐름) 근거로 한계 보고. C11 은 "두 흐름 지원" 이 아니라 단일 흐름 환원으로 표기.
-- **A-extractor(= NL→IR LLM 프롬프트 `files/timeline_ir/extractor.md`) 문법 열 추가.** Stage A 12건 중 4건(C01 C05 C07 C20-O)이 `wait.timeout` 등 `files/timeline_ir/extractor.md` 밖 구성을 쓴다. 현재 NL→IR 경로로는 생성되지 않는 encoding 이다. 문법 확장은 E3 입력을 바꾸므로 **E3 시작 전에 별도 결정**해야 한다.
+- A-extractor 문법 열(Stage A 12건 중 4건이 `extractor.md` 밖 구성)은 **E1 결과·한계가 아니다**(2026-09-13 whisoo, Limitations 항목 삭제). 기록은 E1 README 에만 둔다. extractor 문법 확장 여부는 E3 시작 전에 따로 정한다.
+- **E2 validation fidelity (2026-09-14 착수).** `E2_fidelity/PROTOCOL_DRAFT.md`(동결 전). 결정: 독립 정답기 (b) — Explorer 코드를 공유하지 않는 IR·JoI 두 실행기를 명세 문서만으로 작성(Explorer 코드를 본 적 없는 별도 에이전트가 작성, 읽은 파일 기록); 쌍 = E1 20건 IR 기반 올바른 대안·오류 유형별 직접 작성 + 388 후보 표본(Explorer 판정과 무관하게 추출); 이력 = 원래 시간 척도의 경계 중심 구조 이력; JoI 문법 전체(`for` 제외, `loop` 은 L1 정의); Explorer 버그는 고정판 결과 보고 + 수정판 재실행. S1–S11 의미 확정. E1 남은 72건 depth 는 보류(`E1_adequacy/breadth/TODO_DEPTH_REMAINING_72.md`).
 - C20 은 C20-O(ordered)로 개명했다. 짝을 이루는 unordered 문장은 probe P1 이며, 성공 분모에서 뺀 것이 아니라 별개 요구로 분리해 시도했다.
 - Limitations 절에 넣을 것: 12/12 는 선정 사례 중의 건수(coverage 아님), B2 중첩 인스턴스 미평가, B5 중첩 반복은 C07 한 건, Explorer 미인증 경계.
 
