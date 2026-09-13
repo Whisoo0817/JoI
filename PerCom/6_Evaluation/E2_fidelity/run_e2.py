@@ -29,7 +29,7 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
-REF = HERE / "reference"
+REF = Path(os.environ.get("E2_REF_DIR", HERE / "reference"))
 DEPTH = ROOT / "PerCom/6_Evaluation/E1_adequacy/breadth/depth"
 E1 = ROOT / "PerCom/6_Evaluation/E1_adequacy"
 T0_EXPLORER = 2_419_200_000
@@ -160,6 +160,7 @@ def witness_events(witness, devices, catalog_path):
     ev, t = [], 0
     last = {}
     for inputs, dwell in witness["path"]:
+        t += int(dwell)          # dwell = time elapsed since the previous entry, before these inputs hold
         upd = {}
         for key, val in inputs.items():
             m = re.match(r"^([^.]+)\.([A-Za-z_]\w*)(\(.*\))?$", key)
@@ -179,7 +180,6 @@ def witness_events(witness, devices, catalog_path):
                 last[rk] = val
         if upd or t == 0:
             ev.append((t, upd))
-        t += int(dwell)
     return ev, t
 
 

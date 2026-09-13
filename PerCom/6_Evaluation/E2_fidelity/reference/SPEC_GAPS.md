@@ -50,11 +50,16 @@ unsupported. Capability not declared as a category of the chosen device → unsu
 true != 1, "1" != "1.0"). Choice: `==`/`!=` within BOOL, number, STRING; `None` equals only `None` (the probe
 `missing_query` expects `w == "rain"` false for a missing result; HANDOFF/E1 IRs use `$t != null`). Any other mixed
 equality → unsupported. `< > <= >=` only number/number or string/string (SERVICE_MODEL §3 lexical string intervals);
-otherwise → unsupported.
+otherwise → unsupported. **Author decision (whisoo, 2026-09-14):** an ordered comparison (`>`, `<`, `>=`, `<=`) in
+which either operand is a missing value (None) evaluates to **false**, in both the IR and the JoI interpreter
+(VERIFICATION_CONTRACT includes None in non-BOOL input domains, but no document said how it compares). Equality is
+unchanged: None == None true, None == other false, `!=` the negation. Previously → unsupported[ordered-compare-type].
 
 **G4 Null arithmetic.** HANDOFF: "미초기화 변수는 null 이고 null 산술은 0 으로 강제된다. 현재 검증 계약에 명세돼 있지
 않다" — stated for the Timeline IR executor only. Choice: IR arithmetic, unary minus and abs/min/max treat `None` as
-integer 0; JoI arithmetic on `None` → unsupported (no JoI text). Ordered comparison with `None` → unsupported in both.
+integer 0; JoI arithmetic on `None` → unsupported (no JoI text). Ordered comparison with `None` → false in both
+(author decision 2026-09-14, see G3); arithmetic rules unchanged, so in IR `$x - 1 > 0` with `$x` None compares
+`-1 > 0` (coercion happens in the arithmetic first) while `$x > 0` is false.
 Candidate C24_003 (`n + 1` with `n := 0` only inside a branch not taken in the first iteration) is affected.
 
 **G5 Text conversion.** S8 fixes numbers. VERIFICATION_CONTRACT (symbolic value-flow note) "converting None to text

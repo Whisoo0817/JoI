@@ -93,6 +93,8 @@ def cmp_values(op, a, b):
         return r if op == "==" else not r
     if op not in ("<", ">", "<=", ">="):
         raise RefUnsupported("operator", op)
+    if ca == "none" or cb == "none":
+        return False            # author decision 2026-09-14: ordered comparison with a missing value is false (G3)
     if (ca == cb == "num") or (ca == cb == "str"):
         return {"<": a < b, ">": a > b, "<=": a <= b, ">=": a >= b}[op]
     raise RefUnsupported("ordered-compare-type", f"{a!r} {op} {b!r}")

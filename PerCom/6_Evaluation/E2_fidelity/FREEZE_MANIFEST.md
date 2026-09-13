@@ -41,3 +41,10 @@ below is a new version, logged with a reason taken from the specification or pro
 | run_e2.py | `e046e9b7f53aeab0db4248c0aa91980db608e70c85981aee15b17f24c5932b4d` |
 
 Explorer under test: repository HEAD `490e884e974235929299ab37473e8813ce40b44f` at freeze time, `explorer/` tree `a0d49661b5014fb838e47ddda1ceeb0342ad53d3` (unchanged since).
+
+## Harness corrections after the freeze
+
+| Date | File | Change | Reason | Not affected |
+|---|---|---|---|---|
+| 2026-09-14 | run_e2.py `witness_events` | add each witness entry's dwell before applying its inputs, not after | Explorer `Divergence.path` entries are (held inputs, dwell since the previous node) (`timed.py` `path()`); the first rows showed witnesses shifted one entry early (e.g. C01/fault4 replayed as equal). Found from the conversion itself, not from an agreement count. | Explorer verdicts, reference outcomes, pairs, histories, reference code. Witness replays are recomputed from the stored witnesses by `recheck_witnesses.py` into `runs/e2_run.rewitness.jsonl`; the original run file is kept. |
+| 2026-09-14 | reference (ir_ref.py / joi_ref.py / common.py, SPEC_GAPS G3/G4) | ordered comparison with a None operand evaluates to false (was REF-UNSUPPORTED) | author decision (whisoo): the contract includes None in non-BOOL input domains but no document fixes the comparison result; surfaced by Explorer witnesses containing a missing CO2 value (C03 faults), not by an agreement count | pairs, histories, Explorer verdicts. Reference outcomes of the frozen run are recomputed with the new version and both are reported. |

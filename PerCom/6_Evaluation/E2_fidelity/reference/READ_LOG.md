@@ -75,6 +75,11 @@ Directory listings (`ls`) that only showed file names are listed at the end. No 
 
 Not opened: `../pairs/`, `../histories/`.
 
+## Update 2026-09-14 (ordered comparison with None)
+
+No new file opened. Change made from the author decision relayed by the coordinator. Not opened: `../pairs/`,
+`../histories/`, `../runs/`, `../run_e2.py`.
+
 ## Directory listings only (names, no content)
 
 `PerCom/6_Evaluation/E2_fidelity/`, `PerCom/6_Evaluation/E1_adequacy/` (+ `breadth/`, `breadth/depth/`, `breadth/depth/runs/`,

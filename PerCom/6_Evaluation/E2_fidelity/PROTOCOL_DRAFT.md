@@ -163,6 +163,10 @@ DIVERGE with witness / REF-UNSUPPORTED / reference error). Reported separately:
 - **G2 `(#Clock)` is the built-in clock** of S11; no Clock device is needed; `IsHoliday` stays an input.
 - **G6** IR `call.args` string values by catalog argument type (number/BOOL → expression; STRING/ENUM with `$` → template)
   and **G8** binding slots `Service#k` by occurrence order in the IR: accepted as written in SPEC_GAPS.
+- **Ordered comparison with a missing value (after freeze, 2026-09-14):** `>`, `<`, `>=`, `<=` with a None operand
+  evaluate to false in both interpreters; equality unchanged (None equals only None). Found when Explorer witnesses
+  with a missing numeric sensor value could not be replayed on the reference (C03 faults). New reference version;
+  reference outcomes are recomputed and both versions are reported.
 - **JoI `%` is allowed as integer remainder** in the reference, following the lowering documents (`joi_cycle.md` Ex5),
   although `JOILang.g4` has no `%`. The grammar/document mismatch is recorded as a finding.
 
