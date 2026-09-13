@@ -86,6 +86,8 @@ No R/B distribution is computed: `rb_adjudicated` is filled for 8 of 100 rows.
 
 ## 6. Open author decisions (R/B)
 
+Resolved on 2026-09-13 by the author's R/B coding: `AUTHOR_RB_CODING_2026-09-13.md`. The list below is kept as it was.
+
 1. **The other 92 rows have no author R/B statement.** `rb_adjudicated` stays blank for them and `rb_preliminary` is
    not copied. Needed: the author's R/B set per row, or an explicit decision about which preliminary values are
    accepted. The 12 seeds already have Stage A codes in `../README.md` §5; `rb_preliminary` equals them.

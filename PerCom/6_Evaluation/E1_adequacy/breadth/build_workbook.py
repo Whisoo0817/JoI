@@ -6,8 +6,9 @@ from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils import get_column_letter
 
 ROOT=Path(__file__).resolve().parent
-corpus=pd.read_csv(ROOT/'corpus_100.csv').fillna('')
-screen=pd.read_csv(ROOT/'screening_log_150.csv').fillna('')
+# keep_default_na=False: literal "N/A" in rb_adjudicated must not become an empty cell
+corpus=pd.read_csv(ROOT/'corpus_100.csv',keep_default_na=False)
+screen=pd.read_csv(ROOT/'screening_log_150.csv',keep_default_na=False)
 depth=corpus[(corpus.depth_status=='completed_seed') | (corpus.depth_status=='proposed_depth_addition')].copy()
 depth['_order']=depth.apply(lambda r: int(r.prior_case_id[1:].split('-')[0]) if r.depth_status=='completed_seed' else 100+int(float(r.depth_rank)),axis=1)
 depth=depth.sort_values('_order').drop(columns=['_order'])
@@ -16,7 +17,7 @@ amb=corpus[corpus.screen_status!='IN_SCOPE'].copy()
 wb=Workbook(); ws=wb.active; ws.title='Summary'
 navy='17365D'; blue='D9EAF7'; pale='EAF2F8'; white='FFFFFF'; red='FCE4D6'; green='E2F0D9'; gray='E7E6E6'
 ws['A1']='E1 Timeline IR adequacy — 100-item breadth corpus'; ws['A1'].font=Font(size=16,bold=True,color=white); ws['A1'].fill=PatternFill('solid',fgColor=navy)
-ws.merge_cells('A1:F1'); ws['A2']='Version'; ws['B2']='e1-corpus-v0.2-author-screened'; ws['A3']='Repository baseline'; ws['B3']='paper @ 0788969e5d313415276a6cf89151aca8cce7c047'; ws.merge_cells('B3:F3')
+ws.merge_cells('A1:F1'); ws['A2']='Version'; ws['B2']='e1-corpus-v0.3-author-coded'; ws['A3']='Repository baseline'; ws['B3']='paper @ 0788969e5d313415276a6cf89151aca8cce7c047'; ws.merge_cells('B3:F3')
 ws['A5']='Metric'; ws['B5']='Value'; ws['C5']='Interpretation'
 summary=[
  ('Retained corpus','=COUNTA(Corpus_100!A2:A101)','Fixed breadth corpus'),
@@ -36,7 +37,7 @@ rules=[
  'Source-diverse corpus: official 25, research 26, elicited 24, community 25 (C15 reclassified after audit; no rebalancing).',
  'Existing 12 remain the seed cohort; 12 was a Stage A work unit without a statistical sample-size rationale.',
  'E1 semantic adequacy uses human audit plus reference-runner traces. Explorer is auxiliary and cannot change E1 adequacy.',
- 'Screening status is the author\'s manual screening (2026-09-13); no retained duplicate. No second coder or kappa is used. rb_preliminary is triage only; rb_adjudicated holds the author\'s R/B labels and is incomplete.',
+ 'Screening status is the author\'s manual screening (2026-09-13); no retained duplicate. No second coder or kappa is used. rb_preliminary is triage only; rb_adjudicated holds the author\'s final R/B codes for the 92 IN_SCOPE rows (N/A for the other 8); R/B counts use denominator 92.',
  'No new Timeline IR is written until source, interpretation, assumptions, histories, and expected ACTION traces are frozen.',
 ]
 for i,t in enumerate(rules,18): ws.cell(i,1,u'• '+t); ws.merge_cells(start_row=i,start_column=1,end_row=i,end_column=6); ws.cell(i,1).alignment=Alignment(wrap_text=True,vertical='top')

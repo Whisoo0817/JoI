@@ -52,13 +52,15 @@ For every retained item, preserve the URL, document/table/thread locator, access
 
 Use the definitions already fixed in E1 `README.md`: R1–R10 and B1–B5. `L-ACCUM` is a provisional label for the newly tested language-boundary hypothesis, internal accumulation. The `rb_preliminary` field is machine-assisted triage only.
 
-Before paper reporting, one author performs manual screening and R/B coding (decision 2026-09-13):
+One author performed the screening and the R/B coding by hand (decisions 2026-09-13; `audit/AUTHOR_SCREENING_2026-09-13.md`, `audit/AUTHOR_RB_CODING_2026-09-13.md`):
 
-1. The author assigns the final inclusion status (`screen_status`) and R/B elements for every row, using the definitions above and the duplicate rule in §2. `rb_preliminary` may be consulted as triage but is never reported, counted, or used in a statistic.
-2. The author's labels go in `rb_adjudicated` (column name kept for file compatibility; no adjudication between coders takes place). `rb_coder_1`/`rb_coder_2` stay empty.
-3. Preserve unresolved and excluded cases in the public artifact.
+1. The author manually screened all 100 rows (`screen_status`), using the eligibility definitions in §4 and the duplicate rule in §2.
+2. Final R/B codes are assigned only to the 92 `IN_SCOPE` rows, and the R/B distribution is computed over those 92. The 6 `AMBIGUOUS` and 2 `OUT_OF_SCOPE` rows have `rb_adjudicated = N/A` and are excluded from the distribution.
+3. The author's codes are in `rb_adjudicated` (column name kept for file compatibility; no adjudication between coders takes place). `rb_coder_1`/`rb_coder_2` stay empty. `L-ACCUM` is not a final code.
+4. `rb_preliminary` is kept unchanged for provenance. It is never reported or used in a statistic; where the author approved a preliminary value after review, the approved value is what counts.
+5. Unresolved and excluded cases stay in the public artifact.
 
-No second coder, Cohen's κ, or inter-rater reliability is used or claimed. The paper's wording is limited to: “We manually screened candidate requirements using predefined eligibility and duplicate criteria.” Corpus distributions are computed only from the author's values: screening status is final (2026-09-13); no R/B distribution is reported while `rb_adjudicated` is incomplete.
+No second coder, Cohen's κ, or inter-rater reliability is used or claimed. The paper's wording is limited to: “We manually screened candidate requirements using predefined eligibility and duplicate criteria.” Corpus distributions are computed only from the author's values: screening status over all 100 rows, R/B over the 92 `IN_SCOPE` rows.
 
 This follows the useful procedural ideas in AutoTap (classify elicited requirements and retain ambiguous/out-of-scope cases) and Dwyer et al. (preserve unmatched cases and distinguish authored from external examples). It does not present either prior corpus as held-out data, because those data helped shape the systems being studied.
 
