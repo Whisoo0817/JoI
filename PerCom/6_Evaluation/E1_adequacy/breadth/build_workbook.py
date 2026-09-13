@@ -33,10 +33,10 @@ for i,row in enumerate(summary,6):
  for j,v in enumerate(row,1): ws.cell(i,j,v)
 ws['A17']='Design rules'; ws['A17'].font=Font(bold=True,color=white); ws['A17'].fill=PatternFill('solid',fgColor=navy); ws.merge_cells('A17:F17')
 rules=[
- '25 items per source stratum: official, research, elicited, community.',
+ 'Source-diverse corpus: official 25, research 26, elicited 24, community 25 (C15 reclassified after audit; no rebalancing).',
  'Existing 12 remain the seed cohort; 12 was a Stage A work unit without a statistical sample-size rationale.',
  'E1 semantic adequacy uses human audit plus reference-runner traces. Explorer is auxiliary and cannot change E1 adequacy.',
- 'rb_preliminary is triage only; two independent coder columns and adjudicated labels remain blank.',
+ 'rb_preliminary is machine-assisted triage only. The author screens and codes manually; no second coder or kappa is used. Final labels remain blank until the author enters them.',
  'No new Timeline IR is written until source, interpretation, assumptions, histories, and expected ACTION traces are frozen.',
 ]
 for i,t in enumerate(rules,18): ws.cell(i,1,u'• '+t); ws.merge_cells(start_row=i,start_column=1,end_row=i,end_column=6); ws.cell(i,1).alignment=Alignment(wrap_text=True,vertical='top')

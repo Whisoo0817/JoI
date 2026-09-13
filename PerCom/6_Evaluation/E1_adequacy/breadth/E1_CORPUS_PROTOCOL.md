@@ -6,25 +6,25 @@ Corpus version: `e1-corpus-v0.1-preaudit`
 
 ## 1. What this corpus supports
 
-The breadth corpus asks whether 100 externally sourced automation requirements fall inside the intended scope of Timeline IR and which reactive-temporal elements they contain. It is a stratified, purposive corpus. It does **not** estimate the prevalence of automation patterns in the population of smart-home users.
+The breadth corpus asks whether 100 externally sourced automation requirements fall inside the intended scope of Timeline IR and which reactive-temporal elements they contain. It is a source-diverse, purposive corpus. It does **not** estimate the prevalence of automation patterns in the population of smart-home users.
 
 The depth subset asks whether a selected requirement can be encoded without changing its fixed meaning and whether a reference execution produces the preregistered ACTION trace. E1's semantic adequacy decision is based on human audit plus reference execution. Explorer is recorded only as an auxiliary support result; an Explorer rejection cannot change an E1 adequacy result.
 
-## 2. Unit, strata, and fixed stopping rule
+## 2. Unit, source types, and stopping rule
 
 One corpus item is one externally stated automation behavior with one source locator. Closely related clauses that jointly define one automation remain one item. Two statements are duplicates only when trigger, temporal condition, guard, actions, and re-entry/reset semantics are equivalent after device-name substitution.
 
-The corpus stops at exactly 100 retained items, with 25 from each provenance stratum:
+The corpus stops at 100 retained items drawn from four source types. Collection aimed at 25 per type; the 2026-09-13 provenance audit moved C15 from elicited to research (a participant remark quoted in a paper, with no released-data locator), and no item was added or removed to rebalance. Final counts:
 
 | Stratum | Definition | Seed | New | Total |
 |---|---|---:|---:|---:|
 | Official | Platform documentation, blueprint, or example | 1 | 24 | 25 |
-| Research | Published task, stimulus, or reported example | 7 | 18 | 25 |
-| Elicited | Participant-authored statement in released study data | 2 | 23 | 25 |
+| Research | Published task, stimulus, reported example, or paper-quoted participant remark | 8 | 18 | 26 |
+| Elicited | Participant-authored statement directly checkable in released study data | 1 | 23 | 24 |
 | Community | Naturalistic public request or community-published example | 2 | 23 | 25 |
 | **Total** |  | **12** | **88** | **100** |
 
-Equal quotas make source types visibly balanced and prevent one convenient dataset from dominating. They are a study-design choice, not a claim that the four sources are equally common in practice.
+Drawing from four source types keeps one convenient dataset from dominating. The paper reports a source-diverse corpus with these actual counts; it does not claim a fixed quota per source type, and the counts are not a claim about how common each source type is in practice.
 
 ## 3. Existing Stage A cases
 
@@ -32,7 +32,7 @@ The completed 12 cases remain unchanged as the seed cohort. Their 12/12 adequacy
 
 The reason exactly 12 were done is historical: they were the first Stage A work unit assembled to combine R1–R10 and selected B elements. There was no statistical sample-size calculation, random draw, saturation analysis, or claim that they were representative. The corpus records this fact verbatim rather than constructing a retrospective sampling rationale.
 
-**Pre-audit caution:** before reporting the per-stratum seed counts, reconcile every seed's provenance type against the repository's source record. The current CSV labels are a GPT-side import and are not evidence for a paper claim until that audit is complete.
+**Provenance audit (2026-09-13).** Every seed's provenance type was reconciled against the repository source record and every locator was checked on the server. The final provenance evidence is `audit/PROVENANCE_AUDIT.md`, `audit/changes_2026-09-13.csv` and `audit/changes_2026-09-13_decisions.csv`. The E1-099 text change there is a provenance correction (the opening post states both off conditions); it does not alter the frozen behavioral interpretation.
 
 ## 4. Collection and screening
 
@@ -44,7 +44,7 @@ Candidate status is one of:
 - `UNMATCHED`: the behavior is clear but depends on a platform/catalog facility absent from the current JoI setup. This is separated from an IR-language failure.
 - `DUPLICATE`: semantically equivalent to an earlier item under the duplicate rule. Duplicates remain in the screening log and do not enter the retained 100.
 
-Current retained counts are 91 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, and 1 `UNMATCHED`. Difficult cases remain visible in the 100; the paper should report both the full 100 and the in-scope denominator. The screening log contains 150 candidates: all 100 retained items plus 50 released AutoTap statements beyond the fixed elicited-source cap.
+The imported `screen_status` values (91 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, 1 `UNMATCHED`) are a machine-assisted first pass, not a result; the author's manual screening replaces them. Difficult cases remain visible in the 100; the paper should report both the full 100 and the in-scope denominator once the author's labels are final. The screening log contains 150 candidates: all 100 retained items plus 50 released AutoTap statements beyond the fixed elicited-source cap.
 
 For every retained item, preserve the URL, document/table/thread locator, access date, and text handling. `VERBATIM_*` identifies text copied from a task/data record. `OFFICIAL_DESCRIPTION_OR_STRUCTURED_EXTRACTION` identifies behavior reconstructed from structured official examples. Community items currently contain a concise researcher normalization linked to the opening post; they must not be described as verbatim quotations.
 
@@ -52,12 +52,13 @@ For every retained item, preserve the URL, document/table/thread locator, access
 
 Use the definitions already fixed in E1 `README.md`: R1–R10 and B1–B5. `L-ACCUM` is a provisional label for the newly tested language-boundary hypothesis, internal accumulation. The `rb_preliminary` field is machine-assisted triage only.
 
-Before paper reporting:
+Before paper reporting, one author performs manual screening and R/B coding (decision 2026-09-13):
 
-1. Coder 1 and Coder 2 independently assign inclusion status and R/B elements without seeing each other's labels.
-2. Compute raw agreement and Cohen's kappa for inclusion status. Report per-element agreement for the multi-label R/B coding; do not collapse it into a misleading single accuracy number.
-3. Adjudicate disagreements and write the result to `rb_adjudicated` and the final status field.
-4. Preserve unresolved and excluded cases in the public artifact.
+1. The author assigns the final inclusion status (`screen_status`) and R/B elements for every row, using the definitions above and the duplicate rule in §2. `rb_preliminary` may be consulted as triage but is never reported, counted, or used in a statistic.
+2. The author's labels go in `rb_adjudicated` (column name kept for file compatibility; no adjudication between coders takes place). `rb_coder_1`/`rb_coder_2` stay empty.
+3. Preserve unresolved and excluded cases in the public artifact.
+
+No second coder, Cohen's κ, or inter-rater reliability is used or claimed. The paper's wording is limited to: “We manually screened candidate requirements using predefined eligibility and duplicate criteria, retaining ambiguous, out-of-scope, and unmatched cases rather than replacing them with easier examples.” No corpus distribution is reported before the author's labels are entered.
 
 This follows the useful procedural ideas in AutoTap (classify elicited requirements and retain ambiguous/out-of-scope cases) and Dwyer et al. (preserve unmatched cases and distinguish authored from external examples). It does not present either prior corpus as held-out data, because those data helped shape the systems being studied.
 
@@ -76,7 +77,7 @@ The target is 20 cases: the completed 12 seeds plus 8 new maximum-variation cand
 | 7 | E1-072 | Separate arrival and vacancy flows in an official example |
 | 8 | E1-062 | Bidirectional synchronization in an official example |
 
-This list is provisional until ambiguity resolution and independent coding. Selection is for semantic variation and boundary pressure, not success probability.
+This list is provisional until ambiguity resolution and the author's manual coding. Selection is for semantic variation and boundary pressure, not success probability.
 
 ### Resolved semantic decisions
 
@@ -120,7 +121,7 @@ If Timeline IR fails but ordinary JoI variables/control flow implement the fixed
 
 E1 is ready to close when all of the following hold:
 
-- all 100 rows have checked provenance, final screening status, and adjudicated R/B labels;
+- all 100 rows have checked provenance and the author's final manual screening status and R/B labels;
 - ambiguous rows remain visible and are either resolved or explicitly held;
 - the completed 12 seed results are preserved without reinterpreting their selection;
 - eight new depth cases have frozen case records and reference traces;

@@ -14,7 +14,7 @@
 
 Use these files together:
 
-- `corpus_100.csv`: 100 retained source-backed requirements, 25 per provenance stratum.
+- `corpus_100.csv`: 100 retained source-backed requirements from four source types (after the 2026-09-13 audit and C15 reclassification: official 25 / research 26 / elicited 24 / community 25; no fixed per-stratum quota is claimed).
 - `screening_log_150.csv`: 100 retained plus 50 not-retained candidates.
 - `E1_CORPUS_PROTOCOL.md`: sampling, coding, freeze, outcome, and stop rules.
 - `E1_CORPUS_WORKBOOK.xlsx`: human-review view.
@@ -26,7 +26,7 @@ The `rb_preliminary` field is triage, not a paper result. `rb_coder_1`, `rb_code
 
 1. **Import without changing results.** Add the corpus artifacts to a new E1 breadth subdirectory. Do not overwrite `cases.py`, `irs.py`, probe files, or existing run JSON.
 2. **Complete provenance pass.** Check every URL/locator. Add a short source excerpt only where licensing/quotation policy permits; otherwise retain the exact locator and normalization. Correct errors with a change log.
-3. **Human coding.** Obtain two independent inclusion/R/B label columns if feasible. Compute agreement, adjudicate, and keep ambiguous/out-of-scope/unmatched rows visible. Never claim two human coders if one coder or an LLM supplied a column.
+3. **Manual coding (single author, decision 2026-09-13).** The author assigns inclusion status and R/B labels. No second coder, agreement statistic, Cohen's κ, or adjudication is used or claimed. Keep ambiguous/out-of-scope/unmatched rows visible. `rb_preliminary` is triage, never a result.
 4. **Resolve ambiguities one case at a time.** Ask whisoo a plain-language behavior question, record the answer, then move to the next case. Do not bundle all semantic choices into one approval request.
 5. **Freeze each new depth case.** Write source, interpretation, assumptions, device/binding plan, histories, and expected ACTION traces in an IR-free case file. Hash or commit it before encoding.
 6. **Attempt current Timeline IR.** Use the unchanged current language and frontend first. Record complete/partial/impossible/held plus exact syntax or semantic obstacle.
@@ -94,7 +94,7 @@ This is a review list, not a success-filtered final selection. Replace an item o
 ## Expected repository outputs
 
 - breadth corpus and screening log under E1;
-- a coding/adjudication table and agreement calculation;
+- a coding table holding the author's manual labels (no agreement calculation);
 - eight new IR-free frozen case records plus hashes/commits;
 - corresponding encoding attempts and immutable attempt history;
 - reference-runner results with exact and tolerance matches;
