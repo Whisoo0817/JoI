@@ -1,5 +1,10 @@
 # E1 depth additions — encoding and execution of the eight frozen cases
 
+**Current results: `RESULTS.md` (v2, after the author semantic audit `AUTHOR_ADJUDICATION_2026-09-13.md`).**
+v2 files: `depth_cases_v2.py`, `fixture_v2.py` (frozen at `85d3ab8`), `depth_attempts_v2.py`, `run_depth_v2.py`,
+`runs/e1_depth_v2.json`. Everything below describes v1, which is kept unchanged. Run with `~/temp/bin/python`
+(the system `python3` is 3.8 and cannot import the Explorer).
+
 Frozen semantics: `../frozen_cases/*.md` (hashes in `../FREEZE_MANIFEST.md`, commit `35e6043`).
 
 ## Freeze of the executable transcription (before any encoding)

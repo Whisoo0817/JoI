@@ -1,32 +1,32 @@
-# Items the author must complete by hand (E1 breadth + depth)
+# Items the author must complete by hand (E1 breadth)
 
-Nothing below may be filled by Claude or taken from `rb_preliminary`. Until these are done, no corpus distribution and
-no final E1 adequacy number is reported.
+Status 2026-09-13: the semantic audit of the eight depth encodings is done (`depth/AUTHOR_ADJUDICATION_2026-09-13.md`,
+v2 run in `depth/RESULTS.md`). What remains is the manual corpus coding. Until it is done, no IN_SCOPE count,
+R/B distribution or other corpus statistic goes into the paper, and no kappa or inter-rater agreement is computed.
 
-## 1. Manual screening — `corpus_100.csv` / `E1_CORPUS_WORKBOOK.xlsx`
-- [ ] `screen_status` for all 100 rows (the imported values are a machine-assisted pass).
-      Note E1-095 is still `AMBIGUOUS` although its interpretation was fixed on 2026-09-13.
-- [ ] Confirm the duplicate rule on the `duplicate_family` groups; E1-039/E1-040 are similar, not duplicates.
+Paper wording is limited to: "We manually screened candidate requirements using predefined eligibility and
+duplicate criteria."
 
-## 2. Manual R/B coding
-- [ ] R1–R10 / B1–B5 (and `L-ACCUM` if kept) for all 100 rows in `rb_adjudicated`. `rb_coder_1`/`rb_coder_2` stay empty.
+## Manual corpus coding — procedure
 
-## 3. Semantic audit of the eight new depth encodings (column B, as in Stage A)
-For each case, check the IR and JoI in `depth/depth_attempts.py` against `frozen_cases/*.md`:
-- [ ] E1-092 — IR interleaving is a fair single-flow attempt; the JoI two-block deployment counts as the fallback.
-- [ ] E1-095 — "partial" (trace matches only by unrolling a literal five samples) is the right label.
-- [ ] E1-086 — cancel closes both valves; the `break` ends the single run (restart excluded).
-- [ ] E1-099 — the branch "deadline reached but motion within 2 min" is unreachable (every motion extends the
-      deadline by 2 min) and ends without Off; acceptable?
-- [ ] E1-028 — two parity-indexed timestamp slots equal "fewer than two dispenses in (t−4h, t)".
-- [ ] E1-034 — one-shot (a second 4-hour period is outside the frozen record).
-- [ ] E1-072 — sunrise/sunset as fixed 06:00/18:00 clock guards.
-- [ ] E1-062 — four guarded branches; resulting-state events 100 ms after the command.
+Work in `E1_CORPUS_WORKBOOK.xlsx` (sheet `Corpus_100`) or directly in `corpus_100.csv`; if you edit the workbook,
+copy the final values back to the CSV, which is the source file. Definitions: `E1_CORPUS_PROTOCOL.md` §2 (unit,
+duplicate rule), §4 (status values), §5 (coding); R1–R10 / B1–B5 in `../README.md`.
 
-## 4. Transcription rules to confirm (`depth/depth_cases.py`)
-- [ ] T1 (frozen t+0 = rel 1 s), T2 (1 s pulses), T5 (same-instant commands unordered), T7 (failure delivered 1 s
-      after issue terminates the issuing instance before its next step).
+For each of the 100 rows:
+1. Read `original_text` and open `source_url` at `source_locator` if the text alone is unclear.
+2. `screen_status`: choose IN_SCOPE / AMBIGUOUS / OUT_OF_SCOPE / UNMATCHED yourself. The current value is a
+   machine/GPT pass; do not copy it.
+   - [ ] **E1-095 is still `AMBIGUOUS` from the preliminary pass, but its meaning is now fixed** (five hourly samples,
+         mean at 15 h). Do not carry the preliminary label over.
+3. `duplicate_family`: keep, change or clear. It currently marks similar groups, not verified duplicates
+   (e.g. E1-039 sunset vs E1-040 19:00 are not duplicates under §2).
+4. `rb_adjudicated`: enter your R/B elements (comma-separated). `rb_preliminary` is reference only; do not copy it.
+   `rb_coder_1` / `rb_coder_2` stay empty.
+5. Leave provenance columns as they are (audited; see `audit/`).
 
-## 5. Left from the provenance audit
-- [ ] `cases.py` source names date C05/C07 as 2023-01-18 / 2024-10-20; opening posts are 2023-01-17 / 2024-10-18 UTC.
-      `cases.py` is hashed Stage A data, so only decide how the paper cites them.
+When all 100 rows are done, tell Claude; it will rebuild the workbook and compute the counts from your labels only.
+
+- [ ] screen_status × 100
+- [ ] duplicate_family reviewed
+- [ ] rb_adjudicated × 100

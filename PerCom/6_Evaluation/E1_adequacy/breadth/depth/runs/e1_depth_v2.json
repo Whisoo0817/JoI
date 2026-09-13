@@ -1,0 +1,2188 @@
+[
+ {
+  "id": "E1-092",
+  "label": "complete via multi-Timeline decomposition",
+  "label_reason": "The two flows share no state, join or ordering, so they are deployed as two Timeline IRs with the same trigger. Under rule T7 the injected Alexa failure stops only automation A. This is not fork-join or shared-state parallelism inside one Timeline; v1 (single Timeline, 0/1) stays recorded.",
+  "source": "v2 encoding",
+  "v2_changes": [
+   "record unchanged; v2 encodes two independent automations (author adjudication)"
+  ],
+  "automations": [
+   {
+    "name": "A_alexa",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "House.ShutdownRequested == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Alexa.AnnounceTasks",
+       "args": {}
+      },
+      {
+       "op": "delay",
+       "duration": "1 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Alexa.AnnounceNews",
+       "args": {}
+      },
+      {
+       "op": "delay",
+       "duration": "1 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Alexa.AnnounceAlarmSettings",
+       "args": {}
+      }
+     ]
+    },
+    "binding": {
+     "House": [
+      "House_Hub"
+     ],
+     "Alexa": [
+      "Echo"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "EQUIV",
+     "claim": "EQUIV-FIXPOINT",
+     "closed": true,
+     "notes": [
+      "contract-v1: input grid + exact deadlines; concrete state BFS",
+      "silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded",
+      "explicit external input domains (no value reduction)"
+     ],
+     "seconds": 0.0
+    },
+    "explorer_ir_vs_joi": {
+     "verdict": "EQUIV",
+     "claim": "EQUIV-FIXPOINT",
+     "closed": true,
+     "seconds": 0.0
+    }
+   },
+   {
+    "name": "B_house",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "House.ShutdownRequested == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Lights.Off",
+       "args": {
+        "Area": "downstairs"
+       }
+      },
+      {
+       "op": "delay",
+       "duration": "1 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Locks.Lock",
+       "args": {
+        "Doors": "front, back"
+       }
+      },
+      {
+       "op": "delay",
+       "duration": "1 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Alarm.Set",
+       "args": {
+        "Mode": "armed"
+       }
+      }
+     ]
+    },
+    "binding": {
+     "House": [
+      "House_Hub"
+     ],
+     "Lights": [
+      "Downstairs_Lights"
+     ],
+     "Locks": [
+      "Door_Locks"
+     ],
+     "Alarm": [
+      "Alarm_Panel"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "EQUIV",
+     "claim": "EQUIV-FIXPOINT",
+     "closed": true,
+     "notes": [
+      "contract-v1: input grid + exact deadlines; concrete state BFS",
+      "silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded",
+      "explicit external input domains (no value reduction)"
+     ],
+     "seconds": 0.0
+    },
+    "explorer_ir_vs_joi": {
+     "verdict": "EQUIV",
+     "claim": "EQUIV-FIXPOINT",
+     "closed": true,
+     "seconds": 0.0
+    }
+   }
+  ],
+  "histories": [
+   {
+    "name": "alexa_news_fails",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [
+     {
+      "instance": 0,
+      "issued_ms": 2000,
+      "failure_delivered_ms": 3000,
+      "command": "alexa.announcenews"
+     }
+    ],
+    "expected": [
+     [
+      1000,
+      "alexa",
+      "announcetasks",
+      [],
+      [
+       "Echo"
+      ]
+     ],
+     [
+      1000,
+      "lights",
+      "off",
+      [
+       "downstairs"
+      ],
+      [
+       "Downstairs_Lights"
+      ]
+     ],
+     [
+      2000,
+      "alexa",
+      "announcenews",
+      [],
+      [
+       "Echo"
+      ]
+     ],
+     [
+      2000,
+      "locks",
+      "lock",
+      [
+       "front, back"
+      ],
+      [
+       "Door_Locks"
+      ]
+     ],
+     [
+      3000,
+      "alarm",
+      "set",
+      [
+       "armed"
+      ],
+      [
+       "Alarm_Panel"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "alexa",
+      "announcetasks",
+      [],
+      [
+       "Echo"
+      ],
+      "instance 0"
+     ],
+     [
+      1000,
+      "lights",
+      "off",
+      [
+       "downstairs"
+      ],
+      [
+       "Downstairs_Lights"
+      ],
+      "instance 1"
+     ],
+     [
+      2000,
+      "alexa",
+      "announcenews",
+      [],
+      [
+       "Echo"
+      ],
+      "instance 0"
+     ],
+     [
+      2000,
+      "locks",
+      "lock",
+      [
+       "front, back"
+      ],
+      [
+       "Door_Locks"
+      ],
+      "instance 1"
+     ],
+     [
+      3000,
+      "alarm",
+      "set",
+      [
+       "armed"
+      ],
+      [
+       "Alarm_Panel"
+      ],
+      "instance 1"
+     ]
+    ]
+   }
+  ],
+  "match": "1/1",
+  "exact": "1/1",
+  "joi": {
+   "blocks": [
+    "alexa_flow",
+    "house_flow"
+   ],
+   "histories": [
+    {
+     "name": "alexa_news_fails",
+     "kind": "boundary",
+     "exact": true,
+     "match": true,
+     "missing": [],
+     "extra": [],
+     "faults": [
+      {
+       "instance": 0,
+       "issued_ms": 2000,
+       "failure_delivered_ms": 3000,
+       "command": "alexa.announcenews"
+      }
+     ],
+     "expected": [
+      [
+       1000,
+       "alexa",
+       "announcetasks",
+       [],
+       [
+        "Echo"
+       ]
+      ],
+      [
+       1000,
+       "lights",
+       "off",
+       [
+        "downstairs"
+       ],
+       [
+        "Downstairs_Lights"
+       ]
+      ],
+      [
+       2000,
+       "alexa",
+       "announcenews",
+       [],
+       [
+        "Echo"
+       ]
+      ],
+      [
+       2000,
+       "locks",
+       "lock",
+       [
+        "front, back"
+       ],
+       [
+        "Door_Locks"
+       ]
+      ],
+      [
+       3000,
+       "alarm",
+       "set",
+       [
+        "armed"
+       ],
+       [
+        "Alarm_Panel"
+       ]
+      ]
+     ],
+     "actual": [
+      [
+       1000,
+       "alexa",
+       "announcetasks",
+       [],
+       [
+        "Echo"
+       ],
+       "instance 0"
+      ],
+      [
+       1000,
+       "lights",
+       "off",
+       [
+        "downstairs"
+       ],
+       [
+        "Downstairs_Lights"
+       ],
+       "instance 1"
+      ],
+      [
+       2000,
+       "alexa",
+       "announcenews",
+       [],
+       [
+        "Echo"
+       ],
+       "instance 0"
+      ],
+      [
+       2000,
+       "locks",
+       "lock",
+       [
+        "front, back"
+       ],
+       [
+        "Door_Locks"
+       ],
+       "instance 1"
+      ],
+      [
+       3000,
+       "alarm",
+       "set",
+       [
+        "armed"
+       ],
+       [
+        "Alarm_Panel"
+       ],
+       "instance 1"
+      ]
+     ]
+    }
+   ],
+   "match": "1/1",
+   "exact": "1/1"
+  },
+  "fixture_catalog_sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+ },
+ {
+  "id": "E1-095",
+  "label": "complete for fixed-cardinality aggregation",
+  "label_reason": "Five snapshot reads at 10-14 h and (v1+...+v5)/5 at 15 h satisfy the fixed interpretation. The refused accumulator attempt in v1 is kept as evidence of a separate boundary: no general mutable accumulator or input-dependent aggregation inside Timeline IR (general statistics are delegated to a backend service).",
+  "source": "v1 IR reused unchanged",
+  "v2_changes": [],
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "Clock.Hour == 10",
+         "edge": "none"
+        },
+        {
+         "op": "read",
+         "var": "ph1",
+         "src": "PoolPH.Value"
+        },
+        {
+         "op": "read",
+         "var": "cl1",
+         "src": "PoolChlorine.Value"
+        },
+        {
+         "op": "delay",
+         "duration": "1 HOUR"
+        },
+        {
+         "op": "read",
+         "var": "ph2",
+         "src": "PoolPH.Value"
+        },
+        {
+         "op": "read",
+         "var": "cl2",
+         "src": "PoolChlorine.Value"
+        },
+        {
+         "op": "delay",
+         "duration": "1 HOUR"
+        },
+        {
+         "op": "read",
+         "var": "ph3",
+         "src": "PoolPH.Value"
+        },
+        {
+         "op": "read",
+         "var": "cl3",
+         "src": "PoolChlorine.Value"
+        },
+        {
+         "op": "delay",
+         "duration": "1 HOUR"
+        },
+        {
+         "op": "read",
+         "var": "ph4",
+         "src": "PoolPH.Value"
+        },
+        {
+         "op": "read",
+         "var": "cl4",
+         "src": "PoolChlorine.Value"
+        },
+        {
+         "op": "delay",
+         "duration": "1 HOUR"
+        },
+        {
+         "op": "read",
+         "var": "ph5",
+         "src": "PoolPH.Value"
+        },
+        {
+         "op": "read",
+         "var": "cl5",
+         "src": "PoolChlorine.Value"
+        },
+        {
+         "op": "delay",
+         "duration": "1 HOUR"
+        },
+        {
+         "op": "call",
+         "target": "Pool.ReportDailyQuality",
+         "args": {
+          "MeanPH": "($ph1 + $ph2 + $ph3 + $ph4 + $ph5) / 5",
+          "MeanChlorine": "($cl1 + $cl2 + $cl3 + $cl4 + $cl5) / 5"
+         }
+        },
+        {
+         "op": "wait",
+         "cond": "Clock.Hour != 15",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "PoolPH": [
+      "Pool_PH"
+     ],
+     "PoolChlorine": [
+      "Pool_Chlorine"
+     ],
+     "Pool": [
+      "Pool_Report"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "REFUSED",
+     "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value"
+    }
+   }
+  ],
+  "histories": [
+   {
+    "name": "five_readings_one_day",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      18001000,
+      "pool",
+      "reportdailyquality",
+      [
+       7.3,
+       1.1
+      ],
+      [
+       "Pool_Report"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      18001000,
+      "pool",
+      "reportdailyquality",
+      [
+       7.3,
+       1.1
+      ],
+      [
+       "Pool_Report"
+      ],
+      "instance 0"
+     ]
+    ]
+   }
+  ],
+  "match": "1/1",
+  "exact": "1/1",
+  "fixture_catalog_sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+ },
+ {
+  "id": "E1-086",
+  "label": "complete",
+  "label_reason": "Approved as v1: timeout-abort stages; switching off cancels and closes both zones.",
+  "source": "v1 IR reused unchanged",
+  "v2_changes": [],
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "Switch.Switch == true",
+         "edge": "rising"
+        },
+        {
+         "op": "call",
+         "target": "Valve.Open",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "Switch.Switch == false",
+         "edge": "none",
+         "timeout": "10 MIN"
+        },
+        {
+         "op": "if",
+         "cond": "Switch.Switch == false",
+         "then": [
+          {
+           "op": "call",
+           "target": "Valve.Close",
+           "args": {}
+          },
+          {
+           "op": "call",
+           "target": "Valve.Close",
+           "args": {}
+          },
+          {
+           "op": "break"
+          }
+         ]
+        },
+        {
+         "op": "call",
+         "target": "Valve.Close",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "Switch.Switch == false",
+         "edge": "none",
+         "timeout": "30 SEC"
+        },
+        {
+         "op": "if",
+         "cond": "Switch.Switch == false",
+         "then": [
+          {
+           "op": "call",
+           "target": "Valve.Close",
+           "args": {}
+          },
+          {
+           "op": "call",
+           "target": "Valve.Close",
+           "args": {}
+          },
+          {
+           "op": "break"
+          }
+         ]
+        },
+        {
+         "op": "call",
+         "target": "Valve.Open",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "Switch.Switch == false",
+         "edge": "none",
+         "timeout": "10 MIN"
+        },
+        {
+         "op": "if",
+         "cond": "Switch.Switch == false",
+         "then": [
+          {
+           "op": "call",
+           "target": "Valve.Close",
+           "args": {}
+          },
+          {
+           "op": "call",
+           "target": "Valve.Close",
+           "args": {}
+          },
+          {
+           "op": "break"
+          }
+         ]
+        },
+        {
+         "op": "call",
+         "target": "Valve.Close",
+         "args": {}
+        },
+        {
+         "op": "break"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "Switch": [
+      "Sprinkler_Run"
+     ],
+     "Valve": [
+      "Zone1_Valve"
+     ],
+     "Valve#2": [
+      "Zone1_Valve"
+     ],
+     "Valve#3": [
+      "Zone2_Valve"
+     ],
+     "Valve#4": [
+      "Zone1_Valve"
+     ],
+     "Valve#5": [
+      "Zone1_Valve"
+     ],
+     "Valve#6": [
+      "Zone2_Valve"
+     ],
+     "Valve#7": [
+      "Zone2_Valve"
+     ],
+     "Valve#8": [
+      "Zone1_Valve"
+     ],
+     "Valve#9": [
+      "Zone2_Valve"
+     ],
+     "Valve#10": [
+      "Zone2_Valve"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "EQUIV",
+     "claim": "EQUIV-FIXPOINT",
+     "closed": true,
+     "notes": [
+      "contract-v1: input grid + exact deadlines; concrete state BFS",
+      "silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded",
+      "explicit external input domains (no value reduction)"
+     ],
+     "seconds": 2.0
+    }
+   }
+  ],
+  "histories": [
+   {
+    "name": "cancel_during_zone1",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "valve",
+      "open",
+      [],
+      [
+       "Zone1_Valve"
+      ]
+     ],
+     [
+      301000,
+      "valve",
+      "close",
+      [],
+      [
+       "Zone1_Valve"
+      ]
+     ],
+     [
+      301000,
+      "valve",
+      "close",
+      [],
+      [
+       "Zone2_Valve"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "valve",
+      "open",
+      [],
+      [
+       "Zone1_Valve"
+      ],
+      "instance 0"
+     ],
+     [
+      301000,
+      "valve",
+      "close",
+      [],
+      [
+       "Zone1_Valve"
+      ],
+      "instance 0"
+     ],
+     [
+      301000,
+      "valve",
+      "close",
+      [],
+      [
+       "Zone2_Valve"
+      ],
+      "instance 0"
+     ]
+    ]
+   }
+  ],
+  "match": "1/1",
+  "exact": "1/1",
+  "fixture_catalog_sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+ },
+ {
+  "id": "E1-099",
+  "label": "complete",
+  "label_reason": "Same deadline arithmetic as v1; the branch order now tests motion before the deadline.",
+  "source": "v2 encoding",
+  "v2_changes": [
+   "added same-instant history; motion-first interpretation"
+  ],
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "Switch.Switch == true",
+         "edge": "rising"
+        },
+        {
+         "op": "read",
+         "var": "t_on",
+         "src": "Clock.Timestamp"
+        },
+        {
+         "op": "cycle",
+         "until": null,
+         "period": "0 MSEC",
+         "count": "k",
+         "body": [
+          {
+           "op": "wait",
+           "cond": "MotionSensor.Motion == true or Clock.Timestamp >= $t_on + 300 + 120 * $k",
+           "edge": "none"
+          },
+          {
+           "op": "if",
+           "cond": "MotionSensor.Motion == true",
+           "then": [
+            {
+             "op": "read",
+             "var": "t_m",
+             "src": "Clock.Timestamp"
+            },
+            {
+             "op": "wait",
+             "cond": "MotionSensor.Motion == false",
+             "edge": "none"
+            }
+           ],
+           "else": [
+            {
+             "op": "if",
+             "cond": "$t_m == null or Clock.Timestamp - $t_m >= 120",
+             "then": [
+              {
+               "op": "call",
+               "target": "Switch.Off",
+               "args": {}
+              }
+             ]
+            },
+            {
+             "op": "break"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "Switch": [
+      "Hall_Light"
+     ],
+     "MotionSensor": [
+      "Hall_Motion"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "REFUSED",
+     "reason": "Unsupported: 미지원 무늬(fail-closed): joint-guard: (clock.timestamp >= (($t_on + 300) + (120 * $k))); joint-guard: ((clock.timestamp - $t_m) >= 120); joint-guard: (clock.timestamp >= (($t_on + 300) + (120 * $k))); joint-guard: ((clock.timestamp - $t_m) >= 120)"
+    }
+   }
+  ],
+  "histories": [
+   {
+    "name": "two_motions_extend",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      541000,
+      "switch",
+      "off",
+      [],
+      [
+       "Hall_Light"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      541000,
+      "switch",
+      "off",
+      [],
+      [
+       "Hall_Light"
+      ],
+      "instance 0"
+     ]
+    ]
+   },
+   {
+    "name": "motion_at_deadline_instant",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      421000,
+      "switch",
+      "off",
+      [],
+      [
+       "Hall_Light"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      421000,
+      "switch",
+      "off",
+      [],
+      [
+       "Hall_Light"
+      ],
+      "instance 0"
+     ]
+    ]
+   }
+  ],
+  "match": "2/2",
+  "exact": "2/2",
+  "v1_on_added_histories": {
+   "histories": [
+    {
+     "name": "motion_at_deadline_instant",
+     "kind": "boundary",
+     "exact": false,
+     "match": false,
+     "missing": [
+      [
+       421000,
+       "switch",
+       "off",
+       [],
+       [
+        "Hall_Light"
+       ]
+      ]
+     ],
+     "extra": [
+      [
+       301000,
+       "switch",
+       "off",
+       [],
+       [
+        "Hall_Light"
+       ]
+      ]
+     ],
+     "faults": [],
+     "expected": [
+      [
+       421000,
+       "switch",
+       "off",
+       [],
+       [
+        "Hall_Light"
+       ]
+      ]
+     ],
+     "actual": [
+      [
+       301000,
+       "switch",
+       "off",
+       [],
+       [
+        "Hall_Light"
+       ],
+       "instance 0"
+      ]
+     ]
+    }
+   ],
+   "match": "0/1",
+   "exact": "0/1"
+  },
+  "fixture_catalog_sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+ },
+ {
+  "id": "E1-028",
+  "label": "complete for the fixed bound of two",
+  "label_reason": "Two parity-indexed timestamp slots are equivalent to 'fewer than two dispenses in the rolling 4 h' for bound 2 only.",
+  "source": "v1 IR reused unchanged",
+  "v2_changes": [],
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "count": "n",
+       "body": [
+        {
+         "op": "cycle",
+         "until": null,
+         "period": "0 MSEC",
+         "body": [
+          {
+           "op": "wait",
+           "cond": "Feeder.DispenseRequested == true",
+           "edge": "rising"
+          },
+          {
+           "op": "if",
+           "cond": "$ta == null or Clock.Timestamp - $ta >= 14400 or $tb == null or Clock.Timestamp - $tb >= 14400",
+           "then": [
+            {
+             "op": "break"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "op": "call",
+         "target": "Feeder.Dispense",
+         "args": {
+          "Portion": "one_bowl"
+         }
+        },
+        {
+         "op": "if",
+         "cond": "$n % 2 == 0",
+         "then": [
+          {
+           "op": "read",
+           "var": "ta",
+           "src": "Clock.Timestamp"
+          }
+         ],
+         "else": [
+          {
+           "op": "read",
+           "var": "tb",
+           "src": "Clock.Timestamp"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "Feeder": [
+      "Pet_Feeder"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "REFUSED",
+     "reason": "Unsupported: 미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $ta) >= 14400); joint-guard: ((clock.timestamp - $tb) >= 14400); derived-guard: (($n % 2) == 0); joint-guard: ((clock.timestamp - $ta) >= 14400) 외 2건"
+    }
+   }
+  ],
+  "histories": [
+   {
+    "name": "third_request_rejected_fourth_after_expiry",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "feeder",
+      "dispense",
+      [
+       "one_bowl"
+      ],
+      [
+       "Pet_Feeder"
+      ]
+     ],
+     [
+      3601000,
+      "feeder",
+      "dispense",
+      [
+       "one_bowl"
+      ],
+      [
+       "Pet_Feeder"
+      ]
+     ],
+     [
+      14401000,
+      "feeder",
+      "dispense",
+      [
+       "one_bowl"
+      ],
+      [
+       "Pet_Feeder"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "feeder",
+      "dispense",
+      [
+       "one_bowl"
+      ],
+      [
+       "Pet_Feeder"
+      ],
+      "instance 0"
+     ],
+     [
+      3601000,
+      "feeder",
+      "dispense",
+      [
+       "one_bowl"
+      ],
+      [
+       "Pet_Feeder"
+      ],
+      "instance 0"
+     ],
+     [
+      14401000,
+      "feeder",
+      "dispense",
+      [
+       "one_bowl"
+      ],
+      [
+       "Pet_Feeder"
+      ],
+      "instance 0"
+     ]
+    ]
+   }
+  ],
+  "match": "1/1",
+  "exact": "1/1",
+  "fixture_catalog_sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+ },
+ {
+  "id": "E1-034",
+  "label": "complete",
+  "label_reason": "A cycle repeats: sustained 4 h wait, alert, confirmation wait with a 1-minute timeout whose branch turns the oven off. A confirmation ends the iteration, so the next 4 h wait starts at that instant.",
+  "source": "v2 encoding",
+  "v2_changes": [
+   "repeating policy; added confirm -> restart -> no response history"
+  ],
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "Oven.State == true",
+         "edge": "none",
+         "for": "4 HOUR"
+        },
+        {
+         "op": "call",
+         "target": "Notify.OvenOverrun",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "Notify.ConfirmContinue == true",
+         "edge": "none",
+         "timeout": "1 MIN",
+         "on_timeout": [
+          {
+           "op": "call",
+           "target": "Oven.Off",
+           "args": {}
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "Oven": [
+      "Kitchen_Oven"
+     ],
+     "Notify": [
+      "Owner_Phone"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "EQUIV",
+     "claim": "EQUIV-FIXPOINT",
+     "closed": true,
+     "notes": [
+      "contract-v1: input grid + exact deadlines; concrete state BFS",
+      "silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded",
+      "explicit external input domains (no value reduction)"
+     ],
+     "seconds": 60.41
+    }
+   }
+  ],
+  "histories": [
+   {
+    "name": "A_no_response",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      14401000,
+      "notify",
+      "ovenoverrun",
+      [],
+      [
+       "Owner_Phone"
+      ]
+     ],
+     [
+      14461000,
+      "oven",
+      "off",
+      [],
+      [
+       "Kitchen_Oven"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      14401000,
+      "notify",
+      "ovenoverrun",
+      [],
+      [
+       "Owner_Phone"
+      ],
+      "instance 0"
+     ],
+     [
+      14461000,
+      "oven",
+      "off",
+      [],
+      [
+       "Kitchen_Oven"
+      ],
+      "instance 0"
+     ]
+    ]
+   },
+   {
+    "name": "B_response_within_minute",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      14401000,
+      "notify",
+      "ovenoverrun",
+      [],
+      [
+       "Owner_Phone"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      14401000,
+      "notify",
+      "ovenoverrun",
+      [],
+      [
+       "Owner_Phone"
+      ],
+      "instance 0"
+     ]
+    ]
+   },
+   {
+    "name": "C_confirm_restart_then_no_response",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      14401000,
+      "notify",
+      "ovenoverrun",
+      [],
+      [
+       "Owner_Phone"
+      ]
+     ],
+     [
+      28831000,
+      "notify",
+      "ovenoverrun",
+      [],
+      [
+       "Owner_Phone"
+      ]
+     ],
+     [
+      28891000,
+      "oven",
+      "off",
+      [],
+      [
+       "Kitchen_Oven"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      14401000,
+      "notify",
+      "ovenoverrun",
+      [],
+      [
+       "Owner_Phone"
+      ],
+      "instance 0"
+     ],
+     [
+      28831000,
+      "notify",
+      "ovenoverrun",
+      [],
+      [
+       "Owner_Phone"
+      ],
+      "instance 0"
+     ],
+     [
+      28891000,
+      "oven",
+      "off",
+      [],
+      [
+       "Kitchen_Oven"
+      ],
+      "instance 0"
+     ]
+    ]
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "v1_on_added_histories": {
+   "histories": [
+    {
+     "name": "C_confirm_restart_then_no_response",
+     "kind": "boundary",
+     "exact": false,
+     "match": false,
+     "missing": [
+      [
+       28831000,
+       "notify",
+       "ovenoverrun",
+       [],
+       [
+        "Owner_Phone"
+       ]
+      ],
+      [
+       28891000,
+       "oven",
+       "off",
+       [],
+       [
+        "Kitchen_Oven"
+       ]
+      ]
+     ],
+     "extra": [],
+     "faults": [],
+     "expected": [
+      [
+       14401000,
+       "notify",
+       "ovenoverrun",
+       [],
+       [
+        "Owner_Phone"
+       ]
+      ],
+      [
+       28831000,
+       "notify",
+       "ovenoverrun",
+       [],
+       [
+        "Owner_Phone"
+       ]
+      ],
+      [
+       28891000,
+       "oven",
+       "off",
+       [],
+       [
+        "Kitchen_Oven"
+       ]
+      ]
+     ],
+     "actual": [
+      [
+       14401000,
+       "notify",
+       "ovenoverrun",
+       [],
+       [
+        "Owner_Phone"
+       ],
+       "instance 0"
+      ]
+     ]
+    }
+   ],
+   "match": "0/1",
+   "exact": "0/1"
+  },
+  "fixture_catalog_sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+ },
+ {
+  "id": "E1-072",
+  "label": "complete",
+  "label_reason": "Same presence-transition snapshot as v1; the time guards read Sun.IsDaylight instead of literal hours.",
+  "source": "v2 encoding",
+  "v2_changes": [
+   "daylight environment input; added later-sunrise history"
+  ],
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "read",
+         "var": "p_prev",
+         "src": "PresenceSensor.Presence"
+        },
+        {
+         "op": "wait",
+         "cond": "PresenceSensor.Presence != $p_prev",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "PresenceSensor.Presence == true and Sun.IsDaylight == false",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.On",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "if",
+         "cond": "PresenceSensor.Presence == false and Sun.IsDaylight == true",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "PresenceSensor": [
+      "Home_Presence"
+     ],
+     "Sun": [
+      "Sun_Env"
+     ],
+     "Switch": [
+      "Light1",
+      "Light2"
+     ],
+     "Switch#2": [
+      "Light1",
+      "Light2",
+      "Light3"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "EQUIV",
+     "claim": "EQUIV-FIXPOINT",
+     "closed": true,
+     "notes": [
+      "contract-v1: input grid + exact deadlines; concrete state BFS",
+      "silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded",
+      "explicit external input domains (no value reduction)"
+     ],
+     "seconds": 0.0
+    }
+   }
+  ],
+  "histories": [
+   {
+    "name": "night_home_then_day_away",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "switch",
+      "on",
+      [],
+      [
+       "Light1"
+      ]
+     ],
+     [
+      1000,
+      "switch",
+      "on",
+      [],
+      [
+       "Light2"
+      ]
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light1"
+      ]
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light2"
+      ]
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light3"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "switch",
+      "on",
+      [],
+      [
+       "Light1"
+      ],
+      "instance 0"
+     ],
+     [
+      1000,
+      "switch",
+      "on",
+      [],
+      [
+       "Light2"
+      ],
+      "instance 0"
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light1"
+      ],
+      "instance 0"
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light2"
+      ],
+      "instance 0"
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light3"
+      ],
+      "instance 0"
+     ]
+    ]
+   },
+   {
+    "name": "later_sunrise_from_environment",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      43201000,
+      "switch",
+      "on",
+      [],
+      [
+       "Light1"
+      ]
+     ],
+     [
+      43201000,
+      "switch",
+      "on",
+      [],
+      [
+       "Light2"
+      ]
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light1"
+      ]
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light2"
+      ]
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light3"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      43201000,
+      "switch",
+      "on",
+      [],
+      [
+       "Light1"
+      ],
+      "instance 0"
+     ],
+     [
+      43201000,
+      "switch",
+      "on",
+      [],
+      [
+       "Light2"
+      ],
+      "instance 0"
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light1"
+      ],
+      "instance 0"
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light2"
+      ],
+      "instance 0"
+     ],
+     [
+      46801000,
+      "switch",
+      "off",
+      [],
+      [
+       "Light3"
+      ],
+      "instance 0"
+     ]
+    ]
+   }
+  ],
+  "match": "2/2",
+  "exact": "2/2",
+  "v1_on_added_histories": {
+   "histories": [
+    {
+     "name": "later_sunrise_from_environment",
+     "kind": "boundary",
+     "exact": false,
+     "match": false,
+     "missing": [
+      [
+       43201000,
+       "switch",
+       "on",
+       [],
+       [
+        "Light1"
+       ]
+      ],
+      [
+       43201000,
+       "switch",
+       "on",
+       [],
+       [
+        "Light2"
+       ]
+      ]
+     ],
+     "extra": [],
+     "faults": [],
+     "expected": [
+      [
+       43201000,
+       "switch",
+       "on",
+       [],
+       [
+        "Light1"
+       ]
+      ],
+      [
+       43201000,
+       "switch",
+       "on",
+       [],
+       [
+        "Light2"
+       ]
+      ],
+      [
+       46801000,
+       "switch",
+       "off",
+       [],
+       [
+        "Light1"
+       ]
+      ],
+      [
+       46801000,
+       "switch",
+       "off",
+       [],
+       [
+        "Light2"
+       ]
+      ],
+      [
+       46801000,
+       "switch",
+       "off",
+       [],
+       [
+        "Light3"
+       ]
+      ]
+     ],
+     "actual": [
+      [
+       46801000,
+       "switch",
+       "off",
+       [],
+       [
+        "Light1"
+       ],
+       "instance 0"
+      ],
+      [
+       46801000,
+       "switch",
+       "off",
+       [],
+       [
+        "Light2"
+       ],
+       "instance 0"
+      ],
+      [
+       46801000,
+       "switch",
+       "off",
+       [],
+       [
+        "Light3"
+       ],
+       "instance 0"
+      ]
+     ]
+    }
+   ],
+   "match": "0/1",
+   "exact": "0/1"
+  },
+  "fixture_catalog_sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+ },
+ {
+  "id": "E1-062",
+  "label": "complete",
+  "label_reason": "Approved as v1: previous-state snapshot, four guarded branches, no feedback commands.",
+  "source": "v1 IR reused unchanged",
+  "v2_changes": [],
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "read",
+         "var": "a_prev",
+         "src": "Switch.Switch"
+        },
+        {
+         "op": "read",
+         "var": "b_prev",
+         "src": "Switch.Switch"
+        },
+        {
+         "op": "wait",
+         "cond": "Switch.Switch != $a_prev or Switch.Switch != $b_prev",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "Switch.Switch == true and $a_prev == false and Switch.Switch == false",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.On",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "if",
+         "cond": "Switch.Switch == false and $a_prev == true and Switch.Switch == true",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "if",
+         "cond": "Switch.Switch == true and $b_prev == false and Switch.Switch == false",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.On",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "if",
+         "cond": "Switch.Switch == false and $b_prev == true and Switch.Switch == true",
+         "then": [
+          {
+           "op": "call",
+           "target": "Switch.Off",
+           "args": {}
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "Switch": [
+      "LightA"
+     ],
+     "Switch#2": [
+      "LightB"
+     ],
+     "Switch#3": [
+      "LightA"
+     ],
+     "Switch#4": [
+      "LightB"
+     ],
+     "Switch#5": [
+      "LightA"
+     ],
+     "Switch#6": [
+      "LightB"
+     ],
+     "Switch#7": [
+      "LightB"
+     ],
+     "Switch#8": [
+      "LightA"
+     ],
+     "Switch#9": [
+      "LightB"
+     ],
+     "Switch#10": [
+      "LightB"
+     ],
+     "Switch#11": [
+      "LightB"
+     ],
+     "Switch#12": [
+      "LightA"
+     ],
+     "Switch#13": [
+      "LightA"
+     ],
+     "Switch#14": [
+      "LightB"
+     ],
+     "Switch#15": [
+      "LightA"
+     ],
+     "Switch#16": [
+      "LightA"
+     ]
+    },
+    "frontend": "accepted",
+    "runner": "compiled",
+    "explorer_self": {
+     "verdict": "EQUIV",
+     "claim": "EQUIV-FIXPOINT",
+     "closed": true,
+     "notes": [
+      "contract-v1: input grid + exact deadlines; concrete state BFS",
+      "silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded",
+      "explicit external input domains (no value reduction)"
+     ],
+     "seconds": 0.0
+    }
+   }
+  ],
+  "histories": [
+   {
+    "name": "copy_both_directions_no_feedback",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "switch",
+      "on",
+      [],
+      [
+       "LightB"
+      ]
+     ],
+     [
+      61000,
+      "switch",
+      "off",
+      [],
+      [
+       "LightA"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "switch",
+      "on",
+      [],
+      [
+       "LightB"
+      ],
+      "instance 0"
+     ],
+     [
+      61000,
+      "switch",
+      "off",
+      [],
+      [
+       "LightA"
+      ],
+      "instance 0"
+     ]
+    ]
+   }
+  ],
+  "match": "1/1",
+  "exact": "1/1",
+  "fixture_catalog_sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+ }
+]
