@@ -1,5 +1,9 @@
 # 타이머 작업 결과 — 2026-09-14
 
+이 문서는 timer-v2 당시 기록이다. 후속 전체 142쌍 평가와 두 유형의 한계
+분류는 [EXTENSION_RESULT.md](EXTENSION_RESULT.md), E2 담당 인계는
+[EXTENSION_HANDOFF.md](EXTENSION_HANDOFF.md)를 따른다.
+
 별도 worktree `/home/gnltnwjstk/joi-timer-regions`, 브랜치 `timer-regions-20260914`.
 상속한 Explorer 변경의 기준 커밋은 `580053a`다. 원래 작업 폴더를 수정하지 않았다.
 타이머 구현·테스트·증명 문서는 커밋 `552e4ba`로 분리했다.

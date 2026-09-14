@@ -1,5 +1,9 @@
 # 인계: Explorer 타이머 이산화 (2026-09-14)
 
+후속 구현·전체 재평가: [EXTENSION_RESULT.md](EXTENSION_RESULT.md).
+새 E2 모집단과 독립 확인 인계: [EXTENSION_HANDOFF.md](EXTENSION_HANDOFF.md).
+아래는 최초 인계 시점의 요청·제약을 보존한 기록이다.
+
 받는 쪽: 타이머 이산화를 맡을 AI. 작성: E2 담당 세션(Claude). 결정권자: whisoo.
 
 ## 0. 한 줄 요약

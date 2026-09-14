@@ -53,6 +53,8 @@ def main():
     parser.add_argument('--out', type=Path, required=True)
     parser.add_argument('--workers', type=int, default=4)
     parser.add_argument('--targets-only', action='store_true')
+    parser.add_argument('--all-pairs', action='store_true')
+    parser.add_argument('--only', nargs='+')
     args = parser.parse_args()
     baseline_path = E2 / 'runs/e2_run.ref-current-supp.jsonl.gz'
     with gzip.open(baseline_path, 'rt') as f:
@@ -66,6 +68,8 @@ def main():
         ident for ident, r in baseline.items() if r['explorer']['verdict'] in ('EQUIV', 'DIVERGE')})
     assert {p['pair_id'] for p in selected} == expected
     assert len(selected) == len(expected)
+    if args.all_pairs: selected = pairs
+    if args.only: selected = [p for p in pairs if p['pair_id'] in args.only]
     args.out.parent.mkdir(parents=True, exist_ok=True)
     started = time.time()
     with args.out.open('x') as output:
