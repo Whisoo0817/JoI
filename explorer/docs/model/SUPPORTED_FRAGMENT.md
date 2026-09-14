@@ -1,5 +1,13 @@
 # SUPPORTED_FRAGMENT — 검증기가 EQUIV를 주장할 수 있는 프로그램 조각
 
+2026-09-14 추가: `timer-zones-v1`은 JoI period=입력 격자이고 모든 IR 마감이
+그 격자에 놓이는 경우, 비교 전용 정수 증가 카운터와 내부 타이머의 차이
+관계를 확대·재검사한다. 전역 미사용 plain Clock READ는 상태 관계에서
+제외한다. 실제 달력 읽기, timestamp snapshot, JoI blocking/loop, 이름 있는
+IR 카운터, GV, IR 질의/매개변수 질의, 타이머 값의 ACTION/다른 변수 유출은 새 경로에서
+거절한다. 미결정이면 기존 경로를 유지한다. 적용 조건과 증명은
+[TIMER_ZONES.md](../proof/TIMER_ZONES.md)를 따른다.
+
 작성 2026-09-02 (P1). 이 문서는 **코드가 실제로 검사하는 것**과 1:1로
 맞춘 계약이다. 조각 밖 프로그램은 탐색 전에 `Unsupported`로 거절되고
 게이트에서 REFUSED가 된다 — 허위 EQUIV(놓친 차이)는 금지, 허위
@@ -106,8 +114,10 @@ foreach 내부 break/blocking/nesting/iterator 쓰기는 미인증 의미로 거
   - 맨 truthy 읽기/bool 변수
 - **상태 변수**: bool 래치, 리터럴 유한 enum, counter(갱신이 `= 상수`
   또는 `자기 ± 상수`뿐이고 **비교 전용**일 때), 타임스탬프 레지스터.
-  새 timed 경로는 구체 값을 보존한다. counter 포화/zone 정규화는 구 경로의 방식이다.
-- **타이머 여러 개**: 새 timed 경로는 양쪽 timer의 정확한 시각을 보존한다.
+  기본 timed BFS는 구체 값을 보존한다. 위 조건에서는 timer-zones-v1의
+  과근사 관계 증명을 먼저 시도한다. 단순 counter 포화는 구 경로의 방식이다.
+- **타이머 여러 개**: 기본 timed BFS는 양쪽 timer의 정확한 시각을 보존한다.
+  timer-zones-v1은 위 적용 범위 안에서 여러 좌표의 쌍별 차이를 함께 보존한다.
   구 경로는 쌍별 마감 차이 구간(deadline region, §9.18 ②)을 사용한다.
   상태 폭발 시 cap → UNKNOWN → REFUSED.
 - **질의 읽기**: 인자가 전부 리터럴인 경우. 이전 루프 범위 휴리스틱은

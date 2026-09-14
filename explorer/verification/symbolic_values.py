@@ -71,6 +71,9 @@ def text_join(values):
 
 
 def symbolic_add(left, right):
+    if getattr(left, '_timer', False) or getattr(right, '_timer', False):
+        from explorer.verification.timer_domain import Number
+        return Number.of(left) + Number.of(right)
     if getattr(left, '_relational', False) or getattr(right, '_relational', False):
         from explorer.verification.relational_values import add
         return add(left, right)

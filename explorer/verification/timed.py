@@ -9,6 +9,10 @@ rebases interpreter-owned timers when neither program reads the clock;
 program-visible values are never saturated or discarded. Catalog-proved constant
 integer comparisons may discharge clock dependence; otherwise absolute time is
 retained and resource exhaustion is INCONCLUSIVE.
+
+These state-key rules describe the concrete fallback. Auto mode may first
+certify an inductive integer timer zone on the synchronous fragment described
+in docs/proof/TIMER_ZONES.md; abstract mismatches alone never certify DIVERGE.
 """
 from __future__ import annotations
 
@@ -198,12 +202,27 @@ def _timed_product(runner_a, runner_b, *, input_domains=None,
             raise Unsupported("repeating timed runner requires an explicit completion-relative period")
     domains = axes.cells if input_domains is None else input_domains
     validate_domains(domains, required=axes.cells)
+    timer_note = None
+    if horizon_ms is None and not initial_gv_domains:
+        from explorer.verification.timer_product import timer_product
+        try:
+            reduced = timer_product(runner_a, runner_b, domains=domains, axes=axes,
+                input_step_ms=input_step_ms, t0_ms=t0_ms, max_states=max_states,
+                max_transitions=max_transitions, max_input_combinations=max_input_combinations)
+        except Unsupported:
+            pass
+        else:
+            if reduced.verdict in ('EQUIV', 'DIVERGE'):
+                return reduced
+            timer_note = reduced.notes[-1]
     from explorer.verification.input_coverage import initial_domains
     initial_gv_domains = initial_domains(axes, initial_gv_domains)
     started = time.perf_counter()
     result = ProductResult("EQUIV", bounded_horizon_ms=horizon_ms,
                            input_step_ms=input_step_ms)
     result.notes.append("contract-v1: input grid + exact deadlines; concrete state BFS")
+    if timer_note:
+        result.notes.append('timer-zone attempt inconclusive: ' + timer_note)
     result.notes.append("silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded")
     result.notes.append("input domain families: " + repr(axes.input_families)
                         if input_domains is None else "explicit external input domains (no value reduction)")
