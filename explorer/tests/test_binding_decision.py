@@ -93,6 +93,24 @@ def test_explicit_joi_quantifier_is_kept():
     assert r.verdict in ("EQUIV", "EQUIV_BOUNDED", "EQUIV-FIXPOINT"), r.verdict
 
 
+def test_selector_assignment_over_several_slots():
+    # B5: which of several bound device sets a selector means is a binding question.
+    ir = timeline({"op": "if", "cond": "MotionSensor.Motion == true or MotionSensor.Motion == true",
+                   "then": [{"op": "call", "target": "Switch.On"}], "else": []})
+    code = ("if ((#Bedroom #MotionSensor).motionSensor_motion == true or "
+            "(#Bedroom #MotionSensor).motionSensor_motion == true) {\n(#Kitchen #Light).switch_on()\n}")
+    binding = {"MotionSensor": ["s1"], "MotionSensor#2": ["s2"], "Switch": ["kitchen"]}
+    domains = {"s1.motion": [False, True], "s2.motion": [False, True]}
+    tag = prepare_pair(ir, binding, DEVICES, {"script": code, "period": 0, "cron": ""})
+    assert tag.selector_domains == [2, 2] and tag.selector_choice == (1, 1)
+    verdicts = {}
+    for assign in ((1, 1), (0, 1)):
+        p = prepare_pair(ir, binding, DEVICES, {"script": code, "period": 0, "cron": ""}, selector_assignment=assign)
+        verdicts[assign] = timed_product(p.ir_runner, p.code_runner, horizon_ms=0, input_domains=domains).verdict
+    assert verdicts[(1, 1)] == "DIVERGE", verdicts
+    assert verdicts[(0, 1)] in ("EQUIV", "EQUIV_BOUNDED", "EQUIV-FIXPOINT"), verdicts
+
+
 def test_merge_needs_binding_sets_and_consecutive_calls():
     on = lambda d: Action("switch", "on", (), (d,))
     off = Action("switch", "off", (), ("kitchen",))

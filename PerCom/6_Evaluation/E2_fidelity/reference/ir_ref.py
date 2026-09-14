@@ -248,8 +248,24 @@ class IrProgram:
             raise RefUnsupported("ir-shape", "expected {'timeline': [...]}")
         self._uid = 0
         self._occ = []          # (service_lower, member_lower, step uid) in walk order, binding-grounded refs only
+        self.explicit_sites = []   # (service name, [device ids]) of every explicit `Svc[d,...]` form, walk order
         self.steps = self._compile_list(ir["timeline"], top=True)
         self.slot_of = self._assign_slots(binding or {})
+
+    @classmethod
+    def collect_explicit_sites(cls, ir, catalog):
+        """Explicit `Svc[d,...].Member` sites (E1 depth form), found by the same compile walk that grounds them.
+        Binding decision 2026-09-14: each explicit site is its own device set. Stops at the first refused construct
+        (such an IR is REF-UNSUPPORTED in run_ir anyway)."""
+        self = cls.__new__(cls)
+        self.catalog, self.devices = catalog, {}
+        self._uid, self._occ, self.explicit_sites = 0, [], []
+        try:
+            if isinstance(ir, dict) and isinstance(ir.get("timeline"), list):
+                self._compile_list(ir["timeline"], top=True)
+        except RefUnsupported:
+            pass
+        return self.explicit_sites
 
     # ---- compile ----
     def _compile_list(self, steps, top=False):
@@ -273,6 +289,8 @@ class IrProgram:
         for r in walk_refs(node):
             if r[0] == "attr" and r[2] is None:
                 self._occ.append((r[1].lower(), r[3].lower(), r))
+            elif r[0] == "attr":
+                self.explicit_sites.append((r[1], list(r[2])))
 
     def _expr(self, src, uid):
         e = parse_expr(src)
@@ -384,6 +402,8 @@ class IrProgram:
         for key in st:                       # document order: target and args occurrences (G8)
             if key == "target" and explicit is None:
                 self._occ.append((svc_name.lower(), mname.lower(), tgt))
+            elif key == "target":
+                self.explicit_sites.append((svc_name, list(explicit)))
             elif key == "args":
                 for k, v in given.items():
                     compiled_by[k.lower()] = self._compile_arg(spec_by[k.lower()], v, uid)

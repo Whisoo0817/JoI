@@ -80,6 +80,38 @@ Not opened: `../pairs/`, `../histories/`.
 No new file opened. Change made from the author decision relayed by the coordinator. Not opened: `../pairs/`,
 `../histories/`, `../runs/`, `../run_e2.py`.
 
+## 2026-09-14 binding decision update
+
+| Path | Purpose |
+|---|---|
+| PerCom/6_Evaluation/E2_fidelity/BINDING_DECISION_2026-09-14.md | author decision B0–B4 (implemented as B1/B2) |
+| PerCom/6_Evaluation/E2_fidelity/reference/common.py, ir_ref.py, joi_ref.py, run.py, SPEC_GAPS.md, CONFORMANCE.md, READ_LOG.md, test_independence.py, test_e1_conformance.py, smoke_388.py | the reference's own files, re-read before editing |
+| explorer/docs/model/VERIFICATION_CONTRACT.md | "ACTION 관찰" section re-read (grep of that heading and the following lines) for the B2 unit rule |
+| files/service_list_ver2.0.7.json, PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json | loaded through `Catalog` to confirm Switch.On, Speaker.Speak, TemperatureSensor.Temperature, Valve.Open/Close exist for the self-test |
+| PerCom/6_Evaluation/E2_fidelity/pairs/sample_388_pairs.json, pairs/e1_pairs.json | read (json) to see the pair shape and to run the 8 pairs named by the coordinator with the new API (not modified) |
+| PerCom/6_Evaluation/E2_fidelity/histories/sample_388_histories.json, histories/e1_histories.json | read (json) for the frozen histories of those pairs (not modified) |
+
+Not opened: `../runs/`, `../handoff_timer/`, `../run_e2.py`, `pairs/*.py`, `histories/*.py`, and every forbidden path.
+The E1 conformance run imports the E1 data modules listed above as before. Directory listing only: `pairs/`,
+`histories/` (file names).
+
+### 2026-09-14 binding decision update — corrections (B1.3, B1.4, B2)
+
+| Path | Purpose |
+|---|---|
+| PerCom/6_Evaluation/E2_fidelity/BINDING_DECISION_2026-09-14.md | re-read after the author revised B1.3/B1.4 (B2 correction taken from the coordinator's message) |
+| PerCom/6_Evaluation/E2_fidelity/pairs/sample_388_pairs.json, pairs/e1_pairs.json, histories/sample_388_histories.json, histories/e1_histories.json | read again (json) to redo the 8-pair check (not modified) |
+
+No other new file opened; no forbidden path opened.
+
+### 2026-09-14 binding decision update — B5 (selector assignments)
+
+| Path | Purpose |
+|---|---|
+| PerCom/6_Evaluation/E2_fidelity/BINDING_DECISION_2026-09-14.md | §B5 read (grep of "B5" and the following 40 lines, which also showed §B3/§B4 again) |
+
+No other new file opened (the B5 tests are hand-written; no pair, history or run file used); no forbidden path opened.
+
 ## Directory listings only (names, no content)
 
 `PerCom/6_Evaluation/E2_fidelity/`, `PerCom/6_Evaluation/E1_adequacy/` (+ `breadth/`, `breadth/depth/`, `breadth/depth/runs/`,

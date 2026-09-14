@@ -77,8 +77,10 @@ class GroundReport:
 
 
 class _G:
-    def __init__(self, devs: list[Dev], pick=None, binding=None):
+    def __init__(self, devs: list[Dev], pick=None, binding=None, assignment=None):
         self.devs = devs
+        # B5: selector occurrence (id of its tag tuple) -> index of the binding device set to use
+        self.assignment = assignment or {}
         self.pick = pick          # 단수 셀렉터가 여러 대와 맞을 때 고르는 규약
         self.report = GroundReport()
         # Binding decision (whisoo 2026-09-14, E2 BINDING_DECISION B1):
@@ -103,6 +105,8 @@ class _G:
             return None
         if len(entry) == 1:
             chosen = entry[0]
+        elif id(tags) in self.assignment:
+            chosen = entry[self.assignment[id(tags)]]
         else:
             m = {d.id for d in match(self.devs, tuple(tags))}
             exact = [e for e in entry if e[0] == m]
@@ -320,9 +324,10 @@ def _subst(node: Any, var: str, ref: Any) -> Any:
     return node
 
 
-def ground(stmts: list, devs: list[Dev], pick=None, binding=None) -> tuple[list, GroundReport]:
-    """`binding`: parse_binding output of the confirmed IR binding (B1), or None."""
-    g = _G(devs, pick, binding)
+def ground(stmts: list, devs: list[Dev], pick=None, binding=None, assignment=None) -> tuple[list, GroundReport]:
+    """`binding`: parse_binding output of the confirmed IR binding (B1), or None.
+    `assignment`: {id(selector tag tuple): device-set index} for B5 selector assignments."""
+    g = _G(devs, pick, binding, assignment)
     return g._body(stmts), g.report
 
 
