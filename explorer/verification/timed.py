@@ -173,6 +173,13 @@ def _timed_product(runner_a, runner_b, *, input_domains=None,
                 max_states=max_states, max_transitions=max_transitions,
                 max_input_combinations=max_input_combinations)
     if automatic_inputs and not initial_gv_domains:
+        from explorer.verification.fixed_aggregation import fixed_aggregation_product
+        unrolled = fixed_aggregation_product(
+            runner_a, runner_b, t0_ms=t0_ms, horizon_ms=horizon_ms,
+            initial_gv_domains=initial_gv_domains)
+        if unrolled is not None:
+            return unrolled
+    if automatic_inputs and not initial_gv_domains:
         from explorer.verification.smt import smt_product
         result = smt_product(runner_a, runner_b, horizon_ms=horizon_ms,
             input_step_ms=input_step_ms, t0_ms=t0_ms, max_states=max_states,

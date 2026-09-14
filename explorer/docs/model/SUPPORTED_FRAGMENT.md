@@ -128,6 +128,11 @@ foreach 내부 break/blocking/nesting/iterator 쓰기는 미인증 의미로 거
   전달), 문자열 이어붙이기·템플릿. **관찰값으로 흐르는 모든 외부 입력은
   명시된 유한 도메인이 필요하다.** 임계값 대표값만 있으면 REFUSED.
   주어진 도메인의 원값을 모두 열거하며 인자를 임의 반올림하지 않는다.
+- **고정 개수 시간별 집계 예외**: `fixed-aggregation-unroll-v1` 적용 조건을
+  모두 만족하면, 고정 Hour 구간의 누적/평균을 시간별 독립 기호 snapshot으로
+  자동 unroll하고 Timeline 쪽과 정확한 식 트리를 비교한다. 일반적인 동적
+  집계나 산술 인자 허용이 아니다. 세부 의무는
+  `docs/proof/FIXED_AGGREGATION_UNROLL.md`에 있다.
 - **주기/시작**: 회차 종료 후 period 대기, delay는 정확한 만료에 재개.
   외부 입력은 기본 100ms 간격에 변화하고 그 사이에는 유지한다.
   원샷(OneShot/Pause 경로), cron 쌍은
@@ -173,6 +178,7 @@ python3 -m explorer.tests.test_input_coverage # 입력 포괄성 16건
 python3 -m explorer.tests.test_service_model  # 실제 서비스 연결 21건
 python3 -m explorer.tests.test_soundness      # 기존 회귀 38건
 python3 -m explorer.tests.test_exact_tick     # tick 기준 회귀 9건
+python3 -m explorer.tests.test_fixed_aggregation # 고정 집계 unroll 3건
 python3 -m explorer.analysis.features                 # 거절 정책 자가 점검
 python3 -m explorer.runtime.ir_step                  # 기대 trace 6 / 비교 8건
 ```
