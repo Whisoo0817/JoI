@@ -34,6 +34,16 @@ DEPTH = ROOT / "PerCom/6_Evaluation/E1_adequacy/breadth/depth"
 E1 = ROOT / "PerCom/6_Evaluation/E1_adequacy"
 T0_EXPLORER = 2_419_200_000
 BUDGET_S = 120
+# BINDING_DECISION_2026-09-14.md (whisoo): selectors/binding do not decide the verdict. Off (default) = the frozen
+# semantics of the 649cb9c run, for both the reference and the Explorer.
+BINDING_DECISION = os.environ.get("E2_BINDING_DECISION") == "1"
+
+
+def ref_kwargs(pair):
+    """(run_ir kwargs, run_joi kwargs) for the reference under the binding decision."""
+    if not BINDING_DECISION:
+        return {}, {}
+    return {"binding_decision": True}, {"binding": pair["binding"], "ir": pair["ir"]}
 
 
 def load_inputs():
@@ -54,8 +64,9 @@ def reference_side(pair, histories):
     for h in histories:
         ev = [(int(t), u) for t, u in h["events"]]
         a = run_ir(pair["ir"], pair["binding"], pair["devices"], ev, h["horizon"], catalog_path=cat,
-                   t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""))
-        b = run_joi(pair["joi"], pair["devices"], ev, h["horizon"], catalog_path=cat, t_start_ms=pair["t_start_ms"])
+                   t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""), **ref_kwargs(pair)[0])
+        b = run_joi(pair["joi"], pair["devices"], ev, h["horizon"], catalog_path=cat, t_start_ms=pair["t_start_ms"],
+                    **ref_kwargs(pair)[1])
         if a["status"] != "ok":
             per.append((h["name"], a["status"] + "-ir"))
             ir_bad = ir_bad or (a["status"], a["detail"][:300])
@@ -113,7 +124,8 @@ def explorer_side(pair):
     signal.alarm(BUDGET_S)
     started = time.time()
     try:
-        prepared = prepare_pair(ir, binding, pair["devices"], pair["joi"], service_catalog=catalog)
+        prepared = prepare_pair(ir, binding, pair["devices"], pair["joi"], service_catalog=catalog,
+                                selector_binding=BINDING_DECISION)
         pr = timed_product(prepared.ir_runner, prepared.code_runner, horizon_ms=None, t0_ms=t0,
                            verification_mode="auto")
         replays = [replay_divergence(prepared.ir_runner, prepared.code_runner, dv) for dv in pr.divergences]
@@ -193,8 +205,9 @@ def witness_on_reference(pair, witness):
         return {"status": "unconvertible", "detail": str(e)}
     horizon = end + 1000
     a = run_ir(pair["ir"], pair["binding"], pair["devices"], ev, horizon, catalog_path=cat,
-               t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""))
-    b = run_joi(pair["joi"], pair["devices"], ev, horizon, catalog_path=cat, t_start_ms=pair["t_start_ms"])
+               t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""), **ref_kwargs(pair)[0])
+    b = run_joi(pair["joi"], pair["devices"], ev, horizon, catalog_path=cat, t_start_ms=pair["t_start_ms"],
+                    **ref_kwargs(pair)[1])
     if a["status"] != "ok" or b["status"] != "ok":
         return {"status": f"ir:{a['status']} joi:{b['status']}", "detail": (a["detail"] or b["detail"])[:300],
                 "events": ev[:30]}

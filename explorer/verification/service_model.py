@@ -278,16 +278,17 @@ class ServiceModel:
                     walk(getattr(node, field.name))
         walk(stmts)
 
-    def validate_source(self, stmts):
+    def validate_source(self, stmts, bound=frozenset()):
         # Grounding removes capability names from property reads. Check them
         # before that information is lost, including a function used as a field.
+        # Reads of bound services resolve to binding devices; validate_joi checks those.
         from explorer.runtime.ground import match
         from explorer.verification.gate import devs_of, pick_by_rule
         inventory = devs_of(self.devices)
         def walk(node, expand=False):
             if isinstance(node, e.QuantRef):
                 svc, member = node.key.split('.', 1)
-                if svc not in ('clock', 'globalvariable'):
+                if svc not in ('clock', 'globalvariable') and svc not in bound:
                     spec = self.resolve(svc, member, 'value')
                     matches = match(inventory, node.tags)
                     if matches:

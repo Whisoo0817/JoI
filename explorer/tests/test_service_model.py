@@ -11,6 +11,7 @@ from explorer.verification.input_coverage import predicate_value
 from explorer.runtime.interp import Unsupported
 from explorer.verification.service_model import ServiceModel, REVIEWED_CATALOG_SHA256
 from explorer.verification.state_key import freeze_state
+from explorer.verification.gate import selector_binding  # binding decision 2026-09-14
 
 
 DEVICES = {name: {'category': [service], 'tags': [service]}
@@ -71,11 +72,12 @@ class ServiceModelTests(unittest.TestCase):
         self.assertEqual(result.verdict, 'EQUIV-BOUNDED', result.notes)
 
     def test_capability_checked_for_ir_and_joi(self):
-        for binding, script in [({'Switch': ['light']}, '(#Switch).switch_on()'),
-                                ({'Switch': ['lamp']}, '(#Light).switch_on()')]:
-            result = run(timeline(call()), script, binding)
-            self.assertEqual(result.verdict, 'REFUSED')
-            self.assertIn('capability', str(result.notes))
+        with selector_binding(False):  # selector correctness: frozen semantics
+            for binding, script in [({'Switch': ['light']}, '(#Switch).switch_on()'),
+                                    ({'Switch': ['lamp']}, '(#Light).switch_on()')]:
+                result = run(timeline(call()), script, binding)
+                self.assertEqual(result.verdict, 'REFUSED')
+                self.assertIn('capability', str(result.notes))
 
     def test_effectful_return_assignment_is_never_silent(self):
         for target, args, source, bind in [

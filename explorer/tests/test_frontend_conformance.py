@@ -15,6 +15,7 @@ from explorer.runtime.ir_step import IrRunner, default_to_key, eval_cond, parse_
 from explorer.runtime.pause import PauseRunner
 from explorer.verification.product import check_supported_pair
 from explorer.tests.test_contract import call, timeline, trace
+from explorer.verification.gate import selector_binding  # binding decision 2026-09-14
 
 
 DEVICES = {
@@ -50,14 +51,15 @@ class FrontendConformance(unittest.TestCase):
                 self.assertEqual(len(result.actions), int(quant(v > 10 for v in values)))
 
     def test_any_mutated_to_first_device_has_gate_counterexample(self):
-        ir = timeline({'op': 'if', 'cond': 'Sensor.Value > 10', 'then': [call()]})
-        binding = {'Sensor': {'any': ['a', 'b']}, 'Switch': ['lamp']}
-        good = {'script': 'if (any(#Sensor).sensor_value > 10) { (#Switch).switch_on() }', 'period': 0}
-        self.assertEqual(gate_pair(ir, binding, DEVICES, good, horizon_ms=0).verdict, 'EQUIV-BOUNDED')
-        bad = {**good, 'script': good['script'].replace('any(#Sensor)', '(#Sensor #A)')}
-        result = gate_pair(ir, binding, DEVICES, bad, horizon_ms=0)
-        self.assertEqual(result.verdict, 'DIVERGE')
-        self.assertTrue(result.confirmed)
+        with selector_binding(False):  # selector correctness: frozen semantics
+            ir = timeline({'op': 'if', 'cond': 'Sensor.Value > 10', 'then': [call()]})
+            binding = {'Sensor': {'any': ['a', 'b']}, 'Switch': ['lamp']}
+            good = {'script': 'if (any(#Sensor).sensor_value > 10) { (#Switch).switch_on() }', 'period': 0}
+            self.assertEqual(gate_pair(ir, binding, DEVICES, good, horizon_ms=0).verdict, 'EQUIV-BOUNDED')
+            bad = {**good, 'script': good['script'].replace('any(#Sensor)', '(#Sensor #A)')}
+            result = gate_pair(ir, binding, DEVICES, bad, horizon_ms=0)
+            self.assertEqual(result.verdict, 'DIVERGE')
+            self.assertTrue(result.confirmed)
 
     def test_queries_preserve_two_device_identities_and_parameter_types(self):
         ir = timeline(
@@ -115,10 +117,11 @@ class FrontendConformance(unittest.TestCase):
                 self.assertEqual(result.verdict, 'REFUSED')
 
     def test_floating_candidate_selector_is_refused(self):
-        result = gate_pair(timeline(call()), {'Switch': ['lamp']}, DEVICES,
-                           {'script': '(#Ghost).switch_on()', 'period': 0}, horizon_ms=0)
-        self.assertEqual(result.verdict, 'REFUSED')
-        self.assertIn('unresolved selectors', str(result.notes))
+        with selector_binding(False):  # selector correctness: frozen semantics
+            result = gate_pair(timeline(call()), {'Switch': ['lamp']}, DEVICES,
+                               {'script': '(#Ghost).switch_on()', 'period': 0}, horizon_ms=0)
+            self.assertEqual(result.verdict, 'REFUSED')
+            self.assertIn('unresolved selectors', str(result.notes))
 
     def test_binding_slot_count_must_match_occurrences(self):
         binding = {'Switch': ['lamp'], 'Switch#2': ['lamp']}

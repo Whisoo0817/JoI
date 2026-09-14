@@ -12,6 +12,7 @@ from explorer.verification.time_events import grid_history
 from explorer.verification.timed import timed_product
 from explorer.tests.test_contract import timeline, call
 from explorer.tests.test_search_correctness import exhaustive_traces, X, Y, ON
+from explorer.verification.gate import selector_binding  # binding decision 2026-09-14
 
 
 class TimeElisionTests(unittest.TestCase):
@@ -187,19 +188,20 @@ class TimeElisionTests(unittest.TestCase):
         self.assertTrue(replay_divergence(p.ir_runner, p.code_runner, r.divergences[0]).confirmed)
 
     def test_c08_011_actual_candidate_concrete_hour_witness(self):
-        from explorer.verification.gate import prepare_pair
-        path = Path(__file__).parents[1] / 'eval/results/unbounded_resource_examples_2026-09-08_v1.json'
-        c = json.loads(path.read_text())['cases'][0]
-        self.assertEqual(c['id'], 'C08_011')
-        p = c['payload']
-        pair = prepare_pair(p['ir'], p['binding'], p['devices'], p['joi_block'])
-        r = timed_product(pair.ir_runner, pair.code_runner, **c['model'], max_transitions=100)
-        self.assertEqual(r.verdict, 'DIVERGE')
-        d = r.divergences[0]
-        self.assertEqual(d.input_['Main_MB.button3'], None)
-        self.assertEqual(d.input_['Hall_MB.button3'], 'pushed')
-        self.assertEqual(sum(ms for _, ms in d.path) + d.dwell_ms, 3600000)
-        self.assertTrue(replay_divergence(pair.ir_runner, pair.code_runner, d).confirmed)
+        with selector_binding(False):  # selector correctness: frozen semantics
+            from explorer.verification.gate import prepare_pair
+            path = Path(__file__).parents[1] / 'eval/results/unbounded_resource_examples_2026-09-08_v1.json'
+            c = json.loads(path.read_text())['cases'][0]
+            self.assertEqual(c['id'], 'C08_011')
+            p = c['payload']
+            pair = prepare_pair(p['ir'], p['binding'], p['devices'], p['joi_block'])
+            r = timed_product(pair.ir_runner, pair.code_runner, **c['model'], max_transitions=100)
+            self.assertEqual(r.verdict, 'DIVERGE')
+            d = r.divergences[0]
+            self.assertEqual(d.input_['Main_MB.button3'], None)
+            self.assertEqual(d.input_['Hall_MB.button3'], 'pushed')
+            self.assertEqual(sum(ms for _, ms in d.path) + d.dwell_ms, 3600000)
+            self.assertTrue(replay_divergence(pair.ir_runner, pair.code_runner, d).confirmed)
 
     def test_smt_terminating_paths_after_long_sleep_need_no_horizon(self):
         from explorer.tests.test_smt_trace import arithmetic_case, run

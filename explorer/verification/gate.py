@@ -21,6 +21,8 @@ Run:  python -m explorer.verification.gate      (캐시 정답쌍 검증 + 재�
 
 from __future__ import annotations
 
+import contextlib
+import contextvars
 import json
 import re
 from dataclasses import dataclass, field
@@ -39,6 +41,21 @@ _LIT = re.compile(r"[\d.]+|\"[^\"]*\"|'[^']*'|true|false|null")
 
 
 # ── 바인딩 표 읽기 ───────────────────────────────────────────────────────────
+
+_SELECTOR_BINDING = contextvars.ContextVar("vets_selector_binding", default=True)
+
+
+@contextlib.contextmanager
+def selector_binding(enabled: bool):
+    """Binding decision switch (whisoo 2026-09-14). False = the frozen selector
+    semantics (selectors matched against the inventory, no binding observation
+    sets); used by selector-correctness regressions and frozen-result replays."""
+    token = _SELECTOR_BINDING.set(bool(enabled))
+    try:
+        yield
+    finally:
+        _SELECTOR_BINDING.reset(token)
+
 
 def parse_binding(b: dict) -> dict[str, list[tuple[list[str], str | None]]]:
     """binding_gt JSON → 서비스별 자리 목록(등장 순서).
@@ -268,7 +285,7 @@ class PreparedPair:
 
 
 def prepare_pair(ir: dict, binding: dict, devices: dict,
-                 jb: dict, *, service_catalog=True) -> PreparedPair:
+                 jb: dict, *, service_catalog=True, selector_binding=None) -> PreparedPair:
     """Prepare a confirmed IR and JoI block without running the Explorer.
 
     jb: {"script": JoI 코드, "period": ms(0=원샷), "cron": ""|"x"|크론}."""
@@ -312,10 +329,20 @@ def prepare_pair(ir: dict, binding: dict, devices: dict,
     ir_r = IrRunner(new_ir, name_map=name_map, bind=bind)
 
     stmts = parse(jb["script"])
+    # Binding decision (whisoo 2026-09-14, E2 BINDING_DECISION B1/B2): JoI
+    # selectors of bound services resolve to the binding; multi-device binding
+    # sets become observation units.
+    use_binding = _SELECTOR_BINDING.get() if selector_binding is None else bool(selector_binding)
+    bound = {svc.lower() for svc in slots} if use_binding else set()
+    observation_sets = []
+    for entries in (slots.values() if use_binding else ()):
+        for ids, _ in entries:
+            if len(set(ids)) >= 2 and frozenset(ids) not in observation_sets:
+                observation_sets.append(frozenset(ids))
     if model:
-        model.validate_source(stmts)
+        model.validate_source(stmts, bound=bound)
     gstmts, rep = ground(stmts, devs_of(devices),
-                         pick=pick_by_rule)
+                         pick=pick_by_rule, binding=slots if use_binding else None)
     if rep.floating:
         raise Unsupported(f"unresolved selectors (no inventory device): {rep.floating}")
     if model:
@@ -343,6 +370,8 @@ def prepare_pair(ir: dict, binding: dict, devices: dict,
     if model:
         from explorer.verification.service_model import CatalogRunner
         ir_r, joi_r = CatalogRunner(ir_r, model), CatalogRunner(joi_r, model)
+    for runner in (ir_r, joi_r):
+        runner.observation_sets = tuple(observation_sets)
     return PreparedPair(ir_r, joi_r, grid, notes, model)
 
 

@@ -7,6 +7,7 @@ from explorer.eval.ab_eval import summarize, wilson_interval
 from explorer.tests.synthetic_gate import prepare_pair
 from explorer.verification.product import product_runners
 from explorer.runtime.runner import JoiRunner
+from explorer.verification.gate import selector_binding  # binding decision 2026-09-14
 
 
 def _run(a: str, b: str, *, horizon: int = 4,
@@ -105,37 +106,38 @@ if (n >= 3) { (#Light).light_on() }
 
 def test_bounded_mode_does_not_merge_distinct_timer_ages():
     """Regression for development sweep C10_002's false-accept candidate."""
-    ir = {"timeline": [
-        {"op": "start_at", "anchor": "now"},
-        {"op": "wait", "cond": 'Fan.FanMode == "high"', "edge": "none"},
-        {"op": "delay", "duration": "3 SEC"},
-        {"op": "call", "target": "Fan.SetFanMode",
-         "args": {"Mode": "low"}},
-    ]}
-    devices = {
-        "Kitchen_Fan": {"category": ["Fan"], "tags": ["Kitchen", "Fan"]},
-        "Basement_Fan": {"category": ["Fan"], "tags": ["Basement", "Fan"]},
-    }
-    block = {
-        "script": 'wait until(all(#Fan).fan_fanMode ==| "high")\n'
-                  'delay(3 SEC)\nall(#Fan).fan_setFanMode("low")',
-        "period": 0,
-        "cron": "",
-    }
-    pair = prepare_pair(ir, {"Fan": ["Kitchen_Fan"]}, devices, block)
-    domains = {
-        "Basement_Fan.fanmode": ["__other__", "high"],
-        "Kitchen_Fan.fanmode": ["__other__", "high"],
-    }
-    exact = exact_tick_product(
-        pair.ir_runner, pair.code_runner, period_ms=pair.period_ms,
-        input_domains=domains, horizon_ticks=4,
-    )
-    optimized = product_runners(
-        pair.ir_runner, pair.code_runner, pair.period_ms, max_ticks=4,
-    )
-    assert exact.verdict == "DIVERGE"
-    assert optimized.verdict == "DIVERGE"
+    with selector_binding(False):  # selector correctness: frozen semantics
+        ir = {"timeline": [
+            {"op": "start_at", "anchor": "now"},
+            {"op": "wait", "cond": 'Fan.FanMode == "high"', "edge": "none"},
+            {"op": "delay", "duration": "3 SEC"},
+            {"op": "call", "target": "Fan.SetFanMode",
+             "args": {"Mode": "low"}},
+        ]}
+        devices = {
+            "Kitchen_Fan": {"category": ["Fan"], "tags": ["Kitchen", "Fan"]},
+            "Basement_Fan": {"category": ["Fan"], "tags": ["Basement", "Fan"]},
+        }
+        block = {
+            "script": 'wait until(all(#Fan).fan_fanMode ==| "high")\n'
+                      'delay(3 SEC)\nall(#Fan).fan_setFanMode("low")',
+            "period": 0,
+            "cron": "",
+        }
+        pair = prepare_pair(ir, {"Fan": ["Kitchen_Fan"]}, devices, block)
+        domains = {
+            "Basement_Fan.fanmode": ["__other__", "high"],
+            "Kitchen_Fan.fanmode": ["__other__", "high"],
+        }
+        exact = exact_tick_product(
+            pair.ir_runner, pair.code_runner, period_ms=pair.period_ms,
+            input_domains=domains, horizon_ticks=4,
+        )
+        optimized = product_runners(
+            pair.ir_runner, pair.code_runner, pair.period_ms, max_ticks=4,
+        )
+        assert exact.verdict == "DIVERGE"
+        assert optimized.verdict == "DIVERGE"
 
 
 def test_zero_errors_still_have_a_nonzero_wilson_upper_bound():

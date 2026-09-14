@@ -77,10 +77,48 @@ class GroundReport:
 
 
 class _G:
-    def __init__(self, devs: list[Dev], pick=None):
+    def __init__(self, devs: list[Dev], pick=None, binding=None):
         self.devs = devs
         self.pick = pick          # 단수 셀렉터가 여러 대와 맞을 때 고르는 규약
         self.report = GroundReport()
+        # Binding decision (whisoo 2026-09-14, E2 BINDING_DECISION B1):
+        # service(lower) -> distinct [(device set, ids in binding order, quantifier)]
+        self.binding: dict[str, list] = {}
+        for svc, slots in (binding or {}).items():
+            entry = self.binding.setdefault(svc.lower(), [])
+            for ids, quant in slots:
+                ids = list(dict.fromkeys(ids))
+                same = [i for i, e in enumerate(entry) if e[0] == frozenset(ids)]
+                if not same:
+                    entry.append((frozenset(ids), ids, quant))
+                elif entry[same[0]][2] is None and quant is not None:
+                    entry[same[0]] = (entry[same[0]][0], entry[same[0]][1], quant)
+
+    def _bound(self, service: str, tags: tuple):
+        """B1: (devices, binding quantifier) for a selector of a bound service, else None."""
+        if not tags or any(t in AMBIENT for t in tags):
+            return None
+        entry = self.binding.get((service or "").lower())
+        if not entry:
+            return None
+        if len(entry) == 1:
+            chosen = entry[0]
+        else:
+            m = {d.id for d in match(self.devs, tuple(tags))}
+            exact = [e for e in entry if e[0] == m]
+            holding = [e for e in entry if m and m <= e[0]]
+            if exact:
+                chosen = exact[0]
+            elif len(holding) == 1:
+                chosen = holding[0]
+            else:
+                return None
+        by_id = {d.id: d for d in self.devs if d.online}
+        insts = [by_id[i] for i in chosen[1] if i in by_id]
+        if not insts:
+            return None
+        self.report.bindings["#" + "#".join(tags)] = [d.id for d in insts]
+        return insts, chosen[2]
 
     def _one(self, m: list[Dev], what: str) -> Dev:
         if len(m) == 1:
@@ -112,14 +150,20 @@ class _G:
 
     # expressions -------------------------------------------------------------
     def _sel_read(self, node: Any) -> tuple | None:
-        """(matches, service, member) if node is a selector attribute read."""
+        """(matches, service, member, binding quantifier) if node is a selector attribute read."""
         if isinstance(node, jp.CallExpr) and node.args is None and node.tags:
+            bound = self._bound(canonical_key(node.service, node.method)[0], node.tags)
+            if bound is not None:
+                return bound[0], node.service, node.method, bound[1]
             m = self._sel(node.tags)
-            return None if m is None else (m, node.service, node.method)
+            return None if m is None else (m, node.service, node.method, None)
         if isinstance(node, expr_mod.QuantRef) and node.tags:
-            m = self._sel(node.tags)
             svc = node.tags[-1]
-            return None if m is None else (m, svc, node.member or "")
+            bound = self._bound(node.key.split(".", 1)[0], node.tags)
+            if bound is not None:
+                return bound[0], svc, node.member or "", bound[1]
+            m = self._sel(node.tags)
+            return None if m is None else (m, svc, node.member or "", None)
         return None
 
     def ge(self, node: Any) -> Any:
@@ -131,10 +175,16 @@ class _G:
                 sr = self._sel_read(side)
                 if sr is None:
                     continue
-                m, svc, member = sr
+                m, svc, member, bquant = sr
                 quant = getattr(side, "quant", None)
-                if base in ("==", "!=", "<", ">", "<=", ">=") and (quantified or quant in ("all", "any")):
-                    join = "or" if quantified or quant == "any" else "and"
+                # B1: an explicit JoI quantifier stays; the binding's decides only when the JoI has none
+                by_binding = (len(m) > 1 and bquant in ("all", "any")
+                              and not quantified and quant not in ("all", "any"))
+                if base in ("==", "!=", "<", ">", "<=", ">=") and (by_binding or quantified or quant in ("all", "any")):
+                    if by_binding:      # B1: the IR binding's quantifier decides
+                        join = "or" if bquant == "any" else "and"
+                    else:
+                        join = "or" if quantified or quant == "any" else "and"
                     other_g = self.ge(other)
                     terms = []
                     for inst in m:
@@ -154,7 +204,7 @@ class _G:
             return expr_mod.FuncCall(node.name, [self.ge(a) for a in node.args])
         sr = self._sel_read(node)
         if sr is not None:
-            m, svc, member = sr
+            m, svc, member, _ = sr
             if len(m) > 1 and getattr(node, "quant", None) in ("any", "all"):
                 raise Unsupported("group read needs an explicit comparison")
             inst = self._one(m, "selector in scalar position")
@@ -167,15 +217,25 @@ class _G:
     def _ground_call(self, call: jp.CallExpr, expect_one: bool) -> list:
         """Always returns a list of grounded CallExpr (1 per instance)."""
         args = [self.ge(a) for a in (call.args or [])]
-        m = self._sel(call.tags) if call.tags else None
-        if m is None:
-            return [jp.CallExpr(call.service, call.method, args,
-                                tags=call.tags, quant=call.quant)]
-        if len(m) > 1 and call.quant == "any":
-            raise Unsupported("any method call is not an existential property comparison")
-        insts = m if (call.quant == "all" and not expect_one) else None
-        if insts is None:
-            insts = [self._one(m, "call selector")]
+        bound = self._bound(canonical_key(call.service, call.method)[0], call.tags) if call.tags else None
+        if bound is not None:
+            # B1: a bound service calls the binding devices; a selector naming only
+            # some of them keeps those (split lines), anything else uses the binding
+            m = bound[0]
+            named = [d for d in match(self.devs, tuple(call.tags)) if d.online]
+            if named and {d.id for d in named} <= {d.id for d in m}:
+                m = named
+            insts = [self._one(m, "call selector")] if expect_one else m
+        else:
+            m = self._sel(call.tags) if call.tags else None
+            if m is None:
+                return [jp.CallExpr(call.service, call.method, args,
+                                    tags=call.tags, quant=call.quant)]
+            if len(m) > 1 and call.quant == "any":
+                raise Unsupported("any method call is not an existential property comparison")
+            insts = m if (call.quant == "all" and not expect_one) else None
+            if insts is None:
+                insts = [self._one(m, "call selector")]
         return [jp.CallExpr(call.service, call.method, args,
                             tags=(inst.id,), quant=None,
                             fanout=(i, len(insts)) if len(insts) > 1 else None,
@@ -209,7 +269,7 @@ class _G:
             if sr is None:
                 raise Unsupported(
                     f"ForEach selector not in inventory: {stmt.source}")
-            m, svc, member = sr
+            m, svc, member, _ = sr
             out: list = []
             for inst in m:
                 ref = expr_mod.DeviceRef(self._key(inst, svc, member))
@@ -260,8 +320,9 @@ def _subst(node: Any, var: str, ref: Any) -> Any:
     return node
 
 
-def ground(stmts: list, devs: list[Dev], pick=None) -> tuple[list, GroundReport]:
-    g = _G(devs, pick)
+def ground(stmts: list, devs: list[Dev], pick=None, binding=None) -> tuple[list, GroundReport]:
+    """`binding`: parse_binding output of the confirmed IR binding (B1), or None."""
+    g = _G(devs, pick, binding)
     return g._body(stmts), g.report
 
 

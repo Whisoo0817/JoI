@@ -57,11 +57,19 @@ def test_fanout_reversal_is_equal_across_all_comparators():
 
 
 def test_sequential_calls_are_not_a_parallel_fanout():
+    # Without binding sets the observation keeps call-group boundaries.
+    fan = [Action("switch", "on", (), (name,), (i, 2)) for i, name in enumerate(("living", "kitchen"))]
+    seq = [Action("switch", "on", (), ("living",)), Action("switch", "on", (), ("kitchen",))]
+    assert actions_observation(fan) != actions_observation(seq)
+
+
+def test_binding_split_lines_equal_one_bound_call():
+    # Binding decision (whisoo 2026-09-14): one IR call on a multi-device slot
+    # equals JoI lines that split it over the bound devices.
     p = pair(timeline(call()), '(#Switch #LivingRoom).switch_on()\n(#Switch #Kitchen).switch_on()',
              binding={"Switch": ["living", "kitchen"]})
     result = timed_product(p.ir_runner, p.code_runner, input_domains={}, horizon_ms=0)
-    assert result.verdict == "DIVERGE"
-    assert replay_divergence(p.ir_runner, p.code_runner, result.divergences[0]).confirmed
+    assert result.verdict in ("EQUIV", "EQUIV_BOUNDED"), result.verdict
 
 
 def test_overlap_preserves_per_device_order_and_duplicates():
