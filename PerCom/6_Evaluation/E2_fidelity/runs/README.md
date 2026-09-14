@@ -19,6 +19,12 @@ Binding decision (`../BINDING_DECISION_2026-09-14.md`, both tools changed; froze
 | `e2_run.binding-b5.partial.jsonl.gz`, `run_binding_b5.log` | `run_binding_b5.py` (B5 selector assignments) | the 22 pairs with selector assignments |
 | `e2_run.binding-final.jsonl.gz` | `run_binding_b5.py` merge | binding-v1 rows with the 22 B5 rows replaced; C05/fault2–3 Explorer rerun alone after a CPU-contended TIMEOUT (`explorer_under_load` keeps it) |
 
+Final version (timer zones + fixed-aggregation unroll from the merged timer branch, with the binding decision):
+
+| File | Made by | Content |
+|---|---|---|
+| `e2_run.timer-binding.jsonl.gz`, `.meta.json`, `run_timer_binding.log` | Explorer-only rerun (script recorded in the meta file's `explorer_worktree`; reference outcomes from `e2_run.binding-final`) | 142 rows; `explorer_binding_final` keeps the previous Explorer verdict; new witnesses replayed on the reference; C03_008 rerun after the bound `any` fix (`explorer_before_parser_fix`) |
+
 `recheck_witnesses.py` (witness replay only) was superseded by `rerun_reference.py`, which also recomputes the
 witness replay; its output was not kept. Tables: `../RESULTS.md` (`make_e2_results.py`); hand inspection:
 `../INSPECTION_2026-09-14.md`.

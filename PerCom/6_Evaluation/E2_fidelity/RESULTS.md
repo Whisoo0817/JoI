@@ -208,3 +208,88 @@ Fault pairs that are equal under the decision (reported as **out of scope: bindi
 | E1-086/fault3 | DIVERGE → EQUIV | REF-EQUIV-CHECKED → REF-EQUIV-CHECKED | EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS → AGREE-EQUIV-ON-CHECKED | B5 selector assignment |
 
 16 pairs differ from the frozen-history-plus-supplement results. C05/fault2 and C05/fault3 were TIMEOUT in the combined run under CPU load and were rerun alone: REFUSED at the state cap, as in the frozen run (`explorer_under_load` keeps the loaded result).
+
+## Final version: timer zones + fixed-aggregation unroll + binding decision
+
+Explorer from the merged timer branch (timer zones, fixed-aggregation unroll, bound `any` action fix) with the binding decision (B1/B2/B5). Reference outcomes are those of the binding-decision run (reference code unchanged); every new Explorer witness was replayed on the reference. `runs/e2_run.timer-binding.jsonl`.
+
+Explorer verdicts:
+
+|  | correct | fault | llm | total |
+|---|---|---|---|---|
+| DIVERGE | 0 | 69 | 6 | 75 |
+| EQUIV | 19 | 4 | 33 | 56 |
+| REFUSED | 1 | 4 | 1 | 6 |
+| TIMEOUT | 1 | 4 | 0 | 5 |
+| total | 21 | 81 | 40 | 142 |
+
+Agreement:
+
+|  | correct | fault | llm | total |
+|---|---|---|---|---|
+| AGREE-EQUIV-ON-CHECKED | 19 | 4 | 33 | 56 |
+| AGREE-DIVERGE | 0 | 63 | 3 | 66 |
+| EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | 0 | 6 | 2 | 8 |
+| DIVERGE-WITNESS-ir:ok joi:unsupported | 0 | 0 | 1 | 1 |
+| EXPLORER-REFUSED | 1 | 4 | 1 | 6 |
+| EXPLORER-TIMEOUT | 1 | 4 | 0 | 5 |
+| total | 21 | 81 | 40 | 142 |
+
+### Table 1. Fidelity of decided verdicts
+
+| | pairs |
+|---|---:|
+| decided (EQUIV or DIVERGE) | 131 |
+| confirmed by the reference (own histories or witness replay) | 130 |
+| not confirmable: reference cannot run the JoI | 1 (C24_003/llm) |
+| contradicted by the reference (false EQUIV / false DIVERGE) | 0 |
+| fault pairs with an observed difference | 75 |
+| of those: Explorer DIVERGE / EQUIV (missed) / undecided | 69 / 0 / 6 |
+
+### Table 2. Decision rate by population
+
+| population | decided | note |
+|---|---:|---|
+| LLM candidates (random 40 of 388) | 39/39 | input-validation rejects kept apart: C20_011/llm |
+| hand-built pairs, by pair | 92/102 | correct + fault variants of E1 requirements |
+| hand-built pairs, by requirement | 18/20 | not fully decided: C07, E1-099 |
+| all valid pairs | 131/141 | |
+
+### Table 3. Undecided pairs by cause
+
+| cause | requirement | pairs |
+|---|---|---:|
+| deadline that grows with the number of actions | E1-099 | 5 |
+| invalid input (not a verifier limit) | C20_011/llm | 1 |
+| state explosion: nested repetition and timers | C07 | 5 |
+
+Changed against the binding-decision run:
+
+| pair | Explorer | agreement |
+|---|---|---|
+| C01/fault2 | TIMEOUT → DIVERGE | EXPLORER-TIMEOUT → AGREE-DIVERGE |
+| C05/fault2 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| C05/fault3 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| C13_006/llm | REFUSED → EQUIV | EXPLORER-REFUSED → AGREE-EQUIV-ON-CHECKED |
+| C14_003/llm | REFUSED → DIVERGE | EXPLORER-REFUSED → EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS |
+| C15/correct | REFUSED → EQUIV | EXPLORER-REFUSED → AGREE-EQUIV-ON-CHECKED |
+| C15/fault1 | REFUSED → DIVERGE | EXPLORER-REFUSED → EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS |
+| C18/correct | REFUSED → EQUIV | EXPLORER-REFUSED → AGREE-EQUIV-ON-CHECKED |
+| C19/correct | REFUSED → EQUIV | EXPLORER-REFUSED → AGREE-EQUIV-ON-CHECKED |
+| C20-O/correct | TIMEOUT → EQUIV | EXPLORER-TIMEOUT → AGREE-EQUIV-ON-CHECKED |
+| C20-O/fault1 | TIMEOUT → DIVERGE | EXPLORER-TIMEOUT → AGREE-DIVERGE |
+| E1-028/correct | REFUSED → EQUIV | EXPLORER-REFUSED → AGREE-EQUIV-ON-CHECKED |
+| E1-028/fault1 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| E1-028/fault2 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| E1-028/fault3 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| E1-028/fault4 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| E1-034/correct | TIMEOUT → EQUIV | EXPLORER-TIMEOUT → AGREE-EQUIV-ON-CHECKED |
+| E1-034/fault1 | TIMEOUT → DIVERGE | EXPLORER-TIMEOUT → AGREE-DIVERGE |
+| E1-034/fault2 | TIMEOUT → DIVERGE | EXPLORER-TIMEOUT → AGREE-DIVERGE |
+| E1-034/fault3 | TIMEOUT → DIVERGE | EXPLORER-TIMEOUT → AGREE-DIVERGE |
+| E1-034/fault4 | TIMEOUT → DIVERGE | EXPLORER-TIMEOUT → AGREE-DIVERGE |
+| E1-095/correct | REFUSED → EQUIV | EXPLORER-REFUSED → AGREE-EQUIV-ON-CHECKED |
+| E1-095/fault1 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| E1-095/fault2 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| E1-095/fault3 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |
+| E1-095/fault4 | REFUSED → DIVERGE | EXPLORER-REFUSED → AGREE-DIVERGE |

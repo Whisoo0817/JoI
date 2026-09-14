@@ -150,6 +150,69 @@ def main():
         md += f"\n{n} pairs differ from the frozen-history-plus-supplement results. "
         md += ("C05/fault2 and C05/fault3 were TIMEOUT in the combined run under CPU load and were rerun alone: REFUSED at the "
                "state cap, as in the frozen run (`explorer_under_load` keeps the loaded result).\n")
+    tb = RUNS / "e2_run.timer-binding.jsonl"
+    if not tb.exists() and tb.with_name(tb.name + ".gz").exists():
+        tb = tb.with_name(tb.name + ".gz")
+    if tb.exists() and final.exists():
+        text = gzip.open(tb, "rt").read() if tb.suffix == ".gz" else tb.read_text()
+        fin = {r["pair_id"]: r for r in (json.loads(l) for l in text.splitlines() if l.strip())}
+        frs = list(fin.values())
+        for r in frs:
+            r["_col"] = r["kind"]
+        dec = lambda r: r["explorer"].get("verdict") in ("EQUIV", "DIVERGE")
+        md += "\n## Final version: timer zones + fixed-aggregation unroll + binding decision\n\n"
+        md += ("Explorer from the merged timer branch (timer zones, fixed-aggregation unroll, bound `any` action fix) with "
+               "the binding decision (B1/B2/B5). Reference outcomes are those of the binding-decision run (reference code "
+               "unchanged); every new Explorer witness was replayed on the reference. `runs/e2_run.timer-binding.jsonl`.\n\n")
+        md += "Explorer verdicts:\n\n" + table(frs, lambda r: r["explorer"].get("verdict"), KINDS)
+        md += "\nAgreement:\n\n" + table(frs, lambda r: r["agreement"], KINDS)
+        decided = [r for r in frs if dec(r)]
+        confirmed = [r for r in decided if r["agreement"] in ("AGREE-EQUIV-ON-CHECKED", "AGREE-DIVERGE",
+                                                             "EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS")]
+        unconfirmable = [r["pair_id"] for r in decided if r["agreement"].startswith("DIVERGE-WITNESS")]
+        false = [r["pair_id"] for r in frs if "FALSE" in r["agreement"]]
+        obs = [r for r in frs if r["kind"] == "fault" and (r["reference"]["outcome"] == "REF-DIVERGE" or
+               (r["explorer"].get("witness_on_reference") or {}).get("status") == "diverge")]
+        md += "\n### Table 1. Fidelity of decided verdicts\n\n| | pairs |\n|---|---:|\n"
+        md += f"| decided (EQUIV or DIVERGE) | {len(decided)} |\n"
+        md += f"| confirmed by the reference (own histories or witness replay) | {len(confirmed)} |\n"
+        md += f"| not confirmable: reference cannot run the JoI | {len(unconfirmable)} ({', '.join(unconfirmable)}) |\n"
+        md += f"| contradicted by the reference (false EQUIV / false DIVERGE) | {len(false)} |\n"
+        md += f"| fault pairs with an observed difference | {len(obs)} |\n"
+        md += f"| of those: Explorer DIVERGE / EQUIV (missed) / undecided | {sum(r['explorer'].get('verdict') == 'DIVERGE' for r in obs)} / {sum(r['explorer'].get('verdict') == 'EQUIV' for r in obs)} / {sum(not dec(r) for r in obs)} |\n"
+        invalid = {"C20_011/llm"}
+        pairs_src = {}
+        for f in ("pairs/e1_pairs.json", "pairs/sample_388_pairs.json"):
+            pairs_src.update({q["pair_id"]: q for q in json.loads((HERE / f).read_text())["pairs"]})
+        llm = [r for r in frs if r["kind"] == "llm"]
+        llm_valid = [r for r in llm if r["pair_id"] not in invalid]
+        hand = [r for r in frs if r["kind"] != "llm"]
+        reqs = {}
+        for r in hand:
+            reqs.setdefault(pairs_src[r["pair_id"]]["base_case"], []).append(r)
+        full = sorted(b for b, rs in reqs.items() if all(dec(r) for r in rs))
+        md += "\n### Table 2. Decision rate by population\n\n| population | decided | note |\n|---|---:|---|\n"
+        md += (f"| LLM candidates (random 40 of 388) | {sum(dec(r) for r in llm_valid)}/{len(llm_valid)} | "
+               f"input-validation rejects kept apart: {', '.join(sorted(invalid))} |\n")
+        md += f"| hand-built pairs, by pair | {sum(dec(r) for r in hand)}/{len(hand)} | correct + fault variants of E1 requirements |\n"
+        md += (f"| hand-built pairs, by requirement | {len(full)}/{len(reqs)} | not fully decided: "
+               f"{', '.join(sorted(set(reqs) - set(full)))} |\n")
+        md += f"| all valid pairs | {sum(dec(r) for r in frs if r['pair_id'] not in invalid)}/{len(frs) - len(invalid)} | |\n"
+        cause = {"C07": "state explosion: nested repetition and timers", "E1-099": "deadline that grows with the number of actions"}
+        md += "\n### Table 3. Undecided pairs by cause\n\n| cause | requirement | pairs |\n|---|---|---:|\n"
+        undecided = [r for r in frs if not dec(r)]
+        by = {}
+        for r in undecided:
+            key = ("invalid input (not a verifier limit)", r["pair_id"]) if r["pair_id"] in invalid else \
+                  (cause.get(pairs_src[r["pair_id"]]["base_case"], "other"), pairs_src[r["pair_id"]]["base_case"])
+            by[key] = by.get(key, 0) + 1
+        for (c, b), n in sorted(by.items()):
+            md += f"| {c} | {b} | {n} |\n"
+        md += "\nChanged against the binding-decision run:\n\n| pair | Explorer | agreement |\n|---|---|---|\n"
+        for pid in sorted(fin):
+            o, r = new[pid], fin[pid]
+            if (o["explorer"].get("verdict"), o["agreement"]) != (r["explorer"].get("verdict"), r["agreement"]):
+                md += f"| {pid} | {o['explorer'].get('verdict')} → {r['explorer'].get('verdict')} | {o['agreement']} → {r['agreement']} |\n"
     (HERE / "RESULTS.md").write_text(md)
     print(md)
 

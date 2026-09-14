@@ -109,5 +109,26 @@ text; Explorer by the session author). Tables: `RESULTS.md` "Binding decision"; 
 - Run note: the combined run shared the machine with two other jobs. C05/fault2 and C05/fault3 reached the 120 s wall
   budget (TIMEOUT) instead of the 400,000-state cap; rerun alone they are REFUSED at the state cap as in the frozen run.
   The recorded rows use the quiet rerun and keep the loaded result as `explorer_under_load`.
+
+## Final version: timer zones + fixed-aggregation unroll + binding decision
+
+Explorer from the merged timer branch (Codex: timer zones, extensions, fixed-aggregation unroll; merged `24d7b1a`)
+with B1/B2/B5 on. The reference code did not change, so its outcomes are reused from the binding-decision run; every
+new Explorer witness was replayed on the reference. Rows: `runs/e2_run.timer-binding.jsonl.gz`.
+
+- **FALSE-EQUIV-CANDIDATE 0, FALSE-DIVERGE-CANDIDATE 0.** Explorer: DIVERGE 75 / EQUIV 56 / REFUSED 6 / TIMEOUT 5.
+- 26 pairs moved from undecided to decided (C01/fault2, C05/fault2–3, C13_006, C14_003, C15 correct/fault1,
+  C18/correct, C19/correct, C20-O correct/fault1, E1-028 ×5, E1-034 ×5, E1-095 ×5); all agree with the reference.
+  - C14_003/llm: DIVERGE confirmed by witness. The JoI increments its counter every tick instead of every press; the
+    reference histories never changed the button value (history-generator gap noted above).
+  - C15/fault1 (`h < 6` → `h <= 6`): DIVERGE confirmed by witness; the reference histories never pass 06:xx.
+- C03_008/llm: the timer branch parser refused `any(...)` in an ACTION before grounding, so the pair became REFUSED.
+  Under the binding decision any/all do not decide the verdict; the refusal was moved to grounding for unbound
+  services (`0e76584`). Rerun: EQUIV, agrees with the reference (`explorer_before_parser_fix` keeps the refusal).
+- Undecided (11): C07 ×5 (TIMEOUT: state explosion from nested repetition and timers), E1-099 ×5 (REFUSED: deadline
+  `t_on + 300 + 120·k` grows with the number of motion episodes), C20_011/llm (REFUSED: the LLM JoI uses a Charger
+  service the TV does not declare; input-validation reject, the reference refuses too).
+- Of 75 fault pairs with an observed difference (reference histories or witness), the Explorer gives DIVERGE for 69,
+  EQUIV for none, and leaves 6 undecided (C07 f1–f4, E1-099 f1·f3).
   `run_supplement.py` was changed to save each finished pair and was rerun in full; its outcomes on the 57 pairs
   match the first run's log (`runs/run_supplement.log`).
