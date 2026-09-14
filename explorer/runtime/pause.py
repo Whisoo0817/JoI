@@ -46,6 +46,8 @@ class PauseRunner:
             if isinstance(x, jp.Loop) and has_blocking(x.body):
                 raise Unsupported("loop 안 blocking 문 (회차가 경로에 안 담김)")
         self.stmts = stmts
+        from explorer.analysis.modular import counter_moduli
+        self.moduli = counter_moduli(stmts)
         self.repeat = repeat
         self.period_ms = period_ms
         if period_ms is not None and (type(period_ms) is not int or period_ms <= 0):
@@ -72,7 +74,8 @@ class PauseRunner:
 
     def check_finite(self, axes: Axes | None = None) -> list[str]:
         # 추가 상태(__path 유한 경로·__dstart zone·__done 래치)는 구조상 유한
-        return finiteness_check(self._joi_vars, axes or self.axes, self.stmts)
+        return [n for n in finiteness_check(self._joi_vars, axes or self.axes, self.stmts)
+                if n not in self.moduli]
 
     def step(self, vars_in: dict, gv_in: dict, inputs: dict, now_ms: int,
              first_tick: bool = False) -> StepResult:
@@ -151,6 +154,11 @@ class PauseRunner:
         # one-shot은 문장마다 정확히 한 번 실행 → := 초기화 항상 활성
         ft = not vars_.get("__iterated", False) if self.repeat else True
         r = go(self.stmts, (), rpath, ft)
+        for name, modulus in self.moduli.items():
+            if name in vars_:
+                if type(vars_[name]) is not int:
+                    raise Unsupported('modular counter must remain an integer')
+                vars_[name] %= modulus
         if r != "pause":
             vars_["__path"] = ()
             vars_.pop("__dstart", None)

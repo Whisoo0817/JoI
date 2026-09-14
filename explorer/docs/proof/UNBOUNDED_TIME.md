@@ -1,5 +1,10 @@
 # H 없는 시간 탐색 — silent-time-v1
 
+2026-09-14 추가: [TIMER_ZONES.md](TIMER_ZONES.md)의 좁은 동기 격자 경로가
+IR 타이머와 JoI 정수 카운터의 차이 관계를 확대·재검사한다. 아래 설명은
+기존 silent-time 경로의 근거다. 별도 timer-zones-v2의 Hour·timestamp age
+지원 전제는 링크 문서에 둔다. 일반 비동기 zone 지원을 뜻하지 않는다.
+
 2026-09-08 구현. [이전 계획](../archive/UNBOUNDED_TIME_HANDOFF.md)의 구체화다.
 H를 기본 검증 경로에서 요구하지 않는다. 성공은 그래프 폐쇄 또는 모든 기호 경로의
 종료로 결정하며, 자원 한도에서 멈추면 UNKNOWN이다. 모든 프로그램의 종료/동등성을

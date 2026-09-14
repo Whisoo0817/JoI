@@ -1,0 +1,5464 @@
+{
+  "population": {
+    "schema": "e2-behavioral-population-v1",
+    "decision_date": "2026-09-14",
+    "basis": "User decision in the timer-extension session; explicit revision of the frozen evaluation population.",
+    "rule": "Behavioral equivalence is evaluated only for syntactically admissible programs using capabilities declared by the supplied device model. Keep rejected source records in a separate input-validation accounting category.",
+    "frozen_population": 142,
+    "behavioral_population": 140,
+    "exclusions": [
+      {
+        "pair_id": "C03_008/llm",
+        "category": "invalid_syntax",
+        "reason": "any selector in ACTION position is forbidden by the user-approved language rule; parse-time rejection."
+      },
+      {
+        "pair_id": "C20_011/llm",
+        "category": "invalid_service_mapping",
+        "reason": "The LLM reads Charger from the TV although the supplied device inventory does not declare that capability. This is an upstream service-mapping failure."
+      }
+    ],
+    "preservation": "Do not edit frozen pairs, histories, or runs. This manifest is a derived population view; always report the 142-to-140 accounting."
+  },
+  "category_counts": {
+    "decided": 125,
+    "finite_product_state_explosion": 5,
+    "arithmetic_state_relations": 10,
+    "invalid_syntax": 1,
+    "invalid_service_mapping": 1
+  },
+  "verdict_counts": {
+    "EQUIV": 43,
+    "DIVERGE": 82,
+    "TIMEOUT": 5,
+    "REFUSED": 12
+  },
+  "existing_decision_changes": [],
+  "new_decisions": [
+    "C01/fault2",
+    "C05/fault2",
+    "C05/fault3",
+    "C15/correct",
+    "C18/correct",
+    "C19/correct",
+    "C20-O/correct",
+    "C15/fault1",
+    "E1-028/correct",
+    "C20-O/fault1",
+    "E1-028/fault2",
+    "E1-028/fault3",
+    "E1-028/fault1",
+    "E1-034/correct",
+    "E1-028/fault4",
+    "E1-034/fault2",
+    "E1-034/fault3",
+    "E1-034/fault1",
+    "C13_006/llm",
+    "C14_003/llm",
+    "E1-034/fault4"
+  ],
+  "new_equiv_against_frozen_diverge": [],
+  "reference_follow_up": [
+    "C15/fault1",
+    "C14_003/llm"
+  ],
+  "rows": [
+    {
+      "pair_id": "C01/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 3605,
+        "seconds": 0.9,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.02,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C01/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1799,
+        "seconds": 0.56,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': None, 'b': {'t': 60100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Hall_Light'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Hall_Motion.Motion": true
+              }
+            ],
+            [
+              100,
+              {
+                "Hall_Motion.Motion": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 4,
+        "seconds": 0.12,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C01/fault2",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 4,
+        "seconds": 0.25,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C01/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 3605,
+        "seconds": 1.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 2, 'a': {'t': 120300, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Hall_Light'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Hall_Motion.Motion": true
+              }
+            ],
+            [
+              100,
+              {
+                "Hall_Motion.Motion": false
+              }
+            ],
+            [
+              120300,
+              {
+                "Hall_Motion.Motion": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 7,
+        "seconds": 0.25,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C01/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 200, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Hall_Light'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Hall_Motion.Motion": true
+              }
+            ],
+            [
+              100,
+              {
+                "Hall_Motion.Motion": false
+              }
+            ],
+            [
+              200,
+              {
+                "Hall_Motion.Motion": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 3,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C01_014/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.22,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.21,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C01_020/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C02_020/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C02_022/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C02_028/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C02_030/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C03/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 9,
+        "seconds": 0.02,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 9,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C03/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': None, 'b': {'t': 600100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Office_CO2.CarbonDioxide": 0.0
+              }
+            ],
+            [
+              100,
+              {
+                "Office_CO2.CarbonDioxide": 1000.1
+              }
+            ],
+            [
+              600100,
+              {
+                "Office_CO2.CarbonDioxide": null
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C03/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 900100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Office_CO2.CarbonDioxide": 0.0
+              }
+            ],
+            [
+              100,
+              {
+                "Office_CO2.CarbonDioxide": 1000.1
+              }
+            ],
+            [
+              900100,
+              {
+                "Office_CO2.CarbonDioxide": null
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C03/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 11,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 2, 'a': {'t': 900300, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Office_Fan'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Office_CO2.CarbonDioxide": 0.0
+              }
+            ],
+            [
+              100,
+              {
+                "Office_CO2.CarbonDioxide": 1000.1
+              }
+            ],
+            [
+              900100,
+              {
+                "Office_CO2.CarbonDioxide": null
+              }
+            ],
+            [
+              900300,
+              {
+                "Office_CO2.CarbonDioxide": 1000.1
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 11,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C03/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Office_Fan'}]]}, 'b': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "Office_CO2.CarbonDioxide": 0.0
+              }
+            ],
+            [
+              100,
+              {
+                "Office_CO2.CarbonDioxide": 1000.1
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C03_008/llm",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: any method call is not an existential property comparison",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "ValueError: any selector is not allowed in ACTION position",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "ValueError: any selector is not allowed in ACTION position"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "invalid_syntax"
+    },
+    {
+      "pair_id": "C03_027/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C04/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C04/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 900000, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {}
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C04/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 900000, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {}
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C04/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Office_Fan'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {}
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C04/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 900000, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}]]}, 'b': {'t': 900000, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}], [{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Office_Fan'}]]}, 'reason': 'group count'}",
+          "events": [
+            [
+              0,
+              {}
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C05/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1802,
+        "seconds": 0.64,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.04,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C05/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.15,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 60000, 'groups': [[{'service': 'MessageSender', 'method': 'SendSms', 'args': ['owner', 'Back door is open', 'door'], 'device': 'Phone_SMS'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Back_Door.Contact": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 2,
+        "seconds": 0.12,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C05/fault2",
+      "target": true,
+      "previous": {
+        "verdict": "REFUSED",
+        "claim": "INCONCLUSIVE",
+        "closed": false,
+        "n_states": 400000,
+        "seconds": 108.03,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+          "내부 UNKNOWN: 탐색 미완 — contract-v1: input grid + exact deadlines; concrete state BFS silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded explicit external input domains (no value"
+        ]
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 2,
+        "seconds": 0.19,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C05/fault3",
+      "target": true,
+      "previous": {
+        "verdict": "REFUSED",
+        "claim": "INCONCLUSIVE",
+        "closed": false,
+        "n_states": 400000,
+        "seconds": 107.74,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+          "내부 UNKNOWN: 탐색 미완 — contract-v1: input grid + exact deadlines; concrete state BFS silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded explicit external input domains (no value"
+        ]
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 4,
+        "seconds": 0.38,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C05/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.47,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 180000, 'groups': [[{'service': 'MessageSender', 'method': 'SendSms', 'args': ['owner', 'Back door is open', 'door'], 'device': 'Phone_SMS'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Back_Door.Contact": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 4,
+        "seconds": 0.28,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C05_014/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'AirConditioner', 'method': 'SetAirConditionerMode', 'args': ['heat'], 'device': 'Bedroom_AC'}, {'service': 'AirConditioner', 'method': 'SetAirConditionerMode', 'args': ['heat'], 'device': 'Living_AC'}], [{'service': 'AirConditioner', 'method': 'SetTargetTemperature', 'args': [22.0], 'device': 'Bedroom_AC'}, {'service': 'AirConditioner', 'method': 'SetTargetTemperature', 'args': [22.0], 'device': 'Living_AC'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bedroom_Presence.Presence": false,
+                "Bedroom_Temp.Temperature": -40.0,
+                "Living_Presence.Presence": true,
+                "Living_Temp.Temperature": null
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C05_021/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C05_028/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'AirPurifier', 'method': 'SetAirPurifierMode', 'args': ['high'], 'device': 'Warehouse_AP'}], [{'service': 'Speaker', 'method': 'Speak', 'args': ['Switching to high mode'], 'device': 'Warehouse_Speaker'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'AirPurifier', 'method': 'SetAirPurifierMode', 'args': ['high'], 'device': 'Warehouse_AP'}], [{'service': 'Speaker', 'method': 'Speak', 'args': ['Switching to high mode'], 'device': 'Office_Speaker'}, {'service': 'Speaker', 'method': 'Speak', 'args': ['Switching to high mode'], 'device': 'Warehouse_Spea",
+          "events": [
+            [
+              0,
+              {
+                "Warehouse_AP.AirPurifierMode": "auto",
+                "Warehouse_AQ.FineDustLevel": 100.0
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C06_007/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C07/correct",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "TIMEOUT",
+        "seconds": 120,
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "finite_product_state_explosion"
+    },
+    {
+      "pair_id": "C07/fault1",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "TIMEOUT",
+        "seconds": 120,
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "finite_product_state_explosion"
+    },
+    {
+      "pair_id": "C07/fault2",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "TIMEOUT",
+        "seconds": 120,
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "finite_product_state_explosion"
+    },
+    {
+      "pair_id": "C07/fault3",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "TIMEOUT",
+        "seconds": 120,
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "finite_product_state_explosion"
+    },
+    {
+      "pair_id": "C07/fault4",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "TIMEOUT",
+        "seconds": 120,
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "finite_product_state_explosion"
+    },
+    {
+      "pair_id": "C07_018/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C07_027/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C07_029/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C08_001/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C08_032/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "ir:ok joi:unsupported",
+          "detail": "REF-UNSUPPORTED[selector-no-device]: (#Hall_Light_1)",
+          "events": [
+            [
+              0,
+              {
+                "ContactSensor_1.Contact": false,
+                "ContactSensor_2.Contact": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-UNSUPPORTED-JOI",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C09/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C09/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 300, 'groups': [[{'service': 'DoorLock', 'method': 'Lock', 'args': [], 'device': 'Front_Lock'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Entrance_Presence.Presence": false
+              }
+            ],
+            [
+              100,
+              {
+                "Entrance_Presence.Presence": true
+              }
+            ],
+            [
+              200,
+              {
+                "Entrance_Presence.Presence": false
+              }
+            ],
+            [
+              300,
+              {
+                "Entrance_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C09/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 3,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': None, 'b': {'t': 200, 'groups': [[{'service': 'DoorLock', 'method': 'Lock', 'args': [], 'device': 'Front_Lock'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Entrance_Presence.Presence": false
+              }
+            ],
+            [
+              100,
+              {
+                "Entrance_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 3,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C09/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 100, 'groups': [[{'service': 'DoorLock', 'method': 'Lock', 'args': [], 'device': 'Front_Lock'}]]}, 'b': {'t': 100, 'groups': [[{'service': 'DoorLock', 'method': 'Lock', 'args': [], 'device': 'Front_Lock'}], [{'service': 'DoorLock', 'method': 'Lock', 'args': [], 'device': 'Front_Lock'}]]}, 'reason': 'group count'}",
+          "events": [
+            [
+              0,
+              {
+                "Entrance_Presence.Presence": false
+              }
+            ],
+            [
+              100,
+              {
+                "Entrance_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C09/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C09_004/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C09_015/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C10_007/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C11/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C11/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 100, 'groups': [[{'service': 'WindowCovering', 'method': 'DownOrClose', 'args': [], 'device': 'LR_Curtain'}], [{'service': 'RobotVacuumCleaner', 'method': 'SetRobotVacuumCleanerRunMode', 'args': ['idle'], 'device': 'LR_Vacuum'}]]}, 'b': {'t': 100, 'groups': [[{'service': 'RobotVacuumCleaner', 'method': 'SetRobotVacuumCleanerRunMode', 'args': ['idle'], 'device': 'LR_Vacuum'}], [{'service': 'WindowCovering', 'method': 'DownOrClose', 'args': [], 'device': 'LR_Curtain'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "LR_Curtain.CurrentPosition": 0,
+                "LR_Vacuum.RobotVacuumCleanerOperatingState": null
+              }
+            ],
+            [
+              100,
+              {
+                "LR_Curtain.CurrentPosition": 1,
+                "LR_Vacuum.RobotVacuumCleanerOperatingState": "running"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C11/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 18,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 200, 'groups': [[{'service': 'WindowCovering', 'method': 'DownOrClose', 'args': [], 'device': 'LR_Curtain'}], [{'service': 'RobotVacuumCleaner', 'method': 'SetRobotVacuumCleanerRunMode', 'args': ['idle'], 'device': 'LR_Vacuum'}]]}, 'b': {'t': 200, 'groups': [[{'service': 'WindowCovering', 'method': 'DownOrClose', 'args': [], 'device': 'LR_Curtain'}]]}, 'reason': 'group count'}",
+          "events": [
+            [
+              0,
+              {
+                "LR_Curtain.CurrentPosition": null,
+                "LR_Vacuum.RobotVacuumCleanerOperatingState": null
+              }
+            ],
+            [
+              100,
+              {
+                "LR_Curtain.CurrentPosition": 0
+              }
+            ],
+            [
+              200,
+              {
+                "LR_Curtain.CurrentPosition": 1,
+                "LR_Vacuum.RobotVacuumCleanerOperatingState": "running"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 18,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C11/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 100, 'groups': [[{'service': 'WindowCovering', 'method': 'DownOrClose', 'args': [], 'device': 'LR_Curtain'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "LR_Curtain.CurrentPosition": null,
+                "LR_Vacuum.RobotVacuumCleanerOperatingState": null
+              }
+            ],
+            [
+              100,
+              {
+                "LR_Curtain.CurrentPosition": 1,
+                "LR_Vacuum.RobotVacuumCleanerOperatingState": "running"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C11/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 100, 'groups': [[{'service': 'WindowCovering', 'method': 'DownOrClose', 'args': [], 'device': 'LR_Curtain'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "LR_Curtain.CurrentPosition": null,
+                "LR_Vacuum.RobotVacuumCleanerOperatingState": null
+              }
+            ],
+            [
+              100,
+              {
+                "LR_Curtain.CurrentPosition": 0,
+                "LR_Vacuum.RobotVacuumCleanerOperatingState": "running"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C12_012/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Siren', 'method': 'SetSirenMode', 'args': ['fire'], 'device': 'LR_Siren'}], [{'service': 'Speaker', 'method': 'Speak', 'args': ['Please evacuate'], 'device': 'Bedroom_Speaker'}, {'service': 'Speaker', 'method': 'Speak', 'args': ['Please evacuate'], 'device': 'Speaker'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'Siren', 'method': 'SetSirenMode', 'args': ['fire'], 'device': 'LR_Siren'}]]}, 'reason': 'group count'}",
+          "events": [
+            [
+              0,
+              {
+                "LR_Smoke.Smoke": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C12_013/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Siren', 'method': 'SetSirenMode', 'args': ['emergency'], 'device': 'F1_Siren'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'Siren', 'method': 'SetSirenMode', 'args': ['emergency'], 'device': 'F1_Siren'}, {'service': 'Siren', 'method': 'SetSirenMode', 'args': ['emergency'], 'device': 'F2_Siren'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "F1_Pres_1.Presence": false,
+                "F1_Pres_2.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C13_006/llm",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['n']",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C14_003/llm",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['n']",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 3,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C15/correct",
+      "target": true,
+      "previous": {
+        "verdict": "REFUSED",
+        "claim": "INCONCLUSIVE",
+        "closed": false,
+        "n_states": 400000,
+        "seconds": 64.53,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+          "내부 UNKNOWN: 탐색 미완 — contract-v1: input grid + exact deadlines; concrete state BFS silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded explicit external input domains (no value"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 19,
+        "seconds": 0.09,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C15/fault1",
+      "target": true,
+      "previous": {
+        "verdict": "REFUSED",
+        "claim": "INCONCLUSIVE",
+        "closed": false,
+        "n_states": 400000,
+        "seconds": 63.47,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+          "내부 UNKNOWN: 탐색 미완 — contract-v1: input grid + exact deadlines; concrete state BFS silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded explicit external input domains (no value"
+        ]
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 7,
+        "seconds": 29.15,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C15/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 72002,
+        "seconds": 11.19,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 1800000, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Bed_Light'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Presence.Presence": false
+              }
+            ],
+            [
+              1799800,
+              {
+                "Bed_Presence.Presence": true
+              }
+            ],
+            [
+              1799900,
+              {
+                "Bed_Presence.Presence": false
+              }
+            ],
+            [
+              1800000,
+              {
+                "Bed_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 72002,
+        "seconds": 10.83,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C15/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 72004,
+        "seconds": 11.96,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 1800100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_Light'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Presence.Presence": false
+              }
+            ],
+            [
+              1800000,
+              {
+                "Bed_Presence.Presence": true
+              }
+            ],
+            [
+              1800100,
+              {
+                "Bed_Presence.Presence": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 18,
+        "seconds": 8.61,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C15/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 72004,
+        "seconds": 11.93,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 1800100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_Light'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Presence.Presence": false
+              }
+            ],
+            [
+              1800000,
+              {
+                "Bed_Presence.Presence": true
+              }
+            ],
+            [
+              1800100,
+              {
+                "Bed_Presence.Presence": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 18,
+        "seconds": 8.54,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C15_013/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C15_019/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'WindowCovering', 'method': 'UpOrOpen', 'args': [], 'device': 'Main_Blind'}, {'service': 'WindowCovering', 'method': 'UpOrOpen', 'args': [], 'device': 'Sub_Blind'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'WindowCovering', 'method': 'UpOrOpen', 'args': [], 'device': 'Bedroom_Curtain'}, {'service': 'WindowCovering', 'method': 'UpOrOpen', 'args': [], 'device': 'Main_Blind'}, {'service': 'WindowCovering', 'method': 'UpOrOpen', 'args': [], 'device': 'Sub_Blind'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {}
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C16/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C16/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_TV'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_Light'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Door.Contact": true,
+                "Bed_Light.Switch": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C16/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_TV'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Door.Contact": false,
+                "Bed_Light.Switch": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C16/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_TV'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Door.Contact": true,
+                "Bed_Light.Switch": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C16/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_TV'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_TV'}], [{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Bed_Light'}]]}, 'reason': 'group count'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Door.Contact": true,
+                "Bed_Light.Switch": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C16_003/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'RobotVacuumCleaner', 'method': 'SetRobotVacuumCleanerCleaningMode', 'args': ['auto'], 'device': 'Living_RVC'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'RobotVacuumCleaner', 'method': 'SetRobotVacuumCleanerCleaningMode', 'args': ['auto'], 'device': 'Bedroom_RVC'}, {'service': 'RobotVacuumCleaner', 'method': 'SetRobotVacuumCleanerCleaningMode', 'args': ['auto'], 'device': 'Living_RVC'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "Bedroom_RVC.RobotVacuumCleanerCleaningMode": null,
+                "Living_RVC.RobotVacuumCleanerCleaningMode": "stop"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C16_007/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Light', 'method': 'MoveToBrightness', 'args': [100.0, 0.0], 'device': 'Bedroom_Light'}, {'service': 'Light', 'method': 'MoveToBrightness', 'args': [100.0, 0.0], 'device': 'Kitchen_Light'}, {'service': 'Light', 'method': 'MoveToBrightness', 'args': [100.0, 0.0], 'device': 'LR_Light'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'Light', 'method': 'MoveToBrightness', 'args': [100.0, 0.0], 'device': 'LR_Light'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "LR_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C16_011/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 0, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Main_Charger'}, {'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Phone_Charger'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Main_Charger.ChargingState": null,
+                "Phone_Charger.ChargingState": "fullyCharged"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C17_005/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 9,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 9,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C18/correct",
+      "target": true,
+      "previous": {
+        "verdict": "REFUSED",
+        "claim": "INCONCLUSIVE",
+        "closed": false,
+        "n_states": 400000,
+        "seconds": 59.54,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+          "내부 UNKNOWN: 탐색 미완 — contract-v1: input grid + exact deadlines; concrete state BFS silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded explicit external input domains (no value"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.13,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C18/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 3604,
+        "seconds": 0.55,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': None, 'b': {'t': 125000, 'groups': [[{'service': 'DoorLock', 'method': 'Lock', 'args': [], 'device': 'Front_Lock'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              120000,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              125000,
+              {
+                "Doorbell.Button": null
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 5,
+        "seconds": 0.2,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C18/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 3604,
+        "seconds": 0.53,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 130000, 'groups': [[{'service': 'DoorLock', 'method': 'Lock', 'args': [], 'device': 'Front_Lock'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              120000,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              130000,
+              {
+                "Doorbell.Button": null
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 5,
+        "seconds": 0.2,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C18/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4802,
+        "seconds": 0.81,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 120000, 'groups': [[{'service': 'DoorLock', 'method': 'Unlock', 'args': [], 'device': 'Front_Lock'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              119800,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              119900,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              120000,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4802,
+        "seconds": 0.73,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C18/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 175381,
+        "seconds": 26.65,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 706, 'a': None, 'b': {'t': 3720600, 'groups': [[{'service': 'DoorLock', 'method': 'Unlock', 'args': [], 'device': 'Front_Lock'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              120000,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              130000,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              130200,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              140200,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              140400,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              150400,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              150600,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              160600,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              160800,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              170800,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              171000,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              181000,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              181200,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              191200,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              191400,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              201400,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              201600,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              211600,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              211800,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              221800,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              222000,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              232000,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              232200,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              242200,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              242400,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              252400,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              252600,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ],
+            [
+              262600,
+              {
+                "Doorbell.Button": null
+              }
+            ],
+            [
+              262800,
+              {
+                "Doorbell.Button": "pushed"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 3,
+        "seconds": 3.49,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C18_001/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 25,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 25,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C18_004/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 37,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 37,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C18_009/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 6,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C19/correct",
+      "target": true,
+      "previous": {
+        "verdict": "REFUSED",
+        "claim": "INCONCLUSIVE",
+        "closed": false,
+        "n_states": 400000,
+        "seconds": 35.81,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+          "내부 UNKNOWN: 탐색 미완 — contract-v1: input grid + exact deadlines; concrete state BFS silent-time-v1: input-blind sleeps elided; latest grid inputs fully expanded explicit external input domains (no value"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C19/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 0, 'groups': [[{'service': 'EmailProvider', 'method': 'SendMail', 'args': ['me@example.com', 'On time', 'I got to work on time!'], 'device': 'My_Mail'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Office_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 6.51,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C19/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 216003,
+        "seconds": 24.68,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 10800100, 'groups': [[{'service': 'EmailProvider', 'method': 'SendMail', 'args': ['me@example.com', 'On time', 'I got to work on time!'], 'device': 'My_Mail'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Office_Presence.Presence": false
+              }
+            ],
+            [
+              10800100,
+              {
+                "Office_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 216003,
+        "seconds": 32.16,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C19/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 216000,
+        "seconds": 25.25,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 10800000, 'groups': [[{'service': 'EmailProvider', 'method': 'SendMail', 'args': ['me@example.com', 'On time', 'I got to work on time!'], 'device': 'My_Mail'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Office_Presence.Presence": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 1,
+        "seconds": 6.69,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C19_005/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 3,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 3,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C20-O/correct",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 10,
+        "seconds": 0.04,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C20-O/fault1",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 9,
+        "seconds": 5.48,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C20-O/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 90,
+        "seconds": 0.02,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 300, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Bed_Light'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Presence.Presence": true,
+                "Outdoor_Lux.Brightness": null
+              }
+            ],
+            [
+              100,
+              {
+                "Bed_Presence.Presence": false
+              }
+            ],
+            [
+              200,
+              {
+                "Bed_Presence.Presence": true,
+                "Outdoor_Lux.Brightness": 50.0
+              }
+            ],
+            [
+              300,
+              {
+                "Outdoor_Lux.Brightness": 0.0
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 9,
+        "seconds": 0.04,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C20-O/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 19,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Bed_Light'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Presence.Presence": true,
+                "Outdoor_Lux.Brightness": 0.0
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 7,
+        "seconds": 0.02,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C20-O/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 40,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 200, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Bed_Light'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bed_Presence.Presence": true,
+                "Outdoor_Lux.Brightness": 50.0
+              }
+            ],
+            [
+              100,
+              {
+                "Bed_Presence.Presence": false,
+                "Outdoor_Lux.Brightness": null
+              }
+            ],
+            [
+              200,
+              {
+                "Bed_Presence.Presence": true,
+                "Outdoor_Lux.Brightness": 0.0
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 9,
+        "seconds": 0.03,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": [
+            "_noop"
+          ]
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C20_003/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 30000, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'LivingRoom_TV'}]]}, 'b': {'t': 29000, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'LivingRoom_TV'}]]}, 'reason': 'time'}",
+          "events": [
+            [
+              0,
+              {
+                "LivingRoom_PresenceSensor.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C20_011/llm",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: device LivingRoom_TV does not declare capability Charger",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: device LivingRoom_TV does not declare capability Charger",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: device LivingRoom_TV does not declare capability Charger"
+        }
+      },
+      "frozen_reference_outcome": "REF-UNSUPPORTED-JOI",
+      "category": "invalid_service_mapping"
+    },
+    {
+      "pair_id": "C21_003/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Speaker', 'method': 'Speak', 'args': ['Motion detected in the living room or bedroom.'], 'device': 'LivingRoom_Speaker'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Bedroom_MotionSensor.Motion": false,
+                "LivingRoom_MotionSensor.Motion": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 0,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C22_003/llm",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C24_003/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.13,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "ir:ok joi:unsupported",
+          "detail": "REF-UNSUPPORTED[arith-type]: None + 1",
+          "events": [
+            [
+              0,
+              {
+                "Office_Plug.Power": -0.1
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.13,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-UNSUPPORTED-JOI",
+      "category": "decided"
+    },
+    {
+      "pair_id": "C26_003/llm",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 0, 'groups': [[{'service': 'Speaker', 'method': 'Speak', 'args': ['The robot vacuum cleaner is stuck'], 'device': 'Living_Speaker'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Kitchen_RVC.RobotVacuumCleanerOperatingState": "running",
+                "Living_RVC.RobotVacuumCleanerOperatingState": "docked"
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 5,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-028/correct",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: 미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $ta) >= 14400); joint-guard: ((clock.timestamp - $tb) >= 14400); derived-guard: (($n % 2) == 0)",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 7,
+        "seconds": 0.08,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-028/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: 미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $ta) >= 14400); joint-guard: ((clock.timestamp - $tb) >= 14400); derived-guard: (($n % 2) == 0)",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 5,
+        "seconds": 4.21,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-028/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: 미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $ta) >= 14400); joint-guard: ((clock.timestamp - $tb) >= 14400); derived-guard: (($n % 2) == 0)",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 5,
+        "seconds": 0.06,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-028/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: 미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $ta) >= 14400); joint-guard: ((clock.timestamp - $tb) >= 14400); derived-guard: (($n % 2) == 0)",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 3,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-028/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: 미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $ta) >= 14400); joint-guard: ((clock.timestamp - $tb) >= 14400); derived-guard: (($n % 2) == 0)",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 5,
+        "seconds": 16.3,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-034/correct",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 3,
+        "seconds": 0.04,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "hold",
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-034/fault1",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 5,
+        "seconds": 36.02,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "hold",
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-034/fault2",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 3,
+        "seconds": 19.52,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "hold",
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-034/fault3",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 2,
+        "seconds": 19.41,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "hold",
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-034/fault4",
+      "target": true,
+      "previous": {
+        "verdict": "TIMEOUT",
+        "seconds": 120
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 3,
+        "seconds": 19.36,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "hold",
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-062/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-062/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'LightB'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "LightA.Switch": false,
+                "LightB.Switch": false
+              }
+            ],
+            [
+              100,
+              {
+                "LightA.Switch": true,
+                "LightB.Switch": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-062/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 8,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': None, 'b': {'t': 200, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'LightA'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "LightA.Switch": false,
+                "LightB.Switch": false
+              }
+            ],
+            [
+              100,
+              {
+                "LightB.Switch": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 8,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-062/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'LightB'}], [{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'LightA'}]]}, 'b': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'LightB'}], [{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'LightB'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "LightA.Switch": false,
+                "LightB.Switch": true
+              }
+            ],
+            [
+              100,
+              {
+                "LightA.Switch": true,
+                "LightB.Switch": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-062/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'LightB'}], [{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'LightA'}]]}, 'b': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'LightA'}], [{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'LightB'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "LightA.Switch": true,
+                "LightB.Switch": false
+              }
+            ],
+            [
+              100,
+              {
+                "LightA.Switch": false,
+                "LightB.Switch": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-072/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-072/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Light1'}, {'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Light2'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Home_Presence.Presence": false,
+                "Sun_Env.IsDaylight": false
+              }
+            ],
+            [
+              100,
+              {
+                "Home_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-072/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Light1'}, {'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Light2'}, {'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Light3'}]]}, 'b': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Light1'}, {'service': 'Switch', 'method': 'Off', 'args': [], 'device': 'Light2'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "Home_Presence.Presence": true,
+                "Sun_Env.IsDaylight": false
+              }
+            ],
+            [
+              100,
+              {
+                "Home_Presence.Presence": false,
+                "Sun_Env.IsDaylight": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-072/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 8,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': None, 'b': {'t': 200, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Light1'}, {'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Light2'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Home_Presence.Presence": false,
+                "Sun_Env.IsDaylight": false
+              }
+            ],
+            [
+              100,
+              {
+                "Home_Presence.Presence": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 8,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-072/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 7,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': None, 'b': {'t': 100, 'groups': [[{'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Light1'}, {'service': 'Switch', 'method': 'On', 'args': [], 'device': 'Light2'}]]}, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Home_Presence.Presence": false,
+                "Sun_Env.IsDaylight": false
+              }
+            ],
+            [
+              100,
+              {
+                "Home_Presence.Presence": true,
+                "Sun_Env.IsDaylight": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 2,
+        "seconds": 34.89,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-086/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 24602,
+        "seconds": 4.45,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 8,
+        "seconds": 0.02,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-086/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.19,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 100, 'groups': [[{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone1_Valve'}], [{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone2_Valve'}]]}, 'b': {'t': 100, 'groups': [[{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone1_Valve'}]]}, 'reason': 'group count'}",
+          "events": [
+            [
+              0,
+              {
+                "Sprinkler_Run.Switch": true
+              }
+            ],
+            [
+              100,
+              {
+                "Sprinkler_Run.Switch": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 2,
+        "seconds": 0.01,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-086/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 12600,
+        "seconds": 3.19,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 2, 'a': {'t': 630000, 'groups': [[{'service': 'Valve', 'method': 'Open', 'args': [], 'device': 'Zone2_Valve'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Sprinkler_Run.Switch": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 5,
+        "seconds": 0.9,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-086/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 12602,
+        "seconds": 2.8,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 3, 'a': {'t': 630100, 'groups': [[{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone1_Valve'}], [{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone2_Valve'}]]}, 'b': {'t': 630100, 'groups': [[{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone2_Valve'}], [{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone1_Valve'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "Sprinkler_Run.Switch": true
+              }
+            ],
+            [
+              630100,
+              {
+                "Sprinkler_Run.Switch": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 6,
+        "seconds": 0.86,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-086/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 12002,
+        "seconds": 2.7,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 2, 'a': {'t': 600100, 'groups': [[{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone1_Valve'}], [{'service': 'Valve', 'method': 'Close', 'args': [], 'device': 'Zone2_Valve'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "Sprinkler_Run.Switch": true
+              }
+            ],
+            [
+              600100,
+              {
+                "Sprinkler_Run.Switch": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": false,
+        "n_states": 4,
+        "seconds": 0.79,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "counters": [
+            "ticks"
+          ],
+          "dead": []
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-092-A/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-092-A/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 1, 'a': {'t': 1000, 'groups': [[{'service': 'Alexa', 'method': 'AnnounceNews', 'args': [], 'device': 'Echo'}]]}, 'b': {'t': 1000, 'groups': [[{'service': 'Alexa', 'method': 'AnnounceNews', 'args': [], 'device': 'Echo'}], [{'service': 'Alexa', 'method': 'AnnounceNews', 'args': [], 'device': 'Echo'}]]}, 'reason': 'group count'}",
+          "events": [
+            [
+              0,
+              {
+                "House_Hub.ShutdownRequested": true
+              }
+            ],
+            [
+              1000,
+              {
+                "House_Hub.ShutdownRequested": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 2,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-092-A/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 2, 'a': {'t': 2000, 'groups': [[{'service': 'Alexa', 'method': 'AnnounceAlarmSettings', 'args': [], 'device': 'Echo'}]]}, 'b': {'t': 3000, 'groups': [[{'service': 'Alexa', 'method': 'AnnounceAlarmSettings', 'args': [], 'device': 'Echo'}]]}, 'reason': 'time'}",
+          "events": [
+            [
+              0,
+              {
+                "House_Hub.ShutdownRequested": true
+              }
+            ],
+            [
+              1000,
+              {
+                "House_Hub.ShutdownRequested": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-092-A/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Alexa', 'method': 'AnnounceTasks', 'args': [], 'device': 'Echo'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'Alexa', 'method': 'AnnounceNews', 'args': [], 'device': 'Echo'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "House_Hub.ShutdownRequested": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-092-B/correct",
+      "target": false,
+      "previous": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ]
+      },
+      "explorer": {
+        "verdict": "EQUIV",
+        "claim": "EQUIV-FIXPOINT",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-092-B/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 2, 'a': {'t': 2000, 'groups': [[{'service': 'Alarm', 'method': 'Set', 'args': ['armed'], 'device': 'Alarm_Panel'}]]}, 'b': None, 'reason': 'length'}",
+          "events": [
+            [
+              0,
+              {
+                "House_Hub.ShutdownRequested": true
+              }
+            ],
+            [
+              1000,
+              {
+                "House_Hub.ShutdownRequested": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-092-B/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 0, 'a': {'t': 0, 'groups': [[{'service': 'Lights', 'method': 'Off', 'args': ['downstairs'], 'device': 'Downstairs_Lights'}]]}, 'b': {'t': 0, 'groups': [[{'service': 'Locks', 'method': 'Lock', 'args': ['front, back'], 'device': 'Door_Locks'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "House_Hub.ShutdownRequested": true
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 1,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-092-B/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "witness_on_reference": {
+          "status": "diverge",
+          "difference": "{'index': 2, 'a': {'t': 2000, 'groups': [[{'service': 'Alarm', 'method': 'Set', 'args': ['armed'], 'device': 'Alarm_Panel'}]]}, 'b': {'t': 2000, 'groups': [[{'service': 'Alarm', 'method': 'Set', 'args': ['away'], 'device': 'Alarm_Panel'}]]}, 'reason': 'signature'}",
+          "events": [
+            [
+              0,
+              {
+                "House_Hub.ShutdownRequested": true
+              }
+            ],
+            [
+              1000,
+              {
+                "House_Hub.ShutdownRequested": false
+              }
+            ]
+          ]
+        }
+      },
+      "explorer": {
+        "verdict": "DIVERGE",
+        "claim": "DIVERGE",
+        "closed": true,
+        "n_states": 4,
+        "seconds": 0.0,
+        "notes": [
+          "catalog-backed model: af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456"
+        ],
+        "timer_eligibility": {
+          "reason": "Unsupported: no timer counter or calendar clock"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "decided"
+    },
+    {
+      "pair_id": "E1-095/correct",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-095/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-095/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-095/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-095/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.01
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: explicit input domain required for observable large/unbounded catalog value",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timer zones require JoI period equal to input grid"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-099/correct",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timestamp use is not an elapsed-age literal guard"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-099/fault1",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timestamp use is not an elapsed-age literal guard"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-099/fault2",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timestamp use is not an elapsed-age literal guard"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-099/fault3",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timestamp use is not an elapsed-age literal guard"
+        }
+      },
+      "frozen_reference_outcome": "REF-DIVERGE",
+      "category": "arithmetic_state_relations"
+    },
+    {
+      "pair_id": "E1-099/fault4",
+      "target": false,
+      "previous": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.01
+      },
+      "explorer": {
+        "verdict": "REFUSED",
+        "stage": "preparation/exploration",
+        "reason": "Unsupported: unbounded carried vars: ['k']",
+        "seconds": 0.0,
+        "timer_eligibility": {
+          "reason": "Unsupported: timestamp use is not an elapsed-age literal guard"
+        }
+      },
+      "frozen_reference_outcome": "REF-EQUIV-CHECKED",
+      "category": "arithmetic_state_relations"
+    }
+  ],
+  "witness_artifact": "results/extension-v4.jsonl.gz"
+}
