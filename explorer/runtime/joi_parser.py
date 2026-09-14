@@ -207,8 +207,8 @@ class _P:
         ce = self.parse_call_expr()
         if not isinstance(ce, CallExpr):
             raise ValueError(f"expression not allowed as statement: {ce}")
-        if ce.quant == 'any':
-            raise ValueError('any selector is not allowed in ACTION position')
+        # `any(...)` on an ACTION is refused in grounding unless the IR binding fixes the devices
+        # (binding decision 2026-09-14: selectors and quantifiers do not decide the verdict).
         return CallStmt(ce)
 
     def parse_assign(self) -> Assign:

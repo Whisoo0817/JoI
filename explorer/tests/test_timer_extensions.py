@@ -80,9 +80,16 @@ n = n + {delta}
             self.assertNotIn('n',counter_moduli(parse(base+tail)))
 
     def test_any_action_rejected_but_any_read_parses(self):
-        with self.assertRaisesRegex(ValueError,'ACTION position'):
-            parse('any(#Switch).On()')
+        # Binding decision 2026-09-14: `any(...)` on an ACTION parses; grounding refuses it
+        # unless the IR binding fixes the devices, in which case the binding devices are called.
+        from explorer.runtime.ground import Dev, ground
+        stmts = parse('any(#Switch).On()')
         self.assertTrue(parse('x = any(#Sensor).Present'))
+        devs = [Dev('a', 'Switch', ('Switch',)), Dev('b', 'Switch', ('Switch',))]
+        with self.assertRaisesRegex(Unsupported, 'ACTION position'):
+            ground(stmts, devs)
+        grounded, _ = ground(stmts, devs, binding={'Switch': [(['a', 'b'], None)]})
+        self.assertEqual([c.call.tags for c in grounded], [('a',), ('b',)])
 
     def test_hour_shared_overapprox_and_one_shot(self):
         a=IrRunner({'timeline':[{'op':'start_at','anchor':'now'},
