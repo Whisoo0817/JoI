@@ -178,3 +178,37 @@ written by a separate agent that is given only the §1.2 specification files, th
 `timeline_ir/*.py`, or `lowering/*.py` other than the generated parser. The agent logs every file it opens; the log is
 kept with the reference. Independence is claimed at the level of code and author, not of the specification: the
 reference and the Explorer follow the same written contract, so a wrong contract is not detected by E2.
+
+## 9. Supplementary histories (after the frozen run; whisoo 2026-09-14)
+
+**Why.** The hand inspection of the frozen run (`INSPECTION_2026-09-14.md`) found 8 pairs whose reference outcome on
+the frozen histories was REF-EQUIV-CHECKED although an Explorer witness, replayed on the reference, showed a real
+difference. Two causes apply to every case: almost every case has a single start state (one-shot programs test their
+condition only in the default state), and at most 300 pulse histories are kept per case. whisoo decided to add a
+supplementary history set and report it separately. The frozen results stay as reported.
+
+**Rule** (fixed before generation; committed with the generated histories before any reference run on them;
+`histories/make_supplement.py` → `histories/supplement_histories.json`, 39,245 histories):
+- It is the same for every case. It reads only the frozen history files and the pairs' base IR, binding, devices and
+  start time. It never reads a JoI script, a fault, an Explorer verdict or a witness.
+- **Start states:**
+  - Keys are the IR-compared inputs plus the same member on other devices of the case that share a category.
+  - Values are both BOOLs; for numbers, the seed start value and each compared literal v as v − s, v and v + s; for
+    strings, the seed start value and the compared literals. None is not used.
+  - A seed's t = 0 values are replaced by every assignment when there are at most 200 per seed. Otherwise every
+    single-key change is used, plus seeded random joint assignments up to 200.
+- **More pulses:** the frozen pulse rules are rerun without the cap. Pulses already in the frozen set are removed,
+  and up to 1,500 more are sampled per case (seed `20260914-supp`).
+- **Self-check:** rerunning the frozen generator from the same inputs must reproduce the frozen histories exactly.
+
+**Run** (`run_supplement.py`):
+- Only pairs with REF-EQUIV-CHECKED under the current reference are rerun, with the current reference. Explorer
+  verdicts and witness replays are unchanged.
+- The combined outcome is REF-DIVERGE if the supplement diverges; otherwise it is the frozen-history outcome.
+- Output: `runs/e2_run.ref-current-supp.jsonl`.
+
+**Reporting:**
+- The frozen-history agreement and the supplementary agreement are reported side by side, and the supplement is
+  labelled as added after the run.
+- A new FALSE-EQUIV-CANDIDATE is inspected like any other.
+- Supplementary histories on which the reference is unsupported are counted apart.
