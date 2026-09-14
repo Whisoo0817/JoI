@@ -20,9 +20,34 @@ We organize the evaluation around four questions that follow the VETS guarantee 
 
 **Contract facts surfaced.** The study also fixed several semantics that the Timeline section must state: `cycle.period` is waited after the body completes rather than as a fixed cadence; an edge wait whose condition is already true fires immediately; edges occurring during another wait are not latched; cron anchors are erased by the runner, which executes one firing window; and an unread variable reads as null, a behavior the verification contract does not currently specify.
 
-## E2: Does the validator implement the declared semantics faithfully?
+## E2: Can the Explorer's verdicts be trusted?
 
-We will compare Timeline and JoI execution and Explorer verdicts against an independent oracle on boundary cases and positive and negative program pairs. Fault families include missing or additional calls, timing, snapshot value, order, sustain reset, edge re-arming, and repetition state. Unsupported, runtime-error, incomplete, false-equivalence, and false-divergence outcomes will be reported separately. **[FROZEN E2 PROTOCOL AND RESULTS PENDING]**.
+**[E2 DRAFT 2026-09-14 — PENDING WHISOO REVIEW. Evidence: `E2_fidelity/RESULTS.md` "Final version"; plan: `E2_fidelity/E2_WRITING_PLAN.md`.]**
+
+**Design.** E2 checks every Explorer verdict against an independent reference. The reference is a Timeline runner and a JoI interpreter implemented from the specification documents alone, without access to the Explorer code; a read log and an import check record this separation. Before use, it reproduced all 53 pre-registered E1 traces and 15 JoI conformance probes. The 142 program pairs have two sources. From the 20 E1 requirements we wrote 21 correct JoI implementations and 81 faulty ones, each fault a single change from one family: a missing or additional call, timing, a snapshot value, call order, sustain reset, edge re-arming, or repetition state. To include errors that people do not write by hand, we also drew 40 LLM-generated JoI candidates at random from our 388-request development set, without regard to earlier verdicts. For each pair, the reference executes both programs on about 51,000 generated input histories in total (seed histories, start-state assignments, and single-input pulses) and compares their timed ACTION traces; every witness the Explorer reports is also replayed on the reference. The Explorer runs with a budget of 120 s, 400,000 states, and 2,000,000 transitions per pair. A refusal or a timeout gives no verdict and stays in the denominator.
+
+**TABLE [E2].** Explorer verdicts checked against the independent reference (142 pairs).
+
+| | Pairs |
+|---|---:|
+| *Fidelity* | |
+| Verdicts issued (EQUIV or DIVERGE) | 131 |
+| &nbsp;&nbsp;confirmed by the reference | 130 |
+| &nbsp;&nbsp;reference cannot execute the JoI | 1 |
+| &nbsp;&nbsp;contradicted by the reference | **0** |
+| Faulty pairs with an observable difference | 75 |
+| &nbsp;&nbsp;DIVERGE / EQUIV / no verdict | 69 / **0** / 6 |
+| *Coverage* | |
+| LLM-generated candidates decided | 39/39 |
+| Hand-built pairs decided | 92/102 |
+| Hand-built requirements fully decided | 18/20 |
+| No verdict: nested repetition with timers (state explosion) | 5 |
+| No verdict: deadline that grows with the number of events | 5 |
+| Invalid LLM input, rejected by both tools | 1 |
+
+**Fidelity.** None of the 131 verdicts the Explorer issued was contradicted by the reference. For 122 of them, the reference histories themselves show the same result: 56 EQUIV verdicts with no difference and 66 DIVERGE verdicts with a difference. For 8 DIVERGE verdicts, no reference history reached the diverging input, such as a switch held on past 630 s, a button press, or a clock hour past 06:00, but replaying the Explorer's witness on the reference reproduced the difference. For the remaining DIVERGE verdict, the reference cannot execute the generated JoI, which adds one to an uninitialized variable, an operation the specification leaves undefined. Of the 75 faulty pairs whose difference is observable on the reference, the Explorer reported DIVERGE for 69, never reported EQUIV, and gave no verdict for 6. Agreement on an EQUIV verdict is evidence over the generated histories, not a proof.
+
+**Coverage.** The Explorer decided all 39 valid LLM-generated candidates; the fortieth calls a service that its target device does not provide and is rejected as invalid input by both tools. It decided 92 of the 102 hand-built pairs, covering 18 of the 20 requirements completely. The two remaining requirements, five pairs each, represent two classes. A garage-door alert that runs up to seven cycles of ten half-second light blinks separated by five-minute pauses, and stops as soon as the door closes, nests repetition with timers; its product state space exceeded the budget. A light that turns off five minutes after it turns on, extended by two minutes at each motion event, has a deadline that grows with the number of events, a relation the Explorer refuses rather than approximates. Both classes end in no verdict, never in a wrong one.
 
 ## E3: What happens on generated JoI candidates?
 
