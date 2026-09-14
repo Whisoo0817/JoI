@@ -128,8 +128,8 @@ class Number(SymbolicValue):
         return self
 
     def __bool__(self): return bool(self != 0)
-    def __eq__(self, other): return Predicate(self - other, '==')
-    def __ne__(self, other): return Predicate(self - other, '!=')
+    def __eq__(self, other): return False if other is None else Predicate(self - other, '==')
+    def __ne__(self, other): return True if other is None else Predicate(self - other, '!=')
     def __lt__(self, other): return Predicate(self - other, '<')
     def __le__(self, other): return Predicate(self - other, '<=')
     def __gt__(self, other): return Predicate(-self + other, '<')

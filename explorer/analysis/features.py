@@ -183,6 +183,11 @@ def analyze_stmts(stmts: list, vars_: dict[str, VarInfo],
         return False
 
     def check_atom(atom: expr_mod.BinaryOp) -> None:
+        from explorer.analysis.modular import counter_moduli, residue_expr
+        moduli = counter_moduli(stmts)
+        if any(residue_expr(side, moduli) and isinstance(other, expr_mod.Lit)
+               for side, other in ((atom.left, atom.right), (atom.right, atom.left))):
+            return
         l, r = resolve(atom.left), resolve(atom.right)
         if _unmodeled_clock(l) or _unmodeled_clock(r):
             # clock_state가 제공하지 않는 필드(clock.time 등) — 지금은
@@ -553,6 +558,20 @@ def analyze_ir(prog) -> list[Feature]:
             return
         if n[0] == "bin" and n[1] in _CMP:
             l, r = n[2], n[3]
+            # The concrete product retains snapshot values exactly. The zone
+            # path separately validates every use before abstracting them.
+            for side, other in ((l, r), (r, l)):
+                if (side[0:2] == ('bin', '-') and side[2][:2] == ('read', 'clock.timestamp')
+                        and side[3][0] == 'var' and other[0] == 'lit'
+                        and type(other[1]) is int
+                        and prog.var_keys.get(side[3][1]) == 'clock.timestamp'):
+                    return
+            for side, other in ((l, r), (r, l)):
+                if (side[0:2] == ('bin', '%') and side[2][0] == 'var'
+                        and side[2][1] in counters and side[3][0] == 'lit'
+                        and type(side[3][1]) is int and side[3][1] > 0
+                        and other[0] == 'lit'):
+                    return
             src0: set = set()
             _t_reads(n, src0)
             bad_clock = sorted(

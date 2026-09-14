@@ -1,11 +1,12 @@
 # SUPPORTED_FRAGMENT — 검증기가 EQUIV를 주장할 수 있는 프로그램 조각
 
-2026-09-14 추가: `timer-zones-v1`은 JoI period=입력 격자이고 모든 IR 마감이
+2026-09-14 추가: `timer-zones-v2`는 반복 JoI period=입력 격자이고 모든 IR 마감이
 그 격자에 놓이는 경우, 비교 전용 정수 증가 카운터와 내부 타이머의 차이
 관계를 확대·재검사한다. 전역 미사용 plain Clock READ는 상태 관계에서
-제외한다. 실제 달력 읽기, timestamp snapshot, JoI blocking/loop, 이름 있는
-IR 카운터, GV, IR 질의/매개변수 질의, 타이머 값의 ACTION/다른 변수 유출은 새 경로에서
-거절한다. 미결정이면 기존 경로를 유지한다. 적용 조건과 증명은
+제외한다. 격자 위 blocking, 유한 회차 카운터, Hour와 비교 전용 timestamp
+snapshot은 아래 2026-09-14 확장 조건에서 받는다. JoI loop, 무한 IR 카운터,
+GV, IR 질의/매개변수 질의, 타이머 값의 ACTION 유출은 새 경로에서 거절한다.
+미결정이면 기존 경로를 유지한다. 적용 조건과 증명은
 [TIMER_ZONES.md](../proof/TIMER_ZONES.md)를 따른다.
 
 작성 2026-09-02 (P1). 이 문서는 **코드가 실제로 검사하는 것**과 1:1로
@@ -114,10 +115,10 @@ foreach 내부 break/blocking/nesting/iterator 쓰기는 미인증 의미로 거
   - 맨 truthy 읽기/bool 변수
 - **상태 변수**: bool 래치, 리터럴 유한 enum, counter(갱신이 `= 상수`
   또는 `자기 ± 상수`뿐이고 **비교 전용**일 때), 타임스탬프 레지스터.
-  기본 timed BFS는 구체 값을 보존한다. 위 조건에서는 timer-zones-v1의
+  기본 timed BFS는 구체 값을 보존한다. 위 조건에서는 timer-zones-v2의
   과근사 관계 증명을 먼저 시도한다. 단순 counter 포화는 구 경로의 방식이다.
 - **타이머 여러 개**: 기본 timed BFS는 양쪽 timer의 정확한 시각을 보존한다.
-  timer-zones-v1은 위 적용 범위 안에서 여러 좌표의 쌍별 차이를 함께 보존한다.
+  timer-zones-v2는 위 적용 범위 안에서 여러 좌표의 쌍별 차이를 함께 보존한다.
   구 경로는 쌍별 마감 차이 구간(deadline region, §9.18 ②)을 사용한다.
   상태 폭발 시 cap → UNKNOWN → REFUSED.
 - **질의 읽기**: 인자가 전부 리터럴인 경우. 이전 루프 범위 휴리스틱은
@@ -197,3 +198,24 @@ STRING 인자 계약과 내부 갱신/ACTION 순서도 확인하며 cap은 UNKNO
 관계로 H 없는 폐쇄가 가능하다. 일반 clock 루프/시간 snapshot/별도 STRING Time 속성의
 해석을 확대하지 않는다. [정확한 전제와 보수적 fallback](../proof/CATALOG_RANGE_ANALYSIS.md).
 C15_005/C18_003은 해결됐고 새 전체 결과의 미완료는0이다. 임의 프로그램의 완료 보장은 아니다.
+
+## 2026-09-14: 격자 시계·snapshot·나머지 카운터 확장
+
+`timer-zones-v2`는 격자 위 wait/delay와 반복/일회 실행, 직접 Hour 읽기,
+현재 timestamp를 저장한 뒤 경과 시간을 상수와 비교하는 모양을 추가로
+검사한다. 시계 경계와 입력 격자가 정렬돼야 한다. Hour의 임의 공통 변화와
+timestamp의 공통 초 증가를 과근사하므로 EQUIV는 모든 포함 상태에서
+폐쇄를 확인한 경우뿐이다. 실제 달력 이력에서 재생된 차이만 DIVERGE다.
+JoI에서 양의 상수에 대한 나머지로만 관찰되는 정수 카운터는 최소공배수
+몫으로 정규화한다. 원값 유출·동적 snapshot 가공·비동기 시간은 확대하지 않는다.
+[전제·전방 포괄·반례 재생 논증](../proof/TIMER_ZONES.md).
+
+사용자 언어 결정에 따라 ACTION 위치의 `any(selector).Method()`는
+파싱 단계에서 거절한다. any 읽기의 기존 의미는 유지한다. 선언되지 않은
+service capability를 쓰는 후보는 기존 모델 검사가 거절한다. 둘 모두
+행동 동등성을 못 증명한 사례와 구별해서 집계한다.
+
+E2의 새 개발 재평가에서는 계산된 수치 상태의 관계 추론과 유한 곱 상태의 자원 폭증을
+서로 다른 한계로 기록한다. 이는 평가된 쌍의 원인 분류이며 모든 JoI
+프로그램에 대한 완전 지원 주장이 아니다. 이전 동결 실험 수치를 대체할
+때에는 새 반례의 독립 정답기 재검사를 별도로 마쳐야 한다.

@@ -24,6 +24,8 @@ def timer_product(a, b, *, domains, axes, input_step_ms, t0_ms,
                   max_states, max_transitions, max_input_combinations):
     step = input_step_ms
     plan = analyze(a, b, step)
+    if (plan.hours or any(plan.snapshots)) and (1000 % step or t0_ms % step):
+        raise Unsupported('clock-zone events must align with the input grid')
     if axes.coverage.errors or axes.coverage.writes or axes.param_reads or axes.mirror_gv:
         raise Unsupported('timer zones do not admit queries/GVs/coverage errors')
     if any(k.startswith(('@gv:', 'clock.')) for k in domains):
@@ -39,13 +41,20 @@ def timer_product(a, b, *, domains, axes, input_step_ms, t0_ms,
     original_a, original_b = a, b
     a, b = TerminalRunner(a), TerminalRunner(b)
     combos = [dict(zip(domains, vals)) for vals in itertools.product(*domains.values())]
+    if plan.hours:
+        if len(combos) * 24 > max_input_combinations:
+            raise Unsupported('calendar input combination cap')
+        combos = [{**world, 'clock.hour': h} for world in combos for h in range(24)]
     started = time.perf_counter()
     result = ProductResult('UNKNOWN', closed=False, input_step_ms=step)
-    result.notes.append('timer-zones-v1: integer difference bounds; widening with rechecked successors')
+    result.notes.append('timer-zones-v2: integer difference bounds; widening with rechecked successors')
     result.symbolic_certificate = cert = {
-        'schema': 'timer-zones-v1', 'complete': False, 'counters': plan.counters,
+        'schema': 'timer-zones-v2', 'complete': False, 'counters': plan.counters,
         'dead_clock_reads': sorted(plan.dead), 'input_step_ms': step,
         'thresholds': plan.thresholds, 'widenings': 0, 'reactions': 0,
+        'calendar': 'arbitrary shared Hour at each reaction (overapproximation)' if plan.hours else None,
+        'snapshots': plan.snapshots,
+        'timestamp_progress': 'shared floor/ceil seconds per grid step (overapproximation)',
         'time_model': 'all deadlines on input grid; exact one-grid-step reactions',
     }
     pending, nodes = deque(), {}
@@ -60,7 +69,7 @@ def timer_product(a, b, *, domains, axes, input_step_ms, t0_ms,
                               for key, node in nodes.items()]
         return result
 
-    def stores(av, bv, zone, now):
+    def stores(av, bv, zone, now, stamp=0):
         concrete, expressions = [], {}
         for side, values in enumerate((av, bv)):
             values = dict(values)
@@ -70,10 +79,11 @@ def timer_product(a, b, *, domains, axes, input_step_ms, t0_ms,
                 for name in locals_ - live - set(plan.counters): values.pop(name, None)
             out = {}
             for name, value in values.items():
-                selected = name in timers[side] or side == 1 and name in plan.counters
+                selected = name in timers[side] or name in plan.snapshots[side] or side == 1 and name in plan.counters
                 if selected and value is not None:
                     term = Number.of(value)
                     if name in timers[side]: term = (now - term * 1000) / step
+                    elif name in plan.snapshots[side]: term = stamp - term
                     ident = f'{side}:{name}'
                     expressions[ident] = term
                     out[name] = ('timer-slot', ident)
@@ -90,14 +100,15 @@ def timer_product(a, b, *, domains, axes, input_step_ms, t0_ms,
             if isinstance(value, tuple) and len(value) == 2 and value[0] == 'timer-slot':
                 term = Number({value[1]: 1})
                 # The previous reaction's time is rebased to zero.
-                out[name] = -term * Fraction(step, 1000) if name in timers[side] else term
+                out[name] = (-term * Fraction(step, 1000) if name in timers[side]
+                             else -term if name in plan.snapshots[side] else term)
             else: out[name] = value
         return out
 
-    def admit(ra, rb, zone, now, history):
+    def admit(ra, rb, zone, now, history, stamp=0):
         if ra.gv or rb.gv: raise Unsupported('timer zone reaction wrote a GV')
         if ra.terminated and rb.terminated: return
-        (av, bv), projected = stores(ra.vars, rb.vars, zone, now)
+        (av, bv), projected = stores(ra.vars, rb.vars, zone, now, stamp)
         key = freeze((av, bv))
         if key not in nodes:
             if len(nodes) >= max_states: raise Unsupported('timer zone state cap')
@@ -121,6 +132,9 @@ def timer_product(a, b, *, domains, axes, input_step_ms, t0_ms,
         original runners at EVERY grid point, and is independently replayed.
         """
         if not history: return None
+        if plan.hours: return None  # Synthetic calendar paths are not concrete witnesses.
+        history = [{k: v for k, v in world.items() if not k.startswith('clock.')}
+                   for world in history]
         # Runs of identical worlds identify places to extend a held input.
         runs = []
         for world in history:
@@ -144,14 +158,15 @@ def timer_product(a, b, *, domains, axes, input_step_ms, t0_ms,
                         if replay_divergence(original_a, original_b, dv).confirmed:
                             return dv
                         return None
-                    if len(trace) > 1 and trace[-1][0] == world:
+                    if len(trace) > 1 and trace[-1][0] == world and trace[-2][0] == world:
                         trace[-1] = (world, trace[-1][1] + step)
                     else:
                         trace.append((world, step if trace else 0))
                     av, bv, now = ra.vars, rb.vars, now + step
         return None
 
-    def expand(av, bv, zone, world, now, history):
+    def expand(av, bv, zone, world, now, history, stamp=0):
+        if any(plan.snapshots): world = {**world, 'clock.timestamp': stamp}
         branches = [zone.canonical()]
         while branches:
             current = branches.pop()
@@ -177,25 +192,42 @@ def timer_product(a, b, *, domains, axes, input_step_ms, t0_ms,
                 continue
             cert['reactions'] += 1
             if mismatch:
+                from explorer.verification.timer_witness import boundary_witness, calendar_witness, snapshot_witness
+                originals = (original_a, original_b)
+                if plan.hours:
+                    dv = calendar_witness(originals, history+[world], combos, step, t0_ms)
+                elif any(plan.snapshots):
+                    dv = snapshot_witness(originals, combos, plan, step, t0_ms,
+                                          max_nodes=min(max_states, 500))
+                else:
+                    dv = boundary_witness(a, b, originals, combos, plan,
+                                          stores, materialize, step, t0_ms,
+                                          max_nodes=min(max_states, 2000))
+                if dv is not None:
+                    result.verdict = 'DIVERGE'
+                    result.divergences.append(dv)
+                    return finish('boundary-directed timer witness replay confirmed')
                 dv = concrete_witness(history + [world])
                 if dv is not None:
                     result.verdict = 'DIVERGE'
                     result.divergences.append(dv)
                     return finish('timer-zone candidate concretely executed and replayed')
                 return finish('abstract ACTION mismatch without confirmed concrete witness')
-            admit(ra, rb, zone_after, now, history + [world])
+            admit(ra, rb, zone_after, now, history + [world], stamp)
         return None
 
     try:
         for world in combos:
-            stopped = expand({}, {}, Zone(), world, 0, [])
+            stopped = expand({}, {}, Zone(), world, 0, [], t0_ms // 1000)
             if stopped is not None: return stopped
         while pending:
             key = pending.popleft()
             av, bv, zone, history = nodes[key]
             for world in combos:
-                stopped = expand(materialize(av, 0), materialize(bv, 1), zone, world, step, history)
-                if stopped is not None: return stopped
+                advances = sorted({step // 1000, (step + 999) // 1000}) if any(plan.snapshots) else [0]
+                for stamp in advances:
+                    stopped = expand(materialize(av, 0), materialize(bv, 1), zone, world, step, history, stamp)
+                    if stopped is not None: return stopped
     except Unsupported as exc:
         return finish(str(exc))
     return finish('all initial states and enlarged-zone successors covered; inductive fixpoint', True)

@@ -207,6 +207,8 @@ class _P:
         ce = self.parse_call_expr()
         if not isinstance(ce, CallExpr):
             raise ValueError(f"expression not allowed as statement: {ce}")
+        if ce.quant == 'any':
+            raise ValueError('any selector is not allowed in ACTION position')
         return CallStmt(ce)
 
     def parse_assign(self) -> Assign:

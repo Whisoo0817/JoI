@@ -154,7 +154,7 @@ if (done == false) {
             with self.assertRaises(Unsupported): analyze(a, b, 100)
 
     def test_live_clock_and_off_grid_deadline_rejected(self):
-        a, b = pair(extra='\nh = (#Clock).Hour')
+        a, b = pair(extra='\nh = (#Clock).Timestamp')
         with self.assertRaises(Unsupported): analyze(a, b, 100)
         a, b = pair()
         next(x for x in a.prog.ins if x.to_sec).to_sec += 0.001
@@ -167,7 +167,9 @@ if (done == false) {
             read.var = name
             if name == 'unused':
                 next(x for x in a.prog.ins if x.kind == 'CALL').args = (('var', name),)
-            with self.assertRaises(Unsupported): analyze(a, b, 100)
+                self.assertNotIn(name, analyze(a, b, 100).dead)
+            else:
+                with self.assertRaises(Unsupported): analyze(a, b, 100)
 
     def test_unknown_wrapper_rejected(self):
         class HiddenClock:
