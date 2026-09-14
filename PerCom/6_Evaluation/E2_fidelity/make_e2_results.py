@@ -6,6 +6,7 @@ Reads runs/e2_run.ref-frozen.jsonl and runs/e2_run.ref-current.jsonl (rerun_refe
 from the run; reference outcomes and witness replays come from the recomputation. Every pair stays in the
 denominator, including refusals, timeouts and reference-unsupported pairs.
 """
+import gzip
 import json
 from collections import Counter
 from pathlib import Path
@@ -22,7 +23,13 @@ ORDER = [
 
 
 def load(label):
-    return {r["pair_id"]: r for r in map(json.loads, (RUNS / f"e2_run.ref-{label}.jsonl").read_text().splitlines())}
+    path = RUNS / f"e2_run.ref-{label}.jsonl"
+    if not path.exists():
+        path = path.with_name(path.name + ".gz")
+        if not path.exists():
+            return None
+    text = gzip.open(path, "rt").read() if path.suffix == ".gz" else path.read_text()
+    return {r["pair_id"]: r for r in map(json.loads, text.splitlines())}
 
 
 def table(rows, key, cols):
@@ -76,6 +83,31 @@ def main():
             md += f"| {p} | {f['reference']['outcome']} → {c['reference']['outcome']} | {f['agreement']} | {c['agreement']} |\n"
     md += f"\n{n} pairs differ; every difference is a witness replay that the frozen reference refused on a " \
           "None ordered comparison.\n" if n else "\nNo differences.\n"
+    supp = load("current-supp")
+    if supp:
+        srs = list(supp.values())
+        for r in srs:
+            r["_col"] = r["kind"]
+        ran = [r for r in srs if "reference_supplement" in r]
+        md += "\n## Supplementary histories (PROTOCOL_DRAFT §9, added after the frozen run)\n\n"
+        md += f"The current reference was rerun on `histories/supplement_histories.json` for the {len(ran)} pairs that " \
+              "were REF-EQUIV-CHECKED on the frozen histories; the other pairs are unchanged. Combined outcome: " \
+              "REF-DIVERGE if the supplement diverges, otherwise the frozen-history outcome.\n\n"
+        md += "Agreement with the combined reference outcome:\n\n" + table(srs, lambda r: r["agreement"], KINDS)
+        md += "\nOutcome on the supplementary histories alone (rerun pairs only):\n\n" + \
+              table(ran, lambda r: r["reference_supplement"]["outcome"], KINDS)
+        md += "\n| pair | Explorer | agreement (frozen histories) | agreement (combined) | supplementary histories |\n" \
+              "|---|---|---|---|---|\n"
+        m = 0
+        for p in sorted(supp):
+            s, c = supp[p], cur[p]
+            if s["agreement"] != c["agreement"] or s.get("reference_supplement", {}).get("outcome", "REF-EQUIV-CHECKED") \
+                    not in ("REF-EQUIV-CHECKED", "REF-DIVERGE"):
+                m += 1
+                rs_ = s["reference_supplement"]
+                md += f"| {p} | {s['explorer'].get('verdict')} | {c['agreement']} | {s['agreement']} | " \
+                      f"{rs_['outcome']} ({rs_['n_histories']}) |\n"
+        md += f"\n{m} pairs listed (agreement changed, or the supplement was not fully supported).\n"
     (HERE / "RESULTS.md").write_text(md)
     print(md)
 

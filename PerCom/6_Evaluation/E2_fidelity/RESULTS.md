@@ -103,3 +103,39 @@ Fault pairs, agreement by fault family:
 | C20-O/fault4 | REF-DIVERGE → REF-DIVERGE | DIVERGE-WITNESS-ir:unsupported joi:unsupported | AGREE-DIVERGE |
 
 9 pairs differ; every difference is a witness replay that the frozen reference refused on a None ordered comparison.
+
+## Supplementary histories (PROTOCOL_DRAFT §9, added after the frozen run)
+
+The current reference was rerun on `histories/supplement_histories.json` for the 59 pairs that were REF-EQUIV-CHECKED on the frozen histories; the other pairs are unchanged. Combined outcome: REF-DIVERGE if the supplement diverges, otherwise the frozen-history outcome.
+
+Agreement with the combined reference outcome:
+
+|  | correct | fault | llm | total |
+|---|---|---|---|---|
+| AGREE-EQUIV-ON-CHECKED | 12 | 1 | 23 | 36 |
+| AGREE-DIVERGE | 0 | 52 | 11 | 63 |
+| EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | 0 | 3 | 0 | 3 |
+| DIVERGE-WITNESS-ir:ok joi:unsupported | 0 | 0 | 2 | 2 |
+| EXPLORER-REFUSED | 6 | 15 | 4 | 25 |
+| EXPLORER-TIMEOUT | 3 | 10 | 0 | 13 |
+| total | 21 | 81 | 40 | 142 |
+
+Outcome on the supplementary histories alone (rerun pairs only):
+
+|  | correct | fault | llm | total |
+|---|---|---|---|---|
+| REF-DIVERGE | 0 | 0 | 5 | 5 |
+| REF-EQUIV-CHECKED | 21 | 7 | 25 | 53 |
+| REF-UNSUPPORTED-JOI | 0 | 0 | 1 | 1 |
+| total | 21 | 7 | 31 | 59 |
+
+| pair | Explorer | agreement (frozen histories) | agreement (combined) | supplementary histories |
+|---|---|---|---|---|
+| C03_008/llm | REFUSED | EXPLORER-REFUSED | EXPLORER-REFUSED | REF-UNSUPPORTED-JOI (3) |
+| C05_014/llm | DIVERGE | EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | AGREE-DIVERGE | REF-DIVERGE (63) |
+| C05_028/llm | DIVERGE | EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | AGREE-DIVERGE | REF-DIVERGE (15) |
+| C16_007/llm | DIVERGE | EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | AGREE-DIVERGE | REF-DIVERGE (3) |
+| C16_011/llm | DIVERGE | EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | AGREE-DIVERGE | REF-DIVERGE (1503) |
+| C21_003/llm | DIVERGE | EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | AGREE-DIVERGE | REF-DIVERGE (3) |
+
+6 pairs listed (agreement changed, or the supplement was not fully supported).

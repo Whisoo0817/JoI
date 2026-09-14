@@ -22,9 +22,9 @@ support, was inspected. Explorer verdicts were not changed; the reference was no
 
 | pair | difference (from the witness replay) | why the histories missed it |
 |---|---|---|
-| E1-086/fault2 (timing) | Zone 2 opens at 630 s in IR, not in JoI (gap 60 s instead of 30 s) | needs the switch held past 630 s; 300 of 1,506 generated pulse histories kept |
-| E1-086/fault3 (order) | cancel at 630.1 s: Close order Zone1, Zone2 vs Zone2, Zone1 | same: cancel inside zone 2 not among kept histories |
-| E1-086/fault4 (guard) | cancel at 600.1 s during the gap: IR closes both valves, JoI does not | same: cancel inside the 30 s gap not among kept histories |
+| E1-086/fault2 (timing) | Zone 2 opens at 630 s in IR, not in JoI (gap 60 s instead of 30 s) | needs the first run of the switch held past 630 s; the only seed cancels at 301 s (see the supplement section) |
+| E1-086/fault3 (order) | cancel at 630.1 s: Close order Zone1, Zone2 vs Zone2, Zone1 | same: no history cancels inside zone 2 |
+| E1-086/fault4 (guard) | cancel at 600.1 s during the gap: IR closes both valves, JoI does not | same: no history cancels inside the 30 s gap |
 | C05_014/llm | start state Living presence true, Bedroom temp −40, Living temp None: IR (binding Bedroom sensor) sets both ACs, JoI `(#TemperatureSensor)` reads Living sensor | one-shot program; one start state (all defaults) |
 | C05_028/llm | start state dust 100, mode auto: JoI `all(#Speaker)` speaks on every speaker, IR on Warehouse speaker | one-shot program; one start state |
 | C16_007/llm | presence true at 22:00: IR switches three lights, JoI `all(#LevelControl)` one | one-shot program; one start state |
@@ -53,6 +53,32 @@ were shown different by an Explorer witness. Two causes, both in the history gen
    condition once at start, so a condition is exercised only under the default state. Among the 36
    AGREE-EQUIV-ON-CHECKED pairs, 5 are one-shot `if` programs checked this way (C03_027, C05_021, C06_007,
    C07_027, C07_029); their EQUIV agreement is weak.
-2. **Pulse cap and IR-only compared values.** At most 300 pulse histories per case are kept (e.g. 300 of 1,506 for
-   E1-086, 300 of 98,544 for C07), and pulses vary only the values the IR compares, not the other devices a JoI
+2. **Seed-bound pulses, pulse cap and IR-only compared values.** Pulses add one excursion to a seed, so a behaviour
+   the seeds never enter (E1-086: a first run longer than 301 s) is not reached. At most 300 pulse histories per case
+   are kept (e.g. 300 of 98,544 for C07). Pulses vary only the values the IR compares, not the other devices a JoI
    selector may read.
+
+## Supplementary histories (PROTOCOL_DRAFT §9, run 2026-09-14 after the frozen run)
+
+The current reference was rerun on 39,245 supplementary histories (start-state assignments and uncapped pulses)
+for the 59 pairs that were REF-EQUIV-CHECKED on the frozen histories. Explorer verdicts unchanged.
+
+- **FALSE-EQUIV-CANDIDATE: still 0.** All 36 Explorer-EQUIV pairs stay EQUIV on the supplementary histories.
+- 5 pairs now diverge on the reference's own histories: C05_014, C05_028, C16_007, C16_011, C21_003 (all
+  llm, all Explorer DIVERGE). They move from EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS to AGREE-DIVERGE. Each is the
+  start-state gap named above.
+- C03_008/llm: the reference refuses the JoI on the supplementary start states (REF-UNSUPPORTED-JOI, 3 histories);
+  the Explorer refused the pair too.
+- E1-086 fault2/3/4 stay EQUIV on the supplement (1,206 more pulses, all that the pulse rule generates).
+  - Why the histories miss them: the only seed turns the switch on at 1 s and off at 301 s. Both programs stop at
+    that cancel (`break`). A pulse cannot lengthen that first run without overlapping the seed's own change, and it
+    is skipped when it would.
+  - Measured: the first on-stretch is at most 301.0 s in every frozen and supplementary history. Later stretches
+    reach 1,199.9 s, but they come after both programs have ended.
+  - These 3 remain EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS. The pair difference is real (confirmed on the
+    reference with the Explorer witness), but this history rule cannot reach it.
+- Combined agreement (142 pairs): AGREE-EQUIV 36, AGREE-DIVERGE 63, confirmed by witness 3, witness on
+  reference-unsupported JoI 2, Explorer REFUSED 25, TIMEOUT 13.
+- Run note: the first supplementary run stopped with the session after 57 of 59 pairs, before writing its output.
+  `run_supplement.py` was changed to save each finished pair and was rerun in full; its outcomes on the 57 pairs
+  match the first run's log (`runs/run_supplement.log`).

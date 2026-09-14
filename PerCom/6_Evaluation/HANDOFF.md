@@ -19,7 +19,14 @@
   - B2 진짜 중첩 인스턴스는 probe 없이 실행 계약(단일 제어 흐름) 근거로 한계 보고. C11 은 "두 흐름 지원" 이 아니라 단일 흐름 환원으로 표기.
 - A-extractor 문법 열(Stage A 12건 중 4건이 `extractor.md` 밖 구성)은 **E1 결과·한계가 아니다**(2026-09-13 whisoo, Limitations 항목 삭제). 기록은 E1 README 에만 둔다. extractor 문법 확장 여부는 E3 시작 전에 따로 정한다.
 - **E2 validation fidelity (2026-09-14 착수).** `E2_fidelity/PROTOCOL_DRAFT.md`(동결 전). 결정: 독립 정답기 (b) — Explorer 코드를 공유하지 않는 IR·JoI 두 실행기를 명세 문서만으로 작성(Explorer 코드를 본 적 없는 별도 에이전트가 작성, 읽은 파일 기록); 쌍 = E1 20건 IR 기반 올바른 대안·오류 유형별 직접 작성 + 388 후보 표본(Explorer 판정과 무관하게 추출); 이력 = 원래 시간 척도의 경계 중심 구조 이력; JoI 문법 전체(`for` 제외, `loop` 은 L1 정의); Explorer 버그는 고정판 결과 보고 + 수정판 재실행. S1–S11 의미 확정.
-  **동결 `649cb9c` (2026-09-14):** 정답기(E1 기대 trace Stage A 41/41·depth 12/12·JoI probe 15/15, 명세 공백 결정 G1 tags만·G2 내장 Clock·G6·G8·JoI `%` 허용), 쌍 142(E1 기반 올바른 21 + 오류 81, 388 표본 40), 이력 11,577, `run_e2.py`(Explorer 는 gate_pair 단계에 시작 시각 일치). 해시 `E2_fidelity/FREEZE_MANIFEST.md`. 실행 결과 `E2_fidelity/runs/`(진행 중). E1 남은 72건 depth 는 보류(`E1_adequacy/breadth/TODO_DEPTH_REMAINING_72.md`).
+  **동결 `649cb9c` (2026-09-14):** 정답기(E1 기대 trace Stage A 41/41·depth 12/12·JoI probe 15/15, 명세 공백 결정 G1 tags만·G2 내장 Clock·G6·G8·JoI `%` 허용), 쌍 142(E1 기반 올바른 21 + 오류 81, 388 표본 40), 이력 11,577, `run_e2.py`(Explorer 는 gate_pair 단계에 시작 시각 일치). 해시 `E2_fidelity/FREEZE_MANIFEST.md`. 실행 결과 `E2_fidelity/runs/`.
+  **실행 완료(2026-09-14, `191c87a`):**
+  - 표는 `E2_fidelity/RESULTS.md`, 쌍별 확인은 `INSPECTION_2026-09-14.md`에 있다.
+  - Explorer 판정(142쌍): DIVERGE 68 / EQUIV 36 / REFUSED 25 / TIMEOUT 13.
+  - 정답기는 두 판으로 재계산했다: 동결판 `649cb9c`, 현재판(None 순서 비교 = false).
+  - 현재판 기준 일치: AGREE-EQUIV 36 / AGREE-DIVERGE 58 / 반례로 확인됨 8 / 정답기 미지원 반례 2 / 거절 25 / 시간 초과 13. 거짓 EQUIV는 두 판 모두 0, Explorer 오류는 찾지 못함(D4 해당 없음).
+  - 약점: 정답기 이력의 시작 상태가 사실상 1개이고 이력 상한이 300개라, 정답기가 "같음"으로 본 59쌍 중 8쌍을 놓쳤다.
+  - 보강 이력(프로토콜 §9, whisoo 결정, `193203c`, 39,245개)은 정답기를 돌리기 전에 커밋했다. 보강 실행 결과: 거짓 EQUIV는 여전히 0건이다. 시작 상태 때문에 놓쳤던 llm 5쌍은 정답기 이력에서도 차이가 잡혔다. 합친 일치 수는 AGREE-EQUIV 36 / AGREE-DIVERGE 63 / 반례로 확인됨 3(E1-086 오류 3쌍: 유일한 시작 이력이 301초에 취소하고 두 프로그램 모두 거기서 끝나, 첫 작동을 더 길게 하는 이력이 규칙상 생기지 않음) / 정답기 미지원 반례 2 / 거절 25 / 시간 초과 13이다. E1 남은 72건 depth 는 보류(`E1_adequacy/breadth/TODO_DEPTH_REMAINING_72.md`).
 - C20 은 C20-O(ordered)로 개명했다. 짝을 이루는 unordered 문장은 probe P1 이며, 성공 분모에서 뺀 것이 아니라 별개 요구로 분리해 시도했다.
 - Limitations 절에 넣을 것: 12/12 는 선정 사례 중의 건수(coverage 아님), B2 중첩 인스턴스 미평가, B5 중첩 반복은 C07 한 건, Explorer 미인증 경계.
 

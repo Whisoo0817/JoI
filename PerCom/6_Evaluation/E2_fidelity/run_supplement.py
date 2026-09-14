@@ -60,10 +60,20 @@ def main():
     todo = sorted(p for p, r in rows.items() if r["reference"]["outcome"] == "REF-EQUIV-CHECKED")
     print(f"{len(todo)} pairs on supplementary histories", flush=True)
     import run_e2
-    with ProcessPoolExecutor(max_workers=a.workers, initializer=init) as pool:
-        futs = [pool.submit(work, p) for p in todo]
+    partial = HERE / "runs/e2_run.ref-current-supp.partial.jsonl"   # one result per finished pair; resumed on restart
+    done = {}
+    if partial.exists():
+        done = {d["pair_id"]: d["result"] for d in map(json.loads, partial.read_text().splitlines()) if d}
+    print(f"{len(done)} already done", flush=True)
+    with ProcessPoolExecutor(max_workers=a.workers, initializer=init) as pool, partial.open("a") as log:
+        futs = [pool.submit(work, p) for p in todo if p not in done]
+        finished = [(p, done[p]) for p in todo if p in done]
         for f in as_completed(futs):
             pid, res = f.result()
+            log.write(json.dumps({"pair_id": pid, "result": res}, ensure_ascii=False) + "\n")
+            log.flush()
+            finished.append((pid, res))
+        for pid, res in finished:
             row = rows[pid]
             row["reference_supplement"] = res
             row["reference_frozen_histories"] = row["reference"]
