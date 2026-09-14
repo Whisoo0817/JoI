@@ -1,5 +1,10 @@
 # E2 담당에게 넘길 변경 — 2026-09-14
 
+> 후속 개선: E1-095 고정 집계 5쌍은 자동 unroll로 모두 판정됐다. 기존
+> `extension-v4`는 그대로 보존하며 새 결과와 갱신된 130/140 집계는
+> `FIXED_AGGREGATION_RESULT.md`를 사용한다. 현재 남은 한계는 E1-099 5쌍과
+> C07 5쌍이다.
+
 브랜치 `timer-regions-20260914`, worktree `/home/gnltnwjstk/joi-timer-regions`.
 기존 인계 기준 `580053a`에 상속된 수정과 후속 Explorer 변경을 분리했다.
 이번 구현·증명·회귀의 커밋은 `003d863`이다.

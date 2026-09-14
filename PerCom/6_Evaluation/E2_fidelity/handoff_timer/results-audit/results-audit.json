@@ -240,6 +240,181 @@
       ],
       "minimum_corrective_action": "Have the independent E2 owner replay all new witnesses under the unchanged binding/time model and the explicitly revised population before reporting final E2 correctness; keep C15/fault1 and C14_003/llm disagreement follow-up visible.",
       "narrative_anchor": "## Audit E2-extension-v4"
+    },
+    {
+      "audit_id": "E2-fixed-aggregation-v1",
+      "claim_id": "E2-decision-coverage-after-unroll",
+      "claim_text": "On the revised 140-pair behavioral population, the fixed-aggregation Explorer decides 130 pairs (92.9%); the 10 unresolved pairs are five dynamic arithmetic-deadline cases (E1-099) and five finite product-state explosion cases (C07).",
+      "scope": "A separate full 142-pair Explorer-only run under the frozen 120 s/pair budget, 100 ms input grid and binding decision false. One forbidden any ACTION and one invalid service mapping remain separately excluded from the 140-pair behavioral denominator. Descriptive decision coverage, not independently verified accuracy.",
+      "source_mode": "standalone",
+      "requested_assurance_class": "exploratory",
+      "attained_assurance_class": "exploratory",
+      "verdict": "supports_exploratory_follow_up",
+      "audited_claim_effect": "strengthen",
+      "source_runs": [],
+      "run_selection": {
+        "selection_rule": "Use fixed-aggregation-v1-full, the complete separate 142-pair run under the final unroll source, as the headline evidence. Retain the five-pair targeted run only as development evidence and retain extension-v4 as the predecessor, never combining rows across runs for the 130/140 headline.",
+        "excluded_runs": [
+          {
+            "run_id": "fixed-aggregation-v1-targeted",
+            "rationale": "Five-pair development confirmation, superseded by the complete same-source full run and not counted as an independent replication."
+          },
+          {
+            "run_id": "fixed-aggregation-v1-pre-safety",
+            "rationale": "Technical pre-run made before the final fail-closed side-path and schedule guards; verdicts matched but the artifact was regenerated after the source was finalized and is not evidence for the headline."
+          },
+          {
+            "run_id": "extension-v4",
+            "rationale": "Complete predecessor timer run under the earlier source. Preserved as historical evidence, but not row-merged into the new full-run metric."
+          }
+        ]
+      },
+      "evidence_artifacts": [
+        {
+          "path": "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full.jsonl.gz",
+          "kind": "complete 142-pair Explorer run with replay witnesses",
+          "source": "experiment",
+          "digest": "2ac4c0b59a5ab300cc6210a3919e8fe78ac980d9e47f547f592f75885e5ce38d"
+        },
+        {
+          "path": "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full.meta.json",
+          "kind": "execution conditions and Explorer source digests",
+          "source": "experiment",
+          "digest": "fd758a0de6eb4e54843d160cc927117ce2bba3b6ab89abfe15f235dfc86eff84"
+        },
+        {
+          "path": "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full-classified.json",
+          "kind": "complete population and failure-type accounting",
+          "source": "audit",
+          "digest": "0c60deab67ccfbef3efef7ca3b9e3261876b38eb36552d709ba4f52fffa6f073"
+        },
+        {
+          "path": "/home/gnltnwjstk/joi-timer-regions/explorer/docs/proof/FIXED_AGGREGATION_UNROLL.md",
+          "kind": "unroll certificate scope and proof obligations",
+          "source": "audit",
+          "digest": "f23b3fd09745199d394e1c755209ff9e662eb2eebbb586607311264716269daa"
+        },
+        {
+          "path": "/home/gnltnwjstk/joi-timer-regions/explorer/tests/test_fixed_aggregation.py",
+          "kind": "positive, mutant and fail-closed integration tests",
+          "source": "experiment",
+          "digest": "05f8e093afe64a94c10a1ae65ca31bd4211d2da50304b149d422dd22c4ce9f11"
+        },
+        {
+          "path": "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/FIXED_AGGREGATION_RESULT.md",
+          "kind": "bounded result interpretation and reproduction commands",
+          "source": "audit",
+          "digest": "f6ee13b72b76511e31ba8c12cd91abd1ca0e6a6599f708569e8781da5b9b0240"
+        }
+      ],
+      "check_results": [
+        {
+          "check_id": "protocol_integrity",
+          "status": "pass",
+          "rationale": "All 142 frozen pairs were rerun in a new artifact with the inherited 120 s cap, 100 ms grid, frozen population rules and binding decision false; extension-v4 was not overwritten or row-merged.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full.meta.json",
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full-classified.json"
+          ]
+        },
+        {
+          "check_id": "metric_validity",
+          "status": "pass",
+          "rationale": "130/140 is explicitly decision coverage. It counts only EQUIV or replay-confirmed DIVERGE and does not relabel REFUSED/TIMEOUT or claim independent correctness.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full-classified.json",
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/FIXED_AGGREGATION_RESULT.md"
+          ]
+        },
+        {
+          "check_id": "baseline_fairness",
+          "status": "pass",
+          "rationale": "The full predecessor population and budget were retained. All 104 previously decided verdicts are unchanged; no cross-hardware runtime claim is made.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full-classified.json"
+          ]
+        },
+        {
+          "check_id": "outcome_accounting",
+          "status": "pass",
+          "rationale": "The full run records 44 EQUIV, 86 DIVERGE, 7 REFUSED and 5 TIMEOUT. The 12 unresolved rows include the two explicit input exclusions plus exactly five E1-099 and five C07 pairs.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full-classified.json"
+          ]
+        },
+        {
+          "check_id": "inferential_support",
+          "status": "inconclusive",
+          "rationale": "The finite, outcome-informed benchmark supports a bounded descriptive coverage statement only. Correct/fault variants are related and no population-generalization interval is warranted.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/FIXED_AGGREGATION_RESULT.md"
+          ]
+        },
+        {
+          "check_id": "confound_control",
+          "status": "inconclusive",
+          "rationale": "The E1-095 failures directly motivated the compiler pass. This is an exploratory benchmark repair, not a held-out confirmatory evaluation.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/FIXED_AGGREGATION_RESULT.md"
+          ]
+        },
+        {
+          "check_id": "provenance",
+          "status": "pass",
+          "rationale": "The complete run, metadata, deterministic compressed witness artifact, classified accounting and proof document are path-bound; metadata source digests match the final Explorer Python sources.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full.meta.json",
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full-classified.json"
+          ]
+        },
+        {
+          "check_id": "snapshot_continuity",
+          "status": "pass",
+          "rationale": "Repository-local continuity is established by a complete rerun after the source was finalized and zero source-digest mismatches. This does not establish external filesystem immutability or executor isolation.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full.meta.json"
+          ]
+        },
+        {
+          "check_id": "independence",
+          "status": "inconclusive",
+          "rationale": "Implementation, Explorer replay and this audit are self-review. Frozen reference outcome fields agree for E1-095, but the independent reference was not executed for this run.",
+          "evidence_paths": [
+            "/home/gnltnwjstk/joi-timer-regions/PerCom/6_Evaluation/E2_fidelity/handoff_timer/results/fixed-aggregation-v1-full.jsonl.gz"
+          ]
+        }
+      ],
+      "independence": {
+        "self_review": true,
+        "dimensions": [],
+        "evidence": "Concrete replay uses the original Explorer runners but is not an independent oracle. Historical frozen reference fields are comparison evidence only."
+      },
+      "limitations": [
+        "The implementation was designed after inspecting E1-095 failures, so the coverage gain is exploratory rather than held-out evidence.",
+        "The certificate covers fixed, same-day, fixed-cardinality Hour aggregation only; general dynamic aggregation remains outside its scope.",
+        "E1-099 dynamic counter-dependent deadlines remain REFUSED and C07 nested finite products remain TIMEOUT at 120 s.",
+        "The two remaining types describe this E2 population, not every unsupported JoI construct.",
+        "The independent reference was not executed in this run; 130/140 is decision coverage, not final accuracy."
+      ],
+      "predecessor_failures": [
+        {
+          "failure_id": "E1-095-fixed-aggregation",
+          "status": "resolved",
+          "rationale": "Five fixed hourly snapshots are compiler-unrolled and compared as exact expression trees; correct is EQUIV-FIXPOINT and fault1--4 are concrete-replay DIVERGE."
+        },
+        {
+          "failure_id": "E1-099-dynamic-deadline",
+          "status": "accepted_with_narrowing",
+          "rationale": "Five cases retain a counter-dependent timestamp deadline and are explicitly outside the fixed-cardinality aggregation pass."
+        },
+        {
+          "failure_id": "C07-product-size",
+          "status": "accepted_with_narrowing",
+          "rationale": "Five cases remain finite but exceed the 120 s state-product budget; no larger timeout was used to hide the limitation."
+        }
+      ],
+      "minimum_corrective_action": "Have the independent E2 owner verify the new E1-095 evidence under the frozen reference and integrate this separate Explorer-only plate with the separately recorded B5 binding run before presenting final accuracy; retain E1-099 and C07 as the two measured limitation types.",
+      "narrative_anchor": "## Audit E2-fixed-aggregation-v1"
     }
   ]
 }
