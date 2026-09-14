@@ -7,11 +7,82 @@ first candidates for author review.
 
 ## Selection and binding
 
-**G1 Selector tag matching.** JOI_SPEC §1.3 ("devices carrying the tags", `(#A #B)` intersection) and FRONTEND §3
+**G1 Selector tag matching. — SUPERSEDED by B1 (author decision whisoo, 2026-09-14, BINDING_DECISION_2026-09-14.md)
+for runs that pass the IR binding (`run_joi(..., binding=, ir=)`). The text below is kept because runs without the
+binding keyword (the frozen results) still follow it.**
+JOI_SPEC §1.3 ("devices carrying the tags", `(#A #B)` intersection) and FRONTEND §3
 (B(T) = tag-set match in inventory order) do not say whether `category` or the device ID also match a tag.
-**Author decision (whisoo, 2026-09-14):** match the `tags` list only, exact case. To select a device by its ID, the
+**Author decision (whisoo, 2026-09-14, first):** match the `tags` list only, exact case. To select a device by its ID, the
 ID must be present as a tag on that device. Consequences: E1-095 JoI v3 `(#Pool_Report #Pool)` →
 unsupported (`Pool_Report` is an ID, not a tag); candidate C08_032 `(#Hall_Light_1)` → unsupported.
+
+**B1/B2 Binding and selectors — author decision (whisoo, 2026-09-14).** Source: `E2_fidelity/BINDING_DECISION_2026-09-14.md`
+(authoritative). Opt-in API so the frozen results stay reproducible: `run_joi(..., binding=<pair binding, may be None>,
+ir=<pair IR>)`, `run_ir(..., binding_decision=True)`, `compare(a, b, device_sets=...)`, `device_sets(ir, binding)`.
+- B0 device sets (`common.parse_binding_slots`, `run.device_sets`): one per binding slot (quantifier removed, kept
+  aside); plus, for every explicit `Svc[d,...]` site of the IR found by the same compile walk that grounds it
+  (`IrProgram.collect_explicit_sites`), one set per site (pairs with `binding: null`, E1 depth form).
+- B1 (`JoiProgram.selector_service`, `bound_devices`, `match`, `_operand`, `do_action`): S in the binding with one
+  distinct set → that set; several → tag/ID/category match M, then the set equal to M, else the unique set ⊇ M, else
+  M. Calls (B1.3, revised): the tag/ID/category match M when non-empty and ⊆ the chosen set, else every device of the
+  chosen set (also for singular and `any(...)` selectors). Reads (B1.4, revised): one device → that device; several →
+  the JoI quantifier (`all`, `any`, `op|`) when written, else the IR slot quantifier. S not in the binding: previous
+  rules (S6, `all` fan-out, `any` action refused) with the new tag match: a selector tag matches if it equals one of
+  the device's `tags`, its ID, or one of its `category` entries.
+- B2 (`common.b2_normal_form`, `compare_b2`): within one instant the calls of all call groups are read in order; a
+  maximal run of consecutive calls with equal (service, method, typed args, `val_eq`) whose devices all lie in one
+  device set D of that service with |D| ≥ 2 becomes one unit {kind: set, devices, order ignored} (revised): devices =
+  that binding set when exactly one such set holds every called device, else the called devices; the unit is
+  repeated k times, k = most calls received by one device in the run. Other
+  calls stay in their original call group (split only where a set unit was taken out); times, typed arguments and
+  unit order are compared as before. Applied to both traces with the same sets.
+Points the decision text leaves open, and the choice made (**[choice]**):
+- **[choice]** Which service a selector names: `service_member` prefix → that service; unprefixed name → the binding
+  services declaring the member; if several, narrowed to categories of the tag-matched devices; still several →
+  unsupported[selector-service-ambiguous]. Tag, ID and category comparisons are exact-case.
+- **[choice]** Several distinct sets and M empty: every set contains the empty M, so none is unique → M → unsupported
+  [selector-no-device].
+- **[choice]** Slots with the same device set but different quantifiers (`any` and `all`) and no JoI quantifier →
+  unsupported[read-quantifier]. A slot without quantifier next to one with a quantifier on the same set: the named
+  quantifier is used.
+- **[choice]** Several devices, no JoI quantifier and no IR slot quantifier (plain singular selector), or a
+  multi-device read outside a direct comparison operand → unsupported[read-quantifier] (same as IR G9). `op|` on a
+  singular selector that B1 binds to several devices counts as a JoI quantifier (OR); `any(...) op|` stays refused.
+  B1.3's M restriction is applied to calls only (the text says 호출); reads use the chosen set.
+- **[choice]** B2 "same device set D": the set must belong to the call's service (case-insensitive), and membership is
+  by device ID only. If sets of one service overlap, a run continues while some D ⊇ all devices of the run exists; a
+  device in both a |D| ≥ 2 set and a one-device set is treated by membership (so calls on it can merge with calls on
+  the larger set). A single call whose device is in such a D is also a set unit (its target the unique containing
+  set, else itself), on both sides alike. "Exactly one such set" counts distinct (service, device set) pairs, so two
+  slots with the same devices count once. k copies of the unit are compared as k consecutive units.
+- Symbolic-argument clause of B2 does not arise: the reference only has concrete values.
+- **Corrections (author decision whisoo, 2026-09-14, relayed by the coordinator; B1.3/B1.4 now in the decision file):**
+  (1) B1.3 first version called the whole chosen set from every line, creating artificial duplicate calls; now only
+  M ⊆ set. (2) B1.4 first version preferred the IR slot quantifier, which flips `not (any(#S).m == true)` written
+  for IR `{"all": [a,b]}` with `m == false`; now the JoI quantifier wins. (3) B2 first version used the set of called
+  devices with duplicates removed; now target = the unique containing binding set, multiplicity k kept, so a
+  duplicated call is a difference and naming part of the bound devices is not.
+
+**B5 Several binding device sets for one service — author decision (whisoo, 2026-09-14, added).** Source:
+BINDING_DECISION_2026-09-14.md §B5. Which device set a JoI selector means is a binding question: the pair is equal if
+SOME assignment gives equal traces, different only if EVERY assignment differs, otherwise undecided. The harness loops
+over histories and assignments; the reference provides:
+- `selector_space(block, devices, binding, ir, catalog_path=None) -> {"domains": [n_i], "tag_choice": [c_i]}`
+  (`run.py`, `JoiProgram.assignable_occurrences`, `selector_space`, `tag_choice`). Occurrences: source selector
+  nodes (one per occurrence however often executed) whose service has ≥ 2 distinct device sets, in source order —
+  statements in order; `if` cond, then, else; `loop` cond, body; `wait` cond; an action's selector before its
+  arguments; a comparison's left operand before its right; arithmetic left before right. Clock selectors never count.
+- Device-set index order (`DeviceSets.distinct`): the service's binding slots by slot number (`S` = #1, `S#2`, …,
+  independent of JSON key order, G8), then explicit IR `S[d,...]` sites in IR compile-walk order; a set equal to an
+  earlier one is not repeated. `c_i` = B1.2 index (set equal to M, else the unique set ⊇ M, else 0).
+- `run_joi(..., binding=, ir=, selector_assignment=[a_1..a_k])`: occurrence i uses set a_i; B1.3 (call M if M ⊆
+  set, else the set), B1.4 (JoI quantifier, else the slot's) and B2 apply unchanged. Without `selector_assignment`,
+  B1.2 as before. Wrong length / out-of-range index → status error, category `selector-assignment`.
+- **[choice]** An occurrence whose service cannot be decided (selector-service-ambiguous) is not listed; the run
+  is REF-UNSUPPORTED under every assignment. On a JoI that cannot be parsed, `selector_space` returns empty lists
+  plus `status`/`detail`.
+- Test (ii) of the coordinator: IR reads slot 1 (L) and calls slot 2 (T); JoI reads and calls `(#Lamp)`; with the
+  assignment [L set, T set] B1.3 calls every device of {T} because M = {L} is not a part of it, so the traces match.
 
 **G2 `(#Clock)`.** JOI_SPEC §1.4 says time conditions read the Clock service; VERIFICATION_CONTRACT says
 `clock.hour/minute/weekday/timestamp` are functions of logical time, `clock.isholiday` is a BOOL input. Inventories

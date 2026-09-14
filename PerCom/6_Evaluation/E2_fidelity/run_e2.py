@@ -34,6 +34,18 @@ DEPTH = ROOT / "PerCom/6_Evaluation/E1_adequacy/breadth/depth"
 E1 = ROOT / "PerCom/6_Evaluation/E1_adequacy"
 T0_EXPLORER = 2_419_200_000
 BUDGET_S = 120
+# BINDING_DECISION_2026-09-14.md (whisoo): selectors/binding do not decide the verdict. Off (default) = the frozen
+# semantics of the 649cb9c run, for both the reference and the Explorer.
+BINDING_DECISION = os.environ.get("E2_BINDING_DECISION") == "1"
+# B5: with several binding device sets for one service, EQUIV if some selector assignment is EQUIV.
+BINDING_ASSIGN = os.environ.get("E2_BINDING_ASSIGN") == "1"
+
+
+def ref_kwargs(pair):
+    """(run_ir kwargs, run_joi kwargs) for the reference under the binding decision."""
+    if not BINDING_DECISION:
+        return {}, {}
+    return {"binding_decision": True}, {"binding": pair["binding"], "ir": pair["ir"]}
 
 
 def load_inputs():
@@ -47,6 +59,40 @@ def load_inputs():
 # ── reference ────────────────────────────────────────────────────────────────
 
 def reference_side(pair, histories):
+    """Reference outcome; under B5 the outcome over all selector assignments (tag-rule assignment first):
+    REF-EQUIV-CHECKED if some assignment is equal on every history, REF-DIVERGE if every assignment differs on
+    some history, otherwise the tag-rule assignment's outcome."""
+    if not (BINDING_DECISION and BINDING_ASSIGN):
+        return _reference_once(pair, histories)
+    import itertools
+    sys.path.insert(0, str(REF))
+    from run import selector_space as ref_space
+    space = ref_space(pair["joi"], pair["devices"], pair["binding"], pair["ir"], str(ROOT / pair["catalog"]))
+    domains, choice = space.get("domains") or [], tuple(space.get("tag_choice") or [])
+    if not domains:
+        return _reference_once(pair, histories)
+    first = _reference_once(pair, histories, tuple(choice))
+    info = {"domains": domains, "tag_choice": list(choice), "tried": 1}
+    if first["outcome"] == "REF-EQUIV-CHECKED":
+        first["selector_assignment"] = info
+        return first
+    outcomes = {first["outcome"]: 1}
+    for assign in itertools.product(*[range(n) for n in domains]):
+        if assign == tuple(choice):
+            continue
+        r = _reference_once(pair, histories, assign, stop_at_diverge=True)
+        outcomes[r["outcome"]] = outcomes.get(r["outcome"], 0) + 1
+        info["tried"] += 1
+        if r["outcome"] == "REF-EQUIV-CHECKED":
+            r["selector_assignment"] = dict(info, outcomes=outcomes, equiv_assignment=list(assign))
+            return r
+    first["selector_assignment"] = dict(info, outcomes=outcomes)
+    if set(outcomes) != {"REF-DIVERGE"} and first["outcome"] == "REF-DIVERGE":
+        first = dict(first, outcome="REF-UNSUPPORTED-JOI", note="B5: some selector assignments were not decided")
+    return first
+
+
+def _reference_once(pair, histories, assignment=None, stop_at_diverge=False):
     sys.path.insert(0, str(REF))
     from run import compare, run_ir, run_joi
     cat = str(ROOT / pair["catalog"])
@@ -54,8 +100,9 @@ def reference_side(pair, histories):
     for h in histories:
         ev = [(int(t), u) for t, u in h["events"]]
         a = run_ir(pair["ir"], pair["binding"], pair["devices"], ev, h["horizon"], catalog_path=cat,
-                   t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""))
-        b = run_joi(pair["joi"], pair["devices"], ev, h["horizon"], catalog_path=cat, t_start_ms=pair["t_start_ms"])
+                   t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""), **ref_kwargs(pair)[0])
+        b = run_joi(pair["joi"], pair["devices"], ev, h["horizon"], catalog_path=cat, t_start_ms=pair["t_start_ms"],
+                    **ref_kwargs(pair)[1], **({} if assignment is None else {"selector_assignment": list(assignment)}))
         if a["status"] != "ok":
             per.append((h["name"], a["status"] + "-ir"))
             ir_bad = ir_bad or (a["status"], a["detail"][:300])
@@ -67,6 +114,9 @@ def reference_side(pair, histories):
         eq, diff = compare(a["trace"], b["trace"])
         per.append((h["name"], "equal" if eq else "diverge"))
         if not eq and first_div is None:
+            if stop_at_diverge:
+                first_div = {"history": h["name"]}
+                break
             first_div = {"history": h["name"], "difference": str(diff)[:600],
                          "ir_actions": [list(map(str, x)) for x in a["raw_actions"][:20]],
                          "joi_actions": [list(map(str, x)) for x in b["raw_actions"][:20]]}
@@ -95,7 +145,57 @@ def _alarm(signum, frame):
     raise _Timeout()
 
 
+def selector_space(pair):
+    """(domains, tag choice) of the B5 selector assignments of a pair."""
+    for p in (ROOT, E1, DEPTH):
+        if str(p) not in sys.path:
+            sys.path.insert(0, str(p))
+    from explorer.verification.gate import prepare_pair
+    ir, binding = pair["ir"], pair["binding"]
+    if binding is None:
+        from run_depth import lower
+        ir, binding = lower(ir)
+    catalog = True if pair["catalog"].endswith("service_list_ver2.0.7.json") else str(ROOT / pair["catalog"])
+    prepared = prepare_pair(ir, binding, pair["devices"], pair["joi"], service_catalog=catalog, selector_binding=True)
+    return list(prepared.selector_domains), tuple(prepared.selector_choice)
+
+
 def explorer_side(pair):
+    """Explorer verdict; under B5 the verdict over all selector assignments (tag-rule assignment first)."""
+    if not (BINDING_DECISION and BINDING_ASSIGN):
+        return _explorer_once(pair)
+    import itertools
+    from collections import Counter
+    started = time.time()
+    try:
+        domains, choice = selector_space(pair)
+    except Exception:
+        return _explorer_once(pair)
+    if not domains:
+        return _explorer_once(pair)
+    first = _explorer_once(pair, choice)
+    seen = Counter([first.get("verdict")])
+    info = {"domains": domains, "tag_choice": list(choice)}
+    if first.get("verdict") != "EQUIV":
+        for assign in itertools.product(*[range(n) for n in domains]):
+            if assign == tuple(choice):
+                continue
+            r = _explorer_once(pair, assign)
+            seen[r.get("verdict")] += 1
+            if r.get("verdict") == "EQUIV":
+                r["selector_assignment"] = dict(info, tried=sum(seen.values()), verdicts=dict(seen),
+                                                equiv_assignment=list(assign), seconds=round(time.time() - started, 1))
+                return r
+    info.update(tried=sum(seen.values()), verdicts=dict(seen), seconds=round(time.time() - started, 1))
+    if first.get("verdict") == "EQUIV" or set(seen) == {"DIVERGE"}:
+        first["selector_assignment"] = info
+        return first
+    worst = "TIMEOUT" if "TIMEOUT" in seen else ("ERROR" if "ERROR" in seen else "REFUSED")
+    return {"verdict": worst, "reason": "B5: not every selector assignment was decided", "selector_assignment": info,
+            "seconds": info["seconds"]}
+
+
+def _explorer_once(pair, assignment=None):
     sys.path.insert(0, str(ROOT))
     sys.path.insert(0, str(E1))
     sys.path.insert(0, str(DEPTH))
@@ -113,7 +213,8 @@ def explorer_side(pair):
     signal.alarm(BUDGET_S)
     started = time.time()
     try:
-        prepared = prepare_pair(ir, binding, pair["devices"], pair["joi"], service_catalog=catalog)
+        prepared = prepare_pair(ir, binding, pair["devices"], pair["joi"], service_catalog=catalog,
+                                selector_binding=BINDING_DECISION, selector_assignment=assignment)
         pr = timed_product(prepared.ir_runner, prepared.code_runner, horizon_ms=None, t0_ms=t0,
                            verification_mode="auto")
         replays = [replay_divergence(prepared.ir_runner, prepared.code_runner, dv) for dv in pr.divergences]
@@ -193,8 +294,9 @@ def witness_on_reference(pair, witness):
         return {"status": "unconvertible", "detail": str(e)}
     horizon = end + 1000
     a = run_ir(pair["ir"], pair["binding"], pair["devices"], ev, horizon, catalog_path=cat,
-               t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""))
-    b = run_joi(pair["joi"], pair["devices"], ev, horizon, catalog_path=cat, t_start_ms=pair["t_start_ms"])
+               t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""), **ref_kwargs(pair)[0])
+    b = run_joi(pair["joi"], pair["devices"], ev, horizon, catalog_path=cat, t_start_ms=pair["t_start_ms"],
+                    **ref_kwargs(pair)[1])
     if a["status"] != "ok" or b["status"] != "ok":
         return {"status": f"ir:{a['status']} joi:{b['status']}", "detail": (a["detail"] or b["detail"])[:300],
                 "events": ev[:30]}

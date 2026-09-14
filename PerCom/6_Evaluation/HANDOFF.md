@@ -27,6 +27,14 @@
   - 현재판 기준 일치: AGREE-EQUIV 36 / AGREE-DIVERGE 58 / 반례로 확인됨 8 / 정답기 미지원 반례 2 / 거절 25 / 시간 초과 13. 거짓 EQUIV는 두 판 모두 0, Explorer 오류는 찾지 못함(D4 해당 없음).
   - 약점: 정답기 이력의 시작 상태가 사실상 1개이고 이력 상한이 300개라, 정답기가 "같음"으로 본 59쌍 중 8쌍을 놓쳤다.
   - 보강 이력(프로토콜 §9, whisoo 결정, `193203c`, 39,245개)은 정답기를 돌리기 전에 커밋했다. 보강 실행 결과: 거짓 EQUIV는 여전히 0건이다. 시작 상태 때문에 놓쳤던 llm 5쌍은 정답기 이력에서도 차이가 잡혔다. 합친 일치 수는 AGREE-EQUIV 36 / AGREE-DIVERGE 63 / 반례로 확인됨 3(E1-086 오류 3쌍: 유일한 시작 이력이 301초에 취소하고 두 프로그램 모두 거기서 끝나, 첫 작동을 더 길게 하는 이력이 규칙상 생기지 않음) / 정답기 미지원 반례 2 / 거절 25 / 시간 초과 13이다. E1 남은 72건 depth 는 보류(`E1_adequacy/breadth/TODO_DEPTH_REMAINING_72.md`).
+  **바인딩 결정과 재실행(2026-09-14, 진행 중):**
+  - whisoo 결정: E2 는 시간·상태·로직만 본다. 셀렉터·태그·ID·category·기기 수·any/all 은 판정에 넣지 않는다. IR 에 따로 적힌 호출의 순서는 지킨다.
+  - 규칙은 `E2_fidelity/BINDING_DECISION_2026-09-14.md` (B1 셀렉터 → 바인딩 기기, B2 한 자리 안에서 나뉜 호출은 한 묶음, 중복 호출은 여전히 다름).
+  - 정답기: 별도 에이전트가 반영했다(옵션 인자, 없으면 동결 동작). 확인 42건 통과, conformance·independence 그대로.
+  - Explorer: `ground.py`·`observation.py`·`gate.py`(`selector_binding` 스위치)·`timed/relational/product` 에 반영했다. 회귀 전부 통과. 셀렉터 정답성을 보던 옛 시험 9개는 `selector_binding(False)` 로 동결 의미를 유지한다. 새 시험은 `explorer/tests/test_binding_decision.py`.
+  - 재실행: `run_binding_v1.py` → `runs/e2_run.binding-v1.jsonl`. `run_e2.py` 는 `E2_BINDING_DECISION=1` 일 때만 새 규칙이고, 기본은 동결 의미다.
+  - 남은 판단: C21_003 은 JoI 가 `#Bedroom` 을 두 번 읽고 거실을 안 읽는다. 자리가 둘인 서비스라 규칙상 DIVERGE 가 남는다. target 오류 2쌍은 "범위 밖(바인딩)" 으로 표시할 것.
+  - 타이머 이산화는 다른 AI 에게 인계했다: `E2_fidelity/handoff_timer/README.md`.
 - C20 은 C20-O(ordered)로 개명했다. 짝을 이루는 unordered 문장은 probe P1 이며, 성공 분모에서 뺀 것이 아니라 별개 요구로 분리해 시도했다.
 - Limitations 절에 넣을 것: 12/12 는 선정 사례 중의 건수(coverage 아님), B2 중첩 인스턴스 미평가, B5 중첩 반복은 C07 한 건, Explorer 미인증 경계.
 

@@ -154,7 +154,13 @@ class ReplayResult:
     note: str = ""
 
 
-def replay_divergence(runner_a, runner_b, div: "Divergence",
+def replay_divergence(runner_a, runner_b, *args, **kwargs) -> "ReplayResult":
+    from explorer.verification.observation import observation_scope
+    with observation_scope(runner_a, runner_b):
+        return _replay_divergence(runner_a, runner_b, *args, **kwargs)
+
+
+def _replay_divergence(runner_a, runner_b, div: "Divergence",
                       t0_ms: int | None = None) -> ReplayResult:
     """반례 경로를 구체 상태로 되밟아 진짜 갈라짐인지 확인 (T2 복원).
 
@@ -263,7 +269,13 @@ def product_explore(src_a: str | list, src_b: str | list, period_ms: int,
                            period_ms, t0_ms, max_diverge, max_ticks)
 
 
-def product_runners(runner_a, runner_b, period_ms: int,
+def product_runners(runner_a, runner_b, *args, **kwargs) -> ProductResult:
+    from explorer.verification.observation import observation_scope
+    with observation_scope(runner_a, runner_b):
+        return _product_runners(runner_a, runner_b, *args, **kwargs)
+
+
+def _product_runners(runner_a, runner_b, period_ms: int,
                     t0_ms: int | None = None,
                     max_diverge: int = 3,
                     max_ticks: int | None = None,

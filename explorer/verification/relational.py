@@ -26,7 +26,13 @@ from explorer.verification.relational_analysis import analyze, entry_live
 from explorer.verification.relational_values import PairInt, RelValue, NeedBranch, reaction
 
 
-def relational_product(runner_a, runner_b, *, input_domains=None, horizon_ms=None,
+def relational_product(runner_a, runner_b, **kwargs):
+    from explorer.verification.observation import observation_scope
+    with observation_scope(runner_a, runner_b):
+        return _relational_product(runner_a, runner_b, **kwargs)
+
+
+def _relational_product(runner_a, runner_b, *, input_domains=None, horizon_ms=None,
                        initial_gv_domains=None, input_step_ms=100, t0_ms=2_419_200_000,
                        max_states=400_000, max_transitions=2_000_000,
                        max_input_combinations=100_000, **unused):

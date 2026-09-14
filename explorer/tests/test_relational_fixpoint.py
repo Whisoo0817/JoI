@@ -15,6 +15,7 @@ from explorer.verification.relational_values import PairInt, RelText, reaction, 
 from explorer.verification.state_key import freeze_state
 from explorer.tests.test_symbolic_value_flow import case, prepared
 from explorer.verification.timed import timed_product
+from explorer.verification.gate import selector_binding  # binding decision 2026-09-14
 
 
 def counter_case(script=None, body=None, *, delay=0, condition=None, wait=False):
@@ -242,11 +243,12 @@ class RelationalTests(unittest.TestCase):
         self.assertEqual(g.product.claim, 'EQUIV-FIXPOINT')
 
     def test_independent_fanout_order_still_commutes(self):
-        c = counter_case()
-        c['binding']['Speaker'].reverse()
-        self.assert_certified(c)
-        c['joi_block']['script'] = c['joi_block']['script'].replace('all(#Speaker)', '(#Speaker)')
-        self.assert_not_certified(c)
+        with selector_binding(False):  # selector correctness: frozen semantics
+            c = counter_case()
+            c['binding']['Speaker'].reverse()
+            self.assert_certified(c)
+            c['joi_block']['script'] = c['joi_block']['script'].replace('all(#Speaker)', '(#Speaker)')
+            self.assert_not_certified(c)
 
     def test_numeric_input_guards_use_joint_catalog_partition(self):
         c = counter_case()

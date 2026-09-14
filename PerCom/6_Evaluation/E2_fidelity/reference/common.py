@@ -492,8 +492,12 @@ def sig_eq(x, y, eps=0.0):
             and all(val_eq(a, b, eps) for a, b in zip(x["args"], y["args"])))
 
 
-def compare(trace_a, trace_b):
-    """Exact equality of two normalised traces (times and call-group structure, typed argument equality)."""
+def compare(trace_a, trace_b, device_sets=None):
+    """Exact equality of two normalised traces (times and call-group structure, typed argument equality).
+    With `device_sets` (author decision B2, 2026-09-14) both traces are first put in the B2 normal form; traces that
+    are already in B2 form (entries with "units") are used as they are."""
+    if device_sets is not None or _is_b2(trace_a) or _is_b2(trace_b):
+        return compare_b2(trace_a, trace_b, device_sets)
     n = max(len(trace_a), len(trace_b))
     for i in range(n):
         if i >= len(trace_a) or i >= len(trace_b):
@@ -507,4 +511,152 @@ def compare(trace_a, trace_b):
         for ga, gb in zip(ea["groups"], eb["groups"]):
             if len(ga) != len(gb) or not all(sig_eq(x, y) for x, y in zip(ga, gb)):
                 return False, {"index": i, "a": ea, "b": eb, "reason": "signature"}
+    return True, None
+
+
+# ───────────────────── binding decision B0–B2 (whisoo, 2026-09-14) ─────────────────────
+# BINDING_DECISION_2026-09-14.md. B0: a slot is one IR binding entry (`Service` or `Service#k` -> device list or
+# {"any"/"all": [...]}); its device set is the device list without the quantifier.
+
+def parse_binding_slots(binding):
+    """-> [{"service": lower service, "slot": key, "quantifier": None|"any"|"all", "devices": [ids]}] in key order.
+    Entries whose shape is not a list / {"any"|"all": list} are skipped here (run_ir refuses them, G9)."""
+    out = []
+    for key, val in (binding or {}).items():
+        m = re.fullmatch(r"(.+?)(?:#([0-9]+))?", str(key))
+        svc = m.group(1).lower()
+        if isinstance(val, list):
+            q, devs = None, val
+        elif isinstance(val, dict) and len(val) == 1 and next(iter(val)) in ("any", "all") \
+                and isinstance(next(iter(val.values())), list):
+            q = next(iter(val))
+            devs = val[q]
+        else:
+            continue
+        out.append({"service": svc, "slot": str(key), "k": int(m.group(2) or 1), "quantifier": q,
+                    "devices": [str(d) for d in devs]})
+    out.sort(key=lambda x: x["k"])      # stable: per service, slot #1, #2, ... regardless of JSON key order (G8)
+    return out
+
+
+class DeviceSets:
+    """Device sets of the IR binding slots (plus explicit `Svc[d,...]` sites of the IR, one set per site)."""
+
+    def __init__(self, slots):
+        self.slots = list(slots)
+
+    def services(self):
+        return {s["service"] for s in self.slots}
+
+    def distinct(self, service_lower):
+        """-> [(devices in first-appearance order, {quantifiers of the slots with this set})]. Index order (B5):
+        binding slots of the service by slot number (`S` = #1, `S#2`, ...), then explicit `S[d,...]` IR sites in IR
+        compile-walk order; a set equal to an earlier one is not repeated."""
+        out, seen = [], {}
+        for s in self.slots:
+            if s["service"] != service_lower:
+                continue
+            fs = frozenset(s["devices"])
+            if fs not in seen:
+                seen[fs] = len(out)
+                out.append((list(dict.fromkeys(s["devices"])), set()))
+            out[seen[fs]][1].add(s["quantifier"])
+        return out
+
+    def large(self):
+        """(service lower, frozenset) for every set with |D| >= 2 (B2)."""
+        return list(dict.fromkeys((s["service"], frozenset(s["devices"])) for s in self.slots
+                                  if len(set(s["devices"])) >= 2))
+
+
+def _as_sets(device_sets):
+    if device_sets is None or isinstance(device_sets, DeviceSets):
+        return device_sets
+    return DeviceSets(device_sets)
+
+
+def _is_b2(trace):
+    return bool(trace) and "units" in trace[0]
+
+
+def _same_call(x, y):
+    return (x["service"] == y["service"] and x["method"] == y["method"] and len(x["args"]) == len(y["args"])
+            and all(val_eq(a, b) for a, b in zip(x["args"], y["args"])))
+
+
+def b2_normal_form(trace, device_sets):
+    """B2: inside one instant, a maximal run of consecutive calls with equal (service, method, typed args) whose
+    target devices all lie in one device set D of that service with |D| >= 2 becomes one unit
+    {"kind": "set", ..., "devices": the unique containing set, else the called ids}, repeated k times (k = most calls
+    on one device in the run; revised 2026-09-14). Every other call stays in its original call group
+    ({"kind": "group", "sigs": [...]}, split only where a set unit was taken out). Times and unit order are kept."""
+    if _is_b2(trace):
+        return trace
+    large = _as_sets(device_sets).large() if device_sets is not None else []
+    out = []
+    for entry in trace:
+        items = [(gi, s) for gi, g in enumerate(entry["groups"]) for s in g]
+        units, i, open_group = [], 0, None
+        while i < len(items):
+            gi, s = items[i]
+            alive = [D for svc, D in large if svc == str(s["service"]).lower() and s["device"] in D]
+            if alive:
+                devs, j = {s["device"]}, i + 1
+                calls = {s["device"]: 1}
+                while j < len(items):
+                    s2 = items[j][1]
+                    if not _same_call(s, s2):
+                        break
+                    nd = devs | {s2["device"]}
+                    nxt = [D for D in alive if nd <= D]
+                    if not nxt:
+                        break
+                    devs, alive, j = nd, nxt, j + 1
+                    calls[s2["device"]] = calls.get(s2["device"], 0) + 1
+                # B2 (revised 2026-09-14): target = the one binding set (|D| >= 2) holding every called device, else
+                # the called devices; the unit is observed k times, k = most calls received by one device in the run
+                target = alive[0] if len(alive) == 1 else devs
+                unit = {"kind": "set", "service": s["service"], "method": s["method"], "args": list(s["args"]),
+                        "devices": sorted(target, key=str)}
+                units.extend(dict(unit) for _ in range(max(calls.values())))
+                open_group = None
+                i = j
+                continue
+            if open_group is not None and open_group[0] == gi:
+                open_group[1]["sigs"].append(s)
+            else:
+                u = {"kind": "group", "sigs": [s]}
+                units.append(u)
+                open_group = (gi, u)
+            i += 1
+        out.append({"t": entry["t"], "units": units})
+    return out
+
+
+def _unit_eq(x, y):
+    if x["kind"] != y["kind"]:
+        return False
+    if x["kind"] == "set":
+        return _same_call(x, y) and set(x["devices"]) == set(y["devices"])
+    return len(x["sigs"]) == len(y["sigs"]) and all(sig_eq(a, b) for a, b in zip(x["sigs"], y["sigs"]))
+
+
+def compare_b2(trace_a, trace_b, device_sets):
+    if device_sets is None and any(t and not _is_b2(t) for t in (trace_a, trace_b)):
+        raise ValueError("compare: one trace is in B2 form and the other is not; pass device_sets")
+    a = b2_normal_form(trace_a, device_sets)
+    b = b2_normal_form(trace_b, device_sets)
+    n = max(len(a), len(b))
+    for i in range(n):
+        if i >= len(a) or i >= len(b):
+            return False, {"index": i, "a": a[i] if i < len(a) else None, "b": b[i] if i < len(b) else None,
+                           "reason": "length"}
+        ea, eb = a[i], b[i]
+        if ea["t"] != eb["t"]:
+            return False, {"index": i, "a": ea, "b": eb, "reason": "time"}
+        if len(ea["units"]) != len(eb["units"]):
+            return False, {"index": i, "a": ea, "b": eb, "reason": "unit count"}
+        for ua, ub in zip(ea["units"], eb["units"]):
+            if not _unit_eq(ua, ub):
+                return False, {"index": i, "a": ea, "b": eb, "reason": "unit"}
     return True, None

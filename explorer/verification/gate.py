@@ -21,6 +21,8 @@ Run:  python -m explorer.verification.gate      (캐시 정답쌍 검증 + 재�
 
 from __future__ import annotations
 
+import contextlib
+import contextvars
 import json
 import re
 from dataclasses import dataclass, field
@@ -39,6 +41,21 @@ _LIT = re.compile(r"[\d.]+|\"[^\"]*\"|'[^']*'|true|false|null")
 
 
 # ── 바인딩 표 읽기 ───────────────────────────────────────────────────────────
+
+_SELECTOR_BINDING = contextvars.ContextVar("vets_selector_binding", default=True)
+
+
+@contextlib.contextmanager
+def selector_binding(enabled: bool):
+    """Binding decision switch (whisoo 2026-09-14). False = the frozen selector
+    semantics (selectors matched against the inventory, no binding observation
+    sets); used by selector-correctness regressions and frozen-result replays."""
+    token = _SELECTOR_BINDING.set(bool(enabled))
+    try:
+        yield
+    finally:
+        _SELECTOR_BINDING.reset(token)
+
 
 def parse_binding(b: dict) -> dict[str, list[tuple[list[str], str | None]]]:
     """binding_gt JSON → 서비스별 자리 목록(등장 순서).
@@ -235,6 +252,42 @@ def devs_of(devices: dict) -> list[Dev]:
     return out
 
 
+def selector_occurrences(stmts, devs, slots) -> list[dict]:
+    """B5 (whisoo 2026-09-14): JoI selector occurrences whose service has several binding
+    device sets, in source walk order. `choice` = the set the B1 tag rule picks (0 if none)."""
+    from dataclasses import fields, is_dataclass
+    from explorer.runtime import expr as expr_mod
+    from explorer.runtime import joi_parser as jp
+    from explorer.runtime.ground import AMBIENT, _G, match
+    entries = _G(devs, None, slots).binding
+    out, seen = [], set()
+
+    def visit(node):
+        tags = service = None
+        if isinstance(node, jp.CallExpr) and node.tags:
+            tags, service = node.tags, canonical_key(node.service, node.method)[0]
+        elif isinstance(node, expr_mod.QuantRef) and node.tags:
+            tags, service = node.tags, node.key.split(".", 1)[0]
+        if tags is not None and id(tags) not in seen and not any(t in AMBIENT for t in tags):
+            entry = entries.get((service or "").lower())
+            if entry and len(entry) >= 2:
+                seen.add(id(tags))
+                m = {d.id for d in match(devs, tuple(tags))}
+                exact = [i for i, e in enumerate(entry) if e[0] == m]
+                holding = [i for i, e in enumerate(entry) if m and m <= e[0]]
+                choice = exact[0] if exact else (holding[0] if len(holding) == 1 else 0)
+                out.append({"key": id(tags), "n": len(entry), "choice": choice})
+        if isinstance(node, (list, tuple)):
+            for child in node:
+                visit(child)
+        elif is_dataclass(node):
+            for f in fields(node):
+                visit(getattr(node, f.name))
+
+    visit(stmts)
+    return out
+
+
 def pick_by_rule(matches: list[Dev]) -> Dev:
     """단수 셀렉터가 여러 대와 맞을 때: Main 태그가 정확히 1대면 그것,
     아니면 인벤토리 첫 후보 (§9.8 무지정 단수 규약과 동일)."""
@@ -268,7 +321,8 @@ class PreparedPair:
 
 
 def prepare_pair(ir: dict, binding: dict, devices: dict,
-                 jb: dict, *, service_catalog=True) -> PreparedPair:
+                 jb: dict, *, service_catalog=True, selector_binding=None,
+                 selector_assignment=None) -> PreparedPair:
     """Prepare a confirmed IR and JoI block without running the Explorer.
 
     jb: {"script": JoI 코드, "period": ms(0=원샷), "cron": ""|"x"|크론}."""
@@ -312,10 +366,27 @@ def prepare_pair(ir: dict, binding: dict, devices: dict,
     ir_r = IrRunner(new_ir, name_map=name_map, bind=bind)
 
     stmts = parse(jb["script"])
+    # Binding decision (whisoo 2026-09-14, E2 BINDING_DECISION B1/B2): JoI
+    # selectors of bound services resolve to the binding; multi-device binding
+    # sets become observation units.
+    use_binding = _SELECTOR_BINDING.get() if selector_binding is None else bool(selector_binding)
+    bound = {svc.lower() for svc in slots} if use_binding else set()
+    observation_sets = []
+    for entries in (slots.values() if use_binding else ()):
+        for ids, _ in entries:
+            if len(set(ids)) >= 2 and frozenset(ids) not in observation_sets:
+                observation_sets.append(frozenset(ids))
     if model:
-        model.validate_source(stmts)
+        model.validate_source(stmts, bound=bound)
+    occurrences = selector_occurrences(stmts, devs_of(devices), slots) if use_binding else []
+    assignment = None
+    if selector_assignment is not None:
+        if len(selector_assignment) != len(occurrences):
+            raise ValueError("selector assignment length does not match the selector occurrences")
+        assignment = {o["key"]: int(k) for o, k in zip(occurrences, selector_assignment)}
     gstmts, rep = ground(stmts, devs_of(devices),
-                         pick=pick_by_rule)
+                         pick=pick_by_rule, binding=slots if use_binding else None,
+                         assignment=assignment)
     if rep.floating:
         raise Unsupported(f"unresolved selectors (no inventory device): {rep.floating}")
     if model:
@@ -343,7 +414,12 @@ def prepare_pair(ir: dict, binding: dict, devices: dict,
     if model:
         from explorer.verification.service_model import CatalogRunner
         ir_r, joi_r = CatalogRunner(ir_r, model), CatalogRunner(joi_r, model)
-    return PreparedPair(ir_r, joi_r, grid, notes, model)
+    for runner in (ir_r, joi_r):
+        runner.observation_sets = tuple(observation_sets)
+    prepared = PreparedPair(ir_r, joi_r, grid, notes, model)
+    prepared.selector_domains = [o["n"] for o in occurrences]
+    prepared.selector_choice = tuple(o["choice"] for o in occurrences)
+    return prepared
 
 
 def pair_input_domains(pair, declared=None):

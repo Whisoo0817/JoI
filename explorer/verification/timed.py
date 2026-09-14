@@ -125,7 +125,14 @@ class Node:
     initial_gv: dict
 
 
-def timed_product(runner_a, runner_b, *, input_domains=None,
+def timed_product(runner_a, runner_b, **kwargs):
+    """Binding observation sets of prepared runners apply to every path below."""
+    from explorer.verification.observation import observation_scope
+    with observation_scope(runner_a, runner_b):
+        return _timed_product(runner_a, runner_b, **kwargs)
+
+
+def _timed_product(runner_a, runner_b, *, input_domains=None,
                   input_step_ms=100, horizon_ms=None, initial_gv_domains=None,
                   t0_ms=2_419_200_000, max_states=400_000,
                   max_transitions=2_000_000, max_input_combinations=100_000,

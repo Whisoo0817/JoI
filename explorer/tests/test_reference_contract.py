@@ -9,6 +9,7 @@ from explorer.verification.gate import gate_pair, prepare_pair, pair_input_domai
 from explorer.runtime.interp import Unsupported
 from timeline_ir.catalog import load_catalog
 from timeline_ir.timeline_ir import validate_ir_against_catalog, IRValidationError
+from explorer.verification.gate import selector_binding  # binding decision 2026-09-14
 
 ROOT = Path(__file__).resolve().parents[2]
 IDS = ('C01_006', 'C01_017', 'C14_001', 'C14_005', 'C14_006', 'C03_002')
@@ -90,13 +91,14 @@ class ReferenceContractTests(unittest.TestCase):
         self.assertEqual(result.verdict, 'EQUIV-BOUNDED', result.notes)
 
     def test_cloud_wrong_upload_target_has_confirmed_counterexample(self):
-        ir, binding, devices, jb = cloud()
-        jb['script'] = jb['script'].replace(
-            '(#Main #CloudServiceProvider).cloudServiceProvider_uploadFile',
-            '(#Backup #CloudServiceProvider).cloudServiceProvider_uploadFile')
-        result = gate_pair(ir, binding, devices, jb, horizon_ms=0)
-        self.assertEqual(result.verdict, 'DIVERGE', result.notes)
-        self.assertTrue(result.confirmed)
+        with selector_binding(False):  # selector correctness: frozen semantics
+            ir, binding, devices, jb = cloud()
+            jb['script'] = jb['script'].replace(
+                '(#Main #CloudServiceProvider).cloudServiceProvider_uploadFile',
+                '(#Backup #CloudServiceProvider).cloudServiceProvider_uploadFile')
+            result = gate_pair(ir, binding, devices, jb, horizon_ms=0)
+            self.assertEqual(result.verdict, 'DIVERGE', result.notes)
+            self.assertTrue(result.confirmed)
 
     def test_cloud_old_argument_is_rejected_on_either_side(self):
         ir, binding, devices, jb = cloud()

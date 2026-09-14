@@ -9,7 +9,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from common import (Delay, Wait, RefUnsupported, UNIT_MS, arith, check_typed, cmp_values,
+from common import (Delay, Wait, DeviceSets, RefError, RefUnsupported, UNIT_MS, arith, check_typed, cmp_values,
                     resolve_device_member)
 
 # Parser generated inside reference/grammar/ from a copy of lowering/parser/JOILang.g4 with `%` added at the
@@ -232,8 +232,16 @@ def _is_clock(tags, name):
 
 # ───────────────────────────── runtime ─────────────────────────────
 class JoiProgram:
-    def __init__(self, block, devices, catalog):
+    def __init__(self, block, devices, catalog, device_sets=None, selector_assignment=None):
+        """device_sets: None -> selectors as before (G1, tags only). A DeviceSets (possibly empty) -> binding
+        decision B1 of 2026-09-14 (BINDING_DECISION_2026-09-14.md).
+        selector_assignment (B5): list, one device-set index per assignable selector occurrence (see
+        assignable_occurrences); None -> B1.2 tag rule."""
         self.devices, self.catalog = devices, catalog
+        if device_sets is not None and not isinstance(device_sets, DeviceSets):
+            device_sets = DeviceSets(device_sets)
+        self.sets = device_sets
+        self.assignment = None
         script = block.get("script", block.get("code"))
         if not isinstance(script, str):
             raise RefUnsupported("joi-block", "no script")
@@ -244,11 +252,150 @@ class JoiProgram:
             raise RefUnsupported("joi-period", repr(period))
         self.period = period
         self.root = conv_scenario(parse_script(script))
+        self.occurrences = self.assignable_occurrences() if self.sets is not None else []
+        if selector_assignment is not None:
+            if self.sets is None:
+                raise RefError("selector-assignment", "selector_assignment needs the binding")
+            a = list(selector_assignment)
+            if len(a) != len(self.occurrences):
+                raise RefError("selector-assignment", f"{len(a)} indices for {len(self.occurrences)} occurrences")
+            for i, ((node, svc), x) in enumerate(zip(self.occurrences, a)):
+                n = len(self.sets.distinct(svc))
+                if isinstance(x, bool) or not isinstance(x, int) or not 0 <= x < n:
+                    raise RefError("selector-assignment", f"occurrence {i}: index {x!r} not in 0..{n - 1}")
+            self.assignment = {id(node): x for (node, _), x in zip(self.occurrences, a)}
 
     # ---- selectors ----
     def match(self, tags):
-        """B(T): devices carrying every tag, in inventory order (FRONTEND §3). Tags only (G1)."""
-        return [d for d, info in self.devices.items() if all(t in (info.get("tags") or []) for t in tags)]
+        """B(T): devices matching every tag, in inventory order (FRONTEND §3). Without device sets: `tags` only (G1).
+        With device sets (B1): a selector tag matches if it equals one of the device's tags, its ID or a category."""
+        if self.sets is None:
+            return [d for d, info in self.devices.items() if all(t in (info.get("tags") or []) for t in tags)]
+        return [d for d, info in self.devices.items()
+                if all(t in (info.get("tags") or []) or t == d or t in [str(c) for c in (info.get("category") or [])]
+                       for t in tags)]
+
+    def selector_service(self, tags, name):
+        """B1: the service S the selector's member names. `service_member` prefix -> that service; otherwise the
+        binding services that declare the member; several -> narrowed to categories of the tag-matched devices."""
+        if "_" in name:
+            pre, rest = name.split("_", 1)
+            svc = self.catalog.service(pre)
+            if svc is not None and self.catalog.member(pre, rest) is not None:
+                return svc["id"].lower()
+        cands = [s for s in sorted(self.sets.services())
+                 if self.catalog.service(s) is not None and self.catalog.member(s, name) is not None]
+        if len(cands) <= 1:
+            return cands[0] if cands else None
+        cats = {str(c).lower() for d in self.match(tags) for c in (self.devices[d].get("category") or [])}
+        narrowed = [s for s in cands if s in cats]
+        if len(narrowed) == 1:
+            return narrowed[0]
+        raise RefUnsupported("selector-service-ambiguous", f"(#{' #'.join(tags)}).{name}: binding services {cands}")
+
+    # ---- B5: assignable selector occurrences ----
+    def _selector_nodes(self, n):
+        """Selector nodes in source order: statements in order; `if` cond, then, else; `loop` cond, body; `wait`
+        cond; an action's selector before its arguments; comparison left operand before right; arithmetic left
+        before right. Clock selectors are not selectors of a bound service and are skipped."""
+        if not isinstance(n, tuple) or not n:
+            return
+        k = n[0]
+        if k == "block":
+            for x in n[1]:
+                yield from self._selector_nodes(x)
+        elif k == "assign":
+            yield from self._selector_nodes(n[3])
+        elif k == "action":
+            if not _is_clock(n[3], n[4]):
+                yield (n, n[3], n[4])
+            for a in n[5]:
+                yield from self._selector_nodes(a)
+        elif k == "if":
+            for x in n[1:]:
+                yield from self._selector_nodes(x)
+        elif k == "loop":
+            yield from self._selector_nodes(n[1])
+            yield from self._selector_nodes(n[2])
+        elif k == "wait":
+            yield from self._selector_nodes(n[1])
+        elif k == "prop":
+            if not _is_clock(n[2], n[3]):
+                yield (n, n[2], n[3])
+        elif k == "bin":
+            yield from self._selector_nodes(n[2])
+            yield from self._selector_nodes(n[3])
+        elif k == "truth":
+            yield from self._selector_nodes(n[1])
+        elif k == "not":
+            yield from self._selector_nodes(n[1])
+        elif k in ("and", "or"):
+            yield from self._selector_nodes(n[1])
+            yield from self._selector_nodes(n[2])
+        elif k == "cmp":
+            yield from self._selector_nodes(n[3])
+            yield from self._selector_nodes(n[4])
+
+    def assignable_occurrences(self):
+        """B5.1: [(node, service lower)] for every source selector occurrence whose service has >= 2 distinct device
+        sets, in _selector_nodes order. An occurrence whose service cannot be decided (selector-service-ambiguous)
+        is not listed (its run is REF-UNSUPPORTED under every assignment)."""
+        out = []
+        for node, tags, name in self._selector_nodes(self.root):
+            try:
+                svc = self.selector_service(tags, name)
+            except RefUnsupported:
+                continue
+            if svc is not None and svc in self.sets.services() and len(self.sets.distinct(svc)) >= 2:
+                out.append((node, svc))
+        return out
+
+    def tag_choice(self, tags, svc):
+        """B1.2 index: the set equal to M, else the unique set containing M, else 0 (fallback to M / unsupported)."""
+        dist = self.sets.distinct(svc)
+        fm = frozenset(self.match(tags))
+        for i, (devs, _) in enumerate(dist):
+            if frozenset(devs) == fm:
+                return i
+        containing = [i for i, (devs, _) in enumerate(dist) if fm <= frozenset(devs)]
+        return containing[0] if len(containing) == 1 else 0
+
+    def selector_space(self):
+        return {"domains": [len(self.sets.distinct(svc)) for _, svc in self.occurrences],
+                "tag_choice": [self.tag_choice(node[2] if node[0] == "prop" else node[3], svc)
+                               for node, svc in self.occurrences]}
+
+    def bound_devices(self, tags, name, node=None):
+        """B1. -> None when there are no device sets or S is not in the IR binding (then the tag rule applies);
+        else (devices, IR quantifier) with quantifier None | 'any' | 'all' | 'conflict' (slots with the chosen set
+        disagree)."""
+        if self.sets is None:
+            return None
+        svc = self.selector_service(tags, name)
+        if svc is None or svc not in self.sets.services():
+            return None
+        dist = self.sets.distinct(svc)
+        if len(dist) == 1:
+            chosen = dist[0]
+        elif self.assignment is not None and node is not None and id(node) in self.assignment:
+            chosen = dist[self.assignment[id(node)]]          # B5: the harness-given device set
+        else:
+            m = self.match(tags)
+            fm = frozenset(m)
+            equal = [x for x in dist if frozenset(x[0]) == fm]
+            containing = [x for x in dist if fm <= frozenset(x[0])]
+            if equal:
+                chosen = equal[0]
+            elif len(containing) == 1:
+                chosen = containing[0]
+            else:
+                if not m:
+                    raise RefUnsupported("selector-no-device", f"(#{' #'.join(tags)}) for {svc}")
+                return m, None                      # M itself: no IR slot, JoI quantifier applies
+        devs, qs = chosen
+        named = {q for q in qs if q}
+        q = None if not named else (next(iter(named)) if len(named) == 1 else "conflict")
+        return list(devs), q
 
     def single(self, tags):
         m = self.match(tags)
@@ -282,6 +429,13 @@ class JoiProgram:
         if k == "var":
             return self.store.get(e[1])
         if k == "prop":
+            if not _is_clock(e[2], e[3]):
+                b = self.bound_devices(e[2], e[3], node=e)
+                if b is not None:
+                    if len(b[0]) != 1:
+                        raise RefUnsupported("read-quantifier", f"(#{' #'.join(e[2])}).{e[3]} bound to {b[0]} "
+                                                                f"outside a comparison")
+                    return self.read_prop(rt, e[2], e[3], device=b[0][0])
             if e[1] is not None:
                 raise RefUnsupported("set-valued-selector", f"{e[1]}(#{' #'.join(e[2])}).{e[3]} outside a comparison")
             return self.read_prop(rt, e[2], e[3])
@@ -304,31 +458,56 @@ class JoiProgram:
             return (a and b) if k == "and" else (a or b)
         if k == "cmp":
             _, op, flag, a, b = c
-            qa = a[0] == "prop" and a[1] is not None
-            qb = b[0] == "prop" and b[1] is not None
+            sa, sb = self._operand(a, op, flag), self._operand(b, op, flag)
+            qa, qb = sa is not None and sa[0] == "multi", sb is not None and sb[0] == "multi"
             if qa and qb:
                 raise RefUnsupported("quantifier-both-sides", op)
             if qa or qb:
-                q, other = (a, b) if qa else (b, a)
-                rng, tags, name = q[1], q[2], q[3]
-                if rng == "any" and flag:
-                    raise RefUnsupported("any-with-or-flag", f"any(...) {op}|")
-                if _is_clock(tags, name):
-                    raise RefUnsupported("quantified-clock", name)
-                use_or = rng == "any" or flag                              # S5
-                devs = self.match(tags)
-                if not devs:
-                    raise RefUnsupported("selector-no-device", f"{rng}(#{' #'.join(tags)})")
+                (_, devs, use_or, tags, name), other = (sa, b) if qa else (sb, a)
                 ov = self.ev(rt, other)
                 res = []
                 for d in devs:
                     v = self.read_prop(rt, tags, name, device=d)
                     res.append(cmp_values(op, v, ov) if qa else cmp_values(op, ov, v))
                 return any(res) if use_or else all(res)
-            if flag:
+            if flag and sa is None and sb is None:
                 raise RefUnsupported("or-flag-without-all", f"{op}| without all(...)")
             return cmp_values(op, self.ev(rt, a), self.ev(rt, b))
         raise RefUnsupported("joi-cond", repr(c))
+
+    def _operand(self, x, op, flag):
+        """Comparison operand. -> None (plain expression) | ("single", ...) resolved by B1 to one device |
+        ("multi", devices, use_or, tags, name)."""
+        if x[0] != "prop":
+            return None
+        rng, tags, name = x[1], x[2], x[3]
+        if not _is_clock(tags, name):
+            bound = self.bound_devices(tags, name, node=x)
+            if bound is not None:
+                devs, iq = bound
+                if len(devs) == 1:
+                    return ("single", devs, False, tags, name)
+                # B1.4 (revised 2026-09-14): an explicit JoI quantifier first, the IR slot quantifier only without one
+                if rng == "any" and flag:
+                    raise RefUnsupported("any-with-or-flag", f"any(...) {op}|")
+                if rng == "any" or flag:
+                    return ("multi", devs, True, tags, name)
+                if rng == "all":
+                    return ("multi", devs, False, tags, name)
+                if iq in ("any", "all"):
+                    return ("multi", devs, iq == "any", tags, name)
+                raise RefUnsupported("read-quantifier", f"(#{' #'.join(tags)}).{name} bound to {devs} with no "
+                                                        f"quantifier in the IR slot or the JoI selector")
+        if rng is None:
+            return None
+        if rng == "any" and flag:
+            raise RefUnsupported("any-with-or-flag", f"any(...) {op}|")
+        if _is_clock(tags, name):
+            raise RefUnsupported("quantified-clock", name)
+        devs = self.match(tags)
+        if not devs:
+            raise RefUnsupported("selector-no-device", f"{rng}(#{' #'.join(tags)})")
+        return ("multi", devs, rng == "any" or flag, tags, name)       # S5
 
     # ---- statements ----
     def gen(self, rt):
@@ -398,11 +577,19 @@ class JoiProgram:
         _, out, rng, tags, name, args = s
         if _is_clock(tags, name):
             raise RefUnsupported("clock-function", name)
-        if out is not None and rng is not None:
+        bound = self.bound_devices(tags, name, node=s)
+        if bound is not None:
+            # B1.3 (revised 2026-09-14): the tag/ID/category match M, when non-empty and a part of the chosen set,
+            # is called alone (a bound call split over lines); otherwise every device of the chosen set.
+            m_match = self.match(tags)
+            devs = m_match if m_match and set(m_match) <= set(bound[0]) else bound[0]
+            if out is not None and len(devs) != 1:
+                raise RefUnsupported("multi-device-query", f"{out} = (#{' #'.join(tags)}).{name}(...) on {devs}")
+        elif out is not None and rng is not None:
             raise RefUnsupported("multi-device-query", f"{out} = {rng}(#{' #'.join(tags)}).{name}(...)")
-        if rng == "any":
+        elif rng == "any":
             raise RefUnsupported("any-action", f"any(#{' #'.join(tags)}).{name}(): action meaning not specified")
-        if rng == "all":
+        elif rng == "all":
             devs = self.match(tags)
             if not devs:
                 raise RefUnsupported("selector-no-device", f"all(#{' #'.join(tags)})")
@@ -423,7 +610,7 @@ class JoiProgram:
             check_typed(self.catalog, m.service, spec.get("type"), spec.get("format"), spec.get("bound"), v,
                         f"{m}.{spec['id']}")
         if out is not None:
-            if rng is not None:
+            if rng is not None and bound is None:
                 raise RefUnsupported("multi-device-query", f"{rng}(...).{name}() assigned")
             if not m.read_role:
                 raise RefUnsupported("effectful-return", f"{out} = {m}(...) (SERVICE_MODEL §2)")
@@ -433,7 +620,7 @@ class JoiProgram:
             return
         if m.read_role:
             raise RefUnsupported("discarded-query", f"{m} called as a statement (SERVICE_MODEL §2)")
-        rt.emit(m.service, m.id, argv, devs, fanout=(rng == "all"))
+        rt.emit(m.service, m.id, argv, devs, fanout=(rng == "all") if bound is None else (len(devs) > 1 or rng == "all"))
 
 
 class _LevelWait:

@@ -16,6 +16,7 @@ from explorer.verification.symbolic import symbolic_specs
 from explorer.verification.symbolic_values import InputSymbol, text_join, substitute
 from explorer.verification.timed import timed_product
 from explorer.tests.test_reference_contract import rows
+from explorer.verification.gate import selector_binding  # binding decision 2026-09-14
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -76,12 +77,13 @@ class SymbolicValueFlowTests(unittest.TestCase):
             self.assertTrue(result.confirmed)
 
     def test_same_type_from_different_device_is_not_equal(self):
-        c = case()
-        c['devices']['OtherWeather'] = {'category': ['WeatherProvider'], 'tags': ['Other', 'WeatherProvider']}
-        c['joi_block']['script'] = c['joi_block']['script'].replace('(#WeatherProvider)', '(#Other #WeatherProvider)')
-        result = gate(c)
-        self.assertEqual(result.verdict, 'DIVERGE', result.notes)
-        self.assertTrue(result.confirmed)
+        with selector_binding(False):  # selector correctness: frozen semantics
+            c = case()
+            c['devices']['OtherWeather'] = {'category': ['WeatherProvider'], 'tags': ['Other', 'WeatherProvider']}
+            c['joi_block']['script'] = c['joi_block']['script'].replace('(#WeatherProvider)', '(#Other #WeatherProvider)')
+            result = gate(c)
+            self.assertEqual(result.verdict, 'DIVERGE', result.notes)
+            self.assertTrue(result.confirmed)
 
     def test_query_arguments_are_part_of_source_identity(self):
         c = case('C01_018')
@@ -139,11 +141,12 @@ class SymbolicValueFlowTests(unittest.TestCase):
         self.assertTrue(result.confirmed)
 
     def test_fanout_order_commutes_but_target_omission_does_not(self):
-        c = case()
-        c['binding']['Speaker'].reverse()
-        self.assertEqual(gate(c).verdict, 'EQUIV-BOUNDED')
-        c['joi_block']['script'] = c['joi_block']['script'].replace('all(#Speaker)', '(#LivingRoom #Speaker)')
-        self.assertTrue(gate(c).confirmed)
+        with selector_binding(False):  # selector correctness: frozen semantics
+            c = case()
+            c['binding']['Speaker'].reverse()
+            self.assertEqual(gate(c).verdict, 'EQUIV-BOUNDED')
+            c['joi_block']['script'] = c['joi_block']['script'].replace('all(#Speaker)', '(#LivingRoom #Speaker)')
+            self.assertTrue(gate(c).confirmed)
 
     def test_duplicate_calls_remain_observable(self):
         c = case()
