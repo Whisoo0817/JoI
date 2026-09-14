@@ -231,8 +231,6 @@ class _G:
                 m = named
             insts = [self._one(m, "call selector")] if expect_one else m
         else:
-            if call.quant == "any" and not expect_one:
-                raise Unsupported("any selector is not allowed in ACTION position")
             m = self._sel(call.tags) if call.tags else None
             if m is None:
                 return [jp.CallExpr(call.service, call.method, args,

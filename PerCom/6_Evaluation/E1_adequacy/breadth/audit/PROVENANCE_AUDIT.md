@@ -4,8 +4,10 @@
 원본 스냅샷은 import 커밋 `35e6043`(파일 무수정). 고친 내용은 `apply_audit_fixes.py` 가 적용하고
 `changes_2026-09-13.csv` 에 행·필드별 전후 값을 남긴다.
 
-**이 감사가 확정하지 않는 것.** source-stratum 분포(25×4), screen_status 건수, R/B label 은 여전히 pre-audit 이다.
+**이 감사가 확정하지 않는 것.** source-stratum 분포(25×4), screen_status 건수, R/B label 은 이 감사 시점에는 pre-audit 이었다.
 출처·위치·원문이 맞는지만 확인했고, 분류와 코딩은 건드리지 않았다.
+**이후 확정(2026-09-13):** 출처 26/26/24/25 → 25/26/24/25(C15 research 로 이동), 저자 선별 92/6/2/0(`AUTHOR_SCREENING_2026-09-13.md`,
+E1-095 는 IN_SCOPE), 저자 R/B 코딩(`AUTHOR_RB_CODING_2026-09-13.md`). 아래 "whisoo 판단으로 남긴 것" 중 C15·E1-095 는 그렇게 해결됐다.
 
 ## 방법
 

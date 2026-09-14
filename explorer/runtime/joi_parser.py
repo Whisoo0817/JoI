@@ -143,6 +143,9 @@ class _P:
     def __init__(self, toks: list[Tok]):
         self.toks = toks
         self.i = 0
+        # Language rule (whisoo 2026-09-14): `any(...)` is only allowed inside a condition
+        # (`if`, `loop`, `wait until`); > 0 while such a condition is being parsed.
+        self.cond_depth = 0
 
     def peek(self, offset: int = 0) -> Tok | None:
         idx = self.i + offset
@@ -207,8 +210,9 @@ class _P:
         ce = self.parse_call_expr()
         if not isinstance(ce, CallExpr):
             raise ValueError(f"expression not allowed as statement: {ce}")
-        # `any(...)` on an ACTION is refused in grounding unless the IR binding fixes the devices
-        # (binding decision 2026-09-14: selectors and quantifiers do not decide the verdict).
+        # Language rule (whisoo 2026-09-14): `any(...)` in ACTION position is a syntax error.
+        if ce.quant == 'any':
+            raise ValueError('any selector is not allowed in ACTION position')
         return CallStmt(ce)
 
     def parse_assign(self) -> Assign:
@@ -236,6 +240,14 @@ class _P:
 
     def _parse_expr(self) -> Any:
         return self._parse_or()
+
+    def _parse_cond(self) -> Any:
+        """Condition of `if`, `loop` or `wait until`: the only place `any(...)` may appear."""
+        self.cond_depth += 1
+        try:
+            return self._parse_expr()
+        finally:
+            self.cond_depth -= 1
 
     def _parse_or(self):
         left = self._parse_and()
@@ -363,6 +375,9 @@ class _P:
             tags = re.findall(r"#([A-Za-z_][A-Za-z0-9_]*)", t.value)
             quant = ("all" if t.value.lstrip().startswith("all")
                      else "any" if t.value.lstrip().startswith("any") else None)
+            if quant == "any" and self.cond_depth == 0:
+                raise ValueError("any selector is only allowed in a condition "
+                                 "(not in ACTION position, an assignment or an argument)")
             service = tags[-1] if tags else ""
         elif t.kind == "IDENT":
             # could be a bare var, a literal keyword, or service/clock IDENT
@@ -423,7 +438,7 @@ class _P:
     def parse_if(self) -> IfStmt:
         self.expect("IDENT", "if")
         self.expect("OP", "(")
-        cond = self._parse_expr()
+        cond = self._parse_cond()
         self.expect("OP", ")")
         self.expect("OP", "{")
         then_body = self.parse_block_body()
@@ -470,7 +485,7 @@ class _P:
     def parse_loop(self) -> Loop:
         self.expect("IDENT", "loop")
         self.expect("OP", "(")
-        cond = self._parse_expr()
+        cond = self._parse_cond()
         self.expect("OP", ")")
         self.expect("OP", "{")
         body = self.parse_block_body()
@@ -481,7 +496,7 @@ class _P:
         self.expect("IDENT", "wait")
         self.expect("IDENT", "until")
         self.expect("OP", "(")
-        cond = self._parse_expr()
+        cond = self._parse_cond()
         self.expect("OP", ")")
         return WaitUntil(cond)
 

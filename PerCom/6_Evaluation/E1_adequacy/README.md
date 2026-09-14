@@ -1,26 +1,27 @@
 # E1 — 경계 표 중심의 외부 요구 표현 적합성 사례 연구
 
-시작 2026-09-12. **Stage A(12건): B 의미 감사(whisoo, 2026-09-12) 완료·반영. 논문 결과가 아니다.** 결과 표: `results.md`. 감사 전 결과 보존: `runs/e1_stageA_before_audit.json`, `runs/results_before_audit.md`.
+시작 2026-09-12, **E1 종료 2026-09-13**. 최종 결과는 `E1_SUMMARY.md`(depth 20건 + corpus 100), 원고는 `../PerCom_version.md` E1 절이다.
+이 README 는 Stage A(12건) 절차·결정·경계 probe 의 기록이다. Stage A 결과 표: `results.md`. 감사 전 결과 보존: `runs/e1_stageA_before_audit.json`, `runs/results_before_audit.md`.
 설계 배경과 결정은 세션 논의(2026-09-12)에 따른다. 상위 계획: `../../../skill_result/05_experiment_plan/confirmed_ir_evaluation_2026-09-10.md`(E1 절은 이 문서의 경계 표 설계로 갱신됨, 2026-09-12). 원고 반영: `../PerCom_version.md`, `../HANDOFF.md`.
 작업 공간은 2026-09-12에 `skill_result/05_experiment_plan/e1_adequacy_2026-09-12/`에서 이곳으로 옮겼다(git mv, 내용 동일).
 
-## 0. 결론 (2026-09-12, 이 폴더를 처음 여는 사람용)
+## 0. 결론 (이 폴더를 처음 여는 사람용; 2026-09-14 갱신)
 
-**말할 수 있는 것.** 출처 확인된 외부 요구 12건을 Timeline IR 로 표현했고, 사전 등록한 41개 입력 이력이
-모두 기대 ACTION 과 정확히 일치했다(41/41). 감사에서 인코딩 결함 3건을 잡아 고쳤고 수정 전 결과를 보존했다.
-**12/12 는 선정한 12건 중의 건수이며 coverage 가 아니다.**
+**말할 수 있는 것(최종).** 외부 요구 corpus 100건(IN_SCOPE 92) 중 depth 20건(Stage A 12 + 추가 8)을 Timeline IR 로 표현했고,
+사전 등록한 53개 입력 이력이 모두 기대 ACTION 과 정확히 일치했다(53/53). **20/20 은 선정 사례 중의 건수이며 coverage 가 아니다.**
+Stage A 12건(41/41)에서는 감사가 인코딩 결함 3건(C05·C07·C19)을 잡았고 수정 전 결과를 보존했다. 표는 `E1_SUMMARY.md`.
 
 **경계를 찾으려고 따로 시험한 것.** 성공 사례만으로는 경계를 말할 수 없어, Stage A 가 닿지 않은
 경계 후보를 사전 등록 요구 3건(P1 P2 P3)으로 시도했다. **세 후보 모두 언어의 경계가 아니었다.**
 가변 간격은 카운터 반복 + 단위 delay 로, 도는 중 이벤트 기억은 시계 스냅샷으로 표현됐고 전부 정확히 일치했다.
 
-**실제로 찾은 경계는 언어가 아니라 검증기다.** probe 3건이 모두 언어·실행기를 통과하고 Explorer 만 거절했으며,
-거절 사유가 셋 다 같은 종류다 — 실행 중 값끼리 비교하는 guard. 따라서 E1 의 결론은
-"IR 이 어디까지 표현하나" 가 아니라 **"표현되는 것 중 어디까지 인증되나"** 로 옮겨간다. E2·E4 가 답할 질문이다.
+**실제로 찾은 경계는 언어가 아니라 검증기다.** probe 3건이 모두 언어·실행기를 통과하고 Explorer 만 거절했다.
+거절 사유는 두 종류다 — P2·P3 은 실행 중 값끼리 비교하는 guard(joint-guard), P1 은 범위가 정해지지 않은 관측값(입력 domain 필요).
+따라서 E1 의 결론은 "IR 이 어디까지 표현하나" 가 아니라 **"표현되는 것 중 어디까지 인증되나"** 로 옮겨간다.
 
-**언어에 남는 한계 3가지(정의에서 유도한 논증. 아직 probe 로 시험하지 않았다).**
-유한 상태 / 대입 연산 없음(집계 불가) / 단일 제어 흐름. Stage B 1순위다.
-예상한 경계가 두 번 연속 틀렸으므로 논증만으로 논문에 쓰지 않는다.
+**언어 한계(2026-09-13 저자 의미 감사로 확정).** 옛 논증 "유한 상태 / 대입 연산 없음 / 단일 제어 흐름" 은 **대체됐다**.
+쓸 수 있는 문장은 `../../3_Timeline_IR/HANDOFF.md` "쓸 수 있는 것": Timeline 하나에 병렬 branch 없음(독립 흐름만 분해, E1-092),
+고정 개수 집계(E1-095)·고정 한도 2(E1-028), 일반 누적·동적 집계는 backend 위임. **"고정 프로그램이라 finite-state" 는 쓰지 않는다.**
 
 **언어 문제가 아닌 것.** 자동화가 켜지기 전의 과거는 서비스·카탈로그 문제다. 기기별 변경 시각을 주는
 서비스를 JoI 에 두면 IR 은 `read` 한 줄로 쓴다. **"Timeline 은 못 한다" 고 쓰면 안 된다.**
@@ -114,7 +115,7 @@ D·E 결과는 A 판정을 바꾸지 못한다.
 
 이미 확인한 계약 사이의 차이(결과와 무관하게 기록):
 - 참조 실행기는 `wait.timeout/on_timeout` 을 지원하고 논문 Timeline 절도 timeout 을 언급하지만, `files/timeline_ir/extractor.md`(LLM 에 주는 문법) 에는 없다. `timeline_ir.validate_ir` 는 모르는 필드·중첩 cycle 을 거절하지 않고 통과시킨다(구조 검사만).
-  이 차이는 메모로 두지 않고 **A-extractor 문법 열**로 사례마다 측정한다(`grammar_check.py`). Stage A 12건 중 8건은 문법 안, 4건(C01 C05 C07 C20-O)은 `wait.timeout` 을 쓰고 그중 3건은 중첩 cycle·`period 0 MSEC` 도 쓴다. **현재 NL→IR 경로로는 이 4건의 encoding 이 생성되지 않는다.** 이는 언어 표현력의 결함이 아니라 frontend 문법의 미반영이며, 문법 확장은 E3 입력을 바꾸므로 E3 시작 전에 따로 결정한다.
+  이 차이는 메모로 두지 않고 **A-extractor 문법 열**로 사례마다 측정한다(`grammar_check.py`). Stage A 12건 중 8건은 문법 안, 4건(C01 C05 C07 C20-O)은 `wait.timeout` 을 쓰고, 그중 C01·C05·C07 은 중첩 cycle, C05·C07 은 `period 0 MSEC` 도 쓴다. **현재 NL→IR 경로로는 이 4건의 encoding 이 생성되지 않는다.** 이는 언어 표현력의 결함이 아니라 frontend 문법의 미반영이며, 문법 확장은 E3 입력을 바꾸므로 E3 시작 전에 따로 결정한다.
 - 실행기는 `start_at.anchor == "cron"` 을 거절한다(`ir_step.compile_ir`). 실행 확인은 `gate.prepare_pair` 와 같은 방식으로 앵커를 소거하고 한 발화 창만 재생했다.
 - `cycle.period` 는 회차 종료 후 대기다. 따라서 "매 N" cadence 를 원하면 회차 시간을 빼야 한다. 감사 전 C05 v1 은 이 때문에 회차마다 100 ms 씩 밀려 정확 일치 0/4 였고, C07 v2 는 blink 를 400 ms timeout 으로 보정하려다 복원이 최대 100 ms 늦었다. **둘 다 감사 후 inner `period: "0 MSEC"` 로 바꿔 현재는 각각 4/4 정확 일치이며, 위 두 보정은 더 이상 쓰지 않는다**(수정 전후는 `results.md` 와 `runs/*_before_audit.*`).
 - edge 대기는 처음 평가 시 조건이 이미 참이면 발화한다(초기 참 발화). "사건" 의미가 필요하면 선행 level 대기를 둔다(C03, C09). 다른 대기 중 일어난 edge 는 latch 에 반영되지 않는다(C01 v1/v2 실패 원인).
@@ -138,7 +139,8 @@ D·E 결과는 A 판정을 바꾸지 못한다.
 | C19 | Huang & Cakmak '15 P3 | R10 R9 | |
 | C20-O | Brackenbury CHI'19 Table 1 (ordered 문장) | R1 R2 B1 | ★ |
 
-Stage B 후보(미착수): C02 C06 C08 C10 C12 C13 C14 C17.
+Stage B 후보(C02 C06 C08 C10 C12 C13 C14 C17)는 진행하지 않았다. 2026-09-13 에 breadth corpus 의 depth 추가 8건
+(E1-092 E1-095 E1-086 E1-099 E1-028 E1-034 E1-072 E1-062, `breadth/depth/`)이 그 자리를 대신했다.
 
 ## 6. 경계 probe (성공 분모와 분리)
 
@@ -172,7 +174,7 @@ Stage A 12건은 요소 R1–R10 과 경계 B1·B2 만 건드렸고 B3·B4 에�
   현재 catalog 에 그 서비스가 없다는 사실만 기록한다.
 
 **실제로 확인된 구속은 언어가 아니라 검증기다.** probe 3건 모두 언어·실행기는 통과하고 Explorer 만 거절했다.
-거절 사유가 셋 다 같은 종류다 — 실행 중 값끼리 비교하는 guard.
+거절 사유는 두 종류다 — P2·P3 은 실행 중 값끼리 비교하는 guard, P1 은 범위가 정해지지 않은 관측값(입력 domain 필요).
 
 | probe | Explorer 거절 사유 |
 |---|---|
@@ -180,7 +182,11 @@ Stage A 12건은 요소 R1–R10 과 경계 B1·B2 만 건드렸고 B3·B4 에�
 | P2 | `미지원 무늬(fail-closed): joint-guard: ((clock.timestamp - $t_open) <= 600)` |
 | P3 | `미지원 무늬(fail-closed): joint-guard: ($k >= $d_min); joint-guard: ($j >= ($i_min - $d_min))` |
 
-**구조적으로 남는 한계(논증이며 아직 probe 로 시험하지 않았다 — 별도 표시).**
+**[대체됨 2026-09-13] 아래 세 항목은 저자 의미 감사 전의 논증이다. 결론으로 쓰지 않는다.** 확정 문장은 §0 과
+`../../3_Timeline_IR/HANDOFF.md` "쓸 수 있는 것"(병렬 branch 없음·독립 흐름 분해, 고정 개수 집계·고정 한도 2, 일반 누적은 backend 위임)을 따른다.
+특히 "유한 상태" 는 금지 문장이다.
+
+**구조적으로 남는 한계(감사 전 논증, 보존용).**
 
 1. **유한 상태.** IR 은 고정된 유한 프로그램이고 변수는 `read`/`count` 로 작성 시점에 정해진다.
    겹치는 인스턴스 수·기억할 사건 수가 입력에 따라 무한히 늘어나는 요구는 불가. 상한 k 가 정해지면 k 칸으로 가능.
@@ -203,7 +209,7 @@ B2(진짜 중첩 인스턴스)는 probe 를 만들지 않았다. 단일 제어 �
 - `run_probes.py` — probe 실행 → `runs/e1_probes.json`.
 - `grammar_check.py` — `files/timeline_ir/extractor.md` 문법 밖 구성 판별(A-extractor 열).
 - `results.md` — 경계 표와 사례별 판정(감사 열은 whisoo 가 채움).
-- `breadth/` — 100건 breadth corpus 와 새 depth 8건의 frozen case (2026-09-13 가져옴, **pre-audit**).
+- `breadth/` — 100건 breadth corpus 와 새 depth 8건의 frozen case (2026-09-13 가져옴; 같은 날 출처 감사·저자 선별·R/B 코딩·depth 감사 완료).
   `E1_CORPUS_PROTOCOL.md`·`CLAUDE_E1_HANDOFF.md` 가 절차, `FREEZE_MANIFEST.md` 가 가져온 파일과 frozen case 의 해시,
   `audit/PROVENANCE_AUDIT.md` 가 출처 감사 결과, `audit/AUTHOR_SCREENING_2026-09-13.md` 가 저자 수동 선별(확정)이다.
   `audit/AUTHOR_RB_CODING_2026-09-13.md` 가 저자 R/B 코딩(확정, IN_SCOPE 92건 분모)이다.

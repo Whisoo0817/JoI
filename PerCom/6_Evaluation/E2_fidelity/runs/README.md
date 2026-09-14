@@ -19,12 +19,18 @@ Binding decision (`../BINDING_DECISION_2026-09-14.md`, both tools changed; froze
 | `e2_run.binding-b5.partial.jsonl.gz`, `run_binding_b5.log` | `run_binding_b5.py` (B5 selector assignments) | the 22 pairs with selector assignments |
 | `e2_run.binding-final.jsonl.gz` | `run_binding_b5.py` merge | binding-v1 rows with the 22 B5 rows replaced; C05/fault2–3 Explorer rerun alone after a CPU-contended TIMEOUT (`explorer_under_load` keeps it) |
 
-Final version (timer zones + fixed-aggregation unroll from the merged timer branch, with the binding decision):
+Final version (semantics-preserving exploration optimizations from the merged timer branch, with the binding decision):
 
 | File | Made by | Content |
 |---|---|---|
-| `e2_run.timer-binding.jsonl.gz`, `.meta.json`, `run_timer_binding.log` | Explorer-only rerun (script recorded in the meta file's `explorer_worktree`; reference outcomes from `e2_run.binding-final`) | 142 rows; `explorer_binding_final` keeps the previous Explorer verdict; new witnesses replayed on the reference; C03_008 rerun after the bound `any` fix (`explorer_before_parser_fix`) |
+| `e2_run.timer-binding.jsonl.gz`, `.meta.json`, `run_timer_binding.log` | `../run_timer_binding.py` (Explorer-only rerun; the meta file records the timer worktree and head `476faeb` it ran from; reference outcomes from `e2_run.binding-final`) | 142 rows; `explorer_binding_final` keeps the Explorer verdict before the optimizations; new witnesses replayed on the reference. The C03_008 row was rerun with a parser change that accepted a bound `any` action (`explorer_before_parser_fix` keeps the refusal); that change was withdrawn on 2026-09-14 and the pair is excluded (below) |
+
+Other logs: `rerun_frozen.log`, `rerun_current.log` (`../rerun_reference.py`).
+
+**Population (2026-09-14, whisoo).** Every reported table uses the 140 pairs of `../handoff_timer/e2_population.json`:
+`C03_008/llm` (`any(...)` in ACTION position; `any` is allowed only inside a condition, so it is a syntax error) and `C20_011/llm` (invalid service mapping) are excluded.
+The run files keep all 142 rows unchanged.
 
 `recheck_witnesses.py` (witness replay only) was superseded by `rerun_reference.py`, which also recomputes the
-witness replay; its output was not kept. Tables: `../RESULTS.md` (`make_e2_results.py`); hand inspection:
-`../INSPECTION_2026-09-14.md`.
+witness replay; its output was not kept. Tables: `../RESULTS.md` (`make_e2_results.py`, which reads the `.jsonl` or
+the committed `.jsonl.gz`); hand inspection: `../INSPECTION_2026-09-14.md`.

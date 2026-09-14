@@ -2,7 +2,7 @@
 
 Date: 2026-09-13  
 Repository baseline: `Whisoo0817/JoI`, branch `paper`, commit `0788969e5d313415276a6cf89151aca8cce7c047`  
-Corpus version: `e1-corpus-v0.1-preaudit`
+Corpus version: `e1-corpus-v0.1-preaudit` at freeze; current `e1-corpus-v0.3-author-coded` (author screening and R/B coding 2026-09-13; see `build_workbook.py`)
 
 ## 1. What this corpus supports
 
@@ -42,15 +42,15 @@ Candidate status is one of:
 - `AMBIGUOUS`: a behavior-defining choice is unresolved; the item is retained and no IR is written until the user resolves it.
 - `OUT_OF_SCOPE`: the source is real but the behavior is outside the smart-home automation unit used by E1.
 - `UNMATCHED`: the behavior is clear but depends on a platform/catalog facility absent from the current JoI setup. This is separated from an IR-language failure.
-- `DUPLICATE`: semantically equivalent to an earlier item under the duplicate rule. Duplicates remain in the screening log and do not enter the retained 100.
+- `DUPLICATE`: semantically equivalent to an earlier item under the duplicate rule. Duplicates would remain in the screening log and not enter the retained 100; the final screening log has none (100 retained, 50 not retained).
 
-The imported machine-assisted first pass (91 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, 1 `UNMATCHED`) was replaced by the author's manual screening on 2026-09-13: 92 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, 0 `UNMATCHED`, and no retained duplicate (`audit/AUTHOR_SCREENING_2026-09-13.md`). Similar-topic groups are kept in `topic_family`, not in `duplicate_family`. Difficult cases remain visible in the 100; the paper should report both the full 100 and the in-scope denominator once the author's labels are final. The screening log contains 150 candidates: all 100 retained items plus 50 released AutoTap statements beyond the fixed elicited-source cap.
+The imported machine-assisted first pass (91 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, 1 `UNMATCHED`) was replaced by the author's manual screening on 2026-09-13: 92 `IN_SCOPE`, 6 `AMBIGUOUS`, 2 `OUT_OF_SCOPE`, 0 `UNMATCHED`, and no retained duplicate (`audit/AUTHOR_SCREENING_2026-09-13.md`). Similar-topic groups are kept in `topic_family`, not in `duplicate_family`. Difficult cases remain visible in the 100; the author's labels are final, and the paper reports both the full 100 and the in-scope denominator. The screening log contains 150 candidates: all 100 retained items plus 50 released AutoTap statements beyond the fixed elicited-source cap.
 
 For every retained item, preserve the URL, document/table/thread locator, access date, and text handling. `VERBATIM_*` identifies text copied from a task/data record. `OFFICIAL_DESCRIPTION_OR_STRUCTURED_EXTRACTION` identifies behavior reconstructed from structured official examples. Community items currently contain a concise researcher normalization linked to the opening post; they must not be described as verbatim quotations.
 
 ## 5. Coding procedure
 
-Use the definitions already fixed in E1 `README.md`: R1–R10 and B1–B5. `L-ACCUM` is a provisional label for the newly tested language-boundary hypothesis, internal accumulation. The `rb_preliminary` field is machine-assisted triage only.
+Use the definitions already fixed in E1 `README.md`: R1–R10 and B1–B5. `L-ACCUM` was a provisional label for the internal-accumulation hypothesis; the author audit resolved it through E1-095 (fixed-cardinality aggregation only), and it is not a final code. The `rb_preliminary` field is machine-assisted triage only.
 
 One author performed the screening and the R/B coding by hand (decisions 2026-09-13; `audit/AUTHOR_SCREENING_2026-09-13.md`, `audit/AUTHOR_RB_CODING_2026-09-13.md`):
 
@@ -107,6 +107,8 @@ Before looking at an encoding result, commit or hash a case record containing:
 - reset, re-entry, cancellation, concurrency, and termination semantics;
 - 2–4 input histories, including at least one boundary history;
 - expected ACTION tuples `(time, Service.Method, args, device)` and tolerance.
+
+Recorded deviation: the eight depth additions were frozen with one to three histories each (E1-092, E1-095, E1-086, E1-028 and E1-062 have one; E1-034's three are the two named in §6 plus the original history), not the planned 2–4. The paper states "one to five input histories" over all 20 cases (C04 has one, C19 five).
 
 Only after this record is frozen may Claude write Timeline IR. Do not change Timeline IR, Explorer, catalog, prompt, or reference-runner semantics in response to the result. Corrections to a faulty reference trace must be logged with before/after versions and a source-based explanation.
 

@@ -79,7 +79,7 @@ def test_zero_arg_ir_query_uses_grounded_device_key():
     code = {
         "period": 0, "cron": "",
         "script": (
-            "Available = any(#CloudServiceProvider)."
+            "Available = (#CloudServiceProvider)."
             "cloudServiceProvider_isAvailable\n"
             "if (Available == true) { "
             "all(#Speaker).speaker_speak() }")

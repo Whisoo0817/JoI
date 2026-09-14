@@ -8,7 +8,11 @@
   and the pre-audit summary `RESULTS_v1_preaudit.md`.
 
 E1 adequacy = author semantic audit + reference execution. The Explorer columns are auxiliary and are not part of
-any count. **No number here goes into the paper until the manual corpus coding is finished.**
+any count. The manual corpus coding finished on 2026-09-13; these results are part of the final E1 summary
+(`../../E1_SUMMARY.md`) and the E1 manuscript draft.
+
+Researcher conversion: E1-028 and E1-034 come from AutoTap statements phrased with "never"; their frozen records read
+them as automation policies (like C09's `[연구자 변환]` in Stage A).
 
 ## Table
 

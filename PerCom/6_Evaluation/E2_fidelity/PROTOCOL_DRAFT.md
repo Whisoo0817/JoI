@@ -1,4 +1,9 @@
-# E2 — Validation fidelity: protocol draft (2026-09-14, not frozen)
+# E2 — Validation fidelity: protocol draft (2026-09-14)
+
+**Status.** Frozen at `649cb9c` (hash in `FREEZE_MANIFEST.md`). §9 (supplementary histories) was added after the frozen
+run, before any reference run on them (`193203c`). Later decisions: `BINDING_DECISION_2026-09-14.md` (binding
+contract) and `handoff_timer/e2_population.json` (140-pair population: `C03_008/llm` and `C20_011/llm` are invalid
+inputs). Reported numbers: `RESULTS.md` "Final version".
 
 Question: when the Explorer says EQUIV or DIVERGE for a Timeline IR / JoI pair, does an independent reference agree?
 

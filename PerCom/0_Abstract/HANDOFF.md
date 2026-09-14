@@ -8,4 +8,5 @@
 - 최종 초록은 E1–E4가 끝난 뒤 결과 문장을 채우고 전체 정합성만 다시 점검한다.
 - `VETS`는 작업명이다. 제목 결정 후 전체 원고와 함께 치환한다.
 - 현재 방법 문장은 H=None에서 해당 탐색 경로가 closure/completion 조건을 만족할 때만 EQUIV를 인증한다는 검증 계약을 따른다.
-- E1/E2/E4가 미완료인 동안 “전체 검증기 정확도”, “Timeline coverage”, “unbounded verifier 성능 우위”를 주장하지 않는다.
+- E1(2026-09-13)·E2(2026-09-14)는 끝났다(원고 초안 `../6_Evaluation/PerCom_version.md`, whisoo 검토 대기). E4 가 끝나기 전에는 “unbounded verifier 성능 우위”를 주장하지 않는다.
+  E1 은 선정 사례 결과라 “Timeline coverage” 를, E2 는 이력 범위 안의 증거라 “전체 검증기 정확도 100%” 를 주장하지 않는다.

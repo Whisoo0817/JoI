@@ -1,6 +1,6 @@
 # E1 Stage A 결과 (기계 열 자동 채움; B·G 열은 whisoo)
 
-생성: `python make_results.py`. 근거: `runs/e1_stageA.json`, `cases.py`, `irs.py`. **논문 결과가 아니다.**
+생성: `~/temp/bin/python make_results.py`. 근거: `runs/e1_stageA.json`, `cases.py`, `irs.py`. Stage A 12건의 기록이다. E1 최종 결과(depth 20건 + corpus 100)는 `E1_SUMMARY.md`.
 
 ## 사례별
 
@@ -35,7 +35,7 @@
 | R10 | 시각 vs 사건 경쟁 | C19 | 1/1 |  |
 | B1 | 즉시 취소·재시작 | C01 C07 C20-O | 3/3 | C07 v3: 닫힘 시각에 B0 복원(감사 후 정확 일치). C01/C20-O: 재시작·취소를 timeout+break 조합으로 표현 |
 | B2 | 독립 두 흐름/인스턴스 | C11 | 1/1 | C11 한 건뿐이고, 두 흐름을 만든 것이 아니라 **단일 흐름으로 환원**한 것이다. 이 사례에는 delay·중첩 인스턴스·action→trigger 되먹임이 없어 직전 snapshot 판별이 두 TAP 규칙과 같은 trace 를 낸다(감사 확인). 진짜 중첩 인스턴스가 필요한 요구는 Stage A·probe 모두에서 **미평가**이며, 실행 계약상 단일 제어 흐름이라는 한계로 보고한다 |
-| B3 | 이벤트 기억·look-back | (Stage A 없음) | - | 두 가지를 나눠야 한다. **(가) 자동화가 켜지기 전의 과거**는 불가 — 실행 모델이 t=0 에 현재 값만 주므로 이력으로 쓸 수조차 없다(Timeline 표현력이 아니라 관측 모델의 경계. HA 는 플랫폼의 `last_changed` 로 답한다). **(나) 도는 중에 놓친 과거**는 가능 — probe P1·P2 가 각각 4/4 정확 일치. 단 Explorer 는 둘 다 거절한다(아래 probe 절) |
+| B3 | 이벤트 기억·look-back | (Stage A 없음) | - | 두 가지를 나눠야 한다. **(가) 자동화가 켜지기 전의 과거**는 언어가 아니라 서비스·카탈로그 문제다 — 현재 catalog 에 기기별 변경 시각이 없을 뿐이고, 플랫폼이 그것을 주면(HA 의 `last_changed` 류) IR 은 `read` 한 줄로 쓴다. **(나) 도는 중에 놓친 과거**는 가능 — probe P1·P2 가 각각 4/4 정확 일치. 단 Explorer 는 둘 다 거절한다(아래 probe 절) |
 | B4 | 가변 간격 반복 | (Stage A 없음) | - | Stage A 에는 사례가 없었고 **probe P3 로 시도**했다. duration 피연산자 자체는 리터럴이라 `delay "$d MIN"` 은 거절되지만, `cycle(until "k >= $n", count "k"){ delay "1 단위" }` 로 펼치면 **표현된다**(3/3 정확). 단위가 곧 해상도이자 상태 수다. Explorer 는 거절한다(아래 probe 절) |
 | B5 | 중첩 반복 | C07 | 1/1 |  |
 

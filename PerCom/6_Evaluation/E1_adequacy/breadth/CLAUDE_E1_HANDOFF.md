@@ -69,13 +69,13 @@ External source: Home Assistant Community thread 729908. The request says that m
 
 ### E1-028 — rolling-window feeder limit
 
-External source: AutoTap User Study 1, participant P24, statement S2: “My smart pet feeder should never allow to dispense more than 2 bowls of food per every 4 hours.”
+External source: AutoTap User Study 1 public data, Result sheet, Excel row 26 (the earlier "participant P24, statement S2" label was a pandas row number, not a participant ID; `audit/PROVENANCE_AUDIT.md` item 3): “My smart pet feeder should never allow to dispense more than 2 bowls of food per every 4 hours.”
 
 **Confirmed interpretation (2026-09-13):** Use a rolling four-hour window, not fixed clock-aligned four-hour bins. On a dispense request, dispense only when fewer than two bowls have been dispensed in the preceding four hours. Reject an over-limit request silently: emit no dispense ACTION and no notification.
 
 ### E1-034 — oven overrun confirmation
 
-External source: AutoTap User Study 1, participant P58, statement S9: “My smart oven should never be on for than 4 hours, maximum without alerting if more time is needed, and shutting off if not responded to.”
+External source: AutoTap User Study 1 public data, Result sheet, Excel row 60 (the earlier "participant P58, statement S9" label was a pandas row number, not a participant ID; `audit/PROVENANCE_AUDIT.md` item 3): “My smart oven should never be on for than 4 hours, maximum without alerting if more time is needed, and shutting off if not responded to.”
 
 **Confirmed interpretation (2026-09-13):** When the oven has been on for four hours, send a confirmation alert. Model an affirmative user response as a `ConfirmContinue` input. If no response arrives by one minute after the alert, turn the oven off. If confirmation arrives within that minute, leave the oven on for the bounded reference history; no further maximum duration is inferred.
 

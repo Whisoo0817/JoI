@@ -90,7 +90,7 @@ Resolved on 2026-09-13 by the author's R/B coding: `AUTHOR_RB_CODING_2026-09-13.
 
 1. **The other 92 rows have no author R/B statement.** `rb_adjudicated` stays blank for them and `rb_preliminary` is
    not copied. Needed: the author's R/B set per row, or an explicit decision about which preliminary values are
-   accepted. The 12 seeds already have Stage A codes in `../README.md` §5; `rb_preliminary` equals them.
+   accepted. The 12 seeds already have Stage A codes in `../../README.md` §5; `rb_preliminary` equals them.
 2. Rows in the author's list whose R/B set is not fixed by the statement:
    - **E1-099:** which codes (preliminary `R3`; the deadline extension and the motion-vs-deadline order could also
      be read as B1 or R10).

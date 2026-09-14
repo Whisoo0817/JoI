@@ -46,5 +46,16 @@ Explorer under test: repository HEAD `490e884e974235929299ab37473e8813ce40b44f` 
 
 | Date | File | Change | Reason | Not affected |
 |---|---|---|---|---|
-| 2026-09-14 | run_e2.py `witness_events` | add each witness entry's dwell before applying its inputs, not after | Explorer `Divergence.path` entries are (held inputs, dwell since the previous node) (`timed.py` `path()`); the first rows showed witnesses shifted one entry early (e.g. C01/fault4 replayed as equal). Found from the conversion itself, not from an agreement count. | Explorer verdicts, reference outcomes, pairs, histories, reference code. Witness replays are recomputed from the stored witnesses by `recheck_witnesses.py` into `runs/e2_run.rewitness.jsonl`; the original run file is kept. |
+| 2026-09-14 | run_e2.py `witness_events` | add each witness entry's dwell before applying its inputs, not after | Explorer `Divergence.path` entries are (held inputs, dwell since the previous node) (`timed.py` `path()`); the first rows showed witnesses shifted one entry early (e.g. C01/fault4 replayed as equal). Found from the conversion itself, not from an agreement count. | Explorer verdicts, reference outcomes, pairs, histories, reference code. Witness replays were first recomputed by `recheck_witnesses.py`; that output was not kept, and `rerun_reference.py` (`runs/e2_run.ref-frozen.jsonl`, `runs/e2_run.ref-current.jsonl`) replaced it. The original run file is kept. |
 | 2026-09-14 | reference (ir_ref.py / joi_ref.py / common.py, SPEC_GAPS G3/G4) | ordered comparison with a None operand evaluates to false (was REF-UNSUPPORTED) | author decision (whisoo): the contract includes None in non-BOOL input domains but no document fixes the comparison result; surfaced by Explorer witnesses containing a missing CO2 value (C03 faults), not by an agreement count | pairs, histories, Explorer verdicts. Reference outcomes of the frozen run are recomputed with the new version and both are reported. |
+
+## Later versions (the hashes above are the frozen ones; these files have changed since)
+
+| Commit / date | Files | Change | Record |
+|---|---|---|---|
+| `c76fd76` | PROTOCOL_DRAFT.md, reference/READ_LOG.md, reference/SPEC_GAPS.md, reference/common.py, run_e2.py | the two harness corrections above | table above |
+| `193203c` | PROTOCOL_DRAFT.md (§9), histories/make_supplement.py, histories/supplement_histories.json(.gz) | supplementary histories, committed before any reference run on them | `histories/supplement_histories.json.sha256` |
+| `3b728e4` | reference/common.py, ir_ref.py, joi_ref.py, run.py, READ_LOG.md, SPEC_GAPS.md, run_e2.py | binding contract B1/B2 (reference by the separate agent; `run_e2.py` switch `E2_BINDING_DECISION`) | `BINDING_DECISION_2026-09-14.md` |
+| 2026-09-14 (working tree) | reference/joi_ref.py, SPEC_GAPS.md (G35), READ_LOG.md, test_binding_decision.py | `any(...)` outside a condition (ACTION position, assignment, argument) is a syntax error (author decision); C03_008/llm is outside the 140-pair population. `reference/SMOKE_388.md` is not rerun; under this rule its C03_002 entry (`IsAvailable = any(...)`, listed as unsupported) would be a syntax error | `handoff_timer/e2_population.json` |
+
+The population used for every reported table is the 140 pairs of `handoff_timer/e2_population.json`.

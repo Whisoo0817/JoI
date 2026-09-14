@@ -25,7 +25,7 @@ ir=<pair IR>)`, `run_ir(..., binding_decision=True)`, `compare(a, b, device_sets
 - B1 (`JoiProgram.selector_service`, `bound_devices`, `match`, `_operand`, `do_action`): S in the binding with one
   distinct set → that set; several → tag/ID/category match M, then the set equal to M, else the unique set ⊇ M, else
   M. Calls (B1.3, revised): the tag/ID/category match M when non-empty and ⊆ the chosen set, else every device of the
-  chosen set (also for singular and `any(...)` selectors). Reads (B1.4, revised): one device → that device; several →
+  chosen set (also for singular selectors; `any(...)` outside a condition is a syntax error since G35). Reads (B1.4, revised): one device → that device; several →
   the JoI quantifier (`all`, `any`, `op|`) when written, else the IR slot quantifier. S not in the binding: previous
   rules (S6, `all` fan-out, `any` action refused) with the new tag match: a selector tag matches if it equals one of
   the device's `tags`, its ID, or one of its `category` entries.
@@ -163,9 +163,9 @@ R1.2); `&&`, `||`, `!` → unsupported (extractor forbids them, although its D7 
 without backslashes only; chained comparisons → unsupported. Precedence per FRONTEND §2.
 
 **G13 JoI quantifiers.** JOI_SPEC §1.3–1.4 and S5 define `all`/`any` in comparisons and `all` fan-out for actions.
-Choice → unsupported: `any(...)` in action position; `all/any(...).m` used anywhere except as a direct operand of a
+Choice → unsupported: `any(...)` outside a condition (now unsupported[syntax] at parse time, G35); `all/any(...).m` used anywhere except as a direct operand of a
 comparison (FRONTEND §3 "미지원 집합값 사용은 거절"); `op|` with anything but `all(...)`; both comparison operands
-quantified; `x = all/any(...).query()`.
+quantified; `x = all(...).query()` (`any` there: syntax, G35).
 
 **G16 Conditions must be BOOL.** No truthiness rule is written. Bare condition atoms, `not`, `and`, `or` operands that
 are not BOOL → unsupported. Both operands of and/or are evaluated (FRONTEND §2 "양쪽을 평가한다").
@@ -188,6 +188,26 @@ continue after the wait; if non-empty, after it completes jump to the end of the
 cycle (count increment, period, until check); outside any cycle this ends the automation; a `break` inside
 `on_timeout` exits the nearest cycle. Expiry and condition at the same instant: condition first (S4). `for` and
 `timeout` together are both honoured.
+
+**G35 `any(...)` only inside a condition — author decisions (whisoo, 2026-09-14).** Sources: the author decisions
+relayed by the coordinator (first: `any(...)` on a call statement is invalid; second, same day, replacing the earlier
+[choice] on query assignments: `any(...)` may appear only inside a condition); `handoff_timer/e2_population.json`
+(exclusion of C03_008/llm, category `invalid_syntax`: "any selector in ACTION position is forbidden by the
+user-approved language rule; parse-time rejection").
+Rule: `any(...)` is valid only inside a condition. Condition positions in JOILang.g4 are exactly the operands of a
+`condition_list`: the condition of `if` (an `else if` is `else` followed by an `if_statement`, so it is covered), of
+`wait until(...)`, and of `loop(...)` (the grammar has no `while`; `loop (cond)` is its conditional loop). Everywhere
+else `any(...)` is a syntax error: a call statement (`any(#S).m()`, ACTION position), the right-hand side of `=` or `:=`
+(`x = any(#S).v`, `x := any(#S).v`, `x = any(#S).q()`, also inside arithmetic), and call arguments. (`x = any(#S).v ==
+true` is already a grammar error because `==` is not arithmetic; `for (x : ...)` only allows `all(...)` and `for` is
+excluded anyway.) `all(...)` is not affected.
+Effect: `joi_ref.conv_stmt` / `conv_arith` raise unsupported[syntax] with the message "any selector outside a
+condition: <position>: ..." while building the AST, so `run_joi` returns status "unsupported", category "syntax", no
+ACTION, with or without the binding keywords, and `selector_space` returns empty lists with status "unsupported".
+Before, a bound `any(...)` call followed B1.3 (C03_008/llm ran as REF-EQUIV-CHECKED), an unbound one was refused at run
+time as unsupported[any-action], and `x = any(...).q()` was unsupported[multi-device-query] unless B1 bound one device;
+those run-time branches are now unreachable for `any`. Programs with this construct are invalid input and leave the E2
+behavioral population (142 → 140 with C20_011/llm).
 
 **G10 IR `break` outside a cycle.** extractor: "exit nearest cycle". Choice: ends the automation (as R13 for JoI).
 

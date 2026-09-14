@@ -84,7 +84,8 @@ def conv_stmt(ctx):
     c = ctx.getChild(0)
     if isinstance(c, P.Value_assign_behaviorContext):
         ch = _kids(c)
-        return ("assign", ch[0].getText(), ch[1].getText() == ":=", conv_arith(ch[2]))
+        return ("assign", ch[0].getText(), ch[1].getText() == ":=",
+                conv_arith(ch[2], f"right-hand side of `{ch[0].getText()} {ch[1].getText()}`"))
     if isinstance(c, P.Action_behaviorContext):
         ch = _kids(c)
         out = None
@@ -98,11 +99,18 @@ def conv_stmt(ctx):
         # '(' tag_list ')' '.' IDENTIFIER '(' action_input ')'
         tags = _tags(ch[1])
         name = ch[4].getText()
+        # Author decisions whisoo 2026-09-14 (SPEC_GAPS G35): `any(...)` is allowed only inside a condition; on a call
+        # statement (ACTION position) or a query assignment `x = any(...).q()` it is a syntax error, rejected before
+        # execution with or without the binding.
+        if rng == "any":
+            where = "call statement (ACTION position)" if out is None else f"right-hand side of `{out} =`"
+            _any_outside(where, f"any(#{' #'.join(tags)}).{name}(...)")
         args = []
         ai = ch[6]
         for n in _kids(ai):
             if isinstance(n, P.Input_listContext):
-                args = [conv_arith(x) for x in _kids(n) if isinstance(x, P.Arithmetic_expressionContext)]
+                args = [conv_arith(x, f"argument of .{name}(...)") for x in _kids(n)
+                        if isinstance(x, P.Arithmetic_expressionContext)]
         return ("action", out, rng, tags, name, args)
     if isinstance(c, P.If_statementContext):
         ch = _kids(c)
@@ -135,18 +143,24 @@ def conv_stmt(ctx):
     raise RefUnsupported("syntax", f"unknown statement {c.getText()!r}")
 
 
-def conv_arith(ctx):
+def _any_outside(where, text):
+    raise RefUnsupported("syntax", f"any selector outside a condition: {where}: {text} (author decision 2026-09-14)")
+
+
+def conv_arith(ctx, where):
+    """`where` is None inside a condition (if / else if / wait until / loop condition), else a description of the
+    position, used to reject `any(...)` there (G35)."""
     ch = _kids(ctx)
     if len(ch) == 1:
-        return conv_primary(ch[0])
+        return conv_primary(ch[0], where)
     if len(ch) == 3 and _is_tok(ch[0], "("):
-        return conv_arith(ch[1])
+        return conv_arith(ch[1], where)
     if len(ch) == 3:
-        return ("bin", ch[1].getText(), conv_arith(ch[0]), conv_arith(ch[2]))
+        return ("bin", ch[1].getText(), conv_arith(ch[0], where), conv_arith(ch[2], where))
     raise RefUnsupported("syntax", ctx.getText())
 
 
-def conv_primary(ctx):
+def conv_primary(ctx, where):
     ch = _kids(ctx)
     if len(ch) == 1 and _is_tok(ch[0]):
         tok = ch[0].getSymbol()
@@ -171,6 +185,8 @@ def conv_primary(ctx):
         rng = ch[0].getText()
         ch = ch[1:]
     # '(' tag_list ')' '.' IDENTIFIER
+    if rng == "any" and where is not None:
+        _any_outside(where, f"any(#{' #'.join(_tags(ch[1]))}).{ch[4].getText()}")
     return ("prop", rng, _tags(ch[1]), ch[4].getText())
 
 
@@ -213,9 +229,9 @@ def _flatten(ctx, operands, ops):
 def conv_atom(ctx):
     ch = _kids(ctx)
     if len(ch) == 1:
-        return ("truth", conv_arith(ch[0]))
+        return ("truth", conv_arith(ch[0], None))
     op_kids = _kids(ch[1])
-    return ("cmp", op_kids[0].getText(), len(op_kids) == 2, conv_arith(ch[0]), conv_arith(ch[2]))
+    return ("cmp", op_kids[0].getText(), len(op_kids) == 2, conv_arith(ch[0], None), conv_arith(ch[2], None))
 
 
 def _uses_clock(node):

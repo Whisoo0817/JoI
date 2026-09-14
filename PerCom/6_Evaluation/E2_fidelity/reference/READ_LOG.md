@@ -112,6 +112,27 @@ No other new file opened; no forbidden path opened.
 
 No other new file opened (the B5 tests are hand-written; no pair, history or run file used); no forbidden path opened.
 
+### 2026-09-14 author decision — `any(...)` in ACTION position is a syntax error (SPEC_GAPS G35)
+
+| Path | Purpose |
+|---|---|
+| (coordinator message) | author decision whisoo 2026-09-14: `any(...)` on a call statement is invalid input |
+| PerCom/6_Evaluation/E2_fidelity/handoff_timer/e2_population.json | decision record: C03_008/llm excluded as `invalid_syntax` (json, read only) |
+| PerCom/6_Evaluation/E2_fidelity/BINDING_DECISION_2026-09-14.md | grep of `any(` to find text about `any` selectors |
+| PerCom/6_Evaluation/E2_fidelity/pairs/e1_pairs.json, pairs/sample_388_pairs.json | JoI scripts scanned with the reference parser for ACTION-position `any` (not modified) |
+
+No other new file opened; no forbidden path opened. Not opened: `../runs/`, `../histories/`, other `handoff_timer/` files.
+
+### 2026-09-14 author decision — `any(...)` only inside a condition (SPEC_GAPS G35 revised)
+
+| Path | Purpose |
+|---|---|
+| (coordinator message) | author decision whisoo 2026-09-14: `any(...)` allowed only in a condition (if / else if / wait until); replaces the G35 [choice] on query assignments |
+| PerCom/6_Evaluation/E2_fidelity/reference/grammar/JOILang.g4 | reference copy of the grammar: which rules take a `condition_list` (if, wait until, loop) and where `range_type` appears |
+| PerCom/6_Evaluation/E2_fidelity/pairs/e1_pairs.json, pairs/sample_388_pairs.json | JoI scripts scanned with the reference parser for `any` outside a condition (not modified) |
+
+No other new file opened; no forbidden path opened. Not opened: `../runs/`, `../histories/`, `handoff_timer/`.
+
 ## Directory listings only (names, no content)
 
 `PerCom/6_Evaluation/E2_fidelity/`, `PerCom/6_Evaluation/E1_adequacy/` (+ `breadth/`, `breadth/depth/`, `breadth/depth/runs/`,

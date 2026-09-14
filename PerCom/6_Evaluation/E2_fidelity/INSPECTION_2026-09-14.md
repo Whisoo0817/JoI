@@ -1,5 +1,10 @@
 # E2 hand inspection (2026-09-14)
 
+**Reading guide (2026-09-14).** The reported numbers use the 140-pair population (`handoff_timer/e2_population.json`:
+`C03_008/llm` and `C20_011/llm` are invalid inputs) and are in the last section, "Final version". The sections before
+it are development records written at each stage on the 142 frozen pairs; their counts and pair lists (for example
+the 8 witness-confirmed pairs of the frozen stage) are not the final ones.
+
 Inputs: `runs/e2_run.ref-frozen.jsonl`, `runs/e2_run.ref-current.jsonl` (tables in `RESULTS.md`). Every pair whose
 agreement is not a plain AGREE / EXPLORER-REFUSED / EXPLORER-TIMEOUT, and every pair the reference does not
 support, was inspected. Explorer verdicts were not changed; the reference was not changed.
@@ -110,25 +115,35 @@ text; Explorer by the session author). Tables: `RESULTS.md` "Binding decision"; 
   budget (TIMEOUT) instead of the 400,000-state cap; rerun alone they are REFUSED at the state cap as in the frozen run.
   The recorded rows use the quiet rerun and keep the loaded result as `explorer_under_load`.
 
-## Final version: timer zones + fixed-aggregation unroll + binding decision
+Run note (supplementary histories): `run_supplement.py` was changed to save each finished pair and was rerun in full;
+its outcomes on the 57 pairs match the first run's log (`runs/run_supplement.log`).
 
-Explorer from the merged timer branch (Codex: timer zones, extensions, fixed-aggregation unroll; merged `24d7b1a`)
-with B1/B2/B5 on. The reference code did not change, so its outcomes are reused from the binding-decision run; every
-new Explorer witness was replayed on the reference. Rows: `runs/e2_run.timer-binding.jsonl.gz`.
+## Final version: exploration optimizations + binding contract (140 pairs; the reported numbers)
 
-- **FALSE-EQUIV-CANDIDATE 0, FALSE-DIVERGE-CANDIDATE 0.** Explorer: DIVERGE 75 / EQUIV 56 / REFUSED 6 / TIMEOUT 5.
-- 26 pairs moved from undecided to decided (C01/fault2, C05/fault2–3, C13_006, C14_003, C15 correct/fault1,
-  C18/correct, C19/correct, C20-O correct/fault1, E1-028 ×5, E1-034 ×5, E1-095 ×5); all agree with the reference.
+Explorer from the merged timer branch (Codex: semantics-preserving exploration optimizations; merged `24d7b1a`)
+with B1/B2/B5 on, same budget. The reference code did not change, so its outcomes are reused from the
+binding-contract run; every new Explorer witness was replayed on the reference. Rows: `runs/e2_run.timer-binding.jsonl.gz`.
+Population: 140 pairs (`handoff_timer/e2_population.json`).
+
+- **Excluded inputs (not in any count):** `C03_008/llm` uses `any(...)` in ACTION position. By author decision
+  (2026-09-14) `any(...)` is allowed only inside a condition (`if`, `loop`, `wait until`), so this is a syntax error. A parser change in `0e76584` had accepted it for bound services; that change was withdrawn and
+  both the Explorer parser and the reference (SPEC_GAPS G35) now reject it. `C20_011/llm` reads a Charger capability the
+  TV does not declare (invalid service mapping); both tools refuse it.
+- **FALSE-EQUIV-CANDIDATE 0, FALSE-DIVERGE-CANDIDATE 0.** Explorer: DIVERGE 75 / EQUIV 55 / REFUSED 5 / TIMEOUT 5.
+- Decided 130 = confirmed 129 (AGREE-EQUIV 55, AGREE-DIVERGE 66, confirmed by witness 8) + 1 the reference cannot
+  run (C24_003/llm, `None + 1`).
+- Before the optimizations the same Explorer decided 104 of the 140 pairs under the same budget and binding contract.
+  26 pairs moved from undecided to decided (C01/fault2, C05/fault2–3, C13_006, C14_003, C15 correct/fault1,
+  C18/correct, C19/correct, C20-O correct/fault1, E1-028 ×5, E1-034 ×5, E1-095 ×5); all agree with the reference, and
+  none of the 104 earlier verdicts changed.
   - C14_003/llm: DIVERGE confirmed by witness. The JoI increments its counter every tick instead of every press; the
     reference histories never changed the button value (history-generator gap noted above).
   - C15/fault1 (`h < 6` → `h <= 6`): DIVERGE confirmed by witness; the reference histories never pass 06:xx.
-- C03_008/llm: the timer branch parser refused `any(...)` in an ACTION before grounding, so the pair became REFUSED.
-  Under the binding decision any/all do not decide the verdict; the refusal was moved to grounding for unbound
-  services (`0e76584`). Rerun: EQUIV, agrees with the reference (`explorer_before_parser_fix` keeps the refusal).
-- Undecided (11): C07 ×5 (TIMEOUT: state explosion from nested repetition and timers), E1-099 ×5 (REFUSED: deadline
-  `t_on + 300 + 120·k` grows with the number of motion episodes), C20_011/llm (REFUSED: the LLM JoI uses a Charger
-  service the TV does not declare; input-validation reject, the reference refuses too).
+- The 8 witness-confirmed pairs: C08_032, C14_003, C15/fault1, E1-086/fault2·4 (no reference history reaches the
+  diverging input) and C16/fault2–4 (the JoI reads a device value the histories do not supply, so the reference
+  cannot run it on its histories).
+- Undecided (10): C07 ×5 (TIMEOUT at the 120 s budget: nested repetition and timers), E1-099 ×5 (REFUSED: deadline
+  `t_on + 300 + 120·k` grows with the number of motion episodes).
 - Of 75 fault pairs with an observed difference (reference histories or witness), the Explorer gives DIVERGE for 69,
-  EQUIV for none, and leaves 6 undecided (C07 f1–f4, E1-099 f1·f3).
-  `run_supplement.py` was changed to save each finished pair and was rerun in full; its outcomes on the 57 pairs
-  match the first run's log (`runs/run_supplement.log`).
+  EQUIV for none, and leaves 6 undecided (C07 f1–f4, E1-099 f1·f3). The other 6 fault pairs show no difference on
+  either side: C09/fault4, C16/fault1, E1-062/fault3, E1-086/fault3, E1-099/fault2·4.

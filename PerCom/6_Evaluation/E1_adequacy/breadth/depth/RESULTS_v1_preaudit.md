@@ -2,7 +2,7 @@
 
 Inputs frozen before encoding: `../frozen_cases/` (commit `35e6043`), `depth_cases.py` + `fixture.py` (commit `6f2c040`).
 Encodings and attempt history: `depth_attempts.py`. Raw run: `runs/e1_depth.json` (fixture catalog sha256 `1ffb6363…`).
-Rerun: `python depth/run_depth.py --explorer` from `breadth/`.
+Rerun: `~/temp/bin/python depth/run_depth.py --explorer` from `breadth/` (the system python3 is 3.8 and cannot import the Explorer).
 
 **Status.** These are execution results, not final E1 adequacy. E1 adequacy is the author's semantic audit plus
 reference execution; the audit of these eight encodings has not been done (see `../AUTHOR_TODO.md`).

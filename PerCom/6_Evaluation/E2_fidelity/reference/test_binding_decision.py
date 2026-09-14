@@ -282,8 +282,96 @@ def case_e():
     check("(e) no device_sets key on JoI result", "device_sets" not in rj)
 
 
+# (j) author decision 2026-09-14 (SPEC_GAPS G35): any(...) on a call statement is a syntax error; any(...) in a
+# condition and all(...) on a call stay valid. Shape of C03_008/llm, hand-written.
+def case_j():
+    dev = {"LivingRoom_Speaker": {"category": ["Speaker"], "tags": ["LivingRoom", "Speaker"]},
+           "Bedroom_Speaker": {"category": ["Speaker"], "tags": ["Bedroom", "Speaker"]}}
+    ir = {"timeline": [START, {"op": "if", "cond": "Speaker.PlaybackState == \"playing\"",
+                               "then": [{"op": "call", "target": "Speaker.Stop", "args": {}}], "else": []}]}
+    bind = {"Speaker": ["LivingRoom_Speaker"]}
+    ev = [(0, {"LivingRoom_Speaker.PlaybackState": "playing", "Bedroom_Speaker.PlaybackState": "playing"})]
+    bad = 'if (all(#Speaker).speaker_playbackState ==| "playing") {\nany(#Speaker).speaker_stop()\n}'
+    for label, kw in (("with binding", {"binding": bind, "ir": ir}), ("without binding", {})):
+        r = run_joi(block(bad), dev, ev, 1000, **kw)
+        check(f"(j) ACTION-position any {label}: rejected as syntax",
+              r["status"] == "unsupported" and r["category"] == "syntax"
+              and "any selector outside a condition: call statement" in r["detail"] and r["raw_actions"] == [], r)
+    top = run_joi(block("any(#Speaker).speaker_stop()"), dev, ev, 1000)
+    check("(j) top-level any call: rejected as syntax", top["category"] == "syntax"
+          and "any selector outside a condition: call statement" in top["detail"], top["detail"])
+    sp = selector_space(block(bad), dev, bind, ir)
+    check("(j) selector_space of ACTION-position any: unsupported", sp.get("status") == "unsupported"
+          and "any selector outside a condition: call statement" in sp.get("detail", ""), sp)
+    ok = 'if (any(#Speaker).speaker_playbackState == "playing") {\nall(#Speaker).speaker_stop()\n}'
+    ri, rj = pair_run(ir, bind, dev, ok, ev)
+    check("(j) any in condition + all(...) action: status ok", ri["status"] == rj["status"] == "ok",
+          (ri["detail"], rj["detail"]))
+    check("(j) any in condition + all(...) action: equal", compare(ri["trace"], rj["trace"])[0],
+          (ri["trace"], rj["trace"]))
+    rn = run_joi(block(ok), dev, ev, 1000)
+    check("(j) without binding: any condition read, all(...) fan-out to both speakers",
+          rn["status"] == "ok" and sorted(a[4] for a in rn["raw_actions"]) == sorted(dev), rn)
+
+
+# (k) author decision 2026-09-14 (SPEC_GAPS G35, revised): any(...) only inside a condition (if / else if /
+# wait until / loop condition); assignment right-hand sides and call arguments reject it; all(...) is unaffected.
+def case_k():
+    dev = {"LivingRoom_Speaker": {"category": ["Speaker"], "tags": ["LivingRoom", "Speaker"]},
+           "Bedroom_Speaker": {"category": ["Speaker"], "tags": ["Bedroom", "Speaker"]},
+           "Lamp": {"category": ["Switch"], "tags": ["Lamp"]}}
+    ir = {"timeline": [START, {"op": "if", "cond": "Speaker.PlaybackState == \"playing\"",
+                               "then": [{"op": "call", "target": "Switch.On", "args": {}}], "else": []}]}
+    bind = {"Speaker": ["LivingRoom_Speaker"], "Switch": ["Lamp"]}
+    ev = [(0, {"LivingRoom_Speaker.PlaybackState": "playing", "Bedroom_Speaker.PlaybackState": "stopped",
+               "Lamp.Switch": False})]
+    rejected = {
+        "x = any(#S).v": 'x = any(#Speaker).speaker_playbackState\n(#Lamp).switch_on()',
+        "x := any(#S).v": 'x := any(#Speaker).speaker_playbackState\n(#Lamp).switch_on()',
+        "x = any(#S).v == true": 'x = any(#Speaker).speaker_playbackState == "playing"\n(#Lamp).switch_on()',
+        "x = any(#S).v inside if": 'if ((#Lamp).switch_switch == false) {\nx = any(#Speaker).speaker_playbackState\n}',
+        "x = any(#S).query()": 'x = any(#Speaker).speaker_playbackState()\n(#Lamp).switch_on()',
+        "call argument": 'all(#Speaker).speaker_speak(any(#Speaker).speaker_playbackState)',
+        "arithmetic in assignment": 'x = 1 + (any(#Speaker).speaker_volume * 2)\n(#Lamp).switch_on()',
+    }
+    for label, script in rejected.items():
+        for blabel, kw in (("with binding", {"binding": bind, "ir": ir}), ("without binding", {})):
+            r = run_joi(block(script), dev, ev, 1000, **kw)
+            check(f"(k) {label} {blabel}: rejected as syntax", r["status"] == "unsupported"
+                  and r["category"] == "syntax" and r["raw_actions"] == [], r)
+        if label != "x = any(#S).v == true":        # that one is already a grammar error (`==` is not arithmetic)
+            check(f"(k) {label}: message names the rule",
+                  "any selector outside a condition" in run_joi(block(script), dev, ev, 1000)["detail"])
+    accepted = {
+        "if condition": 'if (any(#Speaker).speaker_playbackState == "playing") {\n(#Lamp).switch_on()\n}',
+        "else if condition": 'if ((#Lamp).switch_switch == true) {\n(#Lamp).switch_off()\n} else if '
+                             '(any(#Speaker).speaker_playbackState == "playing") {\n(#Lamp).switch_on()\n}',
+        "wait until condition": 'wait until(any(#Speaker).speaker_playbackState == "playing")\n(#Lamp).switch_on()',
+    }
+    for label, script in accepted.items():
+        ri, rj = pair_run(ir, bind, dev, script, ev)
+        check(f"(k) any in {label}: status ok", ri["status"] == rj["status"] == "ok", (ri["detail"], rj["detail"]))
+        check(f"(k) any in {label}: equal", compare(ri["trace"], rj["trace"])[0], (ri["trace"], rj["trace"]))
+        rn = run_joi(block(script), dev, ev, 1000)
+        check(f"(k) any in {label} without binding: lamp on", rn["status"] == "ok"
+              and [a[4] for a in rn["raw_actions"]] == ["Lamp"], rn)
+    lp = run_joi(block('loop (any(#Speaker).speaker_playbackState == "stopped") {\n(#Lamp).switch_on()\nbreak\n}'),
+                 dev, ev, 1000)
+    check("(k) any in loop condition: parsed (not a syntax rejection)", lp["category"] != "syntax", lp)
+    for label, script in (("x = all(#S).v", 'x = all(#Speaker).speaker_playbackState\n(#Lamp).switch_on()'),
+                          ("x = (#S).v", 'x = (#LivingRoom #Speaker).speaker_playbackState\n(#Lamp).switch_on()')):
+        r = run_joi(block(script), dev, ev, 1000, binding=bind, ir=ir)
+        check(f"(k) {label} in assignment: not a syntax rejection", r["category"] != "syntax", r)
+    # all(...) in an assignment with the binding reducing the speakers to one device: runs normally
+    ra = run_joi(block('x = all(#Speaker).speaker_playbackState\nif (x == "playing") {\n(#Lamp).switch_on()\n}'),
+                 dev, ev, 1000, binding=bind, ir=ir)
+    check("(k) all(...) assignment bound to one speaker: ok, lamp on", ra["status"] == "ok"
+          and [a[4] for a in ra["raw_actions"]] == ["Lamp"], ra)
+
+
 if __name__ == "__main__":
-    for f in (case_a, case_b, case_c, case_d, case_e, case_f, case_g, case_h, case_i, case_ii, case_iii, case_b5_api):
+    for f in (case_a, case_b, case_c, case_d, case_e, case_f, case_g, case_h, case_i, case_ii, case_iii, case_b5_api,
+              case_j, case_k):
         f()
     print(f"{'FAIL' if FAIL else 'PASS'}: {len(FAIL)} failed")
     raise SystemExit(1 if FAIL else 0)

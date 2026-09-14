@@ -21,12 +21,12 @@
   2026-09-04 이전 문서의 E1=interpreter conformance 번호는 폐기.
 - 명세 후보 여러 개를 trace로 고르게 하는 확장, prose/flat/full 생성 비교, E1의 타 표현(TAP/LTL/FSM) 직접 비교는 폐기 또는 보류.
 
-## 현재 상태 (2026-09-12)
+## 현재 상태 (2026-09-14)
 
 | 실험 | 상태 | 위치 |
 |---|---|---|
-| E1 | Stage A 12건 완료, whisoo 감사 반영, 완전 12/12(선정 건수, coverage 아님). Stage B 8건 후보·B3/B4 미평가 | `../PerCom/6_Evaluation/E1_adequacy/` |
-| E2 | 미착수(독립 oracle 설계 필요) | — |
+| E1 | 종료(2026-09-13). corpus 100(IN_SCOPE 92), depth 20건 이력 53/53 정확(선정 건수, coverage 아님), 경계 probe 3건. 원고 초안 검토 대기 | `../PerCom/6_Evaluation/E1_adequacy/E1_SUMMARY.md` |
+| E2 | 완료(2026-09-14). 독립 정답기, 140쌍 중 판정 130·어긋남 0. 원고 초안 검토 대기 | `../PerCom/6_Evaluation/E2_fidelity/E2_SUMMARY.md` |
 | E3 | 개발 단계 H=32 감사 결과만 존재(`05_experiment_plan/results/E3/heldout-gemma-v3-h32/`). 동결 protocol 재실행 필요 | — |
 | E4 | 미착수 | — |
 | Fig2 동기 파일럿 | 기록 있음 | `05_experiment_plan/motivation_pilot_2026-09-11/` |
