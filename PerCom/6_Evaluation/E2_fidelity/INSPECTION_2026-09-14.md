@@ -80,5 +80,34 @@ for the 59 pairs that were REF-EQUIV-CHECKED on the frozen histories. Explorer v
 - Combined agreement (142 pairs): AGREE-EQUIV 36, AGREE-DIVERGE 63, confirmed by witness 3, witness on
   reference-unsupported JoI 2, Explorer REFUSED 25, TIMEOUT 13.
 - Run note: the first supplementary run stopped with the session after 57 of 59 pairs, before writing its output.
+
+## Binding decision rerun (BINDING_DECISION_2026-09-14.md, after the frozen and supplementary runs)
+
+whisoo decided that E2 checks time, state and logic only: selectors, tags, device IDs/categories, device counts and
+any/all must not decide a verdict (B1/B2), and when one service has several binding device sets a pair is equal if
+some selector assignment is equal (B5). Both tools were changed (reference by the separate agent from the decision
+text; Explorer by the session author). Tables: `RESULTS.md` "Binding decision"; rows: `runs/e2_run.binding-final.jsonl.gz`.
+
+- **FALSE-EQUIV-CANDIDATE 0, FALSE-DIVERGE-CANDIDATE 0.**
+- Explorer: DIVERGE 57 / EQUIV 48 / REFUSED 24 / TIMEOUT 13. Agreement: AGREE-EQUIV 48, AGREE-DIVERGE 50, confirmed by
+  witness 6, witness on reference-unsupported JoI 1 (C24_003), REFUSED 24, TIMEOUT 13.
+- 16 pairs changed. Each change was checked against the pair's code:
+  - B1/B2 (selector only, logic identical): C03_008 (`any(#Speaker).speaker_stop()`), C05_014, C05_028, C12_013
+    (`all(#Siren)` also hits the floor-2 siren), C15_019 (`all(#WindowCovering)` also opens the bedroom curtain),
+    C16_003 (`all(#RobotVacuumCleaner)` also starts the bedroom vacuum), C16_007, C16_011 → EQUIV on both tools.
+  - C08_032: the reference now runs the JoI (device-ID selectors) and confirms the Explorer witness. The remaining
+    difference is timing, not binding: the IR reacts to the door at 100 ms, the JoI polls every 1 s.
+  - B5 (one selector points at another bound slot): C21_003 (JoI reads `#Bedroom` twice), C16/fault1 (turns off the
+    light instead of the TV), E1-062/fault3 (turns off B instead of A), E1-086/fault3 (Close order of two different
+    valves swapped; whisoo accepted this as a binding difference) → EQUIV on both tools. The three fault pairs are
+    reported as **out of scope: binding**, not as missed faults.
+  - C16/fault2–4: under two of the four selector assignments the JoI reads the TV switch, which the IR never reads, so
+    the histories give it no value and the reference cannot run those assignments (REF-UNSUPPORTED-JOI). The
+    Explorer witness is confirmed on the reference.
+- Pre-measurement on the 22 pairs with selector assignments (Explorer, all assignments): every logic fault
+  (E1-062 f1·f2·f4, C16 f2–f4, E1-072 f1–f4, E1-086 f1·f2·f4) is DIVERGE under every assignment (E1-086 f2: all 1,024).
+- Run note: the combined run shared the machine with two other jobs. C05/fault2 and C05/fault3 reached the 120 s wall
+  budget (TIMEOUT) instead of the 400,000-state cap; rerun alone they are REFUSED at the state cap as in the frozen run.
+  The recorded rows use the quiet rerun and keep the loaded result as `explorer_under_load`.
   `run_supplement.py` was changed to save each finished pair and was rerun in full; its outcomes on the 57 pairs
   match the first run's log (`runs/run_supplement.log`).

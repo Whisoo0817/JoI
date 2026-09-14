@@ -139,3 +139,72 @@ Outcome on the supplementary histories alone (rerun pairs only):
 | C21_003/llm | DIVERGE | EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | AGREE-DIVERGE | REF-DIVERGE (3) |
 
 6 pairs listed (agreement changed, or the supplement was not fully supported).
+
+## Binding decision (BINDING_DECISION_2026-09-14.md, whisoo)
+
+Selectors, tags, device IDs/categories, device counts and any/all do not decide the verdict (B1, B2); with several binding device sets for one service the pair is equal if some selector assignment is equal (B5). Both tools changed; pairs, histories, budget and start times are the frozen ones (`run_binding_v1.py`, `run_binding_b5.py`, `runs/e2_run.binding-final.jsonl`). Reference outcomes combine the frozen and supplementary histories as above.
+
+Explorer verdicts:
+
+|  | correct | fault | llm | total |
+|---|---|---|---|---|
+| DIVERGE | 0 | 52 | 5 | 57 |
+| EQUIV | 12 | 4 | 32 | 48 |
+| REFUSED | 6 | 15 | 3 | 24 |
+| TIMEOUT | 3 | 10 | 0 | 13 |
+| total | 21 | 81 | 40 | 142 |
+
+Agreement:
+
+|  | correct | fault | llm | total |
+|---|---|---|---|---|
+| AGREE-EQUIV-ON-CHECKED | 12 | 4 | 32 | 48 |
+| AGREE-DIVERGE | 0 | 47 | 3 | 50 |
+| EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | 0 | 5 | 1 | 6 |
+| DIVERGE-WITNESS-ir:ok joi:unsupported | 0 | 0 | 1 | 1 |
+| EXPLORER-REFUSED | 6 | 15 | 3 | 24 |
+| EXPLORER-TIMEOUT | 3 | 10 | 0 | 13 |
+| total | 21 | 81 | 40 | 142 |
+
+Reference outcome:
+
+|  | correct | fault | llm | total |
+|---|---|---|---|---|
+| REF-DIVERGE | 0 | 69 | 3 | 72 |
+| REF-EQUIV-CHECKED | 21 | 9 | 35 | 65 |
+| REF-UNSUPPORTED-JOI | 0 | 3 | 2 | 5 |
+| total | 21 | 81 | 40 | 142 |
+
+Fault pairs, agreement by fault family:
+
+|  | argument | edge-at-start | edge-rearm | extra-call | guard | missing-call | order | repetition-state | snapshot-value | sustain-reset | target | timing | total |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| AGREE-EQUIV-ON-CHECKED | 0 | 1 | 0 | 0 | 0 | 0 | 1 | 0 | 0 | 0 | 2 | 0 | 4 |
+| AGREE-DIVERGE | 1 | 1 | 7 | 3 | 8 | 10 | 6 | 0 | 3 | 0 | 0 | 8 | 47 |
+| EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | 0 | 0 | 0 | 1 | 3 | 0 | 0 | 0 | 0 | 0 | 0 | 1 | 5 |
+| EXPLORER-REFUSED | 1 | 0 | 2 | 0 | 3 | 0 | 1 | 3 | 2 | 1 | 0 | 2 | 15 |
+| EXPLORER-TIMEOUT | 0 | 0 | 0 | 0 | 0 | 1 | 0 | 2 | 1 | 3 | 0 | 3 | 10 |
+| total | 2 | 2 | 9 | 4 | 14 | 11 | 8 | 5 | 6 | 4 | 2 | 14 | 81 |
+
+Fault pairs that are equal under the decision (reported as **out of scope: binding**, not as missed faults): `C16/fault1` (target), `E1-062/fault3` (target), `E1-086/fault3` (order).
+
+| pair | Explorer frozen → decision | reference frozen → decision | agreement frozen → decision | why |
+|---|---|---|---|---|
+| C03_008/llm | REFUSED → EQUIV | REF-EQUIV-CHECKED → REF-EQUIV-CHECKED | EXPLORER-REFUSED → AGREE-EQUIV-ON-CHECKED | B1/B2 selector |
+| C05_014/llm | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B1/B2 selector |
+| C05_028/llm | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B1/B2 selector |
+| C08_032/llm | DIVERGE → DIVERGE | REF-UNSUPPORTED-JOI → REF-EQUIV-CHECKED | DIVERGE-WITNESS-ir:ok joi:unsupported → EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | B1/B2 selector |
+| C12_013/llm | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B1/B2 selector |
+| C15_019/llm | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B1/B2 selector |
+| C16/fault1 | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B5 selector assignment |
+| C16/fault2 | DIVERGE → DIVERGE | REF-DIVERGE → REF-UNSUPPORTED-JOI | AGREE-DIVERGE → EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | B5: some assignments not decidable on the reference (history lacks a device only the JoI reads) |
+| C16/fault3 | DIVERGE → DIVERGE | REF-DIVERGE → REF-UNSUPPORTED-JOI | AGREE-DIVERGE → EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | B5: some assignments not decidable on the reference (history lacks a device only the JoI reads) |
+| C16/fault4 | DIVERGE → DIVERGE | REF-DIVERGE → REF-UNSUPPORTED-JOI | AGREE-DIVERGE → EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS | B5: some assignments not decidable on the reference (history lacks a device only the JoI reads) |
+| C16_003/llm | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B1/B2 selector |
+| C16_007/llm | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B1/B2 selector |
+| C16_011/llm | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B1/B2 selector |
+| C21_003/llm | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B5 selector assignment |
+| E1-062/fault3 | DIVERGE → EQUIV | REF-DIVERGE → REF-EQUIV-CHECKED | AGREE-DIVERGE → AGREE-EQUIV-ON-CHECKED | B5 selector assignment |
+| E1-086/fault3 | DIVERGE → EQUIV | REF-EQUIV-CHECKED → REF-EQUIV-CHECKED | EXPLORER-DIVERGE-CONFIRMED-BY-REF-ON-WITNESS → AGREE-EQUIV-ON-CHECKED | B5 selector assignment |
+
+16 pairs differ from the frozen-history-plus-supplement results. C05/fault2 and C05/fault3 were TIMEOUT in the combined run under CPU load and were rerun alone: REFUSED at the state cap, as in the frozen run (`explorer_under_load` keeps the loaded result).

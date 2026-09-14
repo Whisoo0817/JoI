@@ -108,6 +108,48 @@ def main():
                 md += f"| {p} | {s['explorer'].get('verdict')} | {c['agreement']} | {s['agreement']} | " \
                       f"{rs_['outcome']} ({rs_['n_histories']}) |\n"
         md += f"\n{m} pairs listed (agreement changed, or the supplement was not fully supported).\n"
+    final = RUNS / "e2_run.binding-final.jsonl"
+    if final.exists() and supp:
+        new = {r["pair_id"]: r for r in (json.loads(l) for l in final.read_text().splitlines() if l.strip())}
+        nrs = list(new.values())
+        for r in nrs:
+            r["_col"] = r["kind"]
+        md += "\n## Binding decision (BINDING_DECISION_2026-09-14.md, whisoo)\n\n"
+        md += ("Selectors, tags, device IDs/categories, device counts and any/all do not decide the verdict (B1, B2); with "
+               "several binding device sets for one service the pair is equal if some selector assignment is equal (B5). "
+               "Both tools changed; pairs, histories, budget and start times are the frozen ones "
+               "(`run_binding_v1.py`, `run_binding_b5.py`, `runs/e2_run.binding-final.jsonl`). Reference outcomes combine the "
+               "frozen and supplementary histories as above.\n\n")
+        md += "Explorer verdicts:\n\n" + table(nrs, lambda r: r["explorer"].get("verdict"), KINDS)
+        md += "\nAgreement:\n\n" + table(nrs, lambda r: r["agreement"], KINDS)
+        md += "\nReference outcome:\n\n" + table(nrs, lambda r: r["reference"]["outcome"], KINDS)
+        faults = [r for r in nrs if r["kind"] == "fault"]
+        fams = sorted({r["family"] for r in faults})
+        for r in faults:
+            r["_col"] = r["family"]
+        md += "\nFault pairs, agreement by fault family:\n\n" + table(faults, lambda r: r["agreement"], fams)
+        scope = sorted(p for p, r in new.items() if r["kind"] == "fault" and supp[p]["explorer"].get("verdict") == "DIVERGE"
+                       and r["explorer"].get("verdict") == "EQUIV")
+        md += ("\nFault pairs that are equal under the decision (reported as **out of scope: binding**, not as missed faults): "
+               + ", ".join(f"`{p}` ({new[p]['family']})" for p in scope) + ".\n")
+        md += "\n| pair | Explorer frozen → decision | reference frozen → decision | agreement frozen → decision | why |\n|---|---|---|---|---|\n"
+        n = 0
+        for p in sorted(new):
+            o, r = supp[p], new[p]
+            before = (o["explorer"].get("verdict"), o["reference"]["outcome"], o["agreement"])
+            after = (r["explorer"].get("verdict"), r["reference"]["outcome"], r["agreement"])
+            if before == after:
+                continue
+            n += 1
+            sa = r["explorer"].get("selector_assignment") or r["reference"].get("selector_assignment") or {}
+            why = ("B5 selector assignment" if sa.get("equiv_assignment") else
+                   "B5: some assignments not decidable on the reference (history lacks a device only the JoI reads)"
+                   if r["reference"].get("note", "").startswith("B5") else
+                   "load: see explorer_note" if r.get("explorer_note") and before[0] != after[0] else "B1/B2 selector")
+            md += f"| {p} | {before[0]} → {after[0]} | {before[1]} → {after[1]} | {before[2]} → {after[2]} | {why} |\n"
+        md += f"\n{n} pairs differ from the frozen-history-plus-supplement results. "
+        md += ("C05/fault2 and C05/fault3 were TIMEOUT in the combined run under CPU load and were rerun alone: REFUSED at the "
+               "state cap, as in the frozen run (`explorer_under_load` keeps the loaded result).\n")
     (HERE / "RESULTS.md").write_text(md)
     print(md)
 

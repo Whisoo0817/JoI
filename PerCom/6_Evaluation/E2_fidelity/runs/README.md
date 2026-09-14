@@ -11,6 +11,14 @@ Committed compressed (`*.jsonl.gz`); restore with `gunzip -k *.gz`. The uncompre
 | `e2_run.ref-current-supp.jsonl.gz`, `.partial.jsonl.gz` | `run_supplement.py` (PROTOCOL_DRAFT §9) | the 59 REF-EQUIV-CHECKED pairs rerun on the supplementary histories; combined reference outcome and agreement; per-pair results |
 | `run_supplement.log`, `run_supplement.try2.log` | `run_supplement.py` | the first run (stopped with the session after 57/59 pairs, no output file) and the full rerun |
 
+Binding decision (`../BINDING_DECISION_2026-09-14.md`, both tools changed; frozen results above unchanged):
+
+| File | Made by | Content |
+|---|---|---|
+| `e2_run.binding-v1.jsonl.gz`, `.partial.jsonl.gz`, `.meta.json`, `run_binding_v1.log` | `run_binding_v1.py` (B1/B2) | 142 rows: reference (frozen + supplementary histories), Explorer, witness replay, agreement |
+| `e2_run.binding-b5.partial.jsonl.gz`, `run_binding_b5.log` | `run_binding_b5.py` (B5 selector assignments) | the 22 pairs with selector assignments |
+| `e2_run.binding-final.jsonl.gz` | `run_binding_b5.py` merge | binding-v1 rows with the 22 B5 rows replaced; C05/fault2–3 Explorer rerun alone after a CPU-contended TIMEOUT (`explorer_under_load` keeps it) |
+
 `recheck_witnesses.py` (witness replay only) was superseded by `rerun_reference.py`, which also recomputes the
 witness replay; its output was not kept. Tables: `../RESULTS.md` (`make_e2_results.py`); hand inspection:
 `../INSPECTION_2026-09-14.md`.
