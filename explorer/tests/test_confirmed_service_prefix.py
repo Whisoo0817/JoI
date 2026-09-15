@@ -52,6 +52,15 @@ class ConfirmedServicePrefixTests(unittest.TestCase):
         self.assertEqual(_apply_service_prefix(script,
             confirmed_selectors={'TemperatureSensor.Temperature': ['(#temp)']}), script)
 
+    def test_ambient_clock_member_resolves_without_binding(self):
+        # Clock is never bound; the catalog fixes the skill (C18_005 harness failure, 2026-09-15).
+        selectors = {'Switch.Off': ['(#Fac_Pump_1)']}
+        script = 'if ((#Clock).Weekday == "monday") {\nbreak\n}\n(#Fac_Pump_1).Off()'
+        self.assertEqual(_apply_service_prefix(script, confirmed_selectors=selectors),
+                         'if ((#Clock).clock_weekday == "monday") {\nbreak\n}\n(#Fac_Pump_1).switch_off()')
+        with self.assertRaises(JoiGenerationError):
+            _apply_service_prefix('(#Clock).NoSuchMember', confirmed_selectors=selectors)
+
 
 if __name__ == '__main__':
     unittest.main()

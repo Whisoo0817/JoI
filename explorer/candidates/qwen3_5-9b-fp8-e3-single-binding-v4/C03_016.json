@@ -1,0 +1,75 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LivingRoom_AC).airConditioner_airConditionerMode == \"cool\") {\n(#LivingRoom_AC).airConditioner_setAirConditionerMode(\"auto\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom_AC).airConditioner_airConditionerMode == \\\"cool\\\") {\\n(#LivingRoom_AC).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\"\n}",
+  "precision": {
+    "AirConditioner.AirConditionerMode": [
+      "(#LivingRoom_AC)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "(#LivingRoom_AC)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "거실의 에어컨 모드가 냉방 모드이면, 자동 모드로 바꿔줘.",
+  "command_eng": "If the air conditioner in livingroom is in cool mode, switch it to auto mode.",
+  "connected_devices": {
+    "Kitchen_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "AirConditioner"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirConditioner.AirConditionerMode == \"cool\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "auto"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "AirConditioner": [
+      "LivingRoom_AC"
+    ]
+  },
+  "input_payload_sha256": "20ce08f9b13a73953ad0768a3a02c99881d160bd2e9a626a1b01015c996578e4",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.6
+}

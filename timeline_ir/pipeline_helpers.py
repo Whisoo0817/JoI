@@ -196,6 +196,8 @@ _TAG_CATEGORY_HINT = {
     "Window": "WindowCovering",
 }
 
+_AMBIENT_SERVICES = {"Clock", "GlobalVariable"}
+
 # (#Light).On() → (#Light).switch_on()
 def _apply_service_prefix(script, *, confirmed_selectors=None):
     # In confirmed-input lowering the IR supplies the skill and the binding
@@ -213,6 +215,12 @@ def _apply_service_prefix(script, *, confirmed_selectors=None):
         if confirmed_selectors is not None:
             tags = tuple(sorted(re.findall(r'#([\w-]+)', selector or '')))
             categories = confirmed.get((tags, service), set())
+            if not categories and len(tags) == 1 and tags[0] in _AMBIENT_SERVICES:
+                # Ambient services (Clock, GlobalVariable) are never bound, so the
+                # confirmed binding cannot name them; the catalog still fixes the skill.
+                item = SERVICE_DATA.get(tags[0], {})
+                if service in {e["id"] for e in item.get("values", []) + item.get("functions", [])}:
+                    categories = {tags[0]}
             if len(categories) != 1:
                 raise JoiGenerationError(
                     f"Cannot resolve confirmed skill for {selector}.{service}: "
