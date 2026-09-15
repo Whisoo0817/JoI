@@ -226,4 +226,71 @@ cron, period, delay, wait.for의 시간 경계를 함께 고려하는 탐색은 
 - [ ] openHAB은 실제 imperative adapter와 평가를 수행하기 전에는 선택적 확장으로만 둔다.
 - [ ] 다중 자동화 충돌 검사는 Future Work에 두고 현재 구현 결과와 분리한다.
 
+## 11. 논문의 어조 — 틀을 제안하는 논문 (2026-09-15 추가)
+
+**핵심 한 줄.** VETS는 완성된 검증기가 아니라, 스마트홈 자동화의 NL→DSL 생성에 검증을 붙일 수 있게 하는 **틀(workflow)**을 제안하는 논문이다. 이 논문은 그 틀의 첫 검사 하나(timed ACTION trace 보존)를 끝까지 보여 주고, 나머지 검사는 같은 틀 위의 후속 연구로 이어진다. 이 논문으로 연구가 끝나는 논문이 아니라, 후속 연구로 이어지는 논문으로 쓴다.
+
+**주장하는 것**
+
+- 사용자가 확정한 Timeline IR + binding plan을 고정점으로 삼으면, 그 아래의 LLM 코드 생성을 기계적으로 검사할 수 있다.
+- 그 검사 하나가 실제로 동작하고 실제 생성 오류를 잡는다는 것을 E1–E3로 보인다.
+- 이 틀은 검사와 단계를 하나씩 더 얹을 수 있는 구조다. 이것이 확장 가치다.
+
+**주장하지 않는 것 — 빈 자리를 숨기지 않고 후속 연구로 이름 붙인다**
+
+| 빈 자리 | 이 논문의 위치 | 후속 연구 한 줄 |
+| --- | --- | --- |
+| Timeline IR이 읽기 쉽다 | 증명하지 않는다. FSM 계열 표현의 가독성을 증명한 논문은 없다 | 사용자 확인 연구 |
+| 사용자가 IR을 정확히 확인할 수 있다 | 가정이다(§1). 사용자 실험은 없다 | ARTEMIS처럼 입력 trace → ACTION trace 예시를 보여 주는 확인 보조 |
+| 다른 자동화와의 충돌 검사, property 검사 | 틀 위에 추가 구현하면 가능하다고만 쓴다 | §8의 multi-automation Explorer, property 검사 |
+| deterministic compiler | 비교하지 않은 대안이다(§0.5, §4) | DSL마다 Timeline→DSL compiler를 만들면 LLM lowering을 대체할 수 있다. 같은 검사가 그 compiler의 시험 oracle로 남는다. compiler가 열등하다고 쓰지 않는다 |
+| 배치 안전성 | 주장하지 않는다 | 실기기 실험은 모델–런타임 일치까지만 |
+
+**feedback 루프의 비중.** feedback은 주경로(§4: 검증만으로 수정 성능 향상을 쓰지 않음)는 아니다. 그러나 "다음 단계"로 한 줄만 두지도 않는다. 이유는 feedback이 Timeline IR 검사의 부속물인 **반례(input trace → ACTION trace 차이)가 실제로 쓸모 있다**는 것을 보여 주는 자리이기 때문이다. 결과가 있으면 작은 절 하나(B1/B3)로 두고, 주장은 "반례가 수정에 바로 쓰인다"까지로 제한한다. 생성 성공률의 향상을 논문의 주 결과로 올리지 않는다.
+
+**어조 규칙**
+
+- 후속 연구는 "못 한 것"이 아니라 "이 틀이 열어 주는 다음 검사"로 쓴다. 사과체로 쓰지 않는다.
+- 다음 검사가 이미 된 것처럼 쓰지 않는다. "가능하다", "같은 고정점 위에서 정의할 수 있다"까지만 쓴다.
+- "완전한 해결", "모든 오류를 잡는다", "사용자 부담이 없다" 같은 닫힌 문장은 쓰지 않는다.
+- 기여 목록은 **틀 → 첫 검사 → 증거** 세 겹으로 쓴다. 검사 하나만 기여로 쓰면 당연한 동치 검사로 읽힌다.
+- 기존 금지어(first/only, no prior work)는 그대로다. "틀을 제안한다"가 "처음 제안한다"로 새지 않게 한다.
+
+**닿는 자리**
+
+- Intro 기여 문단: 틀 → 첫 검사 → 증거 순서.
+- Overview: 확정 IR이 고정점이고 검사가 그 아래에 붙는 구조라는 설명 한 문장.
+- Evaluation: feedback 소절(결과가 있을 때).
+- Limitations and Future Work: 위 표의 다섯 줄을 각각 후속 연구 한 줄로.
+- Conclusion: 첫 검사가 끝났다는 말보다 틀이 다음 검사를 받을 준비가 됐다는 말로 닫는다.
+
+### 11.1 경계를 긋는 자리와 문제 틀 (2026-09-15 확정)
+
+**경계는 두 자리에만.** verification, model checking, LTL, property, formal 같은 형식 검증 분야 용어와 선행연구 대비 문장은 Related Work와 Intro 끝 자리매김 문단(3–4문장: TAP 한 문장, model checking 한 문장)에만 둔다. Overview·IR·Method 절에서는 대비 문장을 쓰지 않고 정의 중심으로 쓴다. PerCom 심사위원은 센싱·시스템 쪽일 가능성이 크므로 본문 곳곳의 대비는 방어적이거나 SE 논문처럼 읽힌다.
+
+- 강조를 줄여도 §2·§5·§6의 금지 표현과 경계 규칙은 그대로 지킨다. 본문의 정의는 느슨하게 쓰지 않는다.
+- 본문 용어는 check, expected actions, trace, counterexample 같은 행동 중심의 쉬운 말. validation과 counterexample은 핵심이므로 본문에서도 쓴다.
+- 형식 표기는 본문 최소. product state와 시간은 §3처럼 표·trace 예시로 설명하고, 정확한 정의는 검증 계약 문서(아티팩트)를 가리킨다.
+
+**문제 틀 — 표현이 아니라 "실제로 도는 것"에서 시작한다.** "무엇을 정의해야 표현·검사할 수 있는가"로 시작하면 답이 TAP이 된다. 다음으로 시작한다.
+
+> 말로 시킨 자동화를 LLM이 실제로 도는 프로그램으로 만들 때, 그 프로그램이 사용자가 확정한 행동을 시간 위에서 지키는지 어떻게 확인하는가.
+
+pervasive 성격은 언어가 아니라 벽시계 시간 위의 실행, 남는 기기 상태와 비동기 이벤트, 오랜 반복 실행, 코드를 보지 않는 사용자에서 나온다. `imperative`는 §1대로 범위 정의에서 한 번 쓰고, 앞부분 설득에서는 generated program / the automation that actually runs로 말한다.
+
+**동기 문단에서 플랫폼 선택을 정당화하지 않는다.** Intro는 "LLM이 자동화 코드를 만든다"를 주어진 설정으로 두고, Fig1의 생성 코드(primitive "hold"가 counter·분기·timer 갱신으로 풀림)로 끌고 간다. "왜 HA·TAP을 안 쓰나"는 먼저 꺼내지 않는다. 독자의 질문을 "그 코드가 맞는지 어떻게 아나"로 모은다. Intro 자리매김 문단의 TAP 문장은 비교가 아니라 역할 설명으로만 쓰고 플랫폼 이름을 넣지 않는다. 예: "Timeline plays the role of a confirmed rule-like specification, which we use as the reference for checking generated code."
+
+**TAP과 갈리는 이유 — primitive와 composite (Related Work·rebuttal 전용).** 아래 설명은 Related Work의 TAP 문단과 rebuttal에서만 쓴다. NL과 Timeline operator에서 "hold 3분"은 primitive다. TAP·HA 규칙처럼 primitive를 플랫폼이 그대로 실행하는 경우, 그 의미는 런타임 안에 **한 번** 구현되고 고정된다. VETS의 설정에서는 그 primitive가 **요청마다** LLM에 의해 변수 할당·분기·루프·counter·timer 갱신의 composite로 다시 구현된다. 신뢰의 근거가 한 번 만든 런타임에서 매번 생성되는 코드로 옮겨 가므로 검사가 필요하다.
+
+- Timeline은 TAP류 확정 명세의 역할을 한다(§6 공통점 인정). 다만 실행 대상이 아니라 생성 composite의 검사 기준으로 쓴다.
+- "HA·TAP에는 이 문제가 없다"로 일반화하지 않는다. HA script/template처럼 사용자가 로직을 쓰는 경우도 있다. "실행 대상이 생성 코드인 설정에서는"으로 조건을 붙인다.
+- "imperative가 나쁘다", "TAP은 표현력이 부족하다"로 쓰지 않는다(§1).
+- "플랫폼이 primitive를 직접 실행하면 되지 않나"에는 §11의 compiler/런타임 확장 후속 연구로 답한다. 그래도 같은 검사가 oracle로 남는다.
+
+**닿는 자리**
+
+- Intro: 말로 시키는 자동화가 시간 위에서 돈다 → 도는 것은 생성 프로그램이다 → Fig1(primitive "hold"가 여러 composite로 풀리고 일부는 틀린다) → 확정 명세와 도는 것 사이의 간극 → 검사 → 자리매김 문단.
+- E3 결과: DIVERGE 유형을 "어떤 primitive가 어떤 composite에서 어긋났는지"의 말로 보고한다(sustain_early, edge_polling, cadence_units, phase_first 등). codex B1/B3 보고서 용어도 이쪽에 맞춘다.
+- Related Work: model checking, TAP, NL→명세 생성(nl2spec류), PerCom 스마트홈 논문의 네 경계. 분량은 현 수준 유지.
+
 작성 방식: `research-paper-plan`의 standalone 정리 원칙을 적용해 주장·근거·한계를 구별했다. 이번 산출물은 정식 claim–evidence binding pack이나 새 결과 감사가 아니며, 실험 수치의 논문 사용 승인을 추가하지 않는다.
