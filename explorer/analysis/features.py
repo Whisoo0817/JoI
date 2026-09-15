@@ -273,7 +273,8 @@ def analyze_stmts(stmts: list, vars_: dict[str, VarInfo],
     def check_sink_arg(a: Any, where: str) -> None:
         inf = einfo(a)
         if inf.arith and (inf.sources or inf.has_ts):
-            feats.append(Feature("arith-arg", f"{where}: {_unparse(a)}"))
+            feats.append(Feature("arith-arg", f"{where}: {_unparse(a)}",
+                                 frozenset(inf.sources)))
         reads: list = []
         from explorer.analysis.predicates import expr_reads
         expr_reads(a, reads)
@@ -612,8 +613,11 @@ def analyze_ir(prog) -> list[Feature]:
                 src: set = set()
                 _t_reads(v, src)
                 if _t_arith(v):
+                    named = {prog.var_keys.get(s[4:]) if s.startswith("var:") else s
+                             for s in src}
                     feats.append(Feature(
-                        "arith-arg", f"{x.svc}.{x.method}: {_t_unparse(v)}"))
+                        "arith-arg", f"{x.svc}.{x.method}: {_t_unparse(v)}",
+                        frozenset() if None in named else frozenset(named)))
                 hit = sorted(s[4:] for s in src
                              if s.startswith("var:") and s[4:] in counters)
                 if hit:
@@ -644,16 +648,18 @@ def analyze_runner(r) -> list[Feature]:
 
 
 def exact_enumerated(feats: list[Feature], exact_reads, input_domains) -> list[Feature]:
-    """Drop joint/derived guards whose every source is enumerated exactly.
+    """Drop dataflow features whose every source is enumerated exactly.
 
     These guards are refused because one-dimensional representative cells can
     miss a combined boundary. A source in `exact_reads` never gets representative
     cells: the product requires an explicit (or catalog-exact) finite domain for
     it and explores every value, so the concrete search sees every combination.
-    Guards with an unnamed source keep the refusal."""
+    Arithmetic ACTION expressions use the same exemption: every source value
+    is executed concretely, and catalog validation checks every emitted
+    argument. Features with an unnamed source keep the refusal."""
     exact, given = set(exact_reads), set(input_domains or {})
     return [f for f in feats
-            if not (f.kind in ("joint-guard", "derived-guard") and f.sources
+            if not (f.kind in ("joint-guard", "derived-guard", "arith-arg") and f.sources
                     and f.sources <= exact and f.sources <= given)]
 
 

@@ -1,0 +1,87 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "거실에 사람이 30초 이상 감지되면 거실 TV 플러그를 켜줘.",
+  "command_eng": "If a person is detected in the living room for at least 30 seconds, turn on the living room TV plug.",
+  "connected_devices": {
+    "LivingRoom_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "LivingRoom_TV": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "TV"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none",
+        "for": "30 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "PresenceSensor": [
+      "LivingRoom_PresenceSensor"
+    ],
+    "Switch": [
+      "LivingRoom_TV"
+    ]
+  },
+  "input_payload_sha256": "9ef5e96724fba22994a245a73d38edfb1892ce5a71e0892338ab682caf02be84",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2
+}

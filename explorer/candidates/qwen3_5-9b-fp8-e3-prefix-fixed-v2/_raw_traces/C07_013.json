@@ -1,0 +1,88 @@
+{
+  "sentence": "충전 전압이 250V보다 높아지면 충전을 중단해줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:22",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "Charger.Voltage",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "Charger.Voltage": [
+        "(#Garage_Charger)"
+      ],
+      "Switch.Off": [
+        "all(#Switch)"
+      ]
+    },
+    "resolved": {
+      "Charger.Voltage": {
+        "q": "one",
+        "devices": [
+          "Garage_Charger"
+        ]
+      },
+      "Switch.Off": {
+        "q": "all",
+        "devices": [
+          "Basement_Charger",
+          "Garage_Charger"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Charger.Voltage > 250000",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Wait until the voltage of Garage_Charger is above 250000 is true.\n- Turn off Basement_Charger and Garage_Charger.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot wait for rising edge then action.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"wait until((#Garage_Charger).Voltage > 250000)\\nall(#Switch).Off()\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "wait until((#Garage_Charger).charger_voltage > 250000)\nall(#Switch).switch_off()"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "Charger": [
+        "Garage_Charger"
+      ],
+      "Switch": [
+        "Garage_Charger",
+        "Basement_Charger"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Garage_Charger).charger_voltage > 250000)\nall(#Switch).switch_off()\"\n}",
+  "elapsed_sec": 0.783,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

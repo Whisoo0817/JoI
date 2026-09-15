@@ -1,0 +1,93 @@
+{
+  "sentence": "거실이나 침실 중 한 곳이라도 온도가 30도 이상이면 거실 에어컨 플러그를 켜줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:24:03",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#LivingRoom_TempSensor)",
+        "(#Bedroom_TempSensor)"
+      ],
+      "Switch.On": [
+        "(#LivingRoom_AC)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "Bedroom_TempSensor",
+          "LivingRoom_TempSensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_AC"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 30 or TemperatureSensor.Temperature >= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- If the temperature of Bedroom_TempSensor and LivingRoom_TempSensor is at least 30 or the temperature of Bedroom_TempSensor and LivingRoom_TempSensor is at least 30, turn on LivingRoom_AC.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot action with redundant condition and single selector fan-out.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"if ((#LivingRoom_TempSensor).Temperature >= 30 or (#Bedroom_TempSensor).Temperature >= 30) {\\n    (#LivingRoom_AC).On()\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 30 or (#Bedroom_TempSensor).temperatureSensor_temperature >= 30) {\n(#LivingRoom_AC).switch_on()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "LivingRoom_TempSensor"
+      ],
+      "TemperatureSensor#2": [
+        "Bedroom_TempSensor"
+      ],
+      "Switch": [
+        "LivingRoom_AC"
+      ]
+    },
+    "seconds": 0.011
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 30 or (#Bedroom_TempSensor).temperatureSensor_temperature >= 30) {\n(#LivingRoom_AC).switch_on()\n}\"\n}",
+  "elapsed_sec": 1.103,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "로비에 1분 이상 사람이 없으면 15초마다 스피커로 \"누구 있나요\"라고 최대 4번 알려줘.",
+  "command_eng": "If no one is present in the lobby for at least 1 minute, announce 'Is anyone there' through the speaker every 15 seconds, up to 4 times.",
+  "connected_devices": {
+    "Lobby_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Lobby",
+        "PresenceSensor"
+      ]
+    },
+    "Lobby_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Lobby",
+        "Speaker"
+      ]
+    },
+    "Hall_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Hall",
+        "PresenceSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == false",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 4",
+        "period": "15 SEC",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Is anyone there"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "PresenceSensor": [
+      "Lobby_Presence"
+    ],
+    "Speaker": [
+      "Lobby_Speaker"
+    ]
+  },
+  "input_payload_sha256": "a396be6b04131bacca40cc4d2b988c03870235e182dc8e6a00d8344d78502ade",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1
+}

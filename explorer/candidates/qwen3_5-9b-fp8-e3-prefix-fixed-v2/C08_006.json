@@ -1,0 +1,103 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Hall_MB).multiButton_button2 == \"pushed\")\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Hall_MB).multiButton_button2 == \\\"pushed\\\")\\nall(#Light).light_moveToBrightness(0.0, 0.0)\"\n}",
+  "precision": {
+    "MultiButton.Button2": [
+      "(#Hall_MB)"
+    ],
+    "Light.MoveToBrightness": [
+      "all(#Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "멀티버튼의 버튼2가 눌리면 복도 조명을 모두 꺼줘.",
+  "command_eng": "When button 2 of the multi-button is pressed, turn off all lights in the hallway.",
+  "connected_devices": {
+    "Hall_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Hallway",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Hall_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    },
+    "Hall_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Hallway",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button2 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "binding": {
+    "MultiButton": [
+      "Hall_MB"
+    ],
+    "Light": [
+      "Hall_Light_1",
+      "Hall_Light_2"
+    ]
+  },
+  "input_payload_sha256": "c5d0f087418050379ce1eb52e1659b2d7b744c652a8f892fccfba62fe7ed49ca",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

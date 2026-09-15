@@ -1,0 +1,77 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "금고 문이 30초 이상 닫혀 있으면 30초마다 카메라로 사진을 최대 5번 찍어줘.",
+  "command_eng": "If the safe door stays closed for at least 30 seconds, capture an image with the camera every 30 seconds, up to 5 times.",
+  "connected_devices": {
+    "Safe_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Safe",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Safe_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Safe",
+        "Camera"
+      ]
+    },
+    "Vault_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Vault",
+        "Door",
+        "ContactSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "edge": "none",
+        "for": "30 SEC"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 5",
+        "period": "30 SEC",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "ContactSensor": [
+      "Safe_ContactSensor"
+    ],
+    "Camera": [
+      "Safe_Camera"
+    ]
+  },
+  "input_payload_sha256": "792b94407e4cdf4cd117f06998ab53c40d00ea8bbc9fd09d0edffc296d59cde8",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1
+}

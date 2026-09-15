@@ -1,0 +1,110 @@
+{
+  "sentence": "TV 플러그 전력이 15분 이상 10W 미만으로 유지되면 TV 플러그를 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:24:04",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "Plug.Power",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "Plug.Power": [
+        "(#LivingRoom_TV)"
+      ],
+      "Switch.Off": [
+        "(#LivingRoom_TV)"
+      ]
+    },
+    "resolved": {
+      "Plug.Power": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_TV"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_TV"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 10",
+        "edge": "none",
+        "for": "15 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Wait until the power of LivingRoom_TV is below 10 stays true for 15 minutes.\n- If the power of LivingRoom_TV is below 10 becomes false before 15 minutes, the timer starts over.\n- Turn off LivingRoom_TV.",
+  "lowering": {
+    "raw": "<Reasoning>\nD-10n sustained-cond one-shot with 15 MIN duration requiring period 1000 and 900 ticks.\n</Reasoning>\n{\"cron\":\"\",\"period\":1000,\"script\":\"hold_ticks := 0\\nif ((#LivingRoom_TV).Power < 10) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 900) {\\n        (#LivingRoom_TV).Off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "hold_ticks := 0\nif ((#LivingRoom_TV).plug_power < 10) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 900) {\n(#LivingRoom_TV).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 899,
+      "input": {
+        "LivingRoom_TV.power": -0.1
+      },
+      "dwell_ms": 1000,
+      "ir_actions": [],
+      "joi_actions": [
+        [
+          [
+            "switch",
+            "off",
+            [
+              "tuple",
+              []
+            ],
+            [
+              "LivingRoom_TV"
+            ]
+          ]
+        ]
+      ],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "Plug": [
+        "LivingRoom_TV"
+      ],
+      "Switch": [
+        "LivingRoom_TV"
+      ]
+    },
+    "seconds": 0.183
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#LivingRoom_TV).plug_power < 10) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 900) {\n(#LivingRoom_TV).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "elapsed_sec": 1.502,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'LivingRoom_TV.power': -0.1} IR=[] JoI=[(('switch', 'off', ('tuple', ()), ('LivingRoom_TV',)),)]"
+  }
+}

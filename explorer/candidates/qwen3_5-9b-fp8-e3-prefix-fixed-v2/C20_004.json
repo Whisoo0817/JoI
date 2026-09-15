@@ -1,0 +1,95 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif ((#Office_Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Office_Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#Office_Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Office_Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "Plug.Power": [
+      "(#Office_Printer)"
+    ],
+    "Switch.Off": [
+      "(#Office_Printer)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132351_029.json",
+  "command_kor": "프린터 플러그 사용 전력이 5W 미만으로 10분 이상 유지되면 프린터 플러그를 꺼줘.",
+  "command_eng": "If the printer plug power consumption stays below 5W for at least 10 minutes, turn off the printer plug.",
+  "connected_devices": {
+    "Office_Printer": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Plug",
+        "Printer"
+      ]
+    },
+    "Office_Monitor": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Plug",
+        "Monitor"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "Plug": [
+      "Office_Printer"
+    ],
+    "Switch": [
+      "Office_Printer"
+    ]
+  },
+  "input_payload_sha256": "cdfdf193087916381eafd599606c0339c36ad97d8e2ab9596389408f4795bd90",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 2.4
+}

@@ -27,6 +27,7 @@ READ_FUNCTIONS = {
     ('ArmRobotDetail', 'GetMotion'), ('ArmRobotDetail', 'ListMotions'),
     ('MenuProvider', 'GetMenu'), ('NewsProvider', 'GetNewsDigest'),
     ('CloudServiceProvider', 'IsAvailable'),
+    ('CloudServiceProvider', 'ChatWithAI'),
 }
 # Clock Hour/Minute/Second bounds corrected; reviewed read-function descriptors
 # are byte-for-byte unchanged (see CATALOG_RANGE_ANALYSIS.md).
@@ -63,6 +64,10 @@ class ServiceModel:
                     if (sid, member['id']) == ('MenuProvider', 'GetMenu'):
                         spec['return_spec'] = {**spec['return_spec'],
                             'nullable': False, 'domain_basis': 'menu-string-return-v1: user contract'}
+                    if (sid, member['id']) == ('CloudServiceProvider', 'ChatWithAI'):
+                        spec['return_spec'] = {**spec['return_spec'],
+                            'nullable': False,
+                            'domain_basis': 'chat-string-return-v1: catalog STRING result, identity flow only'}
                     # Descriptor explicitly identifies WeatherEnum names. Keep
                     # STRING type; this is a reviewed descriptor interpretation.
                     if (sid, member['id']) == ('WeatherProvider', 'Forecast'):
@@ -423,10 +428,11 @@ class ServiceModel:
         return {'catalog_path': self.snapshot['path'], 'catalog_sha256': self.snapshot['sha256'],
                 'boolean_input_policy': 'strict-two-valued-v1',
                 'menu_return_policy': 'menu-string-return-v1: MenuProvider.GetMenu is non-null STRING',
+                'chat_return_policy': 'chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING',
                 'members': copy.deepcopy(self.used),
                 'assumptions': ['descriptor-reviewed read roles (not server side-effect proof)',
                     'BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model',
-                    'non-BOOL inputs retain missing/None except MenuProvider.GetMenu (user-approved non-null STRING)',
+                    'non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries',
                     'DOUBLE external input precision 0.1 from agreed contract',
                     'fixed binding and inventory; independent external inputs',
                     'same device/member/argument read key returns one held value per input instant',

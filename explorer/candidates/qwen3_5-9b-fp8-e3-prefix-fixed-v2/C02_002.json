@@ -1,0 +1,75 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Dehumidifier).dehumidifier_setDehumidifierMode(\"AIDrying\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"AIDrying\\\")\"\n}",
+  "precision": {
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "연구실 제습기를 모두 AI건조모드로 설정해줘.",
+  "command_eng": "Set all dehumidifiers in the lab to AI drying mode.",
+  "connected_devices": {
+    "Lab_Dehumidifier_1": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Lab",
+        "North",
+        "Dehumidifier"
+      ]
+    },
+    "Lab_Dehumidifier_2": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Lab",
+        "South",
+        "Dehumidifier"
+      ]
+    },
+    "Office_Dehumidifier": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Office",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "AIDrying"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "Dehumidifier": [
+      "Lab_Dehumidifier_1",
+      "Lab_Dehumidifier_2"
+    ]
+  },
+  "input_payload_sha256": "57b08f580c217f85355962df002c3b226492823e1de1a1c7ffaff2d812df1eda",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.3
+}

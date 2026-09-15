@@ -1,0 +1,118 @@
+{
+  "sentence": "1초마다 부엌 온도가 32도 이상이면 부엌 환기팬 플러그를 켜고, 그렇지 않고 28도 이하이면 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:24:01",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#Kitchen_TempSensor)"
+      ],
+      "Switch.On": [
+        "(#Kitchen_Fan)"
+      ],
+      "Switch.Off": [
+        "(#Kitchen_Fan)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "Kitchen_TempSensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "Kitchen_Fan"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "Kitchen_Fan"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature >= 32",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "TemperatureSensor.Temperature <= 28",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every second, check the temperature.\n\nBehavior:\n- If the temperature of Kitchen_TempSensor is at least 32, turn on Kitchen_Fan.\n- Otherwise, if the temperature of Kitchen_TempSensor is at most 28, turn off Kitchen_Fan.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nB-2: simple periodic cycle with nested if/else; period 1 SEC → wrapper.period 1000.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#Kitchen_TempSensor).Temperature >= 32) {\\n    (#Kitchen_Fan).On()\\n} else {\\n    if ((#Kitchen_TempSensor).Temperature <= 28) {\\n        (#Kitchen_Fan).Off()\\n    }\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\n(#Kitchen_Fan).switch_on()\n}\nelse {\nif ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n(#Kitchen_Fan).switch_off()\n}\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "Kitchen_TempSensor"
+      ],
+      "Switch": [
+        "Kitchen_Fan"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\n(#Kitchen_Fan).switch_on()\n}\nelse {\nif ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n(#Kitchen_Fan).switch_off()\n}\n}\"\n}",
+  "elapsed_sec": 1.532,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

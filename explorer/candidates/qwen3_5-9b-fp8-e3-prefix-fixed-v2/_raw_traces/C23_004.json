@@ -1,0 +1,129 @@
+{
+  "sentence": "침실 온도가 5분 이상 28도를 초과하면 선풍기를 켜고, 20분 뒤에 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:24:07",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#Bedroom_Temp)"
+      ],
+      "Switch.On": [
+        "(#Bedroom_Fan)"
+      ],
+      "Switch.Off": [
+        "(#Bedroom_Fan)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "Bedroom_Temp"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "Bedroom_Fan"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "Bedroom_Fan"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "TemperatureSensor.Temperature > 28",
+        "edge": "none",
+        "for": "5 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "20 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Wait until the temperature of Bedroom_Temp is above 28 stays true for 5 minutes.\n- If the temperature of Bedroom_Temp is above 28 becomes false before 5 minutes, the timer starts over.\n- Turn on Bedroom_Fan.\n- Wait for 20 minutes.\n- Turn off Bedroom_Fan.",
+  "lowering": {
+    "raw": "<Reasoning>\nD-10n sustained-cond one-shot with 5 MIN for_ticks = 300, period 1000, then delay and off.\n</Reasoning>\n{\"cron\":\"\",\"period\":1000,\"script\":\"hold_ticks := 0\\nif ((#Bedroom_Temp).Temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 300) {\\n        (#Bedroom_Fan).On()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\\ndelay(20 MIN)\\n(#Bedroom_Fan).Off()\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "hold_ticks := 0\nif ((#Bedroom_Temp).temperatureSensor_temperature > 28) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 300) {\n(#Bedroom_Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\ndelay(20 MIN)\n(#Bedroom_Fan).switch_off()"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 1,
+      "input": {
+        "Bedroom_Temp.temperature": null
+      },
+      "dwell_ms": 1200000,
+      "ir_actions": [],
+      "joi_actions": [
+        [
+          [
+            "switch",
+            "off",
+            [
+              "tuple",
+              []
+            ],
+            [
+              "Bedroom_Fan"
+            ]
+          ]
+        ]
+      ],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "TemperatureSensor": [
+        "Bedroom_Temp"
+      ],
+      "Switch": [
+        "Bedroom_Fan"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#Bedroom_Temp).temperatureSensor_temperature > 28) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 300) {\n(#Bedroom_Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\ndelay(20 MIN)\n(#Bedroom_Fan).switch_off()\"\n}",
+  "elapsed_sec": 1.542,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'Bedroom_Temp.temperature': None} IR=[] JoI=[(('switch', 'off', ('tuple', ()), ('Bedroom_Fan',)),)]"
+  }
+}

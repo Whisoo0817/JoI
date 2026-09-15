@@ -1,0 +1,69 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "매일 자정에 주차장에 있는 모든 카메라로 사진을 찍어줘.",
+  "command_eng": "Every day at midnight, capture an image with all cameras in the parking lot.",
+  "connected_devices": {
+    "P_Cam_1": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Camera"
+      ]
+    },
+    "P_Cam_2": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Camera"
+      ]
+    },
+    "Entrance_Cam": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Cam": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Camera.CaptureImage",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "Camera": [
+      "P_Cam_1",
+      "P_Cam_2"
+    ]
+  },
+  "input_payload_sha256": "081fbd3804aacc9cb95dad20d373df81e9dc83097a01013a2880356d789cb022",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.3
+}

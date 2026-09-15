@@ -1,0 +1,118 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Home_WeatherProvider).weatherProvider_weather == \"rain\" and (#LivingRoom_Window).armRobot_currentPosition > 0) {\n(#LivingRoom_Window).windowCovering_downOrClose()\n(#LivingRoom_Dehum).dehumidifier_setDehumidifierMode(\"dehumidifying\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Home_WeatherProvider).weatherProvider_weather == \\\"rain\\\" and (#LivingRoom_Window).armRobot_currentPosition > 0) {\\n(#LivingRoom_Window).windowCovering_downOrClose()\\n(#LivingRoom_Dehum).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\\n}\"\n}",
+  "precision": {
+    "WeatherProvider.Weather": [
+      "(#Home_WeatherProvider)"
+    ],
+    "WindowCovering.CurrentPosition": [
+      "(#LivingRoom_Window)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "(#LivingRoom_Window)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "(#LivingRoom_Dehum)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "비가 오고 거실 창문이 열려 있으면, 창문을 닫고 제습기를 제습 모드로 설정해줘.",
+  "command_eng": "If it is raining and the living room window is open, close the window and set the dehumidifier to dehumidifying mode.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "LivingRoom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "LivingRoom_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Dehumidifier"
+      ]
+    },
+    "Bedroom_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\" and WindowCovering.CurrentPosition > 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "dehumidifying"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "WeatherProvider": [
+      "Home_WeatherProvider"
+    ],
+    "WindowCovering": [
+      "LivingRoom_Window"
+    ],
+    "Dehumidifier": [
+      "LivingRoom_Dehum"
+    ]
+  },
+  "input_payload_sha256": "5c74cb56fe78e8e30c671b2a9cf80000e74f913cd721c03b37f65fc38890fb2e",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.9
+}

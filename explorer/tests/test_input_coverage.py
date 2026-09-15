@@ -110,14 +110,15 @@ def test_long_alias_guards_and_all_branch_definitions_are_collected():
     assert ('>', 10) in cyc.predicates['sensor.value']
 
 
-def test_arithmetic_in_initializer_remains_refused_with_domains():
+def test_arithmetic_in_initializer_is_allowed_only_with_full_exact_domain():
     a = PauseRunner(f'x := {X} * 2\n(#Speaker).speaker_speak(x)', False)
+    assert timed_product(a, a, input_domains={'sensor.value': [1, 2]}, horizon_ms=0).verdict == 'EQUIV'
     try:
-        timed_product(a, a, input_domains={'sensor.value': [1, 2]}, horizon_ms=0)
+        timed_product(a, a, horizon_ms=0)
     except Unsupported as error:
-        assert 'arith-arg' in str(error)
+        assert 'explicit input domain' in str(error) or 'arith-arg' in str(error)
     else:
-        raise AssertionError(':= bypassed D7')
+        raise AssertionError('arithmetic was accepted without an exact domain')
 
 
 def test_external_numeric_gv_is_not_boolean_only():

@@ -1,0 +1,86 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "n := 0\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nelse {\nall(#Valve).valve_close()\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"n := 0\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nelse {\nall(#Valve).valve_close()\n}\nn = n + 1\"\n}",
+  "precision": {
+    "Valve.Open": [
+      "all(#Valve)"
+    ],
+    "Valve.Close": [
+      "all(#Valve)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "1시간마다 수도 밸브를 열었다 잠갔다 반복해줘.",
+  "command_eng": "Every hour, repeat opening and closing the water valve.",
+  "connected_devices": {
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Basement_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Basement",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "count": "n",
+        "body": [
+          {
+            "op": "if",
+            "cond": "n % 2 == 0",
+            "then": [
+              {
+                "op": "call",
+                "target": "Valve.Open",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Valve.Close",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "Valve": [
+      "Kitchen_Valve",
+      "Basement_Valve"
+    ]
+  },
+  "input_payload_sha256": "2a15f33c997e42f0eb56a6e428b613357edfddf41739bfd5cddfeef134140a1e",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1
+}

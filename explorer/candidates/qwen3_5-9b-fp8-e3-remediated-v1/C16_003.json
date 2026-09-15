@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 19 * * *",
+    "period": 1800000,
+    "script": "if ((#Clock).clock_hour >= 22) {\nbreak\n}\nif ((#Living_RVC).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \"stop\") {\n(#Living_RVC).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 19 * * *\",\n  \"period\": 1800000,\n  \"script\": \"if ((#Clock).clock_hour >= 22) {\nbreak\n}\nif ((#Living_RVC).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \\\"stop\\\") {\\n(#Living_RVC).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\n}\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode": [
+      "(#Living_RVC)"
+    ],
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "(#Living_RVC)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "저녁 7시부터 10시까지 30분마다 로봇청소기를 체크해서 멈춰있으면 자동 모드로 실행시켜줘.",
+  "command_eng": "Every 30 minutes from 7 PM to 10 PM, check the robot vacuum cleaner and start it in auto mode if it is stopped.",
+  "connected_devices": {
+    "Living_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Living",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Bedroom_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Bedroom",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 19 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2200",
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"stop\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "RobotVacuumCleaner": [
+      "Living_RVC"
+    ]
+  },
+  "input_payload_sha256": "0b9024bc7cd3590d7188f6ce5a43b0ad26c05aa2eebb33c2b87c75dbcdd07ae2",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.0
+}

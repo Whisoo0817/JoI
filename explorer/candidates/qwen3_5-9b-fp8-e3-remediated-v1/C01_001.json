@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\"\n}",
+  "precision": {
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "제습기를 건조 모드로 설정해줘.",
+  "command_eng": "Switch the dehumidifier to drying mode.",
+  "connected_devices": {
+    "Kitchen_Dehumidifier": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Dehumidifier"
+      ]
+    },
+    "Utility_Dehumidifier": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Utility",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "drying"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "Dehumidifier": [
+      "Kitchen_Dehumidifier",
+      "Utility_Dehumidifier"
+    ]
+  },
+  "input_payload_sha256": "e0cfa56de18bdbcdc585a26002cb41563f8f303025a4304bfc3899475fa8f432",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.6
+}

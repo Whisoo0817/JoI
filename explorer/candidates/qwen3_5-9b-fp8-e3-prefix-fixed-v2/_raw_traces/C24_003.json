@@ -1,0 +1,125 @@
+{
+  "sentence": "사무실 플러그 전력이 10분 이상 5W 미만이면 2분마다 스피커로 \"기기가 유휴 상태입니다\"라고 3번 알려줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:24:08",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "Plug.Power",
+      "Speaker.Speak"
+    ],
+    "selectors": {
+      "Plug.Power": [
+        "(#Office_Plug)"
+      ],
+      "Speaker.Speak": [
+        "(#Office_Speaker)"
+      ]
+    },
+    "resolved": {
+      "Plug.Power": {
+        "q": "one",
+        "devices": [
+          "Office_Plug"
+        ]
+      },
+      "Speaker.Speak": {
+        "q": "one",
+        "devices": [
+          "Office_Speaker"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "2 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Device is idle"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- After that, Every 2 minutes, run the following behavior.\n\nBehavior:\n- Wait until the power of Office_Plug is below 5 stays true for 10 minutes.\n- If the power of Office_Plug is below 5 becomes false before 10 minutes, the timer starts over.\n- Run Speaker.Speak(Text=Device is idle).\n\nStop:\n- Stop after 3 times.",
+  "lowering": {
+    "raw": "<Reasoning>\nD-10 (sustained) + D-9 (counted cycle): hold_ticks polling for 10 MIN, then n:=0, break-guard n>=3, speak, n++.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 120000,\n  \"script\": \"hold_ticks := 0\\nif ((#Office_Plug).Power < 5) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 600) {\\n        n := 0\\n        if (n >= 3) {\\n            break\\n        }\\n        (#Office_Speaker).Speak(\\\"Device is idle\\\")\\n        n = n + 1\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 120000,
+      "script": "hold_ticks := 0\nif ((#Office_Plug).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Office_Speaker).speaker_speak(\"Device is idle\")\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 5,
+      "input": {
+        "Office_Plug.power": -0.1
+      },
+      "dwell_ms": 120000,
+      "ir_actions": [
+        [
+          [
+            "speaker",
+            "speak",
+            [
+              "tuple",
+              [
+                [
+                  "string",
+                  "Device is idle"
+                ]
+              ]
+            ],
+            [
+              "Office_Speaker"
+            ]
+          ]
+        ]
+      ],
+      "joi_actions": [],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "Plug": [
+        "Office_Plug"
+      ],
+      "Speaker": [
+        "Office_Speaker"
+      ]
+    },
+    "seconds": 0.013
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 120000,\n  \"script\": \"hold_ticks := 0\nif ((#Office_Plug).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Office_Speaker).speaker_speak(\\\"Device is idle\\\")\\n        n = n + 1\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n}",
+  "elapsed_sec": 1.876,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'Office_Plug.power': -0.1} IR=[(('speaker', 'speak', ('tuple', (('string', 'Device is idle'),)), ('Office_Speaker',)),)] JoI=[]"
+  }
+}

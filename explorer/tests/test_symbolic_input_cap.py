@@ -82,10 +82,18 @@ class SymbolicInputCapTests(unittest.TestCase):
 
     def test_frozen_preparation_and_workers_choose_same_cap_fallback(self):
         from explorer.eval import frozen_contract as f
+        from explorer.eval.e3 import load_rows, key_of, row_payload, payload_sha256
         protocol = json.loads((ROOT / 'explorer/eval/results/contract_recheck_v4_2026-09-07_v1_protocol.json').read_text())
-        protocol.update(case_ids=['C01_014'], sources={})
+        row = {key_of(r): r for r in load_rows()}['C01_014']
         with tempfile.TemporaryDirectory() as tmp:
-            pp, mp = Path(tmp) / 'protocol.json', Path(tmp) / 'manifest.json'
+            pp, mp, candidates = Path(tmp) / 'protocol.json', Path(tmp) / 'manifest.json', Path(tmp) / 'candidates'
+            candidates.mkdir()
+            source = ROOT / 'explorer/candidates/gemma4-26b-contract-v1-fresh-v4/C01_014.json'
+            candidate = json.loads(source.read_text())
+            payload = row_payload(row)
+            candidate.update(**payload, input_payload_sha256=payload_sha256(payload))
+            (candidates / 'C01_014.json').write_text(json.dumps(candidate))
+            protocol.update(case_ids=['C01_014'], candidates=str(candidates), sources={})
             pp.write_text(json.dumps(protocol))
             f.prepare(SimpleNamespace(protocol=str(pp), output=str(mp)))
             c = json.loads(mp.read_text())['cases'][0]

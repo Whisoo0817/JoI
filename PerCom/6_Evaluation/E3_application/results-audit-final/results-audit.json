@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "paper_id": "joi-timer-regions-percom",
+  "identity_version": 1,
+  "status": "complete",
+  "audits": [
+    {
+      "audit_id": "E3-QWEN-COMPLETE-20260915",
+      "claim_id": "E3-APPLICATION-CORRECTNESS",
+      "claim_text": "Under the frozen remediated E3 contract, the complete Qwen3.5-9B run yields 263 EQUIV-FIXPOINT, 61 DIVERGE_CONFIRMED, 61 REFUSED, and 3 invalid-candidate preparation outcomes over all 388 cases.",
+      "scope": "All 388 confirmed ir_gt and binding_gt rows; Hyper-AI/Qwen3.5-9B-fp8; fresh candidates with a lineage-recorded technical continuation for 126 connection failures; horizon-free Explorer.",
+      "source_mode": "standalone",
+      "requested_assurance_class": "exploratory",
+      "attained_assurance_class": "exploratory",
+      "verdict": "inconclusive",
+      "audited_claim_effect": "weaken",
+      "source_runs": [],
+      "run_selection": {"selection_rule": "Include every one of the 388 frozen case IDs exactly once in final accounting; no outcome-based case exclusion.", "excluded_runs": []},
+      "evidence_artifacts": [
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json", "kind": "pre-generation frozen protocol", "source": "experiment", "digest": "7e11e2f98d75b811a1090fe8002bb36a8cf072bc6d7c1879227e372b0138fc00"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates.json", "kind": "initial manifest retaining 126 connection failures", "source": "experiment", "digest": "92903865f6cbda76323d1001a57c2f63f4cbc759a4510b0d7e1838bfa7bb0b85"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates_after_technical_retry1.json", "kind": "complete candidate manifest after technical continuation", "source": "experiment", "digest": "80e15032708ae2fec261e4f48eb017b678d1d077b303c9b311dc1d730198a8c4"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_manifest_after_technical_retry1.json", "kind": "final prepared manifest", "source": "experiment", "digest": "9cd38063c8b29cb6b366fc28acdec036aa53669fb0ce2e372938cadc9779cbe6"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_complete/case_outcomes.jsonl", "kind": "complete per-case outcomes", "source": "experiment", "digest": "91f6d6001bea37b82c87a0c86f28096a670e4cfae23ba86b49b47acaafa3fa75"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_complete/summary.json", "kind": "final summary", "source": "experiment", "digest": "c5630a506ba4483e79c7d544452390e455dbde45de57faca529820af9b06c443"},
+        {"path": "PerCom/6_Evaluation/E3_application/preflight_r4.json", "kind": "388-case no-model preflight", "source": "experiment", "digest": "bc746786b252e00f17ef57e1fa108a1db856463d5a709dc06f236552471f9ef6"}
+      ],
+      "check_results": [
+        {"check_id": "protocol_integrity", "status": "pass", "rationale": "Payloads, model, sampling, source hashes, caps, and unconditional denominator were fixed before candidate generation; only connection-failed cases received a technical continuation.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json", "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates.json"]},
+        {"check_id": "metric_validity", "status": "pass", "rationale": "Positive equivalence requires horizon-free closed-state evidence and divergence requires replay; refusals and invalid candidates are not counted as semantic decisions.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_complete/summary.json"]},
+        {"check_id": "baseline_fairness", "status": "not_assessed", "rationale": "No between-model performance claim is audited here.", "evidence_paths": []},
+        {"check_id": "outcome_accounting", "status": "pass", "rationale": "The final JSONL contains 388 unique IDs and counts sum exactly to 388; the initial connection failures remain visible in a separate manifest.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_complete/case_outcomes.jsonl", "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates.json"]},
+        {"check_id": "inferential_support", "status": "pass", "rationale": "The exact descriptive counts and conditional rates follow directly from complete case accounting; no population-generalization or confirmatory claim is made.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_complete/summary.json"]},
+        {"check_id": "confound_control", "status": "inconclusive", "rationale": "Reference/evaluator remediation was informed by predecessor outcomes and the tasks are familiar, so confirmatory interpretation is excluded.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json"]},
+        {"check_id": "provenance", "status": "pass", "rationale": "Both initial and completed candidate manifests retain hashes, model identity, payload identity, and the visible technical continuation boundary.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates.json", "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates_after_technical_retry1.json"]},
+        {"check_id": "snapshot_continuity", "status": "pass", "rationale": "The final evaluator run verified all frozen source hashes before and after evaluation and reported continuity true.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_complete/summary.json"]},
+        {"check_id": "independence", "status": "fail", "rationale": "This is a repository-local self-audit without independent evaluation authority or unseen held-out cases.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json"]}
+      ],
+      "independence": {"self_review": true, "dimensions": [], "evidence": "No independence claim is made."},
+      "limitations": [
+        "WITHDRAWN FROM PAPER USE: prefix postprocessing corrupts confirmed skill identities. The 57 capability failures cannot be attributed to Qwen; aggregate model-performance claims require a corrected complete run with raw outputs retained.",
+        "The evidence is exploratory because predecessor outcomes informed contract remediation.",
+        "61 REFUSED and 3 invalid candidates have no semantic equivalence verdict.",
+        "The technical continuation is not an independent replication.",
+        "Repository-local hashes do not establish external execution isolation."
+      ],
+      "predecessor_failures": [
+        {"failure_id": "GEMMA-E3-CONTRACT-MISMATCH", "status": "resolved", "rationale": "Confirmed IR/binding injection and static contract validation remove the identified cross-stage mismatch."},
+        {"failure_id": "QWEN-SERVER-INTERRUPTION-126", "status": "resolved", "rationale": "Exactly the connection-failed artifacts were retained and technically continued; the completed manifest has 388 matching payloads and no generation errors."},
+        {"failure_id": "C03-003-UNBOUNDED-TARGET", "status": "accepted_with_narrowing", "rationale": "No authoritative TargetTemperature bound was invented; the case remains outside the supported numeric fragment."}
+      ],
+      "minimum_corrective_action": "For confirmatory evidence, freeze a previously unseen held-out case set and run it once without outcome-informed semantic, data, prompt, or evaluator changes.",
+      "narrative_anchor": "## Audit E3-QWEN-COMPLETE-20260915"
+    }
+  ]
+}

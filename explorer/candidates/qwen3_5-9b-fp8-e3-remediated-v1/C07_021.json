@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Pantry_TemperatureSensor).airQualitySensor_temperature >= 25)\n(#Pantry_AirConditioner).switch_on()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Pantry_TemperatureSensor).airQualitySensor_temperature >= 25)\n(#Pantry_AirConditioner).switch_on()\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Pantry_TemperatureSensor)"
+    ],
+    "Switch.On": [
+      "(#Pantry_AirConditioner)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "창고 온도가 25도 이상이 되면 창고 에어컨을 켜줘.",
+  "command_eng": "When the temperature in the pantry reaches 25 degrees or higher, turn on the pantry air conditioner.",
+  "connected_devices": {
+    "Pantry_TemperatureSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Pantry",
+        "TemperatureSensor"
+      ]
+    },
+    "WineCellar_TemperatureSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "WineCellar",
+        "TemperatureSensor"
+      ]
+    },
+    "Pantry_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Pantry",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "LivingRoom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "TemperatureSensor.Temperature >= 25",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "Pantry_TemperatureSensor"
+    ],
+    "Switch": [
+      "Pantry_AirConditioner"
+    ]
+  },
+  "input_payload_sha256": "8aee670b303c366f18fd68a954a38a65f0610ffcd19b92ef56eb75ca5e2949ce",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.3
+}

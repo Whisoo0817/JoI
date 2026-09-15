@@ -1,0 +1,118 @@
+{
+  "sentence": "1초마다 욕실 습도가 75% 이상이면 욕실 환기팬 플러그를 켜고, 그렇지 않고 55% 이하이면 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:24:02",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "HumiditySensor.Humidity",
+      "Switch.On",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "HumiditySensor.Humidity": [
+        "(#Bathroom_HumiditySensor)"
+      ],
+      "Switch.On": [
+        "(#Bathroom_Fan)"
+      ],
+      "Switch.Off": [
+        "(#Bathroom_Fan)"
+      ]
+    },
+    "resolved": {
+      "HumiditySensor.Humidity": {
+        "q": "one",
+        "devices": [
+          "Bathroom_HumiditySensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "Bathroom_Fan"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "Bathroom_Fan"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity >= 75",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "HumiditySensor.Humidity <= 55",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every second, check the humidity.\n\nBehavior:\n- If the humidity of Bathroom_HumiditySensor is at least 75, turn on Bathroom_Fan.\n- Otherwise, if the humidity of Bathroom_HumiditySensor is at most 55, turn off Bathroom_Fan.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nB-2: cycle without edge/until/break/pre-wait. cycle.period = 1 SEC → wrapper.period = 1000; emit nested if as body.\n</Reasoning>\n{\"cron\":\"\",\"period\":1000,\"script\":\"if ((#Bathroom_HumiditySensor).Humidity >= 75) {\\n    (#Bathroom_Fan).On()\\n} else {\\n    if ((#Bathroom_HumiditySensor).Humidity <= 55) {\\n        (#Bathroom_Fan).Off()\\n    }\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "if ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75) {\n(#Bathroom_Fan).switch_on()\n}\nelse {\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n(#Bathroom_Fan).switch_off()\n}\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "HumiditySensor": [
+        "Bathroom_HumiditySensor"
+      ],
+      "Switch": [
+        "Bathroom_Fan"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75) {\n(#Bathroom_Fan).switch_on()\n}\nelse {\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n(#Bathroom_Fan).switch_off()\n}\n}\"\n}",
+  "elapsed_sec": 1.52,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

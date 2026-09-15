@@ -1,0 +1,103 @@
+{
+  "sentence": "거실 습도가 30% 이하이거나 침실 습도가 30% 이하이면 거실 가습기 플러그를 켜줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:53",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "HumiditySensor.Humidity",
+      "Switch.On"
+    ],
+    "selectors": {
+      "HumiditySensor.Humidity": [
+        "(#LivingRoom_HumiditySensor)",
+        "(#Bedroom_HumiditySensor)"
+      ],
+      "Switch.On": [
+        "(#LivingRoom_Humidifier)"
+      ]
+    },
+    "resolved": {
+      "HumiditySensor.Humidity": {
+        "q": "one",
+        "devices": [
+          "Bedroom_HumiditySensor",
+          "LivingRoom_HumiditySensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Humidifier"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "livingRoomHumidity",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "read",
+        "var": "bedroomHumidity",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "if",
+        "cond": "livingRoomHumidity <= 30 or bedroomHumidity <= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Read HumiditySensor.Humidity as the current humidity.\n- Read HumiditySensor.Humidity as the current humidity.\n- If the current humidity is at most 30 or the current humidity is at most 30, turn on LivingRoom_Humidifier.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot conditional action with two sensor reads and a single switch call.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"livingRoomHumidity = (#LivingRoom_HumiditySensor).Humidity\\nbedroomHumidity = (#Bedroom_HumiditySensor).Humidity\\nif (livingRoomHumidity <= 30 or bedroomHumidity <= 30) {\\n    (#LivingRoom_Humidifier).On()\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "livingRoomHumidity = (#LivingRoom_HumiditySensor).humiditySensor_humidity\nbedroomHumidity = (#Bedroom_HumiditySensor).humiditySensor_humidity\nif (livingRoomHumidity <= 30 or bedroomHumidity <= 30) {\n(#LivingRoom_Humidifier).switch_on()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "HumiditySensor": [
+        "LivingRoom_HumiditySensor"
+      ],
+      "HumiditySensor#2": [
+        "Bedroom_HumiditySensor"
+      ],
+      "Switch": [
+        "LivingRoom_Humidifier"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"livingRoomHumidity = (#LivingRoom_HumiditySensor).humiditySensor_humidity\nbedroomHumidity = (#Bedroom_HumiditySensor).humiditySensor_humidity\nif (livingRoomHumidity <= 30 or bedroomHumidity <= 30) {\n(#LivingRoom_Humidifier).switch_on()\n}\"\n}",
+  "elapsed_sec": 1.141,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

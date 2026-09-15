@@ -1,0 +1,97 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "n := 0\nif (n >= 4) {\nbreak\n}\nv = (#Bedroom_Temp).airQualitySensor_temperature\nif (v < 20) {\n(#Bedroom_AC).airConditioner_setAirConditionerMode(\"heat\")\n}\nelse {\n(#Bedroom_AC).airConditioner_setAirConditionerMode(\"auto\")\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"n := 0\nif (n >= 4) {\nbreak\n}\nv = (#Bedroom_Temp).airQualitySensor_temperature\nif (v < 20) {\n(#Bedroom_AC).airConditioner_setAirConditionerMode(\\\"heat\\\")\\n}\\nelse {\\n(#Bedroom_AC).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\\nn = n + 1\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Bedroom_Temp)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "(#Bedroom_AC)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "10분마다 침실 온도를 확인해서 20도 미만이면 에어컨을 난방으로, 아니면 자동으로 설정하고, 4번 후 멈춰줘.",
+  "command_eng": "Every 10 minutes, check the bedroom temperature; if it is below 20 degrees set the air conditioner to heat, otherwise auto. Stop after 4 times.",
+  "connected_devices": {
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 4",
+        "period": "10 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "read",
+            "var": "v",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "v < 20",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "heat"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "Bedroom_Temp"
+    ],
+    "AirConditioner": [
+      "Bedroom_AC"
+    ]
+  },
+  "input_payload_sha256": "3cdee66dfe32043e8d3dcff4c356d1580e1a24e4d11cedc2652799984ba28491",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.6
+}

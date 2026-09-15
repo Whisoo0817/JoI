@@ -1,0 +1,81 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "팬트리 문이 45초 이상 열려 있으면 팬트리 조명을 켜줘.",
+  "command_eng": "If the pantry door stays open for at least 45 seconds, turn on the pantry light.",
+  "connected_devices": {
+    "Pantry_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Pantry",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Pantry_Light": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Pantry",
+        "Light",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Kitchen_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none",
+        "for": "45 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "ContactSensor": [
+      "Pantry_ContactSensor"
+    ],
+    "Switch": [
+      "Pantry_Light"
+    ]
+  },
+  "input_payload_sha256": "e91194e1de4ee46b8511c3608fc6766982e72bce7401f6402e42c9bdee0e9ca5",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1
+}

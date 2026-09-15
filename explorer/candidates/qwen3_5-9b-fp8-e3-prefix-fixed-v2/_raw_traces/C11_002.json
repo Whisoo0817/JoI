@@ -1,0 +1,125 @@
+{
+  "sentence": "지금 거실 온도를 확인하고 1시간 뒤 다시 확인해서 2도 이상 떨어졌으면 거실 히터 플러그를 켜줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:44",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#LivingRoom_TempSensor)"
+      ],
+      "Switch.On": [
+        "(#LivingRoom_Heater)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_TempSensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Heater"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "($t1 - $t2) >= 2",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Read TemperatureSensor.Temperature as the current temperature.\n- Wait for 1 hour.\n- Read TemperatureSensor.Temperature as the current temperature.\n- If (the current temperature - the current temperature) is at least 2, turn on LivingRoom_Heater.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nRead, delay, read, and if with inline diff.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#LivingRoom_TempSensor).Temperature\\ndelay(1 HOUR)\\nt2 = (#LivingRoom_TempSensor).Temperature\\nif ((#LivingRoom_TempSensor).Temperature - t2 >= 2) {\\n    (#LivingRoom_Heater).On()\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\ndelay(1 HOUR)\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature - t2 >= 2) {\n(#LivingRoom_Heater).switch_on()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 1,
+      "input": {
+        "LivingRoom_TempSensor.temperature": null
+      },
+      "dwell_ms": 3600000,
+      "ir_actions": [
+        [
+          [
+            "switch",
+            "on",
+            [
+              "tuple",
+              []
+            ],
+            [
+              "LivingRoom_Heater"
+            ]
+          ]
+        ]
+      ],
+      "joi_actions": [],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "TemperatureSensor": [
+        "LivingRoom_TempSensor"
+      ],
+      "Switch": [
+        "LivingRoom_Heater"
+      ]
+    },
+    "seconds": 0.04
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\ndelay(1 HOUR)\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature - t2 >= 2) {\n(#LivingRoom_Heater).switch_on()\n}\"\n}",
+  "elapsed_sec": 1.206,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'LivingRoom_TempSensor.temperature': None} IR=[(('switch', 'on', ('tuple', ()), ('LivingRoom_Heater',)),)] JoI=[]"
+  }
+}

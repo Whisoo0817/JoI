@@ -197,8 +197,28 @@ _TAG_CATEGORY_HINT = {
 }
 
 # (#Light).On() → (#Light).switch_on()
-def _apply_service_prefix(script):
+def _apply_service_prefix(script, *, confirmed_selectors=None):
+    # In confirmed-input lowering the IR supplies the skill and the binding
+    # supplies the selector. A global member-name lookup loses that information
+    # (Temperature, Power, Voltage, ... belong to several different skills).
+    confirmed = defaultdict(set)
+    if confirmed_selectors is not None:
+        for full, selectors in confirmed_selectors.items():
+            category, member = full.split('.', 1)
+            for selector in selectors:
+                tags = tuple(sorted(re.findall(r'#([\w-]+)', selector)))
+                confirmed[(tags, member)].add(category)
+
     def _fmt(service, selector=None):
+        if confirmed_selectors is not None:
+            tags = tuple(sorted(re.findall(r'#([\w-]+)', selector or '')))
+            categories = confirmed.get((tags, service), set())
+            if len(categories) != 1:
+                raise JoiGenerationError(
+                    f"Cannot resolve confirmed skill for {selector}.{service}: "
+                    f"{sorted(categories)}", error_code="confirmed_service_resolution")
+            category = next(iter(categories))
+            return category[0].lower() + category[1:] + '_' + service[0].lower() + service[1:]
         if selector:
             # Tags may be a device-first real id (nickname→id restore) which can
             # contain hyphens (e.g. tc0_efb00b25-259e-…); [\w-] keeps them whole.
@@ -227,17 +247,16 @@ def _apply_service_prefix(script):
             return f"{cat_fmt}_{svc_fmt}"
         return service[0].lower() + service[1:]
 
-    def replace_func(m):
-        return f"{m.group(1)}.{_fmt(m.group(2), m.group(1))}({m.group(3)})"
     # `#[\w-]+`: a tag can be a hyphenated real device id (device-first
     # nickname→id restore), not just a bare category like #Light.
-    script = re.sub(r'((?:all|any)?\((?:#[\w-]+\s*)+\))\.([A-Z]\w+)\(([^)]*)\)', replace_func, script)
+    # Do not rewrite service-looking text inside a string argument.
+    parts = re.split(r'("(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\')', script)
 
     def replace_value(m):
         return f"{m.group(1)}.{_fmt(m.group(2), m.group(1))}"
-    script = re.sub(r'((?:all|any)?\((?:#[\w-]+\s*)+\))\.([A-Z]\w+)(?!\w|\()', replace_value, script)
-
-    return script
+    for i in range(0, len(parts), 2):
+        parts[i] = re.sub(r'((?:all|any)?\((?:#[\w-]+\s*)+\))\.([A-Z]\w+)\b', replace_value, parts[i])
+    return ''.join(parts)
 
 
 def _normalize_script_newlines(script):

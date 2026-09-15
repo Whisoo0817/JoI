@@ -1,0 +1,70 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "충전기 플러그 전력이 30분 이상 5W 미만으로 유지되면 충전기 플러그를 꺼줘.",
+  "command_eng": "If the charger plug power stays below 5W for at least 30 minutes, turn off the charger plug.",
+  "connected_devices": {
+    "Kitchen_Charger": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Charger",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Kitchen_RiceCooker": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "RiceCooker",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Kitchen_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "30 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "Plug": [
+      "Kitchen_Charger"
+    ],
+    "Switch": [
+      "Kitchen_Charger"
+    ]
+  },
+  "input_payload_sha256": "817cea9a715bf307b5fcf340af31a365342098f1f85258187631990f55ec1fab",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2
+}

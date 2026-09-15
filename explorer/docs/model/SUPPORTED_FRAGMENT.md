@@ -145,7 +145,7 @@ foreach 내부 break/blocking/nesting/iterator 쓰기는 미인증 의미로 거
 | `joint-guard` | 한 비교식에 입력 ≥2 혼합 (`x+y>10`, `x>y`, `abs(t2−t1)≥1`) | 축은 키별 1차원 분할 — 대표값 조합이 결합 경계를 놓칠 수 있음 |
 | `derived-guard` | 항등 아닌 변형을 거친 비교 (`x/2>10`, `avg>임계wire`) | k=1이어도 실경계(20)가 술어 상수(10)와 달라 대표값이 못 덮음 |
 | `opaque-guard` | 지원 밖 guard 모양(함수 호출 조건, 미모델 clock 필드 `clock.date` 등) | 축이 아예 없어 진리 전환을 탐색이 못 봄 |
-| `arith-arg` | 산술 거친 값의 관찰 지점 유출 (`speak(t*2)`, `max(...)` 인자) | 두 프로그램이 대표값에서만 우연히 일치할 수 있음 |
+| `arith-arg` | 산술 거친 값의 관찰 지점 유출 (`speak(t*2)`, `max(...)` 인자) | 기본 대표값만으로는 부족하다. 모든 출처에 catalog 또는 명시 유한 exact domain이 있고 그 전체를 열거할 때만 해제하며, 그 밖에는 거절한다. |
 | `observable-counter` | 포화 counter 값의 관찰 지점 유출 (`speak(n)`) | 포화는 비교 전용일 때만 정당 — cap 위 5회/6회가 접히는데 출력은 다름 |
 
 그 외 강제: `parameterized reads`(해석 불가 질의 인자),
@@ -164,9 +164,9 @@ foreach 내부 break/blocking/nesting/iterator 쓰기는 미인증 의미로 거
 - **product 교차-쌍 타이머**: IR 쪽 타이머 × JoI 쪽 타이머의 마감
   경쟁은 상태 키 밖. 같은 입력 경로에서 대응 캡처가 일치하므로 실질
   영향은 없다고 보나, 형식적으로는 갭.
-- **③ 미지원 무늬의 실존 2행**: C11_001(결합 산술), C14_002(인자
-  산술) — REFUSED 유지, 논문 제한사항. 지원하려면 input-pure affine
-  한정 predicate abstraction + SMT(all-SAT 대표값)가 표준 경로.
+- **주기적 산술의 보수적 경계**: 유한 exact 입력은 one-shot action 인자의
+  전수 검사를 허용하지만, 반복 실행의 carried state/상태공간 폐쇄를 자동으로
+  증명하지 않는다. 폐쇄가 되지 않으면 REFUSED/INCONCLUSIVE를 유지한다.
 - 달력×타이머 교차 순서(시각 경계 vs 타이머 마감의 선후)는 상태 키
   밖 — 기존 설계 범위(P0 이전부터 동일).
 

@@ -1,0 +1,88 @@
+{
+  "sentence": "욕실 습도가 70%보다 높아지면 욕실 제습기를 동결 방지 모드로 설정해줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:23",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "HumiditySensor.Humidity",
+      "Dehumidifier.SetDehumidifierMode"
+    ],
+    "selectors": {
+      "HumiditySensor.Humidity": [
+        "(#Bathroom_HumiditySensor)"
+      ],
+      "Dehumidifier.SetDehumidifierMode": [
+        "(#Bathroom_Dehumidifier)"
+      ]
+    },
+    "resolved": {
+      "HumiditySensor.Humidity": {
+        "q": "one",
+        "devices": [
+          "Bathroom_HumiditySensor"
+        ]
+      },
+      "Dehumidifier.SetDehumidifierMode": {
+        "q": "one",
+        "devices": [
+          "Bathroom_Dehumidifier"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "HumiditySensor.Humidity > 70",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "freezeProtection"
+        }
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Wait until the humidity of Bathroom_HumiditySensor is above 70 is true.\n- Set Bathroom_Dehumidifier mode to freezeProtection.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot wait then action.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"wait until((#Bathroom_HumiditySensor).Humidity > 70)\\n(#Bathroom_Dehumidifier).SetDehumidifierMode(\\\"freezeProtection\\\")\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "wait until((#Bathroom_HumiditySensor).humiditySensor_humidity > 70)\n(#Bathroom_Dehumidifier).dehumidifier_setDehumidifierMode(\"freezeProtection\")"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "HumiditySensor": [
+        "Bathroom_HumiditySensor"
+      ],
+      "Dehumidifier": [
+        "Bathroom_Dehumidifier"
+      ]
+    },
+    "seconds": 0.011
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bathroom_HumiditySensor).humiditySensor_humidity > 70)\n(#Bathroom_Dehumidifier).dehumidifier_setDehumidifierMode(\\\"freezeProtection\\\")\"\n}",
+  "elapsed_sec": 0.869,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

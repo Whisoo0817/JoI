@@ -1,6 +1,6 @@
 # Evaluation handoff
 
-상태: **E1 종료(2026-09-13), E2 완료(2026-09-14, 140쌍 모집단). 원고 E1·E2 초안은 whisoo 검토 대기. E3–E4 미착수.**
+상태: **E1 종료(2026-09-13), E2 완료(2026-09-14, 140쌍 모집단). 원고 E1·E2 초안은 whisoo 검토 대기. E3 탐색적 완료(2026-09-15, Qwen 382건). Feedback 루프 설계 중, E4 는 feedback 실험 후.**
 
 - 실험의 방식·코드·데이터·결과는 이 폴더의 실험별 하위 폴더에 둔다.
 
@@ -55,12 +55,24 @@
   - `0e76584`(바인딩된 `any` 동작 허용)은 2026-09-14 whisoo 결정으로 되돌렸다. `any` 는 조건문 안에서만 쓸 수 있고, Explorer 파서와 정답기(SPEC_GAPS G35) 모두 조건문 밖의 `any`(ACTION·대입·인자)를 구문 오류로 거절한다.
 - Timeline IR 절·Limitations 절로 보낼 E2 항목은 각 절 HANDOFF 에 적었다.
 
+## E3 — `E3_application/`
+
+- **E3 application 최신 Qwen 평가(2026-09-15 완료).** 상세: `E3_application/E3_QWEN_382_RESULT.md`.
+  - 모델 `Hyper-AI/Qwen3.5-9B-fp8`, 실행 시 endpoint `http://localhost:8002/v1`. 확정 `ir_gt`와 `binding_gt`를 직접 주입하여 자연어 service mapping/selector 추론을 우회한다.
+  - 원본 388행은 보존하고 timeout/on_timeout이 포함된 C26_001–006 전체를 E3 범위에서 제외했다. 현재 분모는 382건이다.
+  - 후보 tag `qwen3_5-9b-fp8-e3-prefix-fixed-v2`: 기존 325건을 payload 일치 및 byte hash 확인 후 재사용하고, prefix 영향 56건과 C05_015(drying) 1건을 신규 생성했다. 신규 57건의 raw trace를 보존했으며 부분 재생성 시 프롬프트는 바꾸지 않았다.
+  - B1/B2/B5 binding, `selector_binding=True`, `H=None`, bounded fallback 없음. 전체 382건: EQUIV-FIXPOINT 307 / DIVERGE_CONFIRMED 70 / REFUSED 3 / UNKNOWN 2. 판정 완료율 377/382(98.69%)이며 정확도가 아니다. 생성·capability·문법·arity 오류는 이 실행에서 0건이다.
+  - 70건 모두 replay 확인, 평가 중 source/candidate hash 연속성 확인. REFUSED는 C01_015(BINARY 반환값), C03_003(무경계 산술), C11_006(대규모 조도 도메인). UNKNOWN은 C11_001·C11_005(SMT query timeout)이며 제한 변경이나 재탐색 없이 남겼다. C05_015는 EQUIV다.
+  - 근거: 저장소 루트 `explorer/eval/results/e3_prefix_fixed_382_20260915_*`의 lineage, candidates, protocol, manifest 및 `_run/summary.json`, `_run/case_outcomes.jsonl`.
+  - 혼합 출처·익숙한 과제의 탐색적 평가다. protocol snapshot은 후보 생성 후·평가 전에 기록했으므로 신규 382건 생성이나 confirmatory replication으로 쓰지 않는다. DIVERGE 원인은 개별 감사하지 않았고 독립 실기기 검증도 아니다.
+  - 과거 Gemma 388건 결과는 `E3_application/RESULTS.md`에 이력으로 보존한다. prefix 버그가 포함된 이전 Qwen 388건 집계는 철회됐으며 최신 논문 수치로 쓰지 않는다. feedback 시험 결과는 폐기했고 현재 결과에 포함하지 않는다.
+
 ## 공통
 
 - E1–E4 번호는 최신 계획대로 고정한다. 구 문서의 E1/E2 번호를 가져오지 않는다.
 - 구 fixed-horizon 평가와 그에 종속된 pair 수·transition 감소율·latency 수치는 현재 PerCom 원고에서 제거했다. 이는 과거 audit 기록으로만 보존한다.
-- 최종 E3/E4는 현재 H=None 검증 계약의 closure/completion 조건에 맞춰 새로 작성한다.
+- E3는 위 최신 H=None 결과와 탐색적 범위로 보고한다. E4는 동일 검증 계약의 closure/completion 조건에 맞춰 별도 실행·작성한다.
 - Motivation pilot과 LLM-judge experiment는 Fig2/동기 근거로 별도 취급하고 E2/E3에 조용히 합치지 않는다.
-- E3 동결 생성 평가, E4 scale/ablation 을 실행한 후 Methods–Results 병렬 구조로 전면 개정한다.
+- E1·E2·E3의 현재 근거를 Methods–Results에 반영하고, 미착수 E4 scale/ablation 및 별도 확증 평가와 구분한다.
 - 모든 refusal/error/incomplete를 전체 분모에 남긴다.
 - transition reduction을 runtime speedup으로 바꿔 쓰지 않는다.

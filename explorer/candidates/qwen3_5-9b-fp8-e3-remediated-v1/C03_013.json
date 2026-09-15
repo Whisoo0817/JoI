@@ -1,0 +1,76 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Entrance_FaceRecognizer).switch_switch == false) {\n(#Entrance_FaceRecognizer).faceRecognizer_start()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Entrance_FaceRecognizer).switch_switch == false) {\n(#Entrance_FaceRecognizer).faceRecognizer_start()\n}\"\n}",
+  "precision": {
+    "Switch.Switch": [
+      "(#Entrance_FaceRecognizer)"
+    ],
+    "FaceRecognizer.Start": [
+      "(#Entrance_FaceRecognizer)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "입구의 얼굴 인식이 꺼져있으면, 얼굴 인식을 시작해줘",
+  "command_eng": "If face recognition at the entrance is off, start it.",
+  "connected_devices": {
+    "Entrance_FaceRecognizer": {
+      "category": [
+        "FaceRecognizer",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "FaceRecognizer"
+      ]
+    },
+    "Garage_FaceRecognizer": {
+      "category": [
+        "FaceRecognizer",
+        "Switch"
+      ],
+      "tags": [
+        "Garage",
+        "FaceRecognizer"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "Switch.Switch == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "FaceRecognizer.Start",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "Switch": [
+      "Entrance_FaceRecognizer"
+    ],
+    "FaceRecognizer": [
+      "Entrance_FaceRecognizer"
+    ]
+  },
+  "input_payload_sha256": "20d6d7b5f229ab00583c1bfe1f3b3ae07d8cb97bd9d9501746f04711badb93bf",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

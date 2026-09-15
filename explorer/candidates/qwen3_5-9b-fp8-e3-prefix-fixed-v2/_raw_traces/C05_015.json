@@ -1,0 +1,120 @@
+{
+  "sentence": "비가 오고 문이 잠겨 있지 않으면, 문을 잠그고 제습기를 건조 모드로 설정해줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:27",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "WeatherProvider.Weather",
+      "DoorLock.DoorLockState",
+      "DoorLock.Lock",
+      "Dehumidifier.SetDehumidifierMode"
+    ],
+    "selectors": {
+      "WeatherProvider.Weather": [
+        "(#Home_WeatherProvider)"
+      ],
+      "DoorLock.DoorLockState": [
+        "(#Living_DoorLock)"
+      ],
+      "DoorLock.Lock": [
+        "(#Living_DoorLock)"
+      ],
+      "Dehumidifier.SetDehumidifierMode": [
+        "all(#Dehumidifier)"
+      ]
+    },
+    "resolved": {
+      "WeatherProvider.Weather": {
+        "q": "one",
+        "devices": [
+          "Home_WeatherProvider"
+        ]
+      },
+      "DoorLock.DoorLockState": {
+        "q": "one",
+        "devices": [
+          "Living_DoorLock"
+        ]
+      },
+      "DoorLock.Lock": {
+        "q": "one",
+        "devices": [
+          "Living_DoorLock"
+        ]
+      },
+      "Dehumidifier.SetDehumidifierMode": {
+        "q": "all",
+        "devices": [
+          "Bedroom_Dehum",
+          "Living_Dehum"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\" and DoorLock.DoorLockState == \"open\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- If the weather of Home_WeatherProvider is rain and the door lock state of Living_DoorLock is open, run DoorLock.Lock() and set Bedroom_Dehum and Living_Dehum mode to drying.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot conditional action with fan-out for Dehumidifier.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"if ((#Home_WeatherProvider).Weather == \\\"rain\\\" and (#Living_DoorLock).DoorLockState == \\\"open\\\") {\\n    (#Living_DoorLock).Lock()\\n    all(#Dehumidifier).SetDehumidifierMode(\\\"drying\\\")\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "if ((#Home_WeatherProvider).weatherProvider_weather == \"rain\" and (#Living_DoorLock).doorLock_doorLockState == \"open\") {\n(#Living_DoorLock).doorLock_lock()\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "WeatherProvider": [
+        "Home_WeatherProvider"
+      ],
+      "DoorLock": [
+        "Living_DoorLock"
+      ],
+      "Dehumidifier": [
+        "Living_Dehum",
+        "Bedroom_Dehum"
+      ]
+    },
+    "seconds": 0.011
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Home_WeatherProvider).weatherProvider_weather == \\\"rain\\\" and (#Living_DoorLock).doorLock_doorLockState == \\\"open\\\") {\\n(#Living_DoorLock).doorLock_lock()\\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n}\"\n}",
+  "elapsed_sec": 1.151,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}
