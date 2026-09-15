@@ -57,7 +57,11 @@
 
 ## E3 — `E3_application/`
 
-- **E3 application 최신 Qwen 평가(2026-09-15 완료).** 상세: `E3_application/E3_QWEN_382_RESULT.md`.
+- **E3 최종(2026-09-15, 브랜치 e3-b5-rerun-20260915 → paper).** 상세: `E3_application/E3_QWEN_382_FINAL_2026-09-15.md`.
+  - EQUIV-FIXPOINT 309 / DIVERGE_CONFIRMED 68 / REFUSED 3 / UNKNOWN 2, 판정 377/382. 생성·준비 오류 0.
+  - whisoo 결정(09-15): 382건 범위 확정, B5 를 E3 평가기에도 적용, C21_001 정답 or→and, 동작 자리에 any 를 단 정답 binding 5건은 한정자 없는 기기 하나로. lowering 프롬프트는 맞을 수도 틀릴 수도 있다는 전제이며 이 결과가 feedback 실험의 baseline(DIVERGE 68).
+  - 병합 후 E2 회귀 53쌍 판정 변화 0. 아래 항목은 직전 307/70 기록이다.
+- **(이전 기록) E3 application Qwen 평가 307/70/3/2.** 상세: `E3_application/E3_QWEN_382_RESULT.md`.
   - 모델 `Hyper-AI/Qwen3.5-9B-fp8`, 실행 시 endpoint `http://localhost:8002/v1`. 확정 `ir_gt`와 `binding_gt`를 직접 주입하여 자연어 service mapping/selector 추론을 우회한다.
   - 원본 388행은 보존하고 timeout/on_timeout이 포함된 C26_001–006 전체를 E3 범위에서 제외했다. 현재 분모는 382건이다.
   - 후보 tag `qwen3_5-9b-fp8-e3-prefix-fixed-v2`: 기존 325건을 payload 일치 및 byte hash 확인 후 재사용하고, prefix 영향 56건과 C05_015(drying) 1건을 신규 생성했다. 신규 57건의 raw trace를 보존했으며 부분 재생성 시 프롬프트는 바꾸지 않았다.

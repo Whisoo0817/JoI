@@ -1,6 +1,7 @@
 # Current E3 evaluation scope
 
-Completed evaluation: [E3_QWEN_382_RESULT.md](E3_QWEN_382_RESULT.md).
+Completed evaluation: [E3_QWEN_382_FINAL_2026-09-15.md](E3_QWEN_382_FINAL_2026-09-15.md) (earlier record: [E3_QWEN_382_RESULT.md](E3_QWEN_382_RESULT.md)).
+The 382-case scope is an author decision (whisoo, 2026-09-15).
 
 E3 includes 382 confirmed IR/binding cases. Any IR containing a `timeout` or
 `on_timeout` field is outside the evaluation scope, at any nesting depth.
