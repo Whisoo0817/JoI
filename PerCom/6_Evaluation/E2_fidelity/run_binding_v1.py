@@ -12,6 +12,7 @@ Finished pairs go to runs/e2_run.binding-v1.partial.jsonl (resumed on restart); 
 runs/e2_run.binding-v1.jsonl. The frozen results are not changed.
 """
 import argparse
+import gzip
 import json
 import os
 import subprocess
@@ -32,7 +33,13 @@ def init():
     import run_e2
     pairs, _HIST = run_e2.load_inputs()
     _PAIRS = {p["pair_id"]: p for p in pairs}
-    _SUPP = json.loads((HERE / "histories/supplement_histories.json").read_text())["histories"]
+    supplement = HERE / "histories/supplement_histories.json"
+    if supplement.exists():
+        payload = json.loads(supplement.read_text())
+    else:
+        with gzip.open(supplement.with_suffix(".json.gz"), "rt") as source:
+            payload = json.load(source)
+    _SUPP = payload["histories"]
 
 
 def work(pair_id):
