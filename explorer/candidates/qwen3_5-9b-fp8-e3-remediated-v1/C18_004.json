@@ -1,0 +1,89 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "if ((#Clock).clock_hour >= 15) {\nbreak\n}\nall(#Siren).siren_setSirenMode(\"emergency\")\ndelay(5 SEC)\nall(#Switch).switch_off()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"if ((#Clock).clock_hour >= 15) {\nbreak\n}\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\\ndelay(5 SEC)\\nall(#Switch).switch_off()\"\n}",
+  "precision": {
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ],
+    "Switch.Off": [
+      "all(#Switch)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "지금부터 오후 3시까지 10분마다 긴급 사이렌을 5초간 울렸다 꺼줘.",
+  "command_eng": "Every 10 minutes from now until 3 PM, sound the emergency siren for 5 seconds and then turn it off.",
+  "connected_devices": {
+    "Main_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 1500",
+        "period": "10 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "5 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "Siren": [
+      "Main_Siren",
+      "Entrance_Siren"
+    ],
+    "Switch": [
+      "Main_Siren",
+      "Entrance_Siren"
+    ]
+  },
+  "input_payload_sha256": "47bf717e207edb2f1a5ca125d430fca56e5b019b971060c0d1f9d356354321ab",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.8
+}

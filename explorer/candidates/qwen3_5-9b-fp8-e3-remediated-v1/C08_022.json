@@ -1,0 +1,102 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#Main_Window).armRobot_currentPosition > 0) {\nif (triggered == false) {\nall(#Speaker).speaker_speak(\"The window is open\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#Main_Window).armRobot_currentPosition > 0) {\nif (triggered == false) {\nall(#Speaker).speaker_speak(\\\"The window is open\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "WindowCovering.CurrentPosition": [
+      "(#Main_Window)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "창문이 열릴 때마다 스피커로 '창문이 열렸습니다'라고 말해줘.",
+  "command_eng": "Whenever the window opens, make the speaker speak 'The window is open'.",
+  "connected_devices": {
+    "Main_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Main_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Main",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WindowCovering.CurrentPosition > 0",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The window is open"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "WindowCovering": [
+      "Main_Window"
+    ],
+    "Speaker": [
+      "Main_Speaker",
+      "Bedroom_Speaker"
+    ]
+  },
+  "input_payload_sha256": "c9a14c4f5a911ec630d21396792e55b57bf76e8cd51814571fcb120cdb191ac0",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1
+}

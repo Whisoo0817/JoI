@@ -189,8 +189,11 @@ class SmtTraceTests(unittest.TestCase):
         p = prepared(c)
         domains = {k: [1] for k in p.ir_runner.axes.cells}
         with patch('explorer.verification.smt.smt_product', side_effect=AssertionError('scope expansion')):
-            with self.assertRaises(Unsupported):
-                timed_product(p.ir_runner, p.code_runner, input_domains=domains, horizon_ms=0)
+            # An explicitly enumerated finite domain now discharges arith-arg
+            # through the concrete product; it does not widen into SMT scope.
+            self.assertEqual(timed_product(
+                p.ir_runner, p.code_runner, input_domains=domains,
+                horizon_ms=0).verdict, 'EQUIV')
             with self.assertRaises(Unsupported):
                 timed_product(p.ir_runner, p.code_runner, initial_gv_domains={'x': [0]}, horizon_ms=0)
 
@@ -259,19 +262,30 @@ class SmtTraceTests(unittest.TestCase):
 
     def test_frozen_selection_and_separate_workers(self):
         from explorer.eval import frozen_contract as f
+        from explorer.eval.e3 import load_rows, key_of, row_payload, payload_sha256
         from explorer.tests.test_symbolic_value_flow import ROOT
         protocol = json.loads((ROOT / 'explorer/eval/results/contract_recheck_v4_2026-09-07_v2_protocol.json').read_text())
-        protocol.update(case_ids=['C01_006'], sources={})
+        row = {key_of(r): r for r in load_rows()}['C11_001']
         with tempfile.TemporaryDirectory() as tmp:
-            pp, mp = Path(tmp) / 'protocol.json', Path(tmp) / 'manifest.json'
+            pp, mp, candidates = Path(tmp) / 'protocol.json', Path(tmp) / 'manifest.json', Path(tmp) / 'candidates'
+            candidates.mkdir()
+            payload = row_payload(row)
+            candidate = {'status': 'ok', **payload,
+                'input_payload_sha256': payload_sha256(payload),
+                'joi_block': {'cron': '', 'period': 0, 'script':
+                    't1 = (#WineCellar_Temp).temperatureSensor_temperature\n'
+                    'delay(10 MIN)\n'
+                    't2 = (#WineCellar_Temp).temperatureSensor_temperature\n'
+                    'diff = t2 - t1\nif (diff < 0) { diff = t1 - t2 }\n'
+                    'if (diff >= 1) { all(#Speaker).speaker_speak("The wine cellar temperature has changed rapidly") }'}}
+            (candidates / 'C11_001.json').write_text(json.dumps(candidate))
+            protocol.update(case_ids=['C11_001'], candidates=str(candidates), sources={})
             pp.write_text(json.dumps(protocol))
             f.prepare(SimpleNamespace(protocol=str(pp), output=str(mp)))
             selected = json.loads(mp.read_text())['cases'][0]
         self.assertEqual(selected['verification_method'], 'smt-linear-trace-v1')
         self.assertIsNone(selected['model']['input_domains'])
-        # A real old arithmetic case is eligible but emits an invalid channel
-        # at the domain minimum. Same invalid ACTIONs must not be certified.
-        fixtures = [(selected, 'REFUSED')]
+        fixtures = [(selected, 'EQUIV')]
         avg = arithmetic_case()
         fixtures.append(({'payload': {k: avg[k] for k in ('ir', 'binding', 'devices', 'joi_block')},
                          'verification_method': 'smt-linear-trace-v1',

@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 23 * * *",
+    "period": 0,
+    "script": "wait until((#Entrance_Lock).doorLock_doorLockState == \"closed\", timeout: 10 MIN)\n(#Entrance_Lock).doorLock_lock()\n(#Living_Speaker).speaker_speak(\"The door lock has been locked\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 23 * * *\",\n  \"period\": 0,\n  \"script\": \"wait until((#Entrance_Lock).doorLock_doorLockState == \\\"closed\\\", timeout: 10 MIN)\\n(#Entrance_Lock).doorLock_lock()\\n(#Living_Speaker).speaker_speak(\\\"The door lock has been locked\\\")\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "(#Entrance_Lock)"
+    ],
+    "DoorLock.Lock": [
+      "(#Entrance_Lock)"
+    ],
+    "Speaker.Speak": [
+      "(#Living_Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "밤 11시에 도어락이 잠기기를 10분까지 기다렸다가, 그래도 안 잠겨 있으면 잠그고 스피커로 알려줘.",
+  "command_eng": "At 11 PM, wait up to 10 minutes for the door lock to be locked; if it is still unlocked, lock it and notify me through the speaker.",
+  "connected_devices": {
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 23 * * *"
+      },
+      {
+        "op": "wait",
+        "cond": "DoorLock.DoorLockState == \"closed\"",
+        "timeout": "10 MIN",
+        "on_timeout": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The door lock has been locked"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "DoorLock": [
+      "Entrance_Lock"
+    ],
+    "Speaker": [
+      "Living_Speaker"
+    ]
+  },
+  "input_payload_sha256": "53b663b2474deb175a20d90baa14b363fe75606121d65b3d66bf64879be43b1e",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.7
+}

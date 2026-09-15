@@ -208,9 +208,21 @@ class _G:
             return expr_mod.FuncCall(node.name, [self.ge(a) for a in node.args])
         sr = self._sel_read(node)
         if sr is not None:
-            m, svc, member, _ = sr
-            if len(m) > 1 and getattr(node, "quant", None) in ("any", "all"):
-                raise Unsupported("group read needs an explicit comparison")
+            m, svc, member, binding_quant = sr
+            quant = getattr(node, "quant", None) or binding_quant
+            if len(m) > 1 and quant in ("any", "all"):
+                # A bare grouped Boolean is its explicit truth comparison:
+                # any(X) -> OR(X_i == true), all(X) -> AND(X_i == true).
+                # Catalog validation later rejects non-Boolean uses; this step
+                # only removes frontend syntax ambiguity.
+                terms = [expr_mod.BinaryOp(
+                    "==", expr_mod.DeviceRef(self._key(inst, svc, member)),
+                    expr_mod.Lit(True)) for inst in m]
+                out = terms[0]
+                join = "or" if quant == "any" else "and"
+                for term in terms[1:]:
+                    out = expr_mod.BinaryOp(join, out, term)
+                return out
             inst = self._one(m, "selector in scalar position")
             return expr_mod.DeviceRef(self._key(inst, svc, member))
         if isinstance(node, jp.CallExpr) and node.args is not None:

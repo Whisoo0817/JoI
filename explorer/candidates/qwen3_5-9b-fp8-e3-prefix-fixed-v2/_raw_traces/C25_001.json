@@ -1,0 +1,111 @@
+{
+  "sentence": "5분마다 거실 온도를 확인해서 28도 이상이면 에어컨을 냉방으로, 아니면 자동으로 설정하고, 6번 후 멈춰줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:24:09",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "AirConditioner.SetAirConditionerMode"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#LivingRoom_Temp)"
+      ],
+      "AirConditioner.SetAirConditionerMode": [
+        "(#LivingRoom_AC)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Temp"
+        ]
+      },
+      "AirConditioner.SetAirConditionerMode": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_AC"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 6",
+        "period": "5 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "read",
+            "var": "v",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "v >= 28",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "cool"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every 5 minutes, check the temperature.\n\nBehavior:\n- Read TemperatureSensor.Temperature as the current temperature.\n- If the current temperature is at least 28, set LivingRoom_AC mode to cool.\n- Otherwise, set LivingRoom_AC mode to auto.\n\nStop:\n- Stop after 6 times.",
+  "lowering": {
+    "raw": "<Reasoning>\nD-9 idiom with cycle.count: prepend n:=0, break-guard at top, emit if/else body, append n=n+1.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 300000,\n  \"script\": \"n := 0\\nif (n >= 6) {\\n    break\\n}\\nv = (#LivingRoom_Temp).Temperature\\nif (v >= 28) {\\n    (#LivingRoom_AC).SetAirConditionerMode(\\\"cool\\\")\\n} else {\\n    (#LivingRoom_AC).SetAirConditionerMode(\\\"auto\\\")\\n}\\nn = n + 1\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 300000,
+      "script": "n := 0\nif (n >= 6) {\nbreak\n}\nv = (#LivingRoom_Temp).temperatureSensor_temperature\nif (v >= 28) {\n(#LivingRoom_AC).airConditioner_setAirConditionerMode(\"cool\")\n}\nelse {\n(#LivingRoom_AC).airConditioner_setAirConditionerMode(\"auto\")\n}\nn = n + 1"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "LivingRoom_Temp"
+      ],
+      "AirConditioner": [
+        "LivingRoom_AC"
+      ]
+    },
+    "seconds": 0.014
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 300000,\n  \"script\": \"n := 0\nif (n >= 6) {\nbreak\n}\nv = (#LivingRoom_Temp).temperatureSensor_temperature\nif (v >= 28) {\n(#LivingRoom_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\\nelse {\\n(#LivingRoom_AC).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\\nn = n + 1\"\n}",
+  "elapsed_sec": 2.241,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

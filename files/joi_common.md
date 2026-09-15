@@ -56,7 +56,7 @@ The `script` field is a JSON string. Inside it, **use `\n` for newlines and 4 sp
 
 Example (good):
 ```
-"script":"triggered := false\nif (cond) {\n    Y\n    triggered = true\n} else {\n    triggered = false\n}"
+"script":"triggered := false\nif (triggered == true) {\n    wait until(not cond)\n    triggered = false\n}\nwait until(cond)\nY\ntriggered = true"
 ```
 Example (bad — do not do this):
 ```
@@ -181,6 +181,13 @@ IR call. Copy that selector once for each corresponding IR occurrence.
   the IR occurrence order and multiplicity.
 - A `call` is an ACTION, not a boolean. Never join action calls with `or`/`and` or
   wrap them in a boolean expression.
+
+**Confirmed-binding exception (E3).** When the input is an already confirmed
+`ir_gt + binding_gt`, natural-language selector inference is not run. Distinct
+selectors separated by ` / ` correspond to distinct binding occurrences in IR
+walk order and must be copied in that order. A confirmed multi-device action may
+use one `all(...)` selector and fan out. A scalar query/read still requires one
+provider; this exception never turns several returned values into one scalar.
 
 ---
 

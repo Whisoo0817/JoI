@@ -71,6 +71,21 @@ def test_binding_quantifier_decides_reads():
     assert r.verdict in ("EQUIV", "EQUIV_BOUNDED", "EQUIV-FIXPOINT"), r.verdict
 
 
+def test_bare_group_boolean_is_normalized_and_fault_is_detected():
+    ir = timeline({"op": "if", "cond": "MotionSensor.Motion == true",
+                   "then": [{"op": "call", "target": "Switch.On"}], "else": []})
+    binding = {"MotionSensor": {"any": ["s1", "s2"]}, "Switch": ["kitchen"]}
+    domains = {"s1.motion": [False, True], "s2.motion": [False, True]}
+    _, same = verdict(ir,
+        "if (any(#MotionSensor).motionSensor_motion) {\n(#Kitchen #Light).switch_on()\n}",
+        binding, input_domains=domains)
+    assert same.verdict in ("EQUIV", "EQUIV_BOUNDED", "EQUIV-FIXPOINT"), same.verdict
+    _, faulty = verdict(ir,
+        "if (all(#MotionSensor).motionSensor_motion) {\n(#Kitchen #Light).switch_on()\n}",
+        binding, input_domains=domains)
+    assert faulty.verdict == "DIVERGE", faulty.verdict
+
+
 def test_duplicate_call_still_counts():
     code = "all(#Light).switch_on()\nall(#Light).switch_on()"
     _, r = verdict(timeline({"op": "call", "target": "Switch.On"}), code, {"Switch": ["hall1", "hall2"]}, input_domains={})

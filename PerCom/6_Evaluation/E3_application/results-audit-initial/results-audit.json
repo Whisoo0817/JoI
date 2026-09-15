@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "paper_id": "joi-timer-regions-percom",
+  "identity_version": 1,
+  "status": "complete",
+  "audits": [
+    {
+      "audit_id": "E3-QWEN-INITIAL-20260915",
+      "claim_id": "E3-APPLICATION-CORRECTNESS",
+      "claim_text": "Fresh Qwen3.5-9B lowering candidates are semantically equivalent to the 388 confirmed E3 IR and binding pairs under the frozen Explorer contract.",
+      "scope": "All 388 dataset rows with confirmed ir_gt and binding_gt; fresh Hyper-AI/Qwen3.5-9B-fp8 generation; horizon-free Explorer; unconditional outcome accounting.",
+      "source_mode": "standalone",
+      "requested_assurance_class": "exploratory",
+      "attained_assurance_class": "none",
+      "verdict": "inconclusive",
+      "audited_claim_effect": "inconclusive",
+      "source_runs": [],
+      "run_selection": {"selection_rule": "Include all 388 protocol case IDs exactly once; retain generation errors, refusals, divergences, and equivalences.", "excluded_runs": []},
+      "evidence_artifacts": [
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json", "kind": "frozen protocol", "source": "experiment", "digest": "7e11e2f98d75b811a1090fe8002bb36a8cf072bc6d7c1879227e372b0138fc00"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates.json", "kind": "initial candidate manifest", "source": "experiment", "digest": "92903865f6cbda76323d1001a57c2f63f4cbc759a4510b0d7e1838bfa7bb0b85"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_manifest.json", "kind": "prepared evaluation manifest", "source": "experiment", "digest": "3e9f67a469bcc46fae56f1f41766d53f7247e809119979a4da97bda284e46b41"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_initial/case_outcomes.jsonl", "kind": "complete case outcomes", "source": "experiment", "digest": "82ec4eeac49e41f3bf0253cbfe31667ff98014ca45714b8bd4471602b3e15c67"},
+        {"path": "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_initial/summary.json", "kind": "outcome summary", "source": "experiment", "digest": "3129a01fe501914a631a55891006d27a81ee3fafbb3e372bd3885478ba16de92"},
+        {"path": "PerCom/6_Evaluation/E3_application/preflight_r4.json", "kind": "no-model contract preflight", "source": "experiment", "digest": "bc746786b252e00f17ef57e1fa108a1db856463d5a709dc06f236552471f9ef6"},
+        {"path": "PerCom/6_Evaluation/E3_application/static_validation_r2.json", "kind": "reference static validation", "source": "experiment", "digest": "8c1ef1b6eba685f9aa2940c424af4ef0f9b2012ab547ed6a60d379af482d8b5d"}
+      ],
+      "check_results": [
+        {"check_id": "protocol_integrity", "status": "pass", "rationale": "The protocol preceded candidate bytes and fixes all payloads, sources, model, sampling, caps, taxonomy, and retry separation.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json", "PerCom/6_Evaluation/E3_application/preflight_r4.json"]},
+        {"check_id": "metric_validity", "status": "pass", "rationale": "Equivalence requires horizon-free closure; divergence requires concrete replay; failure kinds remain separate.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_initial/summary.json"]},
+        {"check_id": "baseline_fairness", "status": "not_assessed", "rationale": "This audit covers one Qwen run and makes no comparative model claim.", "evidence_paths": []},
+        {"check_id": "outcome_accounting", "status": "pass", "rationale": "All 388 IDs occur once: 208 EQUIV-FIXPOINT, 27 DIVERGE_CONFIRMED, 27 REFUSED, and 126 GENERATION_ERROR.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_initial/case_outcomes.jsonl", "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates.json"]},
+        {"check_id": "inferential_support", "status": "inconclusive", "rationale": "A server failure prevented candidates for 126/388 cases, so 208/388 cannot estimate a completed full-run success rate.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_manifest.json"]},
+        {"check_id": "confound_control", "status": "fail", "rationale": "Generation availability is confounded with later case order, and predecessor outcomes informed remediation.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates.json", "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json"]},
+        {"check_id": "provenance", "status": "pass", "rationale": "Every available candidate has a byte hash and matching frozen input; the exact served model ID is recorded.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_candidates.json"]},
+        {"check_id": "snapshot_continuity", "status": "pass", "rationale": "The evaluator verified all 157 source hashes before and after the run.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json", "explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_run_initial/summary.json"]},
+        {"check_id": "independence", "status": "fail", "rationale": "This is a repository-local self-audit with no independent evaluator or unseen held-out set.", "evidence_paths": ["explorer/eval/results/e3_qwen35_9b_fp8_remediated_20260915_protocol.json"]}
+      ],
+      "independence": {"self_review": true, "dimensions": [], "evidence": "No independent review or authority separation was claimed."},
+      "limitations": [
+        "WITHDRAWN FROM PAPER USE: this run used faulty global service-prefix resolution; historical counts do not support model-performance claims.",
+        "126 generation failures came from one server connection interruption and are not semantic verdicts.",
+        "The 27 refusals and 27 divergences apply only to 262 successfully generated artifacts.",
+        "Predecessor outcomes informed remediation, so this evidence is exploratory.",
+        "Repository hashes provide continuity, not external immutability."
+      ],
+      "predecessor_failures": [
+        {"failure_id": "GEMMA-E3-CONTRACT-MISMATCH", "status": "resolved", "rationale": "Confirmed binding injection, static validation, and general semantic rules remove the identified mismatches."},
+        {"failure_id": "QWEN-SERVER-INTERRUPTION-126", "status": "open", "rationale": "The endpoint reset; 126 cases require a lineage-recorded technical retry after recovery."}
+      ],
+      "minimum_corrective_action": "Restore the frozen endpoint, technically retry exactly the 126 APIConnectionError cases with lineage, then prepare and evaluate the completed 388-case set.",
+      "narrative_anchor": "## Audit E3-QWEN-INITIAL-20260915"
+    }
+  ]
+}

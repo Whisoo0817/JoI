@@ -1,0 +1,77 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "현관문이 열리면, 5분 안에 닫히지 않으면 스피커로 '문이 아직 열려 있습니다'라고 알려줘.",
+  "command_eng": "When the front door opens, if it is not closed within 5 minutes, announce 'The door is still open' through the speaker.",
+  "connected_devices": {
+    "Front_DoorContact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Back_DoorContact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "BackDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "rising"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "timeout": "5 MIN",
+        "on_timeout": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The door is still open"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "ContactSensor": [
+      "Front_DoorContact"
+    ],
+    "Speaker": [
+      "Living_Speaker"
+    ]
+  },
+  "input_payload_sha256": "126cac582a7d5427823184afc7a9e59f1fd99faf76f2b3f15c11aacb54c44465",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2
+}

@@ -1,0 +1,60 @@
+{
+  "schema_version": "1.0",
+  "paper_id": "VETS-PERCOM",
+  "identity_version": 1,
+  "status": "complete",
+  "audits": [
+    {
+      "audit_id": "E3-GEMMA-V3-B5-HNONE-20260915",
+      "claim_id": "E3-C1",
+      "claim_text": "For each confirmed Timeline and fixed binding plan, the current Explorer reports only closed horizon-free equivalence, replay-confirmed divergence, or an explicit non-decision/failure.",
+      "scope": "All 388 current dataset rows with category_v2 and ir_gt, evaluated once against the fixed outcome-visible Gemma-v3 candidate bytes under B1/B2/B5 binding, catalog-backed input modeling, H=None, 20-second and 768-MiB per-case limits.",
+      "source_mode": "standalone",
+      "requested_assurance_class": "exploratory",
+      "attained_assurance_class": "exploratory",
+      "verdict": "supports_exploratory_follow_up",
+      "audited_claim_effect": "strengthen",
+      "source_runs": [],
+      "run_selection": {
+        "selection_rule": "Include every one of the 388 protocol IDs exactly once; no post-outcome exclusions or retries.",
+        "excluded_runs": [
+          {"run_id": "heldout-gemma-v3-h32", "rationale": "Historical bounded H=32 development result under predecessor semantics; retained but not pooled."},
+          {"run_id": "catalog_ranges_corpus_2026-09-08_v1", "rationale": "Different fixed candidate generation and pre-B5 evaluation snapshot; retained but not pooled."}
+        ]
+      },
+      "evidence_artifacts": [
+        {"path": "PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_protocol.json", "kind": "protocol", "source": "experiment", "digest": "b30626a64fb5bf5d23325a31244b24d280663ca0a40fa1f994f1d4eb58e22a95"},
+        {"path": "PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_manifest.json", "kind": "manifest", "source": "experiment", "digest": "6840bacd566d079fabf5945be01349e79b8cd2cb25d6d7988904d99b2e24c388"},
+        {"path": "PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915/case_outcomes.jsonl", "kind": "outcomes", "source": "experiment", "digest": "3ba363c33f7452a476a14b467e22eef6427593cd683f6edb6db20dcb1b019d58"},
+        {"path": "PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915/summary.json", "kind": "summary", "source": "experiment", "digest": "6e93df42ed63880d38a25364f536ac68c73fbf5e36d11639b44455f79f2c0228"}
+      ],
+      "check_results": [
+        {"check_id": "protocol_integrity", "status": "pass", "rationale": "Protocol preceded preparation and execution; all 388 IDs, B1/B2/B5 binding, H=None, caps, extractor non-use, and complete failure accounting are explicit.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_protocol.json"]},
+        {"check_id": "metric_validity", "status": "pass", "rationale": "Unconditional outcome rates and decision completion are separated; EQUIV requires closure with null bounded horizons and DIVERGE requires a replayed witness.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915/case_outcomes.jsonl", "PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915/summary.json"]},
+        {"check_id": "baseline_fairness", "status": "not_assessed", "rationale": "This block evaluates one verifier on fixed pairs and does not make a comparative baseline claim.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_protocol.json"]},
+        {"check_id": "outcome_accounting", "status": "pass", "rationale": "The JSONL contains 388 unique IDs in protocol order: 246 EQUIV-FIXPOINT, 57 DIVERGE_CONFIRMED, 23 REFUSED, 61 GENERATION_ERROR, and 1 PREPARATION_ERROR.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915/case_outcomes.jsonl"]},
+        {"check_id": "inferential_support", "status": "inconclusive", "rationale": "Descriptive fixed-corpus evidence only; there is one outcome-visible generation sample per familiar task and no population sampling uncertainty or independent H=None oracle.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_protocol.json", "PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915/summary.json"]},
+        {"check_id": "confound_control", "status": "inconclusive", "rationale": "Candidate bytes and evaluator inputs are fixed, but IR/JoI adapters, service model, observation, and advancement review are not independently implemented.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_protocol.json"]},
+        {"check_id": "provenance", "status": "pass", "rationale": "The candidate provenance manifest hashes all 388 reused bytes; the current protocol, manifest, outcomes, summary, and evaluator source snapshot are retained with digests.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_protocol.json", "PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_manifest.json"]},
+        {"check_id": "snapshot_continuity", "status": "pass", "rationale": "The harness verified source and candidate hashes before and after execution; this establishes repository-local continuity, not external immutability.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915/summary.json"]},
+        {"check_id": "independence", "status": "fail", "rationale": "This is self-review with no independent unbounded oracle, and the candidate tasks and outcomes were previously inspected.", "evidence_paths": ["PerCom/6_Evaluation/E3_application/runs/e3_gemma_v3_b5_hnone_20260915_protocol.json"]}
+      ],
+      "independence": {"self_review": true, "dimensions": [], "evidence": "The same repository and evaluation authority define preparation, execution, and audit; predecessor outcomes are visible."},
+      "limitations": [
+        "This run reuses outcome-visible Gemma-v3 candidates and is not a fresh-generation or confirmatory E3.",
+        "The 303/388 decision-completion rate is not code accuracy or natural-language intent accuracy.",
+        "EQUIV certifies equality to the supplied confirmed Timeline under the declared model, not satisfaction of the original utterance or physical deployment correctness.",
+        "There is no independent H=None semantic oracle; shared adapter and observation bugs remain possible.",
+        "Twenty-two refusals occurred during preparation and one additional SMT case refused during execution.",
+        "C15_005 and C18_003 remain known paired-reference quality concerns from predecessor documentation and are not excluded."
+      ],
+      "predecessor_failures": [
+        {"failure_id": "E3-H32-BOUNDED", "status": "resolved", "rationale": "The present run uses H=None and checks closure for every positive; historical H=32 counts are not relabeled or pooled."},
+        {"failure_id": "E3-FRESH-ENDPOINT", "status": "open", "rationale": "localhost:8002 refused connections and the repository SSH tunnel failed authentication, so fresh generation was not run."},
+        {"failure_id": "E3-OUTCOME-VISIBLE-CANDIDATES", "status": "accepted_with_narrowing", "rationale": "All fixed bytes were retained, but evidence is explicitly exploratory."}
+      ],
+      "minimum_corrective_action": "Restore the declared Gemma endpoint, freeze a new pre-generation protocol and candidate tag before any outcome inspection, run all 388 attempts with the same H=None accounting, and obtain independent semantic review before a confirmatory or accuracy claim.",
+      "narrative_anchor": "E3-GEMMA-V3-B5-HNONE-20260915"
+    }
+  ]
+}

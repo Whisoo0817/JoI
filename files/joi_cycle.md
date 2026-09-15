@@ -10,7 +10,7 @@ The IR timeline contains a top-level `{"op":"cycle",...}`. The hub re-runs the s
 |---|---|---|---|
 | 1 | `cycle.until != null` AND body has NO `wait` | D-9 (until window) | `parse_ms(cycle.period)` |
 | 2 | body has `if{break}` step | D-6 (progressive update) | `parse_ms(cycle.period)` |
-| 3 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`), with or without `cycle.until` | D-3 / D-10 (edge / sustained); a `cycle.until` adds only the D-9 break-guard at the top | **1000 (fixed, 1-sec polling)** |
+| 3 | body has `wait(...)` (`edge:"rising"` AND/OR `for:"<N>"`), with or without `cycle.until` | D-3 / D-10 (edge / sustained); a `cycle.until` adds only the D-9 break-guard at the top | `parse_ms(cycle.period)`; an omitted re-arming edge period defaults to **1000** |
 | 4 | pre-cycle `wait(edge:"none"\|null)` at top level | D-4 (phase lifecycle) | `parse_ms(cycle.period)` |
 | 5 | else | B-2 (simple periodic) | `parse_ms(cycle.period)` |
 
@@ -39,15 +39,20 @@ triggered := false
 if (n >= K) {
     break
 }
-if (C) {
-    if (triggered == false) {
-        Y
-        triggered = true
-        n = n + 1
+if (triggered == true) {
+    wait until(not C or n >= K)
+    if (n >= K) {
+        break
     }
-} else {
     triggered = false
 }
+wait until(C or n >= K)
+if (n >= K) {
+    break
+}
+Y
+triggered = true
+n = n + 1
 ```
 
 ---
@@ -60,19 +65,24 @@ From `joi_common` Rule A: `start_at(anchor:"cron", cron:X)` → `cron: X`; other
 
 # Step 3 — Apply the idiom template
 
-## D-3 — rising-edge `triggered` flag (whenever idiom)
-Wraps `wait(rising, cond:C); Y` in cycle. Emits `Y` exactly once per `false→true` transition of `C`.
+## D-3 — blocking rising-edge re-arm (whenever idiom)
+Wraps `wait(rising, cond:C); Y` in cycle. The wait observes the input continuously;
+the wrapper period schedules iterations and is **not** an input-sampling interval. Emits
+`Y` exactly once per `false→true` transition of `C`.
 ```
 triggered := false
-if (C) {
-    if (triggered == false) {
-        Y
-        triggered = true
-    }
-} else {
+if (triggered == true) {
+    wait until(not C)
     triggered = false
 }
+wait until(C)
+Y
+triggered = true
 ```
+Do not implement D-3 by inspecting `C` only once per wrapper tick: that can miss a
+short event between ticks. When `cycle.until = U`, every blocking wait is widened
+to `wait until(... or U)` and immediately followed by `if (U) { break }`, as in the
+counted template above.
 **"Stops" / "no longer holds"** = negated cond with rising edge (e.g. `cond:"Motion == false"`). Same template; do NOT special-case as falling.
 
 ## D-4 — phase lifecycle (`when X, thereafter every N`)

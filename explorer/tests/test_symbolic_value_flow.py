@@ -60,6 +60,17 @@ class SymbolicValueFlowTests(unittest.TestCase):
                 self.assertTrue(all(event['equal'] for event in cert['events']))
                 json.dumps(cert)  # Evidence must be serializable without repr fallbacks.
 
+    def test_chat_string_identity_forwarding_and_seeded_fault(self):
+        c = case('C01_019')
+        result = gate(c)
+        self.assertEqual(result.verdict, 'EQUIV-BOUNDED', result.notes)
+        self.assertEqual(result.product.symbolic_certificate['schema'], 'symbolic-value-flow-v1')
+        c['joi_block']['script'] = c['joi_block']['script'].replace(
+            'speaker_speak(ChatWithAI)', 'speaker_speak("fixed")')
+        faulty = gate(c)
+        self.assertEqual(faulty.verdict, 'DIVERGE', faulty.notes)
+        self.assertTrue(faulty.confirmed)
+
     def test_variable_names_and_copy_chains_do_not_determine_identity(self):
         c = case()
         read, action = c['joi_block']['script'].split('\n')

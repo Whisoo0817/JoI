@@ -1,0 +1,90 @@
+{
+  "sentence": "현재 습도를 스피커로 말해줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:19",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "HumiditySensor.Humidity",
+      "Speaker.Speak"
+    ],
+    "selectors": {
+      "HumiditySensor.Humidity": [
+        "(#LivingRoom_Humidity)"
+      ],
+      "Speaker.Speak": [
+        "all(#Speaker)"
+      ]
+    },
+    "resolved": {
+      "HumiditySensor.Humidity": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Humidity"
+        ]
+      },
+      "Speaker.Speak": {
+        "q": "all",
+        "devices": [
+          "Kitchen_Speaker",
+          "LivingRoom_Speaker"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "Humidity",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "The current humidity is $Humidity"
+        }
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Read HumiditySensor.Humidity as the current humidity.\n- Run Speaker.Speak(Text=The current humidity is $Humidity).",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot read then call with fan-out to all speakers.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"Humidity = (#LivingRoom_Humidity).Humidity\\nall(#Speaker).Speak(\\\"The current humidity is \\\" + Humidity)\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "Humidity = (#LivingRoom_Humidity).humiditySensor_humidity\nall(#Speaker).speaker_speak(\"The current humidity is \" + Humidity)"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "HumiditySensor": [
+        "LivingRoom_Humidity"
+      ],
+      "Speaker": [
+        "LivingRoom_Speaker",
+        "Kitchen_Speaker"
+      ]
+    },
+    "seconds": 0.081
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"Humidity = (#LivingRoom_Humidity).humiditySensor_humidity\nall(#Speaker).speaker_speak(\\\"The current humidity is \\\" + Humidity)\"\n}",
+  "elapsed_sec": 0.867,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

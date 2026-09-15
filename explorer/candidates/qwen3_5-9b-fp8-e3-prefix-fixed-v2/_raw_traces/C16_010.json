@@ -1,0 +1,108 @@
+{
+  "sentence": "매일 아침 8시에 스피커로 '일어나세요'라고 말해 줘. 그리고 창문이 닫혀있으면 열어줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:33",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "Speaker.Speak",
+      "WindowCovering.CurrentPosition",
+      "WindowCovering.UpOrOpen"
+    ],
+    "selectors": {
+      "Speaker.Speak": [
+        "all(#Speaker)"
+      ],
+      "WindowCovering.CurrentPosition": [
+        "(#Main_Window)"
+      ],
+      "WindowCovering.UpOrOpen": [
+        "(#Main_Window)"
+      ]
+    },
+    "resolved": {
+      "Speaker.Speak": {
+        "q": "all",
+        "devices": [
+          "Bedroom_Speaker",
+          "Main_Speaker"
+        ]
+      },
+      "WindowCovering.CurrentPosition": {
+        "q": "one",
+        "devices": [
+          "Main_Window"
+        ]
+      },
+      "WindowCovering.UpOrOpen": {
+        "q": "one",
+        "devices": [
+          "Main_Window"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Get up"
+        }
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition == 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start at 8:00 AM every day.\n\nBehavior:\n- Run Speaker.Speak(Text=Get up).\n- If the current position of Main_Window is 0, run WindowCovering.UpOrOpen().\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nCron-anchored script with one-shot speak and conditional window open.\n</Reasoning>\n{\"cron\":\"0 8 * * *\",\"period\":0,\"script\":\"(#Speaker).Speak(\\\"Get up\\\")\\nif ((#Main_Window).CurrentPosition == 0) {\\n    (#Main_Window).UpOrOpen()\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "0 8 * * *",
+      "period": 0,
+      "script": "all(#Speaker).speaker_speak(\"Get up\")\nif ((#Main_Window).windowCovering_currentPosition == 0) {\n(#Main_Window).windowCovering_upOrOpen()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "Speaker": [
+        "Main_Speaker",
+        "Bedroom_Speaker"
+      ],
+      "WindowCovering": [
+        "Main_Window"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#Speaker).speaker_speak(\\\"Get up\\\")\\nif ((#Main_Window).windowCovering_currentPosition == 0) {\\n(#Main_Window).windowCovering_upOrOpen()\\n}\"\n}",
+  "elapsed_sec": 1.444,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

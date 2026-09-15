@@ -5,9 +5,11 @@
 보존하고 읽은 epoch마다 독립 기호를 만든다. 아래 1차원 분할 논증을 결합식에
 적용하지 않는다. 명시 유한 domain은 새 경로로 자동 확대하지 않는다.
 
-최신 입력 계약 추가: `menu-string-return-v1`은 MenuProvider.GetMenu만 None 없는
-STRING으로 선언한다(빈 문자열 허용). 아래 일반 비BOOL 결측 설명에는 이 예외가
-적용된다. 구체 대표값과 기호 도메인 모두 같은 반환 명세를 사용한다.
+최신 입력 계약 추가: `menu-string-return-v1`의 MenuProvider.GetMenu와
+`chat-string-return-v1`의 CloudServiceProvider.ChatWithAI는 None 없는 STRING으로
+선언한다(빈 문자열 허용). 아래 일반 비BOOL 결측 설명에는 이 예외가 적용된다.
+ChatWithAI는 변형 없는 STRING identity 전달만 기호 인증하며 문자열 변환을
+추가로 가정하지 않는다. 구체 대표값과 기호 도메인 모두 같은 반환 명세를 사용한다.
 
 2026-09-07. 대상은 `input_coverage.py`와 이를 사용하는 `derive_axes`,
 `compile_ir`, `merge_axes`, `timed_product`다. **아래에 정의한 입력 모델과
@@ -127,7 +129,10 @@ ACTION에 사용했다면 그 읽기는 수집된 출처에 속한다.
 변수 인자 query는 현재 추가 거절한다. 이전 `_loop_ranges`의 최솟값/상한
 휴리스틱만으로 모든 실제 query 인자가 그 범위에 든다는 증명을 대신하지
 않는다. 이것은 지원의 보수적 축소다. 리터럴로 grounding된 경우는 지원한다.
-원래 D7의 joint/derived/arith-arg/observable-counter 거절도 계속 적용한다.
+원래 D7의 joint/derived/observable-counter 거절도 계속 적용한다. `arith-arg`는
+모든 출처가 exact이고 명시 또는 catalog 유한 domain의 모든 값이 실제 product에
+주입되는 경우에만 해제한다. 따라서 action catalog 검증까지 모든 조합에서 실행되며,
+일부 대표값만 일치해서 생기는 거짓 EQUIV는 없다. 조건을 하나라도 못 채우면 거절한다.
 `:=` 초기화 안의 산술이 이 검사를 우회하지 못하도록 정의 요약도 보완했다.
 
 ## 3. 스칼라 입력의 분할

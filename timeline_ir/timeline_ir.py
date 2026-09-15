@@ -214,13 +214,14 @@ def _validate_step(step: Any) -> None:
         if step.get("until") is not None and not isinstance(step["until"], str):
             raise IRValidationError("cycle.until must be string or null")
         # `period`: REQUIRED per-iteration cadence (e.g. "10 MIN"). Lowering uses
-        # it as the wrapper.period. Defaults per convention: D-3 edge cycle (body
-        # has wait(rising)) → "100 MSEC"; otherwise the NL cadence `every N <unit>`.
+        # it as the wrapper.period. Defaults per cross-stage contract: D-3 edge
+        # cycle (body has wait(rising/falling)) → "1 SEC"; otherwise the NL
+        # cadence `every N <unit>`.
         # Same grammar as delay.duration.
         period = step.get("period")
         if period is None:
             raise IRValidationError(
-                "cycle.period is required (use '100 MSEC' for D-3 edge cycles, "
+                "cycle.period is required (use '1 SEC' for D-3 edge cycles, "
                 "or the NL cadence otherwise)"
             )
         if not isinstance(period, str):
@@ -345,7 +346,7 @@ def _scan_expr(src: Any, valid: set, out: list, path: str) -> None:
     if not isinstance(src, str):
         return
     for svc, _attr in _SERVICE_ATTR_RE.findall(src):
-        if svc == "clock" or svc in _NON_SERVICE_PREFIXES:
+        if svc.lower() == "clock" or svc in _NON_SERVICE_PREFIXES:
             continue
         if svc not in valid:
             out.append(f"{path}: {svc!r}")
@@ -493,7 +494,7 @@ def _scan_expr_catalog(src: Any, catalog: dict, member_to_services: dict,
     if not isinstance(src, str):
         return
     for svc, member in _SERVICE_ATTR_RE.findall(src):
-        if svc == "clock" or svc in _NON_SERVICE_PREFIXES:
+        if svc.lower() == "clock" or svc in _NON_SERVICE_PREFIXES:
             continue
         _check_pair(f"{svc}.{member}", catalog, member_to_services, out, path)
     # Additionally detect `<Service>.<EnumAttr> == <bare_identifier>` — the

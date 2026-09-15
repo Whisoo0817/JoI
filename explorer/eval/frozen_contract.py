@@ -40,6 +40,7 @@ def snapshot():
         paths.update(p for p in Path(base).rglob('*') if p.is_file()
                      and p.suffix in ('.py', '.json', '.md', '.txt', '.g4'))
     paths.update(Path('explorer/docs').rglob('*.md'))
+    paths.update(Path('files').glob('joi*.md'))
     paths.add(Path('explorer/README.md'))
     paths.add(Path('explorer/requirements.txt'))
     paths.update((Path(__file__).resolve().relative_to(ROOT), Path('dataset.csv'),
@@ -54,7 +55,7 @@ def verify(sources):
 
 
 def protocol(args):
-    from explorer.eval.e3 import load_rows, key_of
+    from explorer.eval.e3 import load_rows, key_of, payload_sha256, row_payload, E3_SELECTION_RULE
     rows = sorted(load_rows(), key=key_of)
     if args.pilot:
         selected = {}
@@ -66,22 +67,37 @@ def protocol(args):
         'created_utc': time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()),
         'evidence_class': 'development-pilot' if args.pilot else 'fresh-generation-on-familiar-tasks',
         'selection_rule': 'first case of first five categories, sorted IDs' if args.pilot else
-                          'all dataset rows with category_v2 and ir_gt; no outcome exclusions',
-        'case_ids': [key_of(r) for r in rows], 'candidates': args.candidates,
-        'generation': {'model': 'cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit',
-                       'workers': 4, 'timeout_seconds': 120, 'seed': None,
-                       'pipeline': 'explorer.eval.e3 gen; gold IR injected; mapping/lowering generated',
-                       'sampling': 'existing pipeline stage temperatures frozen by source hashes'},
+                          E3_SELECTION_RULE,
+        'case_ids': [key_of(r) for r in rows],
+        'payload_sha256': {key_of(r): payload_sha256(row_payload(r)) for r in rows},
+        'candidates': args.candidates,
+        'generation': {'model': args.model_id or 'cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit',
+                       'base_url': args.base_url or None,
+                       'workers': args.generation_workers,
+                       'timeout_seconds': args.generation_timeout, 'seed': None,
+                       'pipeline': ('explorer.eval.e3 gen; confirmed ir_gt and binding_gt '
+                                    'injected; NL mapping/selector inference bypassed; one lowering call'),
+                       'sampling': ('temperature=0.1, max_tokens=512, streaming, '
+                                    'enable_thinking=false; source hashes are normative')},
+        'extractor_policy': {
+            'timeline_ir': ('not invoked: each selected dataset ir_gt is the confirmed '
+                            'Timeline supplied to lowering'),
+            'mapping': ('not invoked: confirmed binding_gt deterministically supplies '
+                        'selectors and occurrence slots'),
+        },
         'model_policy': {'horizon_ms': 3200, 'input_step_ms': 100, 't0_ms': 2419200000,
                          'service_catalog': True,
                          'input_basis': 'catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1',
                          'gv_basis': 'normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED',
-                         'bindings': 'dataset binding_gt and fixed connected_devices; no rebinding'},
+                         'bindings': ('dataset binding_gt and fixed connected_devices; B1 selector '
+                                      'denotes bound devices, B2 split calls in one slot stay grouped, '
+                                      'B5 selector occurrences are assigned to binding slots; '
+                                      'selector_binding=True; no post-outcome rebinding')},
         'caps': {'max_states': 200000, 'max_transitions': 500000, 'max_input_combinations': 100000,
                  'smt_timeout_ms': 1000, 'smt_total_timeout_ms': 10000, 'smt_max_queries': 10000},
         'engine_limits': {'wall_seconds': 20, 'address_space_mib': 768},
         'evaluation_workers': 1, 'engine_order': ['explorer', 'exact'],
-        'stop_rule': 'run every selected case once per engine; no automatic scientific retries; retain refusal, invalid, timeout, memory failure and disagreement',
+        'stop_rule': 'run every selected case once per engine; no initial-pass scientific retries; retain refusal, invalid, timeout, memory failure and disagreement',
         'sources': snapshot(), 'git_head': subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip(),
         'environment': {'python': sys.version, 'platform': platform.platform(),
                         'cpu': next((x.split(':', 1)[1].strip() for x in Path('/proc/cpuinfo').read_text().splitlines() if x.startswith('model name')), 'unknown')},
@@ -89,9 +105,19 @@ def protocol(args):
                         'familiar tasks are not unseen-task heldout',
                         'search engines share adapters and observation; no independent ground truth labels',
                         '3.2 seconds is a bounded evaluation horizon, not a completeness bound']}
+    if args.fresh:
+        record['evidence_class'] = 'fresh Qwen generation on outcome-visible familiar tasks; exploratory'
+        record['limitations'].append(
+            'Reference and predecessor outcomes informed contract remediation; this run is exploratory, not confirmatory.')
     if args.unbounded:
-        record['evidence_class'] = 'unbounded recheck of fixed familiar-task candidates; exploratory'
-        record['generation']['pipeline'] = 'reuse existing candidate bytes; no LLM calls'
+        record['evidence_class'] = ('unbounded recheck of fixed, outcome-visible familiar-task '
+                                    'candidates; exploratory')
+        if not args.fresh:
+            record['generation']['pipeline'] = 'reuse existing candidate bytes; no LLM calls'
+        if args.candidate_provenance:
+            provenance = Path(args.candidate_provenance)
+            record['generation']['candidate_provenance_manifest'] = str(provenance)
+            record['generation']['candidate_provenance_sha256'] = sha(provenance)
         record['model_policy']['horizon_ms'] = None
         record['model_policy']['verification_mode'] = 'auto'
         record['model_policy']['closure_policy'] = ('exact relative-timer graph closure; eligible INTEGER '
@@ -99,11 +125,13 @@ def protocol(args):
         record['engine_order'] = ['explorer']
         record['limitations'][-1] = ('No horizon; resource exhaustion remains inconclusive. '
             'No independent unbounded oracle; old bounded positives are not relabeled.')
+        record['limitations'].append(
+            'Candidate outcomes were inspected in predecessor runs; this is not a confirmatory sample.')
     write(args.output, record)
 
 
 def prepare(args):
-    from explorer.eval.e3 import load_rows, key_of
+    from explorer.eval.e3 import candidate_matches_row, load_rows, key_of
     from explorer.verification.gate import prepare_pair, pair_input_domains
     from explorer.verification.product import check_supported_pair
     from explorer.verification.input_coverage import initial_domains
@@ -123,6 +151,10 @@ def prepare(args):
         c['candidate_sha256'] = sha(path)
         try:
             candidate = json.loads(path.read_text())
+            if not candidate_matches_row(candidate, row):
+                c.update(status='PREPARATION_ERROR',
+                         reason='candidate payload does not match current dataset row')
+                continue
             if candidate.get('status') != 'ok' or not isinstance(candidate.get('joi_block'), dict):
                 c['reason'] = candidate.get('error_code', 'missing joi_block')
                 continue
@@ -308,7 +340,14 @@ def main():
     p.add_argument('--candidates', required=True)
     p.add_argument('--output', required=True)
     p.add_argument('--pilot', action='store_true')
+    p.add_argument('--fresh', action='store_true', help='fresh candidate generation under this protocol')
     p.add_argument('--unbounded', action='store_true', help='reuse candidates; H=None; Explorer only')
+    p.add_argument('--model-id', default='')
+    p.add_argument('--base-url', default='')
+    p.add_argument('--generation-workers', type=int, default=2)
+    p.add_argument('--generation-timeout', type=int, default=300)
+    p.add_argument('--candidate-provenance', default='',
+                   help='optional frozen manifest that hashes the reused candidate bytes')
     p = sub.add_parser('prepare')
     p.add_argument('--protocol', required=True)
     p.add_argument('--output', required=True)

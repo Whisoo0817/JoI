@@ -1,0 +1,84 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "서재에 15분 이상 사람이 없으면 조명을 20%로 낮추고, 10분 뒤에 꺼줘.",
+  "command_eng": "If no one is present in the study for at least 15 minutes, dim the study light to 20%, then turn it off 10 minutes later.",
+  "connected_devices": {
+    "Study_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Study",
+        "PresenceSensor"
+      ]
+    },
+    "Study_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Study",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Office_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Office",
+        "PresenceSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == false",
+        "edge": "none",
+        "for": "15 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 20.0,
+          "Rate": 0.0
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "PresenceSensor": [
+      "Study_Presence"
+    ],
+    "Light": [
+      "Study_Light"
+    ],
+    "Switch": [
+      "Study_Light"
+    ]
+  },
+  "input_payload_sha256": "a41a47fc940a0f58bf6abfaddedf63f0a986cec7ad664f3c9f6f7a4c8f273f9c",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1
+}

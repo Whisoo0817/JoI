@@ -1,0 +1,125 @@
+{
+  "sentence": "지금 침실 습도를 확인하고 30분 뒤 다시 확인해서 15 이상 올랐으면 침실 제습기 플러그를 켜줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:57",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "HumiditySensor.Humidity",
+      "Switch.On"
+    ],
+    "selectors": {
+      "HumiditySensor.Humidity": [
+        "(#Bedroom_HumiditySensor)"
+      ],
+      "Switch.On": [
+        "(#Bedroom_Dehumidifier)"
+      ]
+    },
+    "resolved": {
+      "HumiditySensor.Humidity": {
+        "q": "one",
+        "devices": [
+          "Bedroom_HumiditySensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "Bedroom_Dehumidifier"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "h1",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "delay",
+        "duration": "30 MIN"
+      },
+      {
+        "op": "read",
+        "var": "h2",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "if",
+        "cond": "$h2 - $h1 >= 15",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Read HumiditySensor.Humidity as the current humidity.\n- Wait for 30 minutes.\n- Read HumiditySensor.Humidity as the current humidity.\n- If the current humidity - the current humidity is at least 15, turn on Bedroom_Dehumidifier.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nReads humidity twice with a 30-minute delay, then checks if the difference is at least 15 to turn on the dehumidifier.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"h1 = (#Bedroom_HumiditySensor).Humidity\\ndelay(30 MIN)\\nh2 = (#Bedroom_HumiditySensor).Humidity\\ndiff = h2 - h1\\nif (diff < 0) {\\n    diff = h1 - h2\\n}\\nif (diff >= 15) {\\n    (#Bedroom_Dehumidifier).On()\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "h1 = (#Bedroom_HumiditySensor).humiditySensor_humidity\ndelay(30 MIN)\nh2 = (#Bedroom_HumiditySensor).humiditySensor_humidity\ndiff = h2 - h1\nif (diff < 0) {\ndiff = h1 - h2\n}\nif (diff >= 15) {\n(#Bedroom_Dehumidifier).switch_on()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 1,
+      "input": {
+        "Bedroom_HumiditySensor.humidity": null
+      },
+      "dwell_ms": 1800000,
+      "ir_actions": [],
+      "joi_actions": [
+        [
+          [
+            "switch",
+            "on",
+            [
+              "tuple",
+              []
+            ],
+            [
+              "Bedroom_Dehumidifier"
+            ]
+          ]
+        ]
+      ],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "HumiditySensor": [
+        "Bedroom_HumiditySensor"
+      ],
+      "Switch": [
+        "Bedroom_Dehumidifier"
+      ]
+    },
+    "seconds": 0.108
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"h1 = (#Bedroom_HumiditySensor).humiditySensor_humidity\ndelay(30 MIN)\nh2 = (#Bedroom_HumiditySensor).humiditySensor_humidity\ndiff = h2 - h1\nif (diff < 0) {\ndiff = h1 - h2\n}\nif (diff >= 15) {\n(#Bedroom_Dehumidifier).switch_on()\n}\"\n}",
+  "elapsed_sec": 1.89,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'Bedroom_HumiditySensor.humidity': None} IR=[] JoI=[(('switch', 'on', ('tuple', ()), ('Bedroom_Dehumidifier',)),)]"
+  }
+}

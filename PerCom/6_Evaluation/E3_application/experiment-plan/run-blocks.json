@@ -1,0 +1,43 @@
+[
+  {
+    "block_id": "E3-B1",
+    "paper_role": "main",
+    "claim_ids": ["E3-C1"],
+    "decision_gate_id": "E3-G1",
+    "anti_claims_ruled_out": ["bounded or incomplete results are counted as equivalence", "failed witnesses are counted as divergence", "failures disappear from the denominator"],
+    "why_this_block_exists": "Replace the historical H=32 interpretation with the current horizon-free contract.",
+    "dataset_split_task": "All 388 nonempty category_v2+ir_gt rows; familiar-task fixed-candidate recheck.",
+    "systems_compared": ["confirmed Timeline plus binding plan", "fixed Gemma-v3 JoI candidate", "current Explorer"],
+    "fixed_factors": ["candidate bytes", "dataset rows", "service catalog", "B1/B2/B5 binding", "H=None", "resource caps"],
+    "variable_factors": ["case behavior and automatically selected verification method"],
+    "metrics": ["unconditional outcome counts", "decision completion rate", "method counts", "runtime", "peak RSS"],
+    "setup_details": "One attempt per case, append-only output, per-case process limits, no bounded fallback.",
+    "seeds": 1,
+    "success_criterion": "All integrity and semantic-result invariants pass; no favorable-rate threshold.",
+    "minimum_effect_size": "not applicable",
+    "failure_interpretation": "Applicability is narrowed and stronger claims are withheld.",
+    "expected_output_artifact": "runs/e3_gemma_v3_b5_hnone_20260915/summary.json",
+    "compute_budget": "388 cases; 20 s and 768 MiB per Explorer worker process.",
+    "dependencies": [],
+    "priority": "must-run",
+    "current_evidence_class": "exploratory",
+    "evidence_class": "exploratory",
+    "selection_rule": "All 388 selected IDs, no exclusion after outcomes.",
+    "non_vacuity_check": "Passed before freeze: candidate hash coverage 388/388 and multiple possible outcomes exist.",
+    "complete_outcome_accounting": "All success, non-decision, generation, preparation, resource, crash, and harness states are retained.",
+    "hidden_information_controls": "No LLM call occurs; verifier does not consume prior labels or bounded verdicts.",
+    "independence_requirements": [],
+    "independence_evidence": "Self-review; no independent semantic oracle for H=None.",
+    "operational_threat_model": "Fail closed on unsupported, incomplete, or resource-limited verification.",
+    "operational_harms": "A false EQUIV could deploy behaviorally incorrect automation; hence closure assertions are mandatory.",
+    "predecessor_failures": ["H=32 positive results were bounded only", "fresh model endpoint unavailable"],
+    "execution": {
+      "mode": "command",
+      "entrypoint": "python -m explorer.eval.frozen_contract",
+      "declared_inputs": ["dataset.csv", "explorer/candidates/gemma4-26b-heldout-v3", "skill_result/05_experiment_plan/snapshots/E3_heldout_input_manifest_v3_h32.json"],
+      "declared_evaluator_artifacts": ["explorer/eval/frozen_contract.py", "explorer/verification"],
+      "required_outputs": ["protocol.json", "manifest.json", "case_outcomes.jsonl", "summary.json", "results-audit.json", "results-audit.md"]
+    },
+    "lineage_policy": {"allowed_relations": ["baseline", "technical_retry", "replication"]}
+  }
+]

@@ -1,0 +1,101 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "거실과 침실 온도가 모두 25도 이상이면 거실 선풍기 플러그를 켜줘.",
+  "command_eng": "If both the living room and bedroom temperatures are at least 25C, turn on the living room fan plug.",
+  "connected_devices": {
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Bakery_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Bakery",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "living_temp",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "read",
+        "var": "bedroom_temp",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "living_temp >= 25 and bedroom_temp >= 25",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "LivingRoom_TempSensor"
+    ],
+    "TemperatureSensor#2": [
+      "Bedroom_TempSensor"
+    ],
+    "Switch": [
+      "LivingRoom_Fan"
+    ]
+  },
+  "input_payload_sha256": "a8f66e7a34605876cc7cf5c54b4b5f700016115e0783db86edfd943390eb1d38",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.9
+}

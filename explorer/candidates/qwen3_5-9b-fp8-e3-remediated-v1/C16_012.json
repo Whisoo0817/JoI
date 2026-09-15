@@ -1,0 +1,86 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 18 * * *",
+    "period": 0,
+    "script": "if (all(#WindowCovering).windowCovering_currentPosition >| 0) {\nany(#WindowCovering).windowCovering_downOrClose()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 18 * * *\",\n  \"period\": 0,\n  \"script\": \"if (all(#WindowCovering).windowCovering_currentPosition >| 0) {\nany(#WindowCovering).windowCovering_downOrClose()\n}\"\n}",
+  "precision": {
+    "WindowCovering.CurrentPosition": [
+      "any(#WindowCovering)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "any(#WindowCovering)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "오후 6시에 창문이 하나라도 열려있으면 모두 닫아줘.",
+  "command_eng": "At 6 PM, if any window is open, close all of them.",
+  "connected_devices": {
+    "LivingRoom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Entrance_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 18 * * *"
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition > 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "WindowCovering": {
+      "any": [
+        "LivingRoom_Window",
+        "Bedroom_Window"
+      ]
+    }
+  },
+  "input_payload_sha256": "f5ee5b3e7846c9973c3ae61b9cefd619ad92ee62a2cb57cc88e3413553f92232",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.5
+}

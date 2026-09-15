@@ -1,0 +1,119 @@
+{
+  "sentence": "30분마다 체크해서 온도가 20도 이상, 30도 미만이면 에어컨을 자동모드로 설정하고, 30도 이상이면 쿨모드로 설정해줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:31",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "AirConditioner.SetAirConditionerMode"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#Living_Temp)"
+      ],
+      "AirConditioner.SetAirConditionerMode": [
+        "all(#AirConditioner)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "Living_Temp"
+        ]
+      },
+      "AirConditioner.SetAirConditionerMode": {
+        "q": "all",
+        "devices": [
+          "Bedroom_AC",
+          "Living_AC"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "read",
+            "var": "temp",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "$temp >= 20 and $temp < 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "$temp >= 30",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "AirConditioner.SetAirConditionerMode",
+                    "args": {
+                      "Mode": "cool"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every 30 minutes, check the temperature.\n\nBehavior:\n- Read TemperatureSensor.Temperature as the current temperature.\n- If the current temperature is at least 20 and the current temperature is below 30, set Bedroom_AC and Living_AC mode to auto.\n- Otherwise, if the current temperature is at least 30, set Bedroom_AC and Living_AC mode to cool.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nB-2: cycle without edge/until/break/pre-wait. cycle.period = 30 MIN → wrapper.period = 1800000; emit body as-is.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"temp = (#Living_Temp).Temperature\\nif (temp >= 20 and temp < 30) {\\n    all(#AirConditioner).SetAirConditionerMode(\\\"auto\\\")\\n} else {\\n    if (temp >= 30) {\\n        all(#AirConditioner).SetAirConditionerMode(\\\"cool\\\")\\n    }\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1800000,
+      "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 20 and temp < 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}\nelse {\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "Living_Temp"
+      ],
+      "AirConditioner": [
+        "Living_AC",
+        "Bedroom_AC"
+      ]
+    },
+    "seconds": 0.013
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 20 and temp < 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\\nelse {\\nif (temp >= 30) {\\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\\n}\"\n}",
+  "elapsed_sec": 1.74,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

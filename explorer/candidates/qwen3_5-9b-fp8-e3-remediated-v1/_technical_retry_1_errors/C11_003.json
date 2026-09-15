@@ -1,0 +1,102 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "지금 침실 온도를 확인하고 30분 뒤 다시 확인해서 3도 이상 떨어졌으면 침실 히터 플러그를 켜줘.",
+  "command_eng": "Check the bedroom temperature now and again in 30 minutes. If it dropped by at least 3 degrees, turn on the bedroom heater plug.",
+  "connected_devices": {
+    "Bedroom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Heater": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "Heater"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "30 MIN"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "($t1 - $t2) >= 3",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "Bedroom_TempSensor"
+    ],
+    "Switch": [
+      "Bedroom_Heater"
+    ]
+  },
+  "input_payload_sha256": "23b4543753cca509388c4ab5cf12e1ecf4a628b1b678be875aaa5f59fe490311",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2
+}

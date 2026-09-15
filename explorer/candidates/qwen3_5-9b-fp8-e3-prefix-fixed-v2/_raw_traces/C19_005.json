@@ -1,0 +1,118 @@
+{
+  "sentence": "1초마다 거실 습도가 30% 이하이면 가습기 플러그를 켜고, 그렇지 않고 55% 이상이면 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:48",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "HumiditySensor.Humidity",
+      "Switch.On",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "HumiditySensor.Humidity": [
+        "(#LivingRoom_HumiditySensor)"
+      ],
+      "Switch.On": [
+        "(#LivingRoom_Humidifier)"
+      ],
+      "Switch.Off": [
+        "(#LivingRoom_Humidifier)"
+      ]
+    },
+    "resolved": {
+      "HumiditySensor.Humidity": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_HumiditySensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Humidifier"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Humidifier"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity <= 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "HumiditySensor.Humidity >= 55",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every second, check the humidity.\n\nBehavior:\n- If the humidity of LivingRoom_HumiditySensor is at most 30, turn on LivingRoom_Humidifier.\n- Otherwise, if the humidity of LivingRoom_HumiditySensor is at least 55, turn off LivingRoom_Humidifier.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nB-2: cycle without edge/until/break/pre-wait. cycle.period = 1 SEC → wrapper.period = 1000; emit nested if as body.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#LivingRoom_HumiditySensor).Humidity <= 30) {\\n    (#LivingRoom_Humidifier).On()\\n} else {\\n    if ((#LivingRoom_HumiditySensor).Humidity >= 55) {\\n        (#LivingRoom_Humidifier).Off()\\n    }\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30) {\n(#LivingRoom_Humidifier).switch_on()\n}\nelse {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 55) {\n(#LivingRoom_Humidifier).switch_off()\n}\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "HumiditySensor": [
+        "LivingRoom_HumiditySensor"
+      ],
+      "Switch": [
+        "LivingRoom_Humidifier"
+      ]
+    },
+    "seconds": 0.013
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30) {\n(#LivingRoom_Humidifier).switch_on()\n}\nelse {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 55) {\n(#LivingRoom_Humidifier).switch_off()\n}\n}\"\n}",
+  "elapsed_sec": 1.682,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

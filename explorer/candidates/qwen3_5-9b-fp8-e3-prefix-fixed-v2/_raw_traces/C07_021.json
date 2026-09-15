@@ -1,0 +1,86 @@
+{
+  "sentence": "창고 온도가 25도 이상이 되면 창고 에어컨을 켜줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:22",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#Pantry_TemperatureSensor)"
+      ],
+      "Switch.On": [
+        "(#Pantry_AirConditioner)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "Pantry_TemperatureSensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "Pantry_AirConditioner"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "TemperatureSensor.Temperature >= 25",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Wait until the temperature of Pantry_TemperatureSensor is at least 25 is true.\n- Turn on Pantry_AirConditioner.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot wait then action.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"wait until((#Pantry_TemperatureSensor).Temperature >= 25)\\n(#Pantry_AirConditioner).On()\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "wait until((#Pantry_TemperatureSensor).temperatureSensor_temperature >= 25)\n(#Pantry_AirConditioner).switch_on()"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "Pantry_TemperatureSensor"
+      ],
+      "Switch": [
+        "Pantry_AirConditioner"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Pantry_TemperatureSensor).temperatureSensor_temperature >= 25)\n(#Pantry_AirConditioner).switch_on()\"\n}",
+  "elapsed_sec": 0.763,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

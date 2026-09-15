@@ -1,0 +1,73 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Dehumidifier).dehumidifier_setDehumidifierMode(\"dehumidifying\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\"\n}",
+  "precision": {
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "사무실의 모든 제습기를 제습 모드로 설정해줘.",
+  "command_eng": "Set all dehumidifiers in the office to dehumidify mode.",
+  "connected_devices": {
+    "Office_Dehumidifier_1": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Office",
+        "Dehumidifier"
+      ]
+    },
+    "Office_Dehumidifier_2": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Office",
+        "Dehumidifier"
+      ]
+    },
+    "Home_Dehumidifier": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Home",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "dehumidifying"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "Dehumidifier": [
+      "Office_Dehumidifier_1",
+      "Office_Dehumidifier_2"
+    ]
+  },
+  "input_payload_sha256": "4642a4f65dd05acd83a81d6bb2d92be9d93eacaf8cb3ae768ba36e8b9a7266d6",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.3
+}

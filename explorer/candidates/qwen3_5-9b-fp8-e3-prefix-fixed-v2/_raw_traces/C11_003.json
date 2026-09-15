@@ -1,0 +1,102 @@
+{
+  "sentence": "지금 침실 온도를 확인하고 30분 뒤 다시 확인해서 3도 이상 떨어졌으면 침실 히터 플러그를 켜줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:54",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#Bedroom_TempSensor)"
+      ],
+      "Switch.On": [
+        "(#Bedroom_Heater)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "Bedroom_TempSensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "Bedroom_Heater"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "30 MIN"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "($t1 - $t2) >= 3",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Read TemperatureSensor.Temperature as the current temperature.\n- Wait for 30 minutes.\n- Read TemperatureSensor.Temperature as the current temperature.\n- If (the current temperature - the current temperature) is at least 3, turn on Bedroom_Heater.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nRead, delay, read, diff, if-then action.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"t1 = (#Bedroom_TempSensor).Temperature\\ndelay(30 MIN)\\nt2 = (#Bedroom_TempSensor).Temperature\\ndiff = t1 - t2\\nif (diff >= 3) {\\n    (#Bedroom_Heater).On()\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "t1 = (#Bedroom_TempSensor).temperatureSensor_temperature\ndelay(30 MIN)\nt2 = (#Bedroom_TempSensor).temperatureSensor_temperature\ndiff = t1 - t2\nif (diff >= 3) {\n(#Bedroom_Heater).switch_on()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "Bedroom_TempSensor"
+      ],
+      "Switch": [
+        "Bedroom_Heater"
+      ]
+    },
+    "seconds": 0.064
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#Bedroom_TempSensor).temperatureSensor_temperature\ndelay(30 MIN)\nt2 = (#Bedroom_TempSensor).temperatureSensor_temperature\ndiff = t1 - t2\nif (diff >= 3) {\n(#Bedroom_Heater).switch_on()\n}\"\n}",
+  "elapsed_sec": 1.136,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

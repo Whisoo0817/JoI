@@ -1,0 +1,191 @@
+{
+  "sentence": "서버 랙 습도가 70%보다 높아지면 연구실 제습기를 제습모드로 설정하고 1시간마다 습도를 다시 체크해서 50% 밑이면 제습기를 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:39",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "HumiditySensor.Humidity",
+      "Dehumidifier.SetDehumidifierMode",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "HumiditySensor.Humidity": [
+        "(#SR_Humid)",
+        "(#Lab_Humid)"
+      ],
+      "Dehumidifier.SetDehumidifierMode": [
+        "(#Lab_Dehum)"
+      ],
+      "Switch.Off": [
+        "(#Lab_Dehum)"
+      ]
+    },
+    "resolved": {
+      "HumiditySensor.Humidity": {
+        "q": "one",
+        "devices": [
+          "Lab_Humid",
+          "SR_Humid"
+        ]
+      },
+      "Dehumidifier.SetDehumidifierMode": {
+        "q": "one",
+        "devices": [
+          "Lab_Dehum"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "Lab_Dehum"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "HumiditySensor.Humidity > 70",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "dehumidifying"
+        }
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "read",
+            "var": "h",
+            "src": "HumiditySensor.Humidity"
+          },
+          {
+            "op": "if",
+            "cond": "h < 50",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Wait until the humidity of Lab_Humid and SR_Humid is above 70 is true.\n- Set Lab_Dehum mode to dehumidifying.\n- Every hour, check the humidity.\n- Read HumiditySensor.Humidity as the current humidity.\n- If the current humidity is below 50, turn off Lab_Dehum.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nD-4 phase lifecycle: pre-cycle wait(none) triggers phase 1, then cycle polls hourly to turn off if humidity < 50.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"phase := 0\\nif (phase == 0) {\\n    wait until((#SR_Humid).Humidity > 70 or (#Lab_Humid).Humidity > 70)\\n    phase = 1\\n    (#Lab_Dehum).SetDehumidifierMode(\\\"dehumidifying\\\")\\n}\\nelse {\\n    h = (#SR_Humid).Humidity\\n    if ((#Lab_Humid).Humidity < 50) {\\n        h = (#Lab_Humid).Humidity\\n    }\\n    if (h < 50) {\\n        (#Lab_Dehum).Off()\\n    }\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 3600000,
+      "script": "phase := 0\nif (phase == 0) {\nwait until((#SR_Humid).humiditySensor_humidity > 70 or (#Lab_Humid).humiditySensor_humidity > 70)\n    phase = 1\n    (#Lab_Dehum).dehumidifier_setDehumidifierMode(\"dehumidifying\")\n}\nelse {\nh = (#SR_Humid).humiditySensor_humidity\n    if ((#Lab_Humid).humiditySensor_humidity < 50) {\nh = (#Lab_Humid).humiditySensor_humidity\n}\nif (h < 50) {\n(#Lab_Dehum).switch_off()\n}\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 0,
+      "input": {
+        "Lab_Humid.humidity": 0.0,
+        "SR_Humid.humidity": 70.1
+      },
+      "dwell_ms": 0,
+      "ir_actions": [
+        [
+          [
+            "dehumidifier",
+            "setdehumidifiermode",
+            [
+              "tuple",
+              [
+                [
+                  "string",
+                  "dehumidifying"
+                ]
+              ]
+            ],
+            [
+              "Lab_Dehum"
+            ]
+          ]
+        ],
+        [
+          [
+            "switch",
+            "off",
+            [
+              "tuple",
+              []
+            ],
+            [
+              "Lab_Dehum"
+            ]
+          ]
+        ]
+      ],
+      "joi_actions": [
+        [
+          [
+            "dehumidifier",
+            "setdehumidifiermode",
+            [
+              "tuple",
+              [
+                [
+                  "string",
+                  "dehumidifying"
+                ]
+              ]
+            ],
+            [
+              "Lab_Dehum"
+            ]
+          ]
+        ]
+      ],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "HumiditySensor": [
+        "SR_Humid"
+      ],
+      "HumiditySensor#2": [
+        "Lab_Humid"
+      ],
+      "Dehumidifier": [
+        "Lab_Dehum"
+      ],
+      "Switch": [
+        "Lab_Dehum"
+      ]
+    },
+    "seconds": 0.013
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#SR_Humid).humiditySensor_humidity > 70 or (#Lab_Humid).humiditySensor_humidity > 70)\n    phase = 1\n    (#Lab_Dehum).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\\n}\\nelse {\\nh = (#SR_Humid).humiditySensor_humidity\\n    if ((#Lab_Humid).humiditySensor_humidity < 50) {\\nh = (#Lab_Humid).humiditySensor_humidity\\n}\\nif (h < 50) {\\n(#Lab_Dehum).switch_off()\\n}\\n}\"\n}",
+  "elapsed_sec": 2.306,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'Lab_Humid.humidity': 0.0, 'SR_Humid.humidity': 70.1} IR=[(('dehumidifier', 'setdehumidifiermode', ('tuple', (('string', 'dehumidifying'),)), ('Lab_Dehum',)),), (('switch', 'off', ('tuple', ()), ('Lab_Dehum',)),)] JoI=[(('dehumidifier', 'setdehumidifiermode', ('tuple', (('string', 'dehumidifying'),)), ('Lab_Dehum',)),)]"
+  }
+}

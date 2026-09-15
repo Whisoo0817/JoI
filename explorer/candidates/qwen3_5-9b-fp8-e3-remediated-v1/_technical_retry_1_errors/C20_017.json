@@ -1,0 +1,79 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "뒷마당에 1분 이상 동작이 감지되면 뒷마당 조명을 켜줘.",
+  "command_eng": "If motion is detected in the backyard for at least 1 minute, turn on the backyard light.",
+  "connected_devices": {
+    "Backyard_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Backyard",
+        "MotionSensor"
+      ]
+    },
+    "Backyard_Light": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Backyard",
+        "Light",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Frontyard_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Frontyard",
+        "MotionSensor"
+      ]
+    },
+    "Backyard_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Backyard",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == true",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "MotionSensor": [
+      "Backyard_Motion"
+    ],
+    "Switch": [
+      "Backyard_Light"
+    ]
+  },
+  "input_payload_sha256": "1b559fdb4674208d15fcb9a7318df38cb9d719affa1b1e9e5ea7394b9962a7ba",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2
+}

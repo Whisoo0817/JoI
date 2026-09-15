@@ -1,0 +1,72 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#DoorLock).doorLock_lock()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#DoorLock).doorLock_lock()\"\n}",
+  "precision": {
+    "DoorLock.Lock": [
+      "all(#DoorLock)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "모든 도어락을 잠궈줘.",
+  "command_eng": "Lock all door locks.",
+  "connected_devices": {
+    "FrontDoor_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Front",
+        "DoorLock"
+      ]
+    },
+    "BackDoor_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Back",
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "DoorLock.Lock",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "DoorLock": [
+      "FrontDoor_Lock",
+      "BackDoor_Lock",
+      "Garage_Lock"
+    ]
+  },
+  "input_payload_sha256": "94f659db6f63021f50d2168d80673b11dceadcd28334559f68da14a0e3228783",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.2
+}

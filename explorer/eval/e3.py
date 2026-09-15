@@ -1,10 +1,10 @@
-"""E3 하네스 — 확인된 IR × LLM lowering 후보를 게이트로 판정 (388행).
+"""E3 하네스 — 확인된 IR × LLM lowering 후보를 게이트로 판정 (382행).
 
 두 단계로 나뉜다 (생성은 몇 시간, 판정은 몇 분):
 
   python -m explorer.eval.e3 gen  [--limit N] [--cat C01,C02] [--workers K]
-      dataset.csv 각 행에 대해 확인된 IR(ir_gt)을 주입(JOI_GT_IR_PATH)하고
-      파이프라인의 매핑+lowering만 LLM으로 돌려 후보 JoI를 만든다.
+      dataset.csv 각 행에 대해 확인된 IR(ir_gt)과 binding(binding_gt)을 주입하고
+      자연어 매핑을 생략한 채 lowering만 LLM으로 돌려 후보 JoI를 만든다.
       결과는 explorer/candidates/<모델태그>/<행키>.json — 이미 있으면
       건너뛰므로 중단 후 재실행해도 이어진다.
 
@@ -12,15 +12,16 @@
       후보 전부를 explorer.verification.gate.gate_pair로 판정(EQUIV/DIVERGE(재생 확인)/
       REFUSED) → 분포 + explorer/runs/e3.md.
 
-측정 구도(§6 E3): 사용자가 IR을 확인했다는 전제에서, 매핑(기기 고르기)과
-lowering(코드 만들기)은 검증 안 된 LLM 출력 — 게이트가 그 오류를 잡는지가
-측정 대상이다. 네이밍 단계는 측정 무관이라 JOI_SKIP_NAME=1로 끈다.
+측정 구도(§6 E3): 확인된 IR과 binding을 직접 주입하고 lowering만 LLM으로
+수행한다. service prefix는 확인된 IR–selector 대응으로 결정한다.
+모델 원문과 최종 코드를 trace에 보존한다. 네이밍은 JOI_SKIP_NAME=1로 끈다.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
 import subprocess
@@ -30,6 +31,18 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 CAND_BASE = os.path.join(ROOT, "explorer", "candidates")
+E3_EXPECTED_CASES = 382
+E3_SELECTION_RULE = "confirmed IR/binding rows excluding any IR containing timeout or on_timeout"
+
+
+def has_timeout(value) -> bool:
+    """Exclude the entire timeout feature, independently of candidate outcomes."""
+    if isinstance(value, dict):
+        return ('timeout' in value or 'on_timeout' in value
+                or any(has_timeout(v) for v in value.values()))
+    if isinstance(value, list):
+        return any(has_timeout(v) for v in value)
+    return False
 
 # 행별 작업 프로세스: env 격리 + 파이프라인 크래시 격리.
 WORKER = r"""
@@ -53,7 +66,9 @@ try:
     except Exception:
         joi_block = None
     out = {'status': 'ok', 'joi_block': joi_block, 'code': code,
-           'precision': r.get('precision')}
+           'precision': r.get('precision'),
+           'precision_reasoning': r.get('precision_reasoning'),
+           'trace_path': r.get('trace_path')}
 except JoiGenerationError as e:
     out = {'status': 'error', 'error_code': getattr(e, 'error_code', 'unknown'),
            'error_msg': str(e)[:600]}
@@ -72,12 +87,53 @@ def load_rows() -> list[dict]:
             cat = (r.get("category_v2") or "").strip()
             if not cat or not (r.get("ir_gt") or "").strip():
                 continue
+            if has_timeout(json.loads(r['ir_gt'])):
+                continue
             rows.append(r)
     return rows
 
 
 def key_of(r: dict) -> str:
     return f'{r["category_v2"]}_{int(float(r["index"])):03d}'
+
+
+def row_payload(r: dict) -> dict:
+    return {
+        "command_kor": r["command_kor"],
+        "command_eng": r["command_eng"],
+        "connected_devices": json.loads(r["connected_devices"]),
+        "ir": json.loads(r["ir_gt"]),
+        "binding": json.loads(r.get("binding_gt") or "{}"),
+    }
+
+
+def payload_sha256(payload: dict) -> str:
+    packed = json.dumps(payload, ensure_ascii=False, sort_keys=True,
+                        separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(packed).hexdigest()
+
+
+def candidate_matches_row(candidate: dict, row: dict) -> bool:
+    payload = row_payload(row)
+    return (candidate.get("input_payload_sha256") == payload_sha256(payload)
+            and candidate.get("ir") == payload["ir"]
+            and candidate.get("binding") == payload["binding"]
+            and candidate.get("connected_devices") == payload["connected_devices"]
+            and candidate.get("command_kor") == payload["command_kor"]
+            and candidate.get("command_eng") == payload["command_eng"])
+
+
+def parse_generated_code(code: str) -> dict | None:
+    """Parse pipeline pretty JSON whose script contains literal newlines."""
+    try:
+        packed = __import__("re").sub(
+            r'("script"\s*:\s*")((?:[^"\\]|\\.)*)(")',
+            lambda m: m.group(1) + m.group(2).replace("\n", "\\n") + m.group(3),
+            code, count=1, flags=__import__("re").DOTALL)
+        value = json.loads(packed)
+        return value if isinstance(value, dict) else None
+    except Exception:
+        return None
 
 
 def model_tag() -> str:
@@ -92,6 +148,51 @@ def active_model_id() -> str:
     return get_model_id(get_client())
 
 
+def candidate_manifest(tag: str, output: str) -> None:
+    """Seal one terminal generation artifact per current E3 row."""
+    rows = sorted(load_rows(), key=key_of)
+    base = os.path.join(CAND_BASE, tag)
+    records, errors = [], []
+    for row in rows:
+        key = key_of(row)
+        path = os.path.join(base, key + ".json")
+        record = {"id": key, "path": path}
+        if not os.path.exists(path):
+            record.update(status="MISSING")
+            errors.append(key + ": missing")
+        else:
+            raw = open(path, "rb").read()
+            record["sha256"] = hashlib.sha256(raw).hexdigest()
+            try:
+                candidate = json.loads(raw)
+                record["status"] = ("GENERATED" if candidate.get("status") == "ok"
+                                    and isinstance(candidate.get("joi_block"), dict)
+                                    else "GENERATION_ERROR")
+                record["error_code"] = candidate.get("error_code")
+                record["model"] = candidate.get("model")
+                record["input_payload_sha256"] = candidate.get("input_payload_sha256")
+                if not candidate_matches_row(candidate, row):
+                    errors.append(key + ": payload mismatch")
+            except Exception as exc:
+                record.update(status="UNREADABLE", error=f"{type(exc).__name__}: {exc}")
+                errors.append(key + ": unreadable")
+        records.append(record)
+    manifest = {
+        "schema": "e3-candidate-manifest-v1", "candidate_tag": tag,
+        "created_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "expected": E3_EXPECTED_CASES, "records": records, "errors": errors,
+        "selection_rule": E3_SELECTION_RULE,
+        "complete": len(records) == E3_EXPECTED_CASES and not errors,
+    }
+    with open(output, "x", encoding="utf-8") as handle:
+        json.dump(manifest, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+    print(json.dumps({"records": len(records), "errors": len(errors),
+                      "complete": manifest["complete"]}, ensure_ascii=False))
+    if not manifest["complete"]:
+        raise SystemExit(1)
+
+
 def gen(args) -> None:
     model_id = active_model_id()
     tag = args.tag or model_id.rsplit("/", 1)[-1].lower().replace(".", "_")
@@ -99,6 +200,8 @@ def gen(args) -> None:
     os.makedirs(out_dir, exist_ok=True)
     gt_dir = os.path.join(out_dir, "_gt_ir")
     os.makedirs(gt_dir, exist_ok=True)
+    binding_dir = os.path.join(out_dir, "_gt_binding")
+    os.makedirs(binding_dir, exist_ok=True)
 
     rows = load_rows()
     if args.cat:
@@ -106,8 +209,25 @@ def gen(args) -> None:
         rows = [r for r in rows if r["category_v2"] in want]
     if args.limit:
         rows = rows[: args.limit]
-    todo = [r for r in rows
-            if not os.path.exists(os.path.join(out_dir, key_of(r) + ".json"))]
+    todo = []
+    mismatches = []
+    for r in rows:
+        path = os.path.join(out_dir, key_of(r) + ".json")
+        if not os.path.exists(path):
+            todo.append(r)
+            continue
+        try:
+            existing = json.load(open(path, encoding="utf-8"))
+        except Exception:
+            mismatches.append(key_of(r) + ": unreadable candidate")
+            continue
+        if not candidate_matches_row(existing, r):
+            mismatches.append(key_of(r) + ": current row payload differs")
+    if mismatches:
+        raise RuntimeError(
+            "candidate reuse rejected; choose a fresh tag or restore matching inputs: "
+            + "; ".join(mismatches[:20])
+        )
     print(f"[e3 gen] 모델 {model_id} | tag={tag} | 대상 {len(rows)}행, "
           f"남은 {len(todo)}행, workers={args.workers}")
 
@@ -116,10 +236,13 @@ def gen(args) -> None:
         gt_path = os.path.join(gt_dir, key + ".json")
         with open(gt_path, "w", encoding="utf-8") as f:
             json.dump(json.loads(r["ir_gt"]), f, ensure_ascii=False)
+        binding_path = os.path.join(binding_dir, key + ".json")
+        with open(binding_path, "w", encoding="utf-8") as f:
+            json.dump(json.loads(r.get("binding_gt") or "{}"), f, ensure_ascii=False)
         out_path = os.path.join(out_dir, key + ".json")
         env = os.environ.copy()
-        env.update(JOI_ROOT=ROOT, JOI_SKIP_NAME="1", JOI_TRACE="0",
-                   JOI_GT_IR_PATH=gt_path)
+        env.update(JOI_ROOT=ROOT, JOI_SKIP_NAME="1", JOI_TRACE="1",
+                   JOI_GT_IR_PATH=gt_path, JOI_GT_BINDING_PATH=binding_path)
         env.pop("JOI_IR_ONLY", None)
         t0 = time.perf_counter()
         try:
@@ -137,10 +260,8 @@ def gen(args) -> None:
         el = time.perf_counter() - t0
         if os.path.exists(out_path):
             d = json.load(open(out_path, encoding="utf-8"))
-            d.update(command_kor=r["command_kor"],
-                     command_eng=r["command_eng"],
-                     connected_devices=json.loads(r["connected_devices"]),
-                     ir=json.loads(r["ir_gt"]), model=model_id,
+            payload = row_payload(r)
+            d.update(**payload, input_payload_sha256=payload_sha256(payload), model=model_id,
                      candidate_tag=tag,
                      elapsed_sec=round(el, 1))
             with open(out_path, "w", encoding="utf-8") as f:
@@ -277,11 +398,16 @@ def main() -> None:
     g.add_argument("--tag", default="")
     t = sub.add_parser("gate")
     t.add_argument("--tag", default="")
+    m = sub.add_parser("manifest")
+    m.add_argument("--tag", required=True)
+    m.add_argument("--output", required=True)
     args = ap.parse_args()
     if args.cmd == "gen":
         gen(args)
-    else:
+    elif args.cmd == "gate":
         gate(args)
+    else:
+        candidate_manifest(args.tag, args.output)
 
 
 if __name__ == "__main__":

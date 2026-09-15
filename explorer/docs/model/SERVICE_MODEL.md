@@ -51,6 +51,8 @@ DOUBLE은 bool을 제외한 int/float를 허용한다. int/float나 signed zero�
 - WeatherProvider: Forecast, GetWeatherInfo
 - ArmRobotDetail: GetMotion, ListMotions
 - MenuProvider: GetMenu
+- CloudServiceProvider: ChatWithAI (`chat-string-return-v1`; unrestricted,
+  non-null STRING used only through identity-preserving symbolic flow)
 - NewsProvider: GetNewsDigest
 - CloudServiceProvider: IsAvailable
 

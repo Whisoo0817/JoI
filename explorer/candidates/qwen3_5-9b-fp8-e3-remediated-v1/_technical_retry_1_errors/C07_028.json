@@ -1,0 +1,95 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "입구에서 움직임이 감지되면, 입구 카메라로 사진을 찍어줘.",
+  "command_eng": "If motion is detected at the entrance, capture an image with the entrance camera.",
+  "connected_devices": {
+    "Entrance_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Yard_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Yard",
+        "MotionSensor"
+      ]
+    },
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    },
+    "Lobby_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Lobby",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "MotionSensor": [
+      "Entrance_Motion"
+    ],
+    "Camera": [
+      "Entrance_Camera"
+    ]
+  },
+  "input_payload_sha256": "af097e8f375559fe569216dcb6c5687efa724986bc9ce12ca4c34824013d5838",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1
+}

@@ -694,28 +694,20 @@ def _inject_implicit_vars(ir_obj) -> None:
 
 
 def _wrapper_period_from_ir(ir_obj):
-    """Deterministic wrapper.period override from IR.cycle.period.
+    """Deterministic wrapper.period from the confirmed IR contract.
 
-    LLM is unreliable at unit arithmetic ("30 SEC" → 1800000); we compute
-    here. D-3 (cycle body has wait edge="rising") is hardcoded to 1000 (1 SEC
-    polling) regardless of cycle.period. Returns None if IR has no top-level cycle.
+    Explicit periods are authoritative.  A missing period on a re-arming edge
+    receives the documented 1-second compatibility default.
     """
+    from timeline_ir.semantic_contract import cycle_period_ms
+
     tl = (ir_obj or {}).get("timeline", [])
     for s in tl:
         if isinstance(s, dict) and s.get("op") == "cycle":
-            body = s.get("body") or []
-            if any(
-                isinstance(x, dict) and x.get("op") == "wait" and x.get("edge") == "rising"
-                for x in body
-            ):
-                return 1000
-            p = s.get("period")
-            if isinstance(p, str):
-                try:
-                    return parse_duration_to_ms(p)
-                except ValueError:
-                    return None
-            return None
+            try:
+                return cycle_period_ms(s)
+            except ValueError:
+                return None
     return None
 
 
@@ -817,6 +809,7 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
     # 확인된 IR 주입(Stage-B): 파일의 IR을 그대로 lowering. test.py IR-confirm
     # 흐름과 배치 측정(run_lower_gt_batch)이 쓴다.
     _GT_IR_PATH = os.environ.get("JOI_GT_IR_PATH", "")
+    _GT_BINDING_PATH = os.environ.get("JOI_GT_BINDING_PATH", "")
 
     log_buf = []
 
@@ -917,26 +910,58 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
 
     original_sentence = sentence
 
-    # ── Mapping stage. Works on real ids and tags,
-    # so there is no dN aliasing and nothing to restore downstream.
-    from timeline_ir.mapping import extractor as _mapping_extractor
-    from timeline_ir.mapping.resolver import resolve as _resolve_mapping
-    from timeline_ir.mapping.adapter import to_pipeline_contract
+    # ── Mapping stage. Confirmed E3 inputs bypass natural-language mapping
+    # entirely and deterministically derive lowering selectors from binding_gt.
+    _confirmed_ir = None
+    _confirmed_binding = None
+    if _GT_BINDING_PATH and not _GT_IR_PATH:
+        raise JoiGenerationError(
+            "JOI_GT_BINDING_PATH requires JOI_GT_IR_PATH",
+            "\n".join(log_buf), error_code="gt_binding_without_ir",
+        )
+    if _GT_IR_PATH and _GT_BINDING_PATH:
+        try:
+            with open(_GT_IR_PATH, encoding="utf-8") as _f:
+                _confirmed_ir = json.load(_f)
+            with open(_GT_BINDING_PATH, encoding="utf-8") as _f:
+                _confirmed_binding = json.load(_f)
+            from lowering.confirmed_inputs import pipeline_contract
+            _ctr = pipeline_contract(_confirmed_ir, _confirmed_binding, connected_devices)
+        except Exception as e:
+            raise JoiGenerationError(
+                f"confirmed IR/binding load failed: {e}",
+                "\n".join(log_buf), error_code="confirmed_input_invalid",
+            )
+        trace["mapping"] = {
+            "mode": "confirmed_binding",
+            "selected_services": _ctr["selected_services"],
+            "selectors": _ctr["df_selectors"],
+            "resolved": _ctr["df_resolved"],
+            "errors": [],
+        }
+        log_buf.append("🧪 confirmed IR+binding mode: NL mapping/selector inference skipped")
+    else:
+        # Works on real ids and tags, so there is no dN aliasing and nothing to
+        # restore downstream.
+        from timeline_ir.mapping import extractor as _mapping_extractor
+        from timeline_ir.mapping.resolver import resolve as _resolve_mapping
+        from timeline_ir.mapping.adapter import to_pipeline_contract
 
-    # Reuse the pipeline's client so the base_url argument reaches the mapper
-    # (its own lazy default would silently fall back to the env base URL).
-    _mapping_extractor.set_client(client, model)
-    trace["stage"] = "mapping"
-    _map_log = []
-    _ctr = to_pipeline_contract(_resolve_mapping(sentence, cd_norm, log=_map_log))
-    trace["mapping"] = {"selected_services": _ctr["selected_services"],
-                        "selectors": _ctr["df_selectors"],
-                        "resolved": _ctr["df_resolved"],
-                        "errors": _ctr["errors"], "log": list(_map_log)}
-    for _ln in _map_log:
-        log_buf.append(f"[mapping] {_ln}")
-    for _e in _ctr["errors"]:
-        log_buf.append(f"[mapping] ⚠️ {_e}")
+        _mapping_extractor.set_client(client, model)
+        trace["stage"] = "mapping"
+        _map_log = []
+        _ctr = to_pipeline_contract(_resolve_mapping(sentence, cd_norm, log=_map_log))
+        trace["mapping"] = {"mode": "natural_language",
+                            "selected_services": _ctr["selected_services"],
+                            "selectors": _ctr["df_selectors"],
+                            "resolved": _ctr["df_resolved"],
+                            "errors": _ctr["errors"], "log": list(_map_log)}
+        for _ln in _map_log:
+            log_buf.append(f"[mapping] {_ln}")
+        for _e in _ctr["errors"]:
+            log_buf.append(f"[mapping] ⚠️ {_e}")
+
+    # ── Mapping contract shared by inferred and confirmed-input paths.
     # 실현 불가 사유가 하나라도 있으면 fail-closed — 사용자가 말한 일부만
     # 실현한 코드를 내보내지 않는다(부분 실현 금지). 사유는 흔적에 남는다.
     if not _ctr["selected_services"] or _ctr["errors"]:
@@ -957,7 +982,7 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
     log_buf.append(f"🧭 mapping: {selected_services}")
     # Korean → English for the downstream IR/lowering stages. original_sentence
     # (Korean) is already captured; keep it for arg_resolve language routing.
-    if re.search(r"[가-힣]", sentence):
+    if not _GT_BINDING_PATH and re.search(r"[가-힣]", sentence):
         sentence = infer("translation", sentence)
     # (fall through — no early return; shared pipeline below builds the JoI code)
 
@@ -1240,14 +1265,17 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
         # 확인된 IR을 그대로 사용 — resolve/extract 브랜치와 후처리 3종은
         # 건너뛴다(인자·enum은 IR에 이미 확정, verbatim 유지). 매핑·precision은
         # 위에서 이미 돌았으므로 lowering의 selector 입력은 평소와 동일하다.
-        try:
-            with open(_GT_IR_PATH, encoding="utf-8") as _f:
-                ir = json.load(_f)
-        except Exception as e:
-            raise JoiGenerationError(
-                f"JOI_GT_IR_PATH set but failed to load {_GT_IR_PATH}: {e}",
-                "\n".join(log_buf), error_code="gt_ir_load_failed",
-            )
+        if _confirmed_ir is not None:
+            ir = _confirmed_ir
+        else:
+            try:
+                with open(_GT_IR_PATH, encoding="utf-8") as _f:
+                    ir = json.load(_f)
+            except Exception as e:
+                raise JoiGenerationError(
+                    f"JOI_GT_IR_PATH set but failed to load {_GT_IR_PATH}: {e}",
+                    "\n".join(log_buf), error_code="gt_ir_load_failed",
+                )
         log_buf.append("🧪 confirmed-IR mode: extract_ir/resolve 생략, IR verbatim")
         precision_output = run_precision()
     else:
@@ -1377,12 +1405,15 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
             joi_json = json.loads(script)
             if "script" in joi_json:
                 joi_json["script"] = _strip_selector_extra_parens(joi_json["script"])
-                joi_json["script"] = _apply_service_prefix(joi_json["script"])
+                joi_json["script"] = _apply_service_prefix(
+                    joi_json["script"], confirmed_selectors=(df_selectors if _confirmed_ir is not None else None))
                 joi_json["script"] = _normalize_script_newlines(joi_json["script"])
             joi_json.setdefault("name", "Scenario")  # overwritten by naming stage below
             joi_json = {"name": joi_json.pop("name"), **joi_json}
         except (json.JSONDecodeError, TypeError):
-            body = _apply_service_prefix(_strip_selector_extra_parens(script))
+            body = _apply_service_prefix(
+                _strip_selector_extra_parens(script),
+                confirmed_selectors=(df_selectors if _confirmed_ir is not None else None))
             joi_json = {
                 "name": "Scenario",
                 "cron": "",
@@ -1414,6 +1445,7 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
         return joi_json
 
     raw = infer(prompt_key, joi_input, system=system_prompt)
+    trace["lowering"] = {"raw": raw}
     joi_json = _finalize(raw)
     code_plan = _extract_reasoning(raw)  # lowering's control-flow notes for re_translate
     trace["lowering"] = {"raw": raw, "joi_block": joi_json}
@@ -1424,7 +1456,8 @@ def _generate_impl(sentence, connected_devices, other_params, base_url,
     trace["stage"] = "gate"
     _resolved_map = (precision_output.get("resolved", {})
                      if isinstance(precision_output, dict) else {})
-    _binding = _live_binding(_resolved_map, ir, connected_devices)
+    _binding = (_confirmed_binding if _confirmed_binding is not None else
+                _live_binding(_resolved_map, ir, connected_devices))
     gate = _run_gate(ir, _binding, connected_devices, joi_json)
     trace["gate"] = gate
     log_buf.append(f"🚧 gate: {gate['verdict']} ({gate['seconds']}s) "
