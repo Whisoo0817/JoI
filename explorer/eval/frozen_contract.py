@@ -93,6 +93,11 @@ def protocol(args):
                                       'denotes bound devices, B2 split calls in one slot stay grouped, '
                                       'B5 selector occurrences are assigned to binding slots; '
                                       'selector_binding=True; no post-outcome rebinding')},
+        'selector_assignment_policy': ('B5 (whisoo 2026-09-14, applied to E3 2026-09-15): when JoI selector '
+            'occurrences map to a service with several binding slots, the tag-rule assignment runs first; '
+            'if it is not EQUIV, every other assignment runs. EQUIV if some assignment is EQUIV; DIVERGE only if '
+            'every assignment is a confirmed DIVERGE; otherwise not decided. Finite input domains are '
+            'recomputed per assignment; the per-case wall limit is multiplied by the number of assignments.'),
         'caps': {'max_states': 200000, 'max_transitions': 500000, 'max_input_combinations': 100000,
                  'smt_timeout_ms': 1000, 'smt_total_timeout_ms': 10000, 'smt_max_queries': 10000},
         'engine_limits': {'wall_seconds': 20, 'address_space_mib': 768},
@@ -162,6 +167,8 @@ def prepare(args):
                             'devices': json.loads(row['connected_devices']), 'joi_block': candidate['joi_block']}
             payload = c['payload']
             pair = prepare_pair(payload['ir'], payload['binding'], payload['devices'], payload['joi_block'])
+            c['selector_domains'] = list(getattr(pair, 'selector_domains', []))
+            c['selector_choice'] = list(getattr(pair, 'selector_choice', ()))
             relational = p['model_policy'].get('verification_mode') == 'relational'
             if not relational and p['model_policy']['horizon_ms'] is None:
                 from explorer.verification.relational_analysis import analyze
@@ -233,16 +240,68 @@ def worker(args):
                 'reason': 'finite enumeration oracle does not certify symbolic domains',
                 'worker_seconds': time.perf_counter() - started}), flush=True)
             return
-        pair = prepare_pair(payload['ir'], payload['binding'], payload['devices'], payload['joi_block'])
         engine = timed_product if args.engine == 'explorer' else exact_timed_product
         caps = job['caps'] if args.engine == 'explorer' else {k: v for k, v in job['caps'].items() if not k.startswith('smt_')}
-        r = engine(pair.ir_runner, pair.code_runner, **job['case']['model'], **caps)
-        result = {'status': r.verdict, 'result': asdict(r)}
-        if args.engine == 'explorer':
-            result['claim'] = r.claim
-            result['replays'] = [asdict(replay_divergence(pair.ir_runner, pair.code_runner, d)) for d in r.divergences]
-            if r.verdict == 'DIVERGE' and not any(x['confirmed'] for x in result['replays']):
-                result['status'] = 'REPLAY_UNCONFIRMED'
+
+        def once(assignment=None, recompute=False):
+            pair = prepare_pair(payload['ir'], payload['binding'], payload['devices'], payload['joi_block'],
+                                selector_assignment=assignment)
+            model = dict(job['case']['model'])
+            if recompute and model.get('input_domains') is not None:
+                from explorer.verification.gate import pair_input_domains
+                from explorer.verification.product import check_supported_pair
+                from explorer.verification.input_coverage import initial_domains
+                model['input_domains'] = pair_input_domains(pair)
+                model['initial_gv_domains'] = initial_domains(
+                    check_supported_pair(pair.ir_runner, pair.code_runner, input_domains=model['input_domains']))
+            r = engine(pair.ir_runner, pair.code_runner, **model, **caps)
+            out = {'status': r.verdict, 'result': asdict(r)}
+            if args.engine == 'explorer':
+                out['claim'] = r.claim
+                out['replays'] = [asdict(replay_divergence(pair.ir_runner, pair.code_runner, d)) for d in r.divergences]
+                if r.verdict == 'DIVERGE' and not any(x['confirmed'] for x in out['replays']):
+                    out['status'] = 'REPLAY_UNCONFIRMED'
+            return out
+
+        def attempt(assignment, recompute):
+            try:
+                return once(assignment, recompute)
+            except Unsupported as e:
+                return {'status': 'REFUSED', 'reason': str(e)}
+
+        domains = list(job['case'].get('selector_domains') or [])
+        if args.engine != 'explorer' or not domains:
+            result = once()
+        else:
+            import itertools
+            choice = tuple(job['case'].get('selector_choice') or [0] * len(domains))
+            first = attempt(choice, False)
+            fixpoint = lambda x: x['status'] == 'EQUIV' and x.get('claim') == 'EQUIV-FIXPOINT'
+            seen = Counter([first['status']])
+            info = {'domains': domains, 'tag_choice': list(choice)}
+            result = None
+            if not fixpoint(first):
+                for assign in itertools.product(*[range(n) for n in domains]):
+                    if assign == choice:
+                        continue
+                    r = attempt(assign, True)
+                    seen[r['status']] += 1
+                    if fixpoint(r):
+                        r['selector_assignment'] = dict(info, tried=sum(seen.values()), statuses=dict(seen),
+                                                        equiv_assignment=list(assign))
+                        result = r
+                        break
+            if result is None:
+                info.update(tried=sum(seen.values()), statuses=dict(seen))
+                if fixpoint(first) or set(seen) == {'DIVERGE'}:
+                    first['selector_assignment'] = info
+                    result = first
+                else:
+                    worst = next((s for s in ('ERROR', 'REPLAY_UNCONFIRMED', 'UNKNOWN', 'REFUSED') if s in seen),
+                                 next(iter(seen)))
+                    result = {'status': worst, 'claim': 'INCONCLUSIVE',
+                              'reason': 'B5: not every selector assignment was decided',
+                              'selector_assignment': info, 'first_assignment': first}
     except MemoryError:
         result = {'status': 'MEMORY_LIMIT'}
     except Unsupported as e:
@@ -277,7 +336,7 @@ def run(args):
                     try:
                         proc = subprocess.run([sys.executable, __file__, 'worker', '--engine', engine],
                                               input=json.dumps(job), text=True, capture_output=True,
-                                              timeout=p['engine_limits']['wall_seconds'])
+                                              timeout=p['engine_limits']['wall_seconds'] * max(1, __import__('math').prod(c.get('selector_domains') or [1])))
                         row[engine] = json.loads(proc.stdout) if proc.returncode == 0 else {
                             'status': 'CRASH', 'returncode': proc.returncode, 'stderr': proc.stderr[-2000:]}
                     except subprocess.TimeoutExpired:

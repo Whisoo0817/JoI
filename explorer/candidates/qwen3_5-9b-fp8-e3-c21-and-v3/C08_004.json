@@ -1,0 +1,103 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#LR_MB).multiButton_button4 == \"pushed\")\nall(#Light).light_moveToBrightness(100.0, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#LR_MB).multiButton_button4 == \\\"pushed\\\")\\nall(#Light).light_moveToBrightness(100.0, 0.0)\"\n}",
+  "precision": {
+    "MultiButton.Button4": [
+      "(#LR_MB)"
+    ],
+    "Light.MoveToBrightness": [
+      "all(#Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "멀티버튼의 버튼4가 눌리면 거실 조명 밝기를 100%로 설정해줘.",
+  "command_eng": "When button 4 of the multi-button is pressed, set all living room lights to 100% brightness.",
+  "connected_devices": {
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Kitchen_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Kitchen",
+        "MultiButton"
+      ]
+    },
+    "LR_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "LR_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button4 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 100.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "binding": {
+    "MultiButton": [
+      "LR_MB"
+    ],
+    "Light": [
+      "LR_Light_1",
+      "LR_Light_2"
+    ]
+  },
+  "input_payload_sha256": "1c03ecea7ee01ae5b6d1bb1756a238c82e7d7d0b6e8da623fa44d0e031a34544",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

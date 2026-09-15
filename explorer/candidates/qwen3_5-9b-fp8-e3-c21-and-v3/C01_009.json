@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "TemperatureWeather = (#System_WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\"The outdoor temperature is \" + TemperatureWeather)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"TemperatureWeather = (#System_WeatherProvider).weatherProvider_temperatureWeather\nall(#Speaker).speaker_speak(\\\"The outdoor temperature is \\\" + TemperatureWeather)\"\n}",
+  "precision": {
+    "WeatherProvider.TemperatureWeather": [
+      "(#System_WeatherProvider)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "외부 온도를 스피커로 출력해줘.",
+  "command_eng": "Tell me the outdoor temperature through the speaker.",
+  "connected_devices": {
+    "System_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "TemperatureWeather",
+        "src": "WeatherProvider.TemperatureWeather"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "The outdoor temperature is $TemperatureWeather"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "WeatherProvider": [
+      "System_WeatherProvider"
+    ],
+    "Speaker": [
+      "LivingRoom_Speaker",
+      "Kitchen_Speaker"
+    ]
+  },
+  "input_payload_sha256": "a2c283029dc5fd62a3d45ef2e752b9492a11cd7b5a7dd783e1b84c835edb6db2",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}
