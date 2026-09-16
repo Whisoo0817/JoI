@@ -1,0 +1,37 @@
+{
+ "id": "C11_002",
+ "request_sha256": "d408e10ef5417982a46f6f1b54312de95b9bf27c115658185cae1846026a635c",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 267,
+   "prompt_tokens": 6598,
+   "total_tokens": 6865,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 12.544457197189331,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR condition uses the second snapshot ($t2) minus the first ($t1), but the candidate reads the sensor again inside the `if` guard instead of using $t2. This causes the guard to compare the current live value against $t2, failing when the live value differs from the stored $t2. Evidence F2 shows the action was missing at the mismatch instant because the guard evaluated to false.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4\"],\n    \"change_summary\": \"Replaced the live sensor read in the `if` condition with the stored variable $t2 to match the IR's logic of comparing two historical snapshots.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\\ndelay(1 HOUR)\\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\\nif (t1 - t2 >= 2) {\\n(#LivingRoom_Heater).switch_on()\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\ndelay(1 HOUR)\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\nif (t1 - t2 >= 2) {\n(#LivingRoom_Heater).switch_on()\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR condition uses the second snapshot ($t2) minus the first ($t1), but the candidate reads the sensor again inside the `if` guard instead of using $t2. This causes the guard to compare the current live value against $t2, failing when the live value differs from the stored $t2. Evidence F2 shows the action was missing at the mismatch instant because the guard evaluated to false.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4"
+  ],
+  "change_summary": "Replaced the live sensor read in the `if` condition with the stored variable $t2 to match the IR's logic of comparing two historical snapshots."
+ },
+ "status": "REVISED"
+}

@@ -12,7 +12,7 @@ import sys
 import time
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]  # repo root (joi/self_feedback/repair_core.py -> ../..)
 PY = sys.executable
 BASE_URL = os.environ.get("REPAIR_BASE_URL", "http://localhost:8002/v1")
 

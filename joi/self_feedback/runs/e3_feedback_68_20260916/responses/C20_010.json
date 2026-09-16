@@ -1,0 +1,39 @@
+{
+ "id": "C20_010",
+ "request_sha256": "a3378b132b568e4b51ef3fe3bfe911debb39f7d0197e65161d1c66ddc496ca73",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 333,
+   "prompt_tokens": 7990,
+   "total_tokens": 8323,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 16.197412729263306,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 30-second sustain window (300 ticks at 100ms). The candidate uses a 1000ms wrapper period and a threshold of 30, causing the action to fire at 29 seconds (29 ticks * 1000ms) instead of 30 seconds. Additionally, the 1000ms wrapper cannot observe the condition dropping and recovering between iterations, violating the sustain requirement.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed period to 100ms to match the sustain grid. Updated the threshold from 30 to 301 (300 ticks + 1) so the action fires exactly at the 30-second mark (tick 301), ensuring the condition was held for the full 30 seconds.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Garage_ContactSensor).contactSensor_contact == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 301) {\\n(#Garage_Light).switch_on()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Garage_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 301) {\n(#Garage_Light).switch_on()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 30-second sustain window (300 ticks at 100ms). The candidate uses a 1000ms wrapper period and a threshold of 30, causing the action to fire at 29 seconds (29 ticks * 1000ms) instead of 30 seconds. Additionally, the 1000ms wrapper cannot observe the condition dropping and recovering between iterations, violating the sustain requirement.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed period to 100ms to match the sustain grid. Updated the threshold from 30 to 301 (300 ticks + 1) so the action fires exactly at the 30-second mark (tick 301), ensuring the condition was held for the full 30 seconds."
+ },
+ "status": "REVISED"
+}

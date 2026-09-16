@@ -1,0 +1,38 @@
+{
+ "id": "C08_024",
+ "request_sha256": "edc03bd6854562b31f70803782fcab49db11a6c13700ff436e5857498c1b3bba",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 340,
+   "prompt_tokens": 6679,
+   "total_tokens": 7019,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 12.227539539337158,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR implements a rising-edge wait using a blocking two-wait rearm pattern. The candidate uses a periodic `if` guard which only evaluates at the start of the 1-second cycle period. At t=100ms, the condition became true, but the candidate's guard evaluated at t=0 (false) and t=1000 (after the action should have fired), missing the rising edge entirely.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with the standard rising-edge state machine: persist `triggered`, block until the condition is false if previously fired, then block until the condition is true, execute the action, and mark fired. This ensures the action fires exactly when the edge occurs, regardless of the wrapper period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel <= 80)\\ntriggered = false\\n}\\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel > 80)\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel <= 80)\ntriggered = false\n}\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel > 80)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR implements a rising-edge wait using a blocking two-wait rearm pattern. The candidate uses a periodic `if` guard which only evaluates at the start of the 1-second cycle period. At t=100ms, the condition became true, but the candidate's guard evaluated at t=0 (false) and t=1000 (after the action should have fired), missing the rising edge entirely.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with the standard rising-edge state machine: persist `triggered`, block until the condition is false if previously fired, then block until the condition is true, execute the action, and mark fired. This ensures the action fires exactly when the edge occurs, regardless of the wrapper period."
+ },
+ "status": "REVISED"
+}

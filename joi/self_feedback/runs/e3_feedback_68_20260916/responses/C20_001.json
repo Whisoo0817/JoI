@@ -1,0 +1,39 @@
+{
+ "id": "C20_001",
+ "request_sha256": "637e938527c53578f485b94c4597c63a9f95b57d03ac639039235bec954bdad3",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 368,
+   "prompt_tokens": 8027,
+   "total_tokens": 8395,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.936190605163574,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 30-second sustained wait (300 ticks at 100ms granularity). The candidate uses a 1000ms wrapper period and a threshold of 30, causing the action to fire after only 30 seconds of 1-second ticks (30,000ms) but incorrectly counting the initial state as tick 1, leading to an early trigger at 29,000ms. The correct approach uses a 100ms wrapper period and a threshold of 301 (300 ticks + 1 for the initial state).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed period from 1000 to 100 to match the sustain window granularity. Updated the threshold from 30 to 301 to correctly count 30 full seconds (300 ticks) plus the initial tick, ensuring the action fires exactly at 30,000ms as required by the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#LivingRoom_MotionSensor).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 301) {\\n(#LivingRoom_Strip).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#LivingRoom_MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 301) {\n(#LivingRoom_Strip).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 30-second sustained wait (300 ticks at 100ms granularity). The candidate uses a 1000ms wrapper period and a threshold of 30, causing the action to fire after only 30 seconds of 1-second ticks (30,000ms) but incorrectly counting the initial state as tick 1, leading to an early trigger at 29,000ms. The correct approach uses a 100ms wrapper period and a threshold of 301 (300 ticks + 1 for the initial state).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed period from 1000 to 100 to match the sustain window granularity. Updated the threshold from 30 to 301 to correctly count 30 full seconds (300 ticks) plus the initial tick, ensuring the action fires exactly at 30,000ms as required by the IR."
+ },
+ "status": "REVISED"
+}

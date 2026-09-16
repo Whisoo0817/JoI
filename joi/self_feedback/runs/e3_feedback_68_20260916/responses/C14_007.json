@@ -1,0 +1,38 @@
+{
+ "id": "C14_007",
+ "request_sha256": "3d26a1a912fac8408068024b28b06bac2b74c958758da5e4c37ce8347fe68a02",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 366,
+   "prompt_tokens": 6996,
+   "total_tokens": 7362,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 12.195454120635986,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait on MotionSensor.Motion. The candidate incorrectly polls the condition at the start of the body (line 3) and uses a hold counter (lines 5-6) to emulate the wait. Evidence F2 shows the motion signal went true at t=100ms, but the candidate emitted no action because the `if` guard was evaluated at t=0 (when motion was false) and the rising edge occurred between iterations. The correct shape requires blocking on the rising edge before the action.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script body logic\"],\n    \"change_summary\": \"Replaced the polling/hold-counter pattern with a blocking `wait until` for the rising edge, followed immediately by the action. This ensures the action fires exactly when the edge occurs, matching the IR's `wait(cond, rising)` semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Kitchen_MotionSensor).motionSensor_motion == false)\\n    fired = false\\n}\\nwait until((#Kitchen_MotionSensor).motionSensor_motion == true)\\ntmp = (#Kitchen_Light).light_currentBrightness + 20\\nif (tmp > 100) {\\n    tmp = 100\\n}\\n(#Kitchen_Light).light_moveToBrightness(tmp, 0)\\nfired = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Kitchen_MotionSensor).motionSensor_motion == false)\n    fired = false\n}\nwait until((#Kitchen_MotionSensor).motionSensor_motion == true)\ntmp = (#Kitchen_Light).light_currentBrightness + 20\nif (tmp > 100) {\n    tmp = 100\n}\n(#Kitchen_Light).light_moveToBrightness(tmp, 0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait on MotionSensor.Motion. The candidate incorrectly polls the condition at the start of the body (line 3) and uses a hold counter (lines 5-6) to emulate the wait. Evidence F2 shows the motion signal went true at t=100ms, but the candidate emitted no action because the `if` guard was evaluated at t=0 (when motion was false) and the rising edge occurred between iterations. The correct shape requires blocking on the rising edge before the action.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script body logic"
+  ],
+  "change_summary": "Replaced the polling/hold-counter pattern with a blocking `wait until` for the rising edge, followed immediately by the action. This ensures the action fires exactly when the edge occurs, matching the IR's `wait(cond, rising)` semantics."
+ },
+ "status": "REVISED"
+}

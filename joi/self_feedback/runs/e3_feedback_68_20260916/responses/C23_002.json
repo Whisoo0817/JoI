@@ -1,0 +1,38 @@
+{
+ "id": "C23_002",
+ "request_sha256": "2aa2c7c540b35842b7023316b48e4a7b19db3d2ad02740e7d471fba56dad4454",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 425,
+   "prompt_tokens": 9595,
+   "total_tokens": 10020,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 22.180406093597412,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute (60,000 ms) sustained wait before acting. The candidate uses a 1000 ms wrapper period and a threshold of 60 ticks. Since the condition is true at t=0, the counter increments to 1 immediately. With a 1000 ms period, the counter only reaches 60 after 59 full periods (59,000 ms), triggering the action at 59,000 ms instead of the required 60,000 ms. The fix requires a 100 ms wrapper period and a threshold of 601 ticks (60,000 ms / 100 ms + 1) to align the first action with the 1-minute mark.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 ms to 100 ms and adjusted the hold threshold from 60 to 601. This ensures the first iteration counts the initial state, and the action fires exactly after 60,000 ms of sustained input, matching the IR's 1-minute requirement.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Porch_ContactSensor).contactSensor_contact == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Porch_Light).switch_on()\\n        delay(3 MIN)\\n        (#Porch_Light).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Porch_ContactSensor).contactSensor_contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Porch_Light).switch_on()\n        delay(3 MIN)\n        (#Porch_Light).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute (60,000 ms) sustained wait before acting. The candidate uses a 1000 ms wrapper period and a threshold of 60 ticks. Since the condition is true at t=0, the counter increments to 1 immediately. With a 1000 ms period, the counter only reaches 60 after 59 full periods (59,000 ms), triggering the action at 59,000 ms instead of the required 60,000 ms. The fix requires a 100 ms wrapper period and a threshold of 601 ticks (60,000 ms / 100 ms + 1) to align the first action with the 1-minute mark.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 ms to 100 ms and adjusted the hold threshold from 60 to 601. This ensures the first iteration counts the initial state, and the action fires exactly after 60,000 ms of sustained input, matching the IR's 1-minute requirement."
+ },
+ "status": "REVISED"
+}

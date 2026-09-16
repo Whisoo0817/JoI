@@ -1,0 +1,107 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (triggered == true) {\nwait until(all(#TemperatureSensor).temperatureSensor_temperature < 30)\ntriggered = false\n}\nwait until(all(#TemperatureSensor).temperatureSensor_temperature >= 30)\nall(#WindowCovering).windowCovering_downOrClose()\ntriggered = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(all(#TemperatureSensor).temperatureSensor_temperature < 30)\\ntriggered = false\\n}\\nwait until(all(#TemperatureSensor).temperatureSensor_temperature >= 30)\\nall(#WindowCovering).windowCovering_downOrClose()\\ntriggered = true\"}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "any(#TemperatureSensor)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "all(#WindowCovering)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "온도가 30도 이상이 될 때마다 블라인드를 닫아줘.",
+  "command_eng": "Whenever the temperature becomes 30 degrees or higher, close the blind.",
+  "connected_devices": {
+    "Living_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Living",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Living_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "TemperatureSensor.Temperature >= 30",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": {
+      "any": [
+        "Living_Temp",
+        "Bedroom_Temp"
+      ]
+    },
+    "WindowCovering": [
+      "Living_Blind",
+      "Bedroom_Blind"
+    ]
+  },
+  "input_payload_sha256": "7237103e24de2b3de1f42716aba5da1ed6297c6c6119f786c9c17233dffb8c33",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

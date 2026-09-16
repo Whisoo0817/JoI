@@ -1,0 +1,38 @@
+{
+ "id": "C08_036",
+ "request_sha256": "d4568836498de6d691a301dbec00ab68707b9175cd58ed56297286eb6095e25f",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 375,
+   "prompt_tokens": 6787,
+   "total_tokens": 7162,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 69.93934273719788,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait (`wait(MotionSensor.Motion == true, edge rising)`). The candidate polls the condition at the start of the body (`if (motion == true)`). At t=100ms, motion became true, but the candidate's `if` guard evaluated to false because it only runs at the start of the iteration (t=0). The IR fires immediately upon the rising edge, while the candidate misses it. This matches Example A (repeating rising edge implemented as periodic polling).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with a blocking two-wait rearm pattern. The script now blocks until the rising edge occurs (`wait until(P)`), executes the body, then blocks until the condition drops (`wait until(not P)`) to re-arm for the next rising edge. This ensures the action fires exactly when the edge occurs, preserving the IR's rising-edge semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until(not ((#Ent_Motion).motionSensor_motion == true))\\n    triggered = false\\n}\\nwait until((#Ent_Motion).motionSensor_motion == true)\\n(#Ent_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Ent_Light).switch_off()\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until(not ((#Ent_Motion).motionSensor_motion == true))\n    triggered = false\n}\nwait until((#Ent_Motion).motionSensor_motion == true)\n(#Ent_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Ent_Light).switch_off()\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait (`wait(MotionSensor.Motion == true, edge rising)`). The candidate polls the condition at the start of the body (`if (motion == true)`). At t=100ms, motion became true, but the candidate's `if` guard evaluated to false because it only runs at the start of the iteration (t=0). The IR fires immediately upon the rising edge, while the candidate misses it. This matches Example A (repeating rising edge implemented as periodic polling).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with a blocking two-wait rearm pattern. The script now blocks until the rising edge occurs (`wait until(P)`), executes the body, then blocks until the condition drops (`wait until(not P)`) to re-arm for the next rising edge. This ensures the action fires exactly when the edge occurs, preserving the IR's rising-edge semantics."
+ },
+ "status": "REVISED"
+}

@@ -1,0 +1,39 @@
+{
+ "id": "C23_005",
+ "request_sha256": "278e368d46d6fea44f2fd3e8eb86bbd050d03f020ce0fbcdd2d2c4ee00da31c7",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 440,
+   "prompt_tokens": 15561,
+   "total_tokens": 16001,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 18.128926038742065,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 3-minute (180,000 ms) sustained wait. The candidate uses a 1000 ms wrapper period and a threshold of 180 ticks. Since the condition is initially true, the first iteration at t=0 counts as tick 1. The threshold `hold_ticks >= 180` is reached after 179 iterations (179,000 ms), causing the action to fire early. The IR fires only after 1800 ticks (180,000 ms). The fix requires changing the wrapper period to 100 ms and adjusting the threshold to 181 (duration/100 + 1) to align with the 100 ms grid.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed `period` from 1000 to 100 to match the fine-grained sustain requirement. Updated the threshold from 180 to 181 to ensure the action fires exactly after 180,000 ms (1800 ticks of 100 ms), correcting the early firing observed at 179,000 ms.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Hallway_Motion).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 181) {\\n(#Hallway_Light).light_moveToBrightness(50, 0)\\n        delay(2 MIN)\\n(#Hallway_Light).switch_off()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Hallway_Motion).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 181) {\n(#Hallway_Light).light_moveToBrightness(50, 0)\n        delay(2 MIN)\n(#Hallway_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 3-minute (180,000 ms) sustained wait. The candidate uses a 1000 ms wrapper period and a threshold of 180 ticks. Since the condition is initially true, the first iteration at t=0 counts as tick 1. The threshold `hold_ticks >= 180` is reached after 179 iterations (179,000 ms), causing the action to fire early. The IR fires only after 1800 ticks (180,000 ms). The fix requires changing the wrapper period to 100 ms and adjusting the threshold to 181 (duration/100 + 1) to align with the 100 ms grid.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed `period` from 1000 to 100 to match the fine-grained sustain requirement. Updated the threshold from 180 to 181 to ensure the action fires exactly after 180,000 ms (1800 ticks of 100 ms), correcting the early firing observed at 179,000 ms."
+ },
+ "status": "REVISED"
+}

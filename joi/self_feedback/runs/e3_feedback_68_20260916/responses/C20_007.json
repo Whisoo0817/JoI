@@ -1,0 +1,37 @@
+{
+ "id": "C20_007",
+ "request_sha256": "4b2f4621bb4120c073e599f897e3367f19aa550398c07a09981073410c039712",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 485,
+   "prompt_tokens": 36431,
+   "total_tokens": 36916,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 17.82707905769348,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a sustained condition for 10 minutes (600,000 ms). The candidate uses a 1000 ms wrapper period and a threshold of 600, causing the action to fire at 600,000 ms. However, the JoI execution model counts the initial state as tick 1. Therefore, the condition held for 600 ticks (600,000 ms) at the start of the 601st iteration (t=600,000), but the action only fires when the counter reaches 600, which corresponds to t=599,000. The IR waits until the full 10 minutes have elapsed (t=600,000) before acting. The fix is to increase the threshold to 601 to align the firing instant with the IR's deadline.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"line 4\"],\n    \"change_summary\": \"Changed the hold threshold from 600 to 601. With a 100 ms wrapper, 10 minutes equals 6000 ticks. The first tick is at t=0. The condition must be sustained for 600,000 ms, meaning it must be true at t=0 through t=599,999, and the action must fire at t=600,000. This corresponds to the 601st successful check (tick 601). The original threshold of 600 fired one period early.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Kitchen_ContactSensor).contactSensor_contact == false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n(#Kitchen_Fan).switch_on()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Kitchen_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n(#Kitchen_Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a sustained condition for 10 minutes (600,000 ms). The candidate uses a 1000 ms wrapper period and a threshold of 600, causing the action to fire at 600,000 ms. However, the JoI execution model counts the initial state as tick 1. Therefore, the condition held for 600 ticks (600,000 ms) at the start of the 601st iteration (t=600,000), but the action only fires when the counter reaches 600, which corresponds to t=599,000. The IR waits until the full 10 minutes have elapsed (t=600,000) before acting. The fix is to increase the threshold to 601 to align the firing instant with the IR's deadline.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "line 4"
+  ],
+  "change_summary": "Changed the hold threshold from 600 to 601. With a 100 ms wrapper, 10 minutes equals 6000 ticks. The first tick is at t=0. The condition must be sustained for 600,000 ms, meaning it must be true at t=0 through t=599,999, and the action must fire at t=600,000. This corresponds to the 601st successful check (tick 601). The original threshold of 600 fired one period early."
+ },
+ "status": "REVISED"
+}

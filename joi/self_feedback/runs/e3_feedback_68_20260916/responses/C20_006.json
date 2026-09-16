@@ -1,0 +1,39 @@
+{
+ "id": "C20_006",
+ "request_sha256": "f64f278c71343d813c18492329f663dff910f135fcad55f99f7f7e14e412c9f3",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 391,
+   "prompt_tokens": 9535,
+   "total_tokens": 9926,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 15.079686641693115,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute (60,000 ms) sustained wait before acting. The candidate uses a 1000 ms wrapper period with a threshold of 60 ticks. Since the condition is true at t=0, the counter increments to 1 immediately. With a 1000 ms period, the counter reaches 60 at t=59,000 ms, causing an early action. The IR only acts at t=60,000 ms. The fix requires a 100 ms wrapper period and a threshold of 601 ticks (duration/100 + 1) to align the action with the 60,000 ms mark.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed period from 1000 to 100 and adjusted the hold threshold from 60 to 601. This ensures the action fires exactly at 60,000 ms (tick 601) when the condition has been sustained for 1 minute, matching the IR specification.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Bedroom_MotionSensor).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 601) {\\n(#Bedroom_FloorLamp).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Bedroom_MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 601) {\n(#Bedroom_FloorLamp).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute (60,000 ms) sustained wait before acting. The candidate uses a 1000 ms wrapper period with a threshold of 60 ticks. Since the condition is true at t=0, the counter increments to 1 immediately. With a 1000 ms period, the counter reaches 60 at t=59,000 ms, causing an early action. The IR only acts at t=60,000 ms. The fix requires a 100 ms wrapper period and a threshold of 601 ticks (duration/100 + 1) to align the action with the 60,000 ms mark.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed period from 1000 to 100 and adjusted the hold threshold from 60 to 601. This ensures the action fires exactly at 60,000 ms (tick 601) when the condition has been sustained for 1 minute, matching the IR specification."
+ },
+ "status": "REVISED"
+}

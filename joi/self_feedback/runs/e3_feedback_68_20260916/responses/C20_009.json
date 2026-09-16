@@ -1,0 +1,39 @@
+{
+ "id": "C20_009",
+ "request_sha256": "4262f5a8d8f696e0bfe222164f53cd4153e63a6147ada2c7b6b2d1b9ecad2e49",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 375,
+   "prompt_tokens": 12497,
+   "total_tokens": 12872,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 16.760213136672974,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 2-minute (120,000 ms) sustained wait. The candidate uses a 1000 ms wrapper period with a threshold of 120 ticks. This results in a total wait time of 119,000 ms (119 iterations * 1000 ms), which is 10 seconds short of the required 120,000 ms. The mismatch at 119,000 ms confirms the action fired too early.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed the wrapper period to 100 ms and adjusted the threshold to 1201 ticks. With a 100 ms period, 1201 ticks correspond to exactly 120,100 ms of elapsed time (counting the initial tick at t=0 through the 1200th interval), satisfying the 2-minute requirement. The `break` is preserved to terminate the script after the action.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Meeting_Presence).presenceSensor_presence == true) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 1201) {\\n(#Meeting_Projector).switch_on()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Meeting_Presence).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1201) {\n(#Meeting_Projector).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 2-minute (120,000 ms) sustained wait. The candidate uses a 1000 ms wrapper period with a threshold of 120 ticks. This results in a total wait time of 119,000 ms (119 iterations * 1000 ms), which is 10 seconds short of the required 120,000 ms. The mismatch at 119,000 ms confirms the action fired too early.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed the wrapper period to 100 ms and adjusted the threshold to 1201 ticks. With a 100 ms period, 1201 ticks correspond to exactly 120,100 ms of elapsed time (counting the initial tick at t=0 through the 1200th interval), satisfying the 2-minute requirement. The `break` is preserved to terminate the script after the action."
+ },
+ "status": "REVISED"
+}
