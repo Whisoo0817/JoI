@@ -108,7 +108,7 @@ def main() -> None:
         "elapsed_seconds": time.perf_counter() - started,
         "inputs": {
             "dataset_sha256": sha(ROOT / "dataset.csv"),
-            "known_limitations_sha256": sha(ROOT / "PerCom/6_Evaluation/E3_application/E3_KNOWN_LIMITATIONS.json"),
+            "known_limitations_sha256": sha(ROOT / "PerCom/08_Evaluation/E3_application/E3_KNOWN_LIMITATIONS.json"),
         },
         "cases": cases,
     }

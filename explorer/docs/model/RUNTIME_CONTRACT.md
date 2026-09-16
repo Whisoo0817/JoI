@@ -68,7 +68,7 @@ adapter는 조회 결과의 타입/범위를 지키고 검토된 읽기가 관�
 LLM 생성물에서 실제로 나온다. 첫 회차에 그 가지를 지나지 않으면 `n`은 값이 없고, 그 상태의
 `n + 1`을 어떻게 처리할지는 그동안 어느 문서에도 없었다. 0으로 때우는 쪽과 오류로 보는 쪽 중
 **오류**를 택한다. 0으로 때우면 초기화 누락이 Timeline IR과 같은 ACTION 열을 내면서 사라지는데,
-그건 검증이 잡아야 할 결함이기 때문이다. Timeline IR 실행 의미(`PerCom/3_Timeline_IR/HANDOFF.md`
+그건 검증이 잡아야 할 결함이기 때문이다. Timeline IR 실행 의미(`PerCom/05_Timeline_IR/HANDOFF.md`
 "null 산술은 0 으로 강제")는 바꾸지 않는다. 두 쪽이 다르게 정한 것이 아니라, IR은 확정된 명세이고
 JoI는 그 명세를 구현했다고 주장하는 코드다. 그래서 이런 코드는 두 실행의 차이(DIVERGE)로 나타난다.
 
@@ -76,7 +76,7 @@ JoI는 그 명세를 구현했다고 주장하는 코드다. 그래서 이런 �
 오류로 만들면 멀쩡한 시나리오가 오류가 된다.
 
 구현: Explorer는 `explorer/runtime/interp.py`(`_uninitialized`, `error_action`), 독립 참조 실행기는
-`PerCom/6_Evaluation/E2_fidelity/reference/joi_ref.py`(`JoiProgram.check_assigned`)에 있다. 양쪽 다
+`PerCom/08_Evaluation/E2_fidelity/reference/joi_ref.py`(`JoiProgram.check_assigned`)에 있다. 양쪽 다
 산술 노드에서만 검사하고, 한 번이라도 대입된 변수는(그 값이 None이어도) 검사하지 않는다.
 
 ## 2. 현재 확보한 근거

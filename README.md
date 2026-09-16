@@ -79,7 +79,7 @@ OVLA 인용·최근 문헌·예상 반박·차별성 후보를 정리했다. 기
 [주장 범위·집필 준수사항](PerCom/WRITING_GUARDRAILS.md),
 [관련연구](skill_result/02_literature/related_work_review_2026-09-09/README.md)는 필요할 때 참조한다.
 `skill_result/`는 2026-09-12에 압축 정리했다(옛 번호 계획서·advisor 요약·형식 설계 초안 삭제, git 이력에 보존).
-실험 작업 공간은 `PerCom/6_Evaluation/`이다.
+실험 작업 공간은 `PerCom/08_Evaluation/`이다.
 
 ## 작업 위치와 관리
 
@@ -91,7 +91,7 @@ OVLA 인용·최근 문헌·예상 반박·차별성 후보를 정리했다. 기
 | [explorer/README.md](explorer/README.md) | 검증 구현·문서·현재 TODO의 진입점 |
 | [dataset.csv](dataset.csv), [candidates/](explorer/candidates) | 기준 IR/binding과 생성 후보 |
 | [sensys/](sensys) | 이전 논문 근거. 현재 결과와 혼용하지 않음 |
-| [PerCom/](PerCom/README.md) | 최종 집필 작업 공간. 절별 초안과 E1–E4 실험 코드·데이터·결과(`6_Evaluation/`) |
+| [PerCom/](PerCom/README.md) | 최종 집필 작업 공간. 절별 초안과 E1–E4 실험 코드·데이터·결과(`08_Evaluation/`) |
 
 현재 작업 브랜치는 `paper`다. 먼저 `git status --short`로 사용자 작업을 확인한다.
 미커밋·untracked 파일을 임시 파일로 간주하지 않고, 과거 평가를 덮어쓰지 않는다.

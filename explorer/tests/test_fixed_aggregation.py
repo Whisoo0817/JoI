@@ -9,8 +9,8 @@ from explorer.verification.timed import timed_product
 
 
 ROOT = Path(__file__).resolve().parents[2]
-E2 = ROOT / "PerCom/6_Evaluation/E2_fidelity"
-DEPTH = ROOT / "PerCom/6_Evaluation/E1_adequacy/breadth/depth"
+E2 = ROOT / "PerCom/08_Evaluation/E2_fidelity"
+DEPTH = ROOT / "PerCom/08_Evaluation/E1_adequacy/breadth/depth"
 
 
 def _pairs():

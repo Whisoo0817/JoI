@@ -1,7 +1,7 @@
 # skill_result — VETS(PerCom 2027) 연구 기록
 
 2026-09-12 압축 정리. 이 폴더는 **논문 방향·문헌·계획의 기록**이다. 실험의 방식·코드·데이터·결과는
-[`../PerCom/6_Evaluation/`](../PerCom/6_Evaluation/)에 두고, 원고는 [`../PerCom/`](../PerCom/README.md)에서 쓴다.
+[`../PerCom/08_Evaluation/`](../PerCom/08_Evaluation/)에 두고, 원고는 [`../PerCom/`](../PerCom/README.md)에서 쓴다.
 삭제한 옛 파일(2026-09-04 계획서, advisor 요약, 형식 설계 초안, 문헌 카드, 구 E3 v1/v2 실행)은 git 이력에만 남는다.
 
 ## 읽는 순서
@@ -25,8 +25,8 @@
 
 | 실험 | 상태 | 위치 |
 |---|---|---|
-| E1 | 종료(2026-09-13). corpus 100(IN_SCOPE 92), depth 20건 이력 53/53 정확(선정 건수, coverage 아님), 경계 probe 3건. 원고 초안 검토 대기 | `../PerCom/6_Evaluation/E1_adequacy/E1_SUMMARY.md` |
-| E2 | 완료(2026-09-14). 독립 정답기, 140쌍 중 판정 130·어긋남 0. 원고 초안 검토 대기 | `../PerCom/6_Evaluation/E2_fidelity/E2_SUMMARY.md` |
+| E1 | 종료(2026-09-13). corpus 100(IN_SCOPE 92), depth 20건 이력 53/53 정확(선정 건수, coverage 아님), 경계 probe 3건. 원고 초안 검토 대기 | `../PerCom/08_Evaluation/E1_adequacy/E1_SUMMARY.md` |
+| E2 | 완료(2026-09-14). 독립 정답기, 140쌍 중 판정 130·어긋남 0. 원고 초안 검토 대기 | `../PerCom/08_Evaluation/E2_fidelity/E2_SUMMARY.md` |
 | E3 | 개발 단계 H=32 감사 결과만 존재(`05_experiment_plan/results/E3/heldout-gemma-v3-h32/`). 동결 protocol 재실행 필요 | — |
 | E4 | 미착수 | — |
 | Fig2 동기 파일럿 | 기록 있음 | `05_experiment_plan/motivation_pilot_2026-09-11/` |

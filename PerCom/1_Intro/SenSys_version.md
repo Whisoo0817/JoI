@@ -1,7 +1,0 @@
-# Introduction — SenSys version
-
-IoT automation is rapidly moving toward LLM-based code generation, yet the final decision of whether generated code is correct to deploy lacks a deterministic reference. The SenSys manuscript framed reactive-temporal automations as programs driven by asynchronous events, schedules, sustained conditions, counters, and multi-step state. It argued that a single reference program or static syntax cannot distinguish behaviorally equivalent implementations from plausible implementations that diverge over time.
-
-Its running example compared three JoI implementations of “whenever the temperature rises above 25°C, turn on the air conditioner.” A previous/current comparison and a persistent triggered flag produced the same edge behavior, whereas a level check fired on every one-second execution while the temperature remained high. OVLA addressed the missing oracle by asking an LLM to produce Timeline IR, rendering it for user confirmation, lowering it to JoI, and comparing traces generated at IR-derived boundary events.
-
-The section further emphasized an on-device, LLM-free gate, a two-layer NL→IR and IR→code guarantee, automatic repair, edge privacy and latency, and four contributions covering Timeline IR, deterministic deployment, on-device realization, and evaluation. These claims belong to the earlier paper and must be reconsidered against the current VETS contract.

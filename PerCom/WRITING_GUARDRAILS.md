@@ -147,7 +147,7 @@ Operational semantics로 기대 실행을 정할 수 있다는 이점은 Timelin
 - Fig1: 같은 시간 행동의 다른 구현 idiom과 잘못된 level/wait 구현을 독자가 읽을 수 있게 한다.
 - Fig2: 의미를 보존하는 코드 변환에 대한 judge 판정 불변성을 조사한다. 일반적 surface bias 발견 자체를 novelty로 삼지 않는다.
 - Fig2는 동기 근거이며 E2/E3의 검증기 정확도·적용률 평가를 대체하지 않는다.
-- 요구사항 및 재현성 항목은 [Introduction Figure 요구사항](1_Intro/Figures/FIGURE_REQUIREMENTS.md)에 기록했다. 아직 실행·수정하지 않았다.
+- 요구사항 및 재현성 항목은 [Introduction Figure 요구사항](01_Intro/Figures/FIGURE_REQUIREMENTS.md)에 기록했다. 아직 실행·수정하지 않았다.
 
 ## 8. 향후 연구 — 저장된 IR의 수정과 다중 자동화 충돌 검사
 

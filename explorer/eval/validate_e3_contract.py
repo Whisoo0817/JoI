@@ -158,7 +158,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", default=str(ROOT / "dataset.csv"))
     parser.add_argument("--known-limitations", default=str(
-        ROOT / "PerCom/6_Evaluation/E3_application/E3_KNOWN_LIMITATIONS.json"))
+        ROOT / "PerCom/08_Evaluation/E3_application/E3_KNOWN_LIMITATIONS.json"))
     parser.add_argument("--output")
     args = parser.parse_args()
     known = json.loads(Path(args.known_limitations).read_text())

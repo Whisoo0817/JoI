@@ -23,7 +23,7 @@
 - 절차: 출처·원문 고정 → 해석·가정·기대 trace를 IR 작성 **전에** 고정(해시) → IR 작성(A) → 독립 의미 감사(B, whisoo) → 참조 실행기 재생 비교(C, 1초 허용·정확 일치 별도) → 실행기 지원(D)·Explorer 자기 product(E, 참고)·binding(F)·JoI 가능성(G, 불가/부분만).
 - 완전 = A 완전 ∧ B 보존 ∧ C 전 이력 일치. D·E는 A를 바꾸지 못한다. 결과에 맞춰 허용 오차·실행기·계약을 바꾸지 않는다(버전 고정).
 - 선례: AutoTap ICSE'19 §III–IV·VI, Dwyer ICSE'99 §3. 두 연구의 수집 자료는 표현 체계 설계에 쓰였으므로 held-out 선례로 과장하지 않는다. AutoTap 속성→자동화 변환은 `[연구자 변환]`으로 표시.
-- 상태(2026-09-12): Stage A 12건 완료·감사 반영(완전 12/12, exact 41/41) + 경계 probe 3건 완료. 세부: `../../PerCom/6_Evaluation/E1_adequacy/README.md` §0 결론, 결과 `results.md`.
+- 상태(2026-09-12): Stage A 12건 완료·감사 반영(완전 12/12, exact 41/41) + 경계 probe 3건 완료. 세부: `../../PerCom/08_Evaluation/E1_adequacy/README.md` §0 결론, 결과 `results.md`.
 - **probe 결과로 E1 의 질문이 바뀌었다.** 경계 후보 3건(B3 이벤트 기억 2건, B4 가변 간격 1건)이 전부 표현 가능했고,
   셋 다 Explorer 만 거절했다(사유 동일: 실행 중 값끼리 비교하는 guard). 따라서 E1 은 표현 경계가 아니라
   **표현과 인증의 격차**를 보고하며, 그 격차의 크기는 E2·E4 가 답한다.

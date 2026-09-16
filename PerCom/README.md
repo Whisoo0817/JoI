@@ -8,11 +8,13 @@
 
 1. [최종 집필 참고·준수사항](WRITING_GUARDRAILS.md): 연구 범위, FSM·시간·LTL/TAP 비교, lowering, 향후 연구, 사용할 표현과 근거 한계.
 1. [문체 기준](WRITING_STYLE.md): SenSys 원고에서 교수님이 다듬은 문장 43쌍에서 뽑은 문장 규칙. 가드레일이 무엇을 주장할지를 정하면, 이 문서는 어떻게 쓸지를 정한다.
-2. [Introduction Figure 1·2 및 Table 1 체크리스트](1_Intro/Figures/FIGURE_REQUIREMENTS.md): Introduction에 들어갈 동기 도표의 역할, 시각 편집 요구와 판정 불변성 실험의 재현성 조건.
+2. [Introduction Figure 1·2 및 Table 1 체크리스트](01_Intro/Figures/FIGURE_REQUIREMENTS.md): Figure 1과 Motivation Table 1의 역할, 시각 편집 요구와 판정 불변성 실험의 재현성 조건.
 
 `WRITING_GUARDRAILS.md`의 **최신 최우선 결정**이 PerCom 원고 전체에 우선한다. 핵심은 스마트홈 자동화 전체에 대한 generality를 주장하지 않는 것, JoI를 현재 유일한 backend로 두는 것, Home Assistant 실험을 계획하지 않는 것, deterministic compiler를 비교하지 않은 Future Work로 두는 것이다. openHAB은 시간이 남고 imperative-code backend로 실제 adapter와 평가를 완료할 때만 선택적으로 검토한다.
 
 ## 원고 섹션 구조
+
+2026-09-17: Related Work를 §2, Problem and Motivation을 §3으로 배치했다. 폴더는 `00`–`10` 번호로 정렬한다. Introduction은 동기 결과를 짧게 예고하고, Table 1 및 `motivation_judge/`는 `03_Motivation/`에 둔다.
 
 각 섹션 폴더에는 정확히 다음 세 파일이 있다.
 
@@ -22,18 +24,19 @@
 
 | 순서 | 섹션 폴더 |
 | ---: | --- |
-| 0 | [Abstract](0_Abstract/) |
-| 1 | [Introduction](1_Intro/) |
-| 2 | [System Overview and Scope](2_System_Overview_and_Scope/) |
-| 3 | [Timeline IR](3_Timeline_IR/) |
-| 4 | [Code Generation and Behavioral Validation](4_Code_Generation_and_Behavioral_Validation/) |
-| 5 | [Implementation](5_Implementation/) |
-| 6 | [Evaluation](6_Evaluation/) |
-| 7 | [Related Work](7_Related_Work/) |
-| 8 | [Limitations and Future Work](8_Limitations_and_Future_Work/) |
-| 9 | [Conclusion](9_Conclusion/) |
+| 0 | [Abstract](00_Abstract/) |
+| 1 | [Introduction](01_Intro/) |
+| 2 | [Related Work](02_Related_Work/) |
+| 3 | [Problem and Motivation](03_Motivation/) |
+| 4 | [System Overview and Scope](04_System_Overview_and_Scope/) |
+| 5 | [Timeline IR](05_Timeline_IR/) |
+| 6 | [Code Generation and Behavioral Validation](06_Code_Generation_and_Behavioral_Validation/) |
+| 7 | [Implementation](07_Implementation/) |
+| 8 | [Evaluation](08_Evaluation/) |
+| 9 | [Limitations and Future Work](09_Limitations_and_Future_Work/) |
+| 10 | [Conclusion](10_Conclusion/) |
 
-`PerCom_version.md`는 계획 메모가 아니라 본문에 들어갈 문장으로 작성한다. 미완성 근거는 대괄호 placeholder로 남기며, `HANDOFF.md`의 제한을 해소하기 전에는 결과처럼 단정하지 않는다. 섹션 폴더의 직접 파일은 위 세 개를 유지하고, 그림·표 작업 자료는 해당 섹션의 `Figures/` 같은 하위 폴더에 둔다. **실험의 방식·코드·데이터·결과는 2026-09-12부터 `6_Evaluation/` 아래 실험별 하위 폴더(`E1_adequacy/`, 이후 `E2_*/`, `E3_*/`, `E4_*/`)에 둔다.** `skill_result/`에는 새 실험 자료를 만들지 않는다.
+`PerCom_version.md`는 계획 메모가 아니라 본문에 들어갈 문장으로 작성한다. 미완성 근거는 대괄호 placeholder로 남기며, `HANDOFF.md`의 제한을 해소하기 전에는 결과처럼 단정하지 않는다. 섹션 폴더의 직접 파일은 위 세 개를 유지하고, 그림·표 작업 자료는 해당 섹션의 `Figures/` 같은 하위 폴더에 둔다. **실험의 방식·코드·데이터·결과는 2026-09-12부터 `08_Evaluation/` 아래 실험별 하위 폴더(`E1_adequacy/`, 이후 `E2_*/`, `E3_*/`, `E4_*/`)에 둔다.** `skill_result/`에는 새 실험 자료를 만들지 않는다.
 
 두 문서는 2026-09-12 사용자 메모를 정리한 **집필 준비 자료**다. 새 구현, 실험 실행, 그림 수정, 완성 원고 또는 결과 감사가 아니다. 사용자 결정과 구현으로 확인된 사실, 증거가 필요한 해석을 구별한다. 체크박스는 앞으로 수행할 작업이며 완료를 뜻하지 않는다.
 
@@ -45,10 +48,28 @@
 | 문제 정의·연구 경계 | [2026-09-11 framing](../skill_result/06_manuscript/problem_framing_codegen_validation_2026-09-11.md) |
 | 본문 절 구성 | [Paper flow](../skill_result/06_manuscript/paper_flow_ir_contract_2026-09-10.md) |
 | 현재 E1–E4 골격 | [평가 계획](../skill_result/05_experiment_plan/confirmed_ir_evaluation_2026-09-10.md) |
-| E1 실험 코드·데이터·결과 | [E1_adequacy](6_Evaluation/E1_adequacy/README.md) (2026-09-12 Stage A 12건, 감사 반영) |
+| E1 실험 코드·데이터·결과 | [E1_adequacy](08_Evaluation/E1_adequacy/README.md) (2026-09-12 Stage A 12건, 감사 반영) |
 | 실제 시간·입력·관찰·인증 계약 | [Explorer 검증 계약](../explorer/docs/model/VERIFICATION_CONTRACT.md) |
 | 증명과 신뢰 기반 | [증명 의무](../explorer/docs/proof/PROOF_OBLIGATIONS.md) |
 | 기존 평가와 한계 | [평가 요약](../explorer/docs/paper/EVALUATION.md) |
 | 최근 동기 검증 파일럿 | [파일럿 기록](../skill_result/05_experiment_plan/motivation_pilot_2026-09-11/README.md) |
 
 사용자 메모는 이후 집필 방향에 반영하되, 메모만으로 구현 지원이나 실험 결과가 생긴 것으로 취급하지 않는다. 특히 이전 문서의 E1/E2 번호, bounded-only 표현, 시스템 이름·초록은 최신 결정과 대조한다. 이 문서에서는 현 framing의 작업명인 VETS를 사용하며 최종 제목 선정은 별도다.
+
+## 2026-09-17 경로 정리
+
+기존 폴더 내용은 이동했으며 현재 문서 링크와 실행 스크립트의 고정 경로를 갱신했다. 실험 JSON/JSONL, 로그, 표·그림과 과거 해시 기록은 재생성하거나 수정하지 않았다. 기록 안의 경로·소스 해시는 당시 버전을 뜻한다. 과거 기록을 읽을 때 아래 이동표를 적용한다.
+
+| 이전 폴더 | 현재 폴더 |
+| --- | --- |
+| `0_Abstract` | `00_Abstract` |
+| `1_Intro` | `01_Intro` |
+| `7_Related_Work` | `02_Related_Work` |
+| `2_System_Overview_and_Scope` | `04_System_Overview_and_Scope` |
+| `3_Timeline_IR` | `05_Timeline_IR` |
+| `4_Code_Generation_and_Behavioral_Validation` | `06_Code_Generation_and_Behavioral_Validation` |
+| `5_Implementation` | `07_Implementation` |
+| `6_Evaluation` | `08_Evaluation` |
+| `8_Limitations_and_Future_Work` | `09_Limitations_and_Future_Work` |
+| `9_Conclusion` | `10_Conclusion` |
+| `1_Intro/motivation_judge` | `03_Motivation/motivation_judge` |
