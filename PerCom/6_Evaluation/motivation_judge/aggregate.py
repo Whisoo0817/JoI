@@ -17,7 +17,7 @@ TYPE_LABEL = OrderedDict([
     ("var_rename", ("VAR", "rename a variable")),
     ("comparator_flip", ("CMP", "mirror a comparison (x >= 26 -> 26 <= x)")),
     ("time_unit", ("UNIT", "change the time unit (3 MIN -> 180 SEC)")),
-    ("exists_spelling", ("EXI", "respell 'at least one device' (==| -> any)")),
+    ("exists_spelling", ("GRP", "respell a condition over a group of devices")),
     ("branch_swap", ("BR", "negate the guard and swap the branches")),
     ("delay_split", ("DLY", "split one delay into two")),
     ("loop_unroll", ("UNR", "unroll a counted periodic loop")),
@@ -283,7 +283,7 @@ def plot(summary, res_dir):
                         color=colors.get(j), zorder=4)
 
     ax.set_xticks(range(len(groups)))
-    ax.set_xticklabels([f"{ab}\n({counts(t)})" for ab, t, b in groups], fontsize=8.5)
+    ax.set_xticklabels([ab for ab, t, b in groups], fontsize=9)
     ax.set_ylabel("verdict reversal (%)", fontsize=8.5)
     ax.tick_params(axis="y", labelsize=8)
     ax.set_ylim(0, 92)
