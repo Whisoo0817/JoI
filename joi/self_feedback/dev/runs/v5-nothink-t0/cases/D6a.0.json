@@ -1,0 +1,62 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24797,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 392,
+   "prompt_tokens": 6652,
+   "total_tokens": 7044,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 52.2059440612793,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a sustained wait of 30 seconds followed by a cycle of 2 iterations. The candidate incorrectly places the cycle counter check (`n >= 2`) before the action, causing the script to terminate prematurely without executing the required actions. Additionally, the candidate uses a 15-second wrapper period to count the 30-second sustain, which is invalid as the wrapper cannot observe the condition dropping and returning between iterations. The correct shape requires a 100ms wrapper for the sustain counter and explicit in-body delays for the cycle.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed `period` from 15000 to 100 to correctly measure the 30-second sustain duration (threshold 301). Replaced the flawed counter logic with the standard sustained-condition pattern. Implemented the cycle as two explicit action calls separated by a 15-second delay, removing the `n` variable and the premature `break`.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Back_Door).contactSensor_contact == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        delay(15 SEC)\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Back_Door).contactSensor_contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        delay(15 SEC)\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a sustained wait of 30 seconds followed by a cycle of 2 iterations. The candidate incorrectly places the cycle counter check (`n >= 2`) before the action, causing the script to terminate prematurely without executing the required actions. Additionally, the candidate uses a 15-second wrapper period to count the 30-second sustain, which is invalid as the wrapper cannot observe the condition dropping and returning between iterations. The correct shape requires a 100ms wrapper for the sustain counter and explicit in-body delays for the cycle.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed `period` from 15000 to 100 to correctly measure the 30-second sustain duration (threshold 301). Replaced the flawed counter logic with the standard sustained-condition pattern. Implemented the cycle as two explicit action calls separated by a 15-second delay, removing the `n` variable and the premature `break`."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 5,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

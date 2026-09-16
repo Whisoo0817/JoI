@@ -1,0 +1,61 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25139,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 409,
+   "prompt_tokens": 6777,
+   "total_tokens": 7186,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 53.14924168586731,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 15000 ms period for both the sustain window and the cycle body. This causes the hold counter to increment only every 15 seconds, reaching the 30-second threshold at 30000 ms. At that exact moment, the candidate checks `n >= 2` (which is false) and breaks before emitting the action. The IR requires the sustain to complete (30s) and then execute the cycle body (15s) twice. The candidate must use a 100 ms period for the sustain logic and a 15000 ms period for the cycle body.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed period to 100 to correctly count the 30-second sustain window. Restructured script to separate the sustain check (using a hold counter) from the cycle body (using `delay(15 SEC)` between calls). Removed the erroneous `n >= 2` guard at the sustain threshold which caused premature termination.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Back_Door).contactSensor_contact == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        hold_ticks = 0\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        delay(15 SEC)\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Back_Door).contactSensor_contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        hold_ticks = 0\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        delay(15 SEC)\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 15000 ms period for both the sustain window and the cycle body. This causes the hold counter to increment only every 15 seconds, reaching the 30-second threshold at 30000 ms. At that exact moment, the candidate checks `n >= 2` (which is false) and breaks before emitting the action. The IR requires the sustain to complete (30s) and then execute the cycle body (15s) twice. The candidate must use a 100 ms period for the sustain logic and a 15000 ms period for the cycle body.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed period to 100 to correctly count the 30-second sustain window. Restructured script to separate the sustain check (using a hold counter) from the cycle body (using `delay(15 SEC)` between calls). Removed the erroneous `n >= 2` guard at the sustain threshold which caused premature termination."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 5,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

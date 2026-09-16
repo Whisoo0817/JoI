@@ -1,0 +1,62 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25139,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 372,
+   "prompt_tokens": 6777,
+   "total_tokens": 7149,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 52.03094696998596,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate incorrectly placed the cycle counter `n` and the break condition inside the sustain block, causing the automation to stop after 30 seconds instead of starting the cycle. The IR requires the sustain wait to complete first, then execute the cycle body exactly twice. The candidate also used `period` 15000 to measure the sustain window, which is invalid because the 100ms grid is required for accurate duration counting.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"wrapper period\", \"script logic structure\"],\n    \"change_summary\": \"Set `period` to 100 to correctly count the 30s sustain window (301 ticks). Moved the cycle logic outside the sustain block: first wait for the condition to be false for 301 ticks, then execute the cycle body twice with a 15-second delay between them. Removed the premature `break` that stopped execution before the cycle started.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold := 0\\nif ((#Back_Door).contactSensor_contact == false) {\\n    hold = hold + 1\\n    if (hold >= 301) {\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        delay(15 SEC)\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        break\\n    }\\n} else {\\n    hold = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold := 0\nif ((#Back_Door).contactSensor_contact == false) {\n    hold = hold + 1\n    if (hold >= 301) {\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        delay(15 SEC)\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        break\n    }\n} else {\n    hold = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate incorrectly placed the cycle counter `n` and the break condition inside the sustain block, causing the automation to stop after 30 seconds instead of starting the cycle. The IR requires the sustain wait to complete first, then execute the cycle body exactly twice. The candidate also used `period` 15000 to measure the sustain window, which is invalid because the 100ms grid is required for accurate duration counting.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "wrapper period",
+   "script logic structure"
+  ],
+  "change_summary": "Set `period` to 100 to correctly count the 30s sustain window (301 ticks). Moved the cycle logic outside the sustain block: first wait for the condition to be false for 301 ticks, then execute the cycle body twice with a 15-second delay between them. Removed the premature `break` that stopped execution before the cycle started."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 5,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

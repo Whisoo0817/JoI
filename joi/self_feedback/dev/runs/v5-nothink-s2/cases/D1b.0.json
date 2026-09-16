@@ -1,0 +1,60 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23414,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 313,
+   "prompt_tokens": 6182,
+   "total_tokens": 6495,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 80.16843056678772,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait for the button state. The candidate uses a periodic `if` guard which only samples the condition at the start of the iteration. At t=100ms, the button was already 'pushed' since t=0, so the guard evaluated to true (or false depending on initial state) but the rising edge had already passed before the script body could execute. The IR requires blocking until the transition occurs, not just checking the state.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with a blocking `wait until` for the rising edge, followed by the action. This ensures the script pauses exactly when the button transitions from not 'pushed' to 'pushed', matching the IR's rising-edge semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\nwait until((#Garden_Button).button_button != \\\"pushed\\\")\\nfired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\nwait until((#Garden_Button).button_button != \"pushed\")\nfired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait for the button state. The candidate uses a periodic `if` guard which only samples the condition at the start of the iteration. At t=100ms, the button was already 'pushed' since t=0, so the guard evaluated to true (or false depending on initial state) but the rising edge had already passed before the script body could execute. The IR requires blocking until the transition occurs, not just checking the state.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with a blocking `wait until` for the rising edge, followed by the action. This ensures the script pauses exactly when the button transitions from not 'pushed' to 'pushed', matching the IR's rising-edge semantics."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

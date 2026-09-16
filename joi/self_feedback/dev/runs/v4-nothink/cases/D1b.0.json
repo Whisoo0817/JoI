@@ -1,0 +1,62 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23050,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 366,
+   "prompt_tokens": 6083,
+   "total_tokens": 6449,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 83.15147709846497,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait for the button condition. The candidate uses a periodic `if` which only evaluates at the start of the wrapper period (t=0). At t=0, the button was `null` (not pushed), so the guard failed. The button became `pushed` at t=100ms, but the candidate missed this because it does not block on the rising edge. Evidence F2 confirms the IR action at 100ms while the JoI emitted none.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed `period` from 1000 to 1000 to match the IR cycle period, and rewrote the script to use the standard rising-edge pattern: a persistent `fired` flag, a wait for the false state (if already fired), a wait for the true state, the action, and updating the flag. This ensures the action fires exactly when the button transitions to 'pushed' and rearms correctly.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Garden_Button).button_button != \\\"pushed\\\")\\n    fired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Garden_Button).button_button != \"pushed\")\n    fired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait for the button condition. The candidate uses a periodic `if` which only evaluates at the start of the wrapper period (t=0). At t=0, the button was `null` (not pushed), so the guard failed. The button became `pushed` at t=100ms, but the candidate missed this because it does not block on the rising edge. Evidence F2 confirms the IR action at 100ms while the JoI emitted none.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed `period` from 1000 to 1000 to match the IR cycle period, and rewrote the script to use the standard rising-edge pattern: a persistent `fired` flag, a wait for the false state (if already fired), a wait for the true state, the action, and updating the flag. This ensures the action fires exactly when the button transitions to 'pushed' and rearms correctly."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

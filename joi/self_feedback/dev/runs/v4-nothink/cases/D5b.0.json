@@ -1,0 +1,60 @@
+{
+ "id": "D5b",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23535,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 271,
+   "prompt_tokens": 6254,
+   "total_tokens": 6525,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 17.674519062042236,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a periodic `if` guard after the delay to decide whether to turn off the switch. The IR requires an unconditional `call Switch.Off` immediately following the `delay`. The candidate fails to execute `switch_off` because the condition `Temperature > 28` is false (temperature dropped to null/low) at t=900000, causing the guard to fail. The repair removes the conditional guard and executes the action unconditionally.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4-6 replaced with unconditional call\"],\n    \"change_summary\": \"Replaced the conditional `if` block with a direct `call Switch.Off` to match the IR's unconditional action sequence after the delay.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\\n(#Bedroom_Fan_Plug).switch_on()\\ndelay(15 MIN)\\n(#Bedroom_Fan_Plug).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\n(#Bedroom_Fan_Plug).switch_on()\ndelay(15 MIN)\n(#Bedroom_Fan_Plug).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a periodic `if` guard after the delay to decide whether to turn off the switch. The IR requires an unconditional `call Switch.Off` immediately following the `delay`. The candidate fails to execute `switch_off` because the condition `Temperature > 28` is false (temperature dropped to null/low) at t=900000, causing the guard to fail. The repair removes the conditional guard and executes the action unconditionally.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4-6 replaced with unconditional call"
+  ],
+  "change_summary": "Replaced the conditional `if` block with a direct `call Switch.Off` to match the IR's unconditional action sequence after the delay."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

@@ -1,0 +1,62 @@
+{
+ "id": "D6b",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23771,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 280,
+   "prompt_tokens": 6331,
+   "total_tokens": 6611,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 51.59890580177307,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a one-shot sequence (period 0) instead of a repeating cycle (period 3 MIN). The IR specifies a cycle with a 3-minute period between bodies; the candidate runs once and then waits 3 minutes before terminating, missing all subsequent iterations. F2 shows the IR emits the siren action at 190000 ms (start of the second cycle body), but the candidate emits nothing because it has already terminated.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed period to 180000 (3 MIN) to enable repetition. Replaced the final delay with a break to terminate the script immediately after the body completes, ensuring the next iteration starts exactly 3 minutes later as required by the cycle semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 180000,\n    \"script\": \"(#Yard_Siren).siren_setSirenMode(\\\"emergency\\\")\\ndelay(10 SEC)\\n(#Yard_Siren).switch_off()\\nbreak\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 180000,
+  "script": "(#Yard_Siren).siren_setSirenMode(\"emergency\")\ndelay(10 SEC)\n(#Yard_Siren).switch_off()\nbreak"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a one-shot sequence (period 0) instead of a repeating cycle (period 3 MIN). The IR specifies a cycle with a 3-minute period between bodies; the candidate runs once and then waits 3 minutes before terminating, missing all subsequent iterations. F2 shows the IR emits the siren action at 190000 ms (start of the second cycle body), but the candidate emits nothing because it has already terminated.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed period to 180000 (3 MIN) to enable repetition. Replaced the final delay with a break to terminate the script immediately after the body completes, ensuring the next iteration starts exactly 3 minutes later as required by the cycle semantics."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 190000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

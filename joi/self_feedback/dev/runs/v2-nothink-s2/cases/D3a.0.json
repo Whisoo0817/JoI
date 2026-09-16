@@ -1,0 +1,60 @@
+{
+ "id": "D3a",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 92,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23486,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 325,
+   "prompt_tokens": 6232,
+   "total_tokens": 6557,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 140.37060475349426,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate introduced an absolute-value correction (lines 4-7) to handle negative differences, but the IR only triggers on a rise of at least 3 ($t2 - t1 >= 3$). In the provided trace, the temperature was constant (3), so $t2 - t1 = 0$, which fails the IR condition. The candidate's logic incorrectly treated the zero difference as a valid trigger or misinterpreted the condition, resulting in an extra action that the IR did not emit.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Lines 4-7 (absolute value logic)\"],\n    \"change_summary\": \"Removed the absolute value correction. The revised script strictly follows the IR's signed difference ($t2 - t1$) and the condition ($>= 3$). This preserves the behavior where the action only triggers if the temperature rises by at least 3 units over the 20-minute window.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#Study_Temp).temperatureSensor_temperature\\ndelay(20 MIN)\\nt2 = (#Study_Temp).temperatureSensor_temperature\\nif (t2 - t1 >= 3) {\\n    (#Study_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#Study_Temp).temperatureSensor_temperature\ndelay(20 MIN)\nt2 = (#Study_Temp).temperatureSensor_temperature\nif (t2 - t1 >= 3) {\n    (#Study_AC).airConditioner_setAirConditionerMode(\"cool\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate introduced an absolute-value correction (lines 4-7) to handle negative differences, but the IR only triggers on a rise of at least 3 ($t2 - t1 >= 3$). In the provided trace, the temperature was constant (3), so $t2 - t1 = 0$, which fails the IR condition. The candidate's logic incorrectly treated the zero difference as a valid trigger or misinterpreted the condition, resulting in an extra action that the IR did not emit.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Lines 4-7 (absolute value logic)"
+  ],
+  "change_summary": "Removed the absolute value correction. The revised script strictly follows the IR's signed difference ($t2 - t1$) and the condition ($>= 3$). This preserves the behavior where the action only triggers if the temperature rises by at least 3 units over the 20-minute window."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 36,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

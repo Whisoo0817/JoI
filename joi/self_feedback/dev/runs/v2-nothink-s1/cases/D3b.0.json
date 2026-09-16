@@ -1,0 +1,60 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 22781,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 291,
+   "prompt_tokens": 6018,
+   "total_tokens": 6309,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 78.30985283851624,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR checks if the volume dropped ($v1 - $v2 >= 20), meaning the initial reading must be higher than the final reading. The candidate reversed the operands ($v2 - $v1 >= 20), triggering on a rise instead of a drop. Evidence F2 confirms the JoI emitted the action while the IR did not, as the input held at 20 (a rise from 0) satisfied the wrong condition.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4\"],\n    \"change_summary\": \"Reversed the subtraction order in the `if` condition from `(v2 - v1 >= 20)` to `(v1 - v2 >= 20)` to match the IR's logic for detecting a drop in volume.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR checks if the volume dropped ($v1 - $v2 >= 20), meaning the initial reading must be higher than the final reading. The candidate reversed the operands ($v2 - $v1 >= 20), triggering on a rise instead of a drop. Evidence F2 confirms the JoI emitted the action while the IR did not, as the input held at 20 (a rise from 0) satisfied the wrong condition.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4"
+  ],
+  "change_summary": "Reversed the subtraction order in the `if` condition from `(v2 - v1 >= 20)` to `(v1 - v2 >= 20)` to match the IR's logic for detecting a drop in volume."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

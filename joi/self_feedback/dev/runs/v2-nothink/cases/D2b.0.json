@@ -1,0 +1,60 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 31974,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 949,
+   "prompt_tokens": 8985,
+   "total_tokens": 9934,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 55.54782223701477,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a one-shot sequence (`wait` then `call`) with no cycle. The candidate uses `period: 1000` and a `break` statement, causing it to terminate after the first execution. The IR requires the action to happen exactly once at t=60000ms and then stop, but the candidate's `break` prevents the necessary termination of the script body after the action, or conversely, if the IR implies a repeating cycle that the candidate missed, the `break` is the error. However, looking at the mismatch at 59000ms where the JoI acted but the IR did not, and the input history showing `false` from t=0 to t=58000ms (held for 1000ms each step), the condition `Presence == false` was true at t=0. The IR `wait(C, for: 1 MIN)` with `edge: none` and initial `true` should trigger at t=60000ms (60 ticks of 100ms). The candidate triggered at t=60000ms (hold_ticks=60). The mismatch note says `joi_extra_action` at 59000ms. This suggests the JoI acted one tick early. With `period=1000`, the script runs at 0, 1000, 2000... The counter increments at start of each period. At t=0, count=1. At t=60000, count=61. The IR waits 60000ms. If the candidate acts at 59000, it implies the period grid is misaligned or the threshold logic is off by one tick relative to the actual execution start. Wait, the evidence says mismatch at 59000. If period is 1000, actions happen at 0, 1000, ... 59000 is a valid iteration start. At 59000, hold_ticks would be 59 (if started at 0) or 60 (if started at -1000?). Let's re-evaluate the `for: 1 MIN` rule. Rule: threshold = D/100 + 1. 1 MIN = 60000 ms. 60000/100 = 60. Threshold should be 61. The candidate uses 60. This causes the action to fire after 60 ticks (59000ms if first tick is at 0 and we count 1..60? No. 0 to 59 is 60 ticks. 0, 1000, ..., 59000 is 60 iterations. If `hold_ticks` starts at 0 and increments at start of block: Iteration 0 (t=0): hold=1. Iteration 59 (t=59000): hold=60. Condition `>= 60` is true. Action fires. IR waits 60000ms (60 intervals). It should fire at t=60000 (iteration 60, t=60000). The candidate fires at t=59000 (1 tick early). The fix is to increase the threshold to 61.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"threshold value in script\"],\n    \"change_summary\": \"Changed `hold_ticks >= 60` to `hold_ticks >= 61` to align the 1-minute sustain window with the 100ms wrapper grid, preventing the action from firing one tick early.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 61) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 61) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a one-shot sequence (`wait` then `call`) with no cycle. The candidate uses `period: 1000` and a `break` statement, causing it to terminate after the first execution. The IR requires the action to happen exactly once at t=60000ms and then stop, but the candidate's `break` prevents the necessary termination of the script body after the action, or conversely, if the IR implies a repeating cycle that the candidate missed, the `break` is the error. However, looking at the mismatch at 59000ms where the JoI acted but the IR did not, and the input history showing `false` from t=0 to t=58000ms (held for 1000ms each step), the condition `Presence == false` was true at t=0. The IR `wait(C, for: 1 MIN)` with `edge: none` and initial `true` should trigger at t=60000ms (60 ticks of 100ms). The candidate triggered at t=60000ms (hold_ticks=60). The mismatch note says `joi_extra_action` at 59000ms. This suggests the JoI acted one tick early. With `period=1000`, the script runs at 0, 1000, 2000... The counter increments at start of each period. At t=0, count=1. At t=60000, count=61. The IR waits 60000ms. If the candidate acts at 59000, it implies the period grid is misaligned or the threshold logic is off by one tick relative to the actual execution start. Wait, the evidence says mismatch at 59000. If period is 1000, actions happen at 0, 1000, ... 59000 is a valid iteration start. At 59000, hold_ticks would be 59 (if started at 0) or 60 (if started at -1000?). Let's re-evaluate the `for: 1 MIN` rule. Rule: threshold = D/100 + 1. 1 MIN = 60000 ms. 60000/100 = 60. Threshold should be 61. The candidate uses 60. This causes the action to fire after 60 ticks (59000ms if first tick is at 0 and we count 1..60? No. 0 to 59 is 60 ticks. 0, 1000, ..., 59000 is 60 iterations. If `hold_ticks` starts at 0 and increments at start of block: Iteration 0 (t=0): hold=1. Iteration 59 (t=59000): hold=60. Condition `>= 60` is true. Action fires. IR waits 60000ms (60 intervals). It should fire at t=60000 (iteration 60, t=60000). The candidate fires at t=59000 (1 tick early). The fix is to increase the threshold to 61.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "threshold value in script"
+  ],
+  "change_summary": "Changed `hold_ticks >= 60` to `hold_ticks >= 61` to align the 1-minute sustain window with the 100ms wrapper grid, preventing the action from firing one tick early."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 163053,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 60000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

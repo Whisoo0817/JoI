@@ -1,0 +1,61 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 32945,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 466,
+   "prompt_tokens": 9283,
+   "total_tokens": 9749,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 41.00927472114563,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute (60,000 ms) sustained wait before acting. The candidate uses a 1000 ms wrapper period and a threshold of 60 ticks. This causes the action to fire at 60,000 ms (60 ticks * 1000 ms), but the IR's 1-minute duration implies 600 ticks of 100 ms. The mismatch at 59000 ms (F2) shows the JoI acted too early because the wrapper period (1000 ms) is too coarse to count 600 ticks, and the threshold (60) is mathematically incorrect for a 1000 ms period (it should be 61 to cover 60 seconds if counting from t=0, but the period itself is the primary defect). The correct approach is to use a 100 ms wrapper period and a threshold of 601 (60 seconds / 0.1 seconds + 1).\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 ms to 100 ms to allow fine-grained counting of the 1-minute duration. Updated the hold threshold from 60 to 601 to correctly represent 60 seconds (600 ticks) plus the initial tick, ensuring the action fires exactly at 60,000 ms.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute (60,000 ms) sustained wait before acting. The candidate uses a 1000 ms wrapper period and a threshold of 60 ticks. This causes the action to fire at 60,000 ms (60 ticks * 1000 ms), but the IR's 1-minute duration implies 600 ticks of 100 ms. The mismatch at 59000 ms (F2) shows the JoI acted too early because the wrapper period (1000 ms) is too coarse to count 600 ticks, and the threshold (60) is mathematically incorrect for a 1000 ms period (it should be 61 to cover 60 seconds if counting from t=0, but the period itself is the primary defect). The correct approach is to use a 100 ms wrapper period and a threshold of 601 (60 seconds / 0.1 seconds + 1).",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 ms to 100 ms to allow fine-grained counting of the 1-minute duration. Updated the hold threshold from 60 to 601 to correctly represent 60 seconds (600 ticks) plus the initial tick, ensuring the action fires exactly at 60,000 ms."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

@@ -1,0 +1,60 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23388,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 285,
+   "prompt_tokens": 6217,
+   "total_tokens": 6502,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 216.40346765518188,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate computed the difference as v2 - v1 (current minus initial), whereas the IR specifies v1 - v2 (initial minus current). Since volume dropped from 20 to 0, v2 - v1 is -20, failing the >= 20 check, while v1 - v2 is 20, triggering the action. The IR intended to detect a drop (positive difference when subtracting later from earlier), but the candidate logic inverted the operands.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4\"],\n    \"change_summary\": \"Reversed the operands in the conditional check from (v2 - v1) to (v1 - v2) to match the IR's logic for detecting a volume drop.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate computed the difference as v2 - v1 (current minus initial), whereas the IR specifies v1 - v2 (initial minus current). Since volume dropped from 20 to 0, v2 - v1 is -20, failing the >= 20 check, while v1 - v2 is 20, triggering the action. The IR intended to detect a drop (positive difference when subtracting later from earlier), but the candidate logic inverted the operands.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4"
+  ],
+  "change_summary": "Reversed the operands in the conditional check from (v2 - v1) to (v1 - v2) to match the IR's logic for detecting a volume drop."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

@@ -1,0 +1,60 @@
+{
+ "id": "D5b",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 22928,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 313,
+   "prompt_tokens": 6055,
+   "total_tokens": 6368,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 4.563688039779663,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a periodic `if` to guard the `switch_off` action. Evidence F1 shows the condition held true for 15 minutes after the initial wait. Evidence F2 shows the IR emitted `switch_off` at 900000 ms, but the candidate emitted nothing. The IR's `cycle` (or one-shot sequence) executes the body immediately after the `delay`. The candidate's `if` is evaluated only at the start of the next iteration (15 minutes later), missing the exact instant the IR performs the action.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"lines 4-6\"],\n    \"change_summary\": \"Replaced the conditional `if` with an unconditional statement. The IR specifies a linear sequence: wait, call, delay, call. The candidate incorrectly introduced a guard that delays the final action until the next script iteration, violating the exact timing of the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\\n(#Bedroom_Fan_Plug).switch_on()\\ndelay(15 MIN)\\n(#Bedroom_Fan_Plug).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\n(#Bedroom_Fan_Plug).switch_on()\ndelay(15 MIN)\n(#Bedroom_Fan_Plug).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a periodic `if` to guard the `switch_off` action. Evidence F1 shows the condition held true for 15 minutes after the initial wait. Evidence F2 shows the IR emitted `switch_off` at 900000 ms, but the candidate emitted nothing. The IR's `cycle` (or one-shot sequence) executes the body immediately after the `delay`. The candidate's `if` is evaluated only at the start of the next iteration (15 minutes later), missing the exact instant the IR performs the action.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "lines 4-6"
+  ],
+  "change_summary": "Replaced the conditional `if` with an unconditional statement. The IR specifies a linear sequence: wait, call, delay, call. The candidate incorrectly introduced a guard that delays the final action until the next script iteration, violating the exact timing of the IR."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

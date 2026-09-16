@@ -1,0 +1,61 @@
+{
+ "id": "D6b",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 13411,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 1744,
+   "prompt_tokens": 3281,
+   "total_tokens": 5025,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 216.46397018432617,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"JoI has period 0 (one-shot) instead of 3 MIN repeating cycle, and method names use underscore instead of dot separator. F2 shows IR emits siren.setsirenmode but JoI emits nothing at 190000ms due to mismatched method naming and period.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period field\", \"line 1 method name\", \"line 3 method name\"],\n    \"change_summary\": \"Changed period from 0 to 180000 (3 MIN) to match IR cycle period, and changed siren_setSirenMode to siren.setsirenmode and switch_off to switch.off to match IR method naming convention (dot separator vs underscore)\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 180000,\n    \"script\": \"(#Yard_Siren).siren.setsirenmode(\\\"emergency\\\")\\ndelay(10 SEC)\\n(#Yard_Siren).switch.off()\"\n  }\n}",
+ "reasoning_chars": 4961,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 180000,
+  "script": "(#Yard_Siren).siren.setsirenmode(\"emergency\")\ndelay(10 SEC)\n(#Yard_Siren).switch.off()"
+ },
+ "diagnosis": {
+  "summary": "JoI has period 0 (one-shot) instead of 3 MIN repeating cycle, and method names use underscore instead of dot separator. F2 shows IR emits siren.setsirenmode but JoI emits nothing at 190000ms due to mismatched method naming and period.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period field",
+   "line 1 method name",
+   "line 3 method name"
+  ],
+  "change_summary": "Changed period from 0 to 180000 (3 MIN) to match IR cycle period, and changed siren_setSirenMode to siren.setsirenmode and switch_off to switch.off to match IR method naming convention (dot separator vs underscore)"
+ },
+ "verification": {
+  "verdict": "REFUSED",
+  "confirmed": false,
+  "claim": null,
+  "closed": null,
+  "n_states": null,
+  "notes": [
+   "candidate preparation failed: ValueError: expression not allowed as statement: QuantRef(key='yard_siren.siren', quant=None, tags=('Yard_Siren',), member='siren')"
+  ]
+ },
+ "status": "REFUSED",
+ "rep": 0
+}

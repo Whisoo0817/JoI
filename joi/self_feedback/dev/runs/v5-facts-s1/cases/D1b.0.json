@@ -1,0 +1,61 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23567,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 355,
+   "prompt_tokens": 6236,
+   "total_tokens": 6591,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 47.957565784454346,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a repeating rising-edge wait that must block until the button transitions to 'pushed' before executing the action. The candidate uses a periodic `if` statement, which only evaluates at the start of each cycle period. At t=100ms, the button was already 'pushed', but the candidate's `if` condition was evaluated at t=0 (when it was null) and found false, so the body never executed. This matches the 'repeating rising edge implemented as periodic polling' repair row.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with the required rising-edge state machine: a persistent `fired` flag, a block to wait for the false state (rearm), a block to wait for the true state (trigger), and the action. This ensures the automation blocks at the exact moment of the rising edge rather than missing it if the state is already true when the period starts.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Garden_Button).button_button != \\\"pushed\\\")\\n    fired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Garden_Button).button_button != \"pushed\")\n    fired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a repeating rising-edge wait that must block until the button transitions to 'pushed' before executing the action. The candidate uses a periodic `if` statement, which only evaluates at the start of each cycle period. At t=100ms, the button was already 'pushed', but the candidate's `if` condition was evaluated at t=0 (when it was null) and found false, so the body never executed. This matches the 'repeating rising edge implemented as periodic polling' repair row.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with the required rising-edge state machine: a persistent `fired` flag, a block to wait for the false state (rearm), a block to wait for the true state (trigger), and the action. This ensures the automation blocks at the exact moment of the rising edge rather than missing it if the state is already true when the period starts."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

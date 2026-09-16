@@ -1,0 +1,60 @@
+{
+ "id": "D4b",
+ "family": "phase",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24992,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 498,
+   "prompt_tokens": 6678,
+   "total_tokens": 7176,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 79.76167154312134,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a one-shot sequence: wait for leak, close valve, then enter an infinite cycle (period 1 MIN) that only sends email. The candidate incorrectly executes the valve close and email in the 'else' branch of the first iteration. Since the leak is true at t=0 (F1), the 'if' branch executes, skipping the 'else' branch entirely. However, the IR requires the valve close to happen immediately after the wait (in the pre-cycle block), while the candidate's logic structure implies the valve close is tied to the cycle repetition or misaligned with the pre-cycle action. The mismatch at 60000ms (F2) shows the IR sending only email (cycle body), while the candidate sends valve close AND email. This indicates the candidate is repeating the pre-cycle actions in the cycle phase, which is forbidden. The IR's pre-cycle action (valve close) must happen once, then the cycle (email) repeats. The candidate's `else` block causing the mismatch suggests the candidate logic is flawed in how it separates the pre-cycle action from the cycle body. The correct shape is: wait -> close valve -> loop (period 1 MIN) { send email }. The candidate attempts a phase variable but fails to isolate the pre-cycle action.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the phase-based if/else structure with the required pre-cycle wait/action followed by a pure cycle loop containing only the email action. The valve close is moved to the pre-cycle block, and the cycle loop (period 60000) now only contains the email action, ensuring it repeats indefinitely as per the IR's `until: null`.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 60000,\n    \"script\": \"wait until((#Laundry_Leak).leakSensor_leakage == true)\\n(#Laundry_Valve).valve_close()\\nloop (true) {\\n    (#Mail).emailProvider_sendMail(\\\"home@example.com\\\", \\\"Leak\\\", \\\"Water leak in the laundry room\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 60000,
+  "script": "wait until((#Laundry_Leak).leakSensor_leakage == true)\n(#Laundry_Valve).valve_close()\nloop (true) {\n    (#Mail).emailProvider_sendMail(\"home@example.com\", \"Leak\", \"Water leak in the laundry room\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a one-shot sequence: wait for leak, close valve, then enter an infinite cycle (period 1 MIN) that only sends email. The candidate incorrectly executes the valve close and email in the 'else' branch of the first iteration. Since the leak is true at t=0 (F1), the 'if' branch executes, skipping the 'else' branch entirely. However, the IR requires the valve close to happen immediately after the wait (in the pre-cycle block), while the candidate's logic structure implies the valve close is tied to the cycle repetition or misaligned with the pre-cycle action. The mismatch at 60000ms (F2) shows the IR sending only email (cycle body), while the candidate sends valve close AND email. This indicates the candidate is repeating the pre-cycle actions in the cycle phase, which is forbidden. The IR's pre-cycle action (valve close) must happen once, then the cycle (email) repeats. The candidate's `else` block causing the mismatch suggests the candidate logic is flawed in how it separates the pre-cycle action from the cycle body. The correct shape is: wait -> close valve -> loop (period 1 MIN) { send email }. The candidate attempts a phase variable but fails to isolate the pre-cycle action.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the phase-based if/else structure with the required pre-cycle wait/action followed by a pure cycle loop containing only the email action. The valve close is moved to the pre-cycle block, and the cycle loop (period 60000) now only contains the email action, ensuring it repeats indefinitely as per the IR's `until: null`."
+ },
+ "verification": {
+  "verdict": "REFUSED",
+  "confirmed": false,
+  "claim": null,
+  "closed": null,
+  "n_states": null,
+  "notes": [
+   "candidate preparation failed: Unsupported: loop() exceeded iteration cap"
+  ]
+ },
+ "status": "REFUSED",
+ "rep": 0
+}

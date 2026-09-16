@@ -1,0 +1,60 @@
+{
+ "id": "D3a",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 92,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24560,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 285,
+   "prompt_tokens": 6575,
+   "total_tokens": 6860,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 57.817007064819336,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate adds an unnecessary absolute-value correction (lines 5-7) that alters the signed difference logic. F2 shows the IR took no action while the JoI took action, because the IR's condition ($t2 - $t1 >= 3) was false (3 - 3 = 0) but the JoI's corrected condition became true. The IR requires the exact signed difference without folding to absolute value.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"lines 5-7 of script\"],\n    \"change_summary\": \"Removed the absolute-value correction block. Restored the direct comparison of the signed difference ($t2 - $t1 >= 3) to match the IR specification exactly.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#Study_Temp).temperatureSensor_temperature\\ndelay(20 MIN)\\nt2 = (#Study_Temp).temperatureSensor_temperature\\ndiff = t2 - t1\\nif (diff >= 3) {\\n    (#Study_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#Study_Temp).temperatureSensor_temperature\ndelay(20 MIN)\nt2 = (#Study_Temp).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff >= 3) {\n    (#Study_AC).airConditioner_setAirConditionerMode(\"cool\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate adds an unnecessary absolute-value correction (lines 5-7) that alters the signed difference logic. F2 shows the IR took no action while the JoI took action, because the IR's condition ($t2 - $t1 >= 3) was false (3 - 3 = 0) but the JoI's corrected condition became true. The IR requires the exact signed difference without folding to absolute value.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "lines 5-7 of script"
+  ],
+  "change_summary": "Removed the absolute-value correction block. Restored the direct comparison of the signed difference ($t2 - $t1 >= 3) to match the IR specification exactly."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 36,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

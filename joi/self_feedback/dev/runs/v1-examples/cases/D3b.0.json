@@ -1,0 +1,59 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 20854,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 2408,
+   "prompt_tokens": 5453,
+   "total_tokens": 7861,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 127.53239583969116,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The JoI condition checks for a volume increase (v2 - v1 >= 20) while the IR requires a decrease (v1 - v2 >= 20). With input volume jumping from 0 to 20, the JoI incorrectly triggered the action.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4 of script\"],\n    \"change_summary\": \"Reversed the subtraction operands in the if condition from v2 - v1 to v1 - v2 to match the IR specification.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 6265,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The JoI condition checks for a volume increase (v2 - v1 >= 20) while the IR requires a decrease (v1 - v2 >= 20). With input volume jumping from 0 to 20, the JoI incorrectly triggered the action.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4 of script"
+  ],
+  "change_summary": "Reversed the subtraction operands in the if condition from v2 - v1 to v1 - v2 to match the IR specification."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

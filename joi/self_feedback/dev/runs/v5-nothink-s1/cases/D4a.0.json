@@ -1,0 +1,61 @@
+{
+ "id": "D4a",
+ "family": "phase",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 1,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24718,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 344,
+   "prompt_tokens": 6564,
+   "total_tokens": 6908,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 75.8230299949646,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a cycle where the siren action is followed by a periodic cycle of speaking. The candidate incorrectly places the `siren` action in the initial phase (before the cycle starts) and the `speak` action in the else branch (after the wait). Evidence F2 shows the IR emitted both actions at t=0, while the candidate only emitted the siren. The correct structure requires the `wait` and `siren` call to happen, then the `speak` call to be the first iteration of the cycle body.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script logic flow\"],\n    \"change_summary\": \"Removed the `phase` variable and the `if-else` structure. Moved the `siren` call to occur immediately after the `wait` block completes, and placed the `speak` call directly after the `siren` call within the same script body. This ensures both actions fire at the start of the cycle, and subsequent iterations only repeat the `speak` action with the 2-minute period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 120000,\n    \"script\": \"wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\\n(#Kitchen_Siren).siren_setSirenMode(\\\"emergency\\\")\\n(#Kitchen_Speaker).speaker_speak(\\\"Smoke detected in the kitchen\\\")\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 120000,
+  "script": "wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\n(#Kitchen_Siren).siren_setSirenMode(\"emergency\")\n(#Kitchen_Speaker).speaker_speak(\"Smoke detected in the kitchen\")"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a cycle where the siren action is followed by a periodic cycle of speaking. The candidate incorrectly places the `siren` action in the initial phase (before the cycle starts) and the `speak` action in the else branch (after the wait). Evidence F2 shows the IR emitted both actions at t=0, while the candidate only emitted the siren. The correct structure requires the `wait` and `siren` call to happen, then the `speak` call to be the first iteration of the cycle body.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script logic flow"
+  ],
+  "change_summary": "Removed the `phase` variable and the `if-else` structure. Moved the `siren` call to occur immediately after the `wait` block completes, and placed the `speak` call directly after the `siren` call within the same script body. This ensures both actions fire at the start of the cycle, and subsequent iterations only repeat the `speak` action with the 2-minute period."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 120000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

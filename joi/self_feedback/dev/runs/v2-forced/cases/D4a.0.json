@@ -1,0 +1,59 @@
+{
+ "id": "D4a",
+ "family": "phase",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 1,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23747,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 5533,
+   "prompt_tokens": 6264,
+   "total_tokens": 11797,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 71.35304951667786,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"F2 evidence shows both Siren and Speaker actions occurred at t=0 ms. The candidate script defers the Speaker action to the next iteration (phase 1), which executes at t=120000 ms. The IR cycle body must execute immediately in the first iteration alongside the pre-cycle actions.\",\n    \"evidence_refs\": [\"F2\"],\n    \"changed_locations\": [\"phase == 0 block\"],\n    \"change_summary\": \"Added the Speaker call to the initial iteration (phase == 0) so it fires at t=0 alongside the Siren, matching the IR cycle semantics where the first body execution occurs upon entry.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 120000,\n    \"script\": \"phase := 0\\nif (phase == 0) {\\n    wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\\n    phase = 1\\n    (#Kitchen_Siren).siren_setSirenMode(\\\"emergency\\\")\\n    (#Kitchen_Speaker).speaker_speak(\\\"Smoke detected in the kitchen\\\")\\n} else {\\n    (#Kitchen_Speaker).speaker_speak(\\\"Smoke detected in the kitchen\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 17874,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 120000,
+  "script": "phase := 0\nif (phase == 0) {\n    wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\n    phase = 1\n    (#Kitchen_Siren).siren_setSirenMode(\"emergency\")\n    (#Kitchen_Speaker).speaker_speak(\"Smoke detected in the kitchen\")\n} else {\n    (#Kitchen_Speaker).speaker_speak(\"Smoke detected in the kitchen\")\n}"
+ },
+ "diagnosis": {
+  "summary": "F2 evidence shows both Siren and Speaker actions occurred at t=0 ms. The candidate script defers the Speaker action to the next iteration (phase 1), which executes at t=120000 ms. The IR cycle body must execute immediately in the first iteration alongside the pre-cycle actions.",
+  "evidence_refs": [
+   "F2"
+  ],
+  "changed_locations": [
+   "phase == 0 block"
+  ],
+  "change_summary": "Added the Speaker call to the initial iteration (phase == 0) so it fires at t=0 alongside the Siren, matching the IR cycle semantics where the first body execution occurs upon entry."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

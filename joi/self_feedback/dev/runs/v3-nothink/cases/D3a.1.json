@@ -1,0 +1,61 @@
+{
+ "id": "D3a",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 92,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24313,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 355,
+   "prompt_tokens": 6467,
+   "total_tokens": 6822,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 148.77083683013916,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate introduced an absolute-value correction (`if (diff < 0) { diff = t1 - t2 }`) to handle temperature rises. The IR only triggers when the temperature *drops* by at least 3 units (`$t2 - $t1 >= 3`). In the failing trace, the temperature rose from 3 to null (interpreted as a high value), making the raw difference negative. The candidate flipped this to a positive number, causing an extra `setAirConditionerMode` action that the IR would not perform. The fix removes the absolute-value logic to strictly match the signed arithmetic in the IR.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4-7 (absolute-value correction logic)\"],\n    \"change_summary\": \"Removed the `if (diff < 0)` block that inverted the difference. The script now relies solely on the raw signed difference `t2 - t1`, ensuring the action only fires when the temperature decreases by 3 or more, exactly as specified in the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#Study_Temp).temperatureSensor_temperature\\ndelay(20 MIN)\\nt2 = (#Study_Temp).temperatureSensor_temperature\\ndiff = t2 - t1\\nif (diff >= 3) {\\n    (#Study_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#Study_Temp).temperatureSensor_temperature\ndelay(20 MIN)\nt2 = (#Study_Temp).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff >= 3) {\n    (#Study_AC).airConditioner_setAirConditionerMode(\"cool\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate introduced an absolute-value correction (`if (diff < 0) { diff = t1 - t2 }`) to handle temperature rises. The IR only triggers when the temperature *drops* by at least 3 units (`$t2 - $t1 >= 3`). In the failing trace, the temperature rose from 3 to null (interpreted as a high value), making the raw difference negative. The candidate flipped this to a positive number, causing an extra `setAirConditionerMode` action that the IR would not perform. The fix removes the absolute-value logic to strictly match the signed arithmetic in the IR.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4-7 (absolute-value correction logic)"
+  ],
+  "change_summary": "Removed the `if (diff < 0)` block that inverted the difference. The script now relies solely on the raw signed difference `t2 - t1`, ensuring the action only fires when the temperature decreases by 3 or more, exactly as specified in the IR."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 36,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 1
+}

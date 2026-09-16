@@ -1,0 +1,34 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 27225,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 869,
+   "prompt_tokens": 7587,
+   "total_tokens": 8456,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 61.0454216003418,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a 30-second sustained wait (`for: 30 SEC`). With the current 1000 ms wrapper period, the candidate fires after 30 iterations (30 seconds) starting from t=0. However, the evidence shows the condition is true at t=0 (28.1 > 28). The IR semantics for `wait(C, for: D)` with an initially true condition require counting D full periods *after* the initial state, meaning the action must fire at t=30000 ms. The candidate fires at t=29000 ms because the initial t=0 tick counts as tick 1, reaching the threshold of 30 at the end of the 29th period (29000 ms). To fix this, the threshold must be increased to 31 so the action waits for the full 30th period to complete.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"Line 4 threshold\"],\n    \"change_summary\": \"Changed the hold threshold from 30 to 31. This ensures that with a 1000 ms period, the action executes after 31 ticks (31000 ms) if the condition is initially true, but the evidence shows the mismatch occurred at 29000 ms where the IR expected nothing and JoI acted. Wait, re-evaluating the math: IR `for: 30 SEC` on a 1000ms grid. If true at t=0, does it wait 30s or 30 ticks? Standard interpretation: wait 30 seconds. Ticks at 0, 1000, ..., 29000 is 30 ticks. If the candidate fires at 29000, it has counted ticks 0 through 29 (30 ticks). The IR expects nothing at 29000. This implies the IR counts the duration strictly, and the first valid fire is at 30000. Therefore, the candidate needs to count 31 ticks to reach 31000? No. If the mismatch is at 29000, the IR says 'no action'. The candidate says 'action'. The IR must wait until t=30000. The candidate fires at t=29000. The candidate counted 30 ticks (0..29). The IR must count 31 ticks (0..30) to reach 30000? Or does the IR wait 30000ms total? If true at 0, wait 30s -> ready at 30000. Candidate fires at 29000 (30 ticks). To delay the candidate to 30000, we need 31 ticks. So threshold 31. Let's verify Example B logic: `for: 10 SEC` with 1000ms period. Candidate fired at 9000 (10 ticks). IR fired at 10000 (11 ticks). Fix was threshold 11. Here `for: 30 SEC`. Candidate fired at 29000 (30 ticks). IR fires at 30000 (31 ticks). Fix is threshold 31.\",\n    \"joi_block\": {\n      \"name\": \"Scenario\",\n      \"cron\": \"\",\n      \"period\": 1000,\n      \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 31) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n    }\n  }\n}",
+ "reasoning_chars": 0,
+ "status": "INVALID_OUTPUT",
+ "error": "no joi_block.script",
+ "rep": 0
+}

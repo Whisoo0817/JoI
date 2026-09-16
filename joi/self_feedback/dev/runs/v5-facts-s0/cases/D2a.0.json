@@ -1,0 +1,61 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28410,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 340,
+   "prompt_tokens": 7966,
+   "total_tokens": 8306,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 61.87108588218689,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 30 ticks, causing the action to fire at 29 seconds (30 ticks) instead of the required 30 seconds (300 ticks). The IR requires a 30-second sustained window, which corresponds to 300 ticks on a 100 ms grid. The candidate's threshold of 30 is off by a factor of 10.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"hold_ticks threshold\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 ms to 100 ms to align with the sustain duration calculation. Updated the threshold from 30 to 301 (30 seconds / 100 ms + 1) to ensure the condition is sustained for the full 30 seconds before triggering the switch.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 30 ticks, causing the action to fire at 29 seconds (30 ticks) instead of the required 30 seconds (300 ticks). The IR requires a 30-second sustained window, which corresponds to 300 ticks on a 100 ms grid. The candidate's threshold of 30 is off by a factor of 10.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "hold_ticks threshold"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 ms to 100 ms to align with the sustain duration calculation. Updated the threshold from 30 to 301 (30 seconds / 100 ms + 1) to ensure the condition is sustained for the full 30 seconds before triggering the switch."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

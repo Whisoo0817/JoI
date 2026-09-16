@@ -1,0 +1,60 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23730,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 411,
+   "prompt_tokens": 6268,
+   "total_tokens": 6679,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 64.44808864593506,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait (`wait(MotionSensor.Motion == true, edge rising)`), which must block until the transition from false to true occurs. The candidate polls the condition at the start of the 1000 ms body. Since motion became true at t=100 ms (after the first 1000 ms iteration started), the candidate's `if` evaluated to false and skipped the actions, whereas the IR would have been blocked waiting for the rising edge and then executed immediately at t=100 ms. This mismatch is confirmed in F2 where the IR emitted actions but the JoI did not. The fix implements the standard rising-edge rearming pattern: clear the flag, wait for the predicate to become true, execute the body, then set the flag.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script logic\"],\n    \"change_summary\": \"Replaced periodic polling of the condition with a blocking two-wait rearming sequence. The script now explicitly waits for the rising edge before executing the body, ensuring actions occur exactly when the IR specifies (at the moment of transition), rather than at the start of the wrapper period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until((#Hall_Motion).motionSensor_motion == false)\\n    triggered = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\ntriggered = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until((#Hall_Motion).motionSensor_motion == false)\n    triggered = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait (`wait(MotionSensor.Motion == true, edge rising)`), which must block until the transition from false to true occurs. The candidate polls the condition at the start of the 1000 ms body. Since motion became true at t=100 ms (after the first 1000 ms iteration started), the candidate's `if` evaluated to false and skipped the actions, whereas the IR would have been blocked waiting for the rising edge and then executed immediately at t=100 ms. This mismatch is confirmed in F2 where the IR emitted actions but the JoI did not. The fix implements the standard rising-edge rearming pattern: clear the flag, wait for the predicate to become true, execute the body, then set the flag.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script logic"
+  ],
+  "change_summary": "Replaced periodic polling of the condition with a blocking two-wait rearming sequence. The script now explicitly waits for the rising edge before executing the body, ensuring actions occur exactly when the IR specifies (at the moment of transition), rather than at the start of the wrapper period."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

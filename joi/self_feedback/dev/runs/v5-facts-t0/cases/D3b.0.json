@@ -1,0 +1,60 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23853,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 281,
+   "prompt_tokens": 6359,
+   "total_tokens": 6640,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 63.52355766296387,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR checks if the volume dropped (v1 - v2 >= 20), but the candidate checks if it rose (v2 - v1 >= 20). Evidence F2 shows the JoI emitted an action when the volume was held constant at 20 (v1=0, v2=20), whereas the IR condition (0 - 20 >= 20) is false and no action should occur.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4: if condition\"],\n    \"change_summary\": \"Reversed the subtraction order in the if condition from (v2 - v1) to (v1 - v2) to match the IR's logic for detecting a volume drop.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR checks if the volume dropped (v1 - v2 >= 20), but the candidate checks if it rose (v2 - v1 >= 20). Evidence F2 shows the JoI emitted an action when the volume was held constant at 20 (v1=0, v2=20), whereas the IR condition (0 - 20 >= 20) is false and no action should occur.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4: if condition"
+  ],
+  "change_summary": "Reversed the subtraction order in the if condition from (v2 - v1) to (v1 - v2) to match the IR's logic for detecting a volume drop."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

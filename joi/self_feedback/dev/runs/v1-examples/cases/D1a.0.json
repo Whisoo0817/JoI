@@ -1,0 +1,59 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 21803,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 7752,
+   "prompt_tokens": 5703,
+   "total_tokens": 13455,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 235.70272064208984,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The candidate polls the motion sensor state with an `if` check at period start, missing the rising edge transition that occurs between polling instants. Evidence F2 shows the IR acted at 100ms while JoI emitted nothing. The fix implements the rising-edge state machine using `wait until` and a persistent `fired` flag, blocking on the transition as required by the IR's `wait(..., edge rising)` semantics.\",\n    \"evidence_refs\": [\n      \"F2\",\n      \"F3\"\n    ],\n    \"changed_locations\": [\n      \"script\"\n    ],\n    \"change_summary\": \"Replaced polling `if` logic with a blocking `wait until` state machine that waits for the rising edge and re-arms on the falling edge, preserving the IR's exact timing and edge semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Hall_Motion).motionSensor_motion == false)\\n    fired = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 26130,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Hall_Motion).motionSensor_motion == false)\n    fired = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate polls the motion sensor state with an `if` check at period start, missing the rising edge transition that occurs between polling instants. Evidence F2 shows the IR acted at 100ms while JoI emitted nothing. The fix implements the rising-edge state machine using `wait until` and a persistent `fired` flag, blocking on the transition as required by the IR's `wait(..., edge rising)` semantics.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced polling `if` logic with a blocking `wait until` state machine that waits for the rising edge and re-arms on the falling edge, preserving the IR's exact timing and edge semantics."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

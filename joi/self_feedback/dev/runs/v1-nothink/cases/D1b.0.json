@@ -1,0 +1,60 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 20516,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 314,
+   "prompt_tokens": 5321,
+   "total_tokens": 5635,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 11.837524652481079,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a periodic `if` which only evaluates at the start of the 1000ms cycle. The input became 'pushed' at 100ms, but the candidate did not act until the next cycle start (1000ms), missing the rising edge at 100ms. The IR requires a rising-edge wait that blocks until the condition is true, ensuring the action fires exactly when the transition occurs.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with a rising-edge state machine using `wait until` and a persistent `fired` flag. This ensures the action executes immediately upon the rising edge at 100ms and correctly re-arms for future cycles.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Garden_Button).button_button != \\\"pushed\\\")\\n    fired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\\n\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Garden_Button).button_button != \"pushed\")\n    fired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true\n"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a periodic `if` which only evaluates at the start of the 1000ms cycle. The input became 'pushed' at 100ms, but the candidate did not act until the next cycle start (1000ms), missing the rising edge at 100ms. The IR requires a rising-edge wait that blocks until the condition is true, ensuring the action fires exactly when the transition occurs.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with a rising-edge state machine using `wait until` and a persistent `fired` flag. This ensures the action executes immediately upon the rising edge at 100ms and correctly re-arms for future cycles."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

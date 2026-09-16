@@ -1,0 +1,62 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 32801,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 438,
+   "prompt_tokens": 9220,
+   "total_tokens": 9658,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 82.22981834411621,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a one-shot sequence with a 1-minute wait followed by a single action. The candidate uses a 1-second period wrapper with a hold counter that triggers at tick 60 (60 seconds). This is a timing mismatch: the IR requires the action at 60,000 ms, but the candidate triggers at 59,000 ms because the first iteration (t=0) counts as tick 1. Additionally, the IR has no `cycle` or `break` after the action, so the candidate's `break` is unnecessary and potentially disruptive if the IR were extended; however, the primary failure is the 1-second period preventing observation of condition drops between iterations, which the 100ms period rule mandates for `for:` durations.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed `period` from 1000 to 100 to satisfy the requirement that `wait(C, for: D)` must use a 100ms wrapper with a threshold of `D/100 + 1`. Updated the threshold from 60 to 61 to correctly count 61 ticks (covering the duration from t=0 to t=60,000ms). Removed the `break` statement as the IR does not contain a cycle or explicit termination after the action.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 61) {\\n        (#Office_Monitor_Plug).switch_off()\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 61) {\n        (#Office_Monitor_Plug).switch_off()\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a one-shot sequence with a 1-minute wait followed by a single action. The candidate uses a 1-second period wrapper with a hold counter that triggers at tick 60 (60 seconds). This is a timing mismatch: the IR requires the action at 60,000 ms, but the candidate triggers at 59,000 ms because the first iteration (t=0) counts as tick 1. Additionally, the IR has no `cycle` or `break` after the action, so the candidate's `break` is unnecessary and potentially disruptive if the IR were extended; however, the primary failure is the 1-second period preventing observation of condition drops between iterations, which the 100ms period rule mandates for `for:` durations.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed `period` from 1000 to 100 to satisfy the requirement that `wait(C, for: D)` must use a 100ms wrapper with a threshold of `D/100 + 1`. Updated the threshold from 60 to 61 to correctly count 61 ticks (covering the duration from t=0 to t=60,000ms). Removed the `break` statement as the IR does not contain a cycle or explicit termination after the action."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 6000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

@@ -1,0 +1,61 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24701,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 372,
+   "prompt_tokens": 6566,
+   "total_tokens": 6938,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 56.05637717247009,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait followed by a body. The candidate polls the condition at the start of the wrapper period (t=0) and finds it false, so it never enters the body. At t=100ms, the input becomes true, but the candidate's `if` guard is already evaluated and will not re-evaluate until the next period start (t=1000ms). The IR requires the action to fire immediately at the rising edge (t=100ms).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic polling `if` with the standard rising-edge state machine: block until the predicate is false (rearm), block until the predicate is true (fire), execute the body, and set the flag. This ensures the action fires exactly when the input transitions from false to true, matching the IR's `wait(..., edge rising)` semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until((#Hall_Motion).motionSensor_motion == false)\\n    triggered = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\ntriggered = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until((#Hall_Motion).motionSensor_motion == false)\n    triggered = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait followed by a body. The candidate polls the condition at the start of the wrapper period (t=0) and finds it false, so it never enters the body. At t=100ms, the input becomes true, but the candidate's `if` guard is already evaluated and will not re-evaluate until the next period start (t=1000ms). The IR requires the action to fire immediately at the rising edge (t=100ms).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic polling `if` with the standard rising-edge state machine: block until the predicate is false (rearm), block until the predicate is true (fire), execute the body, and set the flag. This ensures the action fires exactly when the input transitions from false to true, matching the IR's `wait(..., edge rising)` semantics."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

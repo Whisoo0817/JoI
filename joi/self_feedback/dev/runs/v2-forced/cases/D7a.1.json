@@ -1,0 +1,60 @@
+{
+ "id": "D7a",
+ "family": "argument",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 22700,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 741,
+   "prompt_tokens": 5922,
+   "total_tokens": 6663,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 41.93188261985779,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The JoI candidate translated the IR's literal English string into Korean text. F2 shows the IR emitted 'The living room is  degrees' while the JoI emitted '거실 온도는 도입니다'. String arguments must be copied exactly from the IR as data, not translated.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"line 2 string literal\"],\n    \"change_summary\": \"Changed the Korean string literal to the exact English text from the IR. The variable substitution pattern (+ t +) is preserved; only the literal text was corrected.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t = (#Living_Temp).temperatureSensor_temperature\\nall(#Speaker).speaker_speak(\\\"The living room is \\\" + t + \\\" degrees\\\")\"\n  }\n}",
+ "reasoning_chars": 2093,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t = (#Living_Temp).temperatureSensor_temperature\nall(#Speaker).speaker_speak(\"The living room is \" + t + \" degrees\")"
+ },
+ "diagnosis": {
+  "summary": "The JoI candidate translated the IR's literal English string into Korean text. F2 shows the IR emitted 'The living room is  degrees' while the JoI emitted '거실 온도는 도입니다'. String arguments must be copied exactly from the IR as data, not translated.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 2 string literal"
+  ],
+  "change_summary": "Changed the Korean string literal to the exact English text from the IR. The variable substitution pattern (+ t +) is preserved; only the literal text was corrected."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 1
+}

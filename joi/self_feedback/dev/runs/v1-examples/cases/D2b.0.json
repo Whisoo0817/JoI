@@ -1,0 +1,60 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 30047,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 1894,
+   "prompt_tokens": 8420,
+   "total_tokens": 10314,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 231.47753596305847,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "\n\n```json\n{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a sustained wait of 1 MIN (60000ms) before the action. With period 1000ms, the JoI counts ticks starting at t=0 as tick 1. At t=59000ms, hold_ticks reaches 60 and triggers the action, but the IR should wait until t=60000ms (61 ticks total including t=0). Evidence F2 shows the mismatch at 59000ms where JoI acted but IR did not.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4 threshold\"],\n    \"change_summary\": \"Changed hold_ticks >= 60 to hold_ticks >= 61 to align with the 1 MIN sustained wait requirement. The IR's 'for: 1 MIN' with edge 'none' means the condition must remain continuously true for the full 60000ms duration. With 1000ms period, this requires 61 iterations (t=0 through t=60000ms), not 60. This preserves the IR's exact timing behavior.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 61) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}\n```",
+ "reasoning_chars": 4906,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 61) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a sustained wait of 1 MIN (60000ms) before the action. With period 1000ms, the JoI counts ticks starting at t=0 as tick 1. At t=59000ms, hold_ticks reaches 60 and triggers the action, but the IR should wait until t=60000ms (61 ticks total including t=0). Evidence F2 shows the mismatch at 59000ms where JoI acted but IR did not.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4 threshold"
+  ],
+  "change_summary": "Changed hold_ticks >= 60 to hold_ticks >= 61 to align with the 1 MIN sustained wait requirement. The IR's 'for: 1 MIN' with edge 'none' means the condition must remain continuously true for the full 60000ms duration. With 1000ms period, this requires 61 iterations (t=0 through t=60000ms), not 60. This preserves the IR's exact timing behavior."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 163053,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 60000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

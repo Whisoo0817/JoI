@@ -1,0 +1,60 @@
+{
+ "id": "D4a",
+ "family": "phase",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 1,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24354,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 328,
+   "prompt_tokens": 6465,
+   "total_tokens": 6793,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 216.14777493476868,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a pre-cycle wait followed by a cycle that repeats indefinitely. The candidate uses a phase flag to split the logic, causing the speaker action to only execute in the `else` branch (after the first iteration). This fails because the IR requires the speaker action to fire repeatedly on every cycle iteration, not just once after the initial wait. The candidate also lacks the `delay` required between cycle bodies to match the 2 MIN period.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Removed the phase-based `if/else` structure. Replaced it with a linear sequence: wait for smoke, trigger siren, then enter an infinite loop (period 120000) that calls the speaker and delays for the cycle period. This preserves the initial wait, the immediate siren trigger, and the repeated speaker action separated by 2 MIN intervals.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 120000,\n    \"script\": \"wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\\n(#Kitchen_Siren).siren_setSirenMode(\\\"emergency\\\")\\nloop (true) {\\n    (#Kitchen_Speaker).speaker_speak(\\\"Smoke detected in the kitchen\\\")\\n    delay(2 MIN)\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 120000,
+  "script": "wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\n(#Kitchen_Siren).siren_setSirenMode(\"emergency\")\nloop (true) {\n    (#Kitchen_Speaker).speaker_speak(\"Smoke detected in the kitchen\")\n    delay(2 MIN)\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a pre-cycle wait followed by a cycle that repeats indefinitely. The candidate uses a phase flag to split the logic, causing the speaker action to only execute in the `else` branch (after the first iteration). This fails because the IR requires the speaker action to fire repeatedly on every cycle iteration, not just once after the initial wait. The candidate also lacks the `delay` required between cycle bodies to match the 2 MIN period.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Removed the phase-based `if/else` structure. Replaced it with a linear sequence: wait for smoke, trigger siren, then enter an infinite loop (period 120000) that calls the speaker and delays for the cycle period. This preserves the initial wait, the immediate siren trigger, and the repeated speaker action separated by 2 MIN intervals."
+ },
+ "verification": {
+  "verdict": "REFUSED",
+  "confirmed": false,
+  "claim": null,
+  "closed": null,
+  "n_states": null,
+  "notes": [
+   "candidate preparation failed: Unsupported: loop 안 blocking 문 (회차가 경로에 안 담김)"
+  ]
+ },
+ "status": "REFUSED",
+ "rep": 0
+}

@@ -1,0 +1,62 @@
+{
+ "id": "D5b",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 22928,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 351,
+   "prompt_tokens": 6055,
+   "total_tokens": 6406,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 129.012197971344,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a top-level `wait(cond, edge none, for: D)` followed by a sequence of actions. The candidate uses a blocking `wait until` (which fires once) followed by an `if` guard. The evidence (F1, F2) shows the temperature was held at 28.1 for 15 minutes after the initial wait. The candidate failed to execute `switch_off` because it placed the action inside an `if` block that was never re-evaluated after the `delay` completed. A top-level `wait` with `edge none` in a one-shot script must hold the condition true for the full duration and then execute the subsequent actions unconditionally.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\", \"lines 4-6\"],\n    \"change_summary\": \"Replaced the `if` guard around `switch_off` with a direct sequential call. This ensures that once the 15-minute delay completes, the `switch_off` action is executed regardless of the current sensor value, matching the IR's sequential execution of actions after a sustained wait.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\\n(#Bedroom_Fan_Plug).switch_on()\\ndelay(15 MIN)\\n(#Bedroom_Fan_Plug).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\n(#Bedroom_Fan_Plug).switch_on()\ndelay(15 MIN)\n(#Bedroom_Fan_Plug).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a top-level `wait(cond, edge none, for: D)` followed by a sequence of actions. The candidate uses a blocking `wait until` (which fires once) followed by an `if` guard. The evidence (F1, F2) shows the temperature was held at 28.1 for 15 minutes after the initial wait. The candidate failed to execute `switch_off` because it placed the action inside an `if` block that was never re-evaluated after the `delay` completed. A top-level `wait` with `edge none` in a one-shot script must hold the condition true for the full duration and then execute the subsequent actions unconditionally.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script",
+   "lines 4-6"
+  ],
+  "change_summary": "Replaced the `if` guard around `switch_off` with a direct sequential call. This ensures that once the 15-minute delay completes, the `switch_off` action is executed regardless of the current sensor value, matching the IR's sequential execution of actions after a sustained wait."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

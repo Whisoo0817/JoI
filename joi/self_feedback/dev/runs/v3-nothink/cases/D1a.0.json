@@ -1,0 +1,61 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24557,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 338,
+   "prompt_tokens": 6503,
+   "total_tokens": 6841,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 155.98627066612244,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a periodic `if` check instead of a rising-edge wait. At t=100ms, the motion sensor was already true, but the candidate only evaluates its guard at the start of the next wrapper period (t=1000ms), missing the rising edge event that the IR waits for.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"script\", \"period\"],\n    \"change_summary\": \"Changed the script to use a blocking rising-edge wait (`wait until(P)`) followed by the body and a state flag (`fired`), wrapped in a `period` of 1000ms. This ensures the automation blocks until the rising edge occurs, then executes the body exactly once per cycle, matching the IR's `cycle { wait(..., rising); BODY }` structure.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Hall_Motion).motionSensor_motion == false)\\n    fired = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Hall_Motion).motionSensor_motion == false)\n    fired = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a periodic `if` check instead of a rising-edge wait. At t=100ms, the motion sensor was already true, but the candidate only evaluates its guard at the start of the next wrapper period (t=1000ms), missing the rising edge event that the IR waits for.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "script",
+   "period"
+  ],
+  "change_summary": "Changed the script to use a blocking rising-edge wait (`wait until(P)`) followed by the body and a state flag (`fired`), wrapped in a `period` of 1000ms. This ensures the automation blocks until the rising edge occurs, then executes the body exactly once per cycle, matching the IR's `cycle { wait(..., rising); BODY }` structure."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

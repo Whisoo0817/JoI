@@ -1,0 +1,60 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 22443,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 358,
+   "prompt_tokens": 5884,
+   "total_tokens": 6242,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 115.062335729599,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a repeating cycle with a rising-edge wait. The candidate used a periodic `if` which only evaluates at body start. The input history (F1) shows the button became 'pushed' at 0ms and held through 100ms. The IR fires at 100ms (rising edge), but the candidate's `if` at 100ms (start of first period) saw the button as 'pushed' (not a transition) and did not execute the body. The candidate must block on the rising edge before executing the action.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` with a two-wait rearm pattern: `if (fired) { wait until(not C); fired = false }`, `wait until(C)`, BODY, `fired = true`. This ensures the action executes exactly when the predicate transitions from false to true, matching the IR's rising-edge semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Garden_Button).button_button != \\\"pushed\\\")\\n    fired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Garden_Button).button_button != \"pushed\")\n    fired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a repeating cycle with a rising-edge wait. The candidate used a periodic `if` which only evaluates at body start. The input history (F1) shows the button became 'pushed' at 0ms and held through 100ms. The IR fires at 100ms (rising edge), but the candidate's `if` at 100ms (start of first period) saw the button as 'pushed' (not a transition) and did not execute the body. The candidate must block on the rising edge before executing the action.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` with a two-wait rearm pattern: `if (fired) { wait until(not C); fired = false }`, `wait until(C)`, BODY, `fired = true`. This ensures the action executes exactly when the predicate transitions from false to true, matching the IR's rising-edge semantics."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

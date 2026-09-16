@@ -1,0 +1,58 @@
+{
+ "id": "D7a",
+ "family": "argument",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 20773,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 1875,
+   "prompt_tokens": 5359,
+   "total_tokens": 7234,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 136.32356071472168,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The speaker_speak action uses a Korean string literal while the IR requires an English string literal. The targets and variable usage are correct.\",\n    \"evidence_refs\": [\"F2\"],\n    \"changed_locations\": [\"Line 2 argument\"],\n    \"change_summary\": \"Changed the string argument from Korean to English to match the IR specification while preserving the variable interpolation and target selection.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t = (#Living_Temp).temperatureSensor_temperature\\nall(#Speaker).speaker_speak(\\\"The living room is \\\" + t + \\\" degrees\\\")\"\n  }\n}",
+ "reasoning_chars": 6328,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t = (#Living_Temp).temperatureSensor_temperature\nall(#Speaker).speaker_speak(\"The living room is \" + t + \" degrees\")"
+ },
+ "diagnosis": {
+  "summary": "The speaker_speak action uses a Korean string literal while the IR requires an English string literal. The targets and variable usage are correct.",
+  "evidence_refs": [
+   "F2"
+  ],
+  "changed_locations": [
+   "Line 2 argument"
+  ],
+  "change_summary": "Changed the string argument from Korean to English to match the IR specification while preserving the variable interpolation and target selection."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}
