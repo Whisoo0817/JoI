@@ -22,15 +22,22 @@ BANDS = [("Notation", "spelling"), ("Logic", "logic"), ("Temporal", "temporal")]
 
 
 def table(C):
-    """Stub, n, and one reversal rate per judge -- one shared denominator per row, because every
-    judge is asked about the same programs."""
+    """Stub, n, and one consistency figure per judge.
+
+    Both rows measure the same thing -- the share of items on which the judge did not contradict
+    itself -- so they share a column. The first row is over every seed program, asked three times
+    identically, with no selection; the rest are over the rewrites of the common set. Reported as
+    100 minus the reversal rate, so that higher is better throughout.
+    """
     judges = list(C["judges"])
-    body = []
+    sd = C["self_disagreement"]
+    body = [("No edit", str(sd[judges[0]]["seeds"]),
+             [f"{100 * (1 - sd[j]['rate']):.1f}" for j in judges])]
     for lab, b in BANDS:
         x = [C["judges"][j]["by_band"][b] for j in judges]
-        body.append((lab, str(x[0]["pairs"]), [f"{100 * v['rate']:.1f}" for v in x]))
+        body.append((lab, str(x[0]["pairs"]), [f"{100 * (1 - v['rate']):.1f}" for v in x]))
     x = [C["judges"][j]["overall"] for j in judges]
-    body.append(("All", str(x[0]["pairs"]), [f"{100 * v['rate']:.1f}" for v in x]))
+    body.append(("All", str(x[0]["pairs"]), [f"{100 * (1 - v['rate']):.1f}" for v in x]))
     return judges, body
 
 
@@ -46,7 +53,7 @@ def text_pt(txt, fontsize):
 
 def render(C, width_in, fontsize, out, colsep_pt=3.0):
     judges, body = table(C)
-    stub = ["Rewrite"] + [r[0] for r in body]
+    stub = ["Condition"] + [r[0] for r in body]
     ncol = ["n"] + [r[1] for r in body]
     cols = [[HDR[j]] + [r[2][k] for r in body] for k, j in enumerate(judges)]
     sw = max(text_pt(t, fontsize) for t in stub)
@@ -86,17 +93,17 @@ def render(C, width_in, fontsize, out, colsep_pt=3.0):
     span_l, span_r = right[0] - cw[0], right[-1]
     y = nrow - 1.0
     ax.plot([0, need], [y + 0.55] * 2, lw=1.1, color="k")              # \toprule
-    ax.text((span_l + span_r) / 2, y, "Verdict reversal (\\%, lower is better)".replace("\\", ""),
+    ax.text((span_l + span_r) / 2, y, "Verdict consistency (%, higher is better)",
             ha="center", va="center", **fp)
     ax.plot([span_l, span_r], [y - 0.42] * 2, lw=0.5, color="k")       # \cmidrule
     y -= 1
-    row("Rewrite", "n", [HDR[j] for j in judges], y)
+    row("Condition", "n", [HDR[j] for j in judges], y)
     y -= 1
     ax.plot([0, need], [y + 0.55] * 2, lw=0.5, color="k")              # \midrule
 
     for i, (a, b, vals) in enumerate(body):
         row(a, b, vals, y)
-        if i == len(body) - 2:
+        if i in (0, len(body) - 2):
             ax.plot([0, need], [y - 0.45] * 2, lw=0.5, color="k")
         y -= 1
     ax.plot([0, need], [y + 0.55] * 2, lw=1.1, color="k")              # \bottomrule
@@ -106,37 +113,37 @@ def render(C, width_in, fontsize, out, colsep_pt=3.0):
 
 
 CAPTION = (
-    "How often each judge reverses itself on a rewrite that provably preserves behavior. "
-    "Every original program was submitted three times, identically; the {n} programs kept here "
-    "are those that all three judges called correct in at least two of their three asks, so one "
-    "set of programs and one denominator serves every column. Each cell is the share of that "
-    "band's rewrites the judge then rejected, having reliably accepted the program they were "
-    "derived from. Notation renames a variable, mirrors a comparison ({cmp}), changes the time "
-    "unit, or respells `at least one device in a group matches'; Logic negates a guard and swaps "
-    "the branches; Temporal splits one delay into two, unrolls a counted periodic loop, or "
-    "replaces an integer phase counter with a boolean flag. Every rewrite is certified "
-    "behavior-preserving by the checker of Sec.~\\ref{{sec:explorer}}. Before any rewrite, the "
-    "judges already disagree with themselves across the three identical asks on {sd} of the {tot} "
-    "programs. The judges are \\texttt{{Qwen3.5-9B-fp8}} served locally at temperature 0, and "
-    "\\texttt{{gpt-5.4-mini-2026-03-17}} and \\texttt{{claude-sonnet-5}} at low reasoning effort; "
-    "neither hosted model exposes a temperature control.")
+    "How often each judge stands by its own verdict, as a percentage of the items presented; "
+    "higher is better. The first row asks nothing new: every one of the {tot} seed programs was "
+    "submitted three times, identically, and the figure is the share on which all three answers "
+    "agreed. It is unconditional -- no program is excluded -- and it bounds what any rewrite "
+    "result below can mean. The remaining rows take the {n} programs that all three judges called "
+    "correct in at least two of those three asks, so one set of programs and one denominator "
+    "serves every column, and report the share of each band's rewrites the judge still accepted. "
+    "Notation renames a variable, mirrors a comparison ({cmp}), changes the time unit, or "
+    "respells `at least one device in a group matches'; Logic negates a guard and swaps the "
+    "branches; Temporal splits one delay into two, unrolls a counted periodic loop, or replaces "
+    "an integer phase counter with a boolean flag. Every rewrite is certified behavior-preserving "
+    "by the checker of Sec.~\\ref{{sec:explorer}}, so every point below 100 is a judge "
+    "contradicting itself. The judges are \\texttt{{Qwen3.5-9B-fp8}} served locally at "
+    "temperature 0, and \\texttt{{gpt-5.4-mini-2026-03-17}} and \\texttt{{claude-sonnet-5}} at "
+    "low reasoning effort; neither hosted model exposes a temperature control.")
 
 
 def write_tex(C):
     judges, body = table(C)
-    sd = ", ".join(f"{HDR[j]} {v['disagreed']}" for j, v in C["self_disagreement"].items())
-    cap = CAPTION.format(n=len(C["common_seeds"]), tot=C["seeds_total"], sd=sd,
+    cap = CAPTION.format(n=len(C["common_seeds"]), tot=C["seeds_total"],
                          cmp="\\texttt{x >= 26} becomes \\texttt{26 <= x}")
     L = [r"\begin{table}[t]", r"\centering", r"\caption{" + cap + "}", r"\label{tab:judge}",
          r"\footnotesize", r"\setlength{\tabcolsep}{3pt}",
          r"\begin{tabular}{lr rrr}", r"\toprule",
-         r" & & \multicolumn{3}{c}{Verdict reversal (\%, lower is better)} \\",
+         r" & & \multicolumn{3}{c}{Verdict consistency (\%, higher is better)} \\",
          r"\cmidrule(lr){3-5}",
-         "Rewrite & $n$ & " + " & ".join(HDR[j] for j in judges) + r" \\", r"\midrule"]
+         "Condition & $n$ & " + " & ".join(HDR[j] for j in judges) + r" \\", r"\midrule"]
     for i, (a, b, vals) in enumerate(body):
-        if i == len(body) - 1:
-            L.append(r"\midrule")
         L.append(f"{a} & {b} & " + " & ".join(vals) + r" \\")
+        if i in (0, len(body) - 2):
+            L.append(r"\midrule")
     L += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     p = os.path.join(HERE, "results", "table1.tex")
     open(p, "w").write("\n".join(L) + "\n")
