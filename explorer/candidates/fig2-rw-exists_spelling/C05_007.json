@@ -1,0 +1,160 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (any(#SoundSensor).soundSensor_sound >= 70 and all(#PresenceSensor).presenceSensor_presence == false) {\nall(#Camera).camera_captureImage()\nall(#Siren).siren_setSirenMode(\"police\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (any(#SoundSensor).soundSensor_sound >= 70 and all(#PresenceSensor).presenceSensor_presence == false) {\\nall(#Camera).camera_captureImage()\\nall(#Siren).siren_setSirenMode(\\\"police\\\")\\n}\"\n}",
+ "precision": {
+  "SoundSensor.Sound": [
+   "any(#SoundSensor)"
+  ],
+  "PresenceSensor.Presence": [
+   "all(#PresenceSensor)"
+  ],
+  "Camera.CaptureImage": [
+   "all(#Camera)"
+  ],
+  "Siren.SetSirenMode": [
+   "all(#Siren)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "소음 수치가 70 이상이고 집에 아무도 없으면, 카메라로 사진을 찍고 경찰 사이렌을 울려줘.",
+ "command_eng": "If the noise level is 70 or higher and no one is home, take a photo with the camera and sound the police siren.",
+ "connected_devices": {
+  "Living_Sound": {
+   "category": [
+    "SoundSensor"
+   ],
+   "tags": [
+    "Living",
+    "SoundSensor"
+   ]
+  },
+  "Entrance_Sound": {
+   "category": [
+    "SoundSensor"
+   ],
+   "tags": [
+    "Entrance",
+    "SoundSensor"
+   ]
+  },
+  "Living_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Living",
+    "PresenceSensor"
+   ]
+  },
+  "Bedroom_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "PresenceSensor"
+   ]
+  },
+  "Entrance_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Entrance",
+    "Camera"
+   ]
+  },
+  "Garage_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Garage",
+    "Camera"
+   ]
+  },
+  "Main_Siren": {
+   "category": [
+    "Siren"
+   ],
+   "tags": [
+    "Main",
+    "Siren"
+   ]
+  },
+  "Entrance_Siren": {
+   "category": [
+    "Siren"
+   ],
+   "tags": [
+    "Entrance",
+    "Siren"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "SoundSensor.Sound >= 70 and PresenceSensor.Presence == false",
+    "then": [
+     {
+      "op": "call",
+      "target": "Camera.CaptureImage",
+      "args": {}
+     },
+     {
+      "op": "call",
+      "target": "Siren.SetSirenMode",
+      "args": {
+       "Mode": "police"
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "SoundSensor": {
+   "any": [
+    "Living_Sound",
+    "Entrance_Sound"
+   ]
+  },
+  "PresenceSensor": {
+   "all": [
+    "Living_Presence",
+    "Bedroom_Presence"
+   ]
+  },
+  "Camera": [
+   "Entrance_Camera",
+   "Garage_Camera"
+  ],
+  "Siren": [
+   "Main_Siren",
+   "Entrance_Siren"
+  ]
+ },
+ "input_payload_sha256": "8bf095c511170660ab81120d7642a7ed6ef0e32e32231743db3d4b3e3efef94f",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-exists_spelling",
+ "elapsed_sec": 1.6,
+ "rewrite": {
+  "type": "exists_spelling",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

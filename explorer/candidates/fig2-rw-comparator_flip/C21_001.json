@@ -1,0 +1,112 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not (true == (#LivingRoom_PresenceSensor).presenceSensor_presence) and (#LivingRoom_PresenceSensor).presenceSensor_presence == false) {\n(#LivingRoom_Strip).switch_off()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not (true == (#LivingRoom_PresenceSensor).presenceSensor_presence) and (#LivingRoom_PresenceSensor).presenceSensor_presence == false) {\\n(#LivingRoom_Strip).switch_off()\\n}\"\n}",
+ "precision": {
+  "PresenceSensor.Presence": [
+   "(#LivingRoom_PresenceSensor)",
+   "(#Bedroom_PresenceSensor)"
+  ],
+  "Switch.Off": [
+   "(#LivingRoom_Strip)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "/home/gnltnwjstk/joi-e3-b5/traces/20260915_163820_280.json",
+ "command_kor": "거실과 침실에 모두 사람이 감지되지 않으면 거실 멀티탭 플러그를 꺼줘.",
+ "command_eng": "If no person is detected in either the living room or the bedroom, turn off the living room power strip plug.",
+ "connected_devices": {
+  "LivingRoom_PresenceSensor": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "PresenceSensor"
+   ]
+  },
+  "Bedroom_PresenceSensor": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "PresenceSensor"
+   ]
+  },
+  "LivingRoom_Strip": {
+   "category": [
+    "Plug",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Plug",
+    "Strip"
+   ]
+  },
+  "Bakery_Fan": {
+   "category": [
+    "Fan"
+   ],
+   "tags": [
+    "Bakery",
+    "Fan"
+   ]
+  },
+  "Garage_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Garage",
+    "DoorLock"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "not (PresenceSensor.Presence == true) and PresenceSensor.Presence == false",
+    "then": [
+     {
+      "op": "call",
+      "target": "Switch.Off",
+      "args": {}
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "PresenceSensor": [
+   "LivingRoom_PresenceSensor"
+  ],
+  "PresenceSensor#2": [
+   "Bedroom_PresenceSensor"
+  ],
+  "Switch": [
+   "LivingRoom_Strip"
+  ]
+ },
+ "input_payload_sha256": "430ecd9db2c39c75d7cba6c1ab3b4ed198abed8b3b66ee78c6f7e3ec64949b36",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 10.3,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-c21-and-v3"
+ }
+}

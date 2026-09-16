@@ -1,0 +1,3883 @@
+{
+  "protocol_path": "/home/gnltnwjstk/joi/explorer/eval/results/fig2_rw_delay_split_20260916_protocol.json",
+  "protocol_sha256": "824e20b3f559d0a2aa26d8fe7ec36bd98d933f826f0453cda14f67fdb37500ae",
+  "cases": [
+    {
+      "id": "C08_009",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C08_009.json",
+      "status": "READY",
+      "candidate_sha256": "a1f8731095c86896faefb40db21204a09a560e8508b8cd546a98cc577897bd20",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "MultiButton.Button1 == \"pushed\"",
+              "edge": "none"
+            },
+            {
+              "op": "call",
+              "target": "Light.MoveToBrightness",
+              "args": {
+                "Brightness": 100.0,
+                "Rate": 0.0
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "5 MIN"
+            },
+            {
+              "op": "call",
+              "target": "Light.MoveToBrightness",
+              "args": {
+                "Brightness": 0.0,
+                "Rate": 0.0
+              }
+            }
+          ]
+        },
+        "binding": {
+          "MultiButton": [
+            "Entrance_MB"
+          ],
+          "Light": [
+            "Entrance_Light"
+          ]
+        },
+        "devices": {
+          "Entrance_MB": {
+            "category": [
+              "MultiButton"
+            ],
+            "tags": [
+              "Entrance",
+              "MultiButton"
+            ]
+          },
+          "Hall_MB": {
+            "category": [
+              "MultiButton"
+            ],
+            "tags": [
+              "Hallway",
+              "MultiButton"
+            ]
+          },
+          "Entrance_Light": {
+            "category": [
+              "Light"
+            ],
+            "tags": [
+              "Entrance",
+              "Light"
+            ]
+          },
+          "Hall_Light": {
+            "category": [
+              "Light"
+            ],
+            "tags": [
+              "Hallway",
+              "Light"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until((#Entrance_MB).multiButton_button1 == \"pushed\")\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)\ndelay(1 MIN)\ndelay(4 MIN)\n(#Entrance_Light).light_moveToBrightness(0.0, 0.0)"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Entrance_MB.button1": [
+            null,
+            "pushed"
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Entrance_MB.button1": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "MultiButton.Button1:value": {
+            "id": "Button1",
+            "descriptor": "Button 1 state",
+            "type": "ENUM",
+            "format": "ButtonEnum",
+            "service": "MultiButton",
+            "kind": "value",
+            "members": [
+              "pushed",
+              "held",
+              "double",
+              "pushed_2x",
+              "pushed_3x",
+              "down",
+              "down_hold",
+              "up",
+              "up_hold"
+            ],
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Light.MoveToBrightness:function": {
+            "id": "MoveToBrightness",
+            "descriptor": "Move the Brightness to the given value. If the device supports being turned on and off then it will be turned on if ``brightness`` is greater than 0 and turned off if ``brightness`` is equal to 0.",
+            "arguments": [
+              {
+                "id": "Brightness",
+                "descriptor": "The brightness value, usually ``0-100`` in percent",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ],
+                "unit": "%"
+              },
+              {
+                "id": "Rate",
+                "descriptor": "The rate at which to change the brightness",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Light",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C08_010",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C08_010.json",
+      "status": "READY",
+      "candidate_sha256": "50a448ade4308552ba5f37324bd43b042e79ad6526ce36d04477f61e4bc8c424",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "MultiButton.Button2 == \"pushed\"",
+              "edge": "none"
+            },
+            {
+              "op": "call",
+              "target": "Light.MoveToBrightness",
+              "args": {
+                "Brightness": 100.0,
+                "Rate": 0.0
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "30 MIN"
+            },
+            {
+              "op": "call",
+              "target": "Light.MoveToBrightness",
+              "args": {
+                "Brightness": 30.0,
+                "Rate": 0.0
+              }
+            }
+          ]
+        },
+        "binding": {
+          "MultiButton": [
+            "LR_MB"
+          ],
+          "Light": [
+            "LR_Light_1",
+            "LR_Light_2"
+          ]
+        },
+        "devices": {
+          "LR_MB": {
+            "category": [
+              "MultiButton"
+            ],
+            "tags": [
+              "LivingRoom",
+              "MultiButton"
+            ]
+          },
+          "Bedroom_MB": {
+            "category": [
+              "MultiButton"
+            ],
+            "tags": [
+              "Bedroom",
+              "MultiButton"
+            ]
+          },
+          "LR_Light_1": {
+            "category": [
+              "Light"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Light"
+            ]
+          },
+          "LR_Light_2": {
+            "category": [
+              "Light"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Light"
+            ]
+          },
+          "Bedroom_Light": {
+            "category": [
+              "Light"
+            ],
+            "tags": [
+              "Bedroom",
+              "Light"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until((#LR_MB).multiButton_button2 == \"pushed\")\nall(#Light).light_moveToBrightness(100.0, 0.0)\ndelay(1 MIN)\ndelay(29 MIN)\nall(#Light).light_moveToBrightness(30.0, 0.0)"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "LR_MB.button2": [
+            null,
+            "pushed"
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "LR_MB.button2": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "MultiButton.Button2:value": {
+            "id": "Button2",
+            "descriptor": "Button 2 state",
+            "type": "ENUM",
+            "format": "ButtonEnum",
+            "service": "MultiButton",
+            "kind": "value",
+            "members": [
+              "pushed",
+              "held",
+              "double",
+              "pushed_2x",
+              "pushed_3x",
+              "down",
+              "down_hold",
+              "up",
+              "up_hold"
+            ],
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Light.MoveToBrightness:function": {
+            "id": "MoveToBrightness",
+            "descriptor": "Move the Brightness to the given value. If the device supports being turned on and off then it will be turned on if ``brightness`` is greater than 0 and turned off if ``brightness`` is equal to 0.",
+            "arguments": [
+              {
+                "id": "Brightness",
+                "descriptor": "The brightness value, usually ``0-100`` in percent",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ],
+                "unit": "%"
+              },
+              {
+                "id": "Rate",
+                "descriptor": "The rate at which to change the brightness",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Light",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_002",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_002.json",
+      "status": "READY",
+      "candidate_sha256": "dbddd9b865700e76d43ac19524f42b3ecedbfcaceb556190947e9b0c19a9460d",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "AirConditioner.SetAirConditionerMode",
+              "args": {
+                "Mode": "cool"
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "30 MIN"
+            },
+            {
+              "op": "call",
+              "target": "AirConditioner.SetAirConditionerMode",
+              "args": {
+                "Mode": "auto"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "AirConditioner": [
+            "LivingRoom_AirConditioner",
+            "Bedroom_AirConditioner"
+          ]
+        },
+        "devices": {
+          "LivingRoom_AirConditioner": {
+            "category": [
+              "AirConditioner",
+              "Switch"
+            ],
+            "tags": [
+              "LivingRoom",
+              "AirConditioner"
+            ]
+          },
+          "Bedroom_AirConditioner": {
+            "category": [
+              "AirConditioner",
+              "Switch"
+            ],
+            "tags": [
+              "Bedroom",
+              "AirConditioner"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\ndelay(1 MIN)\ndelay(29 MIN)\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "AirConditioner.SetAirConditionerMode:function": {
+            "id": "SetAirConditionerMode",
+            "descriptor": "Set air conditioner mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Air conditioner mode to set",
+                "type": "ENUM",
+                "format": "AirConditionerModeEnum",
+                "members": [
+                  "auto",
+                  "cool",
+                  "heat"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "AirConditioner",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_003",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_003.json",
+      "status": "READY",
+      "candidate_sha256": "8b5af2955e131c976d01c87708b080d8bb9b8acdff5ec9a7e30792b0ca61fb97",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "AirPurifier.SetAirPurifierMode",
+              "args": {
+                "Mode": "auto"
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "2 HOUR"
+            },
+            {
+              "op": "call",
+              "target": "AirPurifier.SetAirPurifierMode",
+              "args": {
+                "Mode": "sleep"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "AirPurifier": [
+            "LivingRoom_AirPurifier",
+            "Bedroom_AirPurifier"
+          ]
+        },
+        "devices": {
+          "LivingRoom_AirPurifier": {
+            "category": [
+              "AirPurifier"
+            ],
+            "tags": [
+              "LivingRoom",
+              "AirPurifier"
+            ]
+          },
+          "Bedroom_AirPurifier": {
+            "category": [
+              "AirPurifier"
+            ],
+            "tags": [
+              "Bedroom",
+              "AirPurifier"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\ndelay(1 HOUR)\ndelay(1 HOUR)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "AirPurifier.SetAirPurifierMode:function": {
+            "id": "SetAirPurifierMode",
+            "descriptor": "Set air purifier mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Air purifier mode to set",
+                "type": "ENUM",
+                "format": "AirPurifierModeEnum",
+                "members": [
+                  "auto",
+                  "sleep",
+                  "low",
+                  "medium",
+                  "high",
+                  "quiet",
+                  "windFree",
+                  "off"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "AirPurifier",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_005",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_005.json",
+      "status": "READY",
+      "candidate_sha256": "87b0f5891b25d115d9ffd9d07d1b8ee479260415c8d110d1f1b3fe266ebbbaa1",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "AirConditioner.SetAirConditionerMode",
+              "args": {
+                "Mode": "cool"
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "10 MIN"
+            },
+            {
+              "op": "call",
+              "target": "AirConditioner.SetAirConditionerMode",
+              "args": {
+                "Mode": "auto"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "AirConditioner": [
+            "Kitchen_AirConditioner",
+            "Basement_AirConditioner"
+          ]
+        },
+        "devices": {
+          "Kitchen_AirConditioner": {
+            "category": [
+              "AirConditioner"
+            ],
+            "tags": [
+              "Kitchen",
+              "AirConditioner"
+            ]
+          },
+          "Basement_AirConditioner": {
+            "category": [
+              "AirConditioner"
+            ],
+            "tags": [
+              "Basement",
+              "AirConditioner"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\ndelay(1 MIN)\ndelay(9 MIN)\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "AirConditioner.SetAirConditionerMode:function": {
+            "id": "SetAirConditionerMode",
+            "descriptor": "Set air conditioner mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Air conditioner mode to set",
+                "type": "ENUM",
+                "format": "AirConditionerModeEnum",
+                "members": [
+                  "auto",
+                  "cool",
+                  "heat"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "AirConditioner",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_006",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_006.json",
+      "status": "READY",
+      "candidate_sha256": "b335a14c875d7415865127d770bfa6f360cd5d627403e3e8560093e06333aece",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "if",
+              "cond": "WeatherProvider.Pm25Weather >= 2000",
+              "then": [
+                {
+                  "op": "call",
+                  "target": "DoorLock.Lock",
+                  "args": {}
+                },
+                {
+                  "op": "delay",
+                  "duration": "4 HOUR"
+                },
+                {
+                  "op": "call",
+                  "target": "Valve.Close",
+                  "args": {}
+                }
+              ],
+              "else": []
+            }
+          ]
+        },
+        "binding": {
+          "WeatherProvider": [
+            "Home_WeatherProvider"
+          ],
+          "DoorLock": [
+            "Back_DoorLock"
+          ],
+          "Valve": [
+            "Kitchen_Valve",
+            "Basement_Valve"
+          ]
+        },
+        "devices": {
+          "Home_WeatherProvider": {
+            "category": [
+              "WeatherProvider"
+            ],
+            "tags": [
+              "WeatherProvider"
+            ]
+          },
+          "Front_DoorLock": {
+            "category": [
+              "DoorLock"
+            ],
+            "tags": [
+              "Front",
+              "DoorLock"
+            ]
+          },
+          "Back_DoorLock": {
+            "category": [
+              "DoorLock"
+            ],
+            "tags": [
+              "Back",
+              "DoorLock"
+            ]
+          },
+          "Kitchen_Valve": {
+            "category": [
+              "Valve"
+            ],
+            "tags": [
+              "Kitchen",
+              "Valve"
+            ]
+          },
+          "Basement_Valve": {
+            "category": [
+              "Valve"
+            ],
+            "tags": [
+              "Basement",
+              "Valve"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "if ((#Home_WeatherProvider).weatherProvider_pm25Weather >= 2000) {\n(#Back_DoorLock).doorLock_lock()\n    delay(1 HOUR)\n    delay(3 HOUR)\nall(#Valve).valve_close()\n}"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Home_WeatherProvider.pm25weather": [
+            null,
+            2000.0
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Home_WeatherProvider.pm25weather": "numeric"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "WeatherProvider.Pm25Weather:value": {
+            "id": "Pm25Weather",
+            "descriptor": "Current pm25 level",
+            "type": "DOUBLE",
+            "bound": [
+              0,
+              10000
+            ],
+            "unit": "μg/m³",
+            "service": "WeatherProvider",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "DoorLock.Lock:function": {
+            "id": "Lock",
+            "descriptor": "Lock the door",
+            "return_type": "VOID",
+            "service": "DoorLock",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Valve.Close:function": {
+            "id": "Close",
+            "descriptor": "Close the valve",
+            "return_type": "VOID",
+            "service": "Valve",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_007",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_007.json",
+      "status": "READY",
+      "candidate_sha256": "7ae4ba3b15d87d16e0d5b7dd6b219faa99ea1831c71dd0e193b40122336fb230",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "Siren.SetSirenMode",
+              "args": {
+                "Mode": "emergency"
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "5 SEC"
+            },
+            {
+              "op": "call",
+              "target": "Siren.SetSirenMode",
+              "args": {
+                "Mode": "fire"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "Siren": [
+            "Back_Siren"
+          ]
+        },
+        "devices": {
+          "Main_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Main",
+              "Siren"
+            ]
+          },
+          "Back_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Back",
+              "Siren"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "(#Back_Siren).siren_setSirenMode(\"emergency\")\ndelay(1 SEC)\ndelay(4 SEC)\n(#Back_Siren).siren_setSirenMode(\"fire\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Siren.SetSirenMode:function": {
+            "id": "SetSirenMode",
+            "descriptor": "Set the Siren mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the Siren mode",
+                "type": "ENUM",
+                "format": "SirenModeEnum",
+                "members": [
+                  "emergency",
+                  "fire",
+                  "police",
+                  "ambulance"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Siren",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_008",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_008.json",
+      "status": "READY",
+      "candidate_sha256": "7d55699cd72b4495d2872cfa6616ee1e8a391fe0a1a5025b387e6264257350ca",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+              "args": {
+                "Mode": "auto"
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "30 MIN"
+            },
+            {
+              "op": "call",
+              "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+              "args": {
+                "Mode": "manual"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "RobotVacuumCleaner": [
+            "LivingRoom_RobotVacuumCleaner",
+            "Kitchen_RobotVacuumCleaner"
+          ]
+        },
+        "devices": {
+          "LivingRoom_RobotVacuumCleaner": {
+            "category": [
+              "RobotVacuumCleaner"
+            ],
+            "tags": [
+              "LivingRoom",
+              "RobotVacuumCleaner"
+            ]
+          },
+          "Kitchen_RobotVacuumCleaner": {
+            "category": [
+              "RobotVacuumCleaner"
+            ],
+            "tags": [
+              "Kitchen",
+              "RobotVacuumCleaner"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\ndelay(1 MIN)\ndelay(29 MIN)\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"manual\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode:function": {
+            "id": "SetRobotVacuumCleanerCleaningMode",
+            "descriptor": "Set the robot cleaner cleaning mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the robot cleaner cleaning mode.",
+                "type": "ENUM",
+                "format": "RobotVacuumCleanerCleaningModeEnum",
+                "members": [
+                  "auto",
+                  "part",
+                  "repeat",
+                  "manual",
+                  "stop",
+                  "map"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "RobotVacuumCleaner",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_009",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_009.json",
+      "status": "READY",
+      "candidate_sha256": "921a4892c0ab33b92ab7d4d1967f9ef0bba0c70b12c50ce005d16cf2da5aff2f",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "Speaker.SetVolume",
+              "args": {
+                "Volume": 20
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "10 MIN"
+            },
+            {
+              "op": "call",
+              "target": "Speaker.SetVolume",
+              "args": {
+                "Volume": 40
+              }
+            }
+          ]
+        },
+        "binding": {
+          "Speaker": [
+            "LivingRoom_Speaker",
+            "Bedroom_Speaker"
+          ]
+        },
+        "devices": {
+          "LivingRoom_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Speaker"
+            ]
+          },
+          "Bedroom_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Bedroom",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#Speaker).speaker_setVolume(20)\ndelay(1 MIN)\ndelay(9 MIN)\nall(#Speaker).speaker_setVolume(40)"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Speaker.SetVolume:function": {
+            "id": "SetVolume",
+            "descriptor": "Set the speaker volume level. Returns the new volume level.",
+            "arguments": [
+              {
+                "id": "Volume",
+                "descriptor": "Volume level to set (0-100)",
+                "type": "INTEGER",
+                "bound": [
+                  0,
+                  100
+                ],
+                "unit": "%"
+              }
+            ],
+            "return_type": {
+              "type": "INTEGER"
+            },
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "INTEGER"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_011",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_011.json",
+      "status": "READY",
+      "candidate_sha256": "cde2d24dad4aa7c94cac15993493ed0888cafb20c81d6d6cd0a7ceee278772b5",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "Valve.Open",
+              "args": {}
+            },
+            {
+              "op": "delay",
+              "duration": "5 MIN"
+            },
+            {
+              "op": "call",
+              "target": "Valve.Close",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "Valve": [
+            "Kitchen_Valve_Gas",
+            "Kitchen_Valve_Water"
+          ]
+        },
+        "devices": {
+          "Kitchen_Valve_Gas": {
+            "category": [
+              "Valve"
+            ],
+            "tags": [
+              "Kitchen",
+              "Valve"
+            ]
+          },
+          "Kitchen_Valve_Water": {
+            "category": [
+              "Valve"
+            ],
+            "tags": [
+              "Kitchen",
+              "Valve"
+            ]
+          },
+          "Garden_Valve": {
+            "category": [
+              "Valve"
+            ],
+            "tags": [
+              "Garden",
+              "Valve"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#Valve).valve_open()\ndelay(1 MIN)\ndelay(4 MIN)\nall(#Valve).valve_close()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Valve.Open:function": {
+            "id": "Open",
+            "descriptor": "Open the valve",
+            "return_type": "VOID",
+            "service": "Valve",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Valve.Close:function": {
+            "id": "Close",
+            "descriptor": "Close the valve",
+            "return_type": "VOID",
+            "service": "Valve",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_012",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_012.json",
+      "status": "READY",
+      "candidate_sha256": "dc9477a3cdf97fc5d3e6e3bf0458a4227d7e85c48fd62651b92ac4f49ba4f467",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "WindowCovering.DownOrClose",
+              "args": {}
+            },
+            {
+              "op": "delay",
+              "duration": "2 HOUR"
+            },
+            {
+              "op": "call",
+              "target": "WindowCovering.UpOrOpen",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "WindowCovering": [
+            "Bedroom_Blind_1",
+            "Bedroom_Blind_2"
+          ]
+        },
+        "devices": {
+          "Bedroom_Blind_1": {
+            "category": [
+              "WindowCovering"
+            ],
+            "tags": [
+              "Bedroom",
+              "Blind",
+              "WindowCovering"
+            ]
+          },
+          "Bedroom_Blind_2": {
+            "category": [
+              "WindowCovering"
+            ],
+            "tags": [
+              "Bedroom",
+              "Blind",
+              "WindowCovering"
+            ]
+          },
+          "LivingRoom_Blind": {
+            "category": [
+              "WindowCovering"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Blind",
+              "WindowCovering"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#WindowCovering).windowCovering_downOrClose()\ndelay(1 HOUR)\ndelay(1 HOUR)\nall(#WindowCovering).windowCovering_upOrOpen()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "WindowCovering.DownOrClose:function": {
+            "id": "DownOrClose",
+            "descriptor": "Down or close the window",
+            "return_type": "VOID",
+            "service": "WindowCovering",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "WindowCovering.UpOrOpen:function": {
+            "id": "UpOrOpen",
+            "descriptor": "Up or open the window",
+            "return_type": "VOID",
+            "service": "WindowCovering",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_013",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_013.json",
+      "status": "READY",
+      "candidate_sha256": "fd85e5d3cbeaf70bd77ae267dcb0b3da61deb93bcaf4e2c3b1802faff5f341fb",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "Switch.On",
+              "args": {}
+            },
+            {
+              "op": "delay",
+              "duration": "4 HOUR"
+            },
+            {
+              "op": "call",
+              "target": "Switch.Off",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "Switch": [
+            "Lab_Dehumidifier_1",
+            "Lab_Dehumidifier_2"
+          ]
+        },
+        "devices": {
+          "Lab_Dehumidifier_1": {
+            "category": [
+              "Dehumidifier",
+              "Switch"
+            ],
+            "tags": [
+              "Lab",
+              "Dehumidifier",
+              "Switch"
+            ]
+          },
+          "Lab_Dehumidifier_2": {
+            "category": [
+              "Dehumidifier",
+              "Switch"
+            ],
+            "tags": [
+              "Lab",
+              "Dehumidifier",
+              "Switch"
+            ]
+          },
+          "Office_Dehumidifier": {
+            "category": [
+              "Dehumidifier",
+              "Switch"
+            ],
+            "tags": [
+              "Office",
+              "Dehumidifier",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "all(#Switch).switch_on()\ndelay(1 HOUR)\ndelay(3 HOUR)\nall(#Switch).switch_off()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Switch.On:function": {
+            "id": "On",
+            "descriptor": "Turn a Switch on",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_015",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_015.json",
+      "status": "READY",
+      "candidate_sha256": "072de134cbac4f6810d7ea5d0faaf246ae5dfa68a091e647825ea636759768e5",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "Light.MoveToBrightness",
+              "args": {
+                "Brightness": 100.0,
+                "Rate": 0.0
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "10 SEC"
+            },
+            {
+              "op": "call",
+              "target": "Dehumidifier.SetDehumidifierMode",
+              "args": {
+                "Mode": "dehumidifying"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "Light": [
+            "Kitchen_Light"
+          ],
+          "Dehumidifier": [
+            "Kitchen_Dehumidifier"
+          ]
+        },
+        "devices": {
+          "Kitchen_Light": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "Kitchen",
+              "Light",
+              "Switch"
+            ]
+          },
+          "LivingRoom_Light": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Light",
+              "Switch"
+            ]
+          },
+          "Kitchen_Dehumidifier": {
+            "category": [
+              "Dehumidifier",
+              "Switch"
+            ],
+            "tags": [
+              "Kitchen",
+              "Dehumidifier",
+              "Switch"
+            ]
+          },
+          "Bedroom_Dehumidifier": {
+            "category": [
+              "Dehumidifier",
+              "Switch"
+            ],
+            "tags": [
+              "Bedroom",
+              "Dehumidifier",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "(#Kitchen_Light).light_moveToBrightness(100.0, 0.0)\ndelay(1 SEC)\ndelay(9 SEC)\n(#Kitchen_Dehumidifier).dehumidifier_setDehumidifierMode(\"dehumidifying\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Light.MoveToBrightness:function": {
+            "id": "MoveToBrightness",
+            "descriptor": "Move the Brightness to the given value. If the device supports being turned on and off then it will be turned on if ``brightness`` is greater than 0 and turned off if ``brightness`` is equal to 0.",
+            "arguments": [
+              {
+                "id": "Brightness",
+                "descriptor": "The brightness value, usually ``0-100`` in percent",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ],
+                "unit": "%"
+              },
+              {
+                "id": "Rate",
+                "descriptor": "The rate at which to change the brightness",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Light",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Dehumidifier.SetDehumidifierMode:function": {
+            "id": "SetDehumidifierMode",
+            "descriptor": "Set the dehumidifier mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the dehumidifier mode",
+                "type": "ENUM",
+                "format": "DehumidifierModeEnum",
+                "members": [
+                  "cooling",
+                  "delayWash",
+                  "drying",
+                  "finished",
+                  "refreshing",
+                  "weightSensing",
+                  "wrinklePrevent",
+                  "dehumidifying",
+                  "AIDrying",
+                  "sanitizing",
+                  "internalCare",
+                  "freezeProtection",
+                  "continuousDehumidifying",
+                  "thawingFrozenInside"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Dehumidifier",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_016",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_016.json",
+      "status": "READY",
+      "candidate_sha256": "0af5cc56b97db47d3569af9caa01de890277064bf02863503013c62dbf9d6967",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "AirPurifier.SetAirPurifierMode",
+              "args": {
+                "Mode": "high"
+              }
+            },
+            {
+              "op": "delay",
+              "duration": "2 HOUR"
+            },
+            {
+              "op": "call",
+              "target": "Switch.Off",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "AirPurifier": [
+            "Study_AP"
+          ],
+          "Switch": [
+            "Study_AP"
+          ]
+        },
+        "devices": {
+          "Study_AP": {
+            "category": [
+              "AirPurifier",
+              "Switch"
+            ],
+            "tags": [
+              "Study",
+              "AirPurifier",
+              "Switch"
+            ]
+          },
+          "Bedroom_AP": {
+            "category": [
+              "AirPurifier",
+              "Switch"
+            ],
+            "tags": [
+              "Bedroom",
+              "AirPurifier",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "(#Study_AP).airPurifier_setAirPurifierMode(\"high\")\ndelay(1 HOUR)\ndelay(1 HOUR)\n(#Study_AP).switch_off()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "AirPurifier.SetAirPurifierMode:function": {
+            "id": "SetAirPurifierMode",
+            "descriptor": "Set air purifier mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Air purifier mode to set",
+                "type": "ENUM",
+                "format": "AirPurifierModeEnum",
+                "members": [
+                  "auto",
+                  "sleep",
+                  "low",
+                  "medium",
+                  "high",
+                  "quiet",
+                  "windFree",
+                  "off"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "AirPurifier",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_017",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_017.json",
+      "status": "READY",
+      "candidate_sha256": "1fb5e984b2b1e020331642e107c90aef06884befc1240ed18426f45dd54de8db",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "Switch.Off",
+              "args": {}
+            },
+            {
+              "op": "delay",
+              "duration": "5 MIN"
+            },
+            {
+              "op": "call",
+              "target": "Switch.On",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "Switch": [
+            "Bathroom_Light"
+          ]
+        },
+        "devices": {
+          "Bathroom_Light": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "Bathroom",
+              "Light",
+              "Switch"
+            ]
+          },
+          "Bedroom_Light": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "Bedroom",
+              "Light",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "(#Bathroom_Light).switch_off()\ndelay(1 MIN)\ndelay(4 MIN)\n(#Bathroom_Light).switch_on()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.On:function": {
+            "id": "On",
+            "descriptor": "Turn a Switch on",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C09_018",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C09_018.json",
+      "status": "READY",
+      "candidate_sha256": "3e7ef71bcbdad4614144b568a270967379c37f36f40e0969bdac34ea4c55c75e",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "call",
+              "target": "DoorLock.Lock",
+              "args": {}
+            },
+            {
+              "op": "delay",
+              "duration": "3 SEC"
+            },
+            {
+              "op": "call",
+              "target": "Camera.CaptureImage",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "DoorLock": [
+            "MeetingRoom_DoorLock"
+          ],
+          "Camera": [
+            "MeetingRoom_Camera"
+          ]
+        },
+        "devices": {
+          "MeetingRoom_DoorLock": {
+            "category": [
+              "DoorLock"
+            ],
+            "tags": [
+              "MeetingRoom",
+              "DoorLock"
+            ]
+          },
+          "Office_DoorLock": {
+            "category": [
+              "DoorLock"
+            ],
+            "tags": [
+              "Office",
+              "DoorLock"
+            ]
+          },
+          "MeetingRoom_Camera": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "MeetingRoom",
+              "Camera"
+            ]
+          },
+          "Lobby_Camera": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "Lobby",
+              "Camera"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "(#MeetingRoom_DoorLock).doorLock_lock()\ndelay(1 SEC)\ndelay(2 SEC)\n(#MeetingRoom_Camera).camera_captureImage()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "DoorLock.Lock:function": {
+            "id": "Lock",
+            "descriptor": "Lock the door",
+            "return_type": "VOID",
+            "service": "DoorLock",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Camera.CaptureImage:function": {
+            "id": "CaptureImage",
+            "descriptor": "Capture a still image from the camera and return it as binary JPEG data",
+            "return_type": {
+              "type": "BINARY"
+            },
+            "service": "Camera",
+            "kind": "function",
+            "return_spec": {
+              "type": "BINARY"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C10_002",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C10_002.json",
+      "status": "READY",
+      "candidate_sha256": "6737b898469d98fff552260f61a0be8f6b5e5efc783cf4885bd7b8ae23dee75f",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "Fan.FanMode == \"high\"",
+              "edge": "none"
+            },
+            {
+              "op": "delay",
+              "duration": "3 SEC"
+            },
+            {
+              "op": "call",
+              "target": "Fan.SetFanMode",
+              "args": {
+                "Mode": "low"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "Fan": [
+            "Kitchen_Fan"
+          ]
+        },
+        "devices": {
+          "Kitchen_Fan": {
+            "category": [
+              "Fan"
+            ],
+            "tags": [
+              "Kitchen",
+              "Fan"
+            ]
+          },
+          "Basement_Fan": {
+            "category": [
+              "Fan"
+            ],
+            "tags": [
+              "Basement",
+              "Fan"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until((#Kitchen_Fan).fan_fanMode == \"high\")\ndelay(1 SEC)\ndelay(2 SEC)\n(#Kitchen_Fan).fan_setFanMode(\"low\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Kitchen_Fan.fanmode": [
+            null,
+            "high"
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Kitchen_Fan.fanmode": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Fan.FanMode:value": {
+            "id": "FanMode",
+            "descriptor": "Current fan mode",
+            "type": "ENUM",
+            "format": "FanModeEnum",
+            "service": "Fan",
+            "kind": "value",
+            "members": [
+              "auto",
+              "low",
+              "medium",
+              "high"
+            ],
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Fan.SetFanMode:function": {
+            "id": "SetFanMode",
+            "descriptor": "Set the fan mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Fan mode to set",
+                "type": "ENUM",
+                "format": "FanModeEnum",
+                "members": [
+                  "auto",
+                  "low",
+                  "medium",
+                  "high"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Fan",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C10_005",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C10_005.json",
+      "status": "READY",
+      "candidate_sha256": "6929395ce8d8c4314b588663ded136d37261869bb92e52ce55c523e6f857a264",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "PresenceSensor.Presence == true",
+              "edge": "none"
+            },
+            {
+              "op": "delay",
+              "duration": "10 SEC"
+            },
+            {
+              "op": "call",
+              "target": "Siren.SetSirenMode",
+              "args": {
+                "Mode": "emergency"
+              }
+            }
+          ]
+        },
+        "binding": {
+          "PresenceSensor": {
+            "any": [
+              "House_Presence_1",
+              "House_Presence_2"
+            ]
+          },
+          "Siren": [
+            "Main_Siren",
+            "Sub_Siren",
+            "Garden_Siren"
+          ]
+        },
+        "devices": {
+          "House_Presence_1": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "House",
+              "PresenceSensor"
+            ]
+          },
+          "House_Presence_2": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "House",
+              "PresenceSensor"
+            ]
+          },
+          "Garage_Presence": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Garage",
+              "PresenceSensor"
+            ]
+          },
+          "Main_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "House",
+              "Siren",
+              "Switch"
+            ]
+          },
+          "Sub_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "House",
+              "Siren",
+              "Switch"
+            ]
+          },
+          "Garden_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Garden",
+              "Siren",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\ndelay(1 SEC)\ndelay(9 SEC)\nall(#Siren).siren_setSirenMode(\"emergency\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "House_Presence_1.presence": [
+            false,
+            true
+          ],
+          "House_Presence_2.presence": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "House_Presence_1.presence": "scalar",
+        "House_Presence_2.presence": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "PresenceSensor.Presence:value": {
+            "id": "Presence",
+            "descriptor": "The current state of the presence sensor",
+            "type": "BOOL",
+            "service": "PresenceSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Siren.SetSirenMode:function": {
+            "id": "SetSirenMode",
+            "descriptor": "Set the Siren mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the Siren mode",
+                "type": "ENUM",
+                "format": "SirenModeEnum",
+                "members": [
+                  "emergency",
+                  "fire",
+                  "police",
+                  "ambulance"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Siren",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C10_006",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C10_006.json",
+      "status": "READY",
+      "candidate_sha256": "366837d8e456364263fdd0294896f8a76efbfeb2f2773ffc2d5822440709c349",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "Light.CurrentBrightness > 0",
+              "edge": "none"
+            },
+            {
+              "op": "delay",
+              "duration": "5 MIN"
+            },
+            {
+              "op": "call",
+              "target": "Light.MoveToBrightness",
+              "args": {
+                "Brightness": 0.0,
+                "Rate": 0.0
+              }
+            }
+          ]
+        },
+        "binding": {
+          "Light": [
+            "Hallway_Light_1"
+          ]
+        },
+        "devices": {
+          "Hallway_Light_1": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "Hallway",
+              "Light",
+              "Switch"
+            ]
+          },
+          "Hallway_Light_2": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "Hallway",
+              "Light",
+              "Switch"
+            ]
+          },
+          "LivingRoom_Light_1": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Light",
+              "Switch"
+            ]
+          },
+          "LivingRoom_Light_2": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Light",
+              "Switch"
+            ]
+          },
+          "Kitchen_Light": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "Kitchen",
+              "Light",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until((#Hallway_Light_1).light_currentBrightness > 0)\ndelay(1 MIN)\ndelay(4 MIN)\n(#Hallway_Light_1).light_moveToBrightness(0.0, 0.0)"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Hallway_Light_1.currentbrightness": [
+            null,
+            0.1
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Hallway_Light_1.currentbrightness": "numeric"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Light.CurrentBrightness:value": {
+            "id": "CurrentBrightness",
+            "descriptor": "Current brightness level (0~100%)",
+            "type": "DOUBLE",
+            "bound": [
+              0,
+              100
+            ],
+            "unit": "%",
+            "service": "Light",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Light.MoveToBrightness:function": {
+            "id": "MoveToBrightness",
+            "descriptor": "Move the Brightness to the given value. If the device supports being turned on and off then it will be turned on if ``brightness`` is greater than 0 and turned off if ``brightness`` is equal to 0.",
+            "arguments": [
+              {
+                "id": "Brightness",
+                "descriptor": "The brightness value, usually ``0-100`` in percent",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ],
+                "unit": "%"
+              },
+              {
+                "id": "Rate",
+                "descriptor": "The rate at which to change the brightness",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Light",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C10_007",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C10_007.json",
+      "status": "READY",
+      "candidate_sha256": "cbb56ca08cf0bf86b006ffbd936b6c8401b5aaf6f79c5855701317f0cd593329",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "AirPurifier.AirPurifierMode == \"sleep\"",
+              "edge": "none"
+            },
+            {
+              "op": "delay",
+              "duration": "10 MIN"
+            },
+            {
+              "op": "call",
+              "target": "Light.MoveToBrightness",
+              "args": {
+                "Brightness": 0.0,
+                "Rate": 0.0
+              }
+            }
+          ]
+        },
+        "binding": {
+          "AirPurifier": {
+            "any": [
+              "Office_AP_1",
+              "Office_AP_2"
+            ]
+          },
+          "Light": [
+            "Office_Light"
+          ]
+        },
+        "devices": {
+          "Office_AP_1": {
+            "category": [
+              "AirPurifier"
+            ],
+            "tags": [
+              "Office",
+              "AirPurifier"
+            ]
+          },
+          "Office_AP_2": {
+            "category": [
+              "AirPurifier"
+            ],
+            "tags": [
+              "Office",
+              "AirPurifier"
+            ]
+          },
+          "Bedroom_AP": {
+            "category": [
+              "AirPurifier"
+            ],
+            "tags": [
+              "Bedroom",
+              "AirPurifier"
+            ]
+          },
+          "Office_Light": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "Office",
+              "Light",
+              "Switch"
+            ]
+          },
+          "LivingRoom_Light": {
+            "category": [
+              "Light",
+              "Switch"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Light",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until(all(#AirPurifier).airPurifier_airPurifierMode ==| \"sleep\")\ndelay(1 MIN)\ndelay(9 MIN)\n(#Office_Light).light_moveToBrightness(0.0, 0.0)"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Office_AP_1.airpurifiermode": [
+            null,
+            "sleep"
+          ],
+          "Office_AP_2.airpurifiermode": [
+            null,
+            "sleep"
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Office_AP_1.airpurifiermode": "scalar",
+        "Office_AP_2.airpurifiermode": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "AirPurifier.AirPurifierMode:value": {
+            "id": "AirPurifierMode",
+            "descriptor": "Current air purifier mode",
+            "type": "ENUM",
+            "format": "AirPurifierModeEnum",
+            "service": "AirPurifier",
+            "kind": "value",
+            "members": [
+              "auto",
+              "sleep",
+              "low",
+              "medium",
+              "high",
+              "quiet",
+              "windFree",
+              "off"
+            ],
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Light.MoveToBrightness:function": {
+            "id": "MoveToBrightness",
+            "descriptor": "Move the Brightness to the given value. If the device supports being turned on and off then it will be turned on if ``brightness`` is greater than 0 and turned off if ``brightness`` is equal to 0.",
+            "arguments": [
+              {
+                "id": "Brightness",
+                "descriptor": "The brightness value, usually ``0-100`` in percent",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ],
+                "unit": "%"
+              },
+              {
+                "id": "Rate",
+                "descriptor": "The rate at which to change the brightness",
+                "type": "DOUBLE",
+                "bound": [
+                  0,
+                  100
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Light",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C10_008",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C10_008.json",
+      "status": "READY",
+      "candidate_sha256": "2aaf8cc578e1e64c172880559d819cf1d0649f9bb4fa19aea9ec3b2a5a334740",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "LightSensor.Brightness >= 100",
+              "edge": "none"
+            },
+            {
+              "op": "delay",
+              "duration": "5 SEC"
+            },
+            {
+              "op": "call",
+              "target": "WindowCovering.UpOrOpen",
+              "args": {}
+            }
+          ]
+        },
+        "binding": {
+          "LightSensor": {
+            "any": [
+              "Terrace_Sensor_1",
+              "Terrace_Sensor_2"
+            ]
+          },
+          "WindowCovering": [
+            "Terrace_Blind_1",
+            "Terrace_Blind_2"
+          ]
+        },
+        "devices": {
+          "Terrace_Sensor_1": {
+            "category": [
+              "LightSensor"
+            ],
+            "tags": [
+              "Terrace",
+              "LightSensor"
+            ]
+          },
+          "Terrace_Sensor_2": {
+            "category": [
+              "LightSensor"
+            ],
+            "tags": [
+              "Terrace",
+              "LightSensor"
+            ]
+          },
+          "Garden_LightSensor": {
+            "category": [
+              "LightSensor"
+            ],
+            "tags": [
+              "Garden",
+              "LightSensor"
+            ]
+          },
+          "Terrace_Blind_1": {
+            "category": [
+              "WindowCovering"
+            ],
+            "tags": [
+              "Terrace",
+              "WindowCovering",
+              "Blind"
+            ]
+          },
+          "Terrace_Blind_2": {
+            "category": [
+              "WindowCovering"
+            ],
+            "tags": [
+              "Terrace",
+              "WindowCovering",
+              "Blind"
+            ]
+          },
+          "LivingRoom_Blind": {
+            "category": [
+              "WindowCovering"
+            ],
+            "tags": [
+              "LivingRoom",
+              "WindowCovering",
+              "Blind"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "wait until(all(#LightSensor).lightSensor_brightness >=| 100)\ndelay(1 SEC)\ndelay(4 SEC)\nall(#WindowCovering).windowCovering_upOrOpen()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Terrace_Sensor_1.brightness": [
+            null,
+            100.0
+          ],
+          "Terrace_Sensor_2.brightness": [
+            null,
+            100.0
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Terrace_Sensor_1.brightness": "numeric",
+        "Terrace_Sensor_2.brightness": "numeric"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "LightSensor.Brightness:value": {
+            "id": "Brightness",
+            "descriptor": "brightness intensity (Unit: lux)",
+            "type": "DOUBLE",
+            "bound": [
+              0,
+              9223372036854775807
+            ],
+            "unit": "lx",
+            "service": "LightSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "WindowCovering.UpOrOpen:function": {
+            "id": "UpOrOpen",
+            "descriptor": "Up or open the window",
+            "return_type": "VOID",
+            "service": "WindowCovering",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C11_003",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C11_003.json",
+      "status": "READY",
+      "candidate_sha256": "42497b25791f892abda53a5af0d113bcd18f89f601c2e99c8803da2e9f10bfe6",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "read",
+              "var": "t1",
+              "src": "TemperatureSensor.Temperature"
+            },
+            {
+              "op": "delay",
+              "duration": "30 MIN"
+            },
+            {
+              "op": "read",
+              "var": "t2",
+              "src": "TemperatureSensor.Temperature"
+            },
+            {
+              "op": "if",
+              "cond": "($t1 - $t2) >= 3",
+              "then": [
+                {
+                  "op": "call",
+                  "target": "Switch.On",
+                  "args": {}
+                }
+              ],
+              "else": []
+            }
+          ]
+        },
+        "binding": {
+          "TemperatureSensor": [
+            "Bedroom_TempSensor"
+          ],
+          "Switch": [
+            "Bedroom_Heater"
+          ]
+        },
+        "devices": {
+          "Bedroom_TempSensor": {
+            "category": [
+              "TemperatureSensor"
+            ],
+            "tags": [
+              "Bedroom",
+              "TemperatureSensor"
+            ]
+          },
+          "LivingRoom_TempSensor": {
+            "category": [
+              "TemperatureSensor"
+            ],
+            "tags": [
+              "LivingRoom",
+              "TemperatureSensor"
+            ]
+          },
+          "Bedroom_Heater": {
+            "category": [
+              "Plug",
+              "Switch"
+            ],
+            "tags": [
+              "Bedroom",
+              "Plug",
+              "Heater"
+            ]
+          },
+          "Garage_DoorLock": {
+            "category": [
+              "DoorLock"
+            ],
+            "tags": [
+              "Garage",
+              "DoorLock"
+            ]
+          },
+          "Study_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Study",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 0,
+          "script": "t1 = (#Bedroom_TempSensor).temperatureSensor_temperature\ndelay(1 MIN)\ndelay(29 MIN)\nt2 = (#Bedroom_TempSensor).temperatureSensor_temperature\ndiff = t1 - t2\nif (diff >= 3) {\n(#Bedroom_Heater).switch_on()\n}"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": null,
+        "initial_gv_domains": {}
+      },
+      "verification_method": "smt-linear-trace-v1",
+      "domain_basis": "universal catalog symbolic inputs; no finite-domain oracle",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "TemperatureSensor.Temperature:value": {
+            "id": "Temperature",
+            "descriptor": "A number that usually represents the current temperature",
+            "type": "DOUBLE",
+            "bound": [
+              -40,
+              60
+            ],
+            "unit": "°C",
+            "service": "TemperatureSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.On:function": {
+            "id": "On",
+            "descriptor": "Turn a Switch on",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_005",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C12_005.json",
+      "status": "READY",
+      "candidate_sha256": "f6f882c3f53b6f61efcd55a1f01c00626001261997f25729350b22ceb6712151",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "SmokeDetector.Smoke == true",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "1 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Siren.SetSirenMode",
+                  "args": {
+                    "Mode": "emergency"
+                  }
+                },
+                {
+                  "op": "delay",
+                  "duration": "5 SEC"
+                },
+                {
+                  "op": "call",
+                  "target": "Switch.Off",
+                  "args": {}
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "SmokeDetector": {
+            "any": [
+              "Kitchen_Smoke",
+              "Bedroom_Smoke"
+            ]
+          },
+          "Siren": [
+            "Main_Siren",
+            "Entrance_Siren"
+          ],
+          "Switch": [
+            "Main_Siren",
+            "Entrance_Siren"
+          ]
+        },
+        "devices": {
+          "Kitchen_Smoke": {
+            "category": [
+              "SmokeDetector"
+            ],
+            "tags": [
+              "Kitchen",
+              "SmokeDetector"
+            ]
+          },
+          "Bedroom_Smoke": {
+            "category": [
+              "SmokeDetector"
+            ],
+            "tags": [
+              "Bedroom",
+              "SmokeDetector"
+            ]
+          },
+          "Main_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Main",
+              "Siren"
+            ]
+          },
+          "Entrance_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Entrance",
+              "Siren"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 60000,
+          "script": "phase := 0\nif (phase == 0) {\nwait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"emergency\")\n    delay(1 SEC)\n    delay(4 SEC)\nall(#Switch).switch_off()\n}\nelse {\nall(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()\n}"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Bedroom_Smoke.smoke": [
+            false,
+            true
+          ],
+          "Kitchen_Smoke.smoke": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Bedroom_Smoke.smoke": "scalar",
+        "Kitchen_Smoke.smoke": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "SmokeDetector.Smoke:value": {
+            "id": "Smoke",
+            "descriptor": "The state of the smoke detection device",
+            "type": "BOOL",
+            "service": "SmokeDetector",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Siren.SetSirenMode:function": {
+            "id": "SetSirenMode",
+            "descriptor": "Set the Siren mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the Siren mode",
+                "type": "ENUM",
+                "format": "SirenModeEnum",
+                "members": [
+                  "emergency",
+                  "fire",
+                  "police",
+                  "ambulance"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Siren",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_013",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C12_013.json",
+      "status": "READY",
+      "candidate_sha256": "6aa9cc45dc60ce4fe63c1800424ddc4c324e68260bd87fa11afc76bec624c442",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "PresenceSensor.Presence == true",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "1 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Siren.SetSirenMode",
+                  "args": {
+                    "Mode": "emergency"
+                  }
+                },
+                {
+                  "op": "delay",
+                  "duration": "3 SEC"
+                },
+                {
+                  "op": "call",
+                  "target": "Switch.Off",
+                  "args": {}
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "PresenceSensor": {
+            "any": [
+              "F1_Pres_1",
+              "F1_Pres_2"
+            ]
+          },
+          "Siren": [
+            "F1_Siren"
+          ],
+          "Switch": [
+            "F1_Siren"
+          ]
+        },
+        "devices": {
+          "F1_Pres_1": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Floor1",
+              "PresenceSensor"
+            ]
+          },
+          "F1_Pres_2": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Floor1",
+              "PresenceSensor"
+            ]
+          },
+          "F2_Pres": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Floor2",
+              "PresenceSensor"
+            ]
+          },
+          "F1_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Floor1",
+              "Siren",
+              "Switch"
+            ]
+          },
+          "F2_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Floor2",
+              "Siren",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 60000,
+          "script": "phase := 0\nif (phase == 0) {\nwait until(all(#PresenceSensor).presenceSensor_presence ==| true)\n    phase = 1\n    (#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(1 SEC)\n    delay(2 SEC)\n(#F1_Siren).switch_off()\n}\nelse {\n(#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()\n}"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "F1_Pres_2.presence": [
+            false,
+            true
+          ],
+          "F1_Pres_1.presence": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "F1_Pres_1.presence": "scalar",
+        "F1_Pres_2.presence": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "PresenceSensor.Presence:value": {
+            "id": "Presence",
+            "descriptor": "The current state of the presence sensor",
+            "type": "BOOL",
+            "service": "PresenceSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Siren.SetSirenMode:function": {
+            "id": "SetSirenMode",
+            "descriptor": "Set the Siren mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the Siren mode",
+                "type": "ENUM",
+                "format": "SirenModeEnum",
+                "members": [
+                  "emergency",
+                  "fire",
+                  "police",
+                  "ambulance"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Siren",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C18_004",
+      "candidate_path": "explorer/candidates/fig2-rw-delay_split/C18_004.json",
+      "status": "READY",
+      "candidate_sha256": "5512390bdbe950903cb32b17310a6ec479659107b00185378a9a3028119e6a27",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "cycle",
+              "until": "clock.time >= 1500",
+              "period": "10 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Siren.SetSirenMode",
+                  "args": {
+                    "Mode": "emergency"
+                  }
+                },
+                {
+                  "op": "delay",
+                  "duration": "5 SEC"
+                },
+                {
+                  "op": "call",
+                  "target": "Switch.Off",
+                  "args": {}
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "Siren": [
+            "Main_Siren",
+            "Entrance_Siren"
+          ],
+          "Switch": [
+            "Main_Siren",
+            "Entrance_Siren"
+          ]
+        },
+        "devices": {
+          "Main_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Main",
+              "Siren"
+            ]
+          },
+          "Entrance_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Entrance",
+              "Siren"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 600000,
+          "script": "if ((#Clock).clock_hour >= 15) {\nbreak\n}\nall(#Siren).siren_setSirenMode(\"emergency\")\ndelay(1 SEC)\ndelay(4 SEC)\nall(#Switch).switch_off()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {},
+        "initial_gv_domains": {}
+      },
+      "input_families": {},
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Siren.SetSirenMode:function": {
+            "id": "SetSirenMode",
+            "descriptor": "Set the Siren mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the Siren mode",
+                "type": "ENUM",
+                "format": "SirenModeEnum",
+                "members": [
+                  "emergency",
+                  "fire",
+                  "police",
+                  "ambulance"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Siren",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    }
+  ],
+  "subset": "seeds that have the delay_split rewrite; other rows have no candidate"
+}

@@ -1,6 +1,6 @@
 # Evaluation handoff
 
-상태: **E1 종료(2026-09-13), E2 완료(2026-09-14, 140쌍 모집단). 원고 E1·E2 초안은 whisoo 검토 대기. E3 탐색적 완료(2026-09-15, Qwen 382건). Feedback 루프 설계 중, E4 는 feedback 실험 후.**
+상태: **E1 종료(2026-09-13), E2 완료(2026-09-14, 140쌍). E3 최종(2026-09-15, 382건). Feedback 1·2라운드와 반례 없는 대조군 완료(2026-09-16). Fig2/Table1 동기 실험 완료(2026-09-16, judge 3개). 원고 E1·E2 초안은 whisoo 검토 대기. E4 미착수.**
 
 - 실험의 방식·코드·데이터·결과는 이 폴더의 실험별 하위 폴더에 둔다.
 
@@ -90,6 +90,28 @@
 - 세 실험이 같은 지점을 가리킨다: 2라운드에서 모델은 결함을 정확히 진단하고도 JoI 로 못 적었고, 대조군은 반례 없이도 31건을 고쳤다. 기록 `RESULTS_E3_FEEDBACK_ABLATION_2026-09-16.md`.
 - **동결된 수치 네 가지**: 1라운드 36/68(52.9%, protocol v1), 2라운드 누적 40/68(58.8%, r2a), 2라운드 사후 프롬프트 42/68(r2b), 반례 없는 대조군 31/68(45.6%, ablation). 넷 다 동결 프로토콜과 평가기 기록이 있다. 원고에 무엇을 어떻게 쓸지는 나중에 whisoo 가 정한다.
 
+
+## Fig2/Table1 동기 실험 — `motivation_judge/` (2026-09-16 완료)
+
+- E1–E4 **밖의 동기 실험**이다. Introduction 의 Fig2·Table1 자리이며, "왜 LLM judge 를 배포 게이트로
+  쓰지 않는가" 를 받친다. 프로토콜 `motivation_judge/PROTOCOL_2026-09-16.md`, 결과 `RESULTS_2026-09-16.md`.
+- **옛 SenSys 수치(9B 27.0% / GPT-5.1 10.6%, 유형별 최대 81%)는 폐기.** identity 대조가 없었고, 씨앗이
+  확정 명세를 만족한다는 근거가 없었으며, 동등성을 시뮬레이터 trace 한 줄로 판정했고, 불확실성 추정이
+  없었다. 그 데이터셋(`equiv_stress_v2.json`)과 생성기는 남아 있지 않다(생성기는 `aa866bd^:paper/build_equiv_stress.py`
+  에서 복구 가능, v2 는 커밋된 적 없음). 재현이 아니라 새 실험이다.
+- 씨앗은 **E3 최종의 EQUIV-FIXPOINT 309건**. 변환 8유형(표기 4·논리 1·시간 구조 3)으로 357쌍을 만들고,
+  **E3 와 같은 동결 평가기**로 전부 EQUIV-FIXPOINT 임을 확인한 것만 채택했다(357/357). 옛 드모르간·이중부정·
+  덧셈 순서는 일반 코드 judge 편향이라 뺐다.
+- **결과**: Qwen3.5-9B(로컬, temp 0) flip **22.1%** / identity **0/201**; gpt-5.4-mini flip 12.9% / identity 12.4%;
+  claude-sonnet-5 flip 9.0% / identity 8.0%. 세 judge 무효 0건.
+- **원고에 쓸 때 지킬 것**: 표현 변경 주장은 **로컬 judge 행으로만** 한다(identity 0 이라 인과 성립).
+  클라우드 두 행의 flip 은 identity 와 나란히 싣되 "표현 때문"이라고 쓰지 않는다 — 자기 대조군이 반박한다.
+  두 클라우드 모델은 temperature 를 설정할 수 없다(400 / 파라미터 없음)는 사실을 함께 적는다.
+- **미해결**: `comparator_flip` 이 Qwen 에서 27.0% 로 순수 표기치고 높다. 원인 미조사이며 원고에 쓰기 전
+  사례를 봐야 한다. `exists_spelling`(`OP|`→`any`)은 Qwen 28.2%·Sonnet 20.5%(identity 5.1%)로 feedback 실험의
+  `OP|` 실패와 같은 축이지만 아직 관찰이다.
+- 09-11 `skill_result/05_experiment_plan/motivation_pilot_2026-09-11/` 은 **다른 실험**(silent divergence,
+  judge vs Explorer 116 프로그램)이며 09-12 부터 보류다. Fig2/Table1 로 전용하지 않는다.
 
 ## 공통
 

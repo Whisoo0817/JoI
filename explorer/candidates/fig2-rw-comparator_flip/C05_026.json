@@ -1,0 +1,156 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (15 <= (#WineCellar_Temp).temperatureSensor_temperature and (#WineCellar_Hum).humiditySensor_humidity >= 60) {\n(#AC).switch_on()\n(#WineCellar_Humidifier).switch_off()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (15 <= (#WineCellar_Temp).temperatureSensor_temperature and (#WineCellar_Hum).humiditySensor_humidity >= 60) {\\n(#AC).switch_on()\\n(#WineCellar_Humidifier).switch_off()\\n}\"\n}",
+ "precision": {
+  "TemperatureSensor.Temperature": [
+   "(#WineCellar_Temp)"
+  ],
+  "HumiditySensor.Humidity": [
+   "(#WineCellar_Hum)"
+  ],
+  "Switch.On": [
+   "(#AC)"
+  ],
+  "Switch.Off": [
+   "(#WineCellar_Humidifier)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132331_829.json",
+ "command_kor": "와인 셀러 온도가 15도 이상이고 습도가 60% 이상이면, 에어컨을 켜고 가습기를 꺼줘.",
+ "command_eng": "If the wine cellar temperature is 15 degrees or higher and humidity is 60% or higher, turn on the air conditioner and turn off the humidifier.",
+ "connected_devices": {
+  "WineCellar_Temp": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "WineCellar",
+    "TemperatureSensor"
+   ]
+  },
+  "Basement_Temp": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "Basement",
+    "TemperatureSensor"
+   ]
+  },
+  "WineCellar_Hum": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "WineCellar",
+    "HumiditySensor"
+   ]
+  },
+  "Basement_Hum": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "Basement",
+    "HumiditySensor"
+   ]
+  },
+  "AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "AirConditioner",
+    "Switch"
+   ]
+  },
+  "Bedroom_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirConditioner",
+    "Switch"
+   ]
+  },
+  "WineCellar_Humidifier": {
+   "category": [
+    "Humidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Humidifier",
+    "Switch"
+   ]
+  },
+  "Bedroom_Humidifier": {
+   "category": [
+    "Humidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "Humidifier",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "TemperatureSensor.Temperature >= 15 and HumiditySensor.Humidity >= 60",
+    "then": [
+     {
+      "op": "call",
+      "target": "Switch.On",
+      "args": {}
+     },
+     {
+      "op": "call",
+      "target": "Switch.Off",
+      "args": {}
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "TemperatureSensor": [
+   "WineCellar_Temp"
+  ],
+  "HumiditySensor": [
+   "WineCellar_Hum"
+  ],
+  "Switch": [
+   "AC"
+  ],
+  "Switch#2": [
+   "WineCellar_Humidifier"
+  ]
+ },
+ "input_payload_sha256": "4cb5372b761a7c6afbc348475862b60e034dbe856b515fbd2de379dc5bf1cb5e",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.6,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2"
+ }
+}

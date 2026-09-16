@@ -1,0 +1,77 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "0 12 * * 6,7",
+  "period": 1800000,
+  "script": "if (18 <= (#Clock).clock_hour) {\nbreak\n}\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 12 * * 6,7\",\n  \"period\": 1800000,\n  \"script\": \"if (18 <= (#Clock).clock_hour) {\\nbreak\\n}\\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\"\n}",
+ "precision": {
+  "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+   "all(#RobotVacuumCleaner)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "주말 오후에 30분마다 로봇청소기를 자동모드로 작동시켜줘.",
+ "command_eng": "Every 30 minutes on weekend afternoons, set the robot vacuum cleaner to auto mode.",
+ "connected_devices": {
+  "Living_RVC": {
+   "category": [
+    "RobotVacuumCleaner"
+   ],
+   "tags": [
+    "Living",
+    "RobotVacuumCleaner"
+   ]
+  },
+  "Bedroom_RVC": {
+   "category": [
+    "RobotVacuumCleaner"
+   ],
+   "tags": [
+    "Bedroom",
+    "RobotVacuumCleaner"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "cron",
+    "cron": "0 12 * * 6,7"
+   },
+   {
+    "op": "cycle",
+    "until": "clock.time >= 1800",
+    "period": "30 MIN",
+    "body": [
+     {
+      "op": "call",
+      "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+      "args": {
+       "Mode": "auto"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "RobotVacuumCleaner": [
+   "Living_RVC",
+   "Bedroom_RVC"
+  ]
+ },
+ "input_payload_sha256": "c6e9c748483a78ade26410608f7270b358ae8fbc6d61a916e5834be2a8665ce2",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.9,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

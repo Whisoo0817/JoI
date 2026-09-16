@@ -1,0 +1,117 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#LivingRoom_PresenceSensor).presenceSensor_presence == true)) {\n(#LivingRoom_Light).switch_off()\n} else {\n(#LivingRoom_Light).switch_on()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#LivingRoom_PresenceSensor).presenceSensor_presence == true)) {\\n(#LivingRoom_Light).switch_off()\\n} else {\\n(#LivingRoom_Light).switch_on()\\n}\"\n}",
+ "precision": {
+  "PresenceSensor.Presence": [
+   "(#LivingRoom_PresenceSensor)"
+  ],
+  "Switch.On": [
+   "(#LivingRoom_Light)"
+  ],
+  "Switch.Off": [
+   "(#LivingRoom_Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "거실에 사람이 감지되면 거실 메인 조명을 켜고, 아니면 꺼줘.",
+ "command_eng": "If a person is detected in the living room, turn on the living room main light; otherwise turn it off.",
+ "connected_devices": {
+  "LivingRoom_PresenceSensor": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "PresenceSensor"
+   ]
+  },
+  "Bedroom_PresenceSensor": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "PresenceSensor"
+   ]
+  },
+  "LivingRoom_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Light"
+   ]
+  },
+  "Bathroom_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "Bathroom",
+    "Light"
+   ]
+  },
+  "Office_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Office",
+    "Camera"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "PresenceSensor.Presence == true",
+    "then": [
+     {
+      "op": "call",
+      "target": "Switch.On",
+      "args": {}
+     }
+    ],
+    "else": [
+     {
+      "op": "call",
+      "target": "Switch.Off",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "PresenceSensor": [
+   "LivingRoom_PresenceSensor"
+  ],
+  "Switch": [
+   "LivingRoom_Light"
+  ]
+ },
+ "input_payload_sha256": "c7cc746c30dcf170f8ce2736a44fd2ca16aa87d0a029b174da248c1c8f235031",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-branch_swap",
+ "elapsed_sec": 1.6,
+ "rewrite": {
+  "type": "branch_swap",
+  "band": "logic",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

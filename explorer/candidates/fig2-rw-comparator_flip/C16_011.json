@@ -1,0 +1,92 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "0 22 * * *",
+  "period": 300000,
+  "script": "if (23 <= (#Clock).clock_hour) {\nbreak\n}\nif ((#Main_Charger).charger_chargingState == \"fullyCharged\") {\nall(#Switch).switch_off()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 300000,\n  \"script\": \"if (23 <= (#Clock).clock_hour) {\\nbreak\\n}\\nif ((#Main_Charger).charger_chargingState == \\\"fullyCharged\\\") {\\nall(#Switch).switch_off()\\n}\"\n}",
+ "precision": {
+  "Charger.ChargingState": [
+   "(#Main_Charger)"
+  ],
+  "Switch.Off": [
+   "all(#Switch)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "오후 10시부터 11시까지 5분마다 체크해서 충전이 완료되면 꺼줘.",
+ "command_eng": "Check every 5 minutes from 10 PM to 11 PM and turn it off when charging is complete.",
+ "connected_devices": {
+  "Main_Charger": {
+   "category": [
+    "Charger",
+    "Switch"
+   ],
+   "tags": [
+    "Main",
+    "Charger",
+    "Switch"
+   ]
+  },
+  "Phone_Charger": {
+   "category": [
+    "Charger",
+    "Switch"
+   ],
+   "tags": [
+    "Phone",
+    "Charger",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "cron",
+    "cron": "0 22 * * *"
+   },
+   {
+    "op": "cycle",
+    "until": "Clock.Hour >= 23",
+    "period": "5 MIN",
+    "body": [
+     {
+      "op": "if",
+      "cond": "Charger.ChargingState == \"fullyCharged\"",
+      "then": [
+       {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+       }
+      ],
+      "else": []
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "Charger": [
+   "Main_Charger"
+  ],
+  "Switch": [
+   "Main_Charger",
+   "Phone_Charger"
+  ]
+ },
+ "input_payload_sha256": "8a75c51f7384d24c1a384276b7600d5f1154d393b344b562eb7c92db16cadfe0",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 2.8,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

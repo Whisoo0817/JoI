@@ -1,0 +1,131 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "if (not ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75)) {\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n(#Bathroom_Fan).switch_off()\n}\n} else {\n(#Bathroom_Fan).switch_on()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if (not ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75)) {\\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\\n(#Bathroom_Fan).switch_off()\\n}\\n} else {\\n(#Bathroom_Fan).switch_on()\\n}\"\n}",
+ "precision": {
+  "HumiditySensor.Humidity": [
+   "(#Bathroom_HumiditySensor)"
+  ],
+  "Switch.On": [
+   "(#Bathroom_Fan)"
+  ],
+  "Switch.Off": [
+   "(#Bathroom_Fan)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132404_394.json",
+ "command_kor": "1초마다 욕실 습도가 75% 이상이면 욕실 환기팬 플러그를 켜고, 그렇지 않고 55% 이하이면 꺼줘.",
+ "command_eng": "Every 1 second, if the bathroom humidity is at least 75%, turn on the bathroom ventilation fan plug; otherwise if it is 55% or below, turn off the bathroom ventilation fan plug.",
+ "connected_devices": {
+  "Bathroom_HumiditySensor": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "Bathroom",
+    "HumiditySensor"
+   ]
+  },
+  "Bedroom_HumiditySensor": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "HumiditySensor"
+   ]
+  },
+  "Bathroom_Fan": {
+   "category": [
+    "Plug",
+    "Switch"
+   ],
+   "tags": [
+    "Bathroom",
+    "Plug",
+    "Fan"
+   ]
+  },
+  "Kitchen_Humidifier": {
+   "category": [
+    "Humidifier"
+   ],
+   "tags": [
+    "Kitchen",
+    "Humidifier"
+   ]
+  },
+  "Study_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Study",
+    "Speaker"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "1 SEC",
+    "body": [
+     {
+      "op": "if",
+      "cond": "HumiditySensor.Humidity >= 75",
+      "then": [
+       {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+       }
+      ],
+      "else": [
+       {
+        "op": "if",
+        "cond": "HumiditySensor.Humidity <= 55",
+        "then": [
+         {
+          "op": "call",
+          "target": "Switch.Off",
+          "args": {}
+         }
+        ],
+        "else": []
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "HumiditySensor": [
+   "Bathroom_HumiditySensor"
+  ],
+  "Switch": [
+   "Bathroom_Fan"
+  ]
+ },
+ "input_payload_sha256": "754bdf68bec2fa25ac07e08ae21a3b91158d3126c7628f8c1855464088c806f8",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-branch_swap",
+ "elapsed_sec": 2.1,
+ "rewrite": {
+  "type": "branch_swap",
+  "band": "logic",
+  "seed_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2"
+ }
+}

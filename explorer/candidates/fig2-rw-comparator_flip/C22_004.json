@@ -1,0 +1,103 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 120000,
+  "script": "n := 0\nif (6 <= n) {\nbreak\n}\n(#LivingRoom_AC).switch_on()\nn = n + 1"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 120000,\n  \"script\": \"n := 0\\nif (6 <= n) {\\nbreak\\n}\\n(#LivingRoom_AC).switch_on()\\nn = n + 1\"\n}",
+ "precision": {
+  "Switch.On": [
+   "(#LivingRoom_AC)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "2분마다 히터 플러그를 켜줘. 6번 반복하고 종료.",
+ "command_eng": "Every 2 minutes, turn on the heater plug. Stop after 6 runs.",
+ "connected_devices": {
+  "LivingRoom_TempSensor": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "TemperatureSensor"
+   ]
+  },
+  "Bedroom_TempSensor": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "TemperatureSensor"
+   ]
+  },
+  "LivingRoom_AC": {
+   "category": [
+    "Plug",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Plug",
+    "AC"
+   ]
+  },
+  "Study_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Study",
+    "Speaker"
+   ]
+  },
+  "Bakery_Fan": {
+   "category": [
+    "Fan"
+   ],
+   "tags": [
+    "Bakery",
+    "Fan"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": "n >= 6",
+    "period": "2 MIN",
+    "count": "n",
+    "body": [
+     {
+      "op": "call",
+      "target": "Switch.On",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "Switch": [
+   "LivingRoom_AC"
+  ]
+ },
+ "input_payload_sha256": "f34200bbe883f9f96030df3168fa6b0c3e5cdb10561b984a49b4c40d2f3d7d13",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.8,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

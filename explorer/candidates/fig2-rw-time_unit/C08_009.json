@@ -1,0 +1,110 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Entrance_MB).multiButton_button1 == \"pushed\")\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)\ndelay(300 SEC)\n(#Entrance_Light).light_moveToBrightness(0.0, 0.0)"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Entrance_MB).multiButton_button1 == \\\"pushed\\\")\\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)\\ndelay(300 SEC)\\n(#Entrance_Light).light_moveToBrightness(0.0, 0.0)\"\n}",
+ "precision": {
+  "MultiButton.Button1": [
+   "(#Entrance_MB)"
+  ],
+  "Light.MoveToBrightness": [
+   "(#Entrance_Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "멀티버튼의 버튼1이 눌리면 현관 조명을 켜고 5분 후에 꺼줘.",
+ "command_eng": "When button 1 of the multi-button is pressed, turn on the entrance light and turn it off after 5 minutes.",
+ "connected_devices": {
+  "Entrance_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "Entrance",
+    "MultiButton"
+   ]
+  },
+  "Hall_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "Hallway",
+    "MultiButton"
+   ]
+  },
+  "Entrance_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Entrance",
+    "Light"
+   ]
+  },
+  "Hall_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Hallway",
+    "Light"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "MultiButton.Button1 == \"pushed\"",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Light.MoveToBrightness",
+    "args": {
+     "Brightness": 100.0,
+     "Rate": 0.0
+    }
+   },
+   {
+    "op": "delay",
+    "duration": "5 MIN"
+   },
+   {
+    "op": "call",
+    "target": "Light.MoveToBrightness",
+    "args": {
+     "Brightness": 0.0,
+     "Rate": 0.0
+    }
+   }
+  ]
+ },
+ "binding": {
+  "MultiButton": [
+   "Entrance_MB"
+  ],
+  "Light": [
+   "Entrance_Light"
+  ]
+ },
+ "input_payload_sha256": "06317de27b159febb793bb53ac478428a609b34739263db98f2297af0836df01",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-time_unit",
+ "elapsed_sec": 1.9,
+ "rewrite": {
+  "type": "time_unit",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

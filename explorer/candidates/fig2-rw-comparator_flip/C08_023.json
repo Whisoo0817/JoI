@@ -1,0 +1,113 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (true == triggered) {\nwait until(not (all(#LightSensor).lightSensor_brightness <| 100))\n    triggered = false\n}\nwait until(all(#LightSensor).lightSensor_brightness <| 100)\nall(#Light).light_moveToBrightness(100.0, 0.0)\ntriggered = true"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\\nif (true == triggered) {\\nwait until(not (all(#LightSensor).lightSensor_brightness <| 100))\\n    triggered = false\\n}\\nwait until(all(#LightSensor).lightSensor_brightness <| 100)\\nall(#Light).light_moveToBrightness(100.0, 0.0)\\ntriggered = true\"\n}",
+ "precision": {
+  "LightSensor.Brightness": [
+   "any(#LightSensor)"
+  ],
+  "Light.MoveToBrightness": [
+   "all(#Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "조도가 100룩스 미만이 될 때마다 조명을 켜줘.",
+ "command_eng": "Each time the brightness level falls below 100 lux, turn on the light.",
+ "connected_devices": {
+  "Living_LightSensor": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "Living",
+    "LightSensor"
+   ]
+  },
+  "Bedroom_LightSensor": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "LightSensor"
+   ]
+  },
+  "Living_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "Living",
+    "Light",
+    "Switch"
+   ]
+  },
+  "Bedroom_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "Light",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "1 SEC",
+    "body": [
+     {
+      "op": "wait",
+      "cond": "LightSensor.Brightness < 100",
+      "edge": "rising"
+     },
+     {
+      "op": "call",
+      "target": "Light.MoveToBrightness",
+      "args": {
+       "Brightness": 100.0,
+       "Rate": 0.0
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "LightSensor": {
+   "any": [
+    "Living_LightSensor",
+    "Bedroom_LightSensor"
+   ]
+  },
+  "Light": [
+   "Living_Light",
+   "Bedroom_Light"
+  ]
+ },
+ "input_payload_sha256": "7acfc928984bc7fb5eef05c8b9a4a7f5ebb4b197435a64e98b74394606c3f092",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 3.2,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

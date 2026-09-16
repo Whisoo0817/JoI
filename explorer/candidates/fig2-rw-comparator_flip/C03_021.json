@@ -1,0 +1,99 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (800 <= (#Farm_AQ).airQualitySensor_carbonDioxide) {\n(#Farm_Siren).siren_setSirenMode(\"emergency\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (800 <= (#Farm_AQ).airQualitySensor_carbonDioxide) {\\n(#Farm_Siren).siren_setSirenMode(\\\"emergency\\\")\\n}\"\n}",
+ "precision": {
+  "AirQualitySensor.CarbonDioxide": [
+   "(#Farm_AQ)"
+  ],
+  "Siren.SetSirenMode": [
+   "(#Farm_Siren)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "농장의 이산화탄소 농도가 800ppm 이상이면, 긴급 사이렌을 울려줘.",
+ "command_eng": "If the carbon dioxide concentration in the farm is 800ppm or higher, sound the emergency siren.",
+ "connected_devices": {
+  "Farm_AQ": {
+   "category": [
+    "AirQualitySensor"
+   ],
+   "tags": [
+    "Farm",
+    "AirQualitySensor"
+   ]
+  },
+  "Greenhouse_AQ": {
+   "category": [
+    "AirQualitySensor"
+   ],
+   "tags": [
+    "Greenhouse",
+    "AirQualitySensor"
+   ]
+  },
+  "Farm_Siren": {
+   "category": [
+    "Siren"
+   ],
+   "tags": [
+    "Farm",
+    "Siren"
+   ]
+  },
+  "Main_Siren": {
+   "category": [
+    "Siren"
+   ],
+   "tags": [
+    "Main",
+    "Siren"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "AirQualitySensor.CarbonDioxide >= 800",
+    "then": [
+     {
+      "op": "call",
+      "target": "Siren.SetSirenMode",
+      "args": {
+       "Mode": "emergency"
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "AirQualitySensor": [
+   "Farm_AQ"
+  ],
+  "Siren": [
+   "Farm_Siren"
+  ]
+ },
+ "input_payload_sha256": "c447ea69c448372997f9c020fa259eb2167c6845ba80c2ed30b46a769174c5a1",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

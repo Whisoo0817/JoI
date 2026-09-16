@@ -1,0 +1,84 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "IsAvailable = (#Main_CloudServiceProvider).cloudServiceProvider_isAvailable\nif (true == IsAvailable) {\n(#Main_CloudServiceProvider).cloudServiceProvider_uploadFile(\"test.png\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"IsAvailable = (#Main_CloudServiceProvider).cloudServiceProvider_isAvailable\\nif (true == IsAvailable) {\\n(#Main_CloudServiceProvider).cloudServiceProvider_uploadFile(\\\"test.png\\\")\\n}\"\n}",
+ "precision": {
+  "CloudServiceProvider.IsAvailable": [
+   "(#Main_CloudServiceProvider)"
+  ],
+  "CloudServiceProvider.UploadFile": [
+   "(#Main_CloudServiceProvider)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "메인 클라우드 서비스가 사용 가능하면, test.png 파일을 메인 클라우드에 업로드해줘.",
+ "command_eng": "If the main cloud provider is available, upload test.png to the main cloud provider.",
+ "connected_devices": {
+  "Main_CloudServiceProvider": {
+   "category": [
+    "CloudServiceProvider"
+   ],
+   "tags": [
+    "CloudServiceProvider",
+    "Main"
+   ]
+  },
+  "Backup_CloudServiceProvider": {
+   "category": [
+    "CloudServiceProvider"
+   ],
+   "tags": [
+    "CloudServiceProvider",
+    "Backup"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "call",
+    "target": "CloudServiceProvider.IsAvailable",
+    "args": {},
+    "var": "IsAvailable"
+   },
+   {
+    "op": "if",
+    "cond": "$IsAvailable == true",
+    "then": [
+     {
+      "op": "call",
+      "target": "CloudServiceProvider.UploadFile",
+      "args": {
+       "File": "test.png"
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "CloudServiceProvider": [
+   "Main_CloudServiceProvider"
+  ]
+ },
+ "input_payload_sha256": "da7d174ef1382a287c52b8372503871c179f10bf17036fdd3dbfb1d345ca4a75",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

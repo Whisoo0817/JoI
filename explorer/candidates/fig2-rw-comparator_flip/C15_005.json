@@ -1,0 +1,75 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "0 8 * * 1-5",
+  "period": 3600000,
+  "script": "if (24 <= (#Clock).clock_hour) {\nbreak\n}\nall(#Camera).camera_captureImage()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * 1-5\",\n  \"period\": 3600000,\n  \"script\": \"if (24 <= (#Clock).clock_hour) {\\nbreak\\n}\\nall(#Camera).camera_captureImage()\"\n}",
+ "precision": {
+  "Camera.CaptureImage": [
+   "all(#Camera)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "평일 오전 8시부터 자정까지 한 시간마다 카메라로 사진을 찍어줘.",
+ "command_eng": "On weekdays from 8 AM to midnight every hour, capture an image with the camera.",
+ "connected_devices": {
+  "Entrance_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Entrance",
+    "Camera"
+   ]
+  },
+  "Garage_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Garage",
+    "Camera"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "cron",
+    "cron": "0 8 * * 1-5"
+   },
+   {
+    "op": "cycle",
+    "until": "clock.time >= 2400",
+    "period": "1 HOUR",
+    "body": [
+     {
+      "op": "call",
+      "target": "Camera.CaptureImage",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "Camera": [
+   "Entrance_Camera",
+   "Garage_Camera"
+  ]
+ },
+ "input_payload_sha256": "6cd6c774aaadc6486ed7199481959aee0c3724505c4030f34e7e18d89225d19f",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.8,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

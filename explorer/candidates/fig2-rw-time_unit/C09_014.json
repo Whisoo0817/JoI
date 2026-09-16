@@ -1,0 +1,115 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "all(#DoorLock).doorLock_lock()\ndelay(60 SEC)\n(#Warehouse_Siren).siren_setSirenMode(\"emergency\")"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#DoorLock).doorLock_lock()\\ndelay(60 SEC)\\n(#Warehouse_Siren).siren_setSirenMode(\\\"emergency\\\")\"\n}",
+ "precision": {
+  "DoorLock.Lock": [
+   "all(#DoorLock)"
+  ],
+  "Siren.SetSirenMode": [
+   "(#Warehouse_Siren)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "창고의 모든 도어락을 잠그고 1분 뒤에 긴급 사이렌을 울려줘.",
+ "command_eng": "Lock all warehouse door locks and sound the emergency siren 1 minute later.",
+ "connected_devices": {
+  "Warehouse_Lock_1": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Warehouse",
+    "DoorLock"
+   ]
+  },
+  "Warehouse_Lock_2": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Warehouse",
+    "DoorLock"
+   ]
+  },
+  "Office_Lock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Office",
+    "DoorLock"
+   ]
+  },
+  "Warehouse_Siren": {
+   "category": [
+    "Siren",
+    "Switch"
+   ],
+   "tags": [
+    "Warehouse",
+    "Siren",
+    "Switch"
+   ]
+  },
+  "Garden_Siren": {
+   "category": [
+    "Siren",
+    "Switch"
+   ],
+   "tags": [
+    "Garden",
+    "Siren",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "call",
+    "target": "DoorLock.Lock",
+    "args": {}
+   },
+   {
+    "op": "delay",
+    "duration": "1 MIN"
+   },
+   {
+    "op": "call",
+    "target": "Siren.SetSirenMode",
+    "args": {
+     "Mode": "emergency"
+    }
+   }
+  ]
+ },
+ "binding": {
+  "DoorLock": [
+   "Warehouse_Lock_1",
+   "Warehouse_Lock_2"
+  ],
+  "Siren": [
+   "Warehouse_Siren"
+  ]
+ },
+ "input_payload_sha256": "98c26acb5d65dbfbacea5bf248a80e4ccbfba7fd963c5f899e1f8684c028c30c",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-time_unit",
+ "elapsed_sec": 1.6,
+ "rewrite": {
+  "type": "time_unit",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

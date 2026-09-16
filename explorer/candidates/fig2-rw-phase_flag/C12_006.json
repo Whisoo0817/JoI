@@ -1,0 +1,105 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1800000,
+  "script": "started := false\nif (started == false) {\n    wait until((#Main_Charger).charger_voltage <= 4000)\n    started = true\n}\nall(#Speaker).speaker_speak(\"The charging voltage is low\")"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"started := false\\nif (started == false) {\\n    wait until((#Main_Charger).charger_voltage <= 4000)\\n    started = true\\n}\\nall(#Speaker).speaker_speak(\\\"The charging voltage is low\\\")\"\n}",
+ "precision": {
+  "Charger.Voltage": [
+   "(#Main_Charger)"
+  ],
+  "Speaker.Speak": [
+   "all(#Speaker)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132338_954.json",
+ "command_kor": "충전기 전압이 4V 이하로 떨어지면, 그 이후로 30분마다 \"충전 전압이 낮습니다\"라고 스피커로 말해줘.",
+ "command_eng": "When the charger voltage drops to 4V or lower, speak \"The charging voltage is low\" through the speaker every 30 minutes thereafter.",
+ "connected_devices": {
+  "Main_Charger": {
+   "category": [
+    "Charger"
+   ],
+   "tags": [
+    "Main",
+    "Charger"
+   ]
+  },
+  "Garage_Charger": {
+   "category": [
+    "Charger"
+   ],
+   "tags": [
+    "Garage",
+    "Charger"
+   ]
+  },
+  "Living_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Living",
+    "Speaker"
+   ]
+  },
+  "Bedroom_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Bedroom",
+    "Speaker"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "Charger.Voltage <= 4000",
+    "edge": "none"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "30 MIN",
+    "body": [
+     {
+      "op": "call",
+      "target": "Speaker.Speak",
+      "args": {
+       "Text": "The charging voltage is low"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "Charger": [
+   "Main_Charger"
+  ],
+  "Speaker": [
+   "Living_Speaker",
+   "Bedroom_Speaker"
+  ]
+ },
+ "input_payload_sha256": "c012ad0a0a9db5ed81a74e3c00ba45afb1b64bc647e112a830dae651ad72fe2d",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-phase_flag",
+ "elapsed_sec": 2.3,
+ "rewrite": {
+  "type": "phase_flag",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2"
+ }
+}

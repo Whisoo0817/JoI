@@ -1,0 +1,119 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (false == (#Bedroom_ContactSensor).contactSensor_contact) {\n(#Bedroom_AirPurifier).switch_off()\n}\nelse {\n(#Bedroom_AirPurifier).switch_on()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (false == (#Bedroom_ContactSensor).contactSensor_contact) {\\n(#Bedroom_AirPurifier).switch_off()\\n}\\nelse {\\n(#Bedroom_AirPurifier).switch_on()\\n}\"\n}",
+ "precision": {
+  "ContactSensor.Contact": [
+   "(#Bedroom_ContactSensor)"
+  ],
+  "Switch.Off": [
+   "(#Bedroom_AirPurifier)"
+  ],
+  "Switch.On": [
+   "(#Bedroom_AirPurifier)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "침실 문이 열려있으면 침실 공기청정기 플러그를 꺼주고, 아니면 켜줘.",
+ "command_eng": "If the bedroom door is open, turn off the bedroom air purifier plug; otherwise turn it on.",
+ "connected_devices": {
+  "Bedroom_ContactSensor": {
+   "category": [
+    "ContactSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "Door",
+    "ContactSensor"
+   ]
+  },
+  "FrontContactSensor_ContactSensor": {
+   "category": [
+    "ContactSensor"
+   ],
+   "tags": [
+    "FrontDoor",
+    "Door",
+    "ContactSensor"
+   ]
+  },
+  "Bedroom_AirPurifier": {
+   "category": [
+    "Plug",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "Plug",
+    "AirPurifier"
+   ]
+  },
+  "Study_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Study",
+    "Speaker"
+   ]
+  },
+  "Bakery_Fan": {
+   "category": [
+    "Fan"
+   ],
+   "tags": [
+    "Bakery",
+    "Fan"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "ContactSensor.Contact == false",
+    "then": [
+     {
+      "op": "call",
+      "target": "Switch.Off",
+      "args": {}
+     }
+    ],
+    "else": [
+     {
+      "op": "call",
+      "target": "Switch.On",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "ContactSensor": [
+   "Bedroom_ContactSensor"
+  ],
+  "Switch": [
+   "Bedroom_AirPurifier"
+  ]
+ },
+ "input_payload_sha256": "c30325080132261d11a3ec196fdca6377c8a67830e7228bef1e89198b3e7cc47",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.6,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

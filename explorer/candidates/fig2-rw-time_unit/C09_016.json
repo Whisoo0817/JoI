@@ -1,0 +1,87 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "(#Study_AP).airPurifier_setAirPurifierMode(\"high\")\ndelay(120 MIN)\n(#Study_AP).switch_off()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#Study_AP).airPurifier_setAirPurifierMode(\\\"high\\\")\\ndelay(120 MIN)\\n(#Study_AP).switch_off()\"\n}",
+ "precision": {
+  "AirPurifier.SetAirPurifierMode": [
+   "(#Study_AP)"
+  ],
+  "Switch.Off": [
+   "(#Study_AP)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "서재 공기청정기를 강풍으로 틀고 2시간 뒤에 꺼줘.",
+ "command_eng": "Set the study air purifier to high and turn it off after 2 hours.",
+ "connected_devices": {
+  "Study_AP": {
+   "category": [
+    "AirPurifier",
+    "Switch"
+   ],
+   "tags": [
+    "Study",
+    "AirPurifier",
+    "Switch"
+   ]
+  },
+  "Bedroom_AP": {
+   "category": [
+    "AirPurifier",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirPurifier",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "call",
+    "target": "AirPurifier.SetAirPurifierMode",
+    "args": {
+     "Mode": "high"
+    }
+   },
+   {
+    "op": "delay",
+    "duration": "2 HOUR"
+   },
+   {
+    "op": "call",
+    "target": "Switch.Off",
+    "args": {}
+   }
+  ]
+ },
+ "binding": {
+  "AirPurifier": [
+   "Study_AP"
+  ],
+  "Switch": [
+   "Study_AP"
+  ]
+ },
+ "input_payload_sha256": "b4e9470c90d33c21f6c5aa26e96945c7e99b79f15f0753285107180c187ebabb",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-time_unit",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "time_unit",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

@@ -1,0 +1,122 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Bedroom_MB).multiButton_button1 == \"pushed\")\ncurrent = (#Bedroom_Light).light_currentBrightness\nif (80 <= current) {\n(#Bedroom_Light).light_moveToBrightness(10.0, 0.0)\n}\nelse {\n(#Bedroom_Light).light_moveToBrightness(80.0, 0.0)\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bedroom_MB).multiButton_button1 == \\\"pushed\\\")\\ncurrent = (#Bedroom_Light).light_currentBrightness\\nif (80 <= current) {\\n(#Bedroom_Light).light_moveToBrightness(10.0, 0.0)\\n}\\nelse {\\n(#Bedroom_Light).light_moveToBrightness(80.0, 0.0)\\n}\"\n}",
+ "precision": {
+  "MultiButton.Button1": [
+   "(#Bedroom_MB)"
+  ],
+  "Light.CurrentBrightness": [
+   "(#Bedroom_Light)"
+  ],
+  "Light.MoveToBrightness": [
+   "(#Bedroom_Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "멀티버튼의 버튼1이 눌리면 침실 조명 밝기가 80 이상이면 10으로, 그렇지 않으면 80으로 설정해줘.",
+ "command_eng": "When button 1 of the multi-button is pressed, if the bedroom light brightness is 80 or higher, set it to 10; otherwise, set it to 80.",
+ "connected_devices": {
+  "Bedroom_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "Bedroom",
+    "MultiButton"
+   ]
+  },
+  "LR_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "LivingRoom",
+    "MultiButton"
+   ]
+  },
+  "Bedroom_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Bedroom",
+    "Light"
+   ]
+  },
+  "LR_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Light"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "MultiButton.Button1 == \"pushed\"",
+    "edge": "none"
+   },
+   {
+    "op": "read",
+    "var": "current",
+    "src": "Light.CurrentBrightness"
+   },
+   {
+    "op": "if",
+    "cond": "$current >= 80",
+    "then": [
+     {
+      "op": "call",
+      "target": "Light.MoveToBrightness",
+      "args": {
+       "Brightness": 10.0,
+       "Rate": 0.0
+      }
+     }
+    ],
+    "else": [
+     {
+      "op": "call",
+      "target": "Light.MoveToBrightness",
+      "args": {
+       "Brightness": 80.0,
+       "Rate": 0.0
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "MultiButton": [
+   "Bedroom_MB"
+  ],
+  "Light": [
+   "Bedroom_Light"
+  ]
+ },
+ "input_payload_sha256": "872c9f4df8280b7afd8a39638f56333b9e9b9cb0f3bb8cc6190c2b366f126c72",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.9,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

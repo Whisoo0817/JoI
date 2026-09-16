@@ -1,0 +1,135 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (any(#AirQualitySensor).airQualitySensor_fineDustLevel >= 150 and (#Living_DoorLock).doorLock_doorLockState == \"open\") {\n(#Living_DoorLock).doorLock_lock()\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (any(#AirQualitySensor).airQualitySensor_fineDustLevel >= 150 and (#Living_DoorLock).doorLock_doorLockState == \\\"open\\\") {\\n(#Living_DoorLock).doorLock_lock()\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n}\"\n}",
+ "precision": {
+  "AirQualitySensor.FineDustLevel": [
+   "any(#AirQualitySensor)"
+  ],
+  "DoorLock.DoorLockState": [
+   "(#Living_DoorLock)"
+  ],
+  "DoorLock.Lock": [
+   "(#Living_DoorLock)"
+  ],
+  "AirPurifier.SetAirPurifierMode": [
+   "all(#AirPurifier)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "미세먼지 농도가 150 이상이고 문이 잠겨 있지 않으면, 문을 잠그고 공기청정기를 강풍으로 작동시켜줘.",
+ "command_eng": "If the fine dust level is 150 or higher and the door is unlocked, lock the door and set the air purifier to high.",
+ "connected_devices": {
+  "Living_AQ": {
+   "category": [
+    "AirQualitySensor"
+   ],
+   "tags": [
+    "Living",
+    "AirQualitySensor"
+   ]
+  },
+  "Bedroom_AQ": {
+   "category": [
+    "AirQualitySensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirQualitySensor"
+   ]
+  },
+  "Living_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Living",
+    "DoorLock"
+   ]
+  },
+  "Bedroom_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Bedroom",
+    "DoorLock"
+   ]
+  },
+  "Living_AP": {
+   "category": [
+    "AirPurifier"
+   ],
+   "tags": [
+    "Living",
+    "AirPurifier"
+   ]
+  },
+  "Bedroom_AP": {
+   "category": [
+    "AirPurifier"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirPurifier"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "AirQualitySensor.FineDustLevel >= 150 and DoorLock.DoorLockState == \"open\"",
+    "then": [
+     {
+      "op": "call",
+      "target": "DoorLock.Lock",
+      "args": {}
+     },
+     {
+      "op": "call",
+      "target": "AirPurifier.SetAirPurifierMode",
+      "args": {
+       "Mode": "high"
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "AirQualitySensor": {
+   "any": [
+    "Living_AQ",
+    "Bedroom_AQ"
+   ]
+  },
+  "DoorLock": [
+   "Living_DoorLock"
+  ],
+  "AirPurifier": [
+   "Living_AP",
+   "Bedroom_AP"
+  ]
+ },
+ "input_payload_sha256": "49a7b56eae3565152c115c32ea12f20f737e3880ec34e61302444ff945a18d1f",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-exists_spelling",
+ "elapsed_sec": 1.7,
+ "rewrite": {
+  "type": "exists_spelling",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

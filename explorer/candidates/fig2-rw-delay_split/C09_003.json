@@ -1,0 +1,80 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "all(#AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\ndelay(1 HOUR)\ndelay(1 HOUR)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\ndelay(1 HOUR)\\ndelay(1 HOUR)\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\"\n}",
+ "precision": {
+  "AirPurifier.SetAirPurifierMode": [
+   "all(#AirPurifier)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "공기청정기를 자동 모드로 설정하고 2시간 뒤에 수면 모드로 설정해줘.",
+ "command_eng": "Set the air purifier to auto mode and switch to sleep mode after 2 hours.",
+ "connected_devices": {
+  "LivingRoom_AirPurifier": {
+   "category": [
+    "AirPurifier"
+   ],
+   "tags": [
+    "LivingRoom",
+    "AirPurifier"
+   ]
+  },
+  "Bedroom_AirPurifier": {
+   "category": [
+    "AirPurifier"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirPurifier"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "call",
+    "target": "AirPurifier.SetAirPurifierMode",
+    "args": {
+     "Mode": "auto"
+    }
+   },
+   {
+    "op": "delay",
+    "duration": "2 HOUR"
+   },
+   {
+    "op": "call",
+    "target": "AirPurifier.SetAirPurifierMode",
+    "args": {
+     "Mode": "sleep"
+    }
+   }
+  ]
+ },
+ "binding": {
+  "AirPurifier": [
+   "LivingRoom_AirPurifier",
+   "Bedroom_AirPurifier"
+  ]
+ },
+ "input_payload_sha256": "2c92f34daca2487b0bc22fa977c546b4000b26c0448bc17d422c9297b07f81b7",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-delay_split",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "delay_split",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

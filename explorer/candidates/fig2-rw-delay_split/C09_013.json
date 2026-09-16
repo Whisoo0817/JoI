@@ -1,0 +1,94 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "all(#Switch).switch_on()\ndelay(1 HOUR)\ndelay(3 HOUR)\nall(#Switch).switch_off()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Switch).switch_on()\\ndelay(1 HOUR)\\ndelay(3 HOUR)\\nall(#Switch).switch_off()\"\n}",
+ "precision": {
+  "Switch.On": [
+   "all(#Switch)"
+  ],
+  "Switch.Off": [
+   "all(#Switch)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "연구실의 모든 제습기를 켜고 4시간 뒤에 꺼줘.",
+ "command_eng": "Turn on all dehumidifiers in the lab and turn them off after 4 hours.",
+ "connected_devices": {
+  "Lab_Dehumidifier_1": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Lab",
+    "Dehumidifier",
+    "Switch"
+   ]
+  },
+  "Lab_Dehumidifier_2": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Lab",
+    "Dehumidifier",
+    "Switch"
+   ]
+  },
+  "Office_Dehumidifier": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Office",
+    "Dehumidifier",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "call",
+    "target": "Switch.On",
+    "args": {}
+   },
+   {
+    "op": "delay",
+    "duration": "4 HOUR"
+   },
+   {
+    "op": "call",
+    "target": "Switch.Off",
+    "args": {}
+   }
+  ]
+ },
+ "binding": {
+  "Switch": [
+   "Lab_Dehumidifier_1",
+   "Lab_Dehumidifier_2"
+  ]
+ },
+ "input_payload_sha256": "cad5fa94cf91b50acd2873bb7181ec76d44a2657a0e1c9cc999218a45d0b698a",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-delay_split",
+ "elapsed_sec": 1.3,
+ "rewrite": {
+  "type": "delay_split",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

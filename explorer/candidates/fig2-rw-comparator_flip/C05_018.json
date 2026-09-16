@@ -1,0 +1,162 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (false == all(#MotionSensor).motionSensor_motion and all(#ContactSensor).contactSensor_contact ==| false) {\nall(#Camera).camera_captureImage()\nall(#Speaker).speaker_speak(\"Warning\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (false == all(#MotionSensor).motionSensor_motion and all(#ContactSensor).contactSensor_contact ==| false) {\\nall(#Camera).camera_captureImage()\\nall(#Speaker).speaker_speak(\\\"Warning\\\")\\n}\"\n}",
+ "precision": {
+  "MotionSensor.Motion": [
+   "all(#MotionSensor)"
+  ],
+  "ContactSensor.Contact": [
+   "any(#ContactSensor)"
+  ],
+  "Camera.CaptureImage": [
+   "all(#Camera)"
+  ],
+  "Speaker.Speak": [
+   "all(#Speaker)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "움직임이 감지되지 않는데 문이 열려 있으면, 사진을 찍고 스피커로 \"경고\"라고 말해줘.",
+ "command_eng": "If no motion is detected but the door is open, take a photo and output \"Warning\" through the speaker.",
+ "connected_devices": {
+  "Entrance_Motion": {
+   "category": [
+    "MotionSensor"
+   ],
+   "tags": [
+    "Entrance",
+    "MotionSensor"
+   ]
+  },
+  "Garage_Motion": {
+   "category": [
+    "MotionSensor"
+   ],
+   "tags": [
+    "Garage",
+    "MotionSensor"
+   ]
+  },
+  "Living_ContactSensor": {
+   "category": [
+    "ContactSensor"
+   ],
+   "tags": [
+    "Living",
+    "Door",
+    "ContactSensor"
+   ]
+  },
+  "Bedroom_ContactSensor": {
+   "category": [
+    "ContactSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "Door",
+    "ContactSensor"
+   ]
+  },
+  "Entrance_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Entrance",
+    "Camera"
+   ]
+  },
+  "Garage_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Garage",
+    "Camera"
+   ]
+  },
+  "Living_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Living",
+    "Speaker"
+   ]
+  },
+  "Bedroom_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Bedroom",
+    "Speaker"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "MotionSensor.Motion == false and ContactSensor.Contact == false",
+    "then": [
+     {
+      "op": "call",
+      "target": "Camera.CaptureImage",
+      "args": {}
+     },
+     {
+      "op": "call",
+      "target": "Speaker.Speak",
+      "args": {
+       "Text": "Warning"
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "MotionSensor": {
+   "all": [
+    "Entrance_Motion",
+    "Garage_Motion"
+   ]
+  },
+  "ContactSensor": {
+   "any": [
+    "Living_ContactSensor",
+    "Bedroom_ContactSensor"
+   ]
+  },
+  "Camera": [
+   "Entrance_Camera",
+   "Garage_Camera"
+  ],
+  "Speaker": [
+   "Living_Speaker",
+   "Bedroom_Speaker"
+  ]
+ },
+ "input_payload_sha256": "d2fa6043c1caae30be8fab7e9c8e731fa8d653eede7d61fd9438690fcf615309",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

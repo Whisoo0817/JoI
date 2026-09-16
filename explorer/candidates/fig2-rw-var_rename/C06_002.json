@@ -1,0 +1,141 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "lux_v = (#LivingRoom_LightSensor).lightSensor_brightness\nif (lux_v <= 200) {\n(#LivingRoom_Light).light_moveToBrightness(100.0, 0.0)\n}\nelse {\nif (lux_v >= 500) {\n(#LivingRoom_Light).light_moveToBrightness(30.0, 0.0)\n}\nelse {\n(#LivingRoom_Light).light_moveToBrightness(60.0, 0.0)\n}\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"lux_v = (#LivingRoom_LightSensor).lightSensor_brightness\\nif (lux_v <= 200) {\\n(#LivingRoom_Light).light_moveToBrightness(100.0, 0.0)\\n}\\nelse {\\nif (lux_v >= 500) {\\n(#LivingRoom_Light).light_moveToBrightness(30.0, 0.0)\\n}\\nelse {\\n(#LivingRoom_Light).light_moveToBrightness(60.0, 0.0)\\n}\\n}\"\n}",
+ "precision": {
+  "LightSensor.Brightness": [
+   "(#LivingRoom_LightSensor)"
+  ],
+  "Light.MoveToBrightness": [
+   "(#LivingRoom_Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "거실 조도가 200lux 이하면 거실 등을 100% 밝기로, 500lux 이상이면 30%로, 그 외에는 60%로 설정해줘.",
+ "command_eng": "If living room illuminance is at most 200 lux, set the living room light to 100% brightness; if at least 500 lux, set it to 30%; otherwise set it to 60%.",
+ "connected_devices": {
+  "LivingRoom_LightSensor": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "LightSensor"
+   ]
+  },
+  "Bedroom_LightSensor": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "LightSensor"
+   ]
+  },
+  "LivingRoom_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Light"
+   ]
+  },
+  "Bathroom_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "Bathroom",
+    "Light"
+   ]
+  },
+  "Office_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Office",
+    "Camera"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "read",
+    "var": "lux",
+    "src": "LightSensor.Brightness"
+   },
+   {
+    "op": "if",
+    "cond": "lux <= 200",
+    "then": [
+     {
+      "op": "call",
+      "target": "Light.MoveToBrightness",
+      "args": {
+       "Brightness": 100.0,
+       "Rate": 0.0
+      }
+     }
+    ],
+    "else": [
+     {
+      "op": "if",
+      "cond": "lux >= 500",
+      "then": [
+       {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+         "Brightness": 30.0,
+         "Rate": 0.0
+        }
+       }
+      ],
+      "else": [
+       {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+         "Brightness": 60.0,
+         "Rate": 0.0
+        }
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "LightSensor": [
+   "LivingRoom_LightSensor"
+  ],
+  "Light": [
+   "LivingRoom_Light"
+  ]
+ },
+ "input_payload_sha256": "e5a0984bbddaf7c5a7a29fa6efc1895d2930370584e5f938be83a6422350fb29",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-var_rename",
+ "elapsed_sec": 2.4,
+ "rewrite": {
+  "type": "var_rename",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

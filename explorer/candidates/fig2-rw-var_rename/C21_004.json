@@ -1,0 +1,112 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "l1_v = (#LivingRoom_LightSensor).lightSensor_brightness\nl2 = (#Bedroom_LightSensor).lightSensor_brightness\nif (l1_v <= 100 and l2 <= 100) {\n(#LivingRoom_MoodLight).switch_on()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"l1_v = (#LivingRoom_LightSensor).lightSensor_brightness\\nl2 = (#Bedroom_LightSensor).lightSensor_brightness\\nif (l1_v <= 100 and l2 <= 100) {\\n(#LivingRoom_MoodLight).switch_on()\\n}\"\n}",
+ "precision": {
+  "LightSensor.Brightness": [
+   "(#LivingRoom_LightSensor)",
+   "(#Bedroom_LightSensor)"
+  ],
+  "Switch.On": [
+   "(#LivingRoom_MoodLight)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "거실과 침실 조도가 모두 100lux 이하이면 거실 무드등 플러그를 켜줘.",
+ "command_eng": "If both the living room and bedroom illuminance are at most 100 lux, turn on the living room mood-light plug.",
+ "connected_devices": {
+  "LivingRoom_LightSensor": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "LightSensor"
+   ]
+  },
+  "Bedroom_LightSensor": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "LightSensor"
+   ]
+  },
+  "LivingRoom_MoodLight": {
+   "category": [
+    "Plug",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Plug",
+    "MoodLight"
+   ]
+  },
+  "Garage_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Garage",
+    "DoorLock"
+   ]
+  },
+  "Pantry_Humidifier": {
+   "category": [
+    "Humidifier"
+   ],
+   "tags": [
+    "Pantry",
+    "Humidifier"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "LightSensor.Brightness <= 100 and LightSensor.Brightness <= 100",
+    "then": [
+     {
+      "op": "call",
+      "target": "Switch.On",
+      "args": {}
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "LightSensor": [
+   "LivingRoom_LightSensor"
+  ],
+  "LightSensor#2": [
+   "Bedroom_LightSensor"
+  ],
+  "Switch": [
+   "LivingRoom_MoodLight"
+  ]
+ },
+ "input_payload_sha256": "5bf17c4a801bafcb340d0e67a91bd8b1114ace9ed1a5f6908fe8bf31a2fd3cf4",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-var_rename",
+ "elapsed_sec": 1.7,
+ "rewrite": {
+  "type": "var_rename",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

@@ -1,0 +1,1876 @@
+{
+  "protocol_path": "/home/gnltnwjstk/joi/explorer/eval/results/fig2_rw_phase_flag_20260916_protocol.json",
+  "protocol_sha256": "848d98afc7a83644b4d9bb45fa93b1ac48670c8e6e8ee8ebc96327e01817366b",
+  "cases": [
+    {
+      "id": "C12_001",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_001.json",
+      "status": "READY",
+      "candidate_sha256": "6ef44e7d9bbf809cef01e5438732de50b24259feff280589276451aabd7ad091",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "ContactSensor.Contact == false",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "1 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Speaker.Speak",
+                  "args": {
+                    "Text": "Welcome"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "ContactSensor": {
+            "any": [
+              "Entrance_ContactSensor",
+              "Garage_ContactSensor"
+            ]
+          },
+          "Speaker": [
+            "Living_Speaker",
+            "Bedroom_Speaker"
+          ]
+        },
+        "devices": {
+          "Entrance_ContactSensor": {
+            "category": [
+              "ContactSensor"
+            ],
+            "tags": [
+              "Entrance",
+              "Door",
+              "ContactSensor"
+            ]
+          },
+          "Garage_ContactSensor": {
+            "category": [
+              "ContactSensor"
+            ],
+            "tags": [
+              "Garage",
+              "Door",
+              "ContactSensor"
+            ]
+          },
+          "Living_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Living",
+              "Speaker"
+            ]
+          },
+          "Bedroom_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Bedroom",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 60000,
+          "script": "started := false\nif (started == false) {\n    wait until(all(#ContactSensor).contactSensor_contact ==| false)\n    started = true\n}\nall(#Speaker).speaker_speak(\"Welcome\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Garage_ContactSensor.contact": [
+            false,
+            true
+          ],
+          "Entrance_ContactSensor.contact": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Entrance_ContactSensor.contact": "scalar",
+        "Garage_ContactSensor.contact": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "ContactSensor.Contact:value": {
+            "id": "Contact",
+            "descriptor": "The current state of the contact sensor. True if the sensor is closed, False if it is open.",
+            "type": "BOOL",
+            "service": "ContactSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_002",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_002.json",
+      "status": "READY",
+      "candidate_sha256": "d10322e172754cd492224f47d81f4d22f1b85b485ec0a271ffba2302195cf0a0",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "ContactSensor.Contact == true",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "10 SEC",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Siren.SetSirenMode",
+                  "args": {
+                    "Mode": "police"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "ContactSensor": {
+            "any": [
+              "Entrance_Contact",
+              "Garage_Contact"
+            ]
+          },
+          "Siren": [
+            "Main_Siren",
+            "Entrance_Siren"
+          ]
+        },
+        "devices": {
+          "Entrance_Contact": {
+            "category": [
+              "ContactSensor"
+            ],
+            "tags": [
+              "Entrance",
+              "ContactSensor"
+            ]
+          },
+          "Garage_Contact": {
+            "category": [
+              "ContactSensor"
+            ],
+            "tags": [
+              "Garage",
+              "ContactSensor"
+            ]
+          },
+          "Main_Siren": {
+            "category": [
+              "Siren"
+            ],
+            "tags": [
+              "Main",
+              "Siren"
+            ]
+          },
+          "Entrance_Siren": {
+            "category": [
+              "Siren"
+            ],
+            "tags": [
+              "Entrance",
+              "Siren"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 10000,
+          "script": "started := false\nif (started == false) {\n    wait until(all(#ContactSensor).contactSensor_contact ==| true)\n    started = true\n}\nall(#Siren).siren_setSirenMode(\"police\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Entrance_Contact.contact": [
+            false,
+            true
+          ],
+          "Garage_Contact.contact": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Entrance_Contact.contact": "scalar",
+        "Garage_Contact.contact": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "ContactSensor.Contact:value": {
+            "id": "Contact",
+            "descriptor": "The current state of the contact sensor. True if the sensor is closed, False if it is open.",
+            "type": "BOOL",
+            "service": "ContactSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Siren.SetSirenMode:function": {
+            "id": "SetSirenMode",
+            "descriptor": "Set the Siren mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the Siren mode",
+                "type": "ENUM",
+                "format": "SirenModeEnum",
+                "members": [
+                  "emergency",
+                  "fire",
+                  "police",
+                  "ambulance"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Siren",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_003",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_003.json",
+      "status": "READY",
+      "candidate_sha256": "b51f01c822f27381bf34b77e6955ad8ab36508c753eec1053f73b00f3d7434df",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "ContactSensor.Contact == false",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "5 MIN",
+              "body": [
+                {
+                  "op": "if",
+                  "cond": "DoorLock.DoorLockState != \"closed\"",
+                  "then": [
+                    {
+                      "op": "call",
+                      "target": "Speaker.Speak",
+                      "args": {
+                        "Text": "The safe is open"
+                      }
+                    }
+                  ],
+                  "else": []
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "ContactSensor": [
+            "Entrance_ContactSensor"
+          ],
+          "DoorLock": [
+            "Main_DoorLock"
+          ],
+          "Speaker": [
+            "Living_Speaker",
+            "Bedroom_Speaker"
+          ]
+        },
+        "devices": {
+          "Entrance_ContactSensor": {
+            "category": [
+              "ContactSensor"
+            ],
+            "tags": [
+              "Entrance",
+              "ContactSensor"
+            ]
+          },
+          "Garage_ContactSensor": {
+            "category": [
+              "ContactSensor"
+            ],
+            "tags": [
+              "Garage",
+              "ContactSensor"
+            ]
+          },
+          "Main_DoorLock": {
+            "category": [
+              "DoorLock"
+            ],
+            "tags": [
+              "Main",
+              "Safe",
+              "DoorLock"
+            ]
+          },
+          "Bedroom_DoorLock": {
+            "category": [
+              "DoorLock"
+            ],
+            "tags": [
+              "Bedroom",
+              "Safe",
+              "DoorLock"
+            ]
+          },
+          "Living_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Living",
+              "Speaker"
+            ]
+          },
+          "Bedroom_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Bedroom",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 300000,
+          "script": "started := false\nif (started == false) {\n    wait until((#Entrance_ContactSensor).contactSensor_contact == false)\n    started = true\n}\nif ((#Main_DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Entrance_ContactSensor.contact": [
+            false,
+            true
+          ],
+          "Main_DoorLock.doorlockstate": [
+            null,
+            "closed"
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Entrance_ContactSensor.contact": "scalar",
+        "Main_DoorLock.doorlockstate": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "ContactSensor.Contact:value": {
+            "id": "Contact",
+            "descriptor": "The current state of the contact sensor. True if the sensor is closed, False if it is open.",
+            "type": "BOOL",
+            "service": "ContactSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "DoorLock.DoorLockState:value": {
+            "id": "DoorLockState",
+            "descriptor": "The current state of the door lock",
+            "type": "ENUM",
+            "format": "DoorLockStateEnum",
+            "service": "DoorLock",
+            "kind": "value",
+            "members": [
+              "closed",
+              "closing",
+              "open",
+              "opening",
+              "unknown"
+            ],
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_005",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_005.json",
+      "status": "READY",
+      "candidate_sha256": "7209fd145129abd7e69140bab715e35cb5a381fa742c972dac89c5b1bdc0dece",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "SmokeDetector.Smoke == true",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "1 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Siren.SetSirenMode",
+                  "args": {
+                    "Mode": "emergency"
+                  }
+                },
+                {
+                  "op": "delay",
+                  "duration": "5 SEC"
+                },
+                {
+                  "op": "call",
+                  "target": "Switch.Off",
+                  "args": {}
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "SmokeDetector": {
+            "any": [
+              "Kitchen_Smoke",
+              "Bedroom_Smoke"
+            ]
+          },
+          "Siren": [
+            "Main_Siren",
+            "Entrance_Siren"
+          ],
+          "Switch": [
+            "Main_Siren",
+            "Entrance_Siren"
+          ]
+        },
+        "devices": {
+          "Kitchen_Smoke": {
+            "category": [
+              "SmokeDetector"
+            ],
+            "tags": [
+              "Kitchen",
+              "SmokeDetector"
+            ]
+          },
+          "Bedroom_Smoke": {
+            "category": [
+              "SmokeDetector"
+            ],
+            "tags": [
+              "Bedroom",
+              "SmokeDetector"
+            ]
+          },
+          "Main_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Main",
+              "Siren"
+            ]
+          },
+          "Entrance_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Entrance",
+              "Siren"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 60000,
+          "script": "started := false\nif (started == false) {\n    wait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n    started = true\n}\nall(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Kitchen_Smoke.smoke": [
+            false,
+            true
+          ],
+          "Bedroom_Smoke.smoke": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Bedroom_Smoke.smoke": "scalar",
+        "Kitchen_Smoke.smoke": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "SmokeDetector.Smoke:value": {
+            "id": "Smoke",
+            "descriptor": "The state of the smoke detection device",
+            "type": "BOOL",
+            "service": "SmokeDetector",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Siren.SetSirenMode:function": {
+            "id": "SetSirenMode",
+            "descriptor": "Set the Siren mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the Siren mode",
+                "type": "ENUM",
+                "format": "SirenModeEnum",
+                "members": [
+                  "emergency",
+                  "fire",
+                  "police",
+                  "ambulance"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Siren",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_006",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_006.json",
+      "status": "READY",
+      "candidate_sha256": "93395e503f55819703df80d07d8de76f7e4cdcaf9d1242b0e5bea44ca72b602d",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "Charger.Voltage <= 4000",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "30 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Speaker.Speak",
+                  "args": {
+                    "Text": "The charging voltage is low"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "Charger": [
+            "Main_Charger"
+          ],
+          "Speaker": [
+            "Living_Speaker",
+            "Bedroom_Speaker"
+          ]
+        },
+        "devices": {
+          "Main_Charger": {
+            "category": [
+              "Charger"
+            ],
+            "tags": [
+              "Main",
+              "Charger"
+            ]
+          },
+          "Garage_Charger": {
+            "category": [
+              "Charger"
+            ],
+            "tags": [
+              "Garage",
+              "Charger"
+            ]
+          },
+          "Living_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Living",
+              "Speaker"
+            ]
+          },
+          "Bedroom_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Bedroom",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 1800000,
+          "script": "started := false\nif (started == false) {\n    wait until((#Main_Charger).charger_voltage <= 4000)\n    started = true\n}\nall(#Speaker).speaker_speak(\"The charging voltage is low\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Main_Charger.voltage": [
+            null,
+            -0.1
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Main_Charger.voltage": "numeric"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Charger.Voltage:value": {
+            "id": "Voltage",
+            "descriptor": "The voltage of the battery in millivolts",
+            "type": "DOUBLE",
+            "service": "Charger",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_008",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_008.json",
+      "status": "READY",
+      "candidate_sha256": "fe75b3d54acf2ee8f772da5d019da2fc2d77395d05a58e4195a12cf94edbfd10",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "Fan.Speed == 0",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "10 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Speaker.Speak",
+                  "args": {
+                    "Text": "Please check the fan"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "Fan": [
+            "Main_Fan"
+          ],
+          "Speaker": [
+            "Living_Speaker",
+            "Bedroom_Speaker"
+          ]
+        },
+        "devices": {
+          "Main_Fan": {
+            "category": [
+              "Fan"
+            ],
+            "tags": [
+              "Main",
+              "Fan"
+            ]
+          },
+          "Garage_Fan": {
+            "category": [
+              "Fan"
+            ],
+            "tags": [
+              "Garage",
+              "Fan"
+            ]
+          },
+          "Living_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Living",
+              "Speaker"
+            ]
+          },
+          "Bedroom_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Bedroom",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 600000,
+          "script": "started := false\nif (started == false) {\n    wait until((#Main_Fan).fan_speed == 0)\n    started = true\n}\nall(#Speaker).speaker_speak(\"Please check the fan\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Main_Fan.speed": [
+            null,
+            0
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Main_Fan.speed": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "Fan.Speed:value": {
+            "id": "Speed",
+            "descriptor": "Current fan speed in revolutions per minute (RPM)",
+            "type": "INTEGER",
+            "unit": "rpm",
+            "service": "Fan",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_009",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_009.json",
+      "status": "READY",
+      "candidate_sha256": "dd907a3c208733e7acc829fe5d251a9f1cacc4b3360b8b1ddfdc824a5445a7f9",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "MotionSensor.Motion == true",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "10 SEC",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Camera.CaptureImage",
+                  "args": {}
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "MotionSensor": {
+            "any": [
+              "Entrance_Motion",
+              "Garage_Motion"
+            ]
+          },
+          "Camera": [
+            "Entrance_Camera",
+            "Garage_Camera"
+          ]
+        },
+        "devices": {
+          "Entrance_Motion": {
+            "category": [
+              "MotionSensor"
+            ],
+            "tags": [
+              "Entrance",
+              "MotionSensor"
+            ]
+          },
+          "Garage_Motion": {
+            "category": [
+              "MotionSensor"
+            ],
+            "tags": [
+              "Garage",
+              "MotionSensor"
+            ]
+          },
+          "Entrance_Camera": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "Entrance",
+              "Camera"
+            ]
+          },
+          "Garage_Camera": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "Garage",
+              "Camera"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 10000,
+          "script": "started := false\nif (started == false) {\n    wait until(all(#MotionSensor).motionSensor_motion ==| true)\n    started = true\n}\nall(#Camera).camera_captureImage()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Garage_Motion.motion": [
+            false,
+            true
+          ],
+          "Entrance_Motion.motion": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Entrance_Motion.motion": "scalar",
+        "Garage_Motion.motion": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "MotionSensor.Motion:value": {
+            "id": "Motion",
+            "descriptor": "The current state of the motion sensor",
+            "type": "BOOL",
+            "service": "MotionSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Camera.CaptureImage:function": {
+            "id": "CaptureImage",
+            "descriptor": "Capture a still image from the camera and return it as binary JPEG data",
+            "return_type": {
+              "type": "BINARY"
+            },
+            "service": "Camera",
+            "kind": "function",
+            "return_spec": {
+              "type": "BINARY"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_011",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_011.json",
+      "status": "READY",
+      "candidate_sha256": "8820db35b5ee12b523507923565bed526bf4980e0e5f6cb06c918c556bd661c6",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "AirQualitySensor.CarbonDioxide > 880",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "10 SEC",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Speaker.Speak",
+                  "args": {
+                    "Text": "CO2 level danger"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "AirQualitySensor": [
+            "P_AQ"
+          ],
+          "Speaker": [
+            "P_Speaker"
+          ]
+        },
+        "devices": {
+          "P_AQ": {
+            "category": [
+              "AirQualitySensor"
+            ],
+            "tags": [
+              "ParkingLot",
+              "AirQualitySensor"
+            ]
+          },
+          "Garage_AQ": {
+            "category": [
+              "AirQualitySensor"
+            ],
+            "tags": [
+              "Garage",
+              "AirQualitySensor"
+            ]
+          },
+          "P_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "ParkingLot",
+              "Speaker"
+            ]
+          },
+          "Garage_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Garage",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 10000,
+          "script": "started := false\nif (started == false) {\n    wait until((#P_AQ).airQualitySensor_carbonDioxide > 880)\n    started = true\n}\n(#P_Speaker).speaker_speak(\"CO2 level danger\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "P_AQ.carbondioxide": [
+            null,
+            880.1
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "P_AQ.carbondioxide": "numeric"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "AirQualitySensor.CarbonDioxide:value": {
+            "id": "CarbonDioxide",
+            "descriptor": "CO2 concentration in ppm",
+            "type": "DOUBLE",
+            "bound": [
+              0,
+              50000
+            ],
+            "unit": "ppm",
+            "service": "AirQualitySensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_013",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_013.json",
+      "status": "READY",
+      "candidate_sha256": "eccf0ea2b1d7a5bf224c823e6e5f1026786c957002fd743da878544ba0b7a620",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "PresenceSensor.Presence == true",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "1 MIN",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Siren.SetSirenMode",
+                  "args": {
+                    "Mode": "emergency"
+                  }
+                },
+                {
+                  "op": "delay",
+                  "duration": "3 SEC"
+                },
+                {
+                  "op": "call",
+                  "target": "Switch.Off",
+                  "args": {}
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "PresenceSensor": {
+            "any": [
+              "F1_Pres_1",
+              "F1_Pres_2"
+            ]
+          },
+          "Siren": [
+            "F1_Siren"
+          ],
+          "Switch": [
+            "F1_Siren"
+          ]
+        },
+        "devices": {
+          "F1_Pres_1": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Floor1",
+              "PresenceSensor"
+            ]
+          },
+          "F1_Pres_2": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Floor1",
+              "PresenceSensor"
+            ]
+          },
+          "F2_Pres": {
+            "category": [
+              "PresenceSensor"
+            ],
+            "tags": [
+              "Floor2",
+              "PresenceSensor"
+            ]
+          },
+          "F1_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Floor1",
+              "Siren",
+              "Switch"
+            ]
+          },
+          "F2_Siren": {
+            "category": [
+              "Siren",
+              "Switch"
+            ],
+            "tags": [
+              "Floor2",
+              "Siren",
+              "Switch"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 60000,
+          "script": "started := false\nif (started == false) {\n    wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\n    started = true\n}\n(#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "F1_Pres_1.presence": [
+            false,
+            true
+          ],
+          "F1_Pres_2.presence": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "F1_Pres_1.presence": "scalar",
+        "F1_Pres_2.presence": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "PresenceSensor.Presence:value": {
+            "id": "Presence",
+            "descriptor": "The current state of the presence sensor",
+            "type": "BOOL",
+            "service": "PresenceSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Siren.SetSirenMode:function": {
+            "id": "SetSirenMode",
+            "descriptor": "Set the Siren mode",
+            "arguments": [
+              {
+                "id": "Mode",
+                "descriptor": "Set the Siren mode",
+                "type": "ENUM",
+                "format": "SirenModeEnum",
+                "members": [
+                  "emergency",
+                  "fire",
+                  "police",
+                  "ambulance"
+                ]
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Siren",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Switch.Off:function": {
+            "id": "Off",
+            "descriptor": "Turn a Switch off",
+            "return_type": "VOID",
+            "service": "Switch",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_014",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_014.json",
+      "status": "READY",
+      "candidate_sha256": "6fcc5421e0677364111d632a5204ce7c528dfcf6ebc1c193247c5ce1360dc192",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "MotionSensor.Motion == true",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "30 SEC",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Camera.CaptureImage",
+                  "args": {}
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "MotionSensor": [
+            "Lobby_Mot"
+          ],
+          "Camera": [
+            "Lobby_Cam"
+          ]
+        },
+        "devices": {
+          "Lobby_Mot": {
+            "category": [
+              "MotionSensor"
+            ],
+            "tags": [
+              "Lobby",
+              "MotionSensor"
+            ]
+          },
+          "Garage_Mot": {
+            "category": [
+              "MotionSensor"
+            ],
+            "tags": [
+              "Garage",
+              "MotionSensor"
+            ]
+          },
+          "Lobby_Cam": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "Lobby",
+              "Camera"
+            ]
+          },
+          "Garage_Cam": {
+            "category": [
+              "Camera"
+            ],
+            "tags": [
+              "Garage",
+              "Camera"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 30000,
+          "script": "started := false\nif (started == false) {\n    wait until((#Lobby_Mot).motionSensor_motion == true)\n    started = true\n}\n(#Lobby_Cam).camera_captureImage()"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "Lobby_Mot.motion": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "Lobby_Mot.motion": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "MotionSensor.Motion:value": {
+            "id": "Motion",
+            "descriptor": "The current state of the motion sensor",
+            "type": "BOOL",
+            "service": "MotionSensor",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Camera.CaptureImage:function": {
+            "id": "CaptureImage",
+            "descriptor": "Capture a still image from the camera and return it as binary JPEG data",
+            "return_type": {
+              "type": "BINARY"
+            },
+            "service": "Camera",
+            "kind": "function",
+            "return_spec": {
+              "type": "BINARY"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    },
+    {
+      "id": "C12_015",
+      "candidate_path": "explorer/candidates/fig2-rw-phase_flag/C12_015.json",
+      "status": "READY",
+      "candidate_sha256": "7a76259a21123c03df64613e8c3f70b350d471a5511cad9a83cdce13527671f7",
+      "payload": {
+        "ir": {
+          "timeline": [
+            {
+              "op": "start_at",
+              "anchor": "now"
+            },
+            {
+              "op": "wait",
+              "cond": "SmokeDetector.Smoke == true",
+              "edge": "none"
+            },
+            {
+              "op": "cycle",
+              "until": null,
+              "period": "10 SEC",
+              "body": [
+                {
+                  "op": "call",
+                  "target": "Speaker.Speak",
+                  "args": {
+                    "Text": "Fire outbreak"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        "binding": {
+          "SmokeDetector": [
+            "K_Smoke"
+          ],
+          "Speaker": [
+            "LR_Speaker"
+          ]
+        },
+        "devices": {
+          "K_Smoke": {
+            "category": [
+              "SmokeDetector"
+            ],
+            "tags": [
+              "Kitchen",
+              "SmokeDetector"
+            ]
+          },
+          "Bedroom_Smoke": {
+            "category": [
+              "SmokeDetector"
+            ],
+            "tags": [
+              "Bedroom",
+              "SmokeDetector"
+            ]
+          },
+          "LR_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "LivingRoom",
+              "Speaker"
+            ]
+          },
+          "Bedroom_Speaker": {
+            "category": [
+              "Speaker"
+            ],
+            "tags": [
+              "Bedroom",
+              "Speaker"
+            ]
+          }
+        },
+        "joi_block": {
+          "name": "Scenario",
+          "cron": "",
+          "period": 10000,
+          "script": "started := false\nif (started == false) {\n    wait until((#K_Smoke).smokeDetector_smoke == true)\n    started = true\n}\n(#LR_Speaker).speaker_speak(\"Fire outbreak\")"
+        }
+      },
+      "selector_domains": [],
+      "selector_choice": [],
+      "model": {
+        "horizon_ms": null,
+        "input_step_ms": 100,
+        "t0_ms": 2419200000,
+        "input_domains": {
+          "K_Smoke.smoke": [
+            false,
+            true
+          ]
+        },
+        "initial_gv_domains": {}
+      },
+      "input_families": {
+        "K_Smoke.smoke": "scalar"
+      },
+      "domain_basis": "catalog-backed joint certified representatives/exact observable domains; symbolic value-flow fallback on automatic domain materialization failure or cap; smt-linear-trace-v1 for eligible one-shot arithmetic; BOOL strictly false/true; MenuProvider.GetMenu non-null STRING (menu-string-return-v1); other non-BOOL None included; DOUBLE lattice 0.1",
+      "gv_basis": "normative predicate-family initial/external GV domains; no measured store claim; required explicit domains unavailable => REFUSED",
+      "service_model": {
+        "catalog_path": "/home/gnltnwjstk/joi/files/service_list_ver2.0.7.json",
+        "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "boolean_input_policy": "strict-two-valued-v1",
+        "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+        "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+        "members": {
+          "SmokeDetector.Smoke:value": {
+            "id": "Smoke",
+            "descriptor": "The state of the smoke detection device",
+            "type": "BOOL",
+            "service": "SmokeDetector",
+            "kind": "value",
+            "return_spec": {
+              "type": "VOID"
+            }
+          },
+          "Speaker.Speak:function": {
+            "id": "Speak",
+            "descriptor": "Speak a text string",
+            "arguments": [
+              {
+                "id": "Text",
+                "descriptor": "Text to speak",
+                "type": "STRING"
+              }
+            ],
+            "return_type": "VOID",
+            "service": "Speaker",
+            "kind": "function",
+            "return_spec": {
+              "type": "VOID"
+            }
+          }
+        },
+        "assumptions": [
+          "descriptor-reviewed read roles (not server side-effect proof)",
+          "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+          "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+          "DOUBLE external input precision 0.1 from agreed contract",
+          "fixed binding and inventory; independent external inputs",
+          "same device/member/argument read key returns one held value per input instant",
+          "GV initial domains remain separate model declarations"
+        ]
+      },
+      "preparation_notes": [
+        "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+      ]
+    }
+  ],
+  "subset": "seeds that have the phase_flag rewrite; other rows have no candidate"
+}

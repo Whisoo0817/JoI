@@ -1,0 +1,113 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Main_MB).multiButton_button3 == \"pushed\")\ndelay(60 MIN)\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Main_MB).multiButton_button3 == \\\"pushed\\\")\\ndelay(60 MIN)\\nall(#Light).light_moveToBrightness(0.0, 0.0)\"\n}",
+ "precision": {
+  "MultiButton.Button3": [
+   "(#Main_MB)"
+  ],
+  "Light.MoveToBrightness": [
+   "all(#Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "멀티버튼의 버튼3이 눌리면 1시간 후에 모든 조명을 꺼줘.",
+ "command_eng": "When button 3 of the multi-button is pressed, turn off all lights after 1 hour.",
+ "connected_devices": {
+  "Main_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "LivingRoom",
+    "MultiButton"
+   ]
+  },
+  "Hall_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "Hallway",
+    "MultiButton"
+   ]
+  },
+  "LR_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Light"
+   ]
+  },
+  "Hall_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Hallway",
+    "Light"
+   ]
+  },
+  "Bedroom_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Bedroom",
+    "Light"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "MultiButton.Button3 == \"pushed\"",
+    "edge": "none"
+   },
+   {
+    "op": "delay",
+    "duration": "1 HOUR"
+   },
+   {
+    "op": "call",
+    "target": "Light.MoveToBrightness",
+    "args": {
+     "Brightness": 0.0,
+     "Rate": 0.0
+    }
+   }
+  ]
+ },
+ "binding": {
+  "MultiButton": [
+   "Main_MB"
+  ],
+  "Light": [
+   "LR_Light",
+   "Hall_Light",
+   "Bedroom_Light"
+  ]
+ },
+ "input_payload_sha256": "e37b0588f586cccc110ffafe320b1666a13131a6a50d90765d3bc00793b7e1b7",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-time_unit",
+ "elapsed_sec": 1.6,
+ "rewrite": {
+  "type": "time_unit",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}
