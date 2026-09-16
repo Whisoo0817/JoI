@@ -141,6 +141,75 @@ def ci_str(ci):
     return "n/a" if ci[0] != ci[0] else f"[{100 * ci[0]:.1f}, {100 * ci[1]:.1f}]"
 
 
+BAND_NAME = {"spelling": "Notation", "logic": "Logic", "temporal": "Temporal"}
+COMMON_MIN_ACCEPTS = 2      # of the 3 identical asks, how many must say "correct"
+
+
+def common_summary(judges):
+    """The design the manuscript reports.
+
+    Step 1 asks every original program three times, identically, and counts how often a judge
+    disagrees with itself.  That number is unconditional -- it is over all seed programs, with no
+    selection at all -- so it is reported on its own rather than as a row of the rewrite table.
+
+    Step 2 keeps the programs that *every* judge called correct in at least COMMON_MIN_ACCEPTS of
+    its three asks.  One shared set of programs, so one shared denominator per row: the judges
+    become directly comparable and the table needs no per-judge counts.  These are also the
+    programs whose natural-language command is least ambiguous, since three different judges
+    agreed on them, which removes the reading that a rejection just reflects a vague command.
+
+    Step 3 asks each judge about the certified-equivalent rewrites of those programs.  Every
+    rejection here is a judge contradicting a verdict it reached reliably, on a program that
+    provably does the same thing.
+    """
+    base, types = {}, {}
+    for j, d in judges.items():
+        base[j] = {}
+        for r in d["rows"]:
+            base[j].setdefault(r["id"], r["base"])
+            types.setdefault(r["id"], set()).add((r["type"], r["band"]))
+
+    def accepts(b):
+        return sum(1 for v in b if v is True)
+
+    seeds = sorted(set.intersection(*(set(base[j]) for j in judges)))
+    common = [i for i in seeds
+              if all(accepts(base[j][i]) >= COMMON_MIN_ACCEPTS for j in judges)]
+
+    out = {"seeds_total": len(seeds), "common_seeds": common,
+           "min_accepts": COMMON_MIN_ACCEPTS, "self_disagreement": {}, "judges": {}}
+    for j in judges:
+        split = [i for i in seeds if 0 < accepts(base[j][i]) < 3]
+        out["self_disagreement"][j] = {
+            "seeds": len(seeds), "disagreed": len(split), "rate": rate(len(split), len(seeds)),
+            "ci95": boot_ci(seeds, lambda i: i,
+                            lambda ids: rate(sum(1 for i in ids if 0 < accepts(base[j][i]) < 3),
+                                             len(ids)))}
+
+    keep = set(common)
+    for j, d in judges.items():
+        rows = [r for r in d["rows"] if r["id"] in keep and r["variant"] is not None]
+
+        def stat(rs, f):
+            sel = [r for r in rs if f(r)]
+            k = sum(1 for r in sel if r["variant"] is False)
+            return {"pairs": len(sel), "rejected": k, "rate": rate(k, len(sel))}
+
+        def with_ci(f):
+            x = stat(rows, f)
+            x["ci95"] = boot_ci(rows, lambda r: r["id"],
+                                lambda rs: stat(rs, f)["rate"])
+            return x
+
+        e = {"overall": with_ci(lambda r: True), "by_band": {}, "by_type": {}}
+        for b in BAND_ORDER:
+            e["by_band"][b] = with_ci(lambda r, b=b: r["band"] == b)
+        for t in TYPE_LABEL:
+            e["by_type"][t] = with_ci(lambda r, t=t: r["type"] == t)
+        out["judges"][j] = {"model": d["meta"]["config"]["model"], **e}
+    return out
+
+
 def main():
     total_pairs = len(json.load(open(os.path.join(HERE, "rewrites", "verified_pairs.json")))["pairs"])
     judges = OrderedDict()
@@ -158,6 +227,11 @@ def main():
     summary = {j: {"meta": d["meta"], "accepted": summarize_accepted(d["rows"]),
                    "stats": summarize(d["rows"])} for j, d in judges.items()}
     json.dump(summary, open(os.path.join(res_dir, "summary.json"), "w"), ensure_ascii=False, indent=1)
+    common = common_summary(judges)
+    json.dump(common, open(os.path.join(res_dir, "summary_common.json"), "w"),
+              ensure_ascii=False, indent=1)
+    print("common set: %d of %d seed programs accepted by every judge in >=%d of 3 asks"
+          % (len(common["common_seeds"]), common["seeds_total"], common["min_accepts"]))
 
     lines = ["# Fig2 / Table1 — judge verdict consistency on behavior-preserving rewrites", ""]
     lines.append("Seeds: E3 EQUIV-FIXPOINT programs (confirmed IR + binding). Every rewrite was re-checked by the frozen "
@@ -229,7 +303,11 @@ def main():
         lines.append("")
     open(os.path.join(res_dir, "RESULTS.md"), "w").write("\n".join(lines))
     print("\n".join(lines))
-    plot(summary, res_dir)
+    # Fig.2 is not in the manuscript (09-16). The figure it drew is kept, unregenerated, in
+    # results/superseded/ with the abbreviated labels it was built with; plot() is left here
+    # only so that decision can be reversed without rewriting it.
+    if os.environ.get("MOTIVATION_DRAW_FIG2"):
+        plot(summary, res_dir)
 
 
 def plot(summary, res_dir):

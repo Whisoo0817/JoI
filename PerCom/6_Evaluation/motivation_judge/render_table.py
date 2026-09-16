@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
-"""Render Table 1 the way LaTeX/booktabs would, at the real IEEE column width, to check that it
-fits before the manuscript exists. Writes results/table1_preview_1col.png and _2col.png.
+"""Write results/table1.tex and preview it at the real IEEE column width.
 
-Not a paper artifact: the manuscript uses results/table1.tex. This only previews the geometry.
+The preview is not a paper artifact. It exists so the table's fit can be checked before the
+manuscript does: every string is measured and each column is sized to its widest entry, the way
+tabular does, and the required width is reported against the target.
 """
 import json
 import os
@@ -13,47 +14,24 @@ import matplotlib.pyplot as plt
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 IEEE_1COL_IN = 3.5      # IEEE conference single column
-IEEE_2COL_IN = 7.16     # full text width (table*)
 
-# Hyphenated single tokens, the spelling used for judge models in the code-judge bias
-# literature (GPT-4o-mini, Claude-3.5-Sonnet, LLaMA-3.1-70B-Instruct).
+# The spelling used for judge models in the code-judge bias literature: one hyphenated token
+# (GPT-4o-mini, Claude-3.5-Sonnet, LLaMA-3.1-70B-Instruct).
 HDR = {"qwen": "Qwen3.5-9B", "gpt": "GPT-5.4-mini", "claude": "Claude-Sonnet-5"}
-# Row names are short hyphenated compounds rather than three-letter codes, so the table reads
-# without the caption -- the convention of the bias rows in Moon et al.
-ROWS = [("Identity", None), ("Var-Rename", "var_rename"), ("Cmp-Flip", "comparator_flip"),
-        ("Time-Unit", "time_unit"), ("Group-Cond", "exists_spelling"),
-        ("Branch-Swap", "branch_swap"), ("Delay-Split", "delay_split"),
-        ("Loop-Unroll", "loop_unroll"), ("Phase-Flag", "phase_flag")]
+BANDS = [("Notation", "spelling"), ("Logic", "logic"), ("Temporal", "temporal")]
 
 
-def cell(sm, t, minus):
-    """One judge, one condition. The cell carries the counts; the parenthesised value is the
-    percentage-point change from that judge's own CTL rate, following the convention of Moon et
-    al. (EACL Findings 2026), whose bias rows are read against an unbiased reference row. CTL is
-    that reference here, so its own parenthesis holds the rate itself."""
-    a = sm["accepted"]
-    x = a["overall"] if t is None or t == "__all__" else a["by_type"][t]
-    k = x["control_rejected"] if t is None else x["rejected"]
-    n = x["control_seeds"] if t is None else x["pairs"]
-    rate = 100.0 * k / n
-    if t is None or t == "__all__":
-        return f"{k}/{n} ({rate:.1f})"
-    d = rate - 100.0 * a["overall"]["control_rate"]
-    sign = "+" if d >= 0 else minus
-    return f"{k}/{n} ({sign}{abs(d):.1f})"
-
-
-def table(S, minus="-"):
-    """Rows of (stub, [cell per judge]) plus the totals, shared by both renderers."""
-    judges = list(S)
-    body = [(ab, [cell(S[j], t, minus) for j in judges]) for ab, t in ROWS]
-    tot = [cell(S[j], "__all__", minus) for j in judges]
-    return judges, body, tot
-
-
-def ci_row(S):
-    return ["[{:.1f}, {:.1f}]".format(*[100 * v for v in S[j]["accepted"]["overall"]["ci95"]])
-            for j in S]
+def table(C):
+    """Stub, n, and one reversal rate per judge -- one shared denominator per row, because every
+    judge is asked about the same programs."""
+    judges = list(C["judges"])
+    body = []
+    for lab, b in BANDS:
+        x = [C["judges"][j]["by_band"][b] for j in judges]
+        body.append((lab, str(x[0]["pairs"]), [f"{100 * v['rate']:.1f}" for v in x]))
+    x = [C["judges"][j]["overall"] for j in judges]
+    body.append(("All", str(x[0]["pairs"]), [f"{100 * v['rate']:.1f}" for v in x]))
+    return judges, body
 
 
 def text_pt(txt, fontsize):
@@ -66,19 +44,15 @@ def text_pt(txt, fontsize):
                     prop=FontProperties(family="serif")).get_extents().width
 
 
-def render(width_in, fontsize, out, colsep_pt=2.5):
-    """Lay the table out at measured text widths, so the preview reports honestly whether it
-    fits. Every column is as wide as its widest entry, which is what tabular does."""
-    S = json.load(open(os.path.join(HERE, "results", "summary.json")))
-    judges, body, tot = table(S, minus="\u2212")
-    ci = ci_row(S)
-
-    stub = ["Rewrite"] + [ab for ab, _ in body] + ["All rewrites", "95% CI"]
-    cols = [[HDR[j]] + [v[k] for _, v in body] + [tot[k], ci[k]]
-            for k, j in enumerate(judges)]
-    stub_w = max(text_pt(t, fontsize) for t in stub)
-    col_w = [max(text_pt(t, fontsize) for t in c) for c in cols]
-    need = stub_w + sum(col_w) + 2 * colsep_pt * (1 + len(col_w))
+def render(C, width_in, fontsize, out, colsep_pt=3.0):
+    judges, body = table(C)
+    stub = ["Rewrite"] + [r[0] for r in body]
+    ncol = ["n"] + [r[1] for r in body]
+    cols = [[HDR[j]] + [r[2][k] for r in body] for k, j in enumerate(judges)]
+    sw = max(text_pt(t, fontsize) for t in stub)
+    nw = max(text_pt(t, fontsize) for t in ncol)
+    cw = [max(text_pt(t, fontsize) for t in c) for c in cols]
+    need = sw + nw + sum(cw) + 2 * colsep_pt * (2 + len(cw))
     avail = width_in * 72.0
     print(f"  {out}: needs {need:.1f}pt of {avail:.1f}pt"
           + ("" if need <= avail else "   <-- OVERFULL"))
@@ -86,43 +60,45 @@ def render(width_in, fontsize, out, colsep_pt=2.5):
     nrow = len(body) + 4
     rowh = fontsize * 1.85 / 72.0
     tabh = rowh * nrow
-    fig_h = tabh + 0.10
-    fig = plt.figure(figsize=(need / 72.0, fig_h))
-    ax = fig.add_axes([0, 0, 1, tabh / fig_h])
+    fig = plt.figure(figsize=(need / 72.0, tabh + 0.10))
+    ax = fig.add_axes([0, 0, 1, tabh / (tabh + 0.10)])
     ax.set_xlim(0, need)
     ax.set_ylim(0, nrow)
     ax.axis("off")
     fp = {"fontsize": fontsize, "family": "serif"}
 
     x = colsep_pt
-    x_lab, right = x, []
-    x += stub_w + 2 * colsep_pt
-    for w in col_w:
+    x_lab = x
+    x += sw + 2 * colsep_pt
+    x_n = x + nw
+    x += nw + 2 * colsep_pt
+    right = []
+    for w in cw:
         right.append(x + w)
         x += w + 2 * colsep_pt
 
-    def row(stub_txt, vals, y):
-        ax.text(x_lab, y, stub_txt, ha="left", va="center", **fp)
+    def row(a, b, vals, y, **kw):
+        ax.text(x_lab, y, a, ha="left", va="center", **fp, **kw)
+        ax.text(x_n, y, b, ha="right", va="center", **fp, **kw)
         for r, v in zip(right, vals):
-            ax.text(r, y, v, ha="right", va="center", **fp)
+            ax.text(r, y, v, ha="right", va="center", **fp, **kw)
 
+    span_l, span_r = right[0] - cw[0], right[-1]
     y = nrow - 1.0
     ax.plot([0, need], [y + 0.55] * 2, lw=1.1, color="k")              # \toprule
-    row("Rewrite", [HDR[j] for j in judges], y)
+    ax.text((span_l + span_r) / 2, y, "Verdict reversal (\\%, lower is better)".replace("\\", ""),
+            ha="center", va="center", **fp)
+    ax.plot([span_l, span_r], [y - 0.42] * 2, lw=0.5, color="k")       # \cmidrule
+    y -= 1
+    row("Rewrite", "n", [HDR[j] for j in judges], y)
     y -= 1
     ax.plot([0, need], [y + 0.55] * 2, lw=0.5, color="k")              # \midrule
 
-    for ab, vals in body:
-        row(ab, vals, y)
-        if ab == "Identity":
-            ax.plot([0, need], [y - 0.45] * 2, lw=0.5, color="k")      # reference sits apart
+    for i, (a, b, vals) in enumerate(body):
+        row(a, b, vals, y)
+        if i == len(body) - 2:
+            ax.plot([0, need], [y - 0.45] * 2, lw=0.5, color="k")
         y -= 1
-
-    ax.plot([0, need], [y + 0.55] * 2, lw=0.5, color="k")
-    row("All rewrites", tot, y)
-    y -= 1
-    row("95% CI", ci, y)
-    y -= 1
     ax.plot([0, need], [y + 0.55] * 2, lw=1.1, color="k")              # \bottomrule
 
     fig.savefig(os.path.join(HERE, "results", out), dpi=300, bbox_inches="tight",
@@ -130,43 +106,44 @@ def render(width_in, fontsize, out, colsep_pt=2.5):
 
 
 CAPTION = (
-    "Verdict reversal on programs each judge had already accepted. Each cell reports the "
-    "rewrites rejected over the accepted programs presented; the parenthesised value is the "
-    "change in percentage points from that judge's own Identity rate. Identity re-asks the "
-    "identical accepted program and leaves it unedited, so it is the reference row and its "
-    "parenthesis holds the rate itself, as does the All rewrites row that the interval refers "
-    "to. Cmp-Flip mirrors a comparison (\\texttt{x >= 26} becomes \\texttt{26 <= x}), "
-    "Group-Cond respells `at least one device in a group matches', and Phase-Flag replaces an "
-    "integer phase counter with a boolean flag; the remaining names are literal. Every rewrite "
-    "is certified behavior-preserving by the checker of Sec.~\\ref{sec:explorer}. The judges "
-    "are \\texttt{Qwen3.5-9B-fp8} served locally at temperature 0, and "
-    "\\texttt{gpt-5.4-mini-2026-03-17} and \\texttt{claude-sonnet-5} at low reasoning effort; "
-    "neither hosted model exposes a temperature control, which is why their Identity rates are "
-    "not zero. Intervals are 95\\% bootstrap CIs clustered by seed program.")
+    "How often each judge reverses itself on a rewrite that provably preserves behavior. "
+    "Every original program was submitted three times, identically; the {n} programs kept here "
+    "are those that all three judges called correct in at least two of their three asks, so one "
+    "set of programs and one denominator serves every column. Each cell is the share of that "
+    "band's rewrites the judge then rejected, having reliably accepted the program they were "
+    "derived from. Notation renames a variable, mirrors a comparison ({cmp}), changes the time "
+    "unit, or respells `at least one device in a group matches'; Logic negates a guard and swaps "
+    "the branches; Temporal splits one delay into two, unrolls a counted periodic loop, or "
+    "replaces an integer phase counter with a boolean flag. Every rewrite is certified "
+    "behavior-preserving by the checker of Sec.~\\ref{{sec:explorer}}. Before any rewrite, the "
+    "judges already disagree with themselves across the three identical asks on {sd} of the {tot} "
+    "programs. The judges are \\texttt{{Qwen3.5-9B-fp8}} served locally at temperature 0, and "
+    "\\texttt{{gpt-5.4-mini-2026-03-17}} and \\texttt{{claude-sonnet-5}} at low reasoning effort; "
+    "neither hosted model exposes a temperature control.")
 
 
-def write_tex():
-    S = json.load(open(os.path.join(HERE, "results", "summary.json")))
-    judges, body, tot = table(S, minus="$-$")
-    ci = ci_row(S)
-    L = [r"\begin{table}[t]", r"\centering", r"\caption{" + CAPTION + "}", r"\label{tab:judge}",
-         r"\footnotesize", r"\setlength{\tabcolsep}{2.5pt}",
-         r"\begin{tabular}{l rrr}", r"\toprule",
-         "Rewrite & " + " & ".join(HDR[j] for j in judges) + r" \\", r"\midrule"]
-    for ab, vals in body:
-        L.append(ab + " & " + " & ".join(vals) + r" \\")
-        if ab == "Identity":
+def write_tex(C):
+    judges, body = table(C)
+    sd = ", ".join(f"{HDR[j]} {v['disagreed']}" for j, v in C["self_disagreement"].items())
+    cap = CAPTION.format(n=len(C["common_seeds"]), tot=C["seeds_total"], sd=sd,
+                         cmp="\\texttt{x >= 26} becomes \\texttt{26 <= x}")
+    L = [r"\begin{table}[t]", r"\centering", r"\caption{" + cap + "}", r"\label{tab:judge}",
+         r"\footnotesize", r"\setlength{\tabcolsep}{3pt}",
+         r"\begin{tabular}{lr rrr}", r"\toprule",
+         r" & & \multicolumn{3}{c}{Verdict reversal (\%, lower is better)} \\",
+         r"\cmidrule(lr){3-5}",
+         "Rewrite & $n$ & " + " & ".join(HDR[j] for j in judges) + r" \\", r"\midrule"]
+    for i, (a, b, vals) in enumerate(body):
+        if i == len(body) - 1:
             L.append(r"\midrule")
-    L += [r"\midrule",
-          "All rewrites & " + " & ".join(tot) + r" \\",
-          r"95\% CI & " + " & ".join(ci) + r" \\",
-          r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+        L.append(f"{a} & {b} & " + " & ".join(vals) + r" \\")
+    L += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
     p = os.path.join(HERE, "results", "table1.tex")
     open(p, "w").write("\n".join(L) + "\n")
     print("wrote", p)
 
 
 if __name__ == "__main__":
-    write_tex()
-    render(IEEE_1COL_IN, 8, "table1_preview_1col.png")
-    render(IEEE_2COL_IN, 9, "table1_preview_2col.png")
+    C = json.load(open(os.path.join(HERE, "results", "summary_common.json")))
+    write_tex(C)
+    render(C, IEEE_1COL_IN, 8, "table1_preview.png")
