@@ -111,7 +111,7 @@
 - **주의: 30 s 한도가 벽시계 기준이라 H=None 판정 여부가 서버 부하에 따라 바뀐다.** 12개 동시 실행(`runs/e4_run.jsonl`, 미보고)에서는 80/90이었다. H=None 은 반드시 1개씩 돌린다.
 - 원고 서술 규칙(whisoo 09-17): 내부 30 s 한도는 원고에 쓰지 않는다. timeout 은 사용자가 정하는 파라미터로 서술하고(E4 는 E2 와 같은 120 s), 미판정 2개는 "지원 거절이 아니라 시간 예산 초과"로 쓴다. "거의 일정" 같은 수치 없는 표현은 쓰지 않는다.
 - `n_steps` 는 IR·코드 걸음을 따로 세므로 전이 수는 `n_steps // 2`.
-- **Abstract 의 `[assumed: 70%]`, `[assumed: 50 ms]` 는 이 결과와 맞지 않는다**(baseline 이 대부분 끝나지 않아 % 계산 불가; p95 는 17.8 s). 대체 문장 후보는 whisoo 확인 대기이며, abstract 파일은 아직 고치지 않았다.
+- Abstract 의 E4 문장은 가정치(70%, 50 ms)를 버리고 whisoo 선택안으로 교체했다(09-17): "decided 28, 19 of them in under a second, whereas fixed-horizon search decided at most 7". 1초 미만 19개는 3회 중 가장 느린 값 기준. 그림은 후보 A/B(`E4_cost/figs/options/`) 중 whisoo 선택 대기.
 
 ## 공통
 
