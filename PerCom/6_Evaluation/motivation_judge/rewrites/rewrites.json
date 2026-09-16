@@ -11,7 +11,8 @@
   "delay_split": "temporal",
   "loop_unroll": "temporal",
   "phase_flag": "temporal",
-  "wait_precheck": "temporal"
+  "wait_precheck": "temporal",
+  "period_halve": "temporal"
  },
  "groups": [
   {
@@ -3647,6 +3648,12 @@
      "cron": "",
      "period": 3600000,
      "script": "n := 0\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nif (not (n % 2 == 0)) {\nall(#Valve).valve_close()\n}\nn = n + 1"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    all(#Valve).valve_open()\n    }\n    else {\n    all(#Valve).valve_close()\n    }\n    n = n + 1\n}\nskip = not (skip)"
     }
    }
   },
@@ -3683,6 +3690,12 @@
      "cron": "",
      "period": 1800000,
      "script": "n := 0\nif (n % 2 == 0) {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nif (not (n % 2 == 0)) {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n}\nn = n + 1"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 900000,
+     "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    (#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n    }\n    else {\n    (#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n    }\n    n = n + 1\n}\nskip = not (skip)"
     }
    }
   },
@@ -3719,6 +3732,12 @@
      "cron": "",
      "period": 600000,
      "script": "n := 0\nif (n % 2 == 0) {\nall(#WindowCovering).windowCovering_upOrOpen()\n}\nif (not (n % 2 == 0)) {\nall(#WindowCovering).windowCovering_downOrClose()\n}\nn = n + 1"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 300000,
+     "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    all(#WindowCovering).windowCovering_upOrOpen()\n    }\n    else {\n    all(#WindowCovering).windowCovering_downOrClose()\n    }\n    n = n + 1\n}\nskip = not (skip)"
     }
    }
   },
@@ -3755,6 +3774,12 @@
      "cron": "",
      "period": 1800000,
      "script": "n := 0\nif (n % 2 == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nif (not (n % 2 == 0)) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nn = n + 1"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 900000,
+     "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    all(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n    }\n    else {\n    all(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n    }\n    n = n + 1\n}\nskip = not (skip)"
     }
    }
   },
@@ -3791,6 +3816,12 @@
      "cron": "",
      "period": 3600000,
      "script": "n := 0\nif (n % 2 == 0) {\n(#LR_Blind).windowCovering_upOrOpen()\n}\nif (not (n % 2 == 0)) {\n(#LR_Blind).windowCovering_downOrClose()\n}\nn = n + 1"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    (#LR_Blind).windowCovering_upOrOpen()\n    }\n    else {\n    (#LR_Blind).windowCovering_downOrClose()\n    }\n    n = n + 1\n}\nskip = not (skip)"
     }
    }
   },
@@ -3827,6 +3858,12 @@
      "cron": "",
      "period": 7200000,
      "script": "n := 0\nif (n % 2 == 0) {\n(#BR_Win).windowCovering_upOrOpen()\n}\nif (not (n % 2 == 0)) {\n(#BR_Win).windowCovering_downOrClose()\n}\nn = n + 1"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 3600000,
+     "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    (#BR_Win).windowCovering_upOrOpen()\n    }\n    else {\n    (#BR_Win).windowCovering_downOrClose()\n    }\n    n = n + 1\n}\nskip = not (skip)"
     }
    }
   },
@@ -3863,6 +3900,12 @@
      "cron": "",
      "period": 3600000,
      "script": "n := 0\nif (n % 2 == 0) {\n(#MR_AC).airConditioner_setTargetTemperature(25.0)\n}\nif (not (n % 2 == 0)) {\n(#MR_AC).airConditioner_setTargetTemperature(20.0)\n}\nn = n + 1"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    (#MR_AC).airConditioner_setTargetTemperature(25.0)\n    }\n    else {\n    (#MR_AC).airConditioner_setTargetTemperature(20.0)\n    }\n    n = n + 1\n}\nskip = not (skip)"
     }
    }
   },
@@ -4109,6 +4152,12 @@
      "cron": "",
      "period": 600000,
      "script": "if (30 <= (#LivingRoom_Temp).temperatureSensor_temperature) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 300000,
+     "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_Temp).temperatureSensor_temperature >= 30) {\n    all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4145,6 +4194,12 @@
      "cron": "",
      "period": 1800000,
      "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 20 and temp < 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}\nif (not (temp >= 20 and temp < 30)) {\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 900000,
+     "script": "skip := false\nif (skip == false) {\n    temp = (#Living_Temp).temperatureSensor_temperature\n    if (temp >= 20 and temp < 30) {\n    all(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n    }\n    else {\n    if (temp >= 30) {\n    all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4181,6 +4236,12 @@
      "cron": "",
      "period": 1800000,
      "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}\nif (not (temp >= 30)) {\nif (temp < 23) {\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 900000,
+     "script": "skip := false\nif (skip == false) {\n    temp = (#Living_Temp).temperatureSensor_temperature\n    if (temp >= 30) {\n    all(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n    }\n    else {\n    if (temp < 23) {\n    all(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4211,6 +4272,12 @@
      "cron": "",
      "period": 600000,
      "script": "if (all(#HumiditySensor).humiditySensor_humidity >=| 50) {\nall(#Switch).switch_off()\n}\nif (not (all(#HumiditySensor).humiditySensor_humidity >=| 50)) {\nif (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\nall(#Switch).switch_on()\nall(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 300000,
+     "script": "skip := false\nif (skip == false) {\n    if (all(#HumiditySensor).humiditySensor_humidity >=| 50) {\n    all(#Switch).switch_off()\n    }\n    else {\n    if (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\n    all(#Switch).switch_on()\n    all(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4247,6 +4314,30 @@
      "cron": "",
      "period": 3600000,
      "script": "fd = (#Living_AQ).airQualitySensor_fineDustLevel\nif (fd >= 200) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nif (not (fd >= 200)) {\nif (fd <= 100) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"low\")\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "skip := false\nif (skip == false) {\n    fd = (#Living_AQ).airQualitySensor_fineDustLevel\n    if (fd >= 200) {\n    all(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n    }\n    else {\n    if (fd <= 100) {\n    all(#AirPurifier).airPurifier_setAirPurifierMode(\"low\")\n    }\n    }\n}\nskip = not (skip)"
+    }
+   }
+  },
+  {
+   "id": "C17_007",
+   "command": "Check every 5 minutes; if the charger is fully charged, turn it off.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "if ((#Main_Charger).charger_chargingState == \"fullyCharged\") {\nall(#Switch).switch_off()\n}"
+   },
+   "variants": {
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 150000,
+     "script": "skip := false\nif (skip == false) {\n    if ((#Main_Charger).charger_chargingState == \"fullyCharged\") {\n    all(#Switch).switch_off()\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4265,6 +4356,12 @@
      "cron": "",
      "period": 60000,
      "script": "if (50 <= all(#HumiditySensor).humiditySensor_humidity) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"refreshing\")\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 30000,
+     "script": "skip := false\nif (skip == false) {\n    if (all(#HumiditySensor).humiditySensor_humidity >= 50) {\n    all(#Dehumidifier).dehumidifier_setDehumidifierMode(\"refreshing\")\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4283,6 +4380,12 @@
      "cron": "",
      "period": 3600000,
      "script": "if (any(#DoorLock).doorLock_doorLockState == \"open\") {\nall(#Light).light_moveToColor(0.675, 0.322, 0.0)\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "skip := false\nif (skip == false) {\n    if (all(#DoorLock).doorLock_doorLockState ==| \"open\") {\n    all(#Light).light_moveToColor(0.675, 0.322, 0.0)\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4319,6 +4422,12 @@
      "cron": "",
      "period": 900000,
      "script": "temp = (#Inside_TemperatureSensor).temperatureSensor_temperature\nif (temp >= 25) {\nall(#Switch).switch_on()\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\nif (not (temp >= 25)) {\nall(#Switch).switch_off()\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 450000,
+     "script": "skip := false\nif (skip == false) {\n    temp = (#Inside_TemperatureSensor).temperatureSensor_temperature\n    if (temp >= 25) {\n    all(#Switch).switch_on()\n    all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n    }\n    else {\n    all(#Switch).switch_off()\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4337,6 +4446,12 @@
      "cron": "",
      "period": 1800000,
      "script": "if (50 <= (#Hall_Light_1).light_currentBrightness) {\n(#Hall_Light_1).light_moveToBrightness(0.0, 0.0)\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 900000,
+     "script": "skip := false\nif (skip == false) {\n    if ((#Hall_Light_1).light_currentBrightness >= 50) {\n    (#Hall_Light_1).light_moveToBrightness(0.0, 0.0)\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4547,6 +4662,12 @@
      "cron": "",
      "period": 1000,
      "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 28) {\n(#LivingRoom_AC).switch_on()\n}\nif (not ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 28)) {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 25) {\n(#LivingRoom_AC).switch_off()\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 500,
+     "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 28) {\n    (#LivingRoom_AC).switch_on()\n    }\n    else {\n    if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 25) {\n    (#LivingRoom_AC).switch_off()\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4577,6 +4698,12 @@
      "cron": "",
      "period": 1000,
      "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70) {\n(#LivingRoom_Dehumidifier).switch_on()\n}\nif (not ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70)) {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n(#LivingRoom_Dehumidifier).switch_off()\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 500,
+     "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70) {\n    (#LivingRoom_Dehumidifier).switch_on()\n    }\n    else {\n    if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n    (#LivingRoom_Dehumidifier).switch_off()\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4607,6 +4734,12 @@
      "cron": "",
      "period": 1000,
      "script": "if ((#LivingRoom_LightSensor).lightSensor_brightness <= 200) {\n(#LivingRoom_Lamp).switch_on()\n}\nif (not ((#LivingRoom_LightSensor).lightSensor_brightness <= 200)) {\nif ((#LivingRoom_LightSensor).lightSensor_brightness >= 500) {\n(#LivingRoom_Lamp).switch_off()\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 500,
+     "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_LightSensor).lightSensor_brightness <= 200) {\n    (#LivingRoom_Lamp).switch_on()\n    }\n    else {\n    if ((#LivingRoom_LightSensor).lightSensor_brightness >= 500) {\n    (#LivingRoom_Lamp).switch_off()\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4637,6 +4770,12 @@
      "cron": "",
      "period": 1000,
      "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18) {\n(#LivingRoom_Heater).switch_on()\n}\nif (not ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18)) {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n(#LivingRoom_Heater).switch_off()\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 500,
+     "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18) {\n    (#LivingRoom_Heater).switch_on()\n    }\n    else {\n    if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n    (#LivingRoom_Heater).switch_off()\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4667,6 +4806,12 @@
      "cron": "",
      "period": 1000,
      "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30) {\n(#LivingRoom_Humidifier).switch_on()\n}\nif (not ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30)) {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 55) {\n(#LivingRoom_Humidifier).switch_off()\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 500,
+     "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30) {\n    (#LivingRoom_Humidifier).switch_on()\n    }\n    else {\n    if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 55) {\n    (#LivingRoom_Humidifier).switch_off()\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4697,6 +4842,12 @@
      "cron": "",
      "period": 1000,
      "script": "if ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26) {\n(#Bedroom_Fan).switch_on()\n}\nif (not ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26)) {\nif ((#Bedroom_TempSensor).temperatureSensor_temperature <= 23) {\n(#Bedroom_Fan).switch_off()\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 500,
+     "script": "skip := false\nif (skip == false) {\n    if ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26) {\n    (#Bedroom_Fan).switch_on()\n    }\n    else {\n    if ((#Bedroom_TempSensor).temperatureSensor_temperature <= 23) {\n    (#Bedroom_Fan).switch_off()\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4727,6 +4878,12 @@
      "cron": "",
      "period": 1000,
      "script": "if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\n(#Kitchen_Fan).switch_on()\n}\nif (not ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32)) {\nif ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n(#Kitchen_Fan).switch_off()\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 500,
+     "script": "skip := false\nif (skip == false) {\n    if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\n    (#Kitchen_Fan).switch_on()\n    }\n    else {\n    if ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n    (#Kitchen_Fan).switch_off()\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },
@@ -4757,6 +4914,12 @@
      "cron": "",
      "period": 1000,
      "script": "if ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75) {\n(#Bathroom_Fan).switch_on()\n}\nif (not ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75)) {\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n(#Bathroom_Fan).switch_off()\n}\n}"
+    },
+    "period_halve": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 500,
+     "script": "skip := false\nif (skip == false) {\n    if ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75) {\n    (#Bathroom_Fan).switch_on()\n    }\n    else {\n    if ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n    (#Bathroom_Fan).switch_off()\n    }\n    }\n}\nskip = not (skip)"
     }
    }
   },

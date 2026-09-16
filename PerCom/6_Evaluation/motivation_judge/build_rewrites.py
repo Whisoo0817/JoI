@@ -20,6 +20,7 @@ Rewrite types (band / name / what changes / what must not change):
   temporal  loop_unroll       counted periodic cycle -> straight-line body/delay/body...
   temporal  phase_flag        `phase := 0` integer lifecycle -> boolean `started` flag + shared tail
   temporal  wait_precheck     `wait until(C)` -> `if (not (C)) { wait until(C) }`   (check, then block)
+  temporal  period_halve      `period P` -> `period P/2`, body gated on a flag toggled every tick
 """
 import json
 import os
@@ -207,6 +208,39 @@ def t_wait_precheck(s):
     return s[:m.start()] + body + s[m.end():]
 
 
+def t_period_halve(s, block):
+    """Run the scheduler twice as fast and the logic on every other tick.
+
+    The body fires at 0, P, 2P, ... exactly as before; the odd ticks only toggle the flag. That
+    holds only if nothing in the body blocks or ends the tick early -- a `break`, `wait until`
+    or `delay` would leave the flag untoggled or stretch the tick -- so those bodies are skipped.
+    Persist-once `:=` declarations at the top are hoisted above the gate so they still run
+    once. Whether the odd-tick reads leave the action trace unchanged is for the checker.
+
+    Added 09-16 at whisoo's request as the single harder temporal rewrite, fixed before any
+    judge saw it and reported whatever it shows (see HANDOFF).
+    """
+    if block.get("cron") or not block.get("period"):
+        return None
+    p = int(block["period"])
+    if p < 2 or p % 2:
+        return None
+    if re.search(r'\bbreak\b|wait until|delay\(|\bskip\b', s):
+        return None
+    lines = s.split("\n")
+    k = 0
+    while k < len(lines) and re.match(r'\s*\w+\s*:=', lines[k]):
+        k += 1
+    if any(":=" in ln for ln in lines[k:]):
+        return None
+    head, body = lines[:k], lines[k:]
+    if not "".join(body).strip():
+        return None
+    gated = ["if (skip == false) {"] + ["    " + ln if ln.strip() else ln for ln in body] + ["}"]
+    out = head + ["skip := false"] + gated + ["skip = not (skip)"]
+    return ("\n".join(out), {"period": p // 2})
+
+
 def t_phase_flag(s):
     m = re.match(r'\s*phase\s*:=\s*0\s*\n\s*if\s*\(\s*phase\s*==\s*0\s*\)\s*\{\s*\n(\s*wait until\(.*?\)\s*)\n\s*phase\s*=\s*1\s*\n(.*?)\n\s*\}\s*\n\s*else\s*\{\s*\n(.*?)\n\s*\}\s*$', s, re.S)
     if not m:
@@ -228,12 +262,13 @@ TRANSFORMS = OrderedDict([
     ("loop_unroll", ("temporal", t_loop_unroll)),
     ("phase_flag", ("temporal", t_phase_flag)),
     ("wait_precheck", ("temporal", t_wait_precheck)),
+    ("period_halve", ("temporal", t_period_halve)),
 ])
 
 
 def apply(name, block):
     fn = TRANSFORMS[name][1]
-    r = fn(block["script"], block) if name == "loop_unroll" else fn(block["script"])
+    r = fn(block["script"], block) if name in ("loop_unroll", "period_halve") else fn(block["script"])
     if r is None:
         return None
     new = dict(block)

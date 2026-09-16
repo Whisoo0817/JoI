@@ -10,7 +10,8 @@
   "delay_split": "temporal",
   "loop_unroll": "temporal",
   "phase_flag": "temporal",
-  "wait_precheck": "temporal"
+  "wait_precheck": "temporal",
+  "period_halve": "temporal"
  },
  "runs": {
   "var_rename": "explorer/eval/results/fig2_rw_var_rename_20260916_run",
@@ -22,7 +23,8 @@
   "delay_split": "explorer/eval/results/fig2_rw_delay_split_20260916_run",
   "loop_unroll": "explorer/eval/results/fig2_rw_loop_unroll_20260916_run",
   "phase_flag": "explorer/eval/results/fig2_rw_phase_flag_20260916_run",
-  "wait_precheck": "explorer/eval/results/fig2_rw_wait_precheck_20260916_run"
+  "wait_precheck": "explorer/eval/results/fig2_rw_wait_precheck_20260916_run",
+  "period_halve": "explorer/eval/results/fig2_rw_period_halve_20260916_run"
  },
  "outcomes": {
   "var_rename": {
@@ -501,6 +503,33 @@
    "C12_014": "EQUIV-FIXPOINT",
    "C12_015": "EQUIV-FIXPOINT",
    "C18_006": "EQUIV-FIXPOINT"
+  },
+  "period_halve": {
+   "C13_001": "EQUIV-FIXPOINT",
+   "C13_002": "EQUIV-FIXPOINT",
+   "C13_003": "EQUIV-FIXPOINT",
+   "C13_004": "EQUIV-FIXPOINT",
+   "C13_005": "EQUIV-FIXPOINT",
+   "C13_006": "EQUIV-FIXPOINT",
+   "C13_007": "EQUIV-FIXPOINT",
+   "C17_001": "EQUIV-FIXPOINT",
+   "C17_002": "EQUIV-FIXPOINT",
+   "C17_004": "EQUIV-FIXPOINT",
+   "C17_005": "EQUIV-FIXPOINT",
+   "C17_006": "EQUIV-FIXPOINT",
+   "C17_007": "EQUIV-FIXPOINT",
+   "C17_008": "EQUIV-FIXPOINT",
+   "C17_009": "EQUIV-FIXPOINT",
+   "C17_010": "EQUIV-FIXPOINT",
+   "C17_012": "EQUIV-FIXPOINT",
+   "C19_001": "EQUIV-FIXPOINT",
+   "C19_002": "EQUIV-FIXPOINT",
+   "C19_003": "EQUIV-FIXPOINT",
+   "C19_004": "EQUIV-FIXPOINT",
+   "C19_005": "EQUIV-FIXPOINT",
+   "C19_006": "EQUIV-FIXPOINT",
+   "C19_007": "EQUIV-FIXPOINT",
+   "C19_008": "EQUIV-FIXPOINT"
   }
  },
  "pairs": [
@@ -5815,6 +5844,24 @@
    }
   },
   {
+   "id": "C13_001",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every hour, repeat opening and closing the water valve.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "n := 0\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nelse {\nall(#Valve).valve_close()\n}\nn = n + 1"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    all(#Valve).valve_open()\n    }\n    else {\n    all(#Valve).valve_close()\n    }\n    n = n + 1\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C13_002",
    "type": "var_rename",
    "band": "spelling",
@@ -5884,6 +5931,24 @@
     "cron": "",
     "period": 1800000,
     "script": "n := 0\nif (n % 2 == 0) {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nif (not (n % 2 == 0)) {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n}\nn = n + 1"
+   }
+  },
+  {
+   "id": "C13_002",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 30 minutes, toggle the living room air purifier between sleep mode and auto mode.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "n := 0\nif (n % 2 == 0) {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nelse {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n}\nn = n + 1"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 900000,
+    "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    (#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n    }\n    else {\n    (#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n    }\n    n = n + 1\n}\nskip = not (skip)"
    }
   },
   {
@@ -5959,6 +6024,24 @@
    }
   },
   {
+   "id": "C13_003",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Repeat opening and closing the window every 10 minutes.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "n := 0\nif (n % 2 == 0) {\nall(#WindowCovering).windowCovering_upOrOpen()\n}\nelse {\nall(#WindowCovering).windowCovering_downOrClose()\n}\nn = n + 1"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    all(#WindowCovering).windowCovering_upOrOpen()\n    }\n    else {\n    all(#WindowCovering).windowCovering_downOrClose()\n    }\n    n = n + 1\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C13_004",
    "type": "var_rename",
    "band": "spelling",
@@ -6028,6 +6111,24 @@
     "cron": "",
     "period": 1800000,
     "script": "n := 0\nif (n % 2 == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nif (not (n % 2 == 0)) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nn = n + 1"
+   }
+  },
+  {
+   "id": "C13_004",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 30 minutes, toggle the air purifier between sleep mode and high speed mode.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "n := 0\nif (n % 2 == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nelse {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nn = n + 1"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 900000,
+    "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    all(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n    }\n    else {\n    all(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n    }\n    n = n + 1\n}\nskip = not (skip)"
    }
   },
   {
@@ -6103,6 +6204,24 @@
    }
   },
   {
+   "id": "C13_005",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Repeat opening and closing the living room blind every hour.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "n := 0\nif (n % 2 == 0) {\n(#LR_Blind).windowCovering_upOrOpen()\n}\nelse {\n(#LR_Blind).windowCovering_downOrClose()\n}\nn = n + 1"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    (#LR_Blind).windowCovering_upOrOpen()\n    }\n    else {\n    (#LR_Blind).windowCovering_downOrClose()\n    }\n    n = n + 1\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C13_006",
    "type": "var_rename",
    "band": "spelling",
@@ -6175,6 +6294,24 @@
    }
   },
   {
+   "id": "C13_006",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Repeat opening and closing the bedroom window every 2 hours.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 7200000,
+    "script": "n := 0\nif (n % 2 == 0) {\n(#BR_Win).windowCovering_upOrOpen()\n}\nelse {\n(#BR_Win).windowCovering_downOrClose()\n}\nn = n + 1"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    (#BR_Win).windowCovering_upOrOpen()\n    }\n    else {\n    (#BR_Win).windowCovering_downOrClose()\n    }\n    n = n + 1\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C13_007",
    "type": "var_rename",
    "band": "spelling",
@@ -6244,6 +6381,24 @@
     "cron": "",
     "period": 3600000,
     "script": "n := 0\nif (n % 2 == 0) {\n(#MR_AC).airConditioner_setTargetTemperature(25.0)\n}\nif (not (n % 2 == 0)) {\n(#MR_AC).airConditioner_setTargetTemperature(20.0)\n}\nn = n + 1"
+   }
+  },
+  {
+   "id": "C13_007",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every hour, alternate the air conditioner's target temperature between 25 and 20 degrees.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "n := 0\nif (n % 2 == 0) {\n(#MR_AC).airConditioner_setTargetTemperature(25.0)\n}\nelse {\n(#MR_AC).airConditioner_setTargetTemperature(20.0)\n}\nn = n + 1"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "n := 0\nskip := false\nif (skip == false) {\n    if (n % 2 == 0) {\n    (#MR_AC).airConditioner_setTargetTemperature(25.0)\n    }\n    else {\n    (#MR_AC).airConditioner_setTargetTemperature(20.0)\n    }\n    n = n + 1\n}\nskip = not (skip)"
    }
   },
   {
@@ -6517,6 +6672,24 @@
    }
   },
   {
+   "id": "C17_001",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 10 minutes, if the temperature is 30 degrees or higher, set the air conditioner to cool mode.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "if ((#LivingRoom_Temp).temperatureSensor_temperature >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_Temp).temperatureSensor_temperature >= 30) {\n    all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C17_002",
    "type": "var_rename",
    "band": "spelling",
@@ -6586,6 +6759,24 @@
     "cron": "",
     "period": 1800000,
     "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 20 and temp < 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}\nif (not (temp >= 20 and temp < 30)) {\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\n}"
+   }
+  },
+  {
+   "id": "C17_002",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 30 minutes, if the temperature is 20 degrees or higher and below 30 degrees, set the air conditioner to auto mode; if it is 30 degrees or higher, set it to cool mode.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 20 and temp < 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}\nelse {\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 900000,
+    "script": "skip := false\nif (skip == false) {\n    temp = (#Living_Temp).temperatureSensor_temperature\n    if (temp >= 20 and temp < 30) {\n    all(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n    }\n    else {\n    if (temp >= 30) {\n    all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n    }\n    }\n}\nskip = not (skip)"
    }
   },
   {
@@ -6661,6 +6852,24 @@
    }
   },
   {
+   "id": "C17_004",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Check every 30 minutes; if the temperature is 30 degrees or higher, set the target temperature to 25 degrees; if it's below 23 degrees, set it to 26 degrees.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}\nelse {\nif (temp < 23) {\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 900000,
+    "script": "skip := false\nif (skip == false) {\n    temp = (#Living_Temp).temperatureSensor_temperature\n    if (temp >= 30) {\n    all(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n    }\n    else {\n    if (temp < 23) {\n    all(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n    }\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C17_005",
    "type": "exists_spelling",
    "band": "spelling",
@@ -6712,6 +6921,24 @@
     "cron": "",
     "period": 600000,
     "script": "if (all(#HumiditySensor).humiditySensor_humidity >=| 50) {\nall(#Switch).switch_off()\n}\nif (not (all(#HumiditySensor).humiditySensor_humidity >=| 50)) {\nif (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\nall(#Switch).switch_on()\nall(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n}\n}"
+   }
+  },
+  {
+   "id": "C17_005",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Check humidity every 10 minutes; if it's 50 or higher, turn off the humidifier; if it's 20 or lower, turn on the humidifier and set it to auto mode.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "if (all(#HumiditySensor).humiditySensor_humidity >=| 50) {\nall(#Switch).switch_off()\n}\nelse {\nif (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\nall(#Switch).switch_on()\nall(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "skip := false\nif (skip == false) {\n    if (all(#HumiditySensor).humiditySensor_humidity >=| 50) {\n    all(#Switch).switch_off()\n    }\n    else {\n    if (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\n    all(#Switch).switch_on()\n    all(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n    }\n    }\n}\nskip = not (skip)"
    }
   },
   {
@@ -6787,6 +7014,42 @@
    }
   },
   {
+   "id": "C17_006",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Check the fine dust level every hour; if it's 200 or higher, set the air purifier to high speed; if it's 100 or lower, set it to low speed.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "fd = (#Living_AQ).airQualitySensor_fineDustLevel\nif (fd >= 200) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nelse {\nif (fd <= 100) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"low\")\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "skip := false\nif (skip == false) {\n    fd = (#Living_AQ).airQualitySensor_fineDustLevel\n    if (fd >= 200) {\n    all(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n    }\n    else {\n    if (fd <= 100) {\n    all(#AirPurifier).airPurifier_setAirPurifierMode(\"low\")\n    }\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
+   "id": "C17_007",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Check every 5 minutes; if the charger is fully charged, turn it off.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "if ((#Main_Charger).charger_chargingState == \"fullyCharged\") {\nall(#Switch).switch_off()\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 150000,
+    "script": "skip := false\nif (skip == false) {\n    if ((#Main_Charger).charger_chargingState == \"fullyCharged\") {\n    all(#Switch).switch_off()\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C17_008",
    "type": "comparator_flip",
    "band": "spelling",
@@ -6805,6 +7068,24 @@
    }
   },
   {
+   "id": "C17_008",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every minute, if the humidity of all sensors in Group2 is 50% or higher, set all dehumidifiers to refresh mode.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "if (all(#HumiditySensor).humiditySensor_humidity >= 50) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"refreshing\")\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 30000,
+    "script": "skip := false\nif (skip == false) {\n    if (all(#HumiditySensor).humiditySensor_humidity >= 50) {\n    all(#Dehumidifier).dehumidifier_setDehumidifierMode(\"refreshing\")\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C17_009",
    "type": "exists_spelling",
    "band": "spelling",
@@ -6820,6 +7101,24 @@
     "cron": "",
     "period": 3600000,
     "script": "if (any(#DoorLock).doorLock_doorLockState == \"open\") {\nall(#Light).light_moveToColor(0.675, 0.322, 0.0)\n}"
+   }
+  },
+  {
+   "id": "C17_009",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Check all door locks in Sector 1 every hour; if any one is open, change all lights in that sector to red.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "if (all(#DoorLock).doorLock_doorLockState ==| \"open\") {\nall(#Light).light_moveToColor(0.675, 0.322, 0.0)\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "skip := false\nif (skip == false) {\n    if (all(#DoorLock).doorLock_doorLockState ==| \"open\") {\n    all(#Light).light_moveToColor(0.675, 0.322, 0.0)\n    }\n}\nskip = not (skip)"
    }
   },
   {
@@ -6895,6 +7194,24 @@
    }
   },
   {
+   "id": "C17_010",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Measure the temperature every 15 minutes; turn on the air conditioner in cool mode if it's 25 degrees or higher, and turn it off if it's below 25 degrees.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 900000,
+    "script": "temp = (#Inside_TemperatureSensor).temperatureSensor_temperature\nif (temp >= 25) {\nall(#Switch).switch_on()\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\nelse {\nall(#Switch).switch_off()\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 450000,
+    "script": "skip := false\nif (skip == false) {\n    temp = (#Inside_TemperatureSensor).temperatureSensor_temperature\n    if (temp >= 25) {\n    all(#Switch).switch_on()\n    all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n    }\n    else {\n    all(#Switch).switch_off()\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C17_012",
    "type": "comparator_flip",
    "band": "spelling",
@@ -6910,6 +7227,24 @@
     "cron": "",
     "period": 1800000,
     "script": "if (50 <= (#Hall_Light_1).light_currentBrightness) {\n(#Hall_Light_1).light_moveToBrightness(0.0, 0.0)\n}"
+   }
+  },
+  {
+   "id": "C17_012",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 30 minutes, if any hallway light brightness is 50% or higher, turn off all hallway lights.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "if ((#Hall_Light_1).light_currentBrightness >= 50) {\n(#Hall_Light_1).light_moveToBrightness(0.0, 0.0)\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 900000,
+    "script": "skip := false\nif (skip == false) {\n    if ((#Hall_Light_1).light_currentBrightness >= 50) {\n    (#Hall_Light_1).light_moveToBrightness(0.0, 0.0)\n    }\n}\nskip = not (skip)"
    }
   },
   {
@@ -7183,6 +7518,24 @@
    }
   },
   {
+   "id": "C19_001",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 1 second, if the living room temperature is at least 28C, turn on the AC plug; otherwise if it is 25C or below, turn off the AC plug.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 28) {\n(#LivingRoom_AC).switch_on()\n}\nelse {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 25) {\n(#LivingRoom_AC).switch_off()\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 500,
+    "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 28) {\n    (#LivingRoom_AC).switch_on()\n    }\n    else {\n    if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 25) {\n    (#LivingRoom_AC).switch_off()\n    }\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C19_002",
    "type": "comparator_flip",
    "band": "spelling",
@@ -7234,6 +7587,24 @@
     "cron": "",
     "period": 1000,
     "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70) {\n(#LivingRoom_Dehumidifier).switch_on()\n}\nif (not ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70)) {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n(#LivingRoom_Dehumidifier).switch_off()\n}\n}"
+   }
+  },
+  {
+   "id": "C19_002",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 1 second, if the living room humidity is at least 70%, turn on the dehumidifier plug; otherwise if it is 50% or below, turn off the dehumidifier plug.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70) {\n(#LivingRoom_Dehumidifier).switch_on()\n}\nelse {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n(#LivingRoom_Dehumidifier).switch_off()\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 500,
+    "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70) {\n    (#LivingRoom_Dehumidifier).switch_on()\n    }\n    else {\n    if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n    (#LivingRoom_Dehumidifier).switch_off()\n    }\n    }\n}\nskip = not (skip)"
    }
   },
   {
@@ -7291,6 +7662,24 @@
    }
   },
   {
+   "id": "C19_003",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 1 second, if the living room illuminance is at most 200 lux, turn on the floor lamp plug; otherwise if it is at least 500 lux, turn off the floor lamp plug.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#LivingRoom_LightSensor).lightSensor_brightness <= 200) {\n(#LivingRoom_Lamp).switch_on()\n}\nelse {\nif ((#LivingRoom_LightSensor).lightSensor_brightness >= 500) {\n(#LivingRoom_Lamp).switch_off()\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 500,
+    "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_LightSensor).lightSensor_brightness <= 200) {\n    (#LivingRoom_Lamp).switch_on()\n    }\n    else {\n    if ((#LivingRoom_LightSensor).lightSensor_brightness >= 500) {\n    (#LivingRoom_Lamp).switch_off()\n    }\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C19_004",
    "type": "comparator_flip",
    "band": "spelling",
@@ -7342,6 +7731,24 @@
     "cron": "",
     "period": 1000,
     "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18) {\n(#LivingRoom_Heater).switch_on()\n}\nif (not ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18)) {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n(#LivingRoom_Heater).switch_off()\n}\n}"
+   }
+  },
+  {
+   "id": "C19_004",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 1 second, if the living room temperature is at most 18C, turn on the heater plug; otherwise if it is at least 22C, turn off the heater plug.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18) {\n(#LivingRoom_Heater).switch_on()\n}\nelse {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n(#LivingRoom_Heater).switch_off()\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 500,
+    "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18) {\n    (#LivingRoom_Heater).switch_on()\n    }\n    else {\n    if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n    (#LivingRoom_Heater).switch_off()\n    }\n    }\n}\nskip = not (skip)"
    }
   },
   {
@@ -7399,6 +7806,24 @@
    }
   },
   {
+   "id": "C19_005",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 1 second, if the living room humidity is at most 30%, turn on the humidifier plug; otherwise if it is at least 55%, turn off the humidifier plug.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30) {\n(#LivingRoom_Humidifier).switch_on()\n}\nelse {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 55) {\n(#LivingRoom_Humidifier).switch_off()\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 500,
+    "script": "skip := false\nif (skip == false) {\n    if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30) {\n    (#LivingRoom_Humidifier).switch_on()\n    }\n    else {\n    if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 55) {\n    (#LivingRoom_Humidifier).switch_off()\n    }\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C19_006",
    "type": "comparator_flip",
    "band": "spelling",
@@ -7450,6 +7875,24 @@
     "cron": "",
     "period": 1000,
     "script": "if ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26) {\n(#Bedroom_Fan).switch_on()\n}\nif (not ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26)) {\nif ((#Bedroom_TempSensor).temperatureSensor_temperature <= 23) {\n(#Bedroom_Fan).switch_off()\n}\n}"
+   }
+  },
+  {
+   "id": "C19_006",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 1 second, if the bedroom temperature is at least 26C, turn on the bedroom fan plug; otherwise if it is 23C or below, turn off the bedroom fan plug.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26) {\n(#Bedroom_Fan).switch_on()\n}\nelse {\nif ((#Bedroom_TempSensor).temperatureSensor_temperature <= 23) {\n(#Bedroom_Fan).switch_off()\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 500,
+    "script": "skip := false\nif (skip == false) {\n    if ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26) {\n    (#Bedroom_Fan).switch_on()\n    }\n    else {\n    if ((#Bedroom_TempSensor).temperatureSensor_temperature <= 23) {\n    (#Bedroom_Fan).switch_off()\n    }\n    }\n}\nskip = not (skip)"
    }
   },
   {
@@ -7507,6 +7950,24 @@
    }
   },
   {
+   "id": "C19_007",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 1 second, if the kitchen temperature is at least 32C, turn on the kitchen ventilation fan plug; otherwise if it is 28C or below, turn off the kitchen ventilation fan plug.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\n(#Kitchen_Fan).switch_on()\n}\nelse {\nif ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n(#Kitchen_Fan).switch_off()\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 500,
+    "script": "skip := false\nif (skip == false) {\n    if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\n    (#Kitchen_Fan).switch_on()\n    }\n    else {\n    if ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n    (#Kitchen_Fan).switch_off()\n    }\n    }\n}\nskip = not (skip)"
+   }
+  },
+  {
    "id": "C19_008",
    "type": "comparator_flip",
    "band": "spelling",
@@ -7558,6 +8019,24 @@
     "cron": "",
     "period": 1000,
     "script": "if ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75) {\n(#Bathroom_Fan).switch_on()\n}\nif (not ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75)) {\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n(#Bathroom_Fan).switch_off()\n}\n}"
+   }
+  },
+  {
+   "id": "C19_008",
+   "type": "period_halve",
+   "band": "temporal",
+   "command": "Every 1 second, if the bathroom humidity is at least 75%, turn on the bathroom ventilation fan plug; otherwise if it is 55% or below, turn off the bathroom ventilation fan plug.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75) {\n(#Bathroom_Fan).switch_on()\n}\nelse {\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n(#Bathroom_Fan).switch_off()\n}\n}"
+   },
+   "variant": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 500,
+    "script": "skip := false\nif (skip == false) {\n    if ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75) {\n    (#Bathroom_Fan).switch_on()\n    }\n    else {\n    if ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n    (#Bathroom_Fan).switch_off()\n    }\n    }\n}\nskip = not (skip)"
    }
   },
   {
