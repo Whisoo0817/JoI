@@ -76,7 +76,19 @@ protocol, not counted in the 36).
    written as the algebraic complement (`>= 50` for a `< 50` trigger) instead of `not (C)`, which also
    never fires when a reading is null.
    Restoring just these two things — keep `OP|`, rearm as `not (<trigger>)` — turns all 10 of the
-   rising-edge cases into EQUIV-FIXPOINT, and `OP|` alone fixes C10_003 and C12_007.
+   rising-edge cases into EQUIV-FIXPOINT, and `OP|` alone fixes C10_003 and C12_007. Testing each
+   edit on its own (`single_edit_split.json`) splits the 12 by how little was wrong:
+
+   | what was wrong | n | cases |
+   | --- | --- | --- |
+   | only the `\|` on one comparison operator | 5 | C07_024, C08_018, C08_032, C10_003, C12_007 |
+   | only the rearm wait (trigger condition correct) | 4 | C08_020, C08_022, C08_027, C08_029 |
+   | both | 3 | C08_021, C08_024, C08_026 |
+
+   In the first five the repair is otherwise exactly right — the periodic `if` became the blocking
+   two-wait shape, the body, targets, literals and period are all correct — and restoring one
+   character turns a rejected candidate into EQUIV-FIXPOINT. One character, but not a cosmetic one:
+   `==|` asks whether any sensor of the group crossed, `==` whether all of them did.
    `prompts/repair.md` never mentions `OP|` (0 occurrences) and its worked examples all use
    single-device conditions, so the model had no reason to preserve it. This is a prompt gap, not a
    limitation of the counterexample: the witness pinpointed the instant correctly, and in most of
@@ -136,7 +148,7 @@ See `DEV_NOTES_2026-09-16.md` for the per-variant table.
 - `runs/e3_feedback_68_20260916/`: `preflight.json`, `evidence/` (68 payloads as sent),
   `responses/` (68 raw answers), `repair_summary.json`, `repair.log`, `evaluate.log`,
   `summary.json` (headline, by type, 68 rows), `timeout_recheck_exploratory.json`,
-  `failure_cause_diagnostic.json`.
+  `failure_cause_diagnostic.json`, `single_edit_split.json`.
 - `explorer/eval/results/qwen3_5_9b_fp8_e3_feedback_v1_e3_feedback_68_20260916_{lineage,protocol,manifest,manifest_full,run}`.
 - `explorer/candidates/qwen3_5-9b-fp8-e3-feedback-v1/`: the evaluated copy (67 repaired scripts,
   each with a `feedback_repair` provenance field; unrepaired cases identical to the E3 tag).
