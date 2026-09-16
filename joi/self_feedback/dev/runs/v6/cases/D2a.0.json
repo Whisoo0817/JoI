@@ -1,0 +1,62 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 31791,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 401,
+   "prompt_tokens": 8848,
+   "total_tokens": 9249,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.629149198532104,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 30-second sustain window (300 ticks at 100ms). The candidate uses a 1000ms wrapper period and a threshold of 30, causing the action to fire after 30 seconds of 1000ms ticks (30s) but incorrectly counting the initial state as tick 1, leading to an early trigger at 29s (29 ticks * 1000ms). More critically, the 1000ms wrapper cannot observe the condition dropping and returning between iterations, violating the sustain requirement. The fix requires a 100ms wrapper period and a threshold of 301 (300 ticks + 1 for the initial count).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed period from 1000 to 100 to match the sustain grid. Updated the threshold from 30 to 301 to correctly count 30 full seconds (300 ticks) plus the initial tick, ensuring the action fires exactly at 30 seconds as required by the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 30-second sustain window (300 ticks at 100ms). The candidate uses a 1000ms wrapper period and a threshold of 30, causing the action to fire after 30 seconds of 1000ms ticks (30s) but incorrectly counting the initial state as tick 1, leading to an early trigger at 29s (29 ticks * 1000ms). More critically, the 1000ms wrapper cannot observe the condition dropping and returning between iterations, violating the sustain requirement. The fix requires a 100ms wrapper period and a threshold of 301 (300 ticks + 1 for the initial count).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed period from 1000 to 100 to match the sustain grid. Updated the threshold from 30 to 301 to correctly count 30 full seconds (300 ticks) plus the initial tick, ensuring the action fires exactly at 30 seconds as required by the IR."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

@@ -8,9 +8,10 @@ contract and are therefore not used as examples. Not an experiment result.
     B5=1 ... prints the verdict per selector assignment as well.
 """
 import json, subprocess, sys
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-ROOT = '/home/gnltnwjstk/joi'
+ROOT = str(Path(__file__).resolve().parents[3])  # this checkout, the same tree the evaluator uses
 PY = '/home/gnltnwjstk/temp/bin/python'
 
 def dev(name, cat, *tags):
@@ -114,6 +115,28 @@ CASES.append(("G5-gold", g5_ir, g5_bind, g5_dev, 600000,
 CASES.append(("G5-wrong-first-body-delayed", g5_ir, g5_bind, g5_dev, 600000,
     "phase := 0\nif (phase == 0) {\n    wait until((#Front_Door).contactSensor_contact == false)\n    phase = 1\n"
     "    (#Front_Light).switch_on()\n} else {\n    (#Front_Camera).camera_captureImage()\n}"))
+
+# H Quantifier preserved when a condition is rewritten (any slot)
+h_dev = merge(dev("Hall_Motion_1", ["MotionSensor"], "Hallway", "MotionSensor"),
+              dev("Hall_Motion_2", ["MotionSensor"], "Hallway", "MotionSensor"),
+              dev("Hall_Light", ["Switch", "Light"], "Hallway", "Light", "Switch"))
+h_ir = T({"op": "cycle", "until": None, "period": "1 SEC", "body": [
+    {"op": "wait", "cond": "MotionSensor.Motion == true", "edge": "rising"},
+    {"op": "call", "target": "Switch.On", "args": {}}]})
+h_bind = {"MotionSensor": {"any": ["Hall_Motion_1", "Hall_Motion_2"]}, "Switch": ["Hall_Light"]}
+def h(op):
+    return ("triggered := false\n"
+            f"if (triggered == true) {{\n    wait until(not (all(#MotionSensor).motionSensor_motion {op} true))\n"
+            "    triggered = false\n}\n"
+            f"wait until(all(#MotionSensor).motionSensor_motion {op} true)\n"
+            "(#Hall_Light).switch_on()\ntriggered = true")
+CASES.append(("H-gold", h_ir, h_bind, h_dev, 1000, h("==|")))
+CASES.append(("H-wrong-dropped-pipe", h_ir, h_bind, h_dev, 1000,
+    "triggered := false\n"
+    "if (triggered == true) {\n    wait until(all(#MotionSensor).motionSensor_motion == false)\n"
+    "    triggered = false\n}\n"
+    "wait until(all(#MotionSensor).motionSensor_motion == true)\n"
+    "(#Hall_Light).switch_on()\ntriggered = true"))
 
 # G6 Termination Scope
 g6_dev = dev("Living_Blind", ["WindowCovering"], "LivingRoom", "WindowCovering")

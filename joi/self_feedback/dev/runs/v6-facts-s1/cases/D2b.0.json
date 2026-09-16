@@ -1,0 +1,63 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 36539,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 421,
+   "prompt_tokens": 10245,
+   "total_tokens": 10666,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.2681725025177,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute sustain window for `Presence == false`. The candidate uses a 1000 ms wrapper period and a threshold of 60. At 1000 ms intervals, 60 ticks cover only 60 seconds (60,000 ms). The IR specifies `1 MIN` (60,000 ms), but the JoI execution contract counts ticks starting at t=0. To sustain for 60 seconds on a 1-second grid, the condition must remain true for 60 full intervals *after* the initial check, requiring a threshold of 61 (covering t=0 through t=60000). The evidence shows the action firing at 59000 ms (59 seconds), one second too early.\",\n    \"evidence_refs\": [\"F2\", \"F3\", \"ir_timing_facts\"],\n    \"changed_locations\": [\"line 4\", \"period\"],\n    \"change_summary\": \"Changed the threshold from 60 to 61 to correctly account for the initial tick at t=0, ensuring the action fires exactly at 60 seconds (60000 ms) rather than 59 seconds. Also explicitly set `period` to 1000 to match the 1-second granularity implied by the threshold calculation.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 61) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 61) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute sustain window for `Presence == false`. The candidate uses a 1000 ms wrapper period and a threshold of 60. At 1000 ms intervals, 60 ticks cover only 60 seconds (60,000 ms). The IR specifies `1 MIN` (60,000 ms), but the JoI execution contract counts ticks starting at t=0. To sustain for 60 seconds on a 1-second grid, the condition must remain true for 60 full intervals *after* the initial check, requiring a threshold of 61 (covering t=0 through t=60000). The evidence shows the action firing at 59000 ms (59 seconds), one second too early.",
+  "evidence_refs": [
+   "F2",
+   "F3",
+   "ir_timing_facts"
+  ],
+  "changed_locations": [
+   "line 4",
+   "period"
+  ],
+  "change_summary": "Changed the threshold from 60 to 61 to correctly account for the initial tick at t=0, ensuring the action fires exactly at 60 seconds (60000 ms) rather than 59 seconds. Also explicitly set `period` to 1000 to match the 1-second granularity implied by the threshold calculation."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 163053,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 60000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

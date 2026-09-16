@@ -1,0 +1,62 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28520,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 371,
+   "prompt_tokens": 7659,
+   "total_tokens": 8030,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 5.627337455749512,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 15000 ms period for the entire script, causing the sustain counter to increment only every 15 seconds. The IR requires a 30-second sustain window measured on a fine grid (100 ms ticks), followed by a cycle with a 15-second period. The candidate's structure fails to distinguish the sustain duration from the cycle cadence, leading to a missed action at 30000 ms when the condition holds continuously.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Set period to 100 ms to measure the 30-second sustain window accurately. Implemented the hold counter with the correct threshold (301 ticks). Moved the cycle logic inside the hold block, replacing the counter `n` with explicit `delay(15 SEC)` calls repeated twice, followed by `break`.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Back_Door).contactSensor_contact == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        delay(15 SEC)\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Back_Door).contactSensor_contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        delay(15 SEC)\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 15000 ms period for the entire script, causing the sustain counter to increment only every 15 seconds. The IR requires a 30-second sustain window measured on a fine grid (100 ms ticks), followed by a cycle with a 15-second period. The candidate's structure fails to distinguish the sustain duration from the cycle cadence, leading to a missed action at 30000 ms when the condition holds continuously.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Set period to 100 ms to measure the 30-second sustain window accurately. Implemented the hold counter with the correct threshold (301 ticks). Moved the cycle logic inside the hold block, replacing the counter `n` with explicit `delay(15 SEC)` calls repeated twice, followed by `break`."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 5,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

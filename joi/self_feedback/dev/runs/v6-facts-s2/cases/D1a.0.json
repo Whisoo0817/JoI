@@ -1,0 +1,60 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28307,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 377,
+   "prompt_tokens": 7531,
+   "total_tokens": 7908,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 5.701633930206299,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait for motion, then executes the body. The candidate uses a periodic `if` at the start of every 1-second iteration. At t=100ms, motion becomes true. The IR fires immediately. The candidate evaluates its `if` only at t=0 and t=1000ms, missing the event at t=100ms. The repair replaces the periodic polling with a blocking rising-edge wait that suspends until the transition occurs, then executes the body.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"script logic: replaced periodic if with blocking rising-edge wait pattern\"],\n    \"change_summary\": \"Changed the script from a periodic `if` check to a blocking two-wait rearm pattern. This ensures the automation waits for the specific rising edge at t=100ms and executes the body immediately, matching the IR's behavior. The period remains 1000ms to reset the state for the next cycle.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\\n    triggered = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\ntriggered = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\n    triggered = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait for motion, then executes the body. The candidate uses a periodic `if` at the start of every 1-second iteration. At t=100ms, motion becomes true. The IR fires immediately. The candidate evaluates its `if` only at t=0 and t=1000ms, missing the event at t=100ms. The repair replaces the periodic polling with a blocking rising-edge wait that suspends until the transition occurs, then executes the body.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "script logic: replaced periodic if with blocking rising-edge wait pattern"
+  ],
+  "change_summary": "Changed the script from a periodic `if` check to a blocking two-wait rearm pattern. This ensures the automation waits for the specific rising edge at t=100ms and executes the body immediately, matching the IR's behavior. The period remains 1000ms to reset the state for the next cycle."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

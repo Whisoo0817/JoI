@@ -1,0 +1,61 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 26948,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 326,
+   "prompt_tokens": 7118,
+   "total_tokens": 7444,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 2.972404956817627,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a repeating cycle that waits for a rising edge on the button and then opens the valve. The candidate uses a periodic `if` guard, which only evaluates at the start of each iteration. Since the button state changed to 'pushed' at 100ms (during the first iteration's wait), the IR fires immediately, but the candidate's guard evaluates to false at t=0 and never re-evaluates until t=1000ms, missing the action.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with a blocking rising-edge wait followed by the action, then set a persistent flag to re-arm for the next cycle. This ensures the action fires at the exact instant the condition becomes true, matching the IR's rising-edge semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until(not ((#Garden_Button).button_button == \\\"pushed\\\"))\\n    triggered = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\ntriggered = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until(not ((#Garden_Button).button_button == \"pushed\"))\n    triggered = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a repeating cycle that waits for a rising edge on the button and then opens the valve. The candidate uses a periodic `if` guard, which only evaluates at the start of each iteration. Since the button state changed to 'pushed' at 100ms (during the first iteration's wait), the IR fires immediately, but the candidate's guard evaluates to false at t=0 and never re-evaluates until t=1000ms, missing the action.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with a blocking rising-edge wait followed by the action, then set a persistent flag to re-arm for the next cycle. This ensures the action fires at the exact instant the condition becomes true, matching the IR's rising-edge semantics."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

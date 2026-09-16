@@ -122,10 +122,14 @@ prompt never taught it, and every one of those is mechanically recoverable. The 
 failures are groups 2–5 (13 cases: ×10 tick slips, multi-block structure, the phase pattern), and
 groups 6–7 (6 cases) are verifier and context limits, not the model.
 
-Consequence to decide (whisoo): documenting `OP|` and the `not (<trigger>)` rearm in
-`prompts/repair.md` would plausibly move the number well past 36/68, but the gap was found by
-looking at these 68 outcomes. Any such v2 is post-hoc tuning on the evaluation set and must be
-reported that way, or run on held-out cases instead. The v1 number stands as reported.
+**Tried and rejected.** Three v6 prompts teaching `OP|` and the `not (C)` rearm were written and
+checked (`repair_v6a/v6b/v6.md`). All three scored *below* v5 on the 14-case dev set (means 12.25,
+11.75, 11.50 against v5's 12.75 over four runs each), with new failures in families the edits never
+touched. Teaching the rule cost more than it bought at this model size, and the dev set has no
+`{"any": [...]}` slot so it could only measure the cost. Since the gap was also found by looking at
+these 68 outcomes, any prompt fixed against it is post-hoc tuning on the evaluation set. Decision:
+keep v5, report 36/68 as it stands, and carry `OP|` as an analysed cause and future work.
+See `DEV_NOTES_2026-09-16.md` for the per-variant table.
 
 ## Files
 

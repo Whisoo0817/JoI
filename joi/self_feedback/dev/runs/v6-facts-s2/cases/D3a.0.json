@@ -1,0 +1,61 @@
+{
+ "id": "D3a",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 92,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 27941,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 291,
+   "prompt_tokens": 7457,
+   "total_tokens": 7748,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.261740922927856,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate introduced an absolute-value fold (lines 4-7) to handle negative differences, but the IR only triggers on a rise ($t2 - t1 >= 3$). Evidence F2 shows the IR did nothing (empty action list) because the temperature dropped (diff < 0), while the candidate incorrectly triggered the action. F3 confirms the candidate computed `diff` and folded it, violating the signed arithmetic requirement of the IR.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4-7\", \"if condition\"],\n    \"change_summary\": \"Removed the absolute-value folding logic. The script now preserves the exact signed difference calculation and the IR's specific trigger condition ($t2 - t1 >= 3$) without modifying negative results.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#Study_Temp).temperatureSensor_temperature\\ndelay(20 MIN)\\nt2 = (#Study_Temp).temperatureSensor_temperature\\nif (t2 - t1 >= 3) {\\n    (#Study_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#Study_Temp).temperatureSensor_temperature\ndelay(20 MIN)\nt2 = (#Study_Temp).temperatureSensor_temperature\nif (t2 - t1 >= 3) {\n    (#Study_AC).airConditioner_setAirConditionerMode(\"cool\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate introduced an absolute-value fold (lines 4-7) to handle negative differences, but the IR only triggers on a rise ($t2 - t1 >= 3$). Evidence F2 shows the IR did nothing (empty action list) because the temperature dropped (diff < 0), while the candidate incorrectly triggered the action. F3 confirms the candidate computed `diff` and folded it, violating the signed arithmetic requirement of the IR.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4-7",
+   "if condition"
+  ],
+  "change_summary": "Removed the absolute-value folding logic. The script now preserves the exact signed difference calculation and the IR's specific trigger condition ($t2 - t1 >= 3$) without modifying negative results."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 36,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

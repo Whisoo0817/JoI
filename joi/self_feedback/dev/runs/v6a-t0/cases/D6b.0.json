@@ -1,0 +1,61 @@
+{
+ "id": "D6b",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24677,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 316,
+   "prompt_tokens": 6569,
+   "total_tokens": 6885,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.022224426269531,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a repeating cycle with a 3-minute period between completed bodies. The candidate used `period: 0` (one-shot) and included a trailing `delay(3 MIN)`, causing the first cycle body to execute at t=0 and then terminate, missing the required re-arm at t=180000. Evidence F2 shows the IR emits `siren.setsirenmode` at 190000ms (the start of the second cycle), while the candidate emitted nothing.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed `period` to 180000 to match the IR's cycle period. Removed the trailing `delay(3 MIN)` and restructured the script to use a blocking `wait until(true)` at the end of the body to ensure the script completes exactly at the cycle boundary, allowing the wrapper to re-arm correctly for the next iteration.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 180000,\n    \"script\": \"(#Yard_Siren).siren_setSirenMode(\\\"emergency\\\")\\ndelay(10 SEC)\\n(#Yard_Siren).switch_off()\\nwait until(true)\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 180000,
+  "script": "(#Yard_Siren).siren_setSirenMode(\"emergency\")\ndelay(10 SEC)\n(#Yard_Siren).switch_off()\nwait until(true)"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a repeating cycle with a 3-minute period between completed bodies. The candidate used `period: 0` (one-shot) and included a trailing `delay(3 MIN)`, causing the first cycle body to execute at t=0 and then terminate, missing the required re-arm at t=180000. Evidence F2 shows the IR emits `siren.setsirenmode` at 190000ms (the start of the second cycle), while the candidate emitted nothing.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed `period` to 180000 to match the IR's cycle period. Removed the trailing `delay(3 MIN)` and restructured the script to use a blocking `wait until(true)` at the end of the body to ensure the script completes exactly at the cycle boundary, allowing the wrapper to re-arm correctly for the next iteration."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

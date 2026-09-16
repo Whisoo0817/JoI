@@ -1,0 +1,61 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25251,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 334,
+   "prompt_tokens": 6684,
+   "total_tokens": 7018,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 2.7535111904144287,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a repeating cycle that waits for a rising edge on the button and then opens the valve. The candidate uses a periodic `if` statement, which only evaluates at the start of each 1-second iteration. Since the button was pushed at t=100ms (during the first iteration's wait), the candidate missed the event because it did not block on the rising edge. The fix implements the standard repeating-edge state machine: block until the condition is false (rearm), then block until true (trigger), execute the body, and mark as fired.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic polling `if` with a blocking two-wait rearm pattern (`wait until(not C)`, `wait until(C)`) to ensure the rising edge is detected immediately when it occurs, rather than only at iteration boundaries.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until(not ((#Garden_Button).button_button == \\\"pushed\\\"))\\n    fired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until(not ((#Garden_Button).button_button == \"pushed\"))\n    fired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a repeating cycle that waits for a rising edge on the button and then opens the valve. The candidate uses a periodic `if` statement, which only evaluates at the start of each 1-second iteration. Since the button was pushed at t=100ms (during the first iteration's wait), the candidate missed the event because it did not block on the rising edge. The fix implements the standard repeating-edge state machine: block until the condition is false (rearm), then block until true (trigger), execute the body, and mark as fired.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic polling `if` with a blocking two-wait rearm pattern (`wait until(not C)`, `wait until(C)`) to ensure the rising edge is detected immediately when it occurs, rather than only at iteration boundaries."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

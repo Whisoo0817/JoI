@@ -1,0 +1,60 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25832,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 462,
+   "prompt_tokens": 6887,
+   "total_tokens": 7349,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.548335790634155,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR uses a rising-edge wait (`wait(Motion == true, rising)`), which fires only when the motion sensor transitions from false to true. The candidate uses a periodic `if` (`if (motion == true)`), which only evaluates the condition at the start of each 1-second cycle. At t=100ms, the sensor became true, but the candidate's `if` guard was false at that instant, so it did nothing. The candidate also incorrectly sets `triggered = false` in the `else` branch, which would prevent re-firing if the condition were to become true again.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 2: changed operator from `==` to `==|` is not needed here as binding is single device; changed structure from periodic `if` to blocking two-wait rearm pattern\"],\n    \"change_summary\": \"Replaced the periodic polling `if` with a blocking rising-edge state machine. Added a `fired` flag to track if the rising edge has been processed in the current cycle. Added `wait until(not (motion))` to block until the sensor returns to false (rearming), then `wait until(motion)` to block until it becomes true, execute the body, and set `fired = true`. This ensures the action fires exactly at the rising edge and waits for the next rising edge on the subsequent cycle.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\\n    fired = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\n    fired = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR uses a rising-edge wait (`wait(Motion == true, rising)`), which fires only when the motion sensor transitions from false to true. The candidate uses a periodic `if` (`if (motion == true)`), which only evaluates the condition at the start of each 1-second cycle. At t=100ms, the sensor became true, but the candidate's `if` guard was false at that instant, so it did nothing. The candidate also incorrectly sets `triggered = false` in the `else` branch, which would prevent re-firing if the condition were to become true again.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 2: changed operator from `==` to `==|` is not needed here as binding is single device; changed structure from periodic `if` to blocking two-wait rearm pattern"
+  ],
+  "change_summary": "Replaced the periodic polling `if` with a blocking rising-edge state machine. Added a `fired` flag to track if the rising edge has been processed in the current cycle. Added `wait until(not (motion))` to block until the sensor returns to false (rearming), then `wait until(motion)` to block until it becomes true, execute the body, and set `fired = true`. This ensures the action fires exactly at the rising edge and waits for the next rising edge on the subsequent cycle."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

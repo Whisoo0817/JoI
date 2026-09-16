@@ -1,0 +1,62 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 34842,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 381,
+   "prompt_tokens": 9811,
+   "total_tokens": 10192,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.515851736068726,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute sustain window for the condition `Presence == false`. With a 100ms wrapper, this requires 600 ticks (1 minute / 0.1s). The candidate uses `period 1000` and a threshold of 60. Since the first tick at t=0 counts as tick 1, the candidate fires after 60 ticks (60 seconds), which is 10 seconds too early. The wrapper period also prevents observing a condition drop between iterations if the input changes rapidly. The fix is to set `period` to 100 and change the threshold to 601.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold calculation\"],\n    \"change_summary\": \"Changed `period` from 1000 to 100 to match the sustain grid. Updated the threshold from 60 to 601 to account for the initial tick at t=0, ensuring the action fires exactly at 60,000ms (1 minute) as required by the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute sustain window for the condition `Presence == false`. With a 100ms wrapper, this requires 600 ticks (1 minute / 0.1s). The candidate uses `period 1000` and a threshold of 60. Since the first tick at t=0 counts as tick 1, the candidate fires after 60 ticks (60 seconds), which is 10 seconds too early. The wrapper period also prevents observing a condition drop between iterations if the input changes rapidly. The fix is to set `period` to 100 and change the threshold to 601.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold calculation"
+  ],
+  "change_summary": "Changed `period` from 1000 to 100 to match the sustain grid. Updated the threshold from 60 to 601 to account for the initial tick at t=0, ensuring the action fires exactly at 60,000ms (1 minute) as required by the IR."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

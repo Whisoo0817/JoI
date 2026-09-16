@@ -1,0 +1,62 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28520,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 426,
+   "prompt_tokens": 7659,
+   "total_tokens": 8085,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.185670137405396,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 15000 ms (15s) wrapper period to count the 30s sustain duration. At t=0, the condition is true, incrementing `hold_ticks` to 1. The next iteration occurs at t=15000, incrementing `hold_ticks` to 2. The threshold `hold_ticks >= 30` is never reached within the 30s window because the counter only increments every 15s. The IR requires a fine-grained counter (period 100ms) to detect the 30s duration correctly.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script logic\"],\n    \"change_summary\": \"Changed `period` to 100 and replaced the 15s wrapper with a 100ms hold counter. The 30s duration now requires 301 ticks (threshold 301) to fire. The cycle body (call speaker) and the 15s delay between repetitions are now executed inside the hold block after the threshold is met, preserving the IR's sequence and timing.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nn := 0\\nif ((#Back_Door).contactSensor_contact == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        delay(15 SEC)\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nn := 0\nif ((#Back_Door).contactSensor_contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        delay(15 SEC)\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 15000 ms (15s) wrapper period to count the 30s sustain duration. At t=0, the condition is true, incrementing `hold_ticks` to 1. The next iteration occurs at t=15000, incrementing `hold_ticks` to 2. The threshold `hold_ticks >= 30` is never reached within the 30s window because the counter only increments every 15s. The IR requires a fine-grained counter (period 100ms) to detect the 30s duration correctly.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script logic"
+  ],
+  "change_summary": "Changed `period` to 100 and replaced the 15s wrapper with a 100ms hold counter. The 30s duration now requires 301 ticks (threshold 301) to fire. The cycle body (call speaker) and the 15s delay between repetitions are now executed inside the hold block after the threshold is met, preserving the IR's sequence and timing."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 5,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

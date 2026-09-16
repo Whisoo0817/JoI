@@ -1,0 +1,62 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 30094,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 640,
+   "prompt_tokens": 8414,
+   "total_tokens": 9054,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 5.344255208969116,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 30-second sustain window (300 ticks at 100ms), but the candidate uses a 1000ms wrapper period with a threshold of 30. This causes the action to fire after 30 seconds of a 1000ms cycle (30,000ms), whereas the IR expects it at exactly 30,000ms from start but with the correct counting logic on the 100ms grid. The primary error is the wrapper period being 1000 instead of 100, which prevents the candidate from seeing the condition's state at the precise 100ms intervals required to count 300 ticks correctly. Additionally, the threshold logic `hold_ticks >= 30` with a 1000ms period counts 30 iterations (30 seconds), but if the condition is true at t=0, the first tick is counted then, so the action should fire after 30 full 100ms intervals (3000ms for a 3s wait, or 30000ms for 30s). The candidate's period of 1000ms makes the timing granularity too coarse to match the IR's implied 100ms sustain measurement accurately, and the threshold value of 30 corresponds to 30 seconds only if the period were 1000ms, but the IR's `for: 30 SEC` implies a count of 300 ticks at 100ms. The accepted pattern for `wait(C, for: D)` is `period=100` and `threshold = D/100 + 1`.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold value in script\"],\n    \"change_summary\": \"Changed `period` from 1000 to 100 to align with the IR's implied 100ms sustain measurement grid. Updated the threshold from 30 to 301 (30 seconds / 100ms = 300 ticks; first tick at t=0, so action fires at tick 301) to ensure the condition is sustained for exactly 30 seconds before triggering the switch.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 30-second sustain window (300 ticks at 100ms), but the candidate uses a 1000ms wrapper period with a threshold of 30. This causes the action to fire after 30 seconds of a 1000ms cycle (30,000ms), whereas the IR expects it at exactly 30,000ms from start but with the correct counting logic on the 100ms grid. The primary error is the wrapper period being 1000 instead of 100, which prevents the candidate from seeing the condition's state at the precise 100ms intervals required to count 300 ticks correctly. Additionally, the threshold logic `hold_ticks >= 30` with a 1000ms period counts 30 iterations (30 seconds), but if the condition is true at t=0, the first tick is counted then, so the action should fire after 30 full 100ms intervals (3000ms for a 3s wait, or 30000ms for 30s). The candidate's period of 1000ms makes the timing granularity too coarse to match the IR's implied 100ms sustain measurement accurately, and the threshold value of 30 corresponds to 30 seconds only if the period were 1000ms, but the IR's `for: 30 SEC` implies a count of 300 ticks at 100ms. The accepted pattern for `wait(C, for: D)` is `period=100` and `threshold = D/100 + 1`.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold value in script"
+  ],
+  "change_summary": "Changed `period` from 1000 to 100 to align with the IR's implied 100ms sustain measurement grid. Updated the threshold from 30 to 301 (30 seconds / 100ms = 300 ticks; first tick at t=0, so action fires at tick 301) to ensure the condition is sustained for exactly 30 seconds before triggering the switch."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

@@ -1,0 +1,62 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 36539,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 363,
+   "prompt_tokens": 10245,
+   "total_tokens": 10608,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.812580585479736,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 60 ticks, causing the action to fire at 60,000 ms. The IR requires a 100 ms wrapper period and a threshold of 601 ticks to fire exactly at 60,000 ms (1 minute). The mismatch is confirmed by F2 showing an extra action at 59,000 ms, and F3 showing the incorrect threshold logic.\",\n    \"evidence_refs\": [\"F2\", \"F3\", \"F1\"],\n    \"changed_locations\": [\"period\", \"threshold\"],\n    \"change_summary\": \"Changed `period` from 1000 to 100 to align with the 100 ms input grid. Changed the threshold from 60 to 601 (calculated as 60000ms/100ms + 1) to ensure the action fires exactly after 60 seconds of sustained input, matching the IR's `for: 1 MIN` requirement.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 60 ticks, causing the action to fire at 60,000 ms. The IR requires a 100 ms wrapper period and a threshold of 601 ticks to fire exactly at 60,000 ms (1 minute). The mismatch is confirmed by F2 showing an extra action at 59,000 ms, and F3 showing the incorrect threshold logic.",
+  "evidence_refs": [
+   "F2",
+   "F3",
+   "F1"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold"
+  ],
+  "change_summary": "Changed `period` from 1000 to 100 to align with the 100 ms input grid. Changed the threshold from 60 to 601 (calculated as 60000ms/100ms + 1) to ensure the action fires exactly after 60 seconds of sustained input, matching the IR's `for: 1 MIN` requirement."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

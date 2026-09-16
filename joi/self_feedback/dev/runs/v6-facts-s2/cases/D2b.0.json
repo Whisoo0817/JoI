@@ -1,0 +1,62 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 36539,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 379,
+   "prompt_tokens": 10245,
+   "total_tokens": 10624,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.064647912979126,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute (60,000 ms) sustained wait before the action. The candidate uses a 1000 ms wrapper period and a threshold of 60 ticks. With a 1000 ms period, 60 ticks only covers 60 seconds, not 600 seconds. Additionally, the counting logic fires one tick too early if the condition is true at t=0. The correct approach requires a 100 ms wrapper and a threshold of 601 ticks (60,000 ms / 100 ms + 1).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"ir_timing_facts\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 ms to 100 ms to ensure the hold counter accurately measures the 1-minute duration. Updated the threshold from 60 to 601 to correctly represent 60,000 ms on the 100 ms grid, accounting for the initial tick at t=0.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute (60,000 ms) sustained wait before the action. The candidate uses a 1000 ms wrapper period and a threshold of 60 ticks. With a 1000 ms period, 60 ticks only covers 60 seconds, not 600 seconds. Additionally, the counting logic fires one tick too early if the condition is true at t=0. The correct approach requires a 100 ms wrapper and a threshold of 601 ticks (60,000 ms / 100 ms + 1).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "ir_timing_facts"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 ms to 100 ms to ensure the hold counter accurately measures the 1-minute duration. Updated the threshold from 60 to 601 to correctly represent 60,000 ms on the 100 ms grid, accounting for the initial tick at t=0."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

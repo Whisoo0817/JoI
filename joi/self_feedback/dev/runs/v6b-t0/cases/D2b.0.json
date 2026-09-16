@@ -1,0 +1,62 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 34842,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 378,
+   "prompt_tokens": 9811,
+   "total_tokens": 10189,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.717220544815063,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute (60,000 ms) sustained wait before acting. The candidate uses a 1000 ms period and a threshold of 60 ticks, which corresponds to only 60 seconds. The mismatch at 59000 ms (F2) shows the JoI acted too early because the threshold was calculated as D/period instead of D/period + 1. The correct threshold for 60000 ms on a 1000 ms grid is 601.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4\", \"threshold value\"],\n    \"change_summary\": \"Changed the threshold from 60 to 601. With a 1000 ms period, the first tick counts at t=0. To sustain for 60000 ms, the counter must reach 601 (covering ticks 0 through 600). The original 60 allowed the action to fire at t=59000 ms, violating the 1-minute requirement.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute (60,000 ms) sustained wait before acting. The candidate uses a 1000 ms period and a threshold of 60 ticks, which corresponds to only 60 seconds. The mismatch at 59000 ms (F2) shows the JoI acted too early because the threshold was calculated as D/period instead of D/period + 1. The correct threshold for 60000 ms on a 1000 ms grid is 601.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4",
+   "threshold value"
+  ],
+  "change_summary": "Changed the threshold from 60 to 601. With a 1000 ms period, the first tick counts at t=0. To sustain for 60000 ms, the counter must reach 601 (covering ticks 0 through 600). The original 60 allowed the action to fire at t=59000 ms, violating the 1-minute requirement."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 60000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

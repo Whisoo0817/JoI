@@ -1,0 +1,60 @@
+{
+ "id": "D7a",
+ "family": "argument",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24602,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 236,
+   "prompt_tokens": 6469,
+   "total_tokens": 6705,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 6.728357553482056,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies the action text as 'The living room is $t degrees', but the candidate outputs '거실 온도는 도입니다' (Korean). The binding slot for Speaker includes both 'Living_Speaker' and 'Kitchen_Speaker'; the IR action targets both, and the candidate correctly uses 'all(#Speaker)' for the targets, but the string literal argument must match the IR exactly.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 2 script\"],\n    \"change_summary\": \"Replaced the translated Korean string literal with the exact English string literal 'The living room is ' + t + ' degrees' required by the IR specification.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t = (#Living_Temp).temperatureSensor_temperature\\nall(#Speaker).speaker_speak(\\\"The living room is \\\" + t + \\\" degrees\\\")\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t = (#Living_Temp).temperatureSensor_temperature\nall(#Speaker).speaker_speak(\"The living room is \" + t + \" degrees\")"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies the action text as 'The living room is $t degrees', but the candidate outputs '거실 온도는 도입니다' (Korean). The binding slot for Speaker includes both 'Living_Speaker' and 'Kitchen_Speaker'; the IR action targets both, and the candidate correctly uses 'all(#Speaker)' for the targets, but the string literal argument must match the IR exactly.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 2 script"
+  ],
+  "change_summary": "Replaced the translated Korean string literal with the exact English string literal 'The living room is ' + t + ' degrees' required by the IR specification."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

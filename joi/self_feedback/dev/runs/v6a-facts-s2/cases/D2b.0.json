@@ -1,0 +1,63 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 34064,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 393,
+   "prompt_tokens": 9601,
+   "total_tokens": 9994,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.03695821762085,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute (60,000 ms) sustained wait for the condition to be false. The candidate uses a 1-second period and a threshold of 60 ticks. Since the first iteration at t=0 counts as tick 1, reaching 60 ticks only occurs after 59 seconds (59,000 ms), causing the action to fire 1 second early at 59,000 ms instead of 60,000 ms. Additionally, the IR is a one-shot sequence without a repeating cycle, so the `period` should be 0 and the `break` should be removed.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"period\", \"threshold logic\", \"break statement\"],\n    \"change_summary\": \"Changed `period` from 1000 to 0 to match the one-shot IR. Increased the tick threshold from 60 to 601 to ensure the condition is held for exactly 600 intervals (60,000 ms) before firing, accounting for the initial t=0 tick. Removed the `break` statement as the IR does not contain a cycle or stop condition.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute (60,000 ms) sustained wait for the condition to be false. The candidate uses a 1-second period and a threshold of 60 ticks. Since the first iteration at t=0 counts as tick 1, reaching 60 ticks only occurs after 59 seconds (59,000 ms), causing the action to fire 1 second early at 59,000 ms instead of 60,000 ms. Additionally, the IR is a one-shot sequence without a repeating cycle, so the `period` should be 0 and the `break` should be removed.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic",
+   "break statement"
+  ],
+  "change_summary": "Changed `period` from 1000 to 0 to match the one-shot IR. Increased the tick threshold from 60 to 601 to ensure the condition is held for exactly 600 intervals (60,000 ms) before firing, accounting for the initial t=0 tick. Removed the `break` statement as the IR does not contain a cycle or stop condition."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 60000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

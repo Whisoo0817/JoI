@@ -1,0 +1,63 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 29316,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 410,
+   "prompt_tokens": 8204,
+   "total_tokens": 8614,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.991969585418701,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 30, causing the action to fire after 30 seconds (30,000 ms). The IR requires the condition to be sustained for exactly 30 seconds (30,000 ms). Because the candidate's first iteration at t=0 counts as tick 1, reaching tick 30 happens at t=29,000 ms, which is 1 second too early. The IR's 30 SEC duration must be measured on a 100 ms grid where the threshold is 301 (30,000 ms / 100 + 1).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\", \"F4\"],\n    \"changed_locations\": [\"period\", \"threshold in line 4\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 ms and adjusted the hold threshold from 30 to 301. This ensures the action fires exactly at 30,000 ms (tick 301), matching the IR's 30 SEC sustain requirement. The logic remains a simple hold counter that resets on condition failure.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 30, causing the action to fire after 30 seconds (30,000 ms). The IR requires the condition to be sustained for exactly 30 seconds (30,000 ms). Because the candidate's first iteration at t=0 counts as tick 1, reaching tick 30 happens at t=29,000 ms, which is 1 second too early. The IR's 30 SEC duration must be measured on a 100 ms grid where the threshold is 301 (30,000 ms / 100 + 1).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3",
+   "F4"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold in line 4"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 ms and adjusted the hold threshold from 30 to 301. This ensures the action fires exactly at 30,000 ms (tick 301), matching the IR's 30 SEC sustain requirement. The logic remains a simple hold counter that resets on condition failure."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}
