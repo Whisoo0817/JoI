@@ -1,0 +1,75 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 13 * * *",
+    "period": 0,
+    "script": "all(#WindowCovering).windowCovering_upOrOpen()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 13 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#WindowCovering).windowCovering_upOrOpen()\"\n}",
+  "precision": {
+    "WindowCovering.UpOrOpen": [
+      "all(#WindowCovering)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "오후 1시에 블라인드를 모두 열어줘.",
+  "command_eng": "At 1 PM, open all blinds.",
+  "connected_devices": {
+    "Main_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Sub_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Sub",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Curtain": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Curtain",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 13 * * *"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.UpOrOpen",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "WindowCovering": [
+      "Main_Blind",
+      "Sub_Blind"
+    ]
+  },
+  "input_payload_sha256": "5a58fb117dcb260e8ba76837e08a95356e4f527d41a03208a097e10a72dab19f",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.5
+}

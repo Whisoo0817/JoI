@@ -1,0 +1,220 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Plug.Power < 5",
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "2 MIN",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Device is idle"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "Plug": [
+    "Office_Plug"
+   ],
+   "Speaker": [
+    "Office_Speaker"
+   ]
+  },
+  "device_inventory": {
+   "Office_Plug": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Office",
+     "Plug",
+     "Switch"
+    ]
+   },
+   "Office_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Office",
+     "Speaker"
+    ]
+   },
+   "Office_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Office",
+     "Camera"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold := 0\nif ((#Office_Plug).plug_power < 5) {\n    hold = hold + 1\n    if (hold >= 6001) {\n        n := 0\n        if (n >= 3) {\n            break\n        }\n        (#Office_Speaker).speaker_speak(\"Device is idle\")\n        n = n + 1\n        delay(2 MIN)\n    }\n} else {\n    hold = 0\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Office_Plug.power": -0.1
+     },
+     "held_ms": 0
+    },
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Office_Plug.power": -0.1
+     },
+     "held_ms": 600000
+    },
+    {
+     "at_ms": 600000,
+     "inputs": {
+      "Office_Plug.power": null
+     },
+     "held_ms": 100
+    },
+    {
+     "at_ms": 600100,
+     "inputs": {
+      "Office_Plug.power": null
+     },
+     "held_ms": 119800
+    },
+    {
+     "at_ms": 719900,
+     "inputs": {
+      "Office_Plug.power": null
+     },
+     "held_ms": 100
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 720000,
+   "mismatch_kind": "joi_missing_action",
+   "ir_actions": [
+    {
+     "targets": [
+      "Office_Speaker"
+     ],
+     "call": "speaker.speak",
+     "args": [
+      "Device is idle"
+     ]
+    }
+   ],
+   "joi_actions": [],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "hold := 0"
+   },
+   {
+    "line": 2,
+    "text": "if ((#Office_Plug).plug_power < 5) {"
+   },
+   {
+    "line": 3,
+    "text": "    hold = hold + 1"
+   },
+   {
+    "line": 4,
+    "text": "    if (hold >= 6001) {"
+   },
+   {
+    "line": 5,
+    "text": "        n := 0"
+   },
+   {
+    "line": 6,
+    "text": "        if (n >= 3) {"
+   },
+   {
+    "line": 7,
+    "text": "            break"
+   },
+   {
+    "line": 8,
+    "text": "        }"
+   },
+   {
+    "line": 9,
+    "text": "        (#Office_Speaker).speaker_speak(\"Device is idle\")"
+   },
+   {
+    "line": 10,
+    "text": "        n = n + 1"
+   },
+   {
+    "line": 11,
+    "text": "        delay(2 MIN)"
+   },
+   {
+    "line": 12,
+    "text": "    }"
+   },
+   {
+    "line": 13,
+    "text": "} else {"
+   },
+   {
+    "line": 14,
+    "text": "    hold = 0"
+   },
+   {
+    "line": 15,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 10 MIN)",
+   "duration_ms": 600000,
+   "ticks_at_100ms": 6000,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "cycle(period 2 MIN)",
+   "period_ms": 120000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

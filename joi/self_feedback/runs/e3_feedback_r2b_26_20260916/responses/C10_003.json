@@ -1,0 +1,37 @@
+{
+ "id": "C10_003",
+ "request_sha256": "7933e4fc5b96c91863efa960178164e3d0443a7534d6d03d982297f6344a0a09",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 283,
+   "prompt_tokens": 6659,
+   "total_tokens": 6942,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 14.027116537094116,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR uses a slot `any` for HumiditySensor, requiring an existential quantifier (`<|`). The candidate used `all` (universal), which failed because `Bedroom_HumiditySensor.humidity` was null (unavailable), causing the condition to be false even though `LivingRoom_HumiditySensor.humidity` was 0.0. Evidence F2 confirms the JoI emitted no action while the IR did.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 1 operator\"],\n    \"change_summary\": \"Changed the comparison operator from `all(...).humiditySensor_humidity < 30` to `any(...).humiditySensor_humidity < 30|` to match the `any` binding slot. The `|` suffix ensures the condition is true if at least one device satisfies it, ignoring unavailable sensors.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until(any(#HumiditySensor).humiditySensor_humidity < 30|)\\ndelay(3 SEC)\\nall(#Speaker).speaker_speak(\\\"Humidity is low\\\")\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until(any(#HumiditySensor).humiditySensor_humidity < 30|)\ndelay(3 SEC)\nall(#Speaker).speaker_speak(\"Humidity is low\")"
+ },
+ "diagnosis": {
+  "summary": "The IR uses a slot `any` for HumiditySensor, requiring an existential quantifier (`<|`). The candidate used `all` (universal), which failed because `Bedroom_HumiditySensor.humidity` was null (unavailable), causing the condition to be false even though `LivingRoom_HumiditySensor.humidity` was 0.0. Evidence F2 confirms the JoI emitted no action while the IR did.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 1 operator"
+  ],
+  "change_summary": "Changed the comparison operator from `all(...).humiditySensor_humidity < 30` to `any(...).humiditySensor_humidity < 30|` to match the `any` binding slot. The `|` suffix ensures the condition is true if at least one device satisfies it, ignoring unavailable sensors."
+ },
+ "status": "REVISED"
+}

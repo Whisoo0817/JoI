@@ -1,0 +1,203 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "15 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Light.MoveToBrightness",
+     "args": {
+      "Brightness": 20.0,
+      "Rate": 0.0
+     }
+    },
+    {
+     "op": "delay",
+     "duration": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "PresenceSensor": [
+    "Study_Presence"
+   ],
+   "Light": [
+    "Study_Light"
+   ],
+   "Switch": [
+    "Study_Light"
+   ]
+  },
+  "device_inventory": {
+   "Study_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Study",
+     "PresenceSensor"
+    ]
+   },
+   "Study_Light": {
+    "category": [
+     "Light",
+     "Switch"
+    ],
+    "tags": [
+     "Study",
+     "Light",
+     "Switch"
+    ]
+   },
+   "Office_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Office",
+     "PresenceSensor"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Study_Presence).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 901) {\n(#Study_Light).light_moveToBrightness(20.0, 0.0)\n        delay(10 MIN)\n(#Study_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Study_Presence.presence": false
+     },
+     "held_ms": 0
+    },
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Study_Presence.presence": false
+     },
+     "held_ms": 89900
+    },
+    {
+     "at_ms": 89900,
+     "inputs": {
+      "Study_Presence.presence": false
+     },
+     "held_ms": 100
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 90000,
+   "mismatch_kind": "joi_extra_action",
+   "ir_actions": [],
+   "joi_actions": [
+    {
+     "targets": [
+      "Study_Light"
+     ],
+     "call": "light.movetobrightness",
+     "args": [
+      20,
+      0
+     ]
+    }
+   ],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "hold_ticks := 0"
+   },
+   {
+    "line": 2,
+    "text": "if ((#Study_Presence).presenceSensor_presence == false) {"
+   },
+   {
+    "line": 3,
+    "text": "hold_ticks = hold_ticks + 1"
+   },
+   {
+    "line": 4,
+    "text": "    if (hold_ticks >= 901) {"
+   },
+   {
+    "line": 5,
+    "text": "(#Study_Light).light_moveToBrightness(20.0, 0.0)"
+   },
+   {
+    "line": 6,
+    "text": "        delay(10 MIN)"
+   },
+   {
+    "line": 7,
+    "text": "(#Study_Light).switch_off()"
+   },
+   {
+    "line": 8,
+    "text": "        break"
+   },
+   {
+    "line": 9,
+    "text": "}"
+   },
+   {
+    "line": 10,
+    "text": "}"
+   },
+   {
+    "line": 11,
+    "text": "else {"
+   },
+   {
+    "line": 12,
+    "text": "hold_ticks = 0"
+   },
+   {
+    "line": 13,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 15 MIN)",
+   "duration_ms": 900000,
+   "ticks_at_100ms": 9000,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "delay(10 MIN)",
+   "duration_ms": 600000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

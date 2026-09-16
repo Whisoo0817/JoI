@@ -1,0 +1,120 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (triggered == true) {\n    wait until((#LivingRoom_MB).multiButton_button4 == \"pushed\")\n    triggered = false\n}\nwait until((#LivingRoom_MB).multiButton_button4 == \"pushed\")\ntmp = (#LivingRoom_Light).levelControl_currentLevel - 15\nif (tmp < 10) {\n    tmp = 10\n}\n(#LivingRoom_Light).levelControl_moveToLevel(tmp, 0.0)\ntriggered = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until((#LivingRoom_MB).multiButton_button4 == \\\"pushed\\\")\\n    triggered = false\\n}\\nwait until((#LivingRoom_MB).multiButton_button4 == \\\"pushed\\\")\\ntmp = (#LivingRoom_Light).levelControl_currentLevel - 15\\nif (tmp < 10) {\\n    tmp = 10\\n}\\n(#LivingRoom_Light).levelControl_moveToLevel(tmp, 0.0)\\ntriggered = true\"}",
+  "precision": {
+    "MultiButton.Button4": [
+      "(#LivingRoom_MB)"
+    ],
+    "LevelControl.MoveToLevel": [
+      "(#LivingRoom_Light)"
+    ],
+    "LevelControl.CurrentLevel": [
+      "(#LivingRoom_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "멀티버튼의 버튼4가 눌릴 때마다 거실 조명 밝기를 15씩 낮춰줘. 최소 10까지.",
+  "command_eng": "Whenever button 4 of the multi-button is pressed, decrease the living room light brightness by 15, down to a minimum of 10.",
+  "connected_devices": {
+    "LivingRoom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MultiButton.Button4 == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "LevelControl.MoveToLevel",
+            "args": {
+              "Level": "max($LevelControl.CurrentLevel - 15, 10)",
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "MultiButton": [
+      "LivingRoom_MB"
+    ],
+    "LevelControl": [
+      "LivingRoom_Light"
+    ]
+  },
+  "input_payload_sha256": "d44059e7c58dd6316ee96802a55e344780821e03f79c794f027881888b4c8065",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 3.2,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

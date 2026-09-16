@@ -1,0 +1,101 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (triggered == true) {\n    wait until((#Up_Light).light_currentBrightness > 0)\n    triggered = false\n}\nwait until((#Up_Light).light_currentBrightness > 0)\n(#Up_Light).light_movetobrightness(100, 0)\ntriggered = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until((#Up_Light).light_currentBrightness > 0)\\n    triggered = false\\n}\\nwait until((#Up_Light).light_currentBrightness > 0)\\n(#Up_Light).light_movetobrightness(100, 0)\\ntriggered = true\"}",
+  "precision": {
+    "Light.CurrentBrightness": [
+      "(#Up_Light)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Down_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "상단부에 있는 조명이 켜질 때마다, 하단부에 있는 조명도 켜줘.",
+  "command_eng": "Whenever a light in the upper part is turned on, turn on a light in the lower part as well.",
+  "connected_devices": {
+    "Up_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Top",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Down_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bottom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Mid_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Middle",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Light.CurrentBrightness > 0",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "Light": [
+      "Up_Light"
+    ],
+    "Light#2": [
+      "Down_Light"
+    ]
+  },
+  "input_payload_sha256": "5404edc4866aa8ce2003ef4694ac9f8158eda7134ebf61d3d7f1e9dec5e2523f",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.4,
+  "feedback_repair": {
+    "run_id": "e3_feedback_r2b_26_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-feedback-v1"
+  }
+}

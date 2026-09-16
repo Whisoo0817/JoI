@@ -1,0 +1,37 @@
+{
+ "id": "C14_004",
+ "request_sha256": "81f483d764a3d1bbaee0e1376ae6c9d805e2e53089891363d766b9adb59d7efe",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 374,
+   "prompt_tokens": 6796,
+   "total_tokens": 7170,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 12.345386028289795,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a rising-edge wait on the MotionSensor group (any of Entrance or Garage). The candidate uses a blocking wait at the start of the cycle body, which fails to fire if the condition is already true at t=0. Evidence F2 shows the IR emitted the brightness call at t=0, but the JoI emitted nothing because the wait blocked execution. The fix implements the rising-edge state machine: check if already fired, wait for false if so, then wait for true, execute body, and mark fired.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the initial blocking wait with a rising-edge state machine using a persistent 'fired' flag. This ensures the action fires immediately if the condition is true at start, and correctly re-arms for future rising edges. The operator '==' is preserved as the binding slot is 'any', but the logic now correctly handles the initial state.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\nwait until(not (all(#MotionSensor).motionSensor_motion == true))\\nfired = false\\n}\\nwait until(all(#MotionSensor).motionSensor_motion == true)\\n(#Living_Light).light_movetobrightness((#Living_Light).light_currentBrightness + 10, 0)\\nif ((#Living_Light).light_currentBrightness >= 100) {\\nbreak\\n}\\nfired = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\nwait until(not (all(#MotionSensor).motionSensor_motion == true))\nfired = false\n}\nwait until(all(#MotionSensor).motionSensor_motion == true)\n(#Living_Light).light_movetobrightness((#Living_Light).light_currentBrightness + 10, 0)\nif ((#Living_Light).light_currentBrightness >= 100) {\nbreak\n}\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a rising-edge wait on the MotionSensor group (any of Entrance or Garage). The candidate uses a blocking wait at the start of the cycle body, which fails to fire if the condition is already true at t=0. Evidence F2 shows the IR emitted the brightness call at t=0, but the JoI emitted nothing because the wait blocked execution. The fix implements the rising-edge state machine: check if already fired, wait for false if so, then wait for true, execute body, and mark fired.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the initial blocking wait with a rising-edge state machine using a persistent 'fired' flag. This ensures the action fires immediately if the condition is true at start, and correctly re-arms for future rising edges. The operator '==' is preserved as the binding slot is 'any', but the logic now correctly handles the initial state."
+ },
+ "status": "REVISED"
+}

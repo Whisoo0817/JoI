@@ -1,0 +1,38 @@
+{
+ "id": "C07_024",
+ "request_sha256": "2ad9acfc315b8e685b4ce052d363cb3d00b8a053d5878bf160b612cc255a69eb",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 336,
+   "prompt_tokens": 6736,
+   "total_tokens": 7072,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 3.0443036556243896,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait on PresenceSensor.Presence. At t=0, Hallway_PresenceSensor_2 is already true (F1), so the rising edge has fired immediately. The IR executes the body at t=0. The candidate's guard `if (triggered == true)` is false initially, causing it to block on the wait until the condition becomes false (line 3), missing the immediate action required by the rising edge at t=0.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic polling pattern with the standard rising-edge rearming pattern: initialize `fired := false`, check if `fired` is true to block until the condition drops, then block until the condition rises, execute the body, and set `fired = true`. This ensures the body executes immediately if the condition is already true at start.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\nwait until(not (all(#PresenceSensor).presenceSensor_presence == true))\\nfired = false\\n}\\nwait until(all(#PresenceSensor).presenceSensor_presence == true)\\nall(#ColorControl).colorControl_setColor(\\\"purple\\\")\\nfired = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\nwait until(not (all(#PresenceSensor).presenceSensor_presence == true))\nfired = false\n}\nwait until(all(#PresenceSensor).presenceSensor_presence == true)\nall(#ColorControl).colorControl_setColor(\"purple\")\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait on PresenceSensor.Presence. At t=0, Hallway_PresenceSensor_2 is already true (F1), so the rising edge has fired immediately. The IR executes the body at t=0. The candidate's guard `if (triggered == true)` is false initially, causing it to block on the wait until the condition becomes false (line 3), missing the immediate action required by the rising edge at t=0.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic polling pattern with the standard rising-edge rearming pattern: initialize `fired := false`, check if `fired` is true to block until the condition drops, then block until the condition rises, execute the body, and set `fired = true`. This ensures the body executes immediately if the condition is already true at start."
+ },
+ "status": "REVISED"
+}

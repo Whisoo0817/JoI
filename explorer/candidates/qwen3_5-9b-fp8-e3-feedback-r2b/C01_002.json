@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Camera).camera_captureVideo(300.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Camera).camera_captureVideo(300.0)\"\n}",
+  "precision": {
+    "Camera.CaptureVideo": [
+      "all(#Camera)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "카메라로 5분짜리 영상을 녹화해줘.",
+  "command_eng": "Record a 5-minute video with the camera.",
+  "connected_devices": {
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Camera.CaptureVideo",
+        "args": {
+          "Duration": 300.0
+        }
+      }
+    ]
+  },
+  "binding": {
+    "Camera": [
+      "Entrance_Camera",
+      "Garage_Camera"
+    ]
+  },
+  "input_payload_sha256": "975cc82cdc1cb8c28ab12575ffbc28fe9d77f8b98de769acecc43498624c0c5c",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.3
+}

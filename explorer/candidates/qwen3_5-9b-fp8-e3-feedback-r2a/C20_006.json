@@ -1,0 +1,106 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#Bedroom_MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 601) {\n(#Bedroom_FloorLamp).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 100, \"script\": \"hold_ticks := 0\\nif ((#Bedroom_MotionSensor).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 601) {\\n(#Bedroom_FloorLamp).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#Bedroom_MotionSensor)"
+    ],
+    "Switch.Off": [
+      "(#Bedroom_FloorLamp)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "침실에 1분 이상 움직임이 감지되지 않으면 침실 스탠드 플러그를 꺼줘.",
+  "command_eng": "If no motion is detected in the bedroom for at least 1 minute, turn off the bedroom floor lamp plug.",
+  "connected_devices": {
+    "Bedroom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "MotionSensor"
+      ]
+    },
+    "LivingRoom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MotionSensor"
+      ]
+    },
+    "Bedroom_FloorLamp": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "FloorLamp"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == false",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "MotionSensor": [
+      "Bedroom_MotionSensor"
+    ],
+    "Switch": [
+      "Bedroom_FloorLamp"
+    ]
+  },
+  "input_payload_sha256": "0ae7c8eff99f3e5010a1c9f7404ca6bad3610e5b166d03f00ae9a24b410d1690",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

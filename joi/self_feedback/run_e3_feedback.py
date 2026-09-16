@@ -18,6 +18,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -32,7 +33,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(HERE))
 from repair_core import feedback, call_model, parse_block, build_payload, render_payload  # noqa: E402
 
-PROTOCOL = HERE / "protocol_e3_feedback_v1.json"
+PROTOCOL = HERE / os.environ.get("FEEDBACK_PROTOCOL", "protocol_e3_feedback_v1.json")
 FC = ROOT / "explorer" / "eval" / "frozen_contract.py"
 
 
@@ -64,7 +65,7 @@ def preflight(args):
         raise SystemExit("baseline case_outcomes.jsonl changed")
     outcomes = {json.loads(l)["id"]: json.loads(l) for l in (base / "case_outcomes.jsonl").open()}
     ids = p["population"]["case_ids"]
-    assert len(ids) == 68 and all(outcomes[i]["status"] == "DIVERGE_CONFIRMED" for i in ids)
+    assert len(ids) == p["population"]["n"] and all(outcomes[i]["status"] == "DIVERGE_CONFIRMED" for i in ids)
     src_dir = ROOT / p["baseline"]["candidates"]
     for cid, digest in p["population"]["candidate_sha256"].items():
         if sha(src_dir / f"{cid}.json") != digest:
@@ -186,7 +187,7 @@ def evaluate(args):
     mf = json.loads(full.read_text())
     ids = set(p["population"]["case_ids"])
     mf["cases"] = [c for c in mf["cases"] if c["id"] in ids]
-    mf["subset"] = "the 68 DIVERGE_CONFIRMED cases of the E3 final run; other 314 cases unchanged and not re-run"
+    mf["subset"] = p["population"].get("subset_note", "the DIVERGE_CONFIRMED cases of the baseline run; the other cases are unchanged and not re-run")
     sub = res / f"{stem}_manifest.json"
     sub.write_text(json.dumps(mf, ensure_ascii=False, indent=2) + "\n")
     run_dir = res / f"{stem}_run"

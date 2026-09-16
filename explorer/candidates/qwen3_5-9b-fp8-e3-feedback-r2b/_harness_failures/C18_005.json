@@ -1,0 +1,99 @@
+{
+  "status": "error",
+  "error_code": "confirmed_service_resolution",
+  "error_msg": "Cannot resolve confirmed skill for (#Clock).Weekday: []",
+  "command_kor": "주말 동안 공장의 모든 펌프를 30분마다 확인해서, 켜진 펌프가 하나라도 있으면 모두 꺼주고 \"test@example.com\"에게 \"위험\" 제목으로 \"펌프가 켜졌습니다\"라는 내용의 메일 보내줘.",
+  "command_eng": "Every 30 minutes during weekends, check all pumps in the factory; if any one is turned on, turn off all pumps and send an email to \"test@example.com\" with the subject 'Risk' and message 'A pump is turned on'.",
+  "connected_devices": {
+    "Fac_Pump_1": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Factory",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Fac_Pump_2": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Factory",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Office_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "EmailProvider": {
+      "category": [
+        "EmailProvider"
+      ],
+      "tags": [
+        "EmailProvider"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * 6"
+      },
+      {
+        "op": "cycle",
+        "until": "Clock.Weekday == \"monday\"",
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Switch.Switch == true",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              },
+              {
+                "op": "call",
+                "target": "EmailProvider.SendMail",
+                "args": {
+                  "ToAddress": "test@example.com",
+                  "Title": "Risk",
+                  "Body": "A pump is turned on"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "Switch": [
+      "Fac_Pump_1"
+    ],
+    "EmailProvider": [
+      "EmailProvider"
+    ]
+  },
+  "input_payload_sha256": "d831d4460b540329b32cb74c5b86ea60ca08a60e5220965c32a0bf0b5c2fdbd3",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4",
+  "elapsed_sec": 2.5
+}

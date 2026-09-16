@@ -1,0 +1,169 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "AirQualitySensor.FineDustLevel > 80",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "high"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "AirQualitySensor": {
+    "any": [
+     "Living_AQ",
+     "Bedroom_AQ"
+    ]
+   },
+   "AirPurifier": [
+    "Living_AP",
+    "Bedroom_AP"
+   ]
+  },
+  "device_inventory": {
+   "Living_AQ": {
+    "category": [
+     "AirQualitySensor"
+    ],
+    "tags": [
+     "Living",
+     "AirQualitySensor"
+    ]
+   },
+   "Bedroom_AQ": {
+    "category": [
+     "AirQualitySensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "AirQualitySensor"
+    ]
+   },
+   "Living_AP": {
+    "category": [
+     "AirPurifier"
+    ],
+    "tags": [
+     "Living",
+     "AirPurifier"
+    ]
+   },
+   "Bedroom_AP": {
+    "category": [
+     "AirPurifier"
+    ],
+    "tags": [
+     "Bedroom",
+     "AirPurifier"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel <= 80)\ntriggered = false\n}\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel > 80)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\ntriggered = true"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Bedroom_AQ.finedustlevel": null,
+      "Living_AQ.finedustlevel": 80.1
+     },
+     "held_ms": 0
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 0,
+   "mismatch_kind": "joi_missing_action",
+   "ir_actions": [
+    {
+     "targets": [
+      "Bedroom_AP",
+      "Living_AP"
+     ],
+     "call": "airpurifier.setairpurifiermode",
+     "args": [
+      "high"
+     ]
+    }
+   ],
+   "joi_actions": [],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "triggered := false"
+   },
+   {
+    "line": 2,
+    "text": "if (triggered == true) {"
+   },
+   {
+    "line": 3,
+    "text": "wait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel <= 80)"
+   },
+   {
+    "line": 4,
+    "text": "triggered = false"
+   },
+   {
+    "line": 5,
+    "text": "}"
+   },
+   {
+    "line": 6,
+    "text": "wait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel > 80)"
+   },
+   {
+    "line": 7,
+    "text": "all(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")"
+   },
+   {
+    "line": 8,
+    "text": "triggered = true"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

@@ -1,0 +1,109 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#FrontContactSensor_ContactSensor).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n(#LivingRoom_AC).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 100, \"script\": \"hold_ticks := 0\\nif ((#FrontContactSensor_ContactSensor).contactSensor_contact == true) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n(#LivingRoom_AC).switch_on()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#FrontContactSensor_ContactSensor)"
+    ],
+    "Switch.On": [
+      "(#LivingRoom_AC)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "현관문이 1분 이상 닫혀있으면 거실 에어컨 플러그를 켜줘.",
+  "command_eng": "If the front door stays closed for at least 1 minute, turn on the living room air conditioner plug.",
+  "connected_devices": {
+    "FrontContactSensor_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "BackContactSensor_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "BackDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "AC"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "ContactSensor": [
+      "FrontContactSensor_ContactSensor"
+    ],
+    "Switch": [
+      "LivingRoom_AC"
+    ]
+  },
+  "input_payload_sha256": "617b4de112fe3b074b6695d9320343523e9c75006e78638b9a5914a544d47457",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

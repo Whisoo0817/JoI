@@ -1,0 +1,71 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#DoorLock).doorLock_lock()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#DoorLock).doorLock_lock()\"\n}",
+  "precision": {
+    "DoorLock.Lock": [
+      "all(#DoorLock)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "창고의 모든 도어락을 잠궈줘.",
+  "command_eng": "Lock all door locks in the storage.",
+  "connected_devices": {
+    "Storage_Lock_1": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Storage",
+        "DoorLock"
+      ]
+    },
+    "Storage_Lock_2": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Storage",
+        "DoorLock"
+      ]
+    },
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "DoorLock.Lock",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "DoorLock": [
+      "Storage_Lock_1",
+      "Storage_Lock_2"
+    ]
+  },
+  "input_payload_sha256": "73537e44a1aa987e685b30f5f4e3be1f22e952b16bee51d178d547213920825d",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.2
+}

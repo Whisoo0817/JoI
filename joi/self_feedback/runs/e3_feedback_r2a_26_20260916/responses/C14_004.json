@@ -1,0 +1,37 @@
+{
+ "id": "C14_004",
+ "request_sha256": "79e3770ec7b2e028cc9723a2aa6a4323982e031047b281366917b5dff8a8e494",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 381,
+   "prompt_tokens": 6558,
+   "total_tokens": 6939,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 11.525846481323242,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a rising-edge wait for MotionSensor.Motion. The candidate uses a blocking wait on the rising edge, which prevents the script from starting if the condition is already true at t=0. Evidence F2 shows the IR emitted an action at t=0 while the JoI emitted none, confirming the JoI failed to fire on the initial state. The fix is to use the general repeating-edge state machine: check if the edge has fired, wait for it to go false if it has, then wait for it to go true, execute the body, and mark it fired.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the single blocking wait with a state-machine pattern that handles the initial true state (firing immediately) and subsequent rising edges (waiting for a transition from true to false then back to true). This preserves the IR's rising-edge semantics and ensures the action fires at t=0 when the input is initially true.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\nwait until(not (all(#MotionSensor).motionSensor_motion == true))\\nfired = false\\n}\\nwait until(all(#MotionSensor).motionSensor_motion == true)\\n(#Living_Light).light_movetobrightness((#Living_Light).light_currentBrightness + 10, 0)\\nif ((#Living_Light).light_currentBrightness >= 100) {\\nbreak\\n}\\nfired = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\nwait until(not (all(#MotionSensor).motionSensor_motion == true))\nfired = false\n}\nwait until(all(#MotionSensor).motionSensor_motion == true)\n(#Living_Light).light_movetobrightness((#Living_Light).light_currentBrightness + 10, 0)\nif ((#Living_Light).light_currentBrightness >= 100) {\nbreak\n}\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a rising-edge wait for MotionSensor.Motion. The candidate uses a blocking wait on the rising edge, which prevents the script from starting if the condition is already true at t=0. Evidence F2 shows the IR emitted an action at t=0 while the JoI emitted none, confirming the JoI failed to fire on the initial state. The fix is to use the general repeating-edge state machine: check if the edge has fired, wait for it to go false if it has, then wait for it to go true, execute the body, and mark it fired.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the single blocking wait with a state-machine pattern that handles the initial true state (firing immediately) and subsequent rising edges (waiting for a transition from true to false then back to true). This preserves the IR's rising-edge semantics and ensures the action fires at t=0 when the input is initially true."
+ },
+ "status": "REVISED"
+}

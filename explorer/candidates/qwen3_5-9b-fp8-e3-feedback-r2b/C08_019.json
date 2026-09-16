@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "fired := false\nif (fired == true) {\n    wait until((#Home_WeatherProvider).weatherProvider_weather == \"rain\")\n    fired = false\n}\nwait until((#Home_WeatherProvider).weatherProvider_weather != \"rain\")\nall(#WindowCovering).windowCovering_upOrOpen()\nfired = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Home_WeatherProvider).weatherProvider_weather == \\\"rain\\\")\\n    fired = false\\n}\\nwait until((#Home_WeatherProvider).weatherProvider_weather != \\\"rain\\\")\\nall(#WindowCovering).windowCovering_upOrOpen()\\nfired = true\"}",
+  "precision": {
+    "WeatherProvider.Weather": [
+      "(#Home_WeatherProvider)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#WindowCovering)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "비가 그칠 때마다 창문을 열어줘.",
+  "command_eng": "Whenever the rain stops, open the window.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Main_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WeatherProvider.Weather != \"rain\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "WeatherProvider": [
+      "Home_WeatherProvider"
+    ],
+    "WindowCovering": [
+      "Main_Window",
+      "Bedroom_Window"
+    ]
+  },
+  "input_payload_sha256": "7996751ad9035bcc3c8af1ef8d8aad1a83cf64357331f9fedd40ef842d79eebb",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.0,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

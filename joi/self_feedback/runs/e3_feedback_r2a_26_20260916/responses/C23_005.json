@@ -1,0 +1,38 @@
+{
+ "id": "C23_005",
+ "request_sha256": "b6d82a9496b62733164166f0f8c006d8e973c794a558528700a8419248d83fe7",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 461,
+   "prompt_tokens": 6816,
+   "total_tokens": 7277,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 16.392765998840332,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 3-minute (180,000 ms) sustained wait for `Motion == false`. The candidate uses a 100 ms wrapper with a threshold of 181 ticks, which corresponds to 18,100 ms. This causes the action to fire at ~18 seconds instead of 3 minutes. The evidence F2 confirms the action fired at 18,000 ms when the IR expected nothing. The threshold must be 1801 to count 181 full 100 ms intervals (0 to 1800) plus the final check, or simply 1801 to ensure the duration exceeds 180,000 ms given the initial tick counts as 1.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4: hold_ticks >= 181\"],\n    \"change_summary\": \"Changed the hold threshold from 181 to 1801. With a 100 ms period, 1801 ticks represent 180,100 ms, ensuring the condition is sustained for the required 3 minutes (180,000 ms) before the action executes. The structure remains a top-level `wait` with a counter, matching the IR's `wait(cond, for: D)` pattern.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Hallway_Motion).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 1801) {\\n(#Hallway_Light).light_moveToBrightness(50, 0)\\n        delay(2 MIN)\\n(#Hallway_Light).switch_off()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Hallway_Motion).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1801) {\n(#Hallway_Light).light_moveToBrightness(50, 0)\n        delay(2 MIN)\n(#Hallway_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 3-minute (180,000 ms) sustained wait for `Motion == false`. The candidate uses a 100 ms wrapper with a threshold of 181 ticks, which corresponds to 18,100 ms. This causes the action to fire at ~18 seconds instead of 3 minutes. The evidence F2 confirms the action fired at 18,000 ms when the IR expected nothing. The threshold must be 1801 to count 181 full 100 ms intervals (0 to 1800) plus the final check, or simply 1801 to ensure the duration exceeds 180,000 ms given the initial tick counts as 1.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4: hold_ticks >= 181"
+  ],
+  "change_summary": "Changed the hold threshold from 181 to 1801. With a 100 ms period, 1801 ticks represent 180,100 ms, ensuring the condition is sustained for the required 3 minutes (180,000 ms) before the action executes. The structure remains a top-level `wait` with a counter, matching the IR's `wait(cond, for: D)` pattern."
+ },
+ "status": "REVISED"
+}

@@ -16,5 +16,7 @@ reset by the author after an error; this directory is the rebuilt, smaller versi
 - `e3_68_divergence_types.json` — per-case divergence type from the 2026-09-15 audit (reporting only).
 - `runs/` — E3 feedback runs (evidence payloads, raw responses, summaries). `runs/harness_check_*`
   evaluated the unrepaired copy through the same pipeline before any model call.
+- `RESULTS_E3_FEEDBACK_ROUND2_2026-09-16.md` — round 2 on the 26 still-rejected cases: **40/68**
+  with the unchanged prompt; a second exploratory arm with the quantifier rules reaches 42/68.
 - `RESULTS_E3_FEEDBACK_2026-09-16.md` — the 68-case run (`runs/e3_feedback_68_20260916`):
   **36/68 EQUIV-FIXPOINT**, cost, and why the other 32 did not make it.

@@ -1,0 +1,137 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "wait until(any(#LeakSensor).leakSensor_leakage == true)\nall(#Valve).valve_close()\nall(#Speaker).speaker_speak(\"Leak detected. Please evacuate.\")"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 60000, \"script\": \"wait until(any(#LeakSensor).leakSensor_leakage == true)\\nall(#Valve).valve_close()\\nall(#Speaker).speaker_speak(\\\"Leak detected. Please evacuate.\\\")\"}",
+  "precision": {
+    "LeakSensor.Leakage": [
+      "any(#LeakSensor)"
+    ],
+    "Valve.Close": [
+      "all(#Valve)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "누수가 감지되면 즉시 밸브를 잠그고, 그 이후로 1분마다 스피커로 \"누수가 감지되었습니다. 대피하세요\"라고 출력해줘.",
+  "command_eng": "When a leak is detected, close the valve immediately and then speak \"Leak detected. Please evacuate.\" through the speaker every minute thereafter.",
+  "connected_devices": {
+    "Basement_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Basement",
+        "LeakSensor"
+      ]
+    },
+    "Kitchen_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "LeakSensor"
+      ]
+    },
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "LeakSensor.Leakage == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Valve.Close",
+        "args": {}
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Leak detected. Please evacuate."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "LeakSensor": {
+      "any": [
+        "Basement_Leak",
+        "Kitchen_Leak"
+      ]
+    },
+    "Valve": [
+      "Main_Valve",
+      "Garden_Valve"
+    ],
+    "Speaker": [
+      "Living_Speaker",
+      "Bedroom_Speaker"
+    ]
+  },
+  "input_payload_sha256": "f9e8534dd214e437a98e299f8a30c9c95775eb62c9da1655884ca21c2957f479",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.6,
+  "feedback_repair": {
+    "run_id": "e3_feedback_r2b_26_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-feedback-v1"
+  }
+}
