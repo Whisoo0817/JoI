@@ -108,8 +108,9 @@ def final_section(fin, pairs_src):
     rs = by_kind(fin)
     md = "## Final version (paper numbers)\n\n"
     md += ("Explorer with the semantics-preserving exploration optimizations (merged timer branch) under the binding "
-           "contract (`BINDING_DECISION_2026-09-14.md`). Reference outcomes are those of the binding-contract run "
-           "(reference code unchanged); every new Explorer witness was replayed on the reference. "
+           "contract (`BINDING_DECISION_2026-09-14.md`) and the uninitialized-variable rule (RUNTIME_CONTRACT R14, "
+           "author decision 2026-09-16). Reference outcomes are those of the binding-contract run, with the "
+           "reference side recomputed under R14; every new Explorer witness was replayed on the reference. "
            "Rows: `runs/e2_run.timer-binding.jsonl`. Budget per pair: 120 s, 400,000 states, 2,000,000 transitions.\n\n")
     orig, supp = history_counts()
     md += f"Histories for the 140 pairs: {orig:,} original + {supp:,} supplementary = {orig + supp:,}.\n\n"
@@ -129,7 +130,8 @@ def final_section(fin, pairs_src):
     md += f"| &nbsp;&nbsp;EQUIV, no difference on the reference histories | {count('AGREE-EQUIV-ON-CHECKED')} |\n"
     md += f"| &nbsp;&nbsp;DIVERGE, difference on the reference histories | {count('AGREE-DIVERGE')} |\n"
     md += f"| &nbsp;&nbsp;DIVERGE, confirmed by replaying the Explorer witness | {count(CONFIRMED[2])} |\n"
-    md += f"| not confirmable: reference cannot run the JoI | {len(unconfirmable)} ({', '.join(unconfirmable)}) |\n"
+    if unconfirmable:
+        md += f"| not confirmable: reference cannot run the JoI | {len(unconfirmable)} ({', '.join(unconfirmable)}) |\n"
     md += f"| contradicted by the reference (false EQUIV / false DIVERGE) | {len(false)} |\n"
     md += f"| fault pairs with an observed difference | {len(obs)} |\n"
     md += (f"| of those: Explorer DIVERGE / EQUIV (missed) / undecided | "
@@ -138,10 +140,12 @@ def final_section(fin, pairs_src):
 
     wit = [r for r in dec if r["agreement"] == CONFIRMED[2]]
     md += "\nWitness-only confirmations (the reference histories showed no difference):\n\n"
-    md += ("- no reference history reached the diverging input: "
-           + ", ".join(r["pair_id"] for r in wit if r["reference"]["outcome"] == "REF-EQUIV-CHECKED") + "\n")
-    md += ("- the JoI reads a device value the histories do not supply (reference cannot run it on its histories): "
-           + ", ".join(r["pair_id"] for r in wit if r["reference"]["outcome"] == "REF-UNSUPPORTED-JOI") + "\n")
+    for label, outcome in (("no reference history reached the diverging input", "REF-EQUIV-CHECKED"),
+                           ("the JoI reads a device value the histories do not supply (reference cannot run it on "
+                            "its histories)", "REF-UNSUPPORTED-JOI")):
+        named = [r["pair_id"] for r in wit if r["reference"]["outcome"] == outcome]
+        if named:
+            md += f"- {label}: " + ", ".join(named) + "\n"
     unobs = sorted(r["pair_id"] for r in rs if r["kind"] == "fault" and r not in obs)
     md += (f"\nFault pairs without an observed difference ({len(unobs)}): {', '.join(unobs)} "
            "(both tools EQUIV or the Explorer undecided; no reference history or witness shows a difference).\n")

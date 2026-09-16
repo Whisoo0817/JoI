@@ -471,8 +471,11 @@ class CatalogRunner:
                     raise Unsupported('symbolic input violates non-null return contract: ' + key)
             else:
                 self.model.validate_value(value, spec, key)
+        from explorer.runtime import interp as interp_mod
         result = self.inner.step(vars_, gv, inputs, now_ms, first_tick)
         for action in result.actions:
+            if action.service == interp_mod.ERROR_ACTION_SERVICE:
+                continue        # R14 contract runtime error — an observable event, not a device command
             spec = self.model.resolve(action.service, action.method, 'function')
             domains = spec.get('arguments', [])
             if len(action.args) != len(domains):

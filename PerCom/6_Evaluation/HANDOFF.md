@@ -40,7 +40,7 @@
 - **모집단 140쌍** (`E2_fidelity/handoff_timer/e2_population.json`): 동결 142쌍에서 `C03_008/llm`(ACTION 위치 `any` = 구문 오류)과
   `C20_011/llm`(잘못된 service mapping)을 뺐다. 실행 파일의 142행은 그대로 둔다.
 - **최종 결과:**
-  - 판정 130 = 정답기 확인 129(이력에서 EQUIV 55 + DIVERGE 66, 반례 재생 8) + 확인 불가 1(C24_003). 어긋남 0.
+  - 판정 130 = 정답기 확인 130(이력에서 EQUIV 55 + DIVERGE 67, 반례 재생 8). 어긋남 0.
   - 관찰된 차이가 있는 오류 75쌍 → DIVERGE 69 / EQUIV 0 / 판정 못 함 6.
   - LLM 후보 38/38. 직접 만든 쌍 92/102, 요구 18/20.
   - 판정 못 함 10쌍: C07 5쌍(시간 예산 초과), E1-099 5쌍(사건 수에 따라 늘어나는 시한, 거절).
@@ -52,6 +52,11 @@
   - None 순서 비교 결정(현재판 정답기), 보강 이력 §9(`193203c`, 정답기 실행 전에 커밋).
   - 바인딩 계약 `BINDING_DECISION_2026-09-14.md`(B1/B2/B5, `3b728e4`): 두 도구에 반영, 재실행 `run_binding_v1.py`·`run_binding_b5.py` → `runs/e2_run.binding-final.jsonl`.
   - 탐색 최적화(Codex, `timer-regions-20260914`, 병합 `24d7b1a`) → `run_timer_binding.py` → `runs/e2_run.timer-binding.jsonl`. 인계 기록 `E2_fidelity/handoff_timer/`.
+  - R14 미초기화 변수 산술(whisoo 결정 2026-09-16, `explorer/docs/model/RUNTIME_CONTRACT.md`): 한 번도 대입되지 않은 변수를
+    산술에 쓰면 runtime error이고, 인스턴스는 멈추며 그 멈춤이 관찰 대상이다. Explorer(`runtime/interp.py`)와 정답기
+    (`reference/joi_ref.py`, `common.RefRuntime`, `run.py` status `runtime-error`) 양쪽에 넣었다. C24_003/llm 이 "정답기가
+    실행 못 함"에서 "정답기가 확인한 DIVERGE"로 바뀐 것이 전부다: 142쌍 definite-assignment 검사로 이 규칙에 닿는 다른 쌍이
+    없음을 확인했고, 정답기 A/B 재실행에서도 다른 쌍의 결과는 그대로였다. E3 382 입력도 닿는 코드가 없어 수치가 그대로다.
   - `0e76584`(바인딩된 `any` 동작 허용)은 2026-09-14 whisoo 결정으로 되돌렸다. `any` 는 조건문 안에서만 쓸 수 있고, Explorer 파서와 정답기(SPEC_GAPS G35) 모두 조건문 밖의 `any`(ACTION·대입·인자)를 구문 오류로 거절한다.
 - Timeline IR 절·Limitations 절로 보낼 E2 항목은 각 절 HANDOFF 에 적었다.
 

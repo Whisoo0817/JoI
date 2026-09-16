@@ -1,6 +1,6 @@
 """E2 independent reference — JoI interpreter over the ANTLR parse tree of lowering/parser/JOILang.g4.
 
-Semantics from docs/JOI_SPEC.md, files/joi_common.md, RUNTIME_CONTRACT R1–R13, VERIFICATION_CONTRACT,
+Semantics from docs/JOI_SPEC.md, files/joi_common.md, RUNTIME_CONTRACT R1–R14, VERIFICATION_CONTRACT,
 SERVICE_MODEL, FRONTEND_CORRECTNESS §1–§3 and PROTOCOL_DRAFT S5–S11, L1. Open points: SPEC_GAPS.md.
 The parser is regenerated in reference/grammar/ from a copy of JOILang.g4 plus `%` (author decision, G11).
 """
@@ -9,8 +9,8 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from common import (Delay, Wait, DeviceSets, RefError, RefUnsupported, UNIT_MS, arith, check_typed, cmp_values,
-                    resolve_device_member)
+from common import (Delay, Wait, DeviceSets, RefError, RefRuntime, RefUnsupported, UNIT_MS, arith, check_typed,
+                    cmp_values, resolve_device_member)
 
 # Parser generated inside reference/grammar/ from a copy of lowering/parser/JOILang.g4 with `%` added at the
 # precedence of `*` and `/` (author decision 2026-09-14, SPEC_GAPS G11). The deployment grammar is not modified.
@@ -456,8 +456,18 @@ class JoiProgram:
                 raise RefUnsupported("set-valued-selector", f"{e[1]}(#{' #'.join(e[2])}).{e[3]} outside a comparison")
             return self.read_prop(rt, e[2], e[3])
         if k == "bin":
-            return arith(e[1], self.ev(rt, e[2]), self.ev(rt, e[3]))
+            a, b = self.ev(rt, e[2]), self.ev(rt, e[3])
+            if not (e[1] == "+" and (isinstance(a, str) or isinstance(b, str))):
+                self.check_assigned(e[1], e[2], e[3])      # R14: arithmetic, not `+` text concatenation
+            return arith(e[1], a, b)
         raise RefUnsupported("joi-expr", repr(e))
+
+    def check_assigned(self, op, *operands):
+        """R14: using a variable that has never been assigned as an operand of an arithmetic operation is a runtime
+        error. A missing non-BOOL input read (R10, value None) is not touched by this rule."""
+        for e in operands:
+            if e[0] == "var" and e[1] not in self.store:
+                raise RefRuntime("uninitialized-arith", f"{e[1]} {op} ... : {e[1]} was never assigned (R14)")
 
     def ev_cond(self, rt, c):
         k = c[0]

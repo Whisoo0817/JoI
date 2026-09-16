@@ -148,6 +148,35 @@ class _Break(Exception):
     pass
 
 
+class _RuntimeError(Exception):
+    """RUNTIME_CONTRACT R14: an arithmetic operation whose operand is a variable that was never assigned. The
+    instance stops here for good and the stop is observable (ERROR_ACTION is appended to the trace)."""
+
+    def __init__(self, reason):
+        super().__init__(reason)
+        self.reason = reason
+
+
+#: The observable event of a contract runtime error (R14). No device model ever produces this service, so a run that
+#: ends this way can never have the same ACTION trace as one that does not.
+ERROR_ACTION_SERVICE = "runtime"
+
+
+def error_action(reason: str) -> "Action":
+    return Action(ERROR_ACTION_SERVICE, "error", (reason,))
+
+
+def _uninitialized(node: Any, ec) -> str | None:
+    """The name of an operand that is a variable with no value yet, else None. A dotted Capitalized name is a device
+    read, not a variable (see expr.evaluate), and a missing input value stays None as before."""
+    if isinstance(node, expr_mod.VarRef) and node.name not in ec.vars:
+        nm = node.name
+        if "." in nm and nm.partition(".")[0][:1].isupper():
+            return None
+        return nm
+    return None
+
+
 class _Ctx:
     def __init__(self, world: dict, vars_: dict, gv: dict, actions: list):
         self.world = world      # sensor readings + clock.* (read-only this tick)
@@ -180,6 +209,11 @@ def step(stmts: list, vars_in: dict, gv_in: dict, inputs: dict,
     except _AbortTick:
         pass
     except _Break:
+        terminated = True
+    except _RuntimeError as e:
+        # R14: the ACTIONs issued before the error stay in the trace, the error itself is appended as an observable
+        # event, and the instance never runs again.
+        actions.append(error_action(e.reason))
         terminated = True
     return StepResult(vars_, gv, actions, terminated, tuple(ctx.guards))
 
@@ -301,11 +335,14 @@ def _hybrid_eval(node: Any, ec: expr_mod.EvalContext, ctx: _Ctx) -> Any:
         # Quantified compares (`>|` etc.) evaluate as their plain op until
         # grounding unrolls the device set — exact for a 1-instance world.
         op = node.op[:-1] if node.op.endswith("|") else node.op
-        rebuilt = expr_mod.BinaryOp(
-            op,
-            expr_mod.Lit(_hybrid_eval(node.left, ec, ctx)),
-            expr_mod.Lit(_hybrid_eval(node.right, ec, ctx)),
-        )
+        left, right = _hybrid_eval(node.left, ec, ctx), _hybrid_eval(node.right, ec, ctx)
+        if op in ("+", "-", "*", "/", "%") and not (
+                op == "+" and (isinstance(left, str) or isinstance(right, str))):
+            for operand in (node.left, node.right):       # R14: arithmetic, not `+` text concatenation
+                name = _uninitialized(operand, ec)
+                if name is not None:
+                    raise _RuntimeError(f"uninitialized-arith: {name} {op} ... : {name} was never assigned (R14)")
+        rebuilt = expr_mod.BinaryOp(op, expr_mod.Lit(left), expr_mod.Lit(right))
         return expr_mod.evaluate(rebuilt, ec)
     if isinstance(node, expr_mod.FuncCall):
         rebuilt = expr_mod.FuncCall(

@@ -5,8 +5,9 @@
 Per pair (one worker process each; results appended to the JSONL, finished pair_ids are skipped on restart):
 - reference: run the IR (cached per base case + automation) and the JoI block on every history of the base case
   (histories/*.json); per history `equal` / `diverge` / `unsupported` / `error`.
-  Pair outcome: REF-DIVERGE if any history with both sides ok differs; otherwise REF-EQUIV-CHECKED if every history
-  ran ok on both sides; otherwise REF-UNSUPPORTED / REF-ERROR (the side and reason are kept).
+  Pair outcome: REF-DIVERGE if any history with both sides ok differs, or if the JoI stops with a contract runtime
+  error (R14) while the IR runs; otherwise REF-EQUIV-CHECKED if every history ran ok on both sides; otherwise
+  REF-UNSUPPORTED / REF-ERROR (the side and reason are kept).
 - Explorer: the steps of explorer.verification.gate.gate_pair — prepare_pair, timed_product(horizon_ms=None,
   verification_mode="auto"), replay_divergence, fold_verdict — with t0_ms = 2_419_200_000 + t_start_ms so that
   both tools use the same start time (gate_pair itself has no start-time argument). Budget 120 s per pair
@@ -106,6 +107,18 @@ def _reference_once(pair, histories, assignment=None, stop_at_diverge=False):
         if a["status"] != "ok":
             per.append((h["name"], a["status"] + "-ir"))
             ir_bad = ir_bad or (a["status"], a["detail"][:300])
+            continue
+        if b["status"] == "runtime-error":
+            # R14: the JoI instance stops for good and the stop is observable, so a JoI that ends this way differs
+            # from an IR that runs to the horizon. The ACTIONs issued before the stop are kept for the record.
+            per.append((h["name"], "diverge"))
+            if first_div is None:
+                first_div = {"history": h["name"], "difference": f"JoI runtime error: {b['detail'][:300]}",
+                             "ir_actions": [list(map(str, x)) for x in a["raw_actions"][:20]],
+                             "joi_actions": [list(map(str, x)) for x in b["raw_actions"][:20]]}
+                if stop_at_diverge:
+                    first_div = {"history": h["name"]}
+                    break
             continue
         if b["status"] != "ok":
             per.append((h["name"], b["status"] + "-joi"))
@@ -297,6 +310,8 @@ def witness_on_reference(pair, witness):
                t_start_ms=pair["t_start_ms"], cron=pair.get("ir_cron", ""), **ref_kwargs(pair)[0])
     b = run_joi(pair["joi"], pair["devices"], ev, horizon, catalog_path=cat, t_start_ms=pair["t_start_ms"],
                     **ref_kwargs(pair)[1])
+    if a["status"] == "ok" and b["status"] == "runtime-error":
+        return {"status": "diverge", "difference": f"JoI runtime error: {b['detail'][:300]}", "events": ev[:30]}
     if a["status"] != "ok" or b["status"] != "ok":
         return {"status": f"ir:{a['status']} joi:{b['status']}", "detail": (a["detail"] or b["detail"])[:300],
                 "events": ev[:30]}
