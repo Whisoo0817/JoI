@@ -50,6 +50,16 @@ capture and the model bolted the counted bodies on at top level, while the ablat
 sustain-then-count shape. This is the same mechanism recorded in the round-1 failure analysis: a
 focused edit preserves whatever the witness did not touch, including a dropped `OP|`.
 
+## Why the ablation scores as high as it does
+
+Analysed 2026-09-16, after this run. The ablation keeps the v5 repair prompt, and that prompt
+carries rules the original lowering prompt does not have — most of all the sustain rule
+(`files/joi_cycle.md` D-10 says wrapper period 1000 and threshold `for_ms / period`; the v5
+checklist says period **100** and threshold `for_ms / 100 + 1`). 22 of the 31 ablation successes
+fall in the two divergence families those rules address. So this arm measures a second lowering
+pass with a failure-tuned prompt, not repair without evidence. Full account, with the per-family
+table: `HANDOFF.md`.
+
 ## Files
 
 `protocol_e3_feedback_ablation.json`, `prompts/repair_ablation_no_counterexample.md`,

@@ -11,7 +11,7 @@ import json, subprocess, sys
 from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 
-ROOT = str(Path(__file__).resolve().parents[3])  # this checkout, the same tree the evaluator uses
+ROOT = str(Path(__file__).resolve().parents[5])  # this checkout, the same tree the evaluator uses
 PY = '/home/gnltnwjstk/temp/bin/python'
 
 def dev(name, cat, *tags):

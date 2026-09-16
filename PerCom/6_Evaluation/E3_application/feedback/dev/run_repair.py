@@ -20,7 +20,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[2]
+ROOT = HERE.parents[4]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(HERE))
 from cases import CASES  # noqa: E402
