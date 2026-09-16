@@ -35,7 +35,7 @@ def table(C):
     """
     judges = list(C["judges"])
     sd = C["self_disagreement"]
-    body = [("No edit", str(sd[judges[0]]["seeds"]),
+    body = [("None", str(sd[judges[0]]["seeds"]),
              [f"{100 * sd[j]['rate']:.1f}" for j in judges])]
     for lab, b in BANDS:
         x = [C["judges"][j]["by_band"][b] for j in judges]
@@ -57,7 +57,7 @@ def text_pt(txt, fontsize):
 
 def render(C, width_in, fontsize, out, colsep_pt=3.0):
     judges, body = table(C)
-    stub = ["Condition"] + [r[0] for r in body]
+    stub = ["Rewrite"] + [r[0] for r in body]
     ncol = ["n"] + [r[1] for r in body]
     cols = [[HDR[j]] + [r[2][k] for r in body] for k, j in enumerate(judges)]
     sw = max(text_pt(t, fontsize) for t in stub)
@@ -101,7 +101,7 @@ def render(C, width_in, fontsize, out, colsep_pt=3.0):
             ha="center", va="center", **fp)
     ax.plot([span_l, span_r], [y - 0.42] * 2, lw=0.5, color="k")       # \cmidrule
     y -= 1
-    row("Condition", "n", [HDR[j] for j in judges], y)
+    row("Rewrite", "n", [HDR[j] for j in judges], y)
     y -= 1
     ax.plot([0, need], [y + 0.55] * 2, lw=0.5, color="k")              # \midrule
 
@@ -118,7 +118,7 @@ def render(C, width_in, fontsize, out, colsep_pt=3.0):
 
 CAPTION = (
     "How often each judge stands by its own verdict, as a percentage of the items presented; "
-    "higher is better. The first row asks nothing new: every one of the {tot} seed programs was "
+    "The first row, None, asks nothing new: every one of the {tot} seed programs was "
     "submitted three times, identically, and the figure is the share on which all three answers "
     "agreed. It is unconditional -- no program is excluded -- and it bounds what any rewrite "
     "result below can mean. The remaining rows take the {n} programs that all three judges called "
@@ -143,7 +143,7 @@ def write_tex(C):
          r"\begin{tabular}{lr rrr}", r"\toprule",
          r" & & \multicolumn{3}{c}{Verdict reversal (\%)} \\",
          r"\cmidrule(lr){3-5}",
-         "Condition & $n$ & " + " & ".join(HDR[j] for j in judges) + r" \\", r"\midrule"]
+         "Rewrite & $n$ & " + " & ".join(HDR[j] for j in judges) + r" \\", r"\midrule"]
     for i, (a, b, vals) in enumerate(body):
         L.append(f"{a} & {b} & " + " & ".join(vals) + r" \\")
         if i in (0, len(body) - 2):
