@@ -19,6 +19,8 @@ Three horizon modes, reported separately (confirmed_ir_evaluation_2026-09-10 §E
   free    horizon_ms=None   - the closure the Explorer actually claims
   fixed10 horizon_ms=10 s   - a cheap bounded horizon that covers only the opening
   fixedT  horizon_ms=2*T+5s - a bounded horizon wide enough to cover the behaviour
+  explicit horizon_ms=None, timer zones off - exact-state exploration with next-event
+          jumps; same unbounded claim as `free`, no internal wall-clock limit
 A bounded run that finishes returns EQUIV-BOUNDED, which holds only up to H; it is
 never merged with the unbounded EQUIV.
 
@@ -38,7 +40,7 @@ PY = str(Path.home() / "temp/bin/python")
 BUDGET_S = 120
 
 
-MODES = ("free", "fixed10", "fixedT")
+MODES = ("free", "fixed10", "fixedT", "explicit")
 
 
 def jobs(repeats, modes=MODES):
@@ -49,12 +51,13 @@ def jobs(repeats, modes=MODES):
         seen.setdefault(c["cell_id"], c)          # same program can sit on two sweeps
     for cell_id, c in seen.items():
         for mode, h in (("free", None), ("fixed10", 10_000),
-                        ("fixedT", 2 * c["kw"]["t_ms"] + 5000)):
+                        ("fixedT", 2 * c["kw"]["t_ms"] + 5000), ("explicit", None)):
             if mode not in modes:
                 continue
+            extra = {"no_timer_zones": True} if mode == "explicit" else {}
             for rep in range(repeats):
                 out.append({"cell_id": cell_id, "mode": mode, "rep": rep,
-                            "kw": dict(c["kw"], horizon_ms=h)})
+                            "kw": dict(c["kw"], horizon_ms=h, **extra)})
     return out, seen
 
 

@@ -47,17 +47,23 @@ The JoI side is an explicit state machine that mirrors the IR exactly:
 Every generated pair was checked to return EQUIV before the grid was run; a
 non-EQUIV cell means the template is wrong, not that the Explorer is.
 
-## Horizon modes (reported separately, never merged)
+## Modes (reported separately, never merged)
 
-| mode | `horizon_ms` | what it shows |
+| mode | what runs | reported as |
 |---|---|---|
-| `free` | `None` | the closure the Explorer actually claims |
-| `fixed10` | 10 s | a cheap bounded horizon that covers only the opening |
-| `fixedT` | 2·T + 5 s | a bounded horizon wide enough to cover the behaviour |
+| `free` | the Explorer as used in E2/E3 (`horizon_ms=None`) | **Explorer** |
+| `explicit` | same call, timer zones disabled (`no_timer_zones`): event-driven explicit-state search that jumps to the next timer event and merges identical states; same unbounded claim | **main baseline** |
+| `fixedT` | horizon 2·T + 5 s, every 100 ms step simulated | one sentence ("fixed-step simulation") |
+| `fixed10` | horizon 10 s | measured, **not reported** |
 
-A bounded run that finishes returns `EQUIV-BOUNDED`, which holds only up to H. It is
-counted as completed **in its own arm** and is never merged with the unbounded
-`EQUIV`.
+`fixed10` was dropped (whisoo 09-17): a 10 s window never reaches a 2 min, 30 min or 4 h
+wait, so its "decided" is not the same question. The manuscript does not use a
+horizon ("H") at all. A bounded run that finishes returns `EQUIV-BOUNDED`, which is
+never merged with the unbounded `EQUIV`.
+
+`explicit` disables zones by making `timer_product` raise `Unsupported` inside the
+worker, so the Explorer takes its normal exact-search path. The Explorer code is not
+changed.
 
 ## Budget and denominators
 
@@ -74,46 +80,49 @@ advantage (plan §E4, HANDOFF common rules).
 
 ## Which runs are the result (and why worker count matters)
 
-The Explorer's timer-zone proof, which every decided horizon-free run in this grid
-went through, gives up after **30 s of wall clock** (`timer_product.py`, "timer zone
-proof budget (30s)") and falls back to the concrete search, which cannot finish these
-programs in 120 s. On an overloaded machine a 20 s proof crosses 30 s, so for the
-horizon-free mode the machine load changes *whether* a run is decided, not only how
-long it takes.
+The Explorer's timer-zone proof, which every decided `free` run in this grid went
+through, has an internal wall-clock give-up (`timer_product.py`) and then falls back
+to the concrete search, which cannot finish these programs in 120 s. On an overloaded
+machine a proof near that limit crosses it, so for `free` the machine load changes
+*whether* a run is decided, not only how long it takes. (Internal detail: not stated
+in the manuscript; the 120 s timeout is presented as a user parameter.)
 
 - `runs/e4_run.jsonl` — first run, 12 workers on 8 physical cores. Kept as a record
-  only; **not reported**. Horizon-free decided 80/90 there against 84/90 alone.
-- `runs/e4_free_serial.jsonl` — horizon-free, one run at a time. **Reported.**
-- `runs/e4_fixed_w4.jsonl` — both fixed horizons, 4 workers. **Reported.** These
-  modes have no wall-clock budget inside the Explorer, so load only stretches time.
+  only; **not reported**. `free` decided 80/90 there against 84/90 alone.
+- `runs/e4_free_serial.jsonl` — `free`, one run at a time. **Reported.**
+- `runs/e4_explicit_w4.jsonl` — `explicit`, 4 workers. **Reported.** No internal
+  wall-clock give-up on this path, so load only stretches time.
+- `runs/e4_fixed_w4.jsonl` — `fixed10` and `fixedT`, 4 workers. `fixedT` reported.
 - `runs/e4_boundary_solo.jsonl` — the two cells that were 1/3 in the first run,
   alone: 3/3 each (K200 17.8 s, 5/5/20 20.0 s).
 
 ## Result in short
 
-| mode | programs decided in all 3 repeats | runs decided | not decided |
-|---|---|---|---|
-| no horizon (Explorer) | **28/30** | 84/90 | TIMEOUT 6 |
-| fixed H = 10 s | 7/30 | 21/90 (EQUIV-BOUNDED) | TIMEOUT 69 |
-| fixed H covering the wait | 2/30 | 6/90 (EQUIV-BOUNDED) | TIMEOUT 79, REFUSED 5 (state cap, 1.8 GB) |
+Paper table: `e4_table.md` (slowest of 3 runs; decided = all 3 runs decided).
 
-Horizon-free decided runs: median 0.48 s, p95 17.8 s, max 20.2 s, peak RSS <= 44 MB.
-Wait length 100 ms -> 4 h: 0.05-0.35 s. Input width is the costliest axis:
-transitions double per added sensor (W7: 31,832 transitions, 9.2 s).
+| mode | programs decided | runs decided | not decided | slowest decided / peak RSS |
+|---|---|---|---|---|
+| Explorer | **28/30** | 84/90 | TIMEOUT 6 | 20.2 s / 44 MB |
+| explicit-state (no zones) | **12/30** | 36/90 | TIMEOUT 54 | 100.3 s / 898 MB |
+| fixed-step simulation | 2/30 | 6/90 (EQUIV-BOUNDED) | TIMEOUT 79, REFUSED 5 (state cap) | — |
 
-Where both a bounded search and the Explorer decided, the bounded one used
-3,184-174,030 states, 1.5-85 s and up to 840 MB; the Explorer used 6-393 states,
-<= 0.35 s. The two claims differ (EQUIV-BOUNDED holds only up to H), so this is
-reported as completion range, not as a speedup.
+- Explorer: 19 programs under 1 s, all 28 within 21 s. Wait 100 ms -> 4 h: 0.05-0.35 s.
+  Sensors are the costliest axis: states stay 52, transitions roughly double per added
+  sensor (W7: 31,832 transitions, 9.2 s).
+- On the 12 programs both decided, the Explorer explored 99.2-99.9% fewer states when
+  the wait was >= 10 s, and 44-45% fewer at 0.1 s and 1 s waits. Explicit-state timed
+  out from a 30 min wait onward. The state counts are reported as counts, not as a
+  speedup.
+- Fixed-step simulation decided only the 0.1 s and 1 s wait programs.
 
 ## The two programs the Explorer did not decide (`diag_unfinished.py`)
 
 Both are inside the supported fragment; neither was refused as unsupported.
 
-| program | as is | 30 s give-up lifted (diagnostic only) |
+| program | as is | internal give-up lifted (diagnostic only) |
 |---|---|---|
-| W6 B6 K50 | timer-zone proof gives up at 30 s | **EQUIV in 242 s** (1,110 states) — needs time |
-| W7 B6 K100 | timer-zone proof gives up at 30 s | stops at the 2,000,000-transition cap after 793 s, not closed — too many cases for the current caps |
+| W6 B6 K50 | timer-zone proof gives up | **EQUIV in 242 s** (1,110 states) — needs time |
+| W7 B6 K100 | timer-zone proof gives up | stops at the 2,000,000-transition cap after 793 s, not closed — too many cases for the current caps |
 
 So "not decided" here means "not within the 120 s budget and the search caps", not
 "cannot be decided by the Explorer".
@@ -129,25 +138,23 @@ check is `n_steps // 2 >= max_transitions`). Tables report `n_steps // 2`.
 |---|---|
 | `gen_grid.py` | the parametric family and the grid |
 | `e4_worker.py` | one Explorer run in its own process; peak RSS and hard budget |
-| `run_e4.py` | the grid runner; restartable, appends to `runs/e4_run.jsonl` |
-| `make_e4_results.py` | `RESULTS.md`, `figs/e4_cost.pdf` (paper: all axes together), `figs/e4_cost_full.pdf` (every sweep) |
+| `run_e4.py` | the grid runner; restartable, `--out` chooses the JSONL |
+| `make_e4_results.py` | `RESULTS.md` (every program, every mode), `e4_table.md` (paper table; figures dropped 09-17) |
 | `run_followup.py` | boundary cells alone (`solo`); long-budget re-runs (`long`, not used) |
 | `diag_unfinished.py` | why the two undecided programs were not decided |
 
 ```
 ~/temp/bin/python run_e4.py --modes free --workers 1 --out runs/e4_free_serial.jsonl
+~/temp/bin/python run_e4.py --modes explicit --workers 4 --out runs/e4_explicit_w4.jsonl
 ~/temp/bin/python run_e4.py --modes fixed10,fixedT --workers 4 --out runs/e4_fixed_w4.jsonl
 ~/temp/bin/python make_e4_results.py
 ```
 
 ## Note on the mechanism ablation
 
-The plan asks for an ablation of "mechanisms you can actually switch on and off".
-Explorer's silent-time elision (`silent-time-v1`) has **no on/off switch** — it is
-unconditional inside `_timed_product`, so ablating it would mean writing new
-verifier code, not flipping a flag.
-
-What *is* a real switch is the horizon: `horizon_ms=None` routes through
-`timer_product` (timer-zone reduction) and falls back to concrete BFS, while a fixed
-`horizon_ms` goes straight to concrete BFS. That is the contrast E4 reports, and the
-plan already required the two horizons to be reported separately.
+Silent-time elision (`silent-time-v1`) has **no on/off switch**, so it is not ablated.
+The timer zones can be switched off without changing Explorer code (the `explicit`
+mode above), and that is the contrast E4 reports. The zone technique itself is
+existing work (difference-bound matrices, as in UPPAAL); the manuscript frames E4 as
+"is verification light enough to be practical", and the VETS-specific part is binding
+IR timers and code tick counters in one product (HANDOFF, whisoo 09-17).

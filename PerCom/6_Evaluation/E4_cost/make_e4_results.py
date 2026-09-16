@@ -1,14 +1,14 @@
-"""E4 tables and the completion/cost plot from runs/e4_run.jsonl.
+"""E4 tables from the reported runs.
 
-  ~/temp/bin/python make_e4_results.py [--run runs/e4_run.jsonl]
+  ~/temp/bin/python make_e4_results.py [--run ...]
 
-Writes RESULTS.md and figs/e4_cost.pdf|png.
+Writes RESULTS.md (every program, every mode) and e4_table.md (the paper table).
 
 Reporting rules (HANDOFF.md common rules, confirmed_ir_evaluation_2026-09-10 §E4):
 - TIMEOUT / OOM / ERROR / REFUSED / UNKNOWN all stay in the denominator.
 - State and transition counts are reported as counts. They are never restated as a
   runtime speedup; wall time and peak RSS are reported on their own.
-- The horizon-free and fixed-horizon modes are reported separately, never merged.
+- Each mode is reported separately, never merged.
 """
 import argparse
 import json
@@ -85,15 +85,15 @@ def sweeps(rows):
 def md(rows):
     L = ["# E4 - Cost and scale", "",
          f"Run: `{len(rows)}` runs, budget {rows[0].get('budget_s', 120)} s per run, "
-         "one process per run (peak RSS is that process's). Horizon-free runs one at a time "
-         "(`runs/e4_free_serial.jsonl`); fixed-horizon runs 4 at a time on 8 physical cores "
-         "(`runs/e4_fixed_w4.jsonl`). See README for why the worker count matters.", "",
+         "one process per run (peak RSS is that process's). Explorer runs one at a time "
+         "(`runs/e4_free_serial.jsonl`); explicit-state and fixed-step runs 4 at a time on 8 physical cores "
+         "(`runs/e4_explicit_w4.jsonl`, `runs/e4_fixed_w4.jsonl`). See README for why the worker count matters.", "",
          "Every run is in the denominator: timeouts, refusals, unknowns and errors "
          "are reported, not dropped. State and transition counts are counts only - "
          "they are not restated as a runtime speedup.", ""]
-    for mode, title in (("free", "Horizon-free (H = None)"),
-                        ("fixed10", "Fixed horizon (H = 10 s)"),
-                        ("fixedT", "Fixed horizon (H = 2T + 5 s)")):
+    for mode, title in (("free", "Explorer"),
+                        ("explicit", "Explicit-state exploration without timer zones (main baseline)"),
+                        ("fixedT", "Fixed-step simulation through every wait (100 ms steps, until 2T + 5 s)")):
         sub = [r for r in rows if r["mode"] == mode]
         if not sub:
             continue
@@ -133,75 +133,68 @@ def md(rows):
     return "\n".join(L)
 
 
-def plot(rows, axes_order=("W", "B", "K", "D"), name="e4_cost_full", width=3.1, height=5.2):
-    try:
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-    except ImportError:
-        print("matplotlib not available; skipping the figure")
-        return
-    sw = sweeps(rows)
-    by = defaultdict(list)
-    for r in rows:
-        by[(r["cell_id"], r["mode"])].append(r)
-    names = {"W": "input width W (sensors)", "B": "stages B", "T": "wait length T (ms)",
-             "K": "cycle repeats K", "D": "all axes together"}
-    axes_order = [a for a in axes_order if a in sw]
-    fig, axs = plt.subplots(2, len(axes_order), figsize=(width * len(axes_order), height),
-                            squeeze=False, sharex="col")
-    for col, ax_name in enumerate(axes_order):
-        pts = sw[ax_name]
-        xs = list(range(len(pts)))
-        labels = [str(l) for l, _ in pts]
-        for mode, marker in (("free", "o"), ("fixed10", "s"), ("fixedT", "^")):
-            label = {"free": "Explorer (no H)", "fixed10": "H = 10 s",
-                     "fixedT": "H covers wait"}[mode]
-            wall, comp = [], []
-            for _, cid in pts:
-                rs = by.get((cid, mode), [])
-                m, _, _ = agg(rs, lambda r: r.get("wall_seconds"))
-                wall.append(m)
-                comp.append(100.0 * sum(r["complete"] for r in rs) / len(rs) if rs else None)
-            if any(v is not None for v in wall):
-                axs[0][col].plot(xs, wall, marker=marker, label=label)
-            if any(v is not None for v in comp):
-                axs[1][col].plot(xs, comp, marker=marker, label=label)
-        for row in (0, 1):
-            axs[row][col].set_xticks(xs)
-            axs[row][col].set_xticklabels(labels, rotation=45, fontsize=7)
-        if any(v for v in axs[0][col].get_lines() for v in v.get_ydata()
-               if v is not None and v > 0):
-            axs[0][col].set_yscale("log")
-        if len(axes_order) > 1:
-            axs[0][col].set_title(names[ax_name], fontsize=8)
-        axs[1][col].set_ylim(-5, 105)
-        axs[1][col].set_xlabel(names[ax_name] + (" (W/B/K)" if ax_name == "D" else ""), fontsize=8)
-    axs[0][0].set_ylabel("median time (s)", fontsize=8)
-    axs[1][0].set_ylabel("decided runs (%)", fontsize=8)
-    fig.align_ylabels(axs[:, 0])
-    handles, labels = axs[0][0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc="upper center", ncol=3,
-               fontsize=7, frameon=False)
-    top = 0.91 if len(axes_order) == 1 else 0.94
-    fig.tight_layout(rect=(0, 0, 1, top))
-    d = HERE / "figs"
-    d.mkdir(exist_ok=True)
-    for ext in ("pdf", "png"):
-        fig.savefig(d / f"{name}.{ext}", dpi=200)
-    print(f"figure -> {d}/{name}.pdf|png")
+# Paper table: one row per setting, slowest of the three runs. A program counts as decided
+# only when all three runs decided it. Rows are the base program, the far end of each
+# axis, and the two largest diagonal programs (whisoo 2026-09-17: table instead of figure).
+PAPER_ROWS = [
+    ("Base (2 sensors, 2 stages, 2 min wait, 5 repeats)", "W2_B2_T120000_K5"),
+    ("Sensors 4", "W4_B2_T120000_K5"),
+    ("Sensors 7", "W7_B2_T120000_K5"),
+    ("Stages 6", "W2_B6_T120000_K5"),
+    ("Wait 0.1 s", "W2_B2_T100_K5"),
+    ("Wait 4 h", "W2_B2_T14400000_K5"),
+    ("Repeats 10", "W2_B2_T120000_K10"),
+    ("Repeats 200", "W2_B2_T120000_K200"),
+    ("All: 5 sensors, 5 stages, 20 repeats", "W5_B5_T120000_K20"),
+    ("All: 7 sensors, 6 stages, 100 repeats", "W7_B6_T120000_K100"),
+]
+PAPER_MODES = (("free", "Explorer"), ("explicit", "Explicit-state"))
+
+
+def paper_cells(rows, mode, cid):
+    rs = [r for r in rows if r["mode"] == mode and r["cell_id"] == cid]
+    if not rs or not all(r["complete"] for r in rs):
+        return ("timeout" if rs and all(r["verdict"] == "TIMEOUT" for r in rs) else "not decided"), "—"
+    states = max(r["n_states"] for r in rs)
+    t = max(r["wall_seconds"] for r in rs)
+    return f"{states:,}", (f"{t:.2f} s" if t < 10 else f"{t:.1f} s")
+
+
+def paper_table(rows):
+    head = "| Program | " + " | ".join(f"{n} states | {n} time" for _, n in PAPER_MODES) + " |"
+    L = [head, "|---|" + "---:|" * (2 * len(PAPER_MODES))]
+    for label, cid in PAPER_ROWS:
+        cells = []
+        for mode, _ in PAPER_MODES:
+            st_, t = paper_cells(rows, mode, cid)
+            cells += [st_, t]
+        L.append(f"| {label} | " + " | ".join(cells) + " |")
+    decided = []
+    for mode, _ in PAPER_MODES:
+        by = defaultdict(list)
+        for r in rows:
+            if r["mode"] == mode:
+                by[r["cell_id"]].append(r)
+        n = sum(all(r["complete"] for r in rs) for rs in by.values())
+        decided += [f"**{n} / {len(by)}**", "—"]
+    L.append("| Programs decided | " + " | ".join(decided) + " |")
+    return L
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--run", nargs="+", default=[str(HERE / "runs/e4_free_serial.jsonl"),
+                                                 str(HERE / "runs/e4_explicit_w4.jsonl"),
                                                  str(HERE / "runs/e4_fixed_w4.jsonl")])
     a = ap.parse_args()
-    rows = [r for f in a.run if Path(f).exists() for r in load(f)]
+    # fixed10 (a 10 s horizon) is measured but not reported: it never reaches the programs'
+    # timeouts, so its verdict is not comparable (whisoo 2026-09-17).
+    rows = [r for f in a.run if Path(f).exists() for r in load(f) if r["mode"] != "fixed10"]
     (HERE / "RESULTS.md").write_text(md(rows))
+    table = "\n".join(paper_table(rows)) + "\n"
+    (HERE / "e4_table.md").write_text(table)
+    print(table)
     print(f"{len(rows)} runs -> {HERE / 'RESULTS.md'}")
-    plot(rows)                                                        # all sweeps (appendix/record)
-    plot(rows, axes_order=("D",), name="e4_cost", width=3.4, height=3.6)  # paper: all axes together
 
 
 if __name__ == "__main__":

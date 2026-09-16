@@ -19,6 +19,15 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 def main():
     kw = json.loads(sys.argv[1])
     horizon_ms = kw.pop("horizon_ms", None)
+    if kw.pop("no_timer_zones", False):
+        # Baseline "explicit": the Explorer with its timer-zone step switched off, so the
+        # horizon-free search falls through to exact-state exploration with next-event jumps.
+        import explorer.verification.timer_product as tp
+        from explorer.runtime.interp import Unsupported
+
+        def _disabled(*a, **k):
+            raise Unsupported("timer zones disabled (E4 explicit baseline)")
+        tp.timer_product = _disabled
     from gen_grid import make_pair
     from explorer.verification.gate import gate_pair
 
