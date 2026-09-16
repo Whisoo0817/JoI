@@ -58,31 +58,38 @@ peak RSS ≤ 50 MiB. The same 68 in the E3 baseline: median 0.07 s, max 0.6 s. E
 
 ## Why 32 did not reach EQUIV
 
-Read from the new witness of each case (`explorer/eval/results/…_run/case_outcomes.jsonl`) and
-the returned script (`runs/e3_feedback_68_20260916/responses/`). Groups, largest first.
+Read from the new witness of each case (`explorer/eval/results/…_run/case_outcomes.jsonl`) and the
+returned script (`runs/e3_feedback_68_20260916/responses/`). Where a cause is claimed below it was
+tested: the script was rewritten by a mechanical rule and re-verified
+(`runs/e3_feedback_68_20260916/failure_cause_diagnostic.json`, diagnostic only, outside the
+protocol, not counted in the 36).
 
-1. **A second error was hiding behind the first — 8 cases**
-   C07_024, C08_018, C08_021, C08_024, C08_026, C08_032, C10_003, C12_007.
-   The model fixed exactly what the counterexample showed (polling→blocking edge wait, or the
-   translated string), and the new witness exposes an older error the first witness never reached:
-   the slot is `{any: [A, B]}` but the script quantifies `all(#Tag)` (needs both true; also false
-   when one reading is null). With one witness per round the model has no evidence for it, and the
-   prompt tells it to change only what the evidence shows. A second round would surface it.
+1. **The guard condition was rewritten and lost JoI's exists-quantified compare — 12 cases**
+   C07_024, C08_018, C08_020, C08_021, C08_022, C08_024, C08_026, C08_027, C08_029, C08_032,
+   C10_003, C12_007 (and C14_006, same class, see 6).
+   JoI writes "at least one device satisfies" as `OP|` (`==|`, `<|`, `>=|` …); the plain operator over
+   a device group means all-satisfy (`files/re_translate.md`, `explorer/runtime/joi_parser.py`).
+   The original candidates used `OP|` correctly for `{any: [...]}` slots. When the model rewrote the
+   periodic `if` into a blocking wait it normalised the condition and dropped the `|`, turning
+   "any sensor crossed" into "every sensor crossed". Of the 13 candidates that used `OP|`, 11 dropped
+   it, and **all 11 failed; none that dropped it passed**. A second, related slip: the rearm wait was
+   written as the algebraic complement (`>= 50` for a `< 50` trigger) instead of `not (C)`, which also
+   never fires when a reading is null.
+   Restoring just these two things — keep `OP|`, rearm as `not (<trigger>)` — turns all 10 of the
+   rising-edge cases into EQUIV-FIXPOINT, and `OP|` alone fixes C10_003 and C12_007.
+   `prompts/repair.md` never mentions `OP|` (0 occurrences) and its worked examples all use
+   single-device conditions, so the model had no reason to preserve it. This is a prompt gap, not a
+   limitation of the counterexample: the witness pinpointed the instant correctly, and in most of
+   these cases its input row even contained the discriminating assignment (one sensor crossing,
+   the other null or below).
 
-2. **Rearm condition wrong — 5 cases**
-   Logic: C08_020 (`A>30 and B<=30` instead of `not(A>30 or B>30)`), C08_029 and C14_006 (rearm
-   wait uses the trigger condition itself, so the body fires every cycle).
-   Null readings: C08_022, C08_027 rewrote `not(C)` as the algebraic complement (`<= 0`, `< 50`);
-   with a null reading both `C` and its complement are false, so the script never rearms.
-   The worked example uses `wait until(not C)`; the model "simplified" it.
-
-3. **Tick arithmetic / period — 4 cases (+1 in TIMEOUT)**
+2. **Tick arithmetic / period — 4 cases (+1 in group 6)**
    C20_007 (10 MIN → wrote 601, needs 6001), C23_003 (15 MIN → 901, needs 9001),
    C23_005 (3 MIN → 181, needs 1801): a ×10 slip despite the ms/tick facts in the payload.
    C20_014 set period 0 with threshold 6001 (one-shot script, never reaches the count).
    C23_001 kept period 1000 and only bumped the threshold to 601 (evaluator then timed out).
 
-4. **Structure errors in sustain + follow-up shapes — 5 cases**
+3. **Structure errors in sustain + follow-up shapes — 5 cases**
    C23_004 left `delay(20 MIN); Off` outside the sustain `if` (the original scope error untouched;
    only the threshold was fixed). C24_003 re-declares the counter `n := 0` inside the sustain block.
    C24_004 misplaced a brace so `else { hold = 0 }` binds to the inner `if` and resets every tick.
@@ -90,37 +97,42 @@ the returned script (`runs/e3_feedback_68_20260916/responses/`). Groups, largest
    t=0). C18_010 (cron-anchored) moved the one-time lock into the hourly body and replaced the
    until-break with a wait.
 
-5. **Pre-cycle action + cycle (phase pattern) — 3 cases**
+4. **Pre-cycle action + cycle (phase pattern) — 3 cases**
    C12_004, C12_010 kept the phase pattern, so the first cycle body is still missing at the
    trigger instant; C12_012 dropped the phase pattern and now blocks on the trigger every cycle.
    Same weakness as dev case D4a.
 
-6. **Over-simplified — 1 case**
-   C14_004 dropped both the rearm and the `min(…,100)` clamp.
+5. **Over-simplified — 1 case**
+   C14_004 dropped the rearm, the `min(…,100)` clamp and the `OP|`.
 
-7. **Evaluator TIMEOUT — 5 cases** (C14_001, C14_002, C14_005, C14_007, C23_001)
-   C14_00x: the returned scripts are the intended blocking two-wait shape with the clamp kept.
-   Their arithmetic action argument (`min($Light.CurrentBrightness + 10, 100)`) is checked by
-   full enumeration (2,209 states, 0.23 s in E3); combined with the blocking wait the search did not
-   finish inside the frozen 20 s cap. They count as not repaired. An exploratory recheck outside the
-   protocol (`gate_pair` default caps, 600 s allowance;
-   `runs/e3_feedback_68_20260916/timeout_recheck_exploratory.json`) ends in REFUSED/INCONCLUSIVE
-   for all five at the 400,000-state cap after ≈55 s each: the blocking wait multiplied by the
-   enumerated brightness domain is a state explosion, not a slow-but-finite search. So these are a
-   verifier scalability limit for this shape, and the headline is unchanged.
+6. **Verifier could not decide — 5 TIMEOUT cases** (C14_001, C14_002, C14_005, C14_007, C23_001)
+   The returned C14 scripts are the intended blocking two-wait shape with the clamp kept. Their
+   arithmetic action argument (`min($Light.CurrentBrightness + 10, 100)`) is checked by full
+   enumeration (2,209 states, 0.23 s in E3); combined with the blocking wait the search did not finish
+   inside the frozen 20 s cap. An exploratory recheck (`gate_pair` default caps, 600 s allowance;
+   `timeout_recheck_exploratory.json`) ends REFUSED/INCONCLUSIVE for all five at the 400,000-state cap
+   after ≈55 s each, so this is a state explosion, not a slow-but-finite search. C14_006 lands in the
+   same place once its condition is fixed. They count as not repaired; the headline is unchanged.
 
-8. **MODEL_ERROR — 1 case** (C20_016): request over the model context, see above.
+7. **MODEL_ERROR — 1 case** (C20_016): request over the model context, see above.
 
-Takeaways for the write-up and for a second round: the single biggest loss is not the model's
-repair skill but the one-witness-per-round design (group 1, 8 cases) plus evaluator cost on
-arithmetic cases (group 7, 4–5 cases); genuine model errors are groups 2–6 (18 cases), concentrated
-in multi-sensor rearm logic, ×10 tick slips and multi-block structure.
+**Takeaway.** The dominant cause is one documentation gap, not repair ability and not the evidence
+format: 12 of the 32 failures (13 with C14_006) are the model normalising a JoI operator the repair
+prompt never taught it, and every one of those is mechanically recoverable. The genuine reasoning
+failures are groups 2–5 (13 cases: ×10 tick slips, multi-block structure, the phase pattern), and
+groups 6–7 (6 cases) are verifier and context limits, not the model.
+
+Consequence to decide (whisoo): documenting `OP|` and the `not (<trigger>)` rearm in
+`prompts/repair.md` would plausibly move the number well past 36/68, but the gap was found by
+looking at these 68 outcomes. Any such v2 is post-hoc tuning on the evaluation set and must be
+reported that way, or run on held-out cases instead. The v1 number stands as reported.
 
 ## Files
 
 - `runs/e3_feedback_68_20260916/`: `preflight.json`, `evidence/` (68 payloads as sent),
   `responses/` (68 raw answers), `repair_summary.json`, `repair.log`, `evaluate.log`,
-  `summary.json` (headline, by type, 68 rows), `timeout_recheck_exploratory.json`.
+  `summary.json` (headline, by type, 68 rows), `timeout_recheck_exploratory.json`,
+  `failure_cause_diagnostic.json`.
 - `explorer/eval/results/qwen3_5_9b_fp8_e3_feedback_v1_e3_feedback_68_20260916_{lineage,protocol,manifest,manifest_full,run}`.
 - `explorer/candidates/qwen3_5-9b-fp8-e3-feedback-v1/`: the evaluated copy (67 repaired scripts,
   each with a `feedback_repair` provenance field; unrepaired cases identical to the E3 tag).
