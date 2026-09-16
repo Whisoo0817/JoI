@@ -1,6 +1,6 @@
 # Evaluation handoff
 
-상태: **E1 종료(2026-09-13), E2 완료(2026-09-14, 140쌍). E3 최종(2026-09-15, 382건). Feedback 1·2라운드와 반례 없는 대조군 완료(2026-09-16). Table 1 동기 실험 완료(2026-09-16, judge 3개, Fig2 제외 — `1_Intro/motivation_judge/` 로 이동). 원고 E1·E2 초안은 whisoo 검토 대기. E4 미착수.**
+상태: **E1 종료(2026-09-13), E2 완료(2026-09-14, 140쌍). E3 최종(2026-09-15, 382건). Feedback 1·2라운드와 반례 없는 대조군 완료(2026-09-16). Table 1 동기 실험 완료(2026-09-16, judge 3개, Fig2 제외 — `1_Intro/motivation_judge/` 로 이동). E4 완료(2026-09-17, 합성 30개 프로그램, 270회). 원고 E1·E2·E4 초안은 whisoo 검토 대기.**
 
 - 실험의 방식·코드·데이터·결과는 이 폴더의 실험별 하위 폴더에 둔다.
 
@@ -100,12 +100,24 @@
 
 `PerCom/1_Intro/motivation_judge/` 로 옮겼다(09-16). 설계·수치·원고 규칙은 [1_Intro/HANDOFF.md](../1_Intro/HANDOFF.md) 에 있다.
 
+## E4 — 비용·규모 (2026-09-17)
+
+위치 `E4_cost/`. 설계·진단은 [E4_cost/README.md](E4_cost/README.md), 수치는 [E4_cost/RESULTS.md](E4_cost/RESULTS.md).
+
+- 합성 프로그램 30개(센서 수 W 1–7, 단계 B 1–6, 대기 T 100 ms–4 h, 반복 K 1–200; 축별 단독 + 대각선), 3회 반복, 1회당 120 s(E2와 같음). 판정 정답 여부는 보지 않는다(E2 몫).
+- 결정(whisoo 09-16): 메커니즘 ablation 제외(silent-time elision 에 스위치 없음) → horizon 유무 비교로 대체. 원고는 속도가 아니라 판정 범위로 쓴다. 원고 그림은 대각선 한 칸(`figs/e4_cost.pdf`).
+- 결과: H=None 28/30 프로그램(84/90회), 판정된 회차 median 0.48 s / p95 17.8 s / max 20.2 s / ≤44 MB. 고정 H=10 s 7/30, 대기를 덮는 고정 H 2/30.
+- 미판정 2개(W6B6K50, W7B6K100)는 지원 거절이 아니다. timer-zone 증명의 30 s 벽시계 한도에서 포기했다. 한도 해제 진단 시 전자는 242 s 에 EQUIV, 후자는 전이 상한 2,000,000 에 도달했다.
+- **주의: 30 s 한도가 벽시계 기준이라 H=None 판정 여부가 서버 부하에 따라 바뀐다.** 12개 동시 실행(`runs/e4_run.jsonl`, 미보고)에서는 80/90이었다. H=None 은 반드시 1개씩 돌린다.
+- `n_steps` 는 IR·코드 걸음을 따로 세므로 전이 수는 `n_steps // 2`.
+- **Abstract 의 `[assumed: 70%]`, `[assumed: 50 ms]` 는 이 결과와 맞지 않는다**(baseline 이 대부분 끝나지 않아 % 계산 불가; p95 는 17.8 s). 대체 문장 후보는 whisoo 확인 대기이며, abstract 파일은 아직 고치지 않았다.
+
 ## 공통
 
 - E1–E4 번호는 최신 계획대로 고정한다. 구 문서의 E1/E2 번호를 가져오지 않는다.
 - 구 fixed-horizon 평가와 그에 종속된 pair 수·transition 감소율·latency 수치는 현재 PerCom 원고에서 제거했다. 이는 과거 audit 기록으로만 보존한다.
 - E3는 위 최신 H=None 결과와 탐색적 범위로 보고한다. E4는 동일 검증 계약의 closure/completion 조건에 맞춰 별도 실행·작성한다.
 - Motivation pilot과 LLM-judge experiment는 Table 1/동기 근거로 별도 취급하고 E2/E3에 조용히 합치지 않는다.
-- E1·E2·E3의 현재 근거를 Methods–Results에 반영하고, 미착수 E4 scale/ablation 및 별도 확증 평가와 구분한다.
+- E1–E4의 현재 근거를 Methods–Results에 반영하고, 별도 확증 평가와 구분한다.
 - 모든 refusal/error/incomplete를 전체 분모에 남긴다.
 - transition reduction을 runtime speedup으로 바꿔 쓰지 않는다.
