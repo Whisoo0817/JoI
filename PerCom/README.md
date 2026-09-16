@@ -7,6 +7,7 @@
 ## 먼저 읽을 문서
 
 1. [최종 집필 참고·준수사항](WRITING_GUARDRAILS.md): 연구 범위, FSM·시간·LTL/TAP 비교, lowering, 향후 연구, 사용할 표현과 근거 한계.
+1. [문체 기준](WRITING_STYLE.md): SenSys 원고에서 교수님이 다듬은 문장 43쌍에서 뽑은 문장 규칙. 가드레일이 무엇을 주장할지를 정하면, 이 문서는 어떻게 쓸지를 정한다.
 2. [Introduction Figure 1·2 및 Table 1 체크리스트](1_Intro/Figures/FIGURE_REQUIREMENTS.md): Introduction에 들어갈 동기 도표의 역할, 시각 편집 요구와 판정 불변성 실험의 재현성 조건.
 
 `WRITING_GUARDRAILS.md`의 **최신 최우선 결정**이 PerCom 원고 전체에 우선한다. 핵심은 스마트홈 자동화 전체에 대한 generality를 주장하지 않는 것, JoI를 현재 유일한 backend로 두는 것, Home Assistant 실험을 계획하지 않는 것, deterministic compiler를 비교하지 않은 Future Work로 두는 것이다. openHAB은 시간이 남고 imperative-code backend로 실제 adapter와 평가를 완료할 때만 선택적으로 검토한다.
