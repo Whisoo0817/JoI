@@ -1,0 +1,39 @@
+{
+ "id": "C20_002",
+ "request_sha256": "3126977d870a8ce871c3e1bc614ac93cc1ceeb6e2bf30e7b4325dfa707cbaed0",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 407,
+   "prompt_tokens": 6806,
+   "total_tokens": 7213,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 12.036206007003784,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 5-second (5000 ms) sustained wait before acting. The candidate uses a 1000 ms period and a threshold of 5, which triggers after 5000 ms only if the condition never drops. However, the evidence shows the condition is held true from t=0, so the candidate fires at t=4000 ms (5 ticks * 1000 ms). The correct implementation must use a 100 ms period and a threshold of 51 (50 ticks + 1) to ensure the full 5 seconds elapse before the action.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed period to 100 ms and adjusted the hold threshold to 51. This ensures the counter increments 51 times (covering 50 intervals of 100 ms plus the initial tick), matching the 5000 ms duration required by the IR. The candidate previously fired too early because the 1000 ms wrapper could not observe the condition's state between iterations, and the threshold of 5 was insufficient for the 1000 ms period to cover 5 seconds.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#FrontContactSensor_ContactSensor).contactSensor_contact == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 51) {\\n(#Entrance_Fan).switch_on()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#FrontContactSensor_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 51) {\n(#Entrance_Fan).switch_on()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 5-second (5000 ms) sustained wait before acting. The candidate uses a 1000 ms period and a threshold of 5, which triggers after 5000 ms only if the condition never drops. However, the evidence shows the condition is held true from t=0, so the candidate fires at t=4000 ms (5 ticks * 1000 ms). The correct implementation must use a 100 ms period and a threshold of 51 (50 ticks + 1) to ensure the full 5 seconds elapse before the action.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed period to 100 ms and adjusted the hold threshold to 51. This ensures the counter increments 51 times (covering 50 intervals of 100 ms plus the initial tick), matching the 5000 ms duration required by the IR. The candidate previously fired too early because the 1000 ms wrapper could not observe the condition's state between iterations, and the threshold of 5 was insufficient for the 1000 ms period to cover 5 seconds."
+ },
+ "status": "REVISED"
+}

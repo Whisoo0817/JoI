@@ -1,0 +1,116 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nfired := false\nif ((#Kitchen_MotionSensor).motionSensor_motion == true) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 1) {\ntmp = (#Kitchen_Light).light_currentBrightness + 20\n            if (tmp > 100) {\ntmp = 100\n}\n(#Kitchen_Light).light_moveToBrightness(tmp, 0)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nfired := false\nif ((#Kitchen_MotionSensor).motionSensor_motion == true) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 1) {\ntmp = (#Kitchen_Light).light_currentBrightness + 20\n            if (tmp > 100) {\ntmp = 100\n}\n(#Kitchen_Light).light_moveToBrightness(tmp, 0)\n            fired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#Kitchen_MotionSensor)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Kitchen_Light)"
+    ],
+    "Light.CurrentBrightness": [
+      "(#Kitchen_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "사람이 감지될 때마다 부엌 조명 밝기를 20씩 높여줘. 최대 100까지.",
+  "command_eng": "Whenever motion is detected, increase the kitchen light brightness by 20, up to a maximum of 100.",
+  "connected_devices": {
+    "Kitchen_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "MotionSensor"
+      ]
+    },
+    "LivingRoom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MotionSensor"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": "min($Light.CurrentBrightness + 20, 100)",
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "MotionSensor": [
+      "Kitchen_MotionSensor"
+    ],
+    "Light": [
+      "Kitchen_Light"
+    ]
+  },
+  "input_payload_sha256": "a2922785831f40952ab79e0533d4f0569078cfc399051ef02f1b20b70b079384",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 3.2
+}

@@ -1,0 +1,62 @@
+{
+ "id": "D5b",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25685,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 327,
+   "prompt_tokens": 6845,
+   "total_tokens": 7172,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.780266761779785,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a periodic `if` guard after the delay to detect the condition. F1 shows the input dropped to `null` at 900000ms, and F2 confirms the IR performed `switch_off` while the JoI did nothing. The guard failed because `null > 28` is false, preventing the action. The IR requires a blocking wait for the condition to become false (or become unavailable) to trigger the turn-off, not a periodic check.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script line 4-6\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with a blocking `wait until` for the negation of the condition. This ensures the script pauses until the temperature is no longer above 28 (or becomes null), at which point it executes `switch_off`, matching the IR's blocking semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\\n(#Bedroom_Fan_Plug).switch_on()\\ndelay(15 MIN)\\nwait until(not ((#Bedroom_Temp).temperatureSensor_temperature > 28))\\n(#Bedroom_Fan_Plug).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\n(#Bedroom_Fan_Plug).switch_on()\ndelay(15 MIN)\nwait until(not ((#Bedroom_Temp).temperatureSensor_temperature > 28))\n(#Bedroom_Fan_Plug).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a periodic `if` guard after the delay to detect the condition. F1 shows the input dropped to `null` at 900000ms, and F2 confirms the IR performed `switch_off` while the JoI did nothing. The guard failed because `null > 28` is false, preventing the action. The IR requires a blocking wait for the condition to become false (or become unavailable) to trigger the turn-off, not a periodic check.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script line 4-6"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with a blocking `wait until` for the negation of the condition. This ensures the script pauses until the temperature is no longer above 28 (or becomes null), at which point it executes `switch_off`, matching the IR's blocking semantics."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 900000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

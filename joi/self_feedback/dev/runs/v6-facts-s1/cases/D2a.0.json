@@ -1,0 +1,62 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 31791,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 473,
+   "prompt_tokens": 8848,
+   "total_tokens": 9321,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 6.893100023269653,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 30-second sustain window (30,000 ms). The candidate uses a 1000 ms wrapper period and a threshold of 30, causing the action to fire after only 30 seconds (30 ticks * 1000 ms = 30,000 ms) but counting incorrectly due to the first tick at t=0. Specifically, with period 1000, the first iteration counts at t=0. To sustain for 30 seconds, we need 301 ticks (t=0 to t=30000). The candidate fires at hold_ticks=30, which corresponds to t=29000 (30 iterations of 1000ms starting from 0, effectively covering 0-29999ms). The evidence F2 shows the action at 29000ms, while the IR waits until 30000ms. The fix is to change period to 100 and set the threshold to 301.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed period to 100 to allow the sustain counter to reach the correct tick count for 30 seconds. Updated the threshold from 30 to 301 to account for the initial tick at t=0, ensuring the action fires exactly at 30000ms as required by the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 30-second sustain window (30,000 ms). The candidate uses a 1000 ms wrapper period and a threshold of 30, causing the action to fire after only 30 seconds (30 ticks * 1000 ms = 30,000 ms) but counting incorrectly due to the first tick at t=0. Specifically, with period 1000, the first iteration counts at t=0. To sustain for 30 seconds, we need 301 ticks (t=0 to t=30000). The candidate fires at hold_ticks=30, which corresponds to t=29000 (30 iterations of 1000ms starting from 0, effectively covering 0-29999ms). The evidence F2 shows the action at 29000ms, while the IR waits until 30000ms. The fix is to change period to 100 and set the threshold to 301.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed period to 100 to allow the sustain counter to reach the correct tick count for 30 seconds. Updated the threshold from 30 to 301 to account for the initial tick at t=0, ensuring the action fires exactly at 30000ms as required by the IR."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

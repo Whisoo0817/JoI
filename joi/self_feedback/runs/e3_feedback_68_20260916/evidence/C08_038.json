@@ -1,0 +1,174 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "LeakSensor.Leakage == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Camera.StartRecording",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "LeakSensor": [
+    "K_Leak"
+   ],
+   "Camera": [
+    "K_Cam"
+   ]
+  },
+  "device_inventory": {
+   "K_Leak": {
+    "category": [
+     "LeakSensor"
+    ],
+    "tags": [
+     "Kitchen",
+     "LeakSensor"
+    ]
+   },
+   "Basement_Leak": {
+    "category": [
+     "LeakSensor"
+    ],
+    "tags": [
+     "Basement",
+     "LeakSensor"
+    ]
+   },
+   "K_Cam": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Kitchen",
+     "Camera"
+    ]
+   },
+   "Garage_Cam": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Garage",
+     "Camera"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#K_Leak).leakSensor_leakage == true) {\nif (triggered == false) {\n(#K_Cam).camera_startRecording()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "K_Leak.leakage": false
+     },
+     "held_ms": 0
+    },
+    {
+     "at_ms": 0,
+     "inputs": {
+      "K_Leak.leakage": true
+     },
+     "held_ms": 100
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 100,
+   "mismatch_kind": "joi_missing_action",
+   "ir_actions": [
+    {
+     "targets": [
+      "K_Cam"
+     ],
+     "call": "camera.startrecording",
+     "args": []
+    }
+   ],
+   "joi_actions": [],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "triggered := false"
+   },
+   {
+    "line": 2,
+    "text": "if ((#K_Leak).leakSensor_leakage == true) {"
+   },
+   {
+    "line": 3,
+    "text": "if (triggered == false) {"
+   },
+   {
+    "line": 4,
+    "text": "(#K_Cam).camera_startRecording()"
+   },
+   {
+    "line": 5,
+    "text": "        triggered = true"
+   },
+   {
+    "line": 6,
+    "text": "}"
+   },
+   {
+    "line": 7,
+    "text": "}"
+   },
+   {
+    "line": 8,
+    "text": "else {"
+   },
+   {
+    "line": 9,
+    "text": "triggered = false"
+   },
+   {
+    "line": 10,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

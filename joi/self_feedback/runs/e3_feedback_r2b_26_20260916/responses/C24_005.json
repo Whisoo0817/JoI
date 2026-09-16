@@ -1,0 +1,39 @@
+{
+ "id": "C24_005",
+ "request_sha256": "ff770ae9c4fd6cbd12586552676699893ecca02c892f206acc42a1e38cc90434",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 462,
+   "prompt_tokens": 7746,
+   "total_tokens": 8208,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 44.29162645339966,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate emits an action at t=0 because the sustain counter `hold` starts at 0 and the condition is true, triggering `break` immediately. The IR requires a 30-second wait before any action. Additionally, the candidate uses a 100ms wrapper period, which is invalid for a 30-second sustain condition; the threshold must be calculated as duration/100 + 1. The candidate also manually unrolls the cycle body instead of using the correct `period` and `break` structure.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed `period` to 100 to correctly measure the 30-second sustain window (threshold 301). Rewrote the script to use the standard sustain pattern: increment `hold` on true, reset on false, and only trigger the cycle body after `hold >= 301`. The cycle body is now expressed as a single `call` followed by `delay(30 SEC)` repeated 4 times, ending with a `break` after the 5th call, matching the IR's `until n >= 5`.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold := 0\\nif ((#Safe_ContactSensor).contactSensor_contact == true) {\\n    hold = hold + 1\\n    if (hold >= 301) {\\n        (#Safe_Camera).camera_captureImage()\\n        delay(30 SEC)\\n        (#Safe_Camera).camera_captureImage()\\n        delay(30 SEC)\\n        (#Safe_Camera).camera_captureImage()\\n        delay(30 SEC)\\n        (#Safe_Camera).camera_captureImage()\\n        delay(30 SEC)\\n        (#Safe_Camera).camera_captureImage()\\n        break\\n    }\\n} else {\\n    hold = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold := 0\nif ((#Safe_ContactSensor).contactSensor_contact == true) {\n    hold = hold + 1\n    if (hold >= 301) {\n        (#Safe_Camera).camera_captureImage()\n        delay(30 SEC)\n        (#Safe_Camera).camera_captureImage()\n        delay(30 SEC)\n        (#Safe_Camera).camera_captureImage()\n        delay(30 SEC)\n        (#Safe_Camera).camera_captureImage()\n        delay(30 SEC)\n        (#Safe_Camera).camera_captureImage()\n        break\n    }\n} else {\n    hold = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate emits an action at t=0 because the sustain counter `hold` starts at 0 and the condition is true, triggering `break` immediately. The IR requires a 30-second wait before any action. Additionally, the candidate uses a 100ms wrapper period, which is invalid for a 30-second sustain condition; the threshold must be calculated as duration/100 + 1. The candidate also manually unrolls the cycle body instead of using the correct `period` and `break` structure.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed `period` to 100 to correctly measure the 30-second sustain window (threshold 301). Rewrote the script to use the standard sustain pattern: increment `hold` on true, reset on false, and only trigger the cycle body after `hold >= 301`. The cycle body is now expressed as a single `call` followed by `delay(30 SEC)` repeated 4 times, ending with a `break` after the 5th call, matching the IR's `until n >= 5`."
+ },
+ "status": "REVISED"
+}

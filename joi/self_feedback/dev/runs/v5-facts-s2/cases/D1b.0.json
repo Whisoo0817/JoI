@@ -1,0 +1,60 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23567,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 394,
+   "prompt_tokens": 6236,
+   "total_tokens": 6630,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 20.792659044265747,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait (`wait(Button.Button == \\\"pushed\\\", edge rising)`), which requires blocking until the transition occurs. The candidate uses a periodic `if` statement, which only evaluates at the start of the cycle period (t=0). Since the button was pushed at t=0 and held, the `if` condition was true at t=0, but the evidence shows the IR waited until the rising edge was detected and then acted. However, the specific mismatch in F2 at 100ms with no JoI action indicates the JoI simply didn't trigger the action at the correct time relative to the edge. The fundamental error is implementing a rising-edge wait as a simple periodic check without the required `wait until` blocking construct to handle the timing of the edge detection correctly within the cycle body.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` check with a rising-edge wait pattern using `wait until` and a persistent `fired` flag. This ensures the script blocks until the button state changes to 'pushed' (rising edge) and then executes the valve action, matching the IR's cycle behavior.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Garden_Button).button_button != \\\"pushed\\\")\\n    fired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Garden_Button).button_button != \"pushed\")\n    fired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait (`wait(Button.Button == \"pushed\", edge rising)`), which requires blocking until the transition occurs. The candidate uses a periodic `if` statement, which only evaluates at the start of the cycle period (t=0). Since the button was pushed at t=0 and held, the `if` condition was true at t=0, but the evidence shows the IR waited until the rising edge was detected and then acted. However, the specific mismatch in F2 at 100ms with no JoI action indicates the JoI simply didn't trigger the action at the correct time relative to the edge. The fundamental error is implementing a rising-edge wait as a simple periodic check without the required `wait until` blocking construct to handle the timing of the edge detection correctly within the cycle body.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` check with a rising-edge wait pattern using `wait until` and a persistent `fired` flag. This ensures the script blocks until the button state changes to 'pushed' (rising edge) and then executes the valve action, matching the IR's cycle behavior."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

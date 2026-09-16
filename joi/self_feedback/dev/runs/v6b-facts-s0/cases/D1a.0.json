@@ -1,0 +1,61 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 26610,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 359,
+   "prompt_tokens": 7097,
+   "total_tokens": 7456,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 6.639526844024658,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate polls the motion sensor only at the start of the cycle body (t=0). The IR requires a rising-edge wait, which must block until the transition occurs. Evidence F1 shows motion went true at t=100ms; F2 shows the JoI emitted no action because the guard was false at t=0. The fix is to implement the rising-edge wait pattern using blocking waits and a state flag.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with the rising-edge state machine: persist a `fired` flag, wait for the false state before the next cycle, wait for the true state to trigger the body, and update the flag. This ensures the action fires at the exact instant of the rising edge (t=100ms) and rearms correctly for subsequent cycles.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\\n    fired = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\n    fired = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate polls the motion sensor only at the start of the cycle body (t=0). The IR requires a rising-edge wait, which must block until the transition occurs. Evidence F1 shows motion went true at t=100ms; F2 shows the JoI emitted no action because the guard was false at t=0. The fix is to implement the rising-edge wait pattern using blocking waits and a state flag.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with the rising-edge state machine: persist a `fired` flag, wait for the false state before the next cycle, wait for the true state to trigger the body, and update the flag. This ensures the action fires at the exact instant of the rising edge (t=100ms) and rearms correctly for subsequent cycles."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

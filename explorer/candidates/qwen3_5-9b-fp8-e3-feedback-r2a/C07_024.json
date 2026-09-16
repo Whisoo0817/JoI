@@ -1,0 +1,137 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "fired := false\nif (fired == true) {\nwait until(not (all(#PresenceSensor).presenceSensor_presence == true))\nfired = false\n}\nwait until(all(#PresenceSensor).presenceSensor_presence == true)\nall(#ColorControl).colorControl_setColor(\"purple\")\nfired = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"fired := false\\nif (fired == true) {\\nwait until(not (all(#PresenceSensor).presenceSensor_presence == true))\\nfired = false\\n}\\nwait until(all(#PresenceSensor).presenceSensor_presence == true)\\nall(#ColorControl).colorControl_setColor(\\\"purple\\\")\\nfired = true\"}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "any(#PresenceSensor)"
+    ],
+    "ColorControl.SetColor": [
+      "all(#ColorControl)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "복도에 재실 센서가 하나라도 감지되면 모든 복도 조명을 보라색으로 설정해줘.",
+  "command_eng": "When any presence sensor in the hallway detects presence, set all hallway lights to purple.",
+  "connected_devices": {
+    "Hallway_PresenceSensor_1": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "PresenceSensor"
+      ]
+    },
+    "Hallway_PresenceSensor_2": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "PresenceSensor"
+      ]
+    },
+    "Porch_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Porch",
+        "PresenceSensor"
+      ]
+    },
+    "Hallway_Light_1": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "ColorControl"
+      ]
+    },
+    "Hallway_Light_2": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "ColorControl"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "ColorControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "PresenceSensor.Presence == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "ColorControl.SetColor",
+            "args": {
+              "Color": "purple"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "PresenceSensor": {
+      "any": [
+        "Hallway_PresenceSensor_1",
+        "Hallway_PresenceSensor_2"
+      ]
+    },
+    "ColorControl": [
+      "Hallway_Light_1",
+      "Hallway_Light_2"
+    ]
+  },
+  "input_payload_sha256": "f35fd53496397c09ff387722d4bb75aa3e6fd23fc23dbcd187a04d6bdfc29489",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.9,
+  "feedback_repair": {
+    "run_id": "e3_feedback_r2a_26_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-feedback-v1"
+  }
+}

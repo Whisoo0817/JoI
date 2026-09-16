@@ -1,0 +1,98 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == true",
+     "edge": "none",
+     "for": "3 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "ContactSensor": [
+    "Study_ContactSensor"
+   ],
+   "Switch": [
+    "Study_Light"
+   ]
+  },
+  "device_inventory": {
+   "Study_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Study",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Study_Light": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Study",
+     "Light",
+     "Plug",
+     "Switch"
+    ]
+   },
+   "Bedroom_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Study_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Study",
+     "Speaker"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Study_ContactSensor).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 180) {\n(#Study_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 3 MIN)",
+   "duration_ms": 180000,
+   "ticks_at_100ms": 1800,
+   "note": "sustain window; the condition must hold for the whole duration"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

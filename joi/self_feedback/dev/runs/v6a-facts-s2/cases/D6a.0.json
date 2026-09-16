@@ -1,0 +1,60 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 26045,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 350,
+   "prompt_tokens": 7015,
+   "total_tokens": 7365,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 6.851442813873291,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate incorrectly uses the cycle's 15s period to clock the 30s sustain counter (`hold_ticks`), causing the action to fire at 15s instead of 30s. Additionally, the cycle repetition logic using a counter `n` and `break` is invalid for an IR `cycle` without explicit termination; the body must repeat indefinitely until the condition fails.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"script logic for hold counter and cycle body\"],\n    \"change_summary\": \"Set `period` to 100 to measure the 30s sustain window accurately (301 ticks). Removed the erroneous `n` counter and `break`. Expanded the cycle body into two explicit iterations separated by a 15s delay, as required for a bounded repetition without a counter variable.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Back_Door).contactSensor_contact == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        delay(15 SEC)\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Back_Door).contactSensor_contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        delay(15 SEC)\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate incorrectly uses the cycle's 15s period to clock the 30s sustain counter (`hold_ticks`), causing the action to fire at 15s instead of 30s. Additionally, the cycle repetition logic using a counter `n` and `break` is invalid for an IR `cycle` without explicit termination; the body must repeat indefinitely until the condition fails.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "script logic for hold counter and cycle body"
+  ],
+  "change_summary": "Set `period` to 100 to measure the 30s sustain window accurately (301 ticks). Removed the erroneous `n` counter and `break`. Expanded the cycle body into two explicit iterations separated by a 15s delay, as required for a bounded repetition without a counter variable."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 5,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

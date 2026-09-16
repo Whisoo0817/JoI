@@ -1,0 +1,60 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23752,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 436,
+   "prompt_tokens": 6316,
+   "total_tokens": 6752,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.156168937683105,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate reverses the subtraction order in the condition. The IR requires ($v1 - $v2) >= 20, which triggers when volume drops (v1 is high, v2 is low). The candidate uses (v2 - v1 >= 20), which triggers when volume rises (v2 is high, v1 is low). Evidence F2 confirms the IR emitted no action while the JoI emitted 'Volume dropped' because the volume was held constant at 20, making the IR condition (20-20=0) false and the candidate condition (20-20=0) false? Wait, re-reading F1: at t=0 volume is 0, then at t=0 it jumps to 20 and holds. The IR reads v1=0, delays, reads v2=20. IR check: 0 - 20 = -20 >= 20 is false. Candidate reads v1=0, delays, reads v2=20. Candidate check: 20 - 0 = 20 >= 20 is true. The mismatch is the reversed operands causing a false positive.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4\"],\n    \"change_summary\": \"Corrected the condition from (v2 - v1 >= 20) to (v1 - v2 >= 20) to match the IR's logic for detecting a volume drop.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate reverses the subtraction order in the condition. The IR requires ($v1 - $v2) >= 20, which triggers when volume drops (v1 is high, v2 is low). The candidate uses (v2 - v1 >= 20), which triggers when volume rises (v2 is high, v1 is low). Evidence F2 confirms the IR emitted no action while the JoI emitted 'Volume dropped' because the volume was held constant at 20, making the IR condition (20-20=0) false and the candidate condition (20-20=0) false? Wait, re-reading F1: at t=0 volume is 0, then at t=0 it jumps to 20 and holds. The IR reads v1=0, delays, reads v2=20. IR check: 0 - 20 = -20 >= 20 is false. Candidate reads v1=0, delays, reads v2=20. Candidate check: 20 - 0 = 20 >= 20 is true. The mismatch is the reversed operands causing a false positive.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4"
+  ],
+  "change_summary": "Corrected the condition from (v2 - v1 >= 20) to (v1 - v2 >= 20) to match the IR's logic for detecting a volume drop."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

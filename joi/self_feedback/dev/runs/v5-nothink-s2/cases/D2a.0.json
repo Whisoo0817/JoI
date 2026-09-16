@@ -1,0 +1,62 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28196,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 391,
+   "prompt_tokens": 7885,
+   "total_tokens": 8276,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 83.41407918930054,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 30-second sustained wait (`for: 30 SEC`). With the current 1000 ms wrapper period, the candidate fires after 30 iterations (30 seconds) starting from t=0. However, the first iteration at t=0 counts as tick 1, so the condition is met at t=29000 ms (29 seconds elapsed), causing an early action. The IR only acts at t=30000 ms. The fix requires switching to a 100 ms wrapper and adjusting the threshold to 101 ticks (30.1 seconds) to ensure the action occurs after the full 30 seconds have elapsed.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"period\", \"threshold calculation\"],\n    \"change_summary\": \"Changed `period` from 1000 to 100 and updated the threshold from 30 to 101. This aligns with the rule for `wait(C, for: D)` where threshold = D(ms)/100 + 1, ensuring the action fires exactly at the 30-second mark.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 101) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 101) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 30-second sustained wait (`for: 30 SEC`). With the current 1000 ms wrapper period, the candidate fires after 30 iterations (30 seconds) starting from t=0. However, the first iteration at t=0 counts as tick 1, so the condition is met at t=29000 ms (29 seconds elapsed), causing an early action. The IR only acts at t=30000 ms. The fix requires switching to a 100 ms wrapper and adjusting the threshold to 101 ticks (30.1 seconds) to ensure the action occurs after the full 30 seconds have elapsed.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold calculation"
+  ],
+  "change_summary": "Changed `period` from 1000 to 100 and updated the threshold from 30 to 101. This aligns with the rule for `wait(C, for: D)` where threshold = D(ms)/100 + 1, ensuring the action fires exactly at the 30-second mark."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 10000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

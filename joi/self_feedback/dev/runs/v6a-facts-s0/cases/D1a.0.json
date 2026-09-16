@@ -1,0 +1,61 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25832,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 310,
+   "prompt_tokens": 6887,
+   "total_tokens": 7197,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 5.47147798538208,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate polls the sensor only at the start of the 1s cycle. F1 shows motion went true at t=100ms; F2 confirms the JoI emitted no action then. The IR requires a rising-edge wait to block until the transition occurs, then execute the body.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"script\", \"period\"],\n    \"change_summary\": \"Replaced periodic polling with a rising-edge state machine using `wait until` and a `fired` flag. Set `period` to 1000ms to match the IR cycle period. This ensures the action fires exactly when motion becomes true and repeats every second.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\\n    fired = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\n    fired = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate polls the sensor only at the start of the 1s cycle. F1 shows motion went true at t=100ms; F2 confirms the JoI emitted no action then. The IR requires a rising-edge wait to block until the transition occurs, then execute the body.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "script",
+   "period"
+  ],
+  "change_summary": "Replaced periodic polling with a rising-edge state machine using `wait until` and a `fired` flag. Set `period` to 1000ms to match the IR cycle period. This ensures the action fires exactly when motion becomes true and repeats every second."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

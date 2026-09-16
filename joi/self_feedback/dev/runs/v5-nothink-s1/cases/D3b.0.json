@@ -1,0 +1,61 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23752,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 312,
+   "prompt_tokens": 6316,
+   "total_tokens": 6628,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 72.86706280708313,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR checks if the volume dropped ($v1 - $v2 >= 20), meaning v1 must be greater than v2. The candidate checks if volume rose ($v2 - v1 >= 20). The evidence in F2 shows the action fired when volume was held constant (0 to 20), which satisfies the candidate's 'rise' condition but not the IR's 'drop' condition. The operand order in the `if` condition was reversed.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4: if (v2 - v1 >= 20)\"],\n    \"change_summary\": \"Reversed the operand order in the `if` condition from `(v2 - v1 >= 20)` to `(v1 - v2 >= 20)` to match the IR's logic for detecting a volume drop.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR checks if the volume dropped ($v1 - $v2 >= 20), meaning v1 must be greater than v2. The candidate checks if volume rose ($v2 - v1 >= 20). The evidence in F2 shows the action fired when volume was held constant (0 to 20), which satisfies the candidate's 'rise' condition but not the IR's 'drop' condition. The operand order in the `if` condition was reversed.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4: if (v2 - v1 >= 20)"
+  ],
+  "change_summary": "Reversed the operand order in the `if` condition from `(v2 - v1 >= 20)` to `(v1 - v2 >= 20)` to match the IR's logic for detecting a volume drop."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

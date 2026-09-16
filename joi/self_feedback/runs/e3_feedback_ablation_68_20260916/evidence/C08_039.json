@@ -1,0 +1,100 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MotionSensor.Motion == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Siren.SetSirenMode",
+       "args": {
+        "Mode": "police"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "MotionSensor": [
+    "Y_Mot"
+   ],
+   "Siren": [
+    "Y_Siren"
+   ]
+  },
+  "device_inventory": {
+   "Y_Mot": {
+    "category": [
+     "MotionSensor"
+    ],
+    "tags": [
+     "Yard",
+     "MotionSensor"
+    ]
+   },
+   "Garage_Mot": {
+    "category": [
+     "MotionSensor"
+    ],
+    "tags": [
+     "Garage",
+     "MotionSensor"
+    ]
+   },
+   "Y_Siren": {
+    "category": [
+     "Siren"
+    ],
+    "tags": [
+     "Yard",
+     "Siren"
+    ]
+   },
+   "Garage_Siren": {
+    "category": [
+     "Siren"
+    ],
+    "tags": [
+     "Garage",
+     "Siren"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#Y_Mot).motionSensor_motion == true) {\nif (triggered == false) {\n(#Y_Siren).siren_setSirenMode(\"police\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

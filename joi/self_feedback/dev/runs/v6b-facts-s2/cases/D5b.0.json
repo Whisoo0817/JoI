@@ -1,0 +1,60 @@
+{
+ "id": "D5b",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25685,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 341,
+   "prompt_tokens": 6845,
+   "total_tokens": 7186,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.917917013168335,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR executes a linear sequence: wait, turn on, delay, turn off. The candidate incorrectly wraps the 'turn off' action in an `if` block that checks the condition again after the delay. Since the condition (Temperature > 28) held true for the entire 15-minute duration (F1), the `if` guard evaluated to true, but the IR specification implies a deterministic sequence where the action must occur regardless of the current sensor state at that moment, or the candidate's logic fails to match the exact linear flow observed in F2 where the IR performed the action while the candidate did not. The primary structural error is the conditional guard on the final action in a linear timeline.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"script line 4-6\"],\n    \"change_summary\": \"Removed the `if` guard around the `switch_off` action. The IR specifies a linear sequence where the off action follows the delay unconditionally. The candidate's conditional check prevented the action from being recognized as matching the IR's linear execution flow in the failing test case.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\\n(#Bedroom_Fan_Plug).switch_on()\\ndelay(15 MIN)\\n(#Bedroom_Fan_Plug).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\n(#Bedroom_Fan_Plug).switch_on()\ndelay(15 MIN)\n(#Bedroom_Fan_Plug).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The IR executes a linear sequence: wait, turn on, delay, turn off. The candidate incorrectly wraps the 'turn off' action in an `if` block that checks the condition again after the delay. Since the condition (Temperature > 28) held true for the entire 15-minute duration (F1), the `if` guard evaluated to true, but the IR specification implies a deterministic sequence where the action must occur regardless of the current sensor state at that moment, or the candidate's logic fails to match the exact linear flow observed in F2 where the IR performed the action while the candidate did not. The primary structural error is the conditional guard on the final action in a linear timeline.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "script line 4-6"
+  ],
+  "change_summary": "Removed the `if` guard around the `switch_off` action. The IR specifies a linear sequence where the off action follows the delay unconditionally. The candidate's conditional check prevented the action from being recognized as matching the IR's linear execution flow in the failing test case."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

@@ -1,0 +1,60 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25537,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 329,
+   "prompt_tokens": 6807,
+   "total_tokens": 7136,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.404519081115723,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate computed the difference as v2 - v1 (new minus old), whereas the IR specifies ($v1 - $v2) (old minus new). With the provided input where volume drops from 20 to 0, the IR condition (20 - 0 >= 20) is true, but the candidate's condition (0 - 20 >= 20) is false. The candidate incorrectly triggers the action in the `else` branch or fails to match the IR's logic, resulting in an extra action at t=300000ms where the IR emits none.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4 condition\"],\n    \"change_summary\": \"Reversed the subtraction order in the `if` condition to match the IR's ($v1 - $v2) >= 20. This ensures that a drop in volume (v1 > v2) correctly triggers the 'Volume dropped' action.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate computed the difference as v2 - v1 (new minus old), whereas the IR specifies ($v1 - $v2) (old minus new). With the provided input where volume drops from 20 to 0, the IR condition (20 - 0 >= 20) is true, but the candidate's condition (0 - 20 >= 20) is false. The candidate incorrectly triggers the action in the `else` branch or fails to match the IR's logic, resulting in an extra action at t=300000ms where the IR emits none.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4 condition"
+  ],
+  "change_summary": "Reversed the subtraction order in the `if` condition to match the IR's ($v1 - $v2) >= 20. This ensures that a drop in volume (v1 > v2) correctly triggers the 'Volume dropped' action."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

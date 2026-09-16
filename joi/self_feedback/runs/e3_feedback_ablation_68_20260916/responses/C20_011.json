@@ -1,0 +1,34 @@
+{
+ "id": "C20_011",
+ "request_sha256": "9bc4f1ba9a2e533c1844bc286363958712383bfb8544c62d1b268c11fa20b38d",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 386,
+   "prompt_tokens": 5665,
+   "total_tokens": 6051,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 19.844112634658813,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 900 ticks. This causes the action to fire at 900,000 ms (900 ticks * 1000 ms), whereas the IR requires the condition to hold for 15 minutes (900,000 ms). Since the condition is checked at the start of each 1000 ms iteration, the first check at t=0 counts as tick 1. To sustain for 900,000 ms on a 1000 ms grid, the counter must reach 901 (covering ticks 0 through 900). The current threshold of 900 fires one period too early.\",\n    \"changed_locations\": [\"period\", \"hold_ticks threshold\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 ms to align with the standard sustain pattern, and adjusted the threshold from 900 to 901. This ensures the action fires exactly after 15 minutes (900 ticks of 100 ms plus the initial tick), matching the IR's 15 MIN duration.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#LivingRoom_TV).plug_power < 10) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 901) {\\n(#LivingRoom_TV).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#LivingRoom_TV).plug_power < 10) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 901) {\n(#LivingRoom_TV).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 900 ticks. This causes the action to fire at 900,000 ms (900 ticks * 1000 ms), whereas the IR requires the condition to hold for 15 minutes (900,000 ms). Since the condition is checked at the start of each 1000 ms iteration, the first check at t=0 counts as tick 1. To sustain for 900,000 ms on a 1000 ms grid, the counter must reach 901 (covering ticks 0 through 900). The current threshold of 900 fires one period too early.",
+  "changed_locations": [
+   "period",
+   "hold_ticks threshold"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 ms to align with the standard sustain pattern, and adjusted the threshold from 900 to 901. This ensures the action fires exactly after 15 minutes (900 ticks of 100 ms plus the initial tick), matching the IR's 15 MIN duration."
+ },
+ "status": "REVISED"
+}

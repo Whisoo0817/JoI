@@ -1,0 +1,33 @@
+{
+ "id": "C14_007",
+ "request_sha256": "a6d1b8b54df8c1b5850d32f84d057c39cd3a003923dea80f4e8521bf3d20f6a6",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 367,
+   "prompt_tokens": 5868,
+   "total_tokens": 6235,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 11.05443000793457,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a rising-edge wait using a hold counter, which is incorrect for a simple `wait(cond, rising)` in a cycle. The IR requires blocking until the condition becomes true, then executing the body once, then re-arming. The candidate increments a counter on the first true reading and executes immediately, failing to block if the condition is already true at the start of the cycle or if it becomes true mid-cycle without the proper blocking wait semantics. The correct pattern for a rising edge in a cycle is to use a persistent `fired` flag to block until the condition transitions from false to true.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the hold-counter logic with the standard rising-edge state machine: block until the condition is false (if previously fired), then block until the condition is true, execute the body, and mark as fired. This ensures the automation waits for the rising edge rather than reacting to the first true sample.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\nwait until((#Kitchen_MotionSensor).motionSensor_motion == false)\\nfired = false\\n}\\nwait until((#Kitchen_MotionSensor).motionSensor_motion == true)\\ntmp = (#Kitchen_Light).light_currentBrightness + 20\\nif (tmp > 100) {\\ntmp = 100\\n}\\n(#Kitchen_Light).light_moveToBrightness(tmp, 0)\\nfired = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\nwait until((#Kitchen_MotionSensor).motionSensor_motion == false)\nfired = false\n}\nwait until((#Kitchen_MotionSensor).motionSensor_motion == true)\ntmp = (#Kitchen_Light).light_currentBrightness + 20\nif (tmp > 100) {\ntmp = 100\n}\n(#Kitchen_Light).light_moveToBrightness(tmp, 0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a rising-edge wait using a hold counter, which is incorrect for a simple `wait(cond, rising)` in a cycle. The IR requires blocking until the condition becomes true, then executing the body once, then re-arming. The candidate increments a counter on the first true reading and executes immediately, failing to block if the condition is already true at the start of the cycle or if it becomes true mid-cycle without the proper blocking wait semantics. The correct pattern for a rising edge in a cycle is to use a persistent `fired` flag to block until the condition transitions from false to true.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the hold-counter logic with the standard rising-edge state machine: block until the condition is false (if previously fired), then block until the condition is true, execute the body, and mark as fired. This ensures the automation waits for the rising edge rather than reacting to the first true sample."
+ },
+ "status": "REVISED"
+}

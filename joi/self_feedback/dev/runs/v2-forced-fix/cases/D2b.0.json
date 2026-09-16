@@ -1,0 +1,69 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 31974,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 8192,
+   "prompt_tokens": 8983,
+   "total_tokens": 17175,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 297.14254784584045,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": true,
+  "usage2": {
+   "completion_tokens": 297,
+   "prompt_tokens": 17204,
+   "total_tokens": 17501,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  }
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"Period 1000ms wrapper cannot measure 1 MIN duration accurately per checklist. Threshold 60 was too low for 1000ms grid (fired at 59000ms). Switched to 100ms grid with threshold 601 to match 60000ms wait duration.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed period to 100 ms and threshold to 601 to implement the `wait(..., for: 1 MIN)` pattern correctly, ensuring the action fires at exactly 60000 ms instead of 59000 ms.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 23660,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "Period 1000ms wrapper cannot measure 1 MIN duration accurately per checklist. Threshold 60 was too low for 1000ms grid (fired at 59000ms). Switched to 100ms grid with threshold 601 to match 60000ms wait duration.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed period to 100 ms and threshold to 601 to implement the `wait(..., for: 1 MIN)` pattern correctly, ensuring the action fires at exactly 60000 ms instead of 59000 ms."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

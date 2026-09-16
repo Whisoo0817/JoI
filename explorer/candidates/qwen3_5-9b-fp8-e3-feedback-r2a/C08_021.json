@@ -1,0 +1,111 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "fired := false\nif (fired == true) {\nwait until(any(#HumiditySensor).humiditySensor_humidity >= 50)\nfired = false\n}\nwait until(any(#HumiditySensor).humiditySensor_humidity < 50)\nany(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\nfired = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"fired := false\\nif (fired == true) {\\nwait until(any(#HumiditySensor).humiditySensor_humidity >= 50)\\nfired = false\\n}\\nwait until(any(#HumiditySensor).humiditySensor_humidity < 50)\\nany(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\nfired = true\"}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "any(#HumiditySensor)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "습도가 50% 밑으로 떨어질 때마다 제습기를 건조모드로 작동해줘.",
+  "command_eng": "Each time the humidity drops below 50%, set the dehumidifier to drying mode.",
+  "connected_devices": {
+    "Main_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Main",
+        "HumiditySensor"
+      ]
+    },
+    "Main_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Bathroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Dehumidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "HumiditySensor.Humidity < 50",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "HumiditySensor": {
+      "any": [
+        "Main_HumiditySensor",
+        "Bedroom_HumiditySensor"
+      ]
+    },
+    "Dehumidifier": [
+      "Main_Dehumidifier",
+      "Bathroom_Dehumidifier"
+    ]
+  },
+  "input_payload_sha256": "9e26d149a25eb1608f6206abca5bb0d74231506e9fa2ccf22845c659cee56813",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1,
+  "feedback_repair": {
+    "run_id": "e3_feedback_r2a_26_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-feedback-v1"
+  }
+}

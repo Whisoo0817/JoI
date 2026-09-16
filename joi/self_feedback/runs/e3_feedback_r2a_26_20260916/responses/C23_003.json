@@ -1,0 +1,37 @@
+{
+ "id": "C23_003",
+ "request_sha256": "3d3c6d95fba4d8baf7437863b01ec48f15fa0628a3fccb38911f7d37eba834b0",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 376,
+   "prompt_tokens": 6823,
+   "total_tokens": 7199,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 12.47150206565857,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 15-minute (900,000 ms) sustained wait before acting. The candidate uses a 100 ms wrapper with a threshold of 901 ticks, which corresponds to 90.1 seconds. This causes the action to fire at ~90 seconds instead of 15 minutes. Evidence F2 confirms the extra action at 90,000 ms. The threshold must be 9001 ticks (900,000 ms / 100 ms + 1) to match the 15-minute duration.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4 threshold value\"],\n    \"change_summary\": \"Changed the hold threshold from 901 to 9001. This ensures the condition is sustained for exactly 15 minutes (9000 ticks) before the action executes, matching the IR's `for: 15 MIN` specification.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Study_Presence).presenceSensor_presence == false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 9001) {\\n(#Study_Light).light_moveToBrightness(20.0, 0.0)\\n        delay(10 MIN)\\n(#Study_Light).switch_off()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Study_Presence).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 9001) {\n(#Study_Light).light_moveToBrightness(20.0, 0.0)\n        delay(10 MIN)\n(#Study_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 15-minute (900,000 ms) sustained wait before acting. The candidate uses a 100 ms wrapper with a threshold of 901 ticks, which corresponds to 90.1 seconds. This causes the action to fire at ~90 seconds instead of 15 minutes. Evidence F2 confirms the extra action at 90,000 ms. The threshold must be 9001 ticks (900,000 ms / 100 ms + 1) to match the 15-minute duration.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4 threshold value"
+  ],
+  "change_summary": "Changed the hold threshold from 901 to 9001. This ensures the condition is sustained for exactly 15 minutes (9000 ticks) before the action executes, matching the IR's `for: 15 MIN` specification."
+ },
+ "status": "REVISED"
+}

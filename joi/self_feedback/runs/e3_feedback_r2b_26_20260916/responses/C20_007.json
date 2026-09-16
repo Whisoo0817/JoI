@@ -1,0 +1,37 @@
+{
+ "id": "C20_007",
+ "request_sha256": "4eb018794e9fb679581ff54bd2ac8364450b80ed82cb23dc5bbe702a471f6a84",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 308,
+   "prompt_tokens": 6924,
+   "total_tokens": 7232,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 42.48643350601196,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 10-minute (6000 ticks) sustain window, but the candidate uses a threshold of 601. With a 100ms period, the counter reaches 601 at t=60000ms (60s), triggering the action 5 minutes early. The correct threshold for 10 minutes is 6001 (6000 ticks + 1).\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"line 4\"],\n    \"change_summary\": \"Changed the threshold from 601 to 6001 to match the 10-minute duration specified in the IR. This ensures the action fires exactly at t=60000ms, preserving the IR's timing behavior.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Kitchen_ContactSensor).contactSensor_contact == false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 6001) {\\n(#Kitchen_Fan).switch_on()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Kitchen_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6001) {\n(#Kitchen_Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 10-minute (6000 ticks) sustain window, but the candidate uses a threshold of 601. With a 100ms period, the counter reaches 601 at t=60000ms (60s), triggering the action 5 minutes early. The correct threshold for 10 minutes is 6001 (6000 ticks + 1).",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "line 4"
+  ],
+  "change_summary": "Changed the threshold from 601 to 6001 to match the 10-minute duration specified in the IR. This ensures the action fires exactly at t=60000ms, preserving the IR's timing behavior."
+ },
+ "status": "REVISED"
+}

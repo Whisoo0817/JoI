@@ -1,0 +1,61 @@
+{
+ "id": "D5a",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24005,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 245,
+   "prompt_tokens": 6386,
+   "total_tokens": 6631,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 51.66937589645386,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate script contains a 'break' statement after the conditional action. The IR specifies a 'cycle' without an 'until' or 'break' condition, meaning the automation must repeat indefinitely. The 'break' causes the script to terminate after the first iteration, preventing subsequent scheduled firings at 1-hour intervals.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script\", \"line 3\"],\n    \"change_summary\": \"Removed the 'break' statement to ensure the script repeats indefinitely as required by the IR's cycle definition, while preserving the 1-hour period and the conditional logic.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 3600000,\n    \"script\": \"if ((#Living_CO2).carbonDioxideSensor_carbonDioxide > 1000) {\\n    (#Living_Purifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 3600000,
+  "script": "if ((#Living_CO2).carbonDioxideSensor_carbonDioxide > 1000) {\n    (#Living_Purifier).airPurifier_setAirPurifierMode(\"auto\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate script contains a 'break' statement after the conditional action. The IR specifies a 'cycle' without an 'until' or 'break' condition, meaning the automation must repeat indefinitely. The 'break' causes the script to terminate after the first iteration, preventing subsequent scheduled firings at 1-hour intervals.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script",
+   "line 3"
+  ],
+  "change_summary": "Removed the 'break' statement to ensure the script repeats indefinitely as required by the IR's cycle definition, while preserving the 1-hour period and the conditional logic."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

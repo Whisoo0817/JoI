@@ -1,0 +1,288 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == true",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "30 SEC",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.CaptureImage",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "ContactSensor": [
+    "Safe_ContactSensor"
+   ],
+   "Camera": [
+    "Safe_Camera"
+   ]
+  },
+  "device_inventory": {
+   "Safe_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Safe",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Safe_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Safe",
+     "Camera"
+    ]
+   },
+   "Vault_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Vault",
+     "Door",
+     "ContactSensor"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold := 0\nif ((#Safe_ContactSensor).contactSensor_contact == true) {\n    hold = hold + 1\n    if (hold >= 301) {\n        break\n    }\n} else {\n    hold = 0\n}\n\nn := 0\nif (n >= 5) {\n    break\n}\n(#Safe_Camera).camera_captureImage()\nn = n + 1\ndelay(30 SEC)\nif (n >= 5) {\n    break\n}\n(#Safe_Camera).camera_captureImage()\nn = n + 1\ndelay(30 SEC)\nif (n >= 5) {\n    break\n}\n(#Safe_Camera).camera_captureImage()\nn = n + 1\ndelay(30 SEC)\nif (n >= 5) {\n    break\n}\n(#Safe_Camera).camera_captureImage()\nn = n + 1\ndelay(30 SEC)\nif (n >= 5) {\n    break\n}\n(#Safe_Camera).camera_captureImage()\nn = n + 1"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Safe_ContactSensor.contact": false
+     },
+     "held_ms": 0
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 0,
+   "mismatch_kind": "joi_extra_action",
+   "ir_actions": [],
+   "joi_actions": [
+    {
+     "targets": [
+      "Safe_Camera"
+     ],
+     "call": "camera.captureimage",
+     "args": []
+    }
+   ],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "hold := 0"
+   },
+   {
+    "line": 2,
+    "text": "if ((#Safe_ContactSensor).contactSensor_contact == true) {"
+   },
+   {
+    "line": 3,
+    "text": "    hold = hold + 1"
+   },
+   {
+    "line": 4,
+    "text": "    if (hold >= 301) {"
+   },
+   {
+    "line": 5,
+    "text": "        break"
+   },
+   {
+    "line": 6,
+    "text": "    }"
+   },
+   {
+    "line": 7,
+    "text": "} else {"
+   },
+   {
+    "line": 8,
+    "text": "    hold = 0"
+   },
+   {
+    "line": 9,
+    "text": "}"
+   },
+   {
+    "line": 10,
+    "text": ""
+   },
+   {
+    "line": 11,
+    "text": "n := 0"
+   },
+   {
+    "line": 12,
+    "text": "if (n >= 5) {"
+   },
+   {
+    "line": 13,
+    "text": "    break"
+   },
+   {
+    "line": 14,
+    "text": "}"
+   },
+   {
+    "line": 15,
+    "text": "(#Safe_Camera).camera_captureImage()"
+   },
+   {
+    "line": 16,
+    "text": "n = n + 1"
+   },
+   {
+    "line": 17,
+    "text": "delay(30 SEC)"
+   },
+   {
+    "line": 18,
+    "text": "if (n >= 5) {"
+   },
+   {
+    "line": 19,
+    "text": "    break"
+   },
+   {
+    "line": 20,
+    "text": "}"
+   },
+   {
+    "line": 21,
+    "text": "(#Safe_Camera).camera_captureImage()"
+   },
+   {
+    "line": 22,
+    "text": "n = n + 1"
+   },
+   {
+    "line": 23,
+    "text": "delay(30 SEC)"
+   },
+   {
+    "line": 24,
+    "text": "if (n >= 5) {"
+   },
+   {
+    "line": 25,
+    "text": "    break"
+   },
+   {
+    "line": 26,
+    "text": "}"
+   },
+   {
+    "line": 27,
+    "text": "(#Safe_Camera).camera_captureImage()"
+   },
+   {
+    "line": 28,
+    "text": "n = n + 1"
+   },
+   {
+    "line": 29,
+    "text": "delay(30 SEC)"
+   },
+   {
+    "line": 30,
+    "text": "if (n >= 5) {"
+   },
+   {
+    "line": 31,
+    "text": "    break"
+   },
+   {
+    "line": 32,
+    "text": "}"
+   },
+   {
+    "line": 33,
+    "text": "(#Safe_Camera).camera_captureImage()"
+   },
+   {
+    "line": 34,
+    "text": "n = n + 1"
+   },
+   {
+    "line": 35,
+    "text": "delay(30 SEC)"
+   },
+   {
+    "line": 36,
+    "text": "if (n >= 5) {"
+   },
+   {
+    "line": 37,
+    "text": "    break"
+   },
+   {
+    "line": 38,
+    "text": "}"
+   },
+   {
+    "line": 39,
+    "text": "(#Safe_Camera).camera_captureImage()"
+   },
+   {
+    "line": 40,
+    "text": "n = n + 1"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 30 SEC)",
+   "duration_ms": 30000,
+   "ticks_at_100ms": 300,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "cycle(period 30 SEC)",
+   "period_ms": 30000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

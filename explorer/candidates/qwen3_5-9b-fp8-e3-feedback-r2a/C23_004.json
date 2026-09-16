@@ -1,0 +1,100 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#Bedroom_Temp).temperatureSensor_temperature > 28) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 3001) {\n(#Bedroom_Fan).switch_on()\n}\n}\nelse {\nhold_ticks = 0\n}\ndelay(20 MIN)\n(#Bedroom_Fan).switch_off()"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 100, \"script\": \"hold_ticks := 0\\nif ((#Bedroom_Temp).temperatureSensor_temperature > 28) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 3001) {\\n(#Bedroom_Fan).switch_on()\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\\ndelay(20 MIN)\\n(#Bedroom_Fan).switch_off()\"}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Bedroom_Temp)"
+    ],
+    "Switch.On": [
+      "(#Bedroom_Fan)"
+    ],
+    "Switch.Off": [
+      "(#Bedroom_Fan)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132408_624.json",
+  "command_kor": "침실 온도가 5분 이상 28도를 초과하면 선풍기를 켜고, 20분 뒤에 꺼줘.",
+  "command_eng": "If the bedroom temperature stays above 28 degrees for at least 5 minutes, turn on the fan, then turn it off 20 minutes later.",
+  "connected_devices": {
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "TemperatureSensor.Temperature > 28",
+        "edge": "none",
+        "for": "5 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "20 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "Bedroom_Temp"
+    ],
+    "Switch": [
+      "Bedroom_Fan"
+    ]
+  },
+  "input_payload_sha256": "2c5dcc7cbaad5511262ffb9ef2a29175edd8096461e8726741288c8d86f2e61e",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 2.1,
+  "feedback_repair": {
+    "run_id": "e3_feedback_r2a_26_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-feedback-v1"
+  }
+}

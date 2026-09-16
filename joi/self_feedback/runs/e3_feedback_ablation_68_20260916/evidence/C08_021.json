@@ -1,0 +1,108 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "HumiditySensor.Humidity < 50",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Dehumidifier.SetDehumidifierMode",
+       "args": {
+        "Mode": "drying"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "HumiditySensor": {
+    "any": [
+     "Main_HumiditySensor",
+     "Bedroom_HumiditySensor"
+    ]
+   },
+   "Dehumidifier": [
+    "Main_Dehumidifier",
+    "Bathroom_Dehumidifier"
+   ]
+  },
+  "device_inventory": {
+   "Main_HumiditySensor": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "Main",
+     "HumiditySensor"
+    ]
+   },
+   "Main_Dehumidifier": {
+    "category": [
+     "Dehumidifier",
+     "Switch"
+    ],
+    "tags": [
+     "Main",
+     "Dehumidifier",
+     "Switch"
+    ]
+   },
+   "Bedroom_HumiditySensor": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "HumiditySensor"
+    ]
+   },
+   "Bathroom_Dehumidifier": {
+    "category": [
+     "Dehumidifier",
+     "Switch"
+    ],
+    "tags": [
+     "Bathroom",
+     "Dehumidifier",
+     "Switch"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (all(#HumiditySensor).humiditySensor_humidity <| 50) {\nif (triggered == false) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

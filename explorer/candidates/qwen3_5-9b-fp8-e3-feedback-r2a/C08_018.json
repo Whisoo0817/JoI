@@ -1,0 +1,109 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (triggered == true) {\nwait until(not (all(#HumiditySensor).humiditySensor_humidity <= 30))\ntriggered = false\n}\nall(#Switch).switch_on()\ntriggered = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(not (all(#HumiditySensor).humiditySensor_humidity <= 30))\\ntriggered = false\\n}\\nall(#Switch).switch_on()\\ntriggered = true\"}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "any(#HumiditySensor)"
+    ],
+    "Switch.On": [
+      "all(#Switch)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "습도가 30% 이하로 떨어질 때마다 가습기를 켜줘.",
+  "command_eng": "Whenever the humidity level drops to 30% or below, turn on the humidifier.",
+  "connected_devices": {
+    "Main_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Main",
+        "HumiditySensor"
+      ]
+    },
+    "Main_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Humidifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Humidifier": {
+      "category": [
+        "Humidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Humidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "HumiditySensor.Humidity <= 30",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "HumiditySensor": {
+      "any": [
+        "Main_HumiditySensor",
+        "Bedroom_HumiditySensor"
+      ]
+    },
+    "Switch": [
+      "Main_Humidifier",
+      "Bedroom_Humidifier"
+    ]
+  },
+  "input_payload_sha256": "cfdf19fa899f4b84b4c7750d9b0d0cea92347d703cfdfe3d4a5603e46d46182d",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2,
+  "feedback_repair": {
+    "run_id": "e3_feedback_r2a_26_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-feedback-v1"
+  }
+}

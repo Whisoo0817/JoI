@@ -1,0 +1,208 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 4",
+     "period": "15 SEC",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Is anyone there"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "PresenceSensor": [
+    "Lobby_Presence"
+   ],
+   "Speaker": [
+    "Lobby_Speaker"
+   ]
+  },
+  "device_inventory": {
+   "Lobby_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Lobby",
+     "PresenceSensor"
+    ]
+   },
+   "Lobby_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Lobby",
+     "Speaker"
+    ]
+   },
+   "Hall_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Hall",
+     "PresenceSensor"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Lobby_Presence).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 601) {\n(#Lobby_Speaker).speaker_speak(\"Is anyone there\")\ndelay(15 SEC)\n(#Lobby_Speaker).speaker_speak(\"Is anyone there\")\ndelay(15 SEC)\n(#Lobby_Speaker).speaker_speak(\"Is anyone there\")\ndelay(15 SEC)\n(#Lobby_Speaker).speaker_speak(\"Is anyone there\")\n}\nelse {\nhold_ticks = 0\n}\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Lobby_Presence.presence": false
+     },
+     "held_ms": 0
+    },
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Lobby_Presence.presence": false
+     },
+     "held_ms": 59900
+    },
+    {
+     "at_ms": 59900,
+     "inputs": {
+      "Lobby_Presence.presence": false
+     },
+     "held_ms": 100
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 60000,
+   "mismatch_kind": "joi_missing_action",
+   "ir_actions": [
+    {
+     "targets": [
+      "Lobby_Speaker"
+     ],
+     "call": "speaker.speak",
+     "args": [
+      "Is anyone there"
+     ]
+    }
+   ],
+   "joi_actions": [],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "hold_ticks := 0"
+   },
+   {
+    "line": 2,
+    "text": "if ((#Lobby_Presence).presenceSensor_presence == false) {"
+   },
+   {
+    "line": 3,
+    "text": "hold_ticks = hold_ticks + 1"
+   },
+   {
+    "line": 4,
+    "text": "if (hold_ticks >= 601) {"
+   },
+   {
+    "line": 5,
+    "text": "(#Lobby_Speaker).speaker_speak(\"Is anyone there\")"
+   },
+   {
+    "line": 6,
+    "text": "delay(15 SEC)"
+   },
+   {
+    "line": 7,
+    "text": "(#Lobby_Speaker).speaker_speak(\"Is anyone there\")"
+   },
+   {
+    "line": 8,
+    "text": "delay(15 SEC)"
+   },
+   {
+    "line": 9,
+    "text": "(#Lobby_Speaker).speaker_speak(\"Is anyone there\")"
+   },
+   {
+    "line": 10,
+    "text": "delay(15 SEC)"
+   },
+   {
+    "line": 11,
+    "text": "(#Lobby_Speaker).speaker_speak(\"Is anyone there\")"
+   },
+   {
+    "line": 12,
+    "text": "}"
+   },
+   {
+    "line": 13,
+    "text": "else {"
+   },
+   {
+    "line": 14,
+    "text": "hold_ticks = 0"
+   },
+   {
+    "line": 15,
+    "text": "}"
+   },
+   {
+    "line": 16,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 1 MIN)",
+   "duration_ms": 60000,
+   "ticks_at_100ms": 600,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "cycle(period 15 SEC)",
+   "period_ms": 15000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

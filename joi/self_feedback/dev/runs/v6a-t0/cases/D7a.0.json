@@ -1,0 +1,59 @@
+{
+ "id": "D7a",
+ "family": "argument",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24602,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 198,
+   "prompt_tokens": 6469,
+   "total_tokens": 6667,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.197644948959351,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The JoI script translated the IR's English string literal into Korean. The IR specifies the exact text 'The living room is $t degrees' as data; the candidate used '거실 온도는 도입니다'. This mismatch violates the requirement to preserve literal string arguments exactly.\",\n    \"evidence_refs\": [\"F2\"],\n    \"changed_locations\": [\"Line 2 of script\"],\n    \"change_summary\": \"Replaced the Korean string literal with the exact English string literal from the IR, preserving the variable interpolation syntax.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t = (#Living_Temp).temperatureSensor_temperature\\nall(#Speaker).speaker_speak(\\\"The living room is \\\" + t + \\\" degrees\\\")\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t = (#Living_Temp).temperatureSensor_temperature\nall(#Speaker).speaker_speak(\"The living room is \" + t + \" degrees\")"
+ },
+ "diagnosis": {
+  "summary": "The JoI script translated the IR's English string literal into Korean. The IR specifies the exact text 'The living room is $t degrees' as data; the candidate used '거실 온도는 도입니다'. This mismatch violates the requirement to preserve literal string arguments exactly.",
+  "evidence_refs": [
+   "F2"
+  ],
+  "changed_locations": [
+   "Line 2 of script"
+  ],
+  "change_summary": "Replaced the Korean string literal with the exact English string literal from the IR, preserving the variable interpolation syntax."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

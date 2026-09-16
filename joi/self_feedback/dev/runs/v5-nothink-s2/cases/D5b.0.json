@@ -1,0 +1,60 @@
+{
+ "id": "D5b",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23899,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 311,
+   "prompt_tokens": 6353,
+   "total_tokens": 6664,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 65.34306311607361,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a sequential flow: wait, turn on, delay, then turn off unconditionally. The candidate replaced the final unconditional `call Switch.Off` with a conditional `if` block. Evidence F2 shows that at 900000ms, the IR executed `switch.off` on Bedroom_Fan_Plug, but the JoI emitted no action because the condition `temperature > 28` was false at that instant (input history shows temperature dropped to null). The repair requires removing the condition so the action executes exactly as the IR specifies.\",\n    \"evidence_refs\": [\"F2\", \"F1\"],\n    \"changed_locations\": [\"Line 4-6 of script\"],\n    \"change_summary\": \"Replaced the conditional `if` block with an unconditional `call` to `Switch.Off`. This preserves the IR's requirement that the fan turns off exactly 15 minutes after being turned on, regardless of the current temperature reading at that moment.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\\n(#Bedroom_Fan_Plug).switch_on()\\ndelay(15 MIN)\\n(#Bedroom_Fan_Plug).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\n(#Bedroom_Fan_Plug).switch_on()\ndelay(15 MIN)\n(#Bedroom_Fan_Plug).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a sequential flow: wait, turn on, delay, then turn off unconditionally. The candidate replaced the final unconditional `call Switch.Off` with a conditional `if` block. Evidence F2 shows that at 900000ms, the IR executed `switch.off` on Bedroom_Fan_Plug, but the JoI emitted no action because the condition `temperature > 28` was false at that instant (input history shows temperature dropped to null). The repair requires removing the condition so the action executes exactly as the IR specifies.",
+  "evidence_refs": [
+   "F2",
+   "F1"
+  ],
+  "changed_locations": [
+   "Line 4-6 of script"
+  ],
+  "change_summary": "Replaced the conditional `if` block with an unconditional `call` to `Switch.Off`. This preserves the IR's requirement that the fan turns off exactly 15 minutes after being turned on, regardless of the current temperature reading at that moment."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

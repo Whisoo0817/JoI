@@ -1,0 +1,61 @@
+{
+ "id": "D6b",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23771,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 265,
+   "prompt_tokens": 6331,
+   "total_tokens": 6596,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 116.07307291030884,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a repeating cycle with a 3-minute period. The candidate script is one-shot (period=0) and terminates after the first execution, missing all subsequent actions. Evidence F2 shows the IR emitting actions at t=190000ms (within the first cycle), but the candidate has no mechanism to repeat.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period field\", \"script structure\"],\n    \"change_summary\": \"Changed the wrapper from one-shot (period=0) to periodic (period=180000) to match the IR's repeating cycle. Removed the trailing delay which was outside the IR's cycle body. The script now repeats indefinitely as required by the IR's lack of an 'until' condition.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 180000,\n    \"script\": \"(#Yard_Siren).siren_setSirenMode(\\\"emergency\\\")\\ndelay(10 SEC)\\n(#Yard_Siren).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 180000,
+  "script": "(#Yard_Siren).siren_setSirenMode(\"emergency\")\ndelay(10 SEC)\n(#Yard_Siren).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a repeating cycle with a 3-minute period. The candidate script is one-shot (period=0) and terminates after the first execution, missing all subsequent actions. Evidence F2 shows the IR emitting actions at t=190000ms (within the first cycle), but the candidate has no mechanism to repeat.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period field",
+   "script structure"
+  ],
+  "change_summary": "Changed the wrapper from one-shot (period=0) to periodic (period=180000) to match the IR's repeating cycle. Removed the trailing delay which was outside the IR's cycle body. The script now repeats indefinitely as required by the IR's lack of an 'until' condition."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

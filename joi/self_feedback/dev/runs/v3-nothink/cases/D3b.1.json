@@ -1,0 +1,60 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23608,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 306,
+   "prompt_tokens": 6253,
+   "total_tokens": 6559,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 147.2765781879425,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate reverses the subtraction order in the condition. The IR requires ($v1 - $v2) >= 20, meaning the volume must drop (v1 > v2). The candidate uses (v2 - v1 >= 20), which triggers when volume rises (v2 > v1). Evidence F2 shows the action fired at t=300000ms because v2 (20) - v1 (0) = 20, whereas the IR condition (0 - 20) = -20 fails.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4 condition\"],\n    \"change_summary\": \"Reversed the operands in the `if` condition from (v2 - v1) to (v1 - v2) to match the IR's logic for detecting a volume drop.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate reverses the subtraction order in the condition. The IR requires ($v1 - $v2) >= 20, meaning the volume must drop (v1 > v2). The candidate uses (v2 - v1 >= 20), which triggers when volume rises (v2 > v1). Evidence F2 shows the action fired at t=300000ms because v2 (20) - v1 (0) = 20, whereas the IR condition (0 - 20) = -20 fails.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4 condition"
+  ],
+  "change_summary": "Reversed the operands in the `if` condition from (v2 - v1) to (v1 - v2) to match the IR's logic for detecting a volume drop."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 1
+}

@@ -1,0 +1,249 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MotionSensor.Motion == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": "min($Light.CurrentBrightness + 10, 100)",
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness >= 100",
+       "then": [
+        {
+         "op": "break"
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "MotionSensor": {
+    "any": [
+     "Entrance_Motion",
+     "Garage_Motion"
+    ]
+   },
+   "Light": [
+    "Living_Light"
+   ]
+  },
+  "device_inventory": {
+   "Entrance_Motion": {
+    "category": [
+     "MotionSensor"
+    ],
+    "tags": [
+     "Entrance",
+     "MotionSensor"
+    ]
+   },
+   "Garage_Motion": {
+    "category": [
+     "MotionSensor"
+    ],
+    "tags": [
+     "Garage",
+     "MotionSensor"
+    ]
+   },
+   "Living_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Living",
+     "Light",
+     "LevelControl"
+    ]
+   },
+   "Bedroom_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Bedroom",
+     "Light",
+     "LevelControl"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nfired := false\nif (all(#MotionSensor).motionSensor_motion ==| true) {\nif (fired == false) {\nhold_ticks = hold_ticks + 1\n        if (hold_ticks >= 1) {\ntmp = (#Living_Light).light_currentBrightness + 10\n            if (tmp > 100) {\ntmp = 100\n}\n(#Living_Light).light_moveToBrightness(tmp, 0)\n            if ((#Living_Light).light_currentBrightness >= 100) {\nbreak\n}\nfired = true\n}\n}\n}\nelse {\nhold_ticks = 0\n    fired = false\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Entrance_Motion.motion": false,
+      "Garage_Motion.motion": false,
+      "Living_Light.currentbrightness": null
+     },
+     "held_ms": 0
+    },
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Entrance_Motion.motion": false,
+      "Garage_Motion.motion": true,
+      "Living_Light.currentbrightness": null
+     },
+     "held_ms": 100
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 100,
+   "mismatch_kind": "joi_missing_action",
+   "ir_actions": [
+    {
+     "targets": [
+      "Living_Light"
+     ],
+     "call": "light.movetobrightness",
+     "args": [
+      10,
+      0
+     ]
+    }
+   ],
+   "joi_actions": [],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "hold_ticks := 0"
+   },
+   {
+    "line": 2,
+    "text": "fired := false"
+   },
+   {
+    "line": 3,
+    "text": "if (all(#MotionSensor).motionSensor_motion ==| true) {"
+   },
+   {
+    "line": 4,
+    "text": "if (fired == false) {"
+   },
+   {
+    "line": 5,
+    "text": "hold_ticks = hold_ticks + 1"
+   },
+   {
+    "line": 6,
+    "text": "        if (hold_ticks >= 1) {"
+   },
+   {
+    "line": 7,
+    "text": "tmp = (#Living_Light).light_currentBrightness + 10"
+   },
+   {
+    "line": 8,
+    "text": "            if (tmp > 100) {"
+   },
+   {
+    "line": 9,
+    "text": "tmp = 100"
+   },
+   {
+    "line": 10,
+    "text": "}"
+   },
+   {
+    "line": 11,
+    "text": "(#Living_Light).light_moveToBrightness(tmp, 0)"
+   },
+   {
+    "line": 12,
+    "text": "            if ((#Living_Light).light_currentBrightness >= 100) {"
+   },
+   {
+    "line": 13,
+    "text": "break"
+   },
+   {
+    "line": 14,
+    "text": "}"
+   },
+   {
+    "line": 15,
+    "text": "fired = true"
+   },
+   {
+    "line": 16,
+    "text": "}"
+   },
+   {
+    "line": 17,
+    "text": "}"
+   },
+   {
+    "line": 18,
+    "text": "}"
+   },
+   {
+    "line": 19,
+    "text": "else {"
+   },
+   {
+    "line": 20,
+    "text": "hold_ticks = 0"
+   },
+   {
+    "line": 21,
+    "text": "    fired = false"
+   },
+   {
+    "line": 22,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

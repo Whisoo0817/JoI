@@ -1,0 +1,117 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "h1",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "delay",
+     "duration": "30 MIN"
+    },
+    {
+     "op": "read",
+     "var": "h2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "if",
+     "cond": "$h2 - $h1 >= 15",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "binding_slots": {
+   "HumiditySensor": [
+    "Bedroom_HumiditySensor"
+   ],
+   "Switch": [
+    "Bedroom_Dehumidifier"
+   ]
+  },
+  "device_inventory": {
+   "Bedroom_HumiditySensor": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "HumiditySensor"
+    ]
+   },
+   "LivingRoom_HumiditySensor": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "HumiditySensor"
+    ]
+   },
+   "Bedroom_Dehumidifier": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Bedroom",
+     "Plug",
+     "Dehumidifier"
+    ]
+   },
+   "Study_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Study",
+     "Speaker"
+    ]
+   },
+   "Office_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Office",
+     "Camera"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "h1 = (#Bedroom_HumiditySensor).humiditySensor_humidity\ndelay(30 MIN)\nh2 = (#Bedroom_HumiditySensor).humiditySensor_humidity\ndiff = h2 - h1\nif (diff < 0) {\ndiff = h1 - h2\n}\nif (diff >= 15) {\n(#Bedroom_Dehumidifier).switch_on()\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "delay(30 MIN)",
+   "duration_ms": 1800000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

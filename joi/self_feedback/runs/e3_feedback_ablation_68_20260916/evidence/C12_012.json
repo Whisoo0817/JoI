@@ -1,0 +1,128 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "SmokeDetector.Smoke == true",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "Siren.SetSirenMode",
+     "args": {
+      "Mode": "fire"
+     }
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "10 SEC",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Please evacuate"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "SmokeDetector": [
+    "LR_Smoke"
+   ],
+   "Siren": [
+    "LR_Siren"
+   ],
+   "Speaker": [
+    "Speaker",
+    "Bedroom_Speaker"
+   ]
+  },
+  "device_inventory": {
+   "LR_Smoke": {
+    "category": [
+     "SmokeDetector"
+    ],
+    "tags": [
+     "LivingRoom",
+     "SmokeDetector"
+    ]
+   },
+   "Bedroom_Smoke": {
+    "category": [
+     "SmokeDetector"
+    ],
+    "tags": [
+     "Bedroom",
+     "SmokeDetector"
+    ]
+   },
+   "LR_Siren": {
+    "category": [
+     "Siren"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Siren"
+    ]
+   },
+   "Bedroom_Siren": {
+    "category": [
+     "Siren"
+    ],
+    "tags": [
+     "Bedroom",
+     "Siren"
+    ]
+   },
+   "Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Speaker"
+    ]
+   },
+   "Bedroom_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Bedroom",
+     "Speaker"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 10000,
+  "script": "phase := 0\nif (phase == 0) {\nwait until((#LR_Smoke).smokeDetector_smoke == true)\n    phase = 1\n    (#LR_Siren).siren_setSirenMode(\"fire\")\n}\nelse {\nall(#Speaker).speaker_speak(\"Please evacuate\")\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 10 SEC)",
+   "period_ms": 10000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

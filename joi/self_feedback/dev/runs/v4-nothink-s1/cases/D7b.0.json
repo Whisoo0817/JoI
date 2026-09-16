@@ -1,0 +1,59 @@
+{
+ "id": "D7b",
+ "family": "argument",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23033,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 210,
+   "prompt_tokens": 6074,
+   "total_tokens": 6284,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 35.577622175216675,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies the Light action arguments as Brightness=60, Rate=0. The candidate calls the method with arguments (0, 60), swapping the order. F2 shows the IR emits [60, 0] while the candidate emits [0, 60].\",\n    \"evidence_refs\": [\"F2\"],\n    \"changed_locations\": [\"line 2 of script\"],\n    \"change_summary\": \"Swapped the argument order in the `light_moveToBrightness` call to match the IR specification (Brightness first, then Rate).\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Porch_Door).contactSensor_contact == false)\\n(#Porch_Light).light_moveToBrightness(60, 0)\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Porch_Door).contactSensor_contact == false)\n(#Porch_Light).light_moveToBrightness(60, 0)"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies the Light action arguments as Brightness=60, Rate=0. The candidate calls the method with arguments (0, 60), swapping the order. F2 shows the IR emits [60, 0] while the candidate emits [0, 60].",
+  "evidence_refs": [
+   "F2"
+  ],
+  "changed_locations": [
+   "line 2 of script"
+  ],
+  "change_summary": "Swapped the argument order in the `light_moveToBrightness` call to match the IR specification (Brightness first, then Rate)."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 1,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

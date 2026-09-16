@@ -1,0 +1,120 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "fired := false\nif (fired == true) {\nwait until((#Bedroom_MB).multiButton_button3 != \"pushed\")\nfired = false\n}\nwait until((#Bedroom_MB).multiButton_button3 == \"pushed\")\ntmp = (#Bedroom_Light).light_currentBrightness + 5\nif (tmp > 80) {\ntmp = 80\n}\n(#Bedroom_Light).light_moveToBrightness(tmp, 0)\nfired = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"fired := false\\nif (fired == true) {\\nwait until((#Bedroom_MB).multiButton_button3 != \\\"pushed\\\")\\nfired = false\\n}\\nwait until((#Bedroom_MB).multiButton_button3 == \\\"pushed\\\")\\ntmp = (#Bedroom_Light).light_currentBrightness + 5\\nif (tmp > 80) {\\ntmp = 80\\n}\\n(#Bedroom_Light).light_moveToBrightness(tmp, 0)\\nfired = true\"}",
+  "precision": {
+    "MultiButton.Button3": [
+      "(#Bedroom_MB)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Bedroom_Light)"
+    ],
+    "Light.CurrentBrightness": [
+      "(#Bedroom_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "멀티버튼의 버튼3이 눌릴 때마다 침실 조명 밝기를 5씩 높여줘. 최대 80까지.",
+  "command_eng": "Whenever button 3 of the multi-button is pressed, increase the bedroom light brightness by 5, up to a maximum of 80.",
+  "connected_devices": {
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LivingRoom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Hallway_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MultiButton.Button3 == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": "min($Light.CurrentBrightness + 5, 80)",
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "MultiButton": [
+      "Bedroom_MB"
+    ],
+    "Light": [
+      "Bedroom_Light"
+    ]
+  },
+  "input_payload_sha256": "f7ac3a343b41def10a25c59a93a46cc7d0c7beab29e89a8ee5eeec9931c7437d",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.6,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

@@ -1,0 +1,59 @@
+{
+ "id": "D7a",
+ "family": "argument",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23696,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 217,
+   "prompt_tokens": 6231,
+   "total_tokens": 6448,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 38.338013648986816,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies the text argument 'The living room is $t degrees' where $t is a variable to be substituted. The candidate translated the entire string (including the variable placeholder) into Korean. Evidence F2 shows the argument mismatch at t=0ms where the IR emits the English string while the candidate emits the Korean string.\",\n    \"evidence_refs\": [\"F2\"],\n    \"changed_locations\": [\"Line 2 string literal\"],\n    \"change_summary\": \"Replaced the translated Korean string literal with the original English literal from the IR, preserving the variable $t for substitution as required by the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t = (#Living_Temp).temperatureSensor_temperature\\nall(#Speaker).speaker_speak(\\\"The living room is \\\" + t + \\\" degrees\\\")\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t = (#Living_Temp).temperatureSensor_temperature\nall(#Speaker).speaker_speak(\"The living room is \" + t + \" degrees\")"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies the text argument 'The living room is $t degrees' where $t is a variable to be substituted. The candidate translated the entire string (including the variable placeholder) into Korean. Evidence F2 shows the argument mismatch at t=0ms where the IR emits the English string while the candidate emits the Korean string.",
+  "evidence_refs": [
+   "F2"
+  ],
+  "changed_locations": [
+   "Line 2 string literal"
+  ],
+  "change_summary": "Replaced the translated Korean string literal with the original English literal from the IR, preserving the variable $t for substitution as required by the IR."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

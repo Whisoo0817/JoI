@@ -1,0 +1,63 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 26823,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 371,
+   "prompt_tokens": 7225,
+   "total_tokens": 7596,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.807717800140381,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 15000 ms period for the entire script, causing the sustain counter to increment only every 15 seconds. The IR requires the condition to be sustained for 30 seconds continuously before the cycle begins. Additionally, the candidate checks the cycle counter `n` inside the sustain block, preventing any action from occurring until `n` reaches 2, whereas the IR's cycle counter `n` starts at 0 and increments after the first action.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Set period to 100 to measure the 30-second sustain window accurately. Replaced the counter-based logic with the required structure: a 101-tick threshold for the sustain, followed by an explicit expansion of the cycle body (2 actions with a 15-second delay between them) and a final break.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Back_Door).contactSensor_contact == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 101) {\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        delay(15 SEC)\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Back_Door).contactSensor_contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 101) {\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        delay(15 SEC)\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 15000 ms period for the entire script, causing the sustain counter to increment only every 15 seconds. The IR requires the condition to be sustained for 30 seconds continuously before the cycle begins. Additionally, the candidate checks the cycle counter `n` inside the sustain block, preventing any action from occurring until `n` reaches 2, whereas the IR's cycle counter `n` starts at 0 and increments after the first action.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Set period to 100 to measure the 30-second sustain window accurately. Replaced the counter-based logic with the required structure: a 101-tick threshold for the sustain, followed by an explicit expansion of the cycle body (2 actions with a 15-second delay between them) and a final break."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 10000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

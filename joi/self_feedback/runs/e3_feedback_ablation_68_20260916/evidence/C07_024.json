@@ -1,0 +1,134 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "PresenceSensor.Presence == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "ColorControl.SetColor",
+       "args": {
+        "Color": "purple"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "PresenceSensor": {
+    "any": [
+     "Hallway_PresenceSensor_1",
+     "Hallway_PresenceSensor_2"
+    ]
+   },
+   "ColorControl": [
+    "Hallway_Light_1",
+    "Hallway_Light_2"
+   ]
+  },
+  "device_inventory": {
+   "Hallway_PresenceSensor_1": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Hallway",
+     "PresenceSensor"
+    ]
+   },
+   "Hallway_PresenceSensor_2": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Hallway",
+     "PresenceSensor"
+    ]
+   },
+   "Porch_PresenceSensor": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Porch",
+     "PresenceSensor"
+    ]
+   },
+   "Hallway_Light_1": {
+    "category": [
+     "Light",
+     "Switch",
+     "ColorControl",
+     "LevelControl"
+    ],
+    "tags": [
+     "Hallway",
+     "Light",
+     "ColorControl"
+    ]
+   },
+   "Hallway_Light_2": {
+    "category": [
+     "Light",
+     "Switch",
+     "ColorControl",
+     "LevelControl"
+    ],
+    "tags": [
+     "Hallway",
+     "Light",
+     "ColorControl"
+    ]
+   },
+   "LivingRoom_Light": {
+    "category": [
+     "Light",
+     "Switch",
+     "ColorControl",
+     "LevelControl"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Light",
+     "ColorControl"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (all(#PresenceSensor).presenceSensor_presence ==| true) {\nif (triggered == false) {\nall(#ColorControl).colorControl_setColor(\"purple\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

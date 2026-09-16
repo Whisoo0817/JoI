@@ -1,0 +1,60 @@
+{
+ "id": "D3a",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 92,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24093,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 319,
+   "prompt_tokens": 6431,
+   "total_tokens": 6750,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 129.39297461509705,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate adds an extra `if` block (lines 5-7) that folds negative differences to positive values using `abs()`. The IR contains no such logic; it strictly evaluates `$t2 - $t1 >= 3`. This causes actions when the temperature dropped (e.g., 3 -> 0, diff -3, folded to 3), whereas the IR would take no action. Evidence F2 confirms an extra action was emitted at 1200000 ms.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Lines 5-7 of script\"],\n    \"change_summary\": \"Removed the absolute-value folding logic (`diff = t1 - t2` when `diff < 0`). The revised script strictly computes `t2 - t1` and checks if it is `>= 3`, matching the IR's conditional behavior exactly.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#Study_Temp).temperatureSensor_temperature\\ndelay(20 MIN)\\nt2 = (#Study_Temp).temperatureSensor_temperature\\ndiff = t2 - t1\\nif (diff >= 3) {\\n    (#Study_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#Study_Temp).temperatureSensor_temperature\ndelay(20 MIN)\nt2 = (#Study_Temp).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff >= 3) {\n    (#Study_AC).airConditioner_setAirConditionerMode(\"cool\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate adds an extra `if` block (lines 5-7) that folds negative differences to positive values using `abs()`. The IR contains no such logic; it strictly evaluates `$t2 - $t1 >= 3`. This causes actions when the temperature dropped (e.g., 3 -> 0, diff -3, folded to 3), whereas the IR would take no action. Evidence F2 confirms an extra action was emitted at 1200000 ms.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Lines 5-7 of script"
+  ],
+  "change_summary": "Removed the absolute-value folding logic (`diff = t1 - t2` when `diff < 0`). The revised script strictly computes `t2 - t1` and checks if it is `>= 3`, matching the IR's conditional behavior exactly."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 36,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

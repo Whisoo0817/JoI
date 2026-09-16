@@ -1,0 +1,60 @@
+{
+ "id": "D7b",
+ "family": "argument",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23422,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 218,
+   "prompt_tokens": 6182,
+   "total_tokens": 6400,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 23.299310207366943,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate swaps the argument order for the `light.movetobrightness` call. F2 shows the IR expects `[Brightness, Rate] = [60, 0]`, while the candidate calls with `[0, 60]`. This violates the binding and catalog argument specification.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"(#Porch_Light).light_moveToBrightness(0, 60)\"],\n    \"change_summary\": \"Reversed the arguments to match the IR specification: Brightness=60, Rate=0.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Porch_Door).contactSensor_contact == false)\\n(#Porch_Light).light_moveToBrightness(60, 0)\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Porch_Door).contactSensor_contact == false)\n(#Porch_Light).light_moveToBrightness(60, 0)"
+ },
+ "diagnosis": {
+  "summary": "The candidate swaps the argument order for the `light.movetobrightness` call. F2 shows the IR expects `[Brightness, Rate] = [60, 0]`, while the candidate calls with `[0, 60]`. This violates the binding and catalog argument specification.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "(#Porch_Light).light_moveToBrightness(0, 60)"
+  ],
+  "change_summary": "Reversed the arguments to match the IR specification: Brightness=60, Rate=0."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 1,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

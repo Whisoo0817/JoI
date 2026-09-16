@@ -1,0 +1,61 @@
+{
+ "id": "D6b",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25455,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 266,
+   "prompt_tokens": 6779,
+   "total_tokens": 7045,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.487720489501953,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a one-shot sequence (period 0) instead of a repeating cycle (period 3 MIN). The IR specifies a cycle that repeats the body indefinitely; the candidate executes the body once and then waits for 3 minutes before terminating, missing all subsequent iterations. Evidence F2 shows the IR expects an action at 190000 ms (start of the second cycle body), but the candidate is idle because it has already finished.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the script to a periodic body with period=180000. The sequence of actions (set mode, delay, switch off) is repeated in every iteration, matching the IR's cycle semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 180000,\n    \"script\": \"(#Yard_Siren).siren_setSirenMode(\\\"emergency\\\")\\ndelay(10 SEC)\\n(#Yard_Siren).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 180000,
+  "script": "(#Yard_Siren).siren_setSirenMode(\"emergency\")\ndelay(10 SEC)\n(#Yard_Siren).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a one-shot sequence (period 0) instead of a repeating cycle (period 3 MIN). The IR specifies a cycle that repeats the body indefinitely; the candidate executes the body once and then waits for 3 minutes before terminating, missing all subsequent iterations. Evidence F2 shows the IR expects an action at 190000 ms (start of the second cycle body), but the candidate is idle because it has already finished.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the script to a periodic body with period=180000. The sequence of actions (set mode, delay, switch off) is repeated in every iteration, matching the IR's cycle semantics."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

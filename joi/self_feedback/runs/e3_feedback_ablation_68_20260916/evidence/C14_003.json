@@ -1,0 +1,144 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "count": "n",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button4 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "if",
+       "cond": "n % 3 == 0",
+       "then": [
+        {
+         "op": "call",
+         "target": "Light.MoveToBrightness",
+         "args": {
+          "Brightness": 25.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "n % 3 == 1",
+         "then": [
+          {
+           "op": "call",
+           "target": "Light.MoveToBrightness",
+           "args": {
+            "Brightness": 50.0,
+            "Rate": 0.0
+           }
+          }
+         ],
+         "else": [
+          {
+           "op": "call",
+           "target": "Light.MoveToBrightness",
+           "args": {
+            "Brightness": 75.0,
+            "Rate": 0.0
+           }
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "MultiButton": [
+    "LR_MB"
+   ],
+   "Light": [
+    "LR_Light_1",
+    "LR_Light_2"
+   ]
+  },
+  "device_inventory": {
+   "LR_MB": {
+    "category": [
+     "MultiButton"
+    ],
+    "tags": [
+     "LivingRoom",
+     "MultiButton"
+    ]
+   },
+   "Bedroom_MB": {
+    "category": [
+     "MultiButton"
+    ],
+    "tags": [
+     "Bedroom",
+     "MultiButton"
+    ]
+   },
+   "LR_Light_1": {
+    "category": [
+     "Light"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Light"
+    ]
+   },
+   "LR_Light_2": {
+    "category": [
+     "Light"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Light"
+    ]
+   },
+   "Bedroom_Light": {
+    "category": [
+     "Light"
+    ],
+    "tags": [
+     "Bedroom",
+     "Light"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "n := 0\ntriggered := false\nif ((#LR_MB).multiButton_button4 == \"pushed\") {\nif (triggered == false) {\nif (n % 3 == 0) {\nall(#Light).light_moveToBrightness(25, 0)\n}\nelse if (n % 3 == 1) {\nall(#Light).light_moveToBrightness(50, 0)\n}\nelse {\nall(#Light).light_moveToBrightness(75, 0)\n}\ntriggered = true\n}\n}\nelse {\ntriggered = false\n}\nn = n + 1"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

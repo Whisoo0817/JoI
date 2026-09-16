@@ -1,0 +1,38 @@
+{
+ "id": "C23_003",
+ "request_sha256": "443e7f4af6184114afa2ef93dceafeaa96534791e8ad9fb2a1d1e202023d8c9d",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 374,
+   "prompt_tokens": 7061,
+   "total_tokens": 7435,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 41.812249183654785,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate fires the action block at 90,000 ms (90 ticks) because it uses a threshold of 901. The IR requires a 15-minute (900,000 ms) sustain window. With a 100 ms period, 15 minutes equals 9,000 ticks. The first tick counts at t=0, so the action must wait until tick 9,001 to ensure the full duration has elapsed. The candidate's threshold is off by a factor of 10.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4 threshold value\"],\n    \"change_summary\": \"Changed the hold threshold from 901 to 9001. This ensures the condition is held for exactly 9,000 ticks (15 minutes) before executing the action block, matching the IR's `for: 15 MIN` requirement.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Study_Presence).presenceSensor_presence == false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 9001) {\\n(#Study_Light).light_moveToBrightness(20.0, 0.0)\\n        delay(10 MIN)\\n(#Study_Light).switch_off()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Study_Presence).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 9001) {\n(#Study_Light).light_moveToBrightness(20.0, 0.0)\n        delay(10 MIN)\n(#Study_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate fires the action block at 90,000 ms (90 ticks) because it uses a threshold of 901. The IR requires a 15-minute (900,000 ms) sustain window. With a 100 ms period, 15 minutes equals 9,000 ticks. The first tick counts at t=0, so the action must wait until tick 9,001 to ensure the full duration has elapsed. The candidate's threshold is off by a factor of 10.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4 threshold value"
+  ],
+  "change_summary": "Changed the hold threshold from 901 to 9001. This ensures the condition is held for exactly 9,000 ticks (15 minutes) before executing the action block, matching the IR's `for: 15 MIN` requirement."
+ },
+ "status": "REVISED"
+}

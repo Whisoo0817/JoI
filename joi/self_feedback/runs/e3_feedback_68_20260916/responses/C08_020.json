@@ -1,0 +1,38 @@
+{
+ "id": "C08_020",
+ "request_sha256": "0b3612dcf6e65edf626c64060f284dfd9f42e31e584c87206d29e75db51f69a6",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 353,
+   "prompt_tokens": 6697,
+   "total_tokens": 7050,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 68.99773073196411,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a rising-edge wait for Sound > 30 before calling the action. The candidate uses a periodic `if` which only evaluates at the start of the 1000ms cycle. At t=100ms, the condition became true, but the candidate's `if` had not yet executed, so the action was missed. The fix implements the rising-edge state machine: block until the edge occurs, then execute the body.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic polling `if` with a blocking rising-edge wait (`wait until` with `triggered` state) followed by the action and state update, matching the IR's `cycle { wait(rising); call }` structure.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until((#Main_SoundSensor).soundSensor_sound > 30 and (#Bedroom_SoundSensor).soundSensor_sound <= 30)\\ntriggered = false\\n}\\nwait until((#Main_SoundSensor).soundSensor_sound > 30 or (#Bedroom_SoundSensor).soundSensor_sound > 30)\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until((#Main_SoundSensor).soundSensor_sound > 30 and (#Bedroom_SoundSensor).soundSensor_sound <= 30)\ntriggered = false\n}\nwait until((#Main_SoundSensor).soundSensor_sound > 30 or (#Bedroom_SoundSensor).soundSensor_sound > 30)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a rising-edge wait for Sound > 30 before calling the action. The candidate uses a periodic `if` which only evaluates at the start of the 1000ms cycle. At t=100ms, the condition became true, but the candidate's `if` had not yet executed, so the action was missed. The fix implements the rising-edge state machine: block until the edge occurs, then execute the body.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic polling `if` with a blocking rising-edge wait (`wait until` with `triggered` state) followed by the action and state update, matching the IR's `cycle { wait(rising); call }` structure."
+ },
+ "status": "REVISED"
+}

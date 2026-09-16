@@ -1,0 +1,33 @@
+{
+ "id": "C08_022",
+ "request_sha256": "7f456d2568bea2e6e2cc7b06d58e58899ca2c5f7f5ff0d585125cbdbed645959",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 293,
+   "prompt_tokens": 5730,
+   "total_tokens": 6023,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.593974351882935,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a periodic `if` check instead of a blocking rising-edge wait. The IR requires the action to fire exactly when the condition transitions from false to true (rising edge), whereas the candidate only fires if the condition is true at the start of the 1-second wrapper period, missing any transitions that occur between periods.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with the standard two-wait rearming pattern: a flag to track if the edge has fired, a wait for the condition to become false (rearm), a wait for the condition to become true (trigger), the action, and setting the flag. This ensures the action fires on every rising edge regardless of the wrapper period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until((#Main_Window).windowCovering_currentPosition <= 0)\\ntriggered = false\\n}\\nwait until((#Main_Window).windowCovering_currentPosition > 0)\\nall(#Speaker).speaker_speak(\\\"The window is open\\\")\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until((#Main_Window).windowCovering_currentPosition <= 0)\ntriggered = false\n}\nwait until((#Main_Window).windowCovering_currentPosition > 0)\nall(#Speaker).speaker_speak(\"The window is open\")\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a periodic `if` check instead of a blocking rising-edge wait. The IR requires the action to fire exactly when the condition transitions from false to true (rising edge), whereas the candidate only fires if the condition is true at the start of the 1-second wrapper period, missing any transitions that occur between periods.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with the standard two-wait rearming pattern: a flag to track if the edge has fired, a wait for the condition to become false (rearm), a wait for the condition to become true (trigger), the action, and setting the flag. This ensures the action fires on every rising edge regardless of the wrapper period."
+ },
+ "status": "REVISED"
+}

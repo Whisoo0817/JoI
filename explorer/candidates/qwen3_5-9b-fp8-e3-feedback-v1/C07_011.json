@@ -1,0 +1,98 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#HumiditySensor).humiditySensor_humidity >| 80)\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#HumiditySensor).humiditySensor_humidity >| 80)\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "any(#HumiditySensor)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "습도가 80%보다 커지면 제습기를 건조 모드로 작동시켜줘.",
+  "command_eng": "When the humidity exceeds 80%, start the dehumidifier in drying mode.",
+  "connected_devices": {
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Dehumidifier"
+      ]
+    },
+    "Bathroom_Dehumidifier": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "HumiditySensor.Humidity > 80",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "drying"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "HumiditySensor": {
+      "any": [
+        "LivingRoom_HumiditySensor",
+        "Bedroom_HumiditySensor"
+      ]
+    },
+    "Dehumidifier": [
+      "LivingRoom_Dehumidifier",
+      "Bathroom_Dehumidifier"
+    ]
+  },
+  "input_payload_sha256": "95ef2f961759f18ec6cdfdaa9ba3831ab1da2d008208a9b4648fe6618ebe282d",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

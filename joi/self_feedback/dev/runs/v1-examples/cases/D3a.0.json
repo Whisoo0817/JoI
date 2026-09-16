@@ -1,0 +1,59 @@
+{
+ "id": "D3a",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 92,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 21559,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 1015,
+   "prompt_tokens": 5667,
+   "total_tokens": 6682,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 175.625182390213,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The candidate incorrectly computes absolute value by converting negative differences to positive (lines 5-7), changing the IR's semantics from detecting temperature INCREASE of >= 3 to detecting ANY temperature change of >= 3 in magnitude. F2 shows IR emitted no action at 1200000ms but JoI did, because temperature was held constant (diff=0) so IR correctly didn't trigger, but candidate triggered due to absolute value logic.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Lines 5-7 removed\"],\n    \"change_summary\": \"Removed the absolute value conversion block (lines 5-7) that was converting negative differences to positive. This preserves the IR's exact semantics where only t2 - t1 >= 3 (temperature increase) triggers the action, not any large absolute change.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#Study_Temp).temperatureSensor_temperature\\ndelay(20 MIN)\\nt2 = (#Study_Temp).temperatureSensor_temperature\\ndiff = t2 - t1\\nif (diff >= 3) {\\n    (#Study_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 2562,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#Study_Temp).temperatureSensor_temperature\ndelay(20 MIN)\nt2 = (#Study_Temp).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff >= 3) {\n    (#Study_AC).airConditioner_setAirConditionerMode(\"cool\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate incorrectly computes absolute value by converting negative differences to positive (lines 5-7), changing the IR's semantics from detecting temperature INCREASE of >= 3 to detecting ANY temperature change of >= 3 in magnitude. F2 shows IR emitted no action at 1200000ms but JoI did, because temperature was held constant (diff=0) so IR correctly didn't trigger, but candidate triggered due to absolute value logic.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Lines 5-7 removed"
+  ],
+  "change_summary": "Removed the absolute value conversion block (lines 5-7) that was converting negative differences to positive. This preserves the IR's exact semantics where only t2 - t1 >= 3 (temperature increase) triggers the action, not any large absolute change."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 36,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

@@ -1,0 +1,130 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 300000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until(all(#SmokeDetector).smokeDetector_smoke == true)\nphase = 1\nall(#Speaker).speaker_speak(\"Smoke detected.\")\nall(#EmailProvider).emailProvider_sendMail(\"test@example.com\", \"Fire Warning\", \"A fire has occurred. Please evacuate.\")\n}\nelse {\nall(#EmailProvider).emailProvider_sendMail(\"test@example.com\", \"Fire Warning\", \"A fire has occurred. Please evacuate.\")\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 300000, \"script\": \"phase := 0\\nif (phase == 0) {\\nwait until(all(#SmokeDetector).smokeDetector_smoke == true)\\nphase = 1\\nall(#Speaker).speaker_speak(\\\"Smoke detected.\\\")\\nall(#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"Fire Warning\\\", \\\"A fire has occurred. Please evacuate.\\\")\\n}\\nelse {\\nall(#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"Fire Warning\\\", \\\"A fire has occurred. Please evacuate.\\\")\\n}\"}",
+  "precision": {
+    "SmokeDetector.Smoke": [
+      "any(#SmokeDetector)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ],
+    "EmailProvider.SendMail": [
+      "(#EmailProvider)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "연기가 감지되면 스피커로 화재를 알리고, 그 이후로 5분마다 test@example.com으로 \"화재 경고\"라는 제목과 \"화재가 발생했습니다. 대피하세요\"라는 내용의 이메일을 보내줘.",
+  "command_eng": "When smoke is detected, announce it through the speaker and then send an email every 5 minutes thereafter to \"test@example.com\" with the subject \"Fire Warning\" and the content \"A fire has occurred. Please evacuate.\".",
+  "connected_devices": {
+    "Kitchen_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Kitchen",
+        "SmokeDetector"
+      ]
+    },
+    "Bedroom_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Bedroom",
+        "SmokeDetector"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    },
+    "EmailProvider": {
+      "category": [
+        "EmailProvider"
+      ],
+      "tags": [
+        "EmailProvider"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "SmokeDetector.Smoke == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Smoke detected."
+        }
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "5 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "EmailProvider.SendMail",
+            "args": {
+              "ToAddress": "test@example.com",
+              "Title": "Fire Warning",
+              "Body": "A fire has occurred. Please evacuate."
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "SmokeDetector": {
+      "any": [
+        "Kitchen_Smoke",
+        "Bedroom_Smoke"
+      ]
+    },
+    "Speaker": [
+      "Living_Speaker",
+      "Bedroom_Speaker"
+    ],
+    "EmailProvider": [
+      "EmailProvider"
+    ]
+  },
+  "input_payload_sha256": "e57af73354498174c4424b9690174b745b84e9a43e104d503b99a0e695a1d160",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.4,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

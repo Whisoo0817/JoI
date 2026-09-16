@@ -1,0 +1,61 @@
+{
+ "id": "D4a",
+ "family": "phase",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 1,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28254,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 281,
+   "prompt_tokens": 7502,
+   "total_tokens": 7783,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 4.59740948677063,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a cycle where the pre-cycle action (Siren) and the first cycle body action (Speaker) execute immediately after the wait completes. The candidate uses a phase flag, causing the Speaker action to be delayed by one full cycle period (2 MIN) until the second iteration, whereas the IR requires it immediately. Evidence F2 shows the Speaker action is missing at t=0.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script body logic\"],\n    \"change_summary\": \"Removed the phase-based delay. The Siren call remains in the initial block after the wait. The Speaker call is moved to execute immediately after the Siren call within the same iteration block, matching the IR's requirement that the cycle body runs immediately following the pre-cycle steps.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 120000,\n    \"script\": \"wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\\n(#Kitchen_Siren).siren_setSirenMode(\\\"emergency\\\")\\n(#Kitchen_Speaker).speaker_speak(\\\"Smoke detected in the kitchen\\\")\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 120000,
+  "script": "wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\n(#Kitchen_Siren).siren_setSirenMode(\"emergency\")\n(#Kitchen_Speaker).speaker_speak(\"Smoke detected in the kitchen\")"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a cycle where the pre-cycle action (Siren) and the first cycle body action (Speaker) execute immediately after the wait completes. The candidate uses a phase flag, causing the Speaker action to be delayed by one full cycle period (2 MIN) until the second iteration, whereas the IR requires it immediately. Evidence F2 shows the Speaker action is missing at t=0.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script body logic"
+  ],
+  "change_summary": "Removed the phase-based delay. The Siren call remains in the initial block after the wait. The Speaker call is moved to execute immediately after the Siren call within the same iteration block, matching the IR's requirement that the cycle body runs immediately following the pre-cycle steps."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 120000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

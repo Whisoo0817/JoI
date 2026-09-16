@@ -1,0 +1,37 @@
+{
+ "id": "C20_014",
+ "request_sha256": "5c687f7b63d4fbef8f9f1a1fd81d2d4e43d23624fc7306302fdc58d99a67f114",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 433,
+   "prompt_tokens": 6616,
+   "total_tokens": 7049,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 42.50824332237244,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires the condition to be sustained for 10 minutes (600,000 ms). With a 100 ms wrapper period, this requires 6,000 ticks. The candidate uses a threshold of 6001, which triggers the action after 6,001 ticks (600,100 ms), causing a 100 ms delay. Evidence F2 shows the IR acted at 600,000 ms while the JoI did not.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"line 4\"],\n    \"change_summary\": \"Changed the hold threshold from 6001 to 6001. Wait, 6000 ticks * 100ms = 600,000ms. The first tick is at t=0. To sustain for 600,000ms, we need to count 6000 successful ticks. The condition is true at t=0 (tick 1). It must remain true for 6000 ticks. The action should fire when hold_ticks reaches 6000. The candidate used 6001, which is one tick too many. Correcting to 6000 aligns the action with the 600,000 ms deadline.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 6000) {\\n        (#Office_AC).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6000) {\n        (#Office_AC).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires the condition to be sustained for 10 minutes (600,000 ms). With a 100 ms wrapper period, this requires 6,000 ticks. The candidate uses a threshold of 6001, which triggers the action after 6,001 ticks (600,100 ms), causing a 100 ms delay. Evidence F2 shows the IR acted at 600,000 ms while the JoI did not.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "line 4"
+  ],
+  "change_summary": "Changed the hold threshold from 6001 to 6001. Wait, 6000 ticks * 100ms = 600,000ms. The first tick is at t=0. To sustain for 600,000ms, we need to count 6000 successful ticks. The condition is true at t=0 (tick 1). It must remain true for 6000 ticks. The action should fire when hold_ticks reaches 6000. The candidate used 6001, which is one tick too many. Correcting to 6000 aligns the action with the 600,000 ms deadline."
+ },
+ "status": "REVISED"
+}

@@ -1,0 +1,61 @@
+{
+ "id": "D5b",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 27382,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 338,
+   "prompt_tokens": 7279,
+   "total_tokens": 7617,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.651331901550293,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a periodic `if` guard after the delay to detect the condition. F1 shows the input dropped to `null` at 900000ms, and F2 shows the IR performed `switch_off` while the JoI did nothing. The IR specifies a one-shot sequence (no `cycle`), so the `if` block must execute unconditionally at that instant, not be gated by a re-evaluated condition. The candidate incorrectly requires the temperature to still be >28 to turn off the fan, whereas the IR mandates the action regardless of the current sensor state after the fixed delay.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 4-6\"],\n    \"change_summary\": \"Removed the conditional guard `if ((#Bedroom_Temp).temperatureSensor_temperature > 28)` surrounding the `switch_off` call. The IR defines a linear sequence of actions; the turn-off is a fixed step 15 minutes after the turn-on, not dependent on the sensor reading at that moment.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\\n(#Bedroom_Fan_Plug).switch_on()\\ndelay(15 MIN)\\n(#Bedroom_Fan_Plug).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Bedroom_Temp).temperatureSensor_temperature > 28)\n(#Bedroom_Fan_Plug).switch_on()\ndelay(15 MIN)\n(#Bedroom_Fan_Plug).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a periodic `if` guard after the delay to detect the condition. F1 shows the input dropped to `null` at 900000ms, and F2 shows the IR performed `switch_off` while the JoI did nothing. The IR specifies a one-shot sequence (no `cycle`), so the `if` block must execute unconditionally at that instant, not be gated by a re-evaluated condition. The candidate incorrectly requires the temperature to still be >28 to turn off the fan, whereas the IR mandates the action regardless of the current sensor state after the fixed delay.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 4-6"
+  ],
+  "change_summary": "Removed the conditional guard `if ((#Bedroom_Temp).temperatureSensor_temperature > 28)` surrounding the `switch_off` call. The IR defines a linear sequence of actions; the turn-off is a fixed step 15 minutes after the turn-on, not dependent on the sensor reading at that moment."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

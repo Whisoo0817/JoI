@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Speaker).speaker_play(\"music.mp3\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Speaker).speaker_play(\\\"music.mp3\\\")\"\n}",
+  "precision": {
+    "Speaker.Play": [
+      "all(#Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "스피커로 \"music.mp3\" 재생해줘.",
+  "command_eng": "Play \"music.mp3\" through the speaker.",
+  "connected_devices": {
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Play",
+        "args": {
+          "MediaSource": "music.mp3"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "Speaker": [
+      "LivingRoom_Speaker",
+      "Bedroom_Speaker"
+    ]
+  },
+  "input_payload_sha256": "9d5c7c2fb8e39ac34c2947bbb35f8635f824b987833298b6c659b095697bb0c3",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.3
+}

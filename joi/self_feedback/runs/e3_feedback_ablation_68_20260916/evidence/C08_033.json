@@ -1,0 +1,114 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Button.Button == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Switch.Off",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "Button": [
+    "Stop_Button"
+   ],
+   "Switch": [
+    "Even_Charger",
+    "Even_Light"
+   ]
+  },
+  "device_inventory": {
+   "Stop_Button": {
+    "category": [
+     "Button"
+    ],
+    "tags": [
+     "Stop",
+     "Button"
+    ]
+   },
+   "Odd_Button": {
+    "category": [
+     "Button"
+    ],
+    "tags": [
+     "Odd",
+     "Button"
+    ]
+   },
+   "Even_Charger": {
+    "category": [
+     "Charger",
+     "Switch"
+    ],
+    "tags": [
+     "Even",
+     "Charger",
+     "Switch"
+    ]
+   },
+   "Even_Light": {
+    "category": [
+     "Light",
+     "Switch"
+    ],
+    "tags": [
+     "Even",
+     "Light",
+     "Switch"
+    ]
+   },
+   "Odd_Charger": {
+    "category": [
+     "Charger",
+     "Switch"
+    ],
+    "tags": [
+     "Odd",
+     "Charger",
+     "Switch"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#Stop_Button).button_button == \"pushed\") {\nif (triggered == false) {\nall(#Switch).switch_off()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

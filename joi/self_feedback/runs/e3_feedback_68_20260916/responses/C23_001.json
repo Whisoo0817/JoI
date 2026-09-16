@@ -1,0 +1,37 @@
+{
+ "id": "C23_001",
+ "request_sha256": "7be64745649215c15a643f0c3100e4d4fe55286fd4bda3105009b141de1007ce",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 513,
+   "prompt_tokens": 36573,
+   "total_tokens": 37086,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 23.867592334747314,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a sustained wait of 10 minutes (600,000 ms) before acting. The candidate uses a 1000 ms wrapper period and a threshold of 600 ticks, which corresponds to only 600,000 ms / 1000 = 600 seconds (10 minutes) if the counter started at 0 and incremented every period. However, the evidence shows the condition is true from t=0. In a 1000 ms wrapper, the first check happens at t=0 (tick 1). To sustain for 10 minutes, the counter must reach 601 (covering ticks 1 through 601, spanning 600 intervals of 1000ms). The candidate's threshold of 600 fires one period too early (at 599,000 ms instead of 600,000 ms), causing the extra action observed at 599,000 ms in F2.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"hold_ticks threshold\"],\n    \"change_summary\": \"Changed the threshold from 600 to 601. With a 1000 ms wrapper, the condition is checked at t=0 (tick 1). Reaching 601 requires 600 full periods to pass after the initial check, ensuring the condition is sustained for exactly 600,000 ms (10 minutes) before the action fires at t=600,000 ms.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"hold_ticks := 0\\nif (all(#LivingRoom_Motion).motionSensor_motion ==| false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n(#LivingRoom_Light).light_moveToBrightness(30.0, 0.0)\\n        delay(5 MIN)\\n(#LivingRoom_Light).switch_off()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif (all(#LivingRoom_Motion).motionSensor_motion ==| false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n(#LivingRoom_Light).light_moveToBrightness(30.0, 0.0)\n        delay(5 MIN)\n(#LivingRoom_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a sustained wait of 10 minutes (600,000 ms) before acting. The candidate uses a 1000 ms wrapper period and a threshold of 600 ticks, which corresponds to only 600,000 ms / 1000 = 600 seconds (10 minutes) if the counter started at 0 and incremented every period. However, the evidence shows the condition is true from t=0. In a 1000 ms wrapper, the first check happens at t=0 (tick 1). To sustain for 10 minutes, the counter must reach 601 (covering ticks 1 through 601, spanning 600 intervals of 1000ms). The candidate's threshold of 600 fires one period too early (at 599,000 ms instead of 600,000 ms), causing the extra action observed at 599,000 ms in F2.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "hold_ticks threshold"
+  ],
+  "change_summary": "Changed the threshold from 600 to 601. With a 1000 ms wrapper, the condition is checked at t=0 (tick 1). Reaching 601 requires 600 full periods to pass after the initial check, ensuring the condition is sustained for exactly 600,000 ms (10 minutes) before the action fires at t=600,000 ms."
+ },
+ "status": "REVISED"
+}

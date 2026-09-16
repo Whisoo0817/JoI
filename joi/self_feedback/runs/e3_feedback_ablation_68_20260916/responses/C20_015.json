@@ -1,0 +1,34 @@
+{
+ "id": "C20_015",
+ "request_sha256": "02bdd57fbd8160546b7d9bc3acbf39824c8a6c3d426baa71af1dfda8097de3fc",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 289,
+   "prompt_tokens": 5735,
+   "total_tokens": 6024,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 17.226684093475342,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 45, causing the action to fire after 45 seconds (45 ticks). The IR requires a 45-second sustain window, which corresponds to 450 ticks at a 100 ms grid. The action must wait until the 451st tick to ensure the full 45 seconds have elapsed.\",\n    \"changed_locations\": [\"period\", \"script threshold\"],\n    \"change_summary\": \"Changed period to 100 to match the fine-grained sustain requirement. Updated the threshold from 45 to 451 (450 ticks + 1) so the action fires exactly after 45 seconds of continuous condition satisfaction.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Pantry_ContactSensor).contactSensor_contact == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 451) {\\n(#Pantry_Light).switch_on()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Pantry_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 451) {\n(#Pantry_Light).switch_on()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 45, causing the action to fire after 45 seconds (45 ticks). The IR requires a 45-second sustain window, which corresponds to 450 ticks at a 100 ms grid. The action must wait until the 451st tick to ensure the full 45 seconds have elapsed.",
+  "changed_locations": [
+   "period",
+   "script threshold"
+  ],
+  "change_summary": "Changed period to 100 to match the fine-grained sustain requirement. Updated the threshold from 45 to 451 (450 ticks + 1) so the action fires exactly after 45 seconds of continuous condition satisfaction."
+ },
+ "status": "REVISED"
+}

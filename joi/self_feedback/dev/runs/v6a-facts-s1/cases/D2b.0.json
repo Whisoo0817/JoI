@@ -1,0 +1,63 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 34064,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 360,
+   "prompt_tokens": 9601,
+   "total_tokens": 9961,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.339441061019897,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute sustain window (60,000 ms). The candidate used a 1000 ms wrapper period with a threshold of 60 ticks, resulting in a 60-second window. Additionally, the IR does not contain a `break`, causing the candidate to terminate prematurely instead of completing the one-shot sequence. Evidence F1 shows the condition held for 59 seconds before the IR action fired at 60,000 ms, while F2 shows the candidate fired at 59,000 ms.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"period\", \"threshold\", \"break\"],\n    \"change_summary\": \"Changed `period` to 100 ms to match the sustain granularity. Updated the tick threshold from 60 to 601 (duration/period + 1) to ensure the action fires exactly at 60,000 ms. Removed the `break` statement as the IR is a one-shot sequence without an explicit termination condition.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute sustain window (60,000 ms). The candidate used a 1000 ms wrapper period with a threshold of 60 ticks, resulting in a 60-second window. Additionally, the IR does not contain a `break`, causing the candidate to terminate prematurely instead of completing the one-shot sequence. Evidence F1 shows the condition held for 59 seconds before the IR action fired at 60,000 ms, while F2 shows the candidate fired at 59,000 ms.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold",
+   "break"
+  ],
+  "change_summary": "Changed `period` to 100 ms to match the sustain granularity. Updated the tick threshold from 60 to 601 (duration/period + 1) to ensure the action fires exactly at 60,000 ms. Removed the `break` statement as the IR is a one-shot sequence without an explicit termination condition."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 60100
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

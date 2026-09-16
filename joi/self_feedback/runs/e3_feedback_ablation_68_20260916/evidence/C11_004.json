@@ -1,0 +1,117 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "h1",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "delay",
+     "duration": "20 MIN"
+    },
+    {
+     "op": "read",
+     "var": "h2",
+     "src": "HumiditySensor.Humidity"
+    },
+    {
+     "op": "if",
+     "cond": "($h1 - $h2) >= 10",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "binding_slots": {
+   "HumiditySensor": [
+    "LivingRoom_HumiditySensor"
+   ],
+   "Switch": [
+    "LivingRoom_Humidifier"
+   ]
+  },
+  "device_inventory": {
+   "LivingRoom_HumiditySensor": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "HumiditySensor"
+    ]
+   },
+   "Bedroom_HumiditySensor": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "HumiditySensor"
+    ]
+   },
+   "LivingRoom_Humidifier": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Plug",
+     "Humidifier"
+    ]
+   },
+   "Office_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Office",
+     "Camera"
+    ]
+   },
+   "Kitchen_Humidifier": {
+    "category": [
+     "Humidifier"
+    ],
+    "tags": [
+     "Kitchen",
+     "Humidifier"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "h1 = (#LivingRoom_HumiditySensor).humiditySensor_humidity\ndelay(20 MIN)\nh2 = (#LivingRoom_HumiditySensor).humiditySensor_humidity\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity - h2 >= 10) {\n(#LivingRoom_Humidifier).switch_on()\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "delay(20 MIN)",
+   "duration_ms": 1200000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

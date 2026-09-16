@@ -1,0 +1,117 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button3 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "delay",
+       "duration": "1 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 0.0,
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "MultiButton": [
+    "Kitchen_MB"
+   ],
+   "Light": [
+    "Kitchen_Light"
+   ]
+  },
+  "device_inventory": {
+   "Kitchen_MB": {
+    "category": [
+     "MultiButton"
+    ],
+    "tags": [
+     "Kitchen",
+     "MultiButton"
+    ]
+   },
+   "LR_MB": {
+    "category": [
+     "MultiButton"
+    ],
+    "tags": [
+     "LivingRoom",
+     "MultiButton"
+    ]
+   },
+   "Kitchen_Light": {
+    "category": [
+     "Light"
+    ],
+    "tags": [
+     "Kitchen",
+     "Light"
+    ]
+   },
+   "LR_Light": {
+    "category": [
+     "Light"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Light"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#Kitchen_MB).multiButton_button3 == \"pushed\") {\nif (triggered == false) {\n(#Kitchen_Light).light_moveToBrightness(100, 0)\n        delay(1 SEC)\n(#Kitchen_Light).light_moveToBrightness(0, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  },
+  {
+   "ir_node": "delay(1 SEC)",
+   "duration_ms": 1000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

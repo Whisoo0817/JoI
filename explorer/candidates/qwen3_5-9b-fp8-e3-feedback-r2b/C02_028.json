@@ -1,0 +1,91 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\"\n}",
+  "precision": {
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "창고에 있는 모든 공기청정기를 강풍 모드로 설정해줘.",
+  "command_eng": "Set all air purifiers in the warehouse to high mode.",
+  "connected_devices": {
+    "Wh_AP_1": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Warehouse",
+        "AirPurifier"
+      ]
+    },
+    "Wh_AP_2": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Warehouse",
+        "AirPurifier"
+      ]
+    },
+    "Office_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Office",
+        "AirPurifier"
+      ]
+    },
+    "Living_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Living",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AirPurifier.SetAirPurifierMode",
+        "args": {
+          "Mode": "high"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "AirPurifier": [
+      "Wh_AP_1",
+      "Wh_AP_2"
+    ]
+  },
+  "input_payload_sha256": "ca56f809ebcbde24c3fffbfbe20083af7276224178062a511e0db4c0b99fa268",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.3
+}

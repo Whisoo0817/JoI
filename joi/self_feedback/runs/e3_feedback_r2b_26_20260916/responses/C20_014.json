@@ -1,0 +1,39 @@
+{
+ "id": "C20_014",
+ "request_sha256": "1299ec4b967328ec719532bb98d2e87a2b6a5c0c594b698066ec452fe36016d0",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 353,
+   "prompt_tokens": 6854,
+   "total_tokens": 7207,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 42.318278312683105,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires the condition to be sustained for 10 minutes (600,000 ms). The candidate uses a 1000 ms wrapper period with a threshold of 6001, which triggers the action at 6,000,000 ms (6001 * 1000). The IR action occurs at 600,000 ms. The error is using the wrong wrapper period (1000 instead of 100) and an incorrect threshold calculation for that period.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed the wrapper period to 100 ms and adjusted the threshold to 6001 (6000 ticks + 1). This ensures the action fires exactly at 600,000 ms when the condition has been true for 10 minutes, matching the IR specification.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 6001) {\\n        (#Office_AC).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 6001) {\n        (#Office_AC).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires the condition to be sustained for 10 minutes (600,000 ms). The candidate uses a 1000 ms wrapper period with a threshold of 6001, which triggers the action at 6,000,000 ms (6001 * 1000). The IR action occurs at 600,000 ms. The error is using the wrong wrapper period (1000 instead of 100) and an incorrect threshold calculation for that period.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed the wrapper period to 100 ms and adjusted the threshold to 6001 (6000 ticks + 1). This ensures the action fires exactly at 600,000 ms when the condition has been true for 10 minutes, matching the IR specification."
+ },
+ "status": "REVISED"
+}

@@ -1,0 +1,38 @@
+{
+ "id": "C07_024",
+ "request_sha256": "ca20310b5420a840bdd61ae02b7bf5c72c99bf2d5d89529795e2852d822a9a6c",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 338,
+   "prompt_tokens": 6825,
+   "total_tokens": 7163,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.236156463623047,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a rising-edge wait for PresenceSensor.Presence == true before calling ColorControl.SetColor. The candidate uses a periodic `if` which only evaluates at the start of the 1000 ms cycle. At t=100 ms, the sensor became true, but the candidate's `if` had already passed, so it missed the event. The fix implements the rising-edge pattern: block until the condition becomes true (after clearing the 'fired' state), then execute the body.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script logic\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with a blocking two-wait rearm pattern (`wait until(not C)` then `wait until(C)`). This ensures the action fires exactly when the sensor transitions to true, matching the IR's rising-edge requirement, rather than only at the start of each 1-second period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(not (all(#PresenceSensor).presenceSensor_presence == true))\\ntriggered = false\\n}\\nwait until(all(#PresenceSensor).presenceSensor_presence == true)\\nall(#ColorControl).colorControl_setColor(\\\"purple\\\")\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until(not (all(#PresenceSensor).presenceSensor_presence == true))\ntriggered = false\n}\nwait until(all(#PresenceSensor).presenceSensor_presence == true)\nall(#ColorControl).colorControl_setColor(\"purple\")\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a rising-edge wait for PresenceSensor.Presence == true before calling ColorControl.SetColor. The candidate uses a periodic `if` which only evaluates at the start of the 1000 ms cycle. At t=100 ms, the sensor became true, but the candidate's `if` had already passed, so it missed the event. The fix implements the rising-edge pattern: block until the condition becomes true (after clearing the 'fired' state), then execute the body.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script logic"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with a blocking two-wait rearm pattern (`wait until(not C)` then `wait until(C)`). This ensures the action fires exactly when the sensor transitions to true, matching the IR's rising-edge requirement, rather than only at the start of each 1-second period."
+ },
+ "status": "REVISED"
+}

@@ -1,0 +1,119 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#DoorLock).doorLock_doorLockState == \"closed\") {\nif (triggered == false) {\n(#Ent_Light).light_moveToBrightness(100, 0)\n        delay(10 SEC)\n(#Ent_Light).light_moveToBrightness(0, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#DoorLock).doorLock_doorLockState == \\\"closed\\\") {\\nif (triggered == false) {\\n(#Ent_Light).light_moveToBrightness(100, 0)\\n        delay(10 SEC)\\n(#Ent_Light).light_moveToBrightness(0, 0)\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "(#DoorLock)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Ent_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "도어락이 잠길때마다 입구의 조명을 최대밝기로 10초 유지하다가 꺼줘.",
+  "command_eng": "Whenever the door lock is locked, turn on the entrance light at maximum brightness for 10 seconds and then turn it off.",
+  "connected_devices": {
+    "DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Ent_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "DoorLock.DoorLockState == \"closed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "10 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 0.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "DoorLock": [
+      "DoorLock"
+    ],
+    "Light": [
+      "Ent_Light"
+    ]
+  },
+  "input_payload_sha256": "2d5df417768496f811908dcd1c6ff7e939a00c81d17476e556d69774507773da",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.4
+}

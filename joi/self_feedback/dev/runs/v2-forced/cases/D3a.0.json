@@ -1,0 +1,61 @@
+{
+ "id": "D3a",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 92,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23486,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 3372,
+   "prompt_tokens": 6230,
+   "total_tokens": 9602,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 106.73409748077393,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The JoI incorrectly calculated the absolute difference between readings (converting drops to rises), whereas the IR specifies a signed difference check (t2 - t1 >= 3). This caused the JoI to trigger on a temperature drop where the IR would not, evidenced by the extra action at t=1200000 ms.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"Lines 5-7 of script\"],\n    \"change_summary\": \"Removed the absolute value correction logic (if diff < 0 flip). Preserved the signed subtraction and threshold check to match the IR's directional requirement.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#Study_Temp).temperatureSensor_temperature\\ndelay(20 MIN)\\nt2 = (#Study_Temp).temperatureSensor_temperature\\ndiff = t2 - t1\\nif (diff >= 3) {\\n    (#Study_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 9568,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#Study_Temp).temperatureSensor_temperature\ndelay(20 MIN)\nt2 = (#Study_Temp).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff >= 3) {\n    (#Study_AC).airConditioner_setAirConditionerMode(\"cool\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The JoI incorrectly calculated the absolute difference between readings (converting drops to rises), whereas the IR specifies a signed difference check (t2 - t1 >= 3). This caused the JoI to trigger on a temperature drop where the IR would not, evidenced by the extra action at t=1200000 ms.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Lines 5-7 of script"
+  ],
+  "change_summary": "Removed the absolute value correction logic (if diff < 0 flip). Preserved the signed subtraction and threshold check to match the IR's directional requirement."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 36,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

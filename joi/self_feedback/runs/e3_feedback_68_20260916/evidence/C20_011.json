@@ -1,0 +1,6453 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Plug.Power < 10",
+     "edge": "none",
+     "for": "15 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "Plug": [
+    "LivingRoom_TV"
+   ],
+   "Switch": [
+    "LivingRoom_TV"
+   ]
+  },
+  "device_inventory": {
+   "LivingRoom_TV": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "TV",
+     "Plug",
+     "Switch"
+    ]
+   },
+   "LivingRoom_Soundbar": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Soundbar",
+     "Plug",
+     "Switch"
+    ]
+   },
+   "LivingRoom_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Camera"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#LivingRoom_TV).plug_power < 10) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 900) {\n(#LivingRoom_TV).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 0
+    },
+    {
+     "at_ms": 0,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 1000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 2000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 3000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 4000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 5000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 6000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 7000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 8000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 9000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 10000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 11000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 12000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 13000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 14000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 15000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 16000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 17000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 18000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 19000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 20000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 21000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 22000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 23000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 24000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 25000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 26000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 27000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 28000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 29000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 30000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 31000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 32000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 33000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 34000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 35000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 36000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 37000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 38000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 39000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 40000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 41000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 42000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 43000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 44000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 45000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 46000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 47000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 48000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 49000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 50000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 51000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 52000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 53000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 54000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 55000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 56000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 57000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 58000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 59000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 60000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 61000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 62000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 63000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 64000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 65000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 66000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 67000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 68000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 69000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 70000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 71000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 72000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 73000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 74000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 75000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 76000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 77000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 78000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 79000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 80000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 81000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 82000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 83000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 84000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 85000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 86000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 87000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 88000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 89000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 90000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 91000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 92000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 93000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 94000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 95000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 96000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 97000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 98000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 99000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 100000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 101000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 102000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 103000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 104000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 105000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 106000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 107000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 108000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 109000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 110000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 111000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 112000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 113000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 114000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 115000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 116000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 117000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 118000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 119000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 120000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 121000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 122000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 123000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 124000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 125000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 126000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 127000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 128000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 129000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 130000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 131000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 132000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 133000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 134000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 135000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 136000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 137000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 138000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 139000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 140000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 141000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 142000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 143000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 144000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 145000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 146000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 147000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 148000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 149000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 150000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 151000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 152000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 153000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 154000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 155000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 156000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 157000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 158000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 159000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 160000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 161000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 162000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 163000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 164000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 165000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 166000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 167000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 168000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 169000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 170000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 171000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 172000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 173000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 174000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 175000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 176000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 177000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 178000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 179000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 180000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 181000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 182000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 183000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 184000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 185000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 186000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 187000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 188000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 189000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 190000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 191000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 192000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 193000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 194000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 195000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 196000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 197000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 198000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 199000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 200000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 201000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 202000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 203000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 204000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 205000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 206000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 207000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 208000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 209000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 210000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 211000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 212000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 213000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 214000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 215000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 216000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 217000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 218000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 219000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 220000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 221000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 222000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 223000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 224000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 225000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 226000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 227000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 228000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 229000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 230000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 231000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 232000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 233000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 234000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 235000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 236000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 237000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 238000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 239000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 240000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 241000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 242000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 243000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 244000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 245000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 246000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 247000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 248000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 249000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 250000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 251000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 252000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 253000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 254000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 255000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 256000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 257000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 258000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 259000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 260000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 261000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 262000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 263000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 264000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 265000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 266000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 267000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 268000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 269000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 270000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 271000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 272000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 273000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 274000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 275000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 276000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 277000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 278000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 279000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 280000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 281000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 282000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 283000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 284000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 285000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 286000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 287000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 288000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 289000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 290000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 291000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 292000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 293000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 294000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 295000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 296000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 297000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 298000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 299000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 300000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 301000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 302000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 303000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 304000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 305000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 306000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 307000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 308000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 309000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 310000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 311000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 312000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 313000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 314000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 315000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 316000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 317000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 318000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 319000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 320000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 321000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 322000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 323000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 324000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 325000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 326000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 327000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 328000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 329000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 330000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 331000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 332000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 333000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 334000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 335000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 336000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 337000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 338000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 339000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 340000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 341000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 342000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 343000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 344000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 345000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 346000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 347000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 348000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 349000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 350000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 351000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 352000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 353000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 354000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 355000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 356000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 357000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 358000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 359000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 360000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 361000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 362000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 363000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 364000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 365000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 366000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 367000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 368000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 369000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 370000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 371000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 372000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 373000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 374000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 375000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 376000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 377000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 378000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 379000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 380000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 381000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 382000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 383000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 384000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 385000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 386000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 387000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 388000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 389000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 390000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 391000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 392000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 393000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 394000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 395000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 396000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 397000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 398000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 399000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 400000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 401000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 402000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 403000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 404000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 405000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 406000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 407000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 408000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 409000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 410000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 411000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 412000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 413000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 414000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 415000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 416000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 417000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 418000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 419000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 420000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 421000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 422000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 423000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 424000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 425000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 426000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 427000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 428000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 429000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 430000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 431000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 432000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 433000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 434000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 435000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 436000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 437000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 438000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 439000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 440000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 441000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 442000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 443000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 444000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 445000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 446000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 447000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 448000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 449000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 450000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 451000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 452000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 453000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 454000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 455000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 456000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 457000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 458000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 459000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 460000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 461000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 462000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 463000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 464000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 465000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 466000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 467000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 468000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 469000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 470000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 471000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 472000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 473000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 474000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 475000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 476000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 477000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 478000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 479000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 480000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 481000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 482000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 483000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 484000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 485000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 486000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 487000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 488000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 489000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 490000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 491000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 492000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 493000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 494000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 495000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 496000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 497000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 498000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 499000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 500000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 501000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 502000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 503000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 504000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 505000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 506000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 507000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 508000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 509000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 510000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 511000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 512000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 513000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 514000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 515000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 516000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 517000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 518000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 519000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 520000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 521000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 522000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 523000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 524000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 525000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 526000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 527000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 528000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 529000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 530000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 531000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 532000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 533000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 534000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 535000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 536000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 537000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 538000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 539000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 540000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 541000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 542000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 543000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 544000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 545000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 546000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 547000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 548000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 549000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 550000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 551000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 552000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 553000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 554000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 555000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 556000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 557000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 558000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 559000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 560000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 561000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 562000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 563000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 564000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 565000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 566000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 567000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 568000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 569000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 570000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 571000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 572000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 573000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 574000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 575000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 576000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 577000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 578000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 579000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 580000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 581000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 582000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 583000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 584000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 585000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 586000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 587000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 588000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 589000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 590000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 591000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 592000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 593000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 594000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 595000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 596000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 597000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 598000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 599000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 600000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 601000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 602000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 603000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 604000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 605000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 606000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 607000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 608000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 609000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 610000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 611000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 612000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 613000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 614000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 615000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 616000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 617000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 618000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 619000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 620000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 621000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 622000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 623000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 624000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 625000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 626000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 627000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 628000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 629000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 630000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 631000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 632000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 633000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 634000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 635000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 636000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 637000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 638000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 639000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 640000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 641000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 642000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 643000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 644000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 645000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 646000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 647000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 648000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 649000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 650000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 651000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 652000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 653000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 654000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 655000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 656000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 657000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 658000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 659000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 660000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 661000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 662000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 663000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 664000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 665000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 666000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 667000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 668000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 669000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 670000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 671000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 672000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 673000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 674000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 675000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 676000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 677000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 678000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 679000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 680000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 681000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 682000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 683000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 684000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 685000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 686000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 687000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 688000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 689000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 690000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 691000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 692000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 693000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 694000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 695000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 696000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 697000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 698000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 699000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 700000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 701000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 702000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 703000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 704000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 705000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 706000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 707000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 708000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 709000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 710000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 711000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 712000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 713000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 714000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 715000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 716000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 717000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 718000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 719000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 720000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 721000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 722000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 723000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 724000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 725000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 726000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 727000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 728000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 729000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 730000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 731000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 732000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 733000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 734000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 735000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 736000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 737000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 738000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 739000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 740000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 741000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 742000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 743000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 744000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 745000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 746000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 747000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 748000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 749000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 750000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 751000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 752000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 753000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 754000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 755000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 756000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 757000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 758000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 759000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 760000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 761000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 762000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 763000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 764000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 765000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 766000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 767000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 768000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 769000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 770000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 771000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 772000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 773000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 774000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 775000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 776000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 777000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 778000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 779000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 780000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 781000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 782000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 783000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 784000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 785000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 786000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 787000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 788000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 789000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 790000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 791000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 792000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 793000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 794000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 795000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 796000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 797000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 798000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 799000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 800000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 801000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 802000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 803000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 804000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 805000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 806000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 807000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 808000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 809000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 810000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 811000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 812000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 813000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 814000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 815000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 816000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 817000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 818000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 819000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 820000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 821000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 822000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 823000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 824000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 825000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 826000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 827000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 828000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 829000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 830000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 831000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 832000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 833000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 834000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 835000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 836000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 837000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 838000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 839000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 840000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 841000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 842000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 843000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 844000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 845000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 846000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 847000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 848000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 849000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 850000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 851000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 852000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 853000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 854000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 855000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 856000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 857000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 858000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 859000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 860000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 861000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 862000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 863000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 864000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 865000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 866000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 867000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 868000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 869000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 870000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 871000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 872000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 873000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 874000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 875000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 876000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 877000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 878000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 879000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 880000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 881000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 882000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 883000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 884000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 885000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 886000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 887000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 888000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 889000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 890000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 891000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 892000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 893000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 894000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 895000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 896000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 897000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 898000,
+     "inputs": {
+      "LivingRoom_TV.power": -0.1
+     },
+     "held_ms": 1000
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 899000,
+   "mismatch_kind": "joi_extra_action",
+   "ir_actions": [],
+   "joi_actions": [
+    {
+     "targets": [
+      "LivingRoom_TV"
+     ],
+     "call": "switch.off",
+     "args": []
+    }
+   ],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "hold_ticks := 0"
+   },
+   {
+    "line": 2,
+    "text": "if ((#LivingRoom_TV).plug_power < 10) {"
+   },
+   {
+    "line": 3,
+    "text": "hold_ticks = hold_ticks + 1"
+   },
+   {
+    "line": 4,
+    "text": "    if (hold_ticks >= 900) {"
+   },
+   {
+    "line": 5,
+    "text": "(#LivingRoom_TV).switch_off()"
+   },
+   {
+    "line": 6,
+    "text": "        break"
+   },
+   {
+    "line": 7,
+    "text": "}"
+   },
+   {
+    "line": 8,
+    "text": "}"
+   },
+   {
+    "line": 9,
+    "text": "else {"
+   },
+   {
+    "line": 10,
+    "text": "hold_ticks = 0"
+   },
+   {
+    "line": 11,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 15 MIN)",
+   "duration_ms": 900000,
+   "ticks_at_100ms": 9000,
+   "note": "sustain window; the condition must hold for the whole duration"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

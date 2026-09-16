@@ -1,0 +1,39 @@
+{
+ "id": "C20_008",
+ "request_sha256": "5aac4e14015fe92b4c6ef8463280d4bbc22e9591cecf15cd4edba4f62bc5842c",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 405,
+   "prompt_tokens": 21068,
+   "total_tokens": 21473,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 16.86662793159485,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a sustained wait of 5 minutes (300,000 ms) before acting. The candidate uses a 1000 ms wrapper period and a threshold of 300 ticks. Since the first iteration counts as tick 1 at t=0, the action triggers at t=299,000 ms (299 ticks * 1000 ms). The IR waits until t=300,000 ms. The mismatch is a 1-second early trigger caused by using a 1000 ms wrapper with a threshold of 300 instead of a 100 ms wrapper with a threshold of 3001.\",\n    \"evidence_refs\": [\"F2\", \"F3\", \"ir_timing_facts\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 ms to match the fine-grained sustain requirement. Updated the threshold from 300 to 3001 to ensure the condition is sustained for exactly 3000 ticks (300,000 ms) before the action fires, correcting the off-by-one error inherent in counting from t=0.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Motion).motionSensor_motion == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 3001) {\\n        (#Office_Light).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Motion).motionSensor_motion == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 3001) {\n        (#Office_Light).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a sustained wait of 5 minutes (300,000 ms) before acting. The candidate uses a 1000 ms wrapper period and a threshold of 300 ticks. Since the first iteration counts as tick 1 at t=0, the action triggers at t=299,000 ms (299 ticks * 1000 ms). The IR waits until t=300,000 ms. The mismatch is a 1-second early trigger caused by using a 1000 ms wrapper with a threshold of 300 instead of a 100 ms wrapper with a threshold of 3001.",
+  "evidence_refs": [
+   "F2",
+   "F3",
+   "ir_timing_facts"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 ms to match the fine-grained sustain requirement. Updated the threshold from 300 to 3001 to ensure the condition is sustained for exactly 3000 ticks (300,000 ms) before the action fires, correcting the off-by-one error inherent in counting from t=0."
+ },
+ "status": "REVISED"
+}

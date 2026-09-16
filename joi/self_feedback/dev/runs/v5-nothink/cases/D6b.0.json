@@ -1,0 +1,61 @@
+{
+ "id": "D6b",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23542,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 257,
+   "prompt_tokens": 6244,
+   "total_tokens": 6501,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.542534828186035,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a one-shot sequence (period 0) instead of a repeating cycle with period 3 MIN. The IR specifies a cycle that repeats the body (Siren call, 10s delay, Switch off) every 3 minutes indefinitely. The candidate executes the actions once and then delays for 3 minutes before terminating, failing to repeat the cycle body.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed period to 180000 (3 MIN) to match the IR cycle period. Rewrote the script to be a blocking repeating body without a final delay, ensuring the actions repeat on every iteration as required by the IR cycle semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 180000,\n    \"script\": \"(#Yard_Siren).siren_setSirenMode(\\\"emergency\\\")\\ndelay(10 SEC)\\n(#Yard_Siren).switch_off()\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 180000,
+  "script": "(#Yard_Siren).siren_setSirenMode(\"emergency\")\ndelay(10 SEC)\n(#Yard_Siren).switch_off()"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a one-shot sequence (period 0) instead of a repeating cycle with period 3 MIN. The IR specifies a cycle that repeats the body (Siren call, 10s delay, Switch off) every 3 minutes indefinitely. The candidate executes the actions once and then delays for 3 minutes before terminating, failing to repeat the cycle body.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed period to 180000 (3 MIN) to match the IR cycle period. Rewrote the script to be a blocking repeating body without a final delay, ensuring the actions repeat on every iteration as required by the IR cycle semantics."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

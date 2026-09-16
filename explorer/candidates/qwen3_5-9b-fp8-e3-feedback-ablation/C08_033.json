@@ -1,0 +1,117 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (triggered == true) {\n    wait until((#Stop_Button).button_button == \"pushed\" and triggered == false, edge rising)\n    triggered = false\n}\nwait until((#Stop_Button).button_button == \"pushed\")\nall(#Switch).switch_off()\ntriggered = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until((#Stop_Button).button_button == \\\"pushed\\\" and triggered == false, edge rising)\\n    triggered = false\\n}\\nwait until((#Stop_Button).button_button == \\\"pushed\\\")\\nall(#Switch).switch_off()\\ntriggered = true\"}",
+  "precision": {
+    "Button.Button": [
+      "(#Stop_Button)"
+    ],
+    "Switch.Off": [
+      "all(#Switch)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "중단 태그가 달린 버튼이 눌릴때마다 짝수 태그가 붙은 장치들을 모두 꺼줘.",
+  "command_eng": "Whenever the button with the 'Stop' tag is pressed, turn off all devices with 'Even' tags.",
+  "connected_devices": {
+    "Stop_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Stop",
+        "Button"
+      ]
+    },
+    "Odd_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Odd",
+        "Button"
+      ]
+    },
+    "Even_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Even",
+        "Charger",
+        "Switch"
+      ]
+    },
+    "Even_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Even",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Odd_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Odd",
+        "Charger",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "Button.Button == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "Button": [
+      "Stop_Button"
+    ],
+    "Switch": [
+      "Even_Charger",
+      "Even_Light"
+    ]
+  },
+  "input_payload_sha256": "c783bc481f3ca8e9a3a8a507d88545a02ea5a0d69280782f75a73ba5a0d16665",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.9,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

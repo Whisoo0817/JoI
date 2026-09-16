@@ -1,0 +1,61 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23730,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 362,
+   "prompt_tokens": 6268,
+   "total_tokens": 6630,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 27.51775288581848,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait (`wait(MotionSensor.Motion == true, edge rising)`) which should fire exactly when the motion signal transitions from false to true. The candidate uses a periodic `if` statement that only evaluates the condition at the start of the wrapper period (t=0). Since the input changed at t=100ms, the candidate missed the transition entirely. Additionally, the candidate incorrectly resets `triggered` in the `else` branch, which is unnecessary for a rising-edge implementation.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"script\", \"period\"],\n    \"change_summary\": \"Replaced the periodic polling `if` with a blocking rising-edge state machine using `wait until`. This ensures the action fires precisely at the moment the condition becomes true after being false, matching the IR's `edge rising` requirement. Removed the erroneous reset of `triggered` in the else branch.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\\n    triggered = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\ntriggered = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\n    triggered = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait (`wait(MotionSensor.Motion == true, edge rising)`) which should fire exactly when the motion signal transitions from false to true. The candidate uses a periodic `if` statement that only evaluates the condition at the start of the wrapper period (t=0). Since the input changed at t=100ms, the candidate missed the transition entirely. Additionally, the candidate incorrectly resets `triggered` in the `else` branch, which is unnecessary for a rising-edge implementation.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "script",
+   "period"
+  ],
+  "change_summary": "Replaced the periodic polling `if` with a blocking rising-edge state machine using `wait until`. This ensures the action fires precisely at the moment the condition becomes true after being false, matching the IR's `edge rising` requirement. Removed the erroneous reset of `triggered` in the else branch."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

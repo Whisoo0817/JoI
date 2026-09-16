@@ -1,0 +1,39 @@
+{
+ "id": "C08_021",
+ "request_sha256": "de0eb64dfb319e9de66abcb668611278746c6d2b28a0f30c64494778eab7922f",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 414,
+   "prompt_tokens": 6635,
+   "total_tokens": 7049,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 13.239752531051636,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a rising-edge wait for Humidity < 50 (waiting for the value to drop below 50). The candidate waits for Humidity >= 50 (waiting for the value to rise above 50), which is the opposite condition. Additionally, the candidate uses `all(#HumiditySensor)` in the wait condition, but the binding slot for HumiditySensor is `any`, meaning the IR waits for *any* sensor to drop below 50, whereas the candidate waits for *all* sensors to be above 50. This causes the JoI to miss the initial firing at t=0 where Main_HumiditySensor is 0.0 (below 50).\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 3 condition\", \"Line 6 condition\", \"Line 7 selector\"],\n    \"change_summary\": \"Changed the rising-edge wait condition from `>= 50` to `< 50` to match the IR. Changed the selector from `all(#HumiditySensor)` to `any(#HumiditySensor)` to match the binding slot. Changed the action target from `all(#Dehumidifier)` to `any(#Dehumidifier)` to match the binding slot.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\nwait until(any(#HumiditySensor).humiditySensor_humidity >= 50)\\nfired = false\\n}\\nwait until(any(#HumiditySensor).humiditySensor_humidity < 50)\\nany(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\nfired = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\nwait until(any(#HumiditySensor).humiditySensor_humidity >= 50)\nfired = false\n}\nwait until(any(#HumiditySensor).humiditySensor_humidity < 50)\nany(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a rising-edge wait for Humidity < 50 (waiting for the value to drop below 50). The candidate waits for Humidity >= 50 (waiting for the value to rise above 50), which is the opposite condition. Additionally, the candidate uses `all(#HumiditySensor)` in the wait condition, but the binding slot for HumiditySensor is `any`, meaning the IR waits for *any* sensor to drop below 50, whereas the candidate waits for *all* sensors to be above 50. This causes the JoI to miss the initial firing at t=0 where Main_HumiditySensor is 0.0 (below 50).",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 3 condition",
+   "Line 6 condition",
+   "Line 7 selector"
+  ],
+  "change_summary": "Changed the rising-edge wait condition from `>= 50` to `< 50` to match the IR. Changed the selector from `all(#HumiditySensor)` to `any(#HumiditySensor)` to match the binding slot. Changed the action target from `all(#Dehumidifier)` to `any(#Dehumidifier)` to match the binding slot."
+ },
+ "status": "REVISED"
+}

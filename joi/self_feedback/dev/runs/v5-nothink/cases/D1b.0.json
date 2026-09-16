@@ -1,0 +1,61 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23414,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 316,
+   "prompt_tokens": 6182,
+   "total_tokens": 6498,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.30881667137146,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a repeating cycle with a rising-edge wait. The candidate used a periodic `if` which only samples the condition at the start of each iteration. Evidence F1 shows the button became 'pushed' at 100ms, and F2 confirms no action was emitted at that instant because the `if` guard was evaluated at t=0 when the value was null.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic polling `if` with the standard rising-edge state machine pattern: a persistent `fired` flag, a wait to clear the flag if already fired, a blocking wait for the rising edge, and the action followed by setting the flag. This ensures the action fires immediately when the transition occurs, regardless of the wrapper period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#Garden_Button).button_button != \\\"pushed\\\")\\n    fired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#Garden_Button).button_button != \"pushed\")\n    fired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a repeating cycle with a rising-edge wait. The candidate used a periodic `if` which only samples the condition at the start of each iteration. Evidence F1 shows the button became 'pushed' at 100ms, and F2 confirms no action was emitted at that instant because the `if` guard was evaluated at t=0 when the value was null.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic polling `if` with the standard rising-edge state machine pattern: a persistent `fired` flag, a wait to clear the flag if already fired, a blocking wait for the rising edge, and the action followed by setting the flag. This ensures the action fires immediately when the transition occurs, regardless of the wrapper period."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

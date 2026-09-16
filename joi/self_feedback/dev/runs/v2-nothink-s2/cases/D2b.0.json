@@ -1,0 +1,62 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 31974,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 512,
+   "prompt_tokens": 8985,
+   "total_tokens": 9497,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 53.874106645584106,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a top-level wait with a duration of 1 MIN (60000 ms) before the action. The candidate uses a 1000 ms wrapper period and counts ticks to reach 60. This causes the action to fire at t=60000 ms (tick 60), whereas the IR semantics for a top-level wait require the condition to be true for the entire duration and the action to occur exactly at the end of that duration (t=60000 ms). However, the evidence shows the IR has no action until t=60000, but the candidate fires at t=59000 (tick 60 start). The root cause is that the 1000 ms wrapper cannot observe the condition dropping and recovering between iterations if the condition was true at t=0, leading to a premature fire at tick 60 (59000 ms) instead of waiting until the full 60000 ms duration is complete. The correct approach for a top-level wait with period > 0 is to use a 100 ms wrapper and count to D/100 + 1.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed period from 1000 to 100 to ensure the wrapper can observe input changes within the 1 MIN window. Adjusted the tick threshold from 60 to 101 (60000/100 + 1) to ensure the action fires exactly at t=60000 ms, matching the IR's 'for: 1 MIN' requirement where the action occurs after the full duration.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 101) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 101) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a top-level wait with a duration of 1 MIN (60000 ms) before the action. The candidate uses a 1000 ms wrapper period and counts ticks to reach 60. This causes the action to fire at t=60000 ms (tick 60), whereas the IR semantics for a top-level wait require the condition to be true for the entire duration and the action to occur exactly at the end of that duration (t=60000 ms). However, the evidence shows the IR has no action until t=60000, but the candidate fires at t=59000 (tick 60 start). The root cause is that the 1000 ms wrapper cannot observe the condition dropping and recovering between iterations if the condition was true at t=0, leading to a premature fire at tick 60 (59000 ms) instead of waiting until the full 60000 ms duration is complete. The correct approach for a top-level wait with period > 0 is to use a 100 ms wrapper and count to D/100 + 1.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed period from 1000 to 100 to ensure the wrapper can observe input changes within the 1 MIN window. Adjusted the tick threshold from 60 to 101 (60000/100 + 1) to ensure the action fires exactly at t=60000 ms, matching the IR's 'for: 1 MIN' requirement where the action occurs after the full duration."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 10000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

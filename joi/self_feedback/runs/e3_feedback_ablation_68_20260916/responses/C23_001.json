@@ -1,0 +1,34 @@
+{
+ "id": "C23_001",
+ "request_sha256": "ed7906fd7fc3e41d64906ecad5f49ab9e3c04079dbce00e154d6a9c7b4d62b5f",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 679,
+   "prompt_tokens": 5825,
+   "total_tokens": 6504,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 17.30093216896057,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 600 ticks, which corresponds to only 600 seconds (10 minutes) if the counter started at 0. However, the IR requires the condition to be sustained for 10 minutes (600 ticks of 100ms). With a 1000ms wrapper, the first iteration at t=0 counts as tick 1. To sustain for 600 ticks, the counter must reach 601. Furthermore, the candidate's logic structure is flawed because it increments the counter inside the `if` block but resets it in the `else` block, which is correct for a sustain check, but the threshold calculation is off by one relative to the wrapper period and the initial state assumption. More critically, the IR specifies a `wait` with `edge: none` for 10 minutes. The standard pattern for this with a 1000ms wrapper requires a specific hold counter logic where the threshold is `duration_ms / 1000 + 1`. Here, 600000 / 1000 + 1 = 601. The candidate uses 600. Additionally, the candidate script has indentation issues and potentially incorrect logic flow if the initial state is true. The most robust fix is to use the 100ms wrapper as per the examples for sustained conditions to ensure precise timing, or correct the threshold and logic for the 1000ms wrapper. Given the examples, using a 100ms wrapper is the safest and most standard approach for `wait(for: D)` to avoid off-by-one errors with large durations and wrapper periods. The threshold for 10 MIN (600 ticks of 100ms) should be 601.\",\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 ms to align with the standard implementation for sustained conditions (`wait` with `for`). Updated the hold counter threshold from 600 to 601 to correctly represent a 10-minute duration (600 ticks of 100ms require the counter to reach 601, starting from 0 at t=0). This ensures the action fires exactly after 10 minutes of continuous `false` state, matching the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#LivingRoom_Motion).motionSensor_motion == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#LivingRoom_Light).light_moveToBrightness(30.0, 0.0)\\n        delay(5 MIN)\\n        (#LivingRoom_Light).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#LivingRoom_Motion).motionSensor_motion == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#LivingRoom_Light).light_moveToBrightness(30.0, 0.0)\n        delay(5 MIN)\n        (#LivingRoom_Light).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 600 ticks, which corresponds to only 600 seconds (10 minutes) if the counter started at 0. However, the IR requires the condition to be sustained for 10 minutes (600 ticks of 100ms). With a 1000ms wrapper, the first iteration at t=0 counts as tick 1. To sustain for 600 ticks, the counter must reach 601. Furthermore, the candidate's logic structure is flawed because it increments the counter inside the `if` block but resets it in the `else` block, which is correct for a sustain check, but the threshold calculation is off by one relative to the wrapper period and the initial state assumption. More critically, the IR specifies a `wait` with `edge: none` for 10 minutes. The standard pattern for this with a 1000ms wrapper requires a specific hold counter logic where the threshold is `duration_ms / 1000 + 1`. Here, 600000 / 1000 + 1 = 601. The candidate uses 600. Additionally, the candidate script has indentation issues and potentially incorrect logic flow if the initial state is true. The most robust fix is to use the 100ms wrapper as per the examples for sustained conditions to ensure precise timing, or correct the threshold and logic for the 1000ms wrapper. Given the examples, using a 100ms wrapper is the safest and most standard approach for `wait(for: D)` to avoid off-by-one errors with large durations and wrapper periods. The threshold for 10 MIN (600 ticks of 100ms) should be 601.",
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 ms to align with the standard implementation for sustained conditions (`wait` with `for`). Updated the hold counter threshold from 600 to 601 to correctly represent a 10-minute duration (600 ticks of 100ms require the counter to reach 601, starting from 0 at t=0). This ensures the action fires exactly after 10 minutes of continuous `false` state, matching the IR."
+ },
+ "status": "REVISED"
+}

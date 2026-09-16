@@ -1,0 +1,34 @@
+{
+ "id": "C23_005",
+ "request_sha256": "f74966672cb0b491432b9537a236f83b6c03dbaecd51cabcaba3c349dea7cbd6",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 427,
+   "prompt_tokens": 5819,
+   "total_tokens": 6246,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 13.534501791000366,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 180 ticks, which corresponds to only 180 seconds (3 minutes) if the counter started at 0. However, the IR requires the condition to be sustained for the full 3 minutes. In a 1000 ms wrapper, the first iteration at t=0 counts as tick 1. To sustain for 1800 seconds (3 minutes), the counter must reach 1801 (1800 full intervals + the initial tick). The candidate triggers at 180 ticks (180 seconds), which is 1620 seconds too early. Additionally, the `break` is correct for a one-shot sequence, but the timing threshold is the primary error.\",\n    \"changed_locations\": [\"period\", \"hold_ticks threshold\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 ms to align with the standard tick-counting rule for sustained conditions. Updated the threshold from 180 to 1801 to ensure the condition holds for exactly 3 minutes (1800 intervals + initial tick). This preserves the IR's timing behavior where the action fires only after the full duration has elapsed.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Hallway_Motion).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 1801) {\\n(#Hallway_Light).light_moveToBrightness(50, 0)\\n        delay(2 MIN)\\n(#Hallway_Light).switch_off()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Hallway_Motion).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1801) {\n(#Hallway_Light).light_moveToBrightness(50, 0)\n        delay(2 MIN)\n(#Hallway_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 180 ticks, which corresponds to only 180 seconds (3 minutes) if the counter started at 0. However, the IR requires the condition to be sustained for the full 3 minutes. In a 1000 ms wrapper, the first iteration at t=0 counts as tick 1. To sustain for 1800 seconds (3 minutes), the counter must reach 1801 (1800 full intervals + the initial tick). The candidate triggers at 180 ticks (180 seconds), which is 1620 seconds too early. Additionally, the `break` is correct for a one-shot sequence, but the timing threshold is the primary error.",
+  "changed_locations": [
+   "period",
+   "hold_ticks threshold"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 ms to align with the standard tick-counting rule for sustained conditions. Updated the threshold from 180 to 1801 to ensure the condition holds for exactly 3 minutes (1800 intervals + initial tick). This preserves the IR's timing behavior where the action fires only after the full duration has elapsed."
+ },
+ "status": "REVISED"
+}

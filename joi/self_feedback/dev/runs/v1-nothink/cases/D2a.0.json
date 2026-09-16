@@ -1,0 +1,62 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25298,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 374,
+   "prompt_tokens": 7024,
+   "total_tokens": 7398,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 17.70936679840088,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 30 ticks, causing the action to fire at 29000 ms. The IR specifies a 30 second wait, which corresponds to 30000 ms. With a 1000 ms period, the action must wait for 30 full ticks (30000 ms) to match the IR's 'for 30 SEC' duration. The current logic fires one period too early (at tick 30 instead of after completing the 30th second).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script threshold\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 30000 to match the IR's 30 second duration directly. Updated the threshold to 1 to fire immediately after the single required period, ensuring the action occurs exactly at 30000 ms as specified by the IR's 'for 30 SEC' clause.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 30000,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 1) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 30000,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 30 ticks, causing the action to fire at 29000 ms. The IR specifies a 30 second wait, which corresponds to 30000 ms. With a 1000 ms period, the action must wait for 30 full ticks (30000 ms) to match the IR's 'for 30 SEC' duration. The current logic fires one period too early (at tick 30 instead of after completing the 30th second).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script threshold"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 30000 to match the IR's 30 second duration directly. Updated the threshold to 1 to fire immediately after the single required period, ensuring the action occurs exactly at 30000 ms as specified by the IR's 'for 30 SEC' clause."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 1,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 0
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

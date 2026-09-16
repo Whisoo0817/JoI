@@ -1,0 +1,39 @@
+{
+ "id": "C20_012",
+ "request_sha256": "4fb4c9c3b68259fc6511e4850816584fd65b374d58c6fbcbe1ff5e126ea57e41",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 614,
+   "prompt_tokens": 15382,
+   "total_tokens": 15996,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 19.29786992073059,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 3-minute (180,000 ms) sustained wait. The candidate uses a 1000 ms wrapper period and a threshold of 180 ticks. Since the condition is true from t=0, the candidate fires at 180,000 ms (180 ticks * 1000 ms). However, the IR's sustain window is 180,000 ms, meaning the action should fire exactly at 180,000 ms. The mismatch occurs because the candidate fires at 179,000 ms (180 ticks * 1000 ms is the 181st iteration start, but the counter logic in the candidate implies firing at 179,000 based on the evidence showing the action at 179,000 while IR waits until 180,000). Actually, looking at the evidence: IR waits 180,000ms. Candidate fires at 179,000ms. The candidate threshold 180 with period 1000 counts ticks 0..179. Tick 179 is at 179,000ms. The IR requires 180,000ms. The threshold must be 1801 to wait for tick 180 (which starts at 180,000ms).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script threshold\"],\n    \"change_summary\": \"Changed period to 100 ms to match the standard sustain implementation pattern. Updated the threshold from 180 to 1801. With period 100 ms, tick 0 is at 0 ms, tick 180 is at 18,000 ms? No. 180,000 ms / 100 ms = 1800 ticks. The first tick is at 0. The 1801st tick is at 180,000 ms. The threshold must be 1801.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Study_ContactSensor).contactSensor_contact == true) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 1801) {\\n(#Study_Light).switch_off()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Study_ContactSensor).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1801) {\n(#Study_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 3-minute (180,000 ms) sustained wait. The candidate uses a 1000 ms wrapper period and a threshold of 180 ticks. Since the condition is true from t=0, the candidate fires at 180,000 ms (180 ticks * 1000 ms). However, the IR's sustain window is 180,000 ms, meaning the action should fire exactly at 180,000 ms. The mismatch occurs because the candidate fires at 179,000 ms (180 ticks * 1000 ms is the 181st iteration start, but the counter logic in the candidate implies firing at 179,000 based on the evidence showing the action at 179,000 while IR waits until 180,000). Actually, looking at the evidence: IR waits 180,000ms. Candidate fires at 179,000ms. The candidate threshold 180 with period 1000 counts ticks 0..179. Tick 179 is at 179,000ms. The IR requires 180,000ms. The threshold must be 1801 to wait for tick 180 (which starts at 180,000ms).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script threshold"
+  ],
+  "change_summary": "Changed period to 100 ms to match the standard sustain implementation pattern. Updated the threshold from 180 to 1801. With period 100 ms, tick 0 is at 0 ms, tick 180 is at 18,000 ms? No. 180,000 ms / 100 ms = 1800 ticks. The first tick is at 0. The 1801st tick is at 180,000 ms. The threshold must be 1801."
+ },
+ "status": "REVISED"
+}

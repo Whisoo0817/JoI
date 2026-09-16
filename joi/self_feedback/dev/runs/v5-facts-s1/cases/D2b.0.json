@@ -1,0 +1,61 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 33158,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 324,
+   "prompt_tokens": 9363,
+   "total_tokens": 9687,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 33.17768335342407,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute sustain window (60,000 ms). The candidate used a 1000 ms wrapper period with a threshold of 60 ticks, resulting in a 60-second window. Additionally, the logic failed to reset the counter when the condition was initially true at t=0, causing the action to fire early at 59 seconds instead of 60 seconds.\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed the wrapper period to 100 ms and adjusted the threshold to 601 ticks. This ensures the action fires exactly after 60,100 ms (covering the full 60,000 ms requirement plus the initial tick at t=0). The reset logic remains correct for sustained conditions.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute sustain window (60,000 ms). The candidate used a 1000 ms wrapper period with a threshold of 60 ticks, resulting in a 60-second window. Additionally, the logic failed to reset the counter when the condition was initially true at t=0, causing the action to fire early at 59 seconds instead of 60 seconds.",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed the wrapper period to 100 ms and adjusted the threshold to 601 ticks. This ensures the action fires exactly after 60,100 ms (covering the full 60,000 ms requirement plus the initial tick at t=0). The reset logic remains correct for sustained conditions."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

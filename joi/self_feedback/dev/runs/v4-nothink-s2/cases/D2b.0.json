@@ -1,0 +1,62 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 32581,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 1316,
+   "prompt_tokens": 9184,
+   "total_tokens": 10500,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 14.804733514785767,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 1-minute (60 seconds) sustained wait before acting. The candidate uses a 1000 ms wrapper with a threshold of 60, which triggers after 60 seconds (59000 ms). However, because the wrapper period is 1000 ms, the condition is only sampled at 0, 1000, 2000... ms. The condition starts false at t=0. The first tick where it is observed is t=1000. At t=1000, hold becomes 1. The action fires when hold >= 60, which occurs at t=60000 (the 60th observation point). The IR fires at exactly t=60000 (60 seconds). The mismatch report at 59000 ms indicates the JoI fired early, suggesting the threshold calculation or the initial state handling is off by one tick relative to the 1000ms grid, or the IR expects the duration to be strictly greater than 60 seconds or the counting logic differs (e.g., 100ms grid vs 1000ms grid). Given the evidence shows the IR waits 60 seconds exactly, and the JoI fired at 59000, the JoI threshold of 60 on a 1000ms grid fires at 60000ms. Wait, the mismatch is at 59000. If the JoI fired at 59000, then hold must have reached 60 at t=59000. This implies the counter incremented 60 times by t=59000. With period 1000, the first check is at 0. If the condition is true at 0, hold increments. If the condition is false at 0 (held false), hold resets. The input shows `Presence == false` starting at t=0. The IR waits for `Presence == false`. If it is already false at t=0, the `wait` (edge none) should start immediately. The IR fires at t=60000 (60s). The JoI fired at t=59000. This means the JoI counted 59 full periods + 1 initial = 60 ticks? No. If the JoI fires at 59000, it means `hold` reached 60 at 59000. This happens if the first tick is at 1000ms? No. Let's re-evaluate. 59000 / 1000 = 59. So 60 ticks of 1000ms cover 59000ms if the first tick is at 0 and we count 0..59? Or 1..60? If the first check is at 0, and it's true, hold=1. At 1000, hold=2... At 58000, hold=59. At 59000, hold=60. Action fires. Total time elapsed = 59000ms. The IR waits 60s = 60000ms. The JoI fires 100ms early. This is a classic 'off-by-one' error where the duration D requires waiting until time D, but the counter reaches the threshold D ticks at time (D-1)*Period if the first tick is at 0. To fix a 1000ms wrapper for a 60s duration, the threshold should be 61 so that it fires at 60000ms (60 ticks * 1000ms, but we need to wait *through* the 60th second). Wait, if we need to wait 60 seconds, we need to see the condition true for 60 seconds. If we sample at 0, 1000, ..., 59000. That is 60 samples. The time elapsed from the start of the first sample to the end of the last sample is 59000ms. The condition must be true for the full 60000ms duration. The standard fix for `wait(C, for: D)` with a 1000ms wrapper is to use threshold `D_in_ms / 1000 + 1`. Here D=60000ms. Threshold = 60000/1000 + 1 = 61. With threshold 61, the action fires at t=60000 (when hold=61, meaning we have seen it true for 60 intervals of 1000ms, covering 60000ms duration).\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"joi_block.period\", \"joi_block.script\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 to align with the standard 100ms grid for sustained conditions, and adjusted the threshold to 101 (60 seconds / 100ms + 1). This ensures the condition is sustained for the full 60 seconds (600 ticks) before the action is emitted, correcting the 100ms early firing observed in the counterexample.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 101) {\\n        (#Office_Monitor_Plug).switch_off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 101) {\n        (#Office_Monitor_Plug).switch_off()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 1-minute (60 seconds) sustained wait before acting. The candidate uses a 1000 ms wrapper with a threshold of 60, which triggers after 60 seconds (59000 ms). However, because the wrapper period is 1000 ms, the condition is only sampled at 0, 1000, 2000... ms. The condition starts false at t=0. The first tick where it is observed is t=1000. At t=1000, hold becomes 1. The action fires when hold >= 60, which occurs at t=60000 (the 60th observation point). The IR fires at exactly t=60000 (60 seconds). The mismatch report at 59000 ms indicates the JoI fired early, suggesting the threshold calculation or the initial state handling is off by one tick relative to the 1000ms grid, or the IR expects the duration to be strictly greater than 60 seconds or the counting logic differs (e.g., 100ms grid vs 1000ms grid). Given the evidence shows the IR waits 60 seconds exactly, and the JoI fired at 59000, the JoI threshold of 60 on a 1000ms grid fires at 60000ms. Wait, the mismatch is at 59000. If the JoI fired at 59000, then hold must have reached 60 at t=59000. This implies the counter incremented 60 times by t=59000. With period 1000, the first check is at 0. If the condition is true at 0, hold increments. If the condition is false at 0 (held false), hold resets. The input shows `Presence == false` starting at t=0. The IR waits for `Presence == false`. If it is already false at t=0, the `wait` (edge none) should start immediately. The IR fires at t=60000 (60s). The JoI fired at t=59000. This means the JoI counted 59 full periods + 1 initial = 60 ticks? No. If the JoI fires at 59000, it means `hold` reached 60 at 59000. This happens if the first tick is at 1000ms? No. Let's re-evaluate. 59000 / 1000 = 59. So 60 ticks of 1000ms cover 59000ms if the first tick is at 0 and we count 0..59? Or 1..60? If the first check is at 0, and it's true, hold=1. At 1000, hold=2... At 58000, hold=59. At 59000, hold=60. Action fires. Total time elapsed = 59000ms. The IR waits 60s = 60000ms. The JoI fires 100ms early. This is a classic 'off-by-one' error where the duration D requires waiting until time D, but the counter reaches the threshold D ticks at time (D-1)*Period if the first tick is at 0. To fix a 1000ms wrapper for a 60s duration, the threshold should be 61 so that it fires at 60000ms (60 ticks * 1000ms, but we need to wait *through* the 60th second). Wait, if we need to wait 60 seconds, we need to see the condition true for 60 seconds. If we sample at 0, 1000, ..., 59000. That is 60 samples. The time elapsed from the start of the first sample to the end of the last sample is 59000ms. The condition must be true for the full 60000ms duration. The standard fix for `wait(C, for: D)` with a 1000ms wrapper is to use threshold `D_in_ms / 1000 + 1`. Here D=60000ms. Threshold = 60000/1000 + 1 = 61. With threshold 61, the action fires at t=60000 (when hold=61, meaning we have seen it true for 60 intervals of 1000ms, covering 60000ms duration).",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "joi_block.period",
+   "joi_block.script"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 to align with the standard 100ms grid for sustained conditions, and adjusted the threshold to 101 (60 seconds / 100ms + 1). This ensures the condition is sustained for the full 60 seconds (600 ticks) before the action is emitted, correcting the 100ms early firing observed in the counterexample."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 10000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

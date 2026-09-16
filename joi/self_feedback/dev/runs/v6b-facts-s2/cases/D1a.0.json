@@ -1,0 +1,61 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 26610,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 324,
+   "prompt_tokens": 7097,
+   "total_tokens": 7421,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.02212142944336,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait followed by actions. The candidate polls the sensor at the start of the cycle (t=0) inside an `if`, which misses the transition that occurs at t=100ms (F1, F2). The candidate must block on the rising edge using the two-wait rearm pattern (Example A) to observe the state change immediately.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic polling `if` with a rising-edge state machine: block until false, clear state, block until true, then execute body. This ensures the action fires exactly when motion becomes true, matching the IR's rising edge semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\\n    triggered = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\ntriggered = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until(not ((#Hall_Motion).motionSensor_motion == true))\n    triggered = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait followed by actions. The candidate polls the sensor at the start of the cycle (t=0) inside an `if`, which misses the transition that occurs at t=100ms (F1, F2). The candidate must block on the rising edge using the two-wait rearm pattern (Example A) to observe the state change immediately.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic polling `if` with a rising-edge state machine: block until false, clear state, block until true, then execute body. This ensures the action fires exactly when motion becomes true, matching the IR's rising edge semantics."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

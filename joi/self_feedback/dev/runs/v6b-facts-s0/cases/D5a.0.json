@@ -1,0 +1,60 @@
+{
+ "id": "D5a",
+ "family": "termination",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25689,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 228,
+   "prompt_tokens": 6834,
+   "total_tokens": 7062,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.120058298110962,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate script contains a 'break' statement after the action. The IR specifies a 'cycle' without an 'until' condition or 'break', meaning it must repeat indefinitely. The 'break' causes the automation to terminate after the first execution, failing to emit the required action on subsequent iterations.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 3 (break)\"],\n    \"change_summary\": \"Removed the 'break' statement to allow the script to repeat according to the IR's cycle specification.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 3600000,\n    \"script\": \"if ((#Living_CO2).carbonDioxideSensor_carbonDioxide > 1000) {\\n    (#Living_Purifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 3600000,
+  "script": "if ((#Living_CO2).carbonDioxideSensor_carbonDioxide > 1000) {\n    (#Living_Purifier).airPurifier_setAirPurifierMode(\"auto\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate script contains a 'break' statement after the action. The IR specifies a 'cycle' without an 'until' condition or 'break', meaning it must repeat indefinitely. The 'break' causes the automation to terminate after the first execution, failing to emit the required action on subsequent iterations.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 3 (break)"
+  ],
+  "change_summary": "Removed the 'break' statement to allow the script to repeat according to the IR's cycle specification."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

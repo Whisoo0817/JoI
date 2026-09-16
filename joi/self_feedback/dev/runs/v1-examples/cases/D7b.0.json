@@ -1,0 +1,59 @@
+{
+ "id": "D7b",
+ "family": "argument",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 0,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 20499,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 3548,
+   "prompt_tokens": 5310,
+   "total_tokens": 8858,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 97.79316091537476,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The candidate script swapped the arguments for the light_moveToBrightness action. The IR specifies Brightness=60 and Rate=0, which maps to arguments [60, 0]. The candidate passed [0, 60], causing the mismatch observed in F2.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"Line 2\"],\n    \"change_summary\": \"Corrected the argument order in light_moveToBrightness to (60, 0) to match the IR specification.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"wait until((#Porch_Door).contactSensor_contact == false)\\n(#Porch_Light).light_moveToBrightness(60, 0)\"\n  }\n}",
+ "reasoning_chars": 11759,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until((#Porch_Door).contactSensor_contact == false)\n(#Porch_Light).light_moveToBrightness(60, 0)"
+ },
+ "diagnosis": {
+  "summary": "The candidate script swapped the arguments for the light_moveToBrightness action. The IR specifies Brightness=60 and Rate=0, which maps to arguments [60, 0]. The candidate passed [0, 60], causing the mismatch observed in F2.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "Line 2"
+  ],
+  "change_summary": "Corrected the argument order in light_moveToBrightness to (60, 0) to match the IR specification."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 1,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

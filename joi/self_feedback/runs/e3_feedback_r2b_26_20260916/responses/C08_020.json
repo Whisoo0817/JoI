@@ -1,0 +1,38 @@
+{
+ "id": "C08_020",
+ "request_sha256": "a8cca28e67f558f25c23c367a53b1539ad305b870ea830611a0f8a255731a7f2",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 356,
+   "prompt_tokens": 6988,
+   "total_tokens": 7344,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.804843664169312,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate incorrectly requires the Bedroom sensor to be <= 30 before firing (line 3) and uses an OR condition for the wait (line 6), whereas the IR requires a rising edge on the SoundSensor group (any) without excluding the other sensor. The IR's `any` binding implies an existential quantifier, requiring the `>` operator with the `|` suffix to match at least one device, not a conjunction with a negation.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"line 3\", \"line 6\"],\n    \"change_summary\": \"Replaced the conjunctive guard with a rising-edge rearm pattern using `not` for the false state. Changed the wait condition from an OR of raw comparisons to an exists-quantified comparison (`> 30|`) matching the `any` binding slot. This ensures the action fires on the first rising edge across either sensor and rearms correctly when both drop below the threshold.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(not ((#SoundSensor).soundSensor_sound > 30|))\\ntriggered = false\\n}\\nwait until((#SoundSensor).soundSensor_sound > 30|)\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until(not ((#SoundSensor).soundSensor_sound > 30|))\ntriggered = false\n}\nwait until((#SoundSensor).soundSensor_sound > 30|)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate incorrectly requires the Bedroom sensor to be <= 30 before firing (line 3) and uses an OR condition for the wait (line 6), whereas the IR requires a rising edge on the SoundSensor group (any) without excluding the other sensor. The IR's `any` binding implies an existential quantifier, requiring the `>` operator with the `|` suffix to match at least one device, not a conjunction with a negation.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 3",
+   "line 6"
+  ],
+  "change_summary": "Replaced the conjunctive guard with a rising-edge rearm pattern using `not` for the false state. Changed the wait condition from an OR of raw comparisons to an exists-quantified comparison (`> 30|`) matching the `any` binding slot. This ensures the action fires on the first rising edge across either sensor and rearms correctly when both drop below the threshold."
+ },
+ "status": "REVISED"
+}

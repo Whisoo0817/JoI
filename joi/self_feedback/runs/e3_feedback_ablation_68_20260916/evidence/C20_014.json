@@ -1,0 +1,96 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "PresenceSensor": [
+    "Office_Presence"
+   ],
+   "Switch": [
+    "Office_AC"
+   ]
+  },
+  "device_inventory": {
+   "Office_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Office",
+     "PresenceSensor"
+    ]
+   },
+   "Office_AC": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Office",
+     "AC",
+     "Plug",
+     "Switch"
+    ]
+   },
+   "Meeting_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "MeetingRoom",
+     "PresenceSensor"
+    ]
+   },
+   "Office_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Office",
+     "Camera"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Office_AC).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 10 MIN)",
+   "duration_ms": 600000,
+   "ticks_at_100ms": 6000,
+   "note": "sustain window; the condition must hold for the whole duration"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

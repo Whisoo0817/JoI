@@ -1,0 +1,100 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "HumiditySensor.Humidity < 30",
+     "edge": "none"
+    },
+    {
+     "op": "delay",
+     "duration": "3 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {
+      "Text": "Humidity is low"
+     }
+    }
+   ]
+  },
+  "binding_slots": {
+   "HumiditySensor": {
+    "any": [
+     "LivingRoom_HumiditySensor",
+     "Bedroom_HumiditySensor"
+    ]
+   },
+   "Speaker": [
+    "LivingRoom_Speaker",
+    "Kitchen_Speaker"
+   ]
+  },
+  "device_inventory": {
+   "LivingRoom_HumiditySensor": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "HumiditySensor"
+    ]
+   },
+   "Bedroom_HumiditySensor": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "HumiditySensor"
+    ]
+   },
+   "LivingRoom_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Speaker"
+    ]
+   },
+   "Kitchen_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Kitchen",
+     "Speaker"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until(all(#HumiditySensor).humiditySensor_humidity <| 30)\ndelay(3 SEC)\nall(#Speaker).speaker_speak(\"습도가 낮습니다\")"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "delay(3 SEC)",
+   "duration_ms": 3000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

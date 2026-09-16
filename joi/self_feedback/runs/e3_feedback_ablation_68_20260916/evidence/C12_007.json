@@ -1,0 +1,124 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "SmokeDetector.Smoke == true",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "Speaker.Speak",
+     "args": {
+      "Text": "Smoke detected."
+     }
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "5 MIN",
+     "body": [
+      {
+       "op": "call",
+       "target": "EmailProvider.SendMail",
+       "args": {
+        "ToAddress": "test@example.com",
+        "Title": "Fire Warning",
+        "Body": "A fire has occurred. Please evacuate."
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "SmokeDetector": {
+    "any": [
+     "Kitchen_Smoke",
+     "Bedroom_Smoke"
+    ]
+   },
+   "Speaker": [
+    "Living_Speaker",
+    "Bedroom_Speaker"
+   ],
+   "EmailProvider": [
+    "EmailProvider"
+   ]
+  },
+  "device_inventory": {
+   "Kitchen_Smoke": {
+    "category": [
+     "SmokeDetector"
+    ],
+    "tags": [
+     "Kitchen",
+     "SmokeDetector"
+    ]
+   },
+   "Bedroom_Smoke": {
+    "category": [
+     "SmokeDetector"
+    ],
+    "tags": [
+     "Bedroom",
+     "SmokeDetector"
+    ]
+   },
+   "Living_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Living",
+     "Speaker"
+    ]
+   },
+   "Bedroom_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Bedroom",
+     "Speaker"
+    ]
+   },
+   "EmailProvider": {
+    "category": [
+     "EmailProvider"
+    ],
+    "tags": [
+     "EmailProvider"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 300000,
+  "script": "phase := 0\nif (phase == 0) {\nwait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n    phase = 1\n    all(#Speaker).speaker_speak(\"Smoke detected.\")\n}\nelse {\nall(#Speaker).speaker_speak(\"Smoke detected.\")\n}\n(#EmailProvider).emailProvider_sendMail(\"test@example.com\", \"Fire Warning\", \"A fire has occurred. Please evacuate.\")"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 5 MIN)",
+   "period_ms": 300000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

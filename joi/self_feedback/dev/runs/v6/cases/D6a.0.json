@@ -1,0 +1,62 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28520,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 400,
+   "prompt_tokens": 7659,
+   "total_tokens": 8059,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.797338008880615,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate incorrectly clocks the sustain counter (`hold_ticks`) using the cycle's 15s period instead of the required 100ms grid. This causes the 30s wait to be satisfied after only 2 iterations (30s) but fails to re-arm or detect the condition correctly within the cycle logic, leading to the missing action at 30s. The IR requires a 100ms wrapper to count ticks for the sustain window, while the cycle period (15s) is used only for delays between the two body executions.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed `period` to 100 to enable 100ms tick counting for the sustain window. Rewrote the script to use a 100ms hold counter (threshold 301) for the initial wait, then explicitly executed the cycle body twice with `delay(15 SEC)` between them, followed by `break` to stop after the second execution.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Back_Door).contactSensor_contact == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        delay(15 SEC)\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Back_Door).contactSensor_contact == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        delay(15 SEC)\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate incorrectly clocks the sustain counter (`hold_ticks`) using the cycle's 15s period instead of the required 100ms grid. This causes the 30s wait to be satisfied after only 2 iterations (30s) but fails to re-arm or detect the condition correctly within the cycle logic, leading to the missing action at 30s. The IR requires a 100ms wrapper to count ticks for the sustain window, while the cycle period (15s) is used only for delays between the two body executions.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed `period` to 100 to enable 100ms tick counting for the sustain window. Rewrote the script to use a 100ms hold counter (threshold 301) for the initial wait, then explicitly executed the cycle body twice with `delay(15 SEC)` between them, followed by `break` to stop after the second execution."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 5,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

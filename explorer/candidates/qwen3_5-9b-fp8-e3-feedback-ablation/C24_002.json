@@ -1,0 +1,96 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#Meeting_Presence).presenceSensor_presence == true) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1201) {\n        (#Meeting_Speaker).speaker_speak(\"The meeting starts soon\")\n        delay(60 SEC)\n        (#Meeting_Speaker).speaker_speak(\"The meeting starts soon\")\n        delay(60 SEC)\n        (#Meeting_Speaker).speaker_speak(\"The meeting starts soon\")\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 100, \"script\": \"hold_ticks := 0\\nif ((#Meeting_Presence).presenceSensor_presence == true) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 1201) {\\n        (#Meeting_Speaker).speaker_speak(\\\"The meeting starts soon\\\")\\n        delay(60 SEC)\\n        (#Meeting_Speaker).speaker_speak(\\\"The meeting starts soon\\\")\\n        delay(60 SEC)\\n        (#Meeting_Speaker).speaker_speak(\\\"The meeting starts soon\\\")\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#Meeting_Presence)"
+    ],
+    "Speaker.Speak": [
+      "(#Meeting_Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "회의실에 사람이 2분 이상 있으면 1분마다 스피커로 \"회의가 곧 시작됩니다\"라고 3번 알려줘.",
+  "command_eng": "If a person stays in the meeting room for at least 2 minutes, announce 'The meeting starts soon' through the speaker every 1 minute, 3 times.",
+  "connected_devices": {
+    "Meeting_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Meeting",
+        "PresenceSensor"
+      ]
+    },
+    "Meeting_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Meeting",
+        "Speaker"
+      ]
+    },
+    "Lobby_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Lobby",
+        "PresenceSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none",
+        "for": "2 MIN"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "1 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The meeting starts soon"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "PresenceSensor": [
+      "Meeting_Presence"
+    ],
+    "Speaker": [
+      "Meeting_Speaker"
+    ]
+  },
+  "input_payload_sha256": "91eef8c3b93df73ef8ce634ff563fd8bb9a75b41135db6562c7827daafc9d7c0",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.8,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

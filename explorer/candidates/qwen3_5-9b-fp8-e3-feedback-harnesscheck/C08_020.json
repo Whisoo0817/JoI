@@ -1,0 +1,107 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#SoundSensor).soundSensor_sound >| 30) {\nif (triggered == false) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#SoundSensor).soundSensor_sound >| 30) {\nif (triggered == false) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "SoundSensor.Sound": [
+      "any(#SoundSensor)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "소리 센서 값이 30을 넘길 때마다 공기 청정기를 수면모드로 바꿔줘.",
+  "command_eng": "Every time the sound sensor value exceeds 30, set the air purifier to sleep mode.",
+  "connected_devices": {
+    "Main_SoundSensor": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Main",
+        "SoundSensor"
+      ]
+    },
+    "Main_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_SoundSensor": {
+      "category": [
+        "SoundSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "SoundSensor"
+      ]
+    },
+    "Bedroom_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "SoundSensor.Sound > 30",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "sleep"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "SoundSensor": {
+      "any": [
+        "Main_SoundSensor",
+        "Bedroom_SoundSensor"
+      ]
+    },
+    "AirPurifier": [
+      "Main_AirPurifier",
+      "Bedroom_AirPurifier"
+    ]
+  },
+  "input_payload_sha256": "f46acb8846057a5c1fbe9c3f0e2021eb01ddeb0da66cedf1d83b8b4de3867d5e",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.0
+}

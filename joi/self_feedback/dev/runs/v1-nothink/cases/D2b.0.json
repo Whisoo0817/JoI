@@ -1,0 +1,61 @@
+{
+ "id": "D2b",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 30047,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 600,
+   "prompt_tokens": 8422,
+   "total_tokens": 9022,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 300.83672308921814,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a one-shot sequence: wait 1 minute for absence, then turn off. The candidate uses a 1-second period wrapper with a counter, causing the action to fire at t=60000ms (60 ticks). The IR requires the action to fire exactly at t=60000ms relative to the start of the wait, but the candidate's first iteration starts at t=0 (counting 1), so it reaches 60 at t=59000ms. The mismatch occurs because the candidate fires one period early relative to the IR's absolute timing expectation for a `for` duration starting at the initial state check. However, looking closely at F2 at 59000ms, the IR has no action, but the JoI does. The IR `wait(..., for 1 MIN)` blocks for 60000ms. If the check happens at t=0 and the wait completes at t=60000, the action should happen at t=60000. The candidate fires at t=59000. The root cause is the off-by-one error in counting ticks for a duration that includes the initial state. With a 1000ms period, 1 MIN = 60 ticks. The IR waits 60000ms. The candidate counts 60 ticks. If the first tick is at t=0, the 60th tick is at t=59000. To match the IR which waits for a full minute, the counter must reach 61 (ticking at 0, 1000, ..., 60000).\",\n    \"evidence_refs\": [\"F1\", \"F2\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the period from 1000 to 0 to implement a one-shot script without periodic re-evaluation. Updated the counter threshold from 60 to 61 to account for the initial tick at t=0, ensuring the action fires exactly after 60000ms of sustained condition, matching the IR's `for 1 MIN` duration.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"hold_ticks := 0\\nif ((#Office_Presence).presenceSensor_presence == false) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 61) {\\n        (#Office_Monitor_Plug).switch_off()\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 61) {\n        (#Office_Monitor_Plug).switch_off()\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a one-shot sequence: wait 1 minute for absence, then turn off. The candidate uses a 1-second period wrapper with a counter, causing the action to fire at t=60000ms (60 ticks). The IR requires the action to fire exactly at t=60000ms relative to the start of the wait, but the candidate's first iteration starts at t=0 (counting 1), so it reaches 60 at t=59000ms. The mismatch occurs because the candidate fires one period early relative to the IR's absolute timing expectation for a `for` duration starting at the initial state check. However, looking closely at F2 at 59000ms, the IR has no action, but the JoI does. The IR `wait(..., for 1 MIN)` blocks for 60000ms. If the check happens at t=0 and the wait completes at t=60000, the action should happen at t=60000. The candidate fires at t=59000. The root cause is the off-by-one error in counting ticks for a duration that includes the initial state. With a 1000ms period, 1 MIN = 60 ticks. The IR waits 60000ms. The candidate counts 60 ticks. If the first tick is at t=0, the 60th tick is at t=59000. To match the IR which waits for a full minute, the counter must reach 61 (ticking at 0, 1000, ..., 60000).",
+  "evidence_refs": [
+   "F1",
+   "F2"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the period from 1000 to 0 to implement a one-shot script without periodic re-evaluation. Updated the counter threshold from 60 to 61 to account for the initial tick at t=0, ensuring the action fires exactly after 60000ms of sustained condition, matching the IR's `for 1 MIN` duration."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 60000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

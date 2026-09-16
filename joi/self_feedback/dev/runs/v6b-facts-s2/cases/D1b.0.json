@@ -1,0 +1,62 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25251,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 350,
+   "prompt_tokens": 6684,
+   "total_tokens": 7034,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.927693605422974,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait for the button state. The candidate uses a periodic `if` guard, which only evaluates at the start of each period. Since the button was 'pushed' at t=100ms but the script started at t=0, the guard evaluated at t=0 (null != 'pushed') was false, and subsequent evaluations at t=1000ms missed the rising edge transition. A rising-edge wait requires blocking until the transition occurs and a rearm mechanism to prevent repeated firing while held.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the script from a periodic `if` guard to a two-wait rearm pattern. This blocks execution until the rising edge is detected, executes the action, and then waits for the condition to go false before allowing the next cycle. The period remains 1000ms to match the IR's cycle timing.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until(not ((#Garden_Button).button_button == \\\"pushed\\\"))\\n    fired = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\nfired = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until(not ((#Garden_Button).button_button == \"pushed\"))\n    fired = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait for the button state. The candidate uses a periodic `if` guard, which only evaluates at the start of each period. Since the button was 'pushed' at t=100ms but the script started at t=0, the guard evaluated at t=0 (null != 'pushed') was false, and subsequent evaluations at t=1000ms missed the rising edge transition. A rising-edge wait requires blocking until the transition occurs and a rearm mechanism to prevent repeated firing while held.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the script from a periodic `if` guard to a two-wait rearm pattern. This blocks execution until the rising edge is detected, executes the action, and then waits for the condition to go false before allowing the next cycle. The period remains 1000ms to match the IR's cycle timing."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

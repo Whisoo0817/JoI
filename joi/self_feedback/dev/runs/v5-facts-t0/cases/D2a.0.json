@@ -1,0 +1,62 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28410,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 381,
+   "prompt_tokens": 7966,
+   "total_tokens": 8347,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.650708675384521,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 30-second sustained wait (300 ticks at 100ms granularity). The candidate uses a 1000ms period and a threshold of 30, causing the action to fire after only 30 seconds of 1-second ticks (30,000ms) but incorrectly counting the initial state as tick 1, leading to an early trigger at 29,000ms. The correct approach uses a 100ms period and a threshold of 301 (30 seconds / 0.1s + 1) to ensure the condition is held for the full 30 seconds before acting.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"threshold logic\"],\n    \"change_summary\": \"Changed period to 100ms and threshold to 301. This aligns the JoI execution grid with the IR's 30-second duration requirement, ensuring the action fires exactly at 30,000ms when the condition has been continuously true for the full duration.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 30-second sustained wait (300 ticks at 100ms granularity). The candidate uses a 1000ms period and a threshold of 30, causing the action to fire after only 30 seconds of 1-second ticks (30,000ms) but incorrectly counting the initial state as tick 1, leading to an early trigger at 29,000ms. The correct approach uses a 100ms period and a threshold of 301 (30 seconds / 0.1s + 1) to ensure the condition is held for the full 30 seconds before acting.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic"
+  ],
+  "change_summary": "Changed period to 100ms and threshold to 301. This aligns the JoI execution grid with the IR's 30-second duration requirement, ensuring the action fires exactly at 30,000ms when the condition has been continuously true for the full duration."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

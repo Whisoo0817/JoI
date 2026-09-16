@@ -1,0 +1,172 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MotionSensor.Motion == true",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": "min($Light.CurrentBrightness + 10, 100)",
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "if",
+       "cond": "Light.CurrentBrightness >= 100",
+       "then": [
+        {
+         "op": "break"
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "MotionSensor": {
+    "any": [
+     "Entrance_Motion",
+     "Garage_Motion"
+    ]
+   },
+   "Light": [
+    "Living_Light"
+   ]
+  },
+  "device_inventory": {
+   "Entrance_Motion": {
+    "category": [
+     "MotionSensor"
+    ],
+    "tags": [
+     "Entrance",
+     "MotionSensor"
+    ]
+   },
+   "Garage_Motion": {
+    "category": [
+     "MotionSensor"
+    ],
+    "tags": [
+     "Garage",
+     "MotionSensor"
+    ]
+   },
+   "Living_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Living",
+     "Light",
+     "LevelControl"
+    ]
+   },
+   "Bedroom_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Bedroom",
+     "Light",
+     "LevelControl"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "wait until(all(#MotionSensor).motionSensor_motion == true)\n(#Living_Light).light_movetobrightness((#Living_Light).light_currentBrightness + 10, 0)\nif ((#Living_Light).light_currentBrightness >= 100) {\nbreak\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Entrance_Motion.motion": false,
+      "Garage_Motion.motion": true,
+      "Living_Light.currentbrightness": null
+     },
+     "held_ms": 0
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 0,
+   "mismatch_kind": "joi_missing_action",
+   "ir_actions": [
+    {
+     "targets": [
+      "Living_Light"
+     ],
+     "call": "light.movetobrightness",
+     "args": [
+      10,
+      0
+     ]
+    }
+   ],
+   "joi_actions": [],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "wait until(all(#MotionSensor).motionSensor_motion == true)"
+   },
+   {
+    "line": 2,
+    "text": "(#Living_Light).light_movetobrightness((#Living_Light).light_currentBrightness + 10, 0)"
+   },
+   {
+    "line": 3,
+    "text": "if ((#Living_Light).light_currentBrightness >= 100) {"
+   },
+   {
+    "line": 4,
+    "text": "break"
+   },
+   {
+    "line": 5,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

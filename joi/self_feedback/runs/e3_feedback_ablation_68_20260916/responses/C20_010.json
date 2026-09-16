@@ -1,0 +1,34 @@
+{
+ "id": "C20_010",
+ "request_sha256": "133cdbaabadac2d6890968da06d546b22f453155f2a88e5b7c673975a82a5e0f",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 279,
+   "prompt_tokens": 5729,
+   "total_tokens": 6008,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 19.79625916481018,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 30, causing the action to fire after 29 seconds (29 ticks) instead of the required 30 seconds. Additionally, the 1000 ms period cannot detect a condition drop and recovery between iterations, violating the sustain requirement.\",\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed period to 100 ms to match the sustain grid. Updated the threshold to 301 (30 seconds / 100 ms + 1) to ensure the action fires exactly at the 30-second mark when the condition has been sustained for the full duration.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Garage_ContactSensor).contactSensor_contact == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 301) {\\n(#Garage_Light).switch_on()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Garage_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 301) {\n(#Garage_Light).switch_on()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 30, causing the action to fire after 29 seconds (29 ticks) instead of the required 30 seconds. Additionally, the 1000 ms period cannot detect a condition drop and recovery between iterations, violating the sustain requirement.",
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed period to 100 ms to match the sustain grid. Updated the threshold to 301 (30 seconds / 100 ms + 1) to ensure the action fires exactly at the 30-second mark when the condition has been sustained for the full duration."
+ },
+ "status": "REVISED"
+}

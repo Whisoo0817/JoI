@@ -1,0 +1,114 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "cron",
+     "cron": "0 0 * * *"
+    },
+    {
+     "op": "call",
+     "target": "DoorLock.Lock",
+     "args": {}
+    },
+    {
+     "op": "cycle",
+     "until": "clock.time >= 0600",
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "if",
+       "cond": "LevelControl.CurrentLevel > 30",
+       "then": [
+        {
+         "op": "call",
+         "target": "LevelControl.MoveToLevel",
+         "args": {
+          "Level": 10.0,
+          "Rate": 0.0
+         }
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "DoorLock": [
+    "Entrance_DoorLock",
+    "Garage_DoorLock"
+   ],
+   "LevelControl": [
+    "Living_Light"
+   ]
+  },
+  "device_inventory": {
+   "Entrance_DoorLock": {
+    "category": [
+     "DoorLock"
+    ],
+    "tags": [
+     "Entrance",
+     "DoorLock"
+    ]
+   },
+   "Garage_DoorLock": {
+    "category": [
+     "DoorLock"
+    ],
+    "tags": [
+     "Garage",
+     "DoorLock"
+    ]
+   },
+   "Living_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Living",
+     "Light",
+     "LevelControl"
+    ]
+   },
+   "Bedroom_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Bedroom",
+     "Light",
+     "LevelControl"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "0 0 * * *",
+  "period": 3600000,
+  "script": "if ((#Clock).clock_hour >= 6) {\nbreak\n}\nif ((#Living_Light).levelControl_currentLevel > 30) {\n(#Living_Light).levelControl_moveToLevel(10, 0)\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 HOUR)",
+   "period_ms": 3600000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

@@ -1,0 +1,33 @@
+{
+ "id": "C08_026",
+ "request_sha256": "6a9534476da148498069799d34f56d53e4d530cacf4e965b51bbb1c26e9713ee",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 286,
+   "prompt_tokens": 5746,
+   "total_tokens": 6032,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.78117823600769,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate polls the condition at the start of the cycle body. The IR requires a rising-edge wait, which blocks until the condition transitions from false to true. If the condition is already true at the start of an iteration, the candidate skips the action, whereas the IR would have fired on the previous transition and is now waiting for the condition to drop before the next rising edge.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` polling pattern with a blocking two-wait rearm sequence. The script now explicitly waits for the condition to become false (rearm) and then waits for it to become true (fire), ensuring the action executes exactly on the rising edge as specified by the IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(all(#TemperatureSensor).temperatureSensor_temperature < 30)\\ntriggered = false\\n}\\nwait until(all(#TemperatureSensor).temperatureSensor_temperature >= 30)\\nall(#WindowCovering).windowCovering_downOrClose()\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until(all(#TemperatureSensor).temperatureSensor_temperature < 30)\ntriggered = false\n}\nwait until(all(#TemperatureSensor).temperatureSensor_temperature >= 30)\nall(#WindowCovering).windowCovering_downOrClose()\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate polls the condition at the start of the cycle body. The IR requires a rising-edge wait, which blocks until the condition transitions from false to true. If the condition is already true at the start of an iteration, the candidate skips the action, whereas the IR would have fired on the previous transition and is now waiting for the condition to drop before the next rising edge.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` polling pattern with a blocking two-wait rearm sequence. The script now explicitly waits for the condition to become false (rearm) and then waits for it to become true (fire), ensuring the action executes exactly on the rising edge as specified by the IR."
+ },
+ "status": "REVISED"
+}

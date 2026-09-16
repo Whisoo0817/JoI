@@ -1,0 +1,71 @@
+{
+ "id": "D6a",
+ "family": "timing",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 23826,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 8192,
+   "prompt_tokens": 6352,
+   "total_tokens": 14544,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 90.90688991546631,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": true,
+  "usage2": {
+   "completion_tokens": 456,
+   "prompt_tokens": 14573,
+   "total_tokens": 15029,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  }
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a sustained 30 SEC wait (edge none) before a 2-iteration cycle with 15 SEC period. The candidate uses a 15 SEC wrapper period, which cannot measure a 30 SEC sustain accurately (needs 300 ticks of 100 ms). The candidate also lacks explicit delays for the cycle period when the wrapper is 100 ms. F1 shows the condition is continuously true, but the candidate waits 450 SEC instead of 30 SEC. F2 shows the action is missing at t=30000ms because the wait threshold is not reached.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed period to 100 to measure the 30 SEC sustain. Added wait_done flag to separate sustain phase from cycle phase. Added explicit delay(15 SEC) between cycle iterations to implement the cycle period. Threshold for hold_ticks set to 301 to match 30 SEC duration.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nn := 0\\nwait_done := false\\nif (wait_done == false) {\\n    if ((#Back_Door).contactSensor_contact == false) {\\n        hold_ticks = hold_ticks + 1\\n        if (hold_ticks >= 301) {\\n            wait_done = true\\n        }\\n    } else {\\n        hold_ticks = 0\\n    }\\n} else {\\n    if (n < 2) {\\n        (#Back_Speaker).speaker_speak(\\\"Please close the back door\\\")\\n        n = n + 1\\n        if (n < 2) {\\n            delay(15 SEC)\\n        }\\n    } else {\\n        break\\n    }\\n}\"\n  }\n}",
+ "reasoning_chars": 24461,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nn := 0\nwait_done := false\nif (wait_done == false) {\n    if ((#Back_Door).contactSensor_contact == false) {\n        hold_ticks = hold_ticks + 1\n        if (hold_ticks >= 301) {\n            wait_done = true\n        }\n    } else {\n        hold_ticks = 0\n    }\n} else {\n    if (n < 2) {\n        (#Back_Speaker).speaker_speak(\"Please close the back door\")\n        n = n + 1\n        if (n < 2) {\n            delay(15 SEC)\n        }\n    } else {\n        break\n    }\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a sustained 30 SEC wait (edge none) before a 2-iteration cycle with 15 SEC period. The candidate uses a 15 SEC wrapper period, which cannot measure a 30 SEC sustain accurately (needs 300 ticks of 100 ms). The candidate also lacks explicit delays for the cycle period when the wrapper is 100 ms. F1 shows the condition is continuously true, but the candidate waits 450 SEC instead of 30 SEC. F2 shows the action is missing at t=30000ms because the wait threshold is not reached.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed period to 100 to measure the 30 SEC sustain. Added wait_done flag to separate sustain phase from cycle phase. Added explicit delay(15 SEC) between cycle iterations to implement the cycle period. Threshold for hold_ticks set to 301 to match 30 SEC duration."
+ },
+ "verification": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": false,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ],
+  "mismatch_ms": 30000
+ },
+ "status": "STILL_DIVERGE",
+ "rep": 0
+}

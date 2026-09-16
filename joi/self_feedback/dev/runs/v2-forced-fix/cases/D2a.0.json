@@ -1,0 +1,70 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 27225,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 8192,
+   "prompt_tokens": 7585,
+   "total_tokens": 15777,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 292.31186747550964,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": true,
+  "usage2": {
+   "completion_tokens": 285,
+   "prompt_tokens": 15806,
+   "total_tokens": 16091,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  }
+ },
+ "response": "\n\n{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses `period` 1000 ms, causing the sustained condition to fire 1 second early (at 29s vs 30s) because the initial check at t=0 counts as tick 1. Additionally, a 1000 ms wrapper risks missing transient condition drops. The IR requires 30 seconds of sustained truth.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script line 4\"],\n    \"change_summary\": \"Changed `period` to 100 ms and threshold to 301 to ensure 30-second sustained wait matches IR.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 23511,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses `period` 1000 ms, causing the sustained condition to fire 1 second early (at 29s vs 30s) because the initial check at t=0 counts as tick 1. Additionally, a 1000 ms wrapper risks missing transient condition drops. The IR requires 30 seconds of sustained truth.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script line 4"
+  ],
+  "change_summary": "Changed `period` to 100 ms and threshold to 301 to ensure 30-second sustained wait matches IR."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

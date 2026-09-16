@@ -1,0 +1,61 @@
+{
+ "id": "D1a",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 24926,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 337,
+   "prompt_tokens": 6649,
+   "total_tokens": 6986,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 23.592302322387695,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a rising-edge wait followed by actions. The candidate polls the sensor at the start of the cycle (t=0) and finds it false, so the guard fails and no action occurs. The input shows the sensor becomes true at t=0 with a 100ms hold (F1), meaning the rising edge occurs at t=0. The candidate must block on the rising edge rather than sampling it periodically (Example A).\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with a rising-edge wait pattern (`wait until(P == true)`) followed by the body and a persistent flag to rearm. This ensures the action fires exactly when the edge occurs, regardless of the wrapper period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until((#Hall_Motion).motionSensor_motion == false)\\n    triggered = false\\n}\\nwait until((#Hall_Motion).motionSensor_motion == true)\\n(#Hall_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Hall_Light).light_moveToBrightness(0, 0)\\ntriggered = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until((#Hall_Motion).motionSensor_motion == false)\n    triggered = false\n}\nwait until((#Hall_Motion).motionSensor_motion == true)\n(#Hall_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Hall_Light).light_moveToBrightness(0, 0)\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a rising-edge wait followed by actions. The candidate polls the sensor at the start of the cycle (t=0) and finds it false, so the guard fails and no action occurs. The input shows the sensor becomes true at t=0 with a 100ms hold (F1), meaning the rising edge occurs at t=0. The candidate must block on the rising edge rather than sampling it periodically (Example A).",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with a rising-edge wait pattern (`wait until(P == true)`) followed by the body and a persistent flag to rearm. This ensures the action fires exactly when the edge occurs, regardless of the wrapper period."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 7,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

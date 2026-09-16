@@ -1,0 +1,61 @@
+{
+ "id": "D4b",
+ "family": "phase",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 2,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28891,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 350,
+   "prompt_tokens": 7714,
+   "total_tokens": 8064,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.182039022445679,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a one-shot wait followed by a cycle. The candidate incorrectly executes the cycle body (valve close and email send) in the 'else' branch, causing the valve to close and email to be sent again at t=60000ms when the condition is false. The IR only repeats the email send every minute after the initial sequence; it never repeats the valve close.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script\", \"else block\"],\n    \"change_summary\": \"Removed the duplicate actions from the 'else' branch. The 'else' branch must be empty to stop the script after the initial cycle body completes, matching the IR's `until: null` (infinite cycle) which only re-arms the email send, not the initial valve close.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 60000,\n    \"script\": \"phase := 0\\nif (phase == 0) {\\n    wait until((#Laundry_Leak).leakSensor_leakage == true)\\n    phase = 1\\n    (#Laundry_Valve).valve_close()\\n    (#Mail).emailProvider_sendMail(\\\"home@example.com\\\", \\\"Leak\\\", \\\"Water leak in the laundry room\\\")\\n} else {\\n    (#Mail).emailProvider_sendMail(\\\"home@example.com\\\", \\\"Leak\\\", \\\"Water leak in the laundry room\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 60000,
+  "script": "phase := 0\nif (phase == 0) {\n    wait until((#Laundry_Leak).leakSensor_leakage == true)\n    phase = 1\n    (#Laundry_Valve).valve_close()\n    (#Mail).emailProvider_sendMail(\"home@example.com\", \"Leak\", \"Water leak in the laundry room\")\n} else {\n    (#Mail).emailProvider_sendMail(\"home@example.com\", \"Leak\", \"Water leak in the laundry room\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a one-shot wait followed by a cycle. The candidate incorrectly executes the cycle body (valve close and email send) in the 'else' branch, causing the valve to close and email to be sent again at t=60000ms when the condition is false. The IR only repeats the email send every minute after the initial sequence; it never repeats the valve close.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script",
+   "else block"
+  ],
+  "change_summary": "Removed the duplicate actions from the 'else' branch. The 'else' branch must be empty to stop the script after the initial cycle body completes, matching the IR's `until: null` (infinite cycle) which only re-arms the email send, not the initial valve close."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

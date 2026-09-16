@@ -1,0 +1,33 @@
+{
+ "id": "C11_002",
+ "request_sha256": "e11c232c4b097e568f159a305496942930bd530a4a639bf3dcc51682df942e9a",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 231,
+   "prompt_tokens": 5824,
+   "total_tokens": 6055,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 8.680754899978638,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate re-reads the sensor inside the `if` condition instead of using the stored snapshot `t2`. The IR requires comparing the initial value `t1` against the value read after the delay (`t2`), but the candidate compares the current live value against `t2`, violating the snapshot semantics.\",\n    \"changed_locations\": [\"if condition\"],\n    \"change_summary\": \"Replaced the live sensor read in the `if` condition with the stored variable `t1` to match the IR's logic of comparing two historical snapshots.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\\ndelay(1 HOUR)\\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\\nif (t1 - t2 >= 2) {\\n(#LivingRoom_Heater).switch_on()\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\ndelay(1 HOUR)\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\nif (t1 - t2 >= 2) {\n(#LivingRoom_Heater).switch_on()\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate re-reads the sensor inside the `if` condition instead of using the stored snapshot `t2`. The IR requires comparing the initial value `t1` against the value read after the delay (`t2`), but the candidate compares the current live value against `t2`, violating the snapshot semantics.",
+  "changed_locations": [
+   "if condition"
+  ],
+  "change_summary": "Replaced the live sensor read in the `if` condition with the stored variable `t1` to match the IR's logic of comparing two historical snapshots."
+ },
+ "status": "REVISED"
+}

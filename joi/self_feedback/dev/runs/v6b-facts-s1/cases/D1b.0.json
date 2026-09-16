@@ -1,0 +1,60 @@
+{
+ "id": "D1b",
+ "family": "edge_rearm",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 25251,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 329,
+   "prompt_tokens": 6684,
+   "total_tokens": 7013,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.730397462844849,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR specifies a repeating rising-edge wait that must block until the button transitions to 'pushed' before acting. The candidate uses a periodic `if` statement which only evaluates at the start of each 1-second cycle. Since the input changed to 'pushed' at t=100ms (during the first cycle's wait), the candidate missed the event and emitted no action, as evidenced by F2 showing a missing action at 100ms.\",\n    \"evidence_refs\": [\"F2\", \"F3\"],\n    \"changed_locations\": [\"script structure, period usage, wait logic\"],\n    \"change_summary\": \"Replaced the periodic `if` with a blocking two-wait rearm pattern. The script now blocks on the rising edge (`wait until(...)`), performs the call, and tracks state to rearm correctly on the next cycle, preserving the IR's rising-edge semantics and 1-second period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until(not ((#Garden_Button).button_button == \\\"pushed\\\"))\\n    triggered = false\\n}\\nwait until((#Garden_Button).button_button == \\\"pushed\\\")\\n(#Garden_Valve).valve_open()\\ntriggered = true\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until(not ((#Garden_Button).button_button == \"pushed\"))\n    triggered = false\n}\nwait until((#Garden_Button).button_button == \"pushed\")\n(#Garden_Valve).valve_open()\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The IR specifies a repeating rising-edge wait that must block until the button transitions to 'pushed' before acting. The candidate uses a periodic `if` statement which only evaluates at the start of each 1-second cycle. Since the input changed to 'pushed' at t=100ms (during the first cycle's wait), the candidate missed the event and emitted no action, as evidenced by F2 showing a missing action at 100ms.",
+  "evidence_refs": [
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "script structure, period usage, wait logic"
+  ],
+  "change_summary": "Replaced the periodic `if` with a blocking two-wait rearm pattern. The script now blocks on the rising edge (`wait until(...)`), performs the call, and tracks state to rearm correctly on the next cycle, preserving the IR's rising-edge semantics and 1-second period."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

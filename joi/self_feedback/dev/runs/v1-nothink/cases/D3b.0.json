@@ -1,0 +1,61 @@
+{
+ "id": "D3b",
+ "family": "delta",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 27,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 20854,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 306,
+   "prompt_tokens": 5455,
+   "total_tokens": 5761,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 300.3184847831726,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8"
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate computed the difference as ($v2 - $v1), whereas the IR specifies ($v1 - $v1). Given the input history where volume started at 0 and rose to 20, the IR condition (0 - 20 >= 20) is false, so no action occurs. The candidate condition (20 - 0 >= 20) is true, causing the extra action observed in F2.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"line 4\", \"line 5\"],\n    \"change_summary\": \"Reversed the subtraction order in the conditional guard from (v2 - v1) to (v1 - v2) to match the IR specification. This ensures the action triggers only when the volume has dropped by at least 20 units, not when it has risen.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 0,\n    \"script\": \"v1 = (#Den_Speaker).speaker_volume\\ndelay(5 MIN)\\nv2 = (#Den_Speaker).speaker_volume\\nif (v1 - v2 >= 20) {\\n    (#Den_Speaker).speaker_speak(\\\"Volume dropped\\\")\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "v1 = (#Den_Speaker).speaker_volume\ndelay(5 MIN)\nv2 = (#Den_Speaker).speaker_volume\nif (v1 - v2 >= 20) {\n    (#Den_Speaker).speaker_speak(\"Volume dropped\")\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate computed the difference as ($v2 - $v1), whereas the IR specifies ($v1 - $v1). Given the input history where volume started at 0 and rose to 20, the IR condition (0 - 20 >= 20) is false, so no action occurs. The candidate condition (20 - 0 >= 20) is true, causing the extra action observed in F2.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "line 4",
+   "line 5"
+  ],
+  "change_summary": "Reversed the subtraction order in the conditional guard from (v2 - v1) to (v1 - v2) to match the IR specification. This ensures the action triggers only when the volume has dropped by at least 20 units, not when it has risen."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 15,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

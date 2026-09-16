@@ -1,0 +1,63 @@
+{
+ "id": "D2a",
+ "family": "sustain",
+ "baseline": {
+  "verdict": "DIVERGE",
+  "confirmed": true,
+  "claim": "DIVERGE",
+  "closed": true,
+  "n_states": 4,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "prompt_chars": 28410,
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 496,
+   "prompt_tokens": 7966,
+   "total_tokens": 8462,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 30.471731662750244,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 30-second sustained wait (30,000 ms). The candidate uses a 1000 ms wrapper period and a threshold of 30, causing the action to fire after only 30,000 ms / 1000 = 30 ticks (30 seconds) if the first tick counts. However, the evidence shows the action firing at 29,000 ms (29 ticks), which implies the threshold logic or counting start is off relative to the 100ms grid required for precise duration enforcement. The standard repair for `wait(C, for: D)` with a 100ms wrapper is to use `period = 100` and set the threshold to `D/100 + 1` (i.e., 301) to ensure the full duration is counted including the initial state check at t=0.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\", \"ir_timing_facts\"],\n    \"changed_locations\": [\"period\", \"threshold logic (implicit in hold_ticks >= 301)\"],\n    \"change_summary\": \"Changed `period` from 1000 to 100 to match the 100ms input grid for accurate duration measurement. Updated the threshold condition from `hold_ticks >= 30` to `hold_ticks >= 301`. This ensures that the condition must hold for exactly 30 seconds (301 ticks of 100ms, counting the initial tick at t=0) before the action fires, matching the IR's `for: 30 SEC` specification.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 301) {\\n        (#Attic_Fan_Plug).switch_on()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"\n  }\n}",
+ "reasoning_chars": 0,
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Attic_Temp).temperatureSensor_temperature > 28) {\n    hold_ticks = hold_ticks + 1\n    if (hold_ticks >= 301) {\n        (#Attic_Fan_Plug).switch_on()\n        break\n    }\n} else {\n    hold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 30-second sustained wait (30,000 ms). The candidate uses a 1000 ms wrapper period and a threshold of 30, causing the action to fire after only 30,000 ms / 1000 = 30 ticks (30 seconds) if the first tick counts. However, the evidence shows the action firing at 29,000 ms (29 ticks), which implies the threshold logic or counting start is off relative to the 100ms grid required for precise duration enforcement. The standard repair for `wait(C, for: D)` with a 100ms wrapper is to use `period = 100` and set the threshold to `D/100 + 1` (i.e., 301) to ensure the full duration is counted including the initial state check at t=0.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3",
+   "ir_timing_facts"
+  ],
+  "changed_locations": [
+   "period",
+   "threshold logic (implicit in hold_ticks >= 301)"
+  ],
+  "change_summary": "Changed `period` from 1000 to 100 to match the 100ms input grid for accurate duration measurement. Updated the threshold condition from `hold_ticks >= 30` to `hold_ticks >= 301`. This ensures that the condition must hold for exactly 30 seconds (301 ticks of 100ms, counting the initial tick at t=0) before the action fires, matching the IR's `for: 30 SEC` specification."
+ },
+ "verification": {
+  "verdict": "EQUIV",
+  "confirmed": false,
+  "claim": "EQUIV-FIXPOINT",
+  "closed": true,
+  "n_states": 3,
+  "notes": [
+   "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+  ]
+ },
+ "status": "REPAIRED_EQUIV",
+ "rep": 0
+}

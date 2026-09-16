@@ -1,0 +1,34 @@
+{
+ "id": "C23_003",
+ "request_sha256": "789b4729d80c34a186d40637214e392404843045d218282ee4739f1ebec104aa",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 392,
+   "prompt_tokens": 5821,
+   "total_tokens": 6213,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 17.683008193969727,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 900 ticks, which corresponds to 900 seconds (15 minutes). However, the IR requires a 15-minute sustain window. With a 1000 ms period, the first iteration at t=0 counts as tick 1. To sustain for 15 minutes (900 seconds), the counter must reach 901 ticks (covering the interval from t=0 to t=900s). The candidate triggers at 900 ticks, firing one second too early. Additionally, the `break` is correctly placed to terminate the one-shot sequence.\",\n    \"changed_locations\": [\"period\", \"hold_ticks threshold\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 ms to align with the standard tick-counting rule for sustained conditions. Updated the threshold from 900 to 901 to ensure the condition holds for the full 15 minutes (900 seconds) before triggering, accounting for the initial tick at t=0.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Study_Presence).presenceSensor_presence == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 901) {\\n(#Study_Light).light_moveToBrightness(20.0, 0.0)\\ndelay(10 MIN)\\n(#Study_Light).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Study_Presence).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 901) {\n(#Study_Light).light_moveToBrightness(20.0, 0.0)\ndelay(10 MIN)\n(#Study_Light).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 900 ticks, which corresponds to 900 seconds (15 minutes). However, the IR requires a 15-minute sustain window. With a 1000 ms period, the first iteration at t=0 counts as tick 1. To sustain for 15 minutes (900 seconds), the counter must reach 901 ticks (covering the interval from t=0 to t=900s). The candidate triggers at 900 ticks, firing one second too early. Additionally, the `break` is correctly placed to terminate the one-shot sequence.",
+  "changed_locations": [
+   "period",
+   "hold_ticks threshold"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 ms to align with the standard tick-counting rule for sustained conditions. Updated the threshold from 900 to 901 to ensure the condition holds for the full 15 minutes (900 seconds) before triggering, accounting for the initial tick at t=0."
+ },
+ "status": "REVISED"
+}

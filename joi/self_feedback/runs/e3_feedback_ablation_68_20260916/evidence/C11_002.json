@@ -1,0 +1,117 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "read",
+     "var": "t1",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "delay",
+     "duration": "1 HOUR"
+    },
+    {
+     "op": "read",
+     "var": "t2",
+     "src": "TemperatureSensor.Temperature"
+    },
+    {
+     "op": "if",
+     "cond": "($t1 - $t2) >= 2",
+     "then": [
+      {
+       "op": "call",
+       "target": "Switch.On",
+       "args": {}
+      }
+     ],
+     "else": []
+    }
+   ]
+  },
+  "binding_slots": {
+   "TemperatureSensor": [
+    "LivingRoom_TempSensor"
+   ],
+   "Switch": [
+    "LivingRoom_Heater"
+   ]
+  },
+  "device_inventory": {
+   "LivingRoom_TempSensor": {
+    "category": [
+     "TemperatureSensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "TemperatureSensor"
+    ]
+   },
+   "Bedroom_TempSensor": {
+    "category": [
+     "TemperatureSensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "TemperatureSensor"
+    ]
+   },
+   "LivingRoom_Heater": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Plug",
+     "Heater"
+    ]
+   },
+   "Garage_DoorLock": {
+    "category": [
+     "DoorLock"
+    ],
+    "tags": [
+     "Garage",
+     "DoorLock"
+    ]
+   },
+   "Pantry_Humidifier": {
+    "category": [
+     "Humidifier"
+    ],
+    "tags": [
+     "Pantry",
+     "Humidifier"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\ndelay(1 HOUR)\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature - t2 >= 2) {\n(#LivingRoom_Heater).switch_on()\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "delay(1 HOUR)",
+   "duration_ms": 3600000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

@@ -1,0 +1,39 @@
+{
+ "id": "C20_013",
+ "request_sha256": "a478d3dae788b38faa7f0c20130b68141ff6d463760f05adffcbe87eec655823",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 683,
+   "prompt_tokens": 7468,
+   "total_tokens": 8151,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 21.53520965576172,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The IR requires a 20-second sustain window (200 ticks at 100ms). The candidate uses a 1000ms wrapper period and a threshold of 20, causing the action to fire after 20 seconds of 1-second ticks (20,000ms) but incorrectly counting only 20 iterations. However, the evidence shows the action fired at 19,000ms (19 ticks of 1000ms? No, the mismatch is at 19000ms). Let's re-evaluate: The IR waits 20 seconds. The candidate has `period=1000`. The condition is true from t=0. The candidate increments `hold_ticks` every 1000ms. At t=19000ms, `hold_ticks` is 19 (if starting at 0 and incrementing at start of loop). Wait, the script runs at t=0, increments to 1. At t=1000, increments to 2. ... At t=18000, increments to 19. At t=19000, increments to 20. The condition `hold_ticks >= 20` becomes true at t=19000ms. The IR waits 20000ms. The mismatch is that the JoI acted at 19000ms instead of 20000ms. The root cause is the wrapper period (1000ms) vs the required grid (100ms) for accurate duration counting. The rule for `wait(C, for: D)` with `period > 0` requires `period` to be 100ms and the threshold to be `D/100 + 1`. Here D=20000ms, so threshold should be 201. The candidate used threshold 20 with period 1000, which is structurally wrong for a sustain condition.\",\n    \"evidence_refs\": [\"F1\", \"F2\", \"F3\"],\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed `period` from 1000 to 100 to match the required 100ms grid for sustain conditions. Updated the threshold from 20 to 201 (20000ms / 100ms + 1) to ensure the action fires exactly at 20 seconds, preserving the IR's 20-second sustain requirement.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Bathroom_Motion).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 201) {\\n(#Bathroom_Fan).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Bathroom_Motion).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 201) {\n(#Bathroom_Fan).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The IR requires a 20-second sustain window (200 ticks at 100ms). The candidate uses a 1000ms wrapper period and a threshold of 20, causing the action to fire after 20 seconds of 1-second ticks (20,000ms) but incorrectly counting only 20 iterations. However, the evidence shows the action fired at 19,000ms (19 ticks of 1000ms? No, the mismatch is at 19000ms). Let's re-evaluate: The IR waits 20 seconds. The candidate has `period=1000`. The condition is true from t=0. The candidate increments `hold_ticks` every 1000ms. At t=19000ms, `hold_ticks` is 19 (if starting at 0 and incrementing at start of loop). Wait, the script runs at t=0, increments to 1. At t=1000, increments to 2. ... At t=18000, increments to 19. At t=19000, increments to 20. The condition `hold_ticks >= 20` becomes true at t=19000ms. The IR waits 20000ms. The mismatch is that the JoI acted at 19000ms instead of 20000ms. The root cause is the wrapper period (1000ms) vs the required grid (100ms) for accurate duration counting. The rule for `wait(C, for: D)` with `period > 0` requires `period` to be 100ms and the threshold to be `D/100 + 1`. Here D=20000ms, so threshold should be 201. The candidate used threshold 20 with period 1000, which is structurally wrong for a sustain condition.",
+  "evidence_refs": [
+   "F1",
+   "F2",
+   "F3"
+  ],
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed `period` from 1000 to 100 to match the required 100ms grid for sustain conditions. Updated the threshold from 20 to 201 (20000ms / 100ms + 1) to ensure the action fires exactly at 20 seconds, preserving the IR's 20-second sustain requirement."
+ },
+ "status": "REVISED"
+}

@@ -1,0 +1,33 @@
+{
+ "id": "C07_024",
+ "request_sha256": "38dbec450f7b2eba71d6e787dff4a1744fe7f4cba750c93cb533037a0a68f966",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 277,
+   "prompt_tokens": 5926,
+   "total_tokens": 6203,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.235696077346802,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a periodic `if` to sample the presence condition at the start of every 1-second cycle. The IR requires a rising-edge wait, meaning the action must fire immediately when the sensor transitions from false to true, even if that happens mid-cycle. The candidate fails to observe this transition because it only checks the state at iteration boundaries.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with a blocking `wait until` for the rising edge. This ensures the script suspends until the transition occurs, then executes the action and re-arms for the next transition, matching the IR's `cycle { wait(rising); call }` semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until(all(#PresenceSensor).presenceSensor_presence == false)\\n    triggered = false\\n}\\nwait until(all(#PresenceSensor).presenceSensor_presence == true)\\nall(#ColorControl).colorControl_setColor(\\\"purple\\\")\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until(all(#PresenceSensor).presenceSensor_presence == false)\n    triggered = false\n}\nwait until(all(#PresenceSensor).presenceSensor_presence == true)\nall(#ColorControl).colorControl_setColor(\"purple\")\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a periodic `if` to sample the presence condition at the start of every 1-second cycle. The IR requires a rising-edge wait, meaning the action must fire immediately when the sensor transitions from false to true, even if that happens mid-cycle. The candidate fails to observe this transition because it only checks the state at iteration boundaries.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with a blocking `wait until` for the rising edge. This ensures the script suspends until the transition occurs, then executes the action and re-arms for the next transition, matching the IR's `cycle { wait(rising); call }` semantics."
+ },
+ "status": "REVISED"
+}
