@@ -28,7 +28,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]
+ROOT = HERE.parents[3]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(HERE))
 from repair_core import feedback, call_model, parse_block, build_payload, render_payload  # noqa: E402

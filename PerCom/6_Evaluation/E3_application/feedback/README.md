@@ -1,4 +1,7 @@
-# joi/self_feedback — counterexample-guided repair (feedback loop)
+# feedback — counterexample-guided repair (feedback loop)
+
+**결과를 쓸 때는 `HANDOFF.md` 부터 읽는다** — 동결된 수치 네 가지, 대조군 해석, 주장 틀 결정이 거기 있다.
+2026-09-16 에 `joi/self_feedback/` 에서 이 자리로 옮겼다. 동결된 JSON 안의 경로 문자열은 실행 당시 값이다.
 
 State on 2026-09-16. The 2026-09-15 implementation (commits up to c8b020d on this branch) was
 reset by the author after an error; this directory is the rebuilt, smaller version.
