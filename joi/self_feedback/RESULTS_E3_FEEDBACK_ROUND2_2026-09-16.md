@@ -1,17 +1,16 @@
 # E3 feedback, round 2 on the 26 still-rejected cases (2026-09-16)
 
-**Both numbers are carried to the write-up; which one the paper reports is decided when the section
-is written (whisoo, 2026-09-16).**
+All frozen numbers from this line of runs, for reference:
 
 | what | number | status |
 | --- | --- | --- |
 | round 1 only, one counterexample per case | 36 / 68 (52.9 %) | frozen, `protocol_e3_feedback_v1.json` |
 | rounds 1+2, same prompt throughout | 40 / 68 (58.8 %) | frozen, `protocol_e3_feedback_r2a.json` |
-| rounds 1+2 with the quantifier rules in round 2 | 42 / 68 (61.8 %) | exploratory, post-hoc, not reportable |
+| rounds 1+2 with the quantifier rules in round 2 | 42 / 68 (61.8 %) | frozen, `protocol_e3_feedback_r2b.json`; post-hoc prompt |
 | one round, **no counterexample** (ablation) | 31 / 68 (45.6 %) | frozen, `protocol_e3_feedback_ablation.json` |
 
-Neither frozen number supersedes the other: round 1 answers "what does one counterexample do",
-rounds 1+2 answers "what does a second one add". Report one, or both as a two-row table.
+Neither frozen number supersedes the other: round 1 measures what one counterexample does, rounds
+1+2 what a second one adds, the ablation what the counterexample contributes over being asked again.
 
 Round 1 (`protocol_e3_feedback_v1.json`, run `e3_feedback_68_20260916`) left 26 of 68 as
 DIVERGE_CONFIRMED, 5 as evaluator TIMEOUT and 1 as MODEL_ERROR. Only the 26 have a fresh confirmed
@@ -22,15 +21,15 @@ Two arms, same 26 cases, same evidence, same model settings, same frozen evaluat
 
 | arm | prompt | status |
 | --- | --- | --- |
-| **r2a** | `prompts/repair.md`, byte-identical to round 1 | reportable; no knowledge of the round-1 outcomes enters it |
-| r2b | `prompts/repair_r2_quantifier.md` (= `repair_v6a`) | **exploratory only**; its rule was derived from the round-1 failures of these very cases |
+| **r2a** | `prompts/repair.md`, byte-identical to round 1 | no knowledge of the round-1 outcomes enters it |
+| r2b | `prompts/repair_r2_quantifier.md` (= `repair_v6a`) | post-hoc: its rule was derived from the round-1 failures of these very cases |
 
 ## Result
 
 | | round 2 EQUIV | two-round total of 68 |
 | --- | --- | --- |
 | r2a (same prompt) | 4 / 26 | **40 / 68 (58.8 %)** |
-| r2b (quantifier rules added) | 6 / 26 | 42 / 68 (61.8 %), not reportable |
+| r2b (quantifier rules added) | 6 / 26 | 42 / 68 (61.8 %), post-hoc |
 
 Terminal statuses this round:
 
@@ -72,12 +71,11 @@ and the model copies it into the `diagnosis.summary` string without escaping the
 is a flaw in the prompt I wrote, not evidence about the rule, and it inflates r2b's failure count.
 Any future version must not put literal JSON with double quotes into the prompt text.
 
-## Reading
+## Summary of this run
 
-Round 2 with the unchanged prompt adds 4 cases, from 36/68 to 40/68. That is the number to use if a
-second round is reported. The quantifier arm adds 2 more, is post-hoc on this evaluation set, and
-carries the prompt defect above, so it should be cited only as a diagnostic — and it is itself
-evidence that stating the rule does not reliably help this model.
+Round 2 with the unchanged prompt adds 4 cases, from 36/68 to 40/68. The quantifier arm adds 2 more
+but its rule was derived from these cases' round-1 failures and its prompt carries the JSON defect
+above. The arm is also a measurement in itself: stating the rule did not reliably help this model.
 
 ## Files
 

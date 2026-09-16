@@ -11,9 +11,9 @@ counterexample, how many does one counterexample-guided revision bring to EQUIV-
 
 ## Headline
 
-A second round on the cases still rejected here was run afterwards and is recorded in
-`RESULTS_E3_FEEDBACK_ROUND2_2026-09-16.md`: 40/68 after two rounds with the same prompt. Both
-numbers are carried to the write-up; the choice is made when the section is written.
+Two later runs on the same population are recorded separately:
+`RESULTS_E3_FEEDBACK_ROUND2_2026-09-16.md` (40/68 after two rounds with the same prompt) and
+`RESULTS_E3_FEEDBACK_ABLATION_2026-09-16.md` (31/68 with the counterexample removed).
 
 
 | final status | n |
@@ -129,11 +129,11 @@ protocol, not counted in the 36).
    inside the frozen 20 s cap. An exploratory recheck (`gate_pair` default caps, 600 s allowance;
    `timeout_recheck_exploratory.json`) ends REFUSED/INCONCLUSIVE for all five at the 400,000-state cap
    after ≈55 s each, so this is a state explosion, not a slow-but-finite search. C14_006 lands in the
-   same place once its condition is fixed. They count as not repaired; the headline is unchanged.
+   same place once its condition is fixed. They count as not repaired.
 
 7. **MODEL_ERROR — 1 case** (C20_016): request over the model context, see above.
 
-**Takeaway.** The dominant cause is one documentation gap, not repair ability and not the evidence
+**Summary of causes.** The dominant cause is one documentation gap, not repair ability and not the evidence
 format: 12 of the 32 failures (13 with C14_006) are the model normalising a JoI operator the repair
 prompt never taught it, and every one of those is mechanically recoverable. The genuine reasoning
 failures are groups 2–5 (13 cases: ×10 tick slips, multi-block structure, the phase pattern), and
@@ -144,15 +144,15 @@ checked (`repair_v6a/v6b/v6.md`). All three scored *below* v5 on the 14-case dev
 11.75, 11.50 against v5's 12.75 over four runs each), with new failures in families the edits never
 touched. Teaching the rule cost more than it bought at this model size, and the dev set has no
 `{"any": [...]}` slot so it could only measure the cost. Since the gap was also found by looking at
-these 68 outcomes, any prompt fixed against it is post-hoc tuning on the evaluation set. Decision:
-keep v5, report 36/68 as it stands, and carry `OP|` as an analysed cause and future work.
-See `DEV_NOTES_2026-09-16.md` for the per-variant table.
+these 68 outcomes, any prompt fixed against it is post-hoc on this population. `prompts/repair.md`
+is therefore unchanged and still matches the sha frozen in `protocol_e3_feedback_v1.json`, so this
+run's 36/68 stands as measured. See `DEV_NOTES_2026-09-16.md` for the per-variant table.
 
 ## Files
 
 - `runs/e3_feedback_68_20260916/`: `preflight.json`, `evidence/` (68 payloads as sent),
   `responses/` (68 raw answers), `repair_summary.json`, `repair.log`, `evaluate.log`,
-  `summary.json` (headline, by type, 68 rows), `timeout_recheck_exploratory.json`,
+  `summary.json` (totals, by type, 68 rows), `timeout_recheck_exploratory.json`,
   `failure_cause_diagnostic.json`, `single_edit_split.json`.
 - `explorer/eval/results/qwen3_5_9b_fp8_e3_feedback_v1_e3_feedback_68_20260916_{lineage,protocol,manifest,manifest_full,run}`.
 - `explorer/candidates/qwen3_5-9b-fp8-e3-feedback-v1/`: the evaluated copy (67 repaired scripts,
@@ -164,6 +164,6 @@ Preflight 10:36 UTC+9. The first `repair` process died with the previous agent s
 call was made (0 responses); it was relaunched detached and completed 68 calls in 397.7 s.
 `evaluate` failed twice on file-exists checks (my shell redirect pre-created its `evaluate.log`,
 then the aborted attempt's lineage file); partial files were removed and the stage rerun once,
-cleanly. The headline comes from one complete preflight → repair → evaluate sequence.
+cleanly. The result comes from one complete preflight → repair → evaluate sequence.
 While analysing, `repair_core.ROOT` was found to point one directory too high after the move out
 of `dev/` (only `dev/run_repair.py` verification used it; the 68-run does not) and was fixed.
