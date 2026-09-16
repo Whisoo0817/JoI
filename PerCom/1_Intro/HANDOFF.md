@@ -4,7 +4,8 @@
 
 - Figure 1은 edge-trigger 세 구현 예를 유지하되 [Figure 요구사항](Figures/FIGURE_REQUIREMENTS.md)에 따라 수정한다.
 - 현재 본문 대표 사례는 sustained vacancy이며 Fig1의 edge 사례와 중복되지 않게 연결한다.
-- LLM-judge **Table 1 결과는 확정됐다(09-16)**. Figure 2 는 원고에서 뺐다. 3–4문장으로 motivation 에 추가하되, 아래 "원고에 쓸 때 지킬 것" 을 따른다. 본문 문장은 아직 넣지 않았다.
+- LLM-judge **Table 1 결과는 확정됐다(09-16)**. Figure 2 는 원고에서 뺐다. `PerCom_version.md` 부재 감지 예시 문단 바로 뒤에 4문장으로 넣었다(09-16 whisoo 확인, `WRITING_STYLE.md` 규칙에 맞춰
+  문장 형식만 다듬음). 수치를 바꾸면 이 문단도 같이 고친다.
 - Figure 1 과 Table 1 은 Introduction 에 둔다. Table 1 의 전체 protocol, 통계와 robustness 결과는 Evaluation 또는 Appendix 에서 연결한다.
 - 선행연구 부재 주장과 `first` 주장은 금지한다. Related Work의 primary-source 카드와 맞춘다.
 - contributions는 C1–C3 작업문이다. E1–E4 결과에 따라 범위를 다시 동결한다.
@@ -128,7 +129,7 @@
 5. 모든 재작성이 검사기로 증명됐다 → **0 보다 큰 값은 전부 판정기의 자기모순**.
 6. 판정기 정확한 식별자·설정, 호스팅 두 모델은 temperature 를 설정할 수 없다.
 
-**본문(Introduction)이 할 일** — 문장 자체는 whisoo 확인 전이라 여기 적지 않는다.
+**본문(Introduction)이 할 일** — 문장은 `PerCom_version.md` 에 들어가 있다(09-16).
 - 규칙은 위 "원고에 쓸 때 지킬 것" 을 따른다(건수로 시작, 표기 민감성 주장 금지, GPT 시간 구조 반응 주장 금지).
 - 담을 내용: (1) 동작이 같은 재작성을 물었다, (2) 로컬 판정기는 자기 자신과 완벽히 일치하는데 시간 구조
   재작성에서 무너진다(`period_halve` 16/17, `loop_unroll` 10/11), (3) 호스팅 두 판정기는 재작성 전부터 자기와
