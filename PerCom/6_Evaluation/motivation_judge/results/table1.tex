@@ -1,24 +1,23 @@
 \begin{table}[t]
 \centering
-\caption{Verdict reversal on programs each judge had already accepted. Each cell reports the rewrites rejected over the accepted programs presented; the parenthesised value is the change in percentage points from that judge's own CTL rate. CTL re-asks the identical accepted program and carries no rewrite, so it is the reference row and its parenthesis holds the rate itself, as does the All rewrites row, which the CI row refers to. CTL bounds how much a judge moves with no edit at all. VAR renames a variable, CMP mirrors a comparison, UNIT changes the time unit, GRP respells a condition over a group of devices, BR negates the guard and swaps the branches, DLY splits one delay into two, UNR unrolls a counted periodic loop, and PHS replaces an integer phase with a boolean flag. Every rewrite is certified behavior-preserving by the checker of Sec.~\ref{sec:explorer}. The judges are \texttt{Qwen3.5-9B-fp8} served locally at temperature 0, and \texttt{gpt-5.4-mini-2026-03-17} and \texttt{claude-sonnet-5} at low reasoning effort; neither hosted model exposes a temperature control, which is why their CTL rates are not zero. Intervals are 95\% bootstrap CIs clustered by seed program.}
+\caption{Verdict reversal on programs each judge had already accepted. Each cell reports the rewrites rejected over the accepted programs presented; the parenthesised value is the change in percentage points from that judge's own Identity rate. Identity re-asks the identical accepted program and leaves it unedited, so it is the reference row and its parenthesis holds the rate itself, as does the All rewrites row that the interval refers to. Cmp-Flip mirrors a comparison (\texttt{x >= 26} becomes \texttt{26 <= x}), Group-Cond respells `at least one device in a group matches', and Phase-Flag replaces an integer phase counter with a boolean flag; the remaining names are literal. Every rewrite is certified behavior-preserving by the checker of Sec.~\ref{sec:explorer}. The judges are \texttt{Qwen3.5-9B-fp8} served locally at temperature 0, and \texttt{gpt-5.4-mini-2026-03-17} and \texttt{claude-sonnet-5} at low reasoning effort; neither hosted model exposes a temperature control, which is why their Identity rates are not zero. Intervals are 95\% bootstrap CIs clustered by seed program.}
 \label{tab:judge}
 \footnotesize
-\setlength{\tabcolsep}{4pt}
+\setlength{\tabcolsep}{2.5pt}
 \begin{tabular}{l rrr}
 \toprule
-Condition & Qwen3.5 & GPT-5.4 & Claude \\
- & 9B & mini & Sonnet 5 \\
+Rewrite & Qwen3.5-9B & GPT-5.4-mini & Claude-Sonnet-5 \\
 \midrule
-CTL & 0/106 (0.0) & 16/87 (18.4) & 9/83 (10.8) \\
+Identity & 0/106 (0.0) & 16/87 (18.4) & 9/83 (10.8) \\
 \midrule
-VAR & 0/34 (+0.0) & 5/37 ($-$4.9) & 3/40 ($-$3.3) \\
-CMP & 19/79 (+24.1) & 9/67 ($-$5.0) & 5/63 ($-$2.9) \\
-UNIT & 1/16 (+6.2) & 2/12 ($-$1.7) & 0/14 ($-$10.8) \\
-GRP & 5/13 (+38.5) & 1/11 ($-$9.3) & 3/12 (+14.2) \\
-BR & 1/27 (+3.7) & 6/28 (+3.0) & 3/27 (+0.3) \\
-DLY & 0/13 (+0.0) & 0/11 ($-$18.4) & 0/10 ($-$10.8) \\
-UNR & 10/13 (+76.9) & 0/13 ($-$18.4) & 0/14 ($-$10.8) \\
-PHS & 2/7 (+28.6) & 0/8 ($-$18.4) & 0/7 ($-$10.8) \\
+Var-Rename & 0/34 (+0.0) & 5/37 ($-$4.9) & 3/40 ($-$3.3) \\
+Cmp-Flip & 19/79 (+24.1) & 9/67 ($-$5.0) & 5/63 ($-$2.9) \\
+Time-Unit & 1/16 (+6.2) & 2/12 ($-$1.7) & 0/14 ($-$10.8) \\
+Group-Cond & 5/13 (+38.5) & 1/11 ($-$9.3) & 3/12 (+14.2) \\
+Branch-Swap & 1/27 (+3.7) & 6/28 (+3.0) & 3/27 (+0.3) \\
+Delay-Split & 0/13 (+0.0) & 0/11 ($-$18.4) & 0/10 ($-$10.8) \\
+Loop-Unroll & 10/13 (+76.9) & 0/13 ($-$18.4) & 0/14 ($-$10.8) \\
+Phase-Flag & 2/7 (+28.6) & 0/8 ($-$18.4) & 0/7 ($-$10.8) \\
 \midrule
 All rewrites & 38/202 (18.8) & 23/187 (12.3) & 14/187 (7.5) \\
 95\% CI & [13.7, 24.4] & [7.6, 17.6] & [3.3, 12.4] \\
