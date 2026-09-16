@@ -1,0 +1,595 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "3 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "ContactSensor": [
+    "Porch_ContactSensor"
+   ],
+   "Switch": [
+    "Porch_Light"
+   ]
+  },
+  "device_inventory": {
+   "Porch_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Porch",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Porch_Light": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Porch",
+     "Plug",
+     "Switch"
+    ]
+   },
+   "Front_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Front",
+     "Door",
+     "ContactSensor"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Porch_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\n(#Porch_Light).switch_on()\n        delay(3 MIN)\n(#Porch_Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 0
+    },
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 1000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 2000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 3000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 4000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 5000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 6000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 7000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 8000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 9000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 10000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 11000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 12000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 13000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 14000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 15000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 16000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 17000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 18000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 19000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 20000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 21000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 22000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 23000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 24000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 25000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 26000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 27000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 28000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 29000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 30000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 31000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 32000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 33000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 34000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 35000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 36000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 37000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 38000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 39000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 40000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 41000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 42000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 43000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 44000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 45000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 46000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 47000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 48000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 49000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 50000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 51000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 52000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 53000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 54000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 55000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 56000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 57000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 58000,
+     "inputs": {
+      "Porch_ContactSensor.contact": false
+     },
+     "held_ms": 1000
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 59000,
+   "mismatch_kind": "joi_extra_action",
+   "ir_actions": [],
+   "joi_actions": [
+    {
+     "targets": [
+      "Porch_Light"
+     ],
+     "call": "switch.on",
+     "args": []
+    }
+   ],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "hold_ticks := 0"
+   },
+   {
+    "line": 2,
+    "text": "if ((#Porch_ContactSensor).contactSensor_contact == false) {"
+   },
+   {
+    "line": 3,
+    "text": "hold_ticks = hold_ticks + 1"
+   },
+   {
+    "line": 4,
+    "text": "    if (hold_ticks >= 60) {"
+   },
+   {
+    "line": 5,
+    "text": "(#Porch_Light).switch_on()"
+   },
+   {
+    "line": 6,
+    "text": "        delay(3 MIN)"
+   },
+   {
+    "line": 7,
+    "text": "(#Porch_Light).switch_off()"
+   },
+   {
+    "line": 8,
+    "text": "        break"
+   },
+   {
+    "line": 9,
+    "text": "}"
+   },
+   {
+    "line": 10,
+    "text": "}"
+   },
+   {
+    "line": 11,
+    "text": "else {"
+   },
+   {
+    "line": 12,
+    "text": "hold_ticks = 0"
+   },
+   {
+    "line": 13,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 1 MIN)",
+   "duration_ms": 60000,
+   "ticks_at_100ms": 600,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "delay(3 MIN)",
+   "duration_ms": 180000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

@@ -71,6 +71,15 @@
   - 혼합 출처·익숙한 과제의 탐색적 평가다. protocol snapshot은 후보 생성 후·평가 전에 기록했으므로 신규 382건 생성이나 confirmatory replication으로 쓰지 않는다. DIVERGE 원인은 개별 감사하지 않았고 독립 실기기 검증도 아니다.
   - 과거 Gemma 388건 결과는 `E3_application/RESULTS.md`에 이력으로 보존한다. prefix 버그가 포함된 이전 Qwen 388건 집계는 철회됐으며 최신 논문 수치로 쓰지 않는다. feedback 시험 결과는 폐기했고 현재 결과에 포함하지 않는다.
 
+## Feedback — `joi/self_feedback/` (2026-09-16, 본실행 직전)
+
+- 09-15 구현(c8b020d 까지)은 오류로 whisoo 가 reset. 다시 만든 판은 `joi/self_feedback/README.md` 부터.
+- 설계 변경(whisoo 09-16): 반례 없는 비교 arm(B3) 없음. E3 DIVERGE 68건에 반례로 **한 번** 수정 → EQUIV-FIXPOINT 몇 건인지만 본다.
+- 프롬프트: `prompts/repair.md`(v5, 유형별 정답 JoI 예제 A–G + 모양 체크리스트). 68건이 아닌 새 dev set 14건으로 골랐다(`DEV_NOTES_2026-09-16.md`, 13/14, thinking off·temperature 0).
+- 프로토콜: `PROTOCOL_E3_FEEDBACK_2026-09-16.md` / `protocol_e3_feedback_v1.json`(prompt·후보·baseline 해시, 모델 설정, 평가기 = E3 최종과 같은 snapshot).
+- 하네스 점검: 수정 전 68건을 같은 파이프라인으로 평가 → 68/68 DIVERGE_CONFIRMED 재현(`runs/harness_check_20260916/`). 모델 호출은 아직 0회.
+- 실행 명령은 프로토콜 문서 끝. 결과가 나오기 전에는 원고에 쓰지 않는다.
+
 ## 공통
 
 - E1–E4 번호는 최신 계획대로 고정한다. 구 문서의 E1/E2 번호를 가져오지 않는다.

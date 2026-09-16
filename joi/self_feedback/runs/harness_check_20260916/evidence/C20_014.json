@@ -1,0 +1,4362 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == false",
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "PresenceSensor": [
+    "Office_Presence"
+   ],
+   "Switch": [
+    "Office_AC"
+   ]
+  },
+  "device_inventory": {
+   "Office_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Office",
+     "PresenceSensor"
+    ]
+   },
+   "Office_AC": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Office",
+     "AC",
+     "Plug",
+     "Switch"
+    ]
+   },
+   "Meeting_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "MeetingRoom",
+     "PresenceSensor"
+    ]
+   },
+   "Office_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Office",
+     "Camera"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Office_Presence).presenceSensor_presence == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Office_AC).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "counterexample_feedback": {
+  "F1_input_history": {
+   "description": "External inputs of one failing execution, relative milliseconds from start. Each row holds its inputs for held_ms; the last row ends at the first mismatch.",
+   "input_step_ms": 100,
+   "initial_gv": {},
+   "history": [
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 0
+    },
+    {
+     "at_ms": 0,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 1000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 2000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 3000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 4000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 5000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 6000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 7000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 8000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 9000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 10000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 11000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 12000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 13000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 14000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 15000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 16000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 17000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 18000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 19000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 20000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 21000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 22000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 23000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 24000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 25000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 26000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 27000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 28000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 29000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 30000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 31000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 32000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 33000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 34000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 35000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 36000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 37000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 38000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 39000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 40000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 41000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 42000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 43000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 44000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 45000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 46000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 47000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 48000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 49000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 50000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 51000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 52000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 53000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 54000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 55000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 56000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 57000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 58000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 59000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 60000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 61000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 62000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 63000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 64000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 65000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 66000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 67000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 68000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 69000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 70000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 71000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 72000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 73000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 74000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 75000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 76000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 77000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 78000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 79000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 80000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 81000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 82000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 83000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 84000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 85000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 86000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 87000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 88000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 89000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 90000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 91000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 92000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 93000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 94000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 95000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 96000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 97000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 98000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 99000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 100000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 101000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 102000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 103000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 104000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 105000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 106000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 107000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 108000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 109000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 110000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 111000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 112000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 113000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 114000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 115000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 116000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 117000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 118000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 119000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 120000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 121000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 122000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 123000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 124000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 125000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 126000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 127000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 128000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 129000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 130000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 131000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 132000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 133000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 134000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 135000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 136000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 137000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 138000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 139000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 140000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 141000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 142000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 143000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 144000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 145000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 146000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 147000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 148000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 149000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 150000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 151000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 152000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 153000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 154000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 155000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 156000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 157000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 158000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 159000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 160000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 161000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 162000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 163000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 164000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 165000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 166000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 167000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 168000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 169000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 170000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 171000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 172000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 173000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 174000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 175000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 176000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 177000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 178000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 179000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 180000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 181000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 182000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 183000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 184000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 185000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 186000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 187000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 188000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 189000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 190000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 191000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 192000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 193000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 194000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 195000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 196000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 197000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 198000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 199000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 200000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 201000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 202000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 203000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 204000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 205000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 206000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 207000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 208000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 209000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 210000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 211000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 212000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 213000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 214000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 215000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 216000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 217000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 218000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 219000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 220000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 221000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 222000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 223000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 224000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 225000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 226000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 227000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 228000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 229000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 230000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 231000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 232000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 233000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 234000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 235000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 236000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 237000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 238000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 239000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 240000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 241000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 242000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 243000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 244000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 245000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 246000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 247000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 248000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 249000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 250000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 251000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 252000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 253000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 254000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 255000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 256000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 257000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 258000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 259000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 260000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 261000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 262000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 263000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 264000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 265000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 266000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 267000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 268000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 269000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 270000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 271000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 272000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 273000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 274000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 275000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 276000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 277000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 278000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 279000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 280000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 281000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 282000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 283000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 284000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 285000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 286000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 287000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 288000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 289000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 290000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 291000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 292000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 293000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 294000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 295000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 296000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 297000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 298000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 299000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 300000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 301000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 302000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 303000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 304000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 305000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 306000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 307000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 308000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 309000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 310000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 311000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 312000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 313000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 314000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 315000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 316000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 317000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 318000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 319000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 320000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 321000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 322000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 323000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 324000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 325000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 326000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 327000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 328000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 329000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 330000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 331000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 332000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 333000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 334000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 335000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 336000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 337000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 338000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 339000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 340000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 341000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 342000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 343000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 344000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 345000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 346000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 347000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 348000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 349000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 350000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 351000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 352000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 353000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 354000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 355000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 356000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 357000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 358000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 359000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 360000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 361000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 362000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 363000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 364000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 365000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 366000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 367000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 368000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 369000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 370000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 371000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 372000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 373000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 374000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 375000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 376000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 377000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 378000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 379000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 380000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 381000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 382000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 383000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 384000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 385000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 386000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 387000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 388000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 389000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 390000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 391000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 392000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 393000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 394000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 395000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 396000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 397000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 398000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 399000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 400000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 401000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 402000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 403000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 404000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 405000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 406000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 407000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 408000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 409000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 410000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 411000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 412000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 413000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 414000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 415000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 416000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 417000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 418000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 419000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 420000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 421000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 422000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 423000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 424000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 425000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 426000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 427000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 428000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 429000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 430000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 431000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 432000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 433000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 434000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 435000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 436000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 437000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 438000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 439000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 440000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 441000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 442000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 443000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 444000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 445000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 446000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 447000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 448000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 449000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 450000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 451000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 452000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 453000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 454000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 455000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 456000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 457000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 458000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 459000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 460000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 461000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 462000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 463000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 464000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 465000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 466000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 467000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 468000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 469000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 470000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 471000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 472000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 473000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 474000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 475000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 476000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 477000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 478000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 479000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 480000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 481000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 482000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 483000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 484000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 485000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 486000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 487000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 488000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 489000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 490000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 491000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 492000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 493000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 494000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 495000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 496000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 497000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 498000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 499000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 500000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 501000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 502000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 503000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 504000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 505000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 506000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 507000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 508000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 509000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 510000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 511000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 512000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 513000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 514000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 515000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 516000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 517000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 518000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 519000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 520000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 521000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 522000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 523000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 524000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 525000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 526000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 527000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 528000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 529000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 530000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 531000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 532000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 533000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 534000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 535000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 536000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 537000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 538000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 539000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 540000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 541000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 542000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 543000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 544000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 545000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 546000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 547000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 548000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 549000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 550000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 551000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 552000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 553000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 554000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 555000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 556000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 557000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 558000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 559000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 560000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 561000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 562000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 563000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 564000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 565000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 566000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 567000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 568000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 569000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 570000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 571000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 572000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 573000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 574000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 575000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 576000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 577000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 578000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 579000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 580000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 581000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 582000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 583000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 584000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 585000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 586000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 587000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 588000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 589000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 590000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 591000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 592000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 593000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 594000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 595000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 596000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 597000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    },
+    {
+     "at_ms": 598000,
+     "inputs": {
+      "Office_Presence.presence": false
+     },
+     "held_ms": 1000
+    }
+   ]
+  },
+  "F2_action_mismatch": {
+   "same_instant_ms": 599000,
+   "mismatch_kind": "joi_extra_action",
+   "ir_actions": [],
+   "joi_actions": [
+    {
+     "targets": [
+      "Office_AC"
+     ],
+     "call": "switch.off",
+     "args": []
+    }
+   ],
+   "note": "An empty list means that side emitted nothing at this instant."
+  },
+  "F3_candidate_lines": [
+   {
+    "line": 1,
+    "text": "hold_ticks := 0"
+   },
+   {
+    "line": 2,
+    "text": "if ((#Office_Presence).presenceSensor_presence == false) {"
+   },
+   {
+    "line": 3,
+    "text": "hold_ticks = hold_ticks + 1"
+   },
+   {
+    "line": 4,
+    "text": "    if (hold_ticks >= 600) {"
+   },
+   {
+    "line": 5,
+    "text": "(#Office_AC).switch_off()"
+   },
+   {
+    "line": 6,
+    "text": "        break"
+   },
+   {
+    "line": 7,
+    "text": "}"
+   },
+   {
+    "line": 8,
+    "text": "}"
+   },
+   {
+    "line": 9,
+    "text": "else {"
+   },
+   {
+    "line": 10,
+    "text": "hold_ticks = 0"
+   },
+   {
+    "line": 11,
+    "text": "}"
+   }
+  ]
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 10 MIN)",
+   "duration_ms": 600000,
+   "ticks_at_100ms": 6000,
+   "note": "sustain window; the condition must hold for the whole duration"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

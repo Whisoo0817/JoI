@@ -1,0 +1,112 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#Kitchen_MB).multiButton_button3 == \"pushed\") {\nif (triggered == false) {\n(#Kitchen_Light).light_moveToBrightness(100, 0)\n        delay(1 SEC)\n(#Kitchen_Light).light_moveToBrightness(0, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#Kitchen_MB).multiButton_button3 == \\\"pushed\\\") {\\nif (triggered == false) {\\n(#Kitchen_Light).light_moveToBrightness(100, 0)\\n        delay(1 SEC)\\n(#Kitchen_Light).light_moveToBrightness(0, 0)\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "MultiButton.Button3": [
+      "(#Kitchen_MB)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Kitchen_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "멀티버튼의 버튼3이 눌릴 때마다 주방 조명을 켜고 끄는 것을 반복해줘.",
+  "command_eng": "Each time button 3 of the multi-button is pressed, toggle the kitchen light on and off.",
+  "connected_devices": {
+    "Kitchen_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Kitchen",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MultiButton.Button3 == \"pushed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "1 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 0.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "MultiButton": [
+      "Kitchen_MB"
+    ],
+    "Light": [
+      "Kitchen_Light"
+    ]
+  },
+  "input_payload_sha256": "0c6374b95b25e0a9d0bcf8b06864095cfdc2636c4b7851eea6533f153a9cd04c",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2
+}

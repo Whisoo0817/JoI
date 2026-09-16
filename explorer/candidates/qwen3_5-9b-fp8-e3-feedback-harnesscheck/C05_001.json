@@ -1,0 +1,120 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LivingRoom_Presence).presenceSensor_presence == true and (#Kitchen_Smoke).smokeDetector_smoke == true) {\n(#LivingRoom_Speaker).speaker_speak(\"Smoke has been detected in the kitchen\")\n(#Kitchen_Valve).valve_close()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom_Presence).presenceSensor_presence == true and (#Kitchen_Smoke).smokeDetector_smoke == true) {\n(#LivingRoom_Speaker).speaker_speak(\\\"Smoke has been detected in the kitchen\\\")\\n(#Kitchen_Valve).valve_close()\\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#LivingRoom_Presence)"
+    ],
+    "SmokeDetector.Smoke": [
+      "(#Kitchen_Smoke)"
+    ],
+    "Speaker.Speak": [
+      "(#LivingRoom_Speaker)"
+    ],
+    "Valve.Close": [
+      "(#Kitchen_Valve)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "거실에 사람이 있고 주방에서 연기가 감지되고 있으면, 거실 스피커로 주방에 연기가 감지되었다고 출력하고 주방 밸브를 잠궈줘.",
+  "command_eng": "If someone is in the living room and smoke is being detected in the kitchen, announce 'Smoke has been detected in the kitchen' through the living room speaker and close the kitchen valve.",
+  "connected_devices": {
+    "LivingRoom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Kitchen_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Kitchen",
+        "SmokeDetector"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == true and SmokeDetector.Smoke == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Smoke has been detected in the kitchen"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "PresenceSensor": [
+      "LivingRoom_Presence"
+    ],
+    "SmokeDetector": [
+      "Kitchen_Smoke"
+    ],
+    "Speaker": [
+      "LivingRoom_Speaker"
+    ],
+    "Valve": [
+      "Kitchen_Valve"
+    ]
+  },
+  "input_payload_sha256": "331d1dfeab20dccbc51f3087f7ea4bc60b80954572e45a4246532ce11c7c02f9",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.6
+}
