@@ -14,15 +14,17 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 BOOT = 2000
 BAND_ORDER = ["spelling", "logic", "temporal"]
 TYPE_LABEL = OrderedDict([
-    ("var_rename", "rename a variable"),
-    ("comparator_flip", "mirror a comparison (x >= 26 -> 26 <= x)"),
-    ("time_unit", "change the time unit (3 MIN -> 180 SEC)"),
-    ("exists_spelling", "respell 'at least one device' (==| -> any)"),
-    ("branch_swap", "negate the guard and swap the branches"),
-    ("delay_split", "split one delay into two"),
-    ("loop_unroll", "unroll a counted periodic loop"),
-    ("phase_flag", "integer phase -> boolean flag with shared tail"),
+    ("var_rename", ("VAR", "rename a variable")),
+    ("comparator_flip", ("CMP", "mirror a comparison (x >= 26 -> 26 <= x)")),
+    ("time_unit", ("UNIT", "change the time unit (3 MIN -> 180 SEC)")),
+    ("exists_spelling", ("EXI", "respell 'at least one device' (==| -> any)")),
+    ("branch_swap", ("BR", "negate the guard and swap the branches")),
+    ("delay_split", ("DLY", "split one delay into two")),
+    ("loop_unroll", ("UNR", "unroll a counted periodic loop")),
+    ("phase_flag", ("PHS", "integer phase -> boolean flag with shared tail")),
 ])
+ABBR = {k: v[0] for k, v in TYPE_LABEL.items()}
+CONTROL_ABBR = "CTL"
 BAND_LABEL = {"spelling": "Spelling", "logic": "Logic", "temporal": "Temporal structure"}
 
 
@@ -45,6 +47,44 @@ def boot_ci(items, key_fn, stat_fn, seed=0):
         vals.append(stat_fn(sample))
     vals.sort()
     return (vals[int(0.025 * BOOT)], vals[int(0.975 * BOOT) - 1])
+
+
+def summarize_accepted(rows):
+    """Primary view: restrict to the pairs whose ORIGINAL this judge accepted, then ask how often it
+    rejects the behavior-preserving rewrite of that same program. The conditioning uses only this
+    judge's own first-pass verdict, so the measured quantity is the one a deployment gate faces:
+    having cleared a program, does the gate block an equivalent rewrite of it? The control re-asks
+    the identical accepted program."""
+    def stats(rs):
+        acc = [r for r in rs if r["base"][0] is True and r["variant"] is not None]
+        rej = [r for r in acc if r["variant"] is False]
+        seen, ctl = set(), []
+        for r in rs:
+            if r["id"] in seen or r["base"][0] is not True or r["base"][1] is None:
+                continue
+            seen.add(r["id"])
+            ctl.append(r)
+        ctl_rej = [r for r in ctl if r["base"][1] is False]
+        return {"pairs": len(acc), "rejected": len(rej), "rate": rate(len(rej), len(acc)),
+                "control_seeds": len(ctl), "control_rejected": len(ctl_rej),
+                "control_rate": rate(len(ctl_rej), len(ctl))}
+
+    def with_ci(rs):
+        x = stats(rs)
+        x["ci95"] = boot_ci(rs, lambda r: r["id"], lambda y: stats(y)["rate"])
+        x["control_ci95"] = boot_ci(rs, lambda r: r["id"], lambda y: stats(y)["control_rate"])
+        return x
+
+    out = {"overall": with_ci(rows), "by_band": {}, "by_type": {}}
+    for b in BAND_ORDER:
+        rs = [r for r in rows if r["band"] == b]
+        if rs:
+            out["by_band"][b] = with_ci(rs)
+    for t in TYPE_LABEL:
+        rs = [r for r in rows if r["type"] == t]
+        if rs:
+            out["by_type"][t] = with_ci(rs)
+    return out
 
 
 def summarize(rows):
@@ -115,7 +155,8 @@ def main():
         judges[j] = d
     res_dir = os.path.join(HERE, "results")
     os.makedirs(res_dir, exist_ok=True)
-    summary = {j: {"meta": d["meta"], "stats": summarize(d["rows"])} for j, d in judges.items()}
+    summary = {j: {"meta": d["meta"], "accepted": summarize_accepted(d["rows"]),
+                   "stats": summarize(d["rows"])} for j, d in judges.items()}
     json.dump(summary, open(os.path.join(res_dir, "summary.json"), "w"), ensure_ascii=False, indent=1)
 
     lines = ["# Fig2 / Table1 — judge verdict consistency on behavior-preserving rewrites", ""]
@@ -125,6 +166,36 @@ def main():
                  "Identity: the base program judged again with the same prompt (rep 0 vs rep 1). "
                  "Flip = J(base) != J(rewrite) over valid pairs (both parsed). 95% CI: percentile bootstrap over seed programs "
                  f"({BOOT} resamples).")
+    lines.append("")
+    lines.append("## Primary view: rewrites of programs the judge itself accepted")
+    lines.append("")
+    lines.append("Each judge is conditioned on its own first-pass verdict. Of the pairs whose original "
+                 "this judge accepted, the table reports how often it rejected the behavior-preserving "
+                 "rewrite. The control re-asks the identical accepted program.")
+    lines.append("")
+    lines.append("| judge | accepted pairs | rewrite rejected | rate | 95% CI | control seeds | control rejected | control rate |")
+    lines.append("|---|---:|---:|---:|---|---:|---:|---:|")
+    for j, s in summary.items():
+        a = s["accepted"]["overall"]
+        lines.append("| `" + s["meta"]["config"]["model"] + "` | %d | %d | %s | %s | %d | %d | %s |" % (
+            a["pairs"], a["rejected"], pct(a["rate"]), ci_str(a["ci95"]),
+            a["control_seeds"], a["control_rejected"], pct(a["control_rate"])))
+    lines.append("")
+    for j, s in summary.items():
+        a = s["accepted"]
+        band_of = {r["type"]: r["band"] for r in judges[j]["rows"]}
+        lines.append("**" + s["meta"]["config"]["model"] + "**, by rewrite type:")
+        lines.append("")
+        lines.append("| | rewrite | accepted pairs | rejected | rate | 95% CI |")
+        lines.append("|---|---|---:|---:|---:|---|")
+        for b in BAND_ORDER:
+            for t, (ab, lab) in TYPE_LABEL.items():
+                if t in a["by_type"] and band_of.get(t) == b:
+                    x = a["by_type"][t]
+                    lines.append("| %s | %s | %d | %d | %s | %s |" % (
+                        ab, lab, x["pairs"], x["rejected"], pct(x["rate"]), ci_str(x["ci95"])))
+        lines.append("")
+    lines.append("## Secondary view: all pairs, flips in either direction")
     lines.append("")
     for j, s in summary.items():
         m, st = s["meta"], s["stats"]
@@ -148,9 +219,9 @@ def main():
         for b in BAND_ORDER:
             if b in st["by_band"]:
                 lines.append(row(f"**{BAND_LABEL[b]}**", st["by_band"][b]))
-        for t, lab in TYPE_LABEL.items():
+        for t, (ab, lab) in TYPE_LABEL.items():
             if t in st["by_type"]:
-                lines.append(row(f"{lab} (`{t}`)", st["by_type"][t]))
+                lines.append(row(f"{TYPE_LABEL[t][0]} — {TYPE_LABEL[t][1]}", st["by_type"][t]))
         lines.append("")
         lines.append(f"Base programs judged deployable: {pct(o['base_accept_rate'])} of valid pairs. "
                      f"Invalid (unparsed/error) pairs: {o['invalid']}. "
@@ -162,58 +233,77 @@ def main():
 
 
 def plot(summary, res_dir):
+    """Vertical grouped bars: one group per rewrite type, one bar per judge, control group first.
+
+    No error bars: the tick label carries the pair count instead, and the 95% intervals are in
+    Table 1 (results/RESULTS.md). The counts differ slightly between judges because each judge is
+    conditioned on the programs it accepted, so the tick shows the range.
+    """
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
-    rows = [("identity", "same program, judged twice", None)]
-    # type -> band from the verdict rows' band field
+
     band_of = {}
-    for s in summary.values():
-        for t, x in s["stats"]["by_type"].items():
-            band_of.setdefault(t, None)
     for j in summary:
         for r in json.load(open(os.path.join(HERE, "runs", j, "verdicts.json")))["rows"]:
             band_of[r["type"]] = r["band"]
+    groups = [(CONTROL_ABBR, None, None)]
     for b in BAND_ORDER:
-        for t, lab in TYPE_LABEL.items():
+        for t in TYPE_LABEL:
             if band_of.get(t) == b:
-                rows.append((t, lab, b))
-    n = len(rows)
-    nj = len(summary)
-    fig, ax = plt.subplots(figsize=(7.2, 0.42 * n + 1.2))
+                groups.append((ABBR[t], t, b))
+
+    def counts(t):
+        key = "control_seeds" if t is None else "pairs"
+        ns = [sm["accepted"]["overall"][key] if t is None else sm["accepted"]["by_type"][t][key]
+              for sm in summary.values() if t is None or t in sm["accepted"]["by_type"]]
+        return (str(ns[0]) if min(ns) == max(ns) else f"{min(ns)}-{max(ns)}") if ns else ""
+
     colors = {"qwen": "#4C72B0", "gpt": "#DD8452", "claude": "#55A868"}
-    h = 0.8 / nj
-    for k, (j, s) in enumerate(summary.items()):
-        ys, xs, lo, hi = [], [], [], []
-        for i, (t, lab, b) in enumerate(rows):
-            if t == "identity":
-                x = s["stats"]["overall"]["identity"]
-            else:
-                x = s["stats"]["by_type"].get(t)
-                if x is None:
-                    continue
-            ys.append(i + (k - (nj - 1) / 2) * h)
-            xs.append(100 * x["flip_rate"])
-            lo.append(100 * (x["flip_rate"] - x["ci95"][0]))
-            hi.append(100 * (x["ci95"][1] - x["flip_rate"]))
-        label = s["meta"]["config"]["model"].split("/")[-1]
-        ax.barh(ys, xs, height=h * 0.9, color=colors.get(j, None), label=label,
-                xerr=[lo, hi], error_kw={"elinewidth": 0.8, "capsize": 2})
-    ax.set_yticks(range(n))
-    ax.set_yticklabels([lab for _, lab, _ in rows], fontsize=8)
-    ax.invert_yaxis()
-    ax.set_xlabel("verdict flip rate on trace-equivalent pairs (%)", fontsize=9)
-    # band separators
-    prev = None
-    for i, (t, lab, b) in enumerate(rows):
-        if b != prev and i > 0:
-            ax.axhline(i - 0.5, color="grey", lw=0.6, ls=":")
-            ax.text(ax.get_xlim()[1] * 0.99, i - 0.45, BAND_LABEL[b], ha="right", va="top", fontsize=7, color="grey")
+    nj = len(summary)
+    w = 0.8 / nj
+    fig, ax = plt.subplots(figsize=(7.0, 2.7))
+    for k, (j, sm) in enumerate(summary.items()):
+        a = sm["accepted"]
+        xs, ys = [], []
+        for i, (ab, t, b) in enumerate(groups):
+            x = a["overall"] if t is None else a["by_type"].get(t)
+            if x is None:
+                continue
+            xs.append(i + (k - (nj - 1) / 2) * w)
+            ys.append(100 * (x["control_rate"] if t is None else x["rate"]))
+        ax.bar(xs, ys, width=w * 0.88, color=colors.get(j), zorder=3,
+               label=sm["meta"]["config"]["model"].split("/")[-1])
+        # A measured zero is not a missing bar: mark it so the reader can tell them apart.
+        for x, y in zip(xs, ys):
+            if y == 0:
+                ax.plot([x - w * 0.44, x + w * 0.44], [0, 0], color=colors.get(j), lw=1.6,
+                        solid_capstyle="butt", zorder=4)
+                ax.text(x, 1.5, "0", ha="center", va="bottom", fontsize=6.5,
+                        color=colors.get(j), zorder=4)
+
+    ax.set_xticks(range(len(groups)))
+    ax.set_xticklabels([f"{ab}\n({counts(t)})" for ab, t, b in groups], fontsize=8.5)
+    ax.set_ylabel("verdict reversal (%)", fontsize=8.5)
+    ax.tick_params(axis="y", labelsize=8)
+    ax.set_ylim(0, 92)
+    ax.grid(axis="y", lw=0.4, alpha=0.45, zorder=0)
+    ax.axvline(0.5, color="0.35", lw=0.7)
+    prev, start = None, 1
+    for i, (ab, t, b) in enumerate(groups[1:], start=1):
+        if prev is not None and b != prev:
+            ax.axvline(i - 0.5, color="0.7", lw=0.6, ls=":")
+            ax.text((start + i - 1) / 2, 89, BAND_LABEL[prev], ha="center", va="top",
+                    fontsize=7.5, color="0.35")
+            start = i
         prev = b
-    ax.legend(fontsize=8, loc="lower right")
-    ax.grid(axis="x", lw=0.4, alpha=0.5)
+    ax.text((start + len(groups) - 1) / 2, 89, BAND_LABEL[prev], ha="center", va="top",
+            fontsize=7.5, color="0.35")
+    ax.text(0, 89, "control", ha="center", va="top", fontsize=7.5, color="0.35")
+    ax.legend(fontsize=7.5, ncol=3, loc="lower center", bbox_to_anchor=(0.5, 1.0),
+              frameon=False, columnspacing=1.4)
     fig.tight_layout()
-    fig.savefig(os.path.join(res_dir, "fig2.png"), dpi=200)
+    fig.savefig(os.path.join(res_dir, "fig2.png"), dpi=300)
     fig.savefig(os.path.join(res_dir, "fig2.pdf"))
     print("wrote", os.path.join(res_dir, "fig2.png"))
 
