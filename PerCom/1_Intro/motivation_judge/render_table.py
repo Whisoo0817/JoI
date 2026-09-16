@@ -117,10 +117,10 @@ def render(C, width_in, fontsize, out, colsep_pt=3.0):
 
 
 CAPTION = (
-    "How often each judge stands by its own verdict, as a percentage of the items presented; "
+    "How often each judge contradicts its own verdict, as a percentage of the items presented. "
     "The first row, None, asks nothing new: every one of the {tot} seed programs was "
-    "submitted three times, identically, and the figure is the share on which all three answers "
-    "agreed. It is unconditional -- no program is excluded -- and it bounds what any rewrite "
+    "submitted three times, identically, and the figure is the share on which the three answers "
+    "did not all agree. It is unconditional -- no program is excluded -- and it bounds what any rewrite "
     "result below can mean. The remaining rows take the {n} programs that all three judges called "
     "correct in at least two of those three asks, so one set of programs and one denominator "
     "serves every column, and report the share of each band's rewrites the judge then rejected. "

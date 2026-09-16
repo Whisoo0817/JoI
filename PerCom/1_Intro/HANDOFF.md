@@ -19,11 +19,12 @@
 > 표의 열 이름은 `Rewrite`, 대조군 행은 `None` 이다(09-16 whisoo).
 
 - E1–E4 **밖의 동기 실험**이다. Introduction 자리이며, "왜 LLM judge 를 배포 게이트로 쓰지 않는가" 를
-  받친다. 프로토콜 `motivation_judge/PROTOCOL_2026-09-16.md`, 결과 `RESULTS_2026-09-16.md`.
-- **Fig2 는 원고에서 뺀다(09-16 whisoo 결정). Table1 하나로 간다.** 그림 자료(`results/superseded/fig2.png|pdf`)와
-  `aggregate.py` 의 축약어 라벨은 **옛 상태 그대로 남겨둔다** — 손대지 않는다. 표만 `render_table.py` 가
-  만든다(`results/table1.tex` + 미리보기 png). 그림이 지고 있던 "이름만 바꾸면 안 흔들리는데 반복문을
-  펼치면 무너진다" 는 형태 대비는 **본문 문장으로 옮겨야 한다.**
+  받친다. 프로토콜 `motivation_judge/PROTOCOL_2026-09-16.md`(8절 변경 이력 포함), 최종 결과
+  `motivation_judge/RESULTS_2026-09-16.md`, 자동 집계 `motivation_judge/results/RESULTS.md`.
+- **Fig2 는 원고에서 뺀다(09-16 whisoo 결정). Table 1 하나로 간다.** 옛 그림은 `results/superseded/fig2.png|pdf`
+  에 옛 축약어 라벨 그대로 보관하고 다시 그리지 않는다(`MOTIVATION_DRAW_FIG2=1` 일 때만). 표는 `render_table.py`
+  가 만든다(`results/table1.tex` + 미리보기 png). 그림이 지던 형태 대비 — **표기·논리 재작성엔 거의 안 흔들리는데
+  시간 구조 재작성에선 무너진다** — 는 이제 표의 띠 3행이 직접 보여주고, 건수는 본문 문장이 진다.
 - **옛 SenSys 수치(9B 27.0% / GPT-5.1 10.6%, 유형별 최대 81%)는 폐기.** identity 대조가 없었고, 씨앗이
   확정 명세를 만족한다는 근거가 없었으며, 동등성을 시뮬레이터 trace 한 줄로 판정했고, 불확실성 추정이
   없었다. 그 데이터셋(`equiv_stress_v2.json`)과 생성기는 남아 있지 않다(생성기는 `aa866bd^:paper/build_equiv_stress.py`
@@ -46,7 +47,7 @@
 관계이고 이 값은 그 관계가 깨진 비율이라, 위반율로 적는 것이 맞다(09-16 whisoo, 100−값 안은 기각).
 방향 표기(`lower is better`)는 붙이지 않는다 — "reversal" 이 이미 실패를 뜻한다.
 
-| Condition | n | Qwen3.5-9B | GPT-5.4-mini | Claude-Sonnet-5 |
+| Rewrite | n | Qwen3.5-9B | GPT-5.4-mini | Claude-Sonnet-5 |
 |---|---|---|---|---|
 | None (동일 재질의, 3콜이 갈린 원본) | 217 | **0.0** | 16.6 | 9.7 |
 | Notation | 79 | 3.8 | 12.7 | 3.8 |
@@ -98,6 +99,40 @@
 - **거부율 47–59% 를 "오탐률"로 쓰지 말 것.** Claude 거부 118건 중 92건은 자연어를 상시 규칙으로 읽는데
   확정된 IR 은 1회 검사인 경우다. judge 의 잘못이 아니라 자연어의 애매함이고, **사용자 확정 단계가
   필요하다는 근거** 쪽이다.
+
+### 논문에서 Table 1 을 설명하는 방식 (09-16 확정분)
+
+**자리**: Introduction, 한 단 표(`table`, 3.5in). 3단계 프로토콜 전체·유형별 11행·구간·`else_split` DIVERGE 11건·
+`period_halve` 추가 경위·비용·예산 강제는 Evaluation 또는 Appendix 로 보내고 Introduction 에서 링크한다.
+
+**표 모양 — 무엇을 왜 정했나** (전부 09-16 whisoo 와 논의해 확정)
+
+| 결정 | 이유 |
+|---|---|
+| 값은 `Verdict reversal (%)` | 재작성은 "동작이 같으면 판정도 같아야" 하는 관계라 값은 깨진 비율(위반율)이다. `100−값`(consistency)은 실패를 배경으로 밀고, 87~100 이 훑으면 "튼튼하다"로 읽혀 기각 |
+| 방향 표기(`lower is better`) 없음 | "reversal" 이 이미 실패를 뜻한다. 선례가 방향을 붙인 건 열마다 방향이 달랐기 때문 |
+| 열 이름 `Rewrite`, 대조군 행 `None` | "재작성: 없음"으로 읽힌다. 선례의 `Bias Types` / `Original` 구조 |
+| `n` 열을 따로, 칸은 % 만 | 분모가 세 판정기 공통이라 행마다 한 번. n 이 41~217 로 달라 반드시 보여야 한다 |
+| 띠 3개만(Notation / Logic / Temporal) | 유형 칸은 3~39쌍이라 얇다. 유형은 본문 건수 인용(`loop_unroll` 10/11, `period_halve` 16/17)과 부록으로 |
+| 모델 이름 `Qwen3.5-9B` / `GPT-5.4-mini` / `Claude-Sonnet-5` | 선례 표기(`GPT-4o-mini`, `Claude-3.5-Sonnet`)처럼 하이픈 한 덩이. 정확한 스냅샷은 caption |
+| `None` 행은 반드시 표 안 | 빼면 GPT `Temporal 2.1` 이 "시간 구조에 강하다"로 읽힌다 |
+| Qwen `None 0.0` 은 그대로 싣는다 | 이 칸이 Qwen `Temporal 64.6` 을 재작성 탓으로 만든다. 대시(—)는 "해당 없음"이라 쓰지 않는다 |
+| `\tabcolsep` 3pt | 측정 248.6pt / 252pt. 측정 글꼴이 Times 보다 넓어 실제 여유는 더 있다 |
+
+**caption 이 말하는 것 (순서대로)** — 원문은 `motivation_judge/render_table.py` 의 `CAPTION`.
+1. 무엇을 재나 — 판정기가 자기 판정을 뒤집는 비율.
+2. `None` 행 — 원본 217개를 3번씩 똑같이 물어 세 답이 다 같지 않았던 비율. 조건이 없고, 아래 행을 어디까지
+   해석할 수 있는지 정한다.
+3. 나머지 행 — 세 판정기가 모두 3번 중 2번 이상 맞다고 한 52개로 분모를 하나로 맞추고, 그 재작성을 거부한 비율.
+4. 띠 정의 — 각 띠에 든 재작성 나열.
+5. 모든 재작성이 검사기로 증명됐다 → **0 보다 큰 값은 전부 판정기의 자기모순**.
+6. 판정기 정확한 식별자·설정, 호스팅 두 모델은 temperature 를 설정할 수 없다.
+
+**본문(Introduction)이 할 일** — 문장 자체는 whisoo 확인 전이라 여기 적지 않는다.
+- 규칙은 위 "원고에 쓸 때 지킬 것" 을 따른다(건수로 시작, 표기 민감성 주장 금지, GPT 시간 구조 반응 주장 금지).
+- 담을 내용: (1) 동작이 같은 재작성을 물었다, (2) 로컬 판정기는 자기 자신과 완벽히 일치하는데 시간 구조
+  재작성에서 무너진다(`period_halve` 16/17, `loop_unroll` 10/11), (3) 호스팅 두 판정기는 재작성 전부터 자기와
+  어긋난다(217개 중 36개·21개), (4) 어느 쪽이든 "동작이 같으면 판정이 같다"가 깨진다.
 
 ### 반드시 인용할 선행연구
 

@@ -213,6 +213,44 @@ def common_summary(judges):
     return out
 
 
+def common_section(C, judges):
+    """The view the manuscript reports (Table 1): self-disagreement over every seed, then reversal on
+    the rewrites of the programs all judges reliably accepted."""
+    J = list(C["judges"])
+    name = {j: C["judges"][j]["model"] for j in J}
+    ci = lambda x: "[%.1f, %.1f]" % (100 * x["ci95"][0], 100 * x["ci95"][1])
+    L = ["## Primary view (Table 1): common set", "",
+         "Step 1 asks every seed program three times, identically; a seed counts as self-disagreement when the "
+         "three verdicts are not all equal. No selection. Step 2 keeps the seeds every judge called correct in at "
+         "least %d of its three asks (%d of %d). Step 3 reports, over the rewrites of those seeds, the share each "
+         "judge rejected. Every rewrite is certified EQUIV-FIXPOINT, so each rejection contradicts a verdict the "
+         "judge reached reliably on a program that provably behaves the same. The manuscript table is "
+         "results/table1.tex (render_table.py)." % (C["min_accepts"], len(C["common_seeds"]), C["seeds_total"]), "",
+         "| row | n | " + " | ".join("`%s`" % name[j] for j in J) + " |",
+         "|---|---:|" + "---|" * len(J)]
+    sd = C["self_disagreement"]
+    L.append("| None (self-disagreement) | %d | " % sd[J[0]]["seeds"] + " | ".join(
+        "%d (%s) %s" % (sd[j]["disagreed"], pct(sd[j]["rate"]), ci(sd[j])) for j in J) + " |")
+    for b in BAND_ORDER:
+        x = [C["judges"][j]["by_band"][b] for j in J]
+        L.append("| %s | %d | " % (BAND_NAME[b], x[0]["pairs"]) + " | ".join(
+            "%d (%s) %s" % (v["rejected"], pct(v["rate"]), ci(v)) for v in x) + " |")
+    x = [C["judges"][j]["overall"] for j in J]
+    L.append("| All rewrites | %d | " % x[0]["pairs"] + " | ".join(
+        "%d (%s) %s" % (v["rejected"], pct(v["rate"]), ci(v)) for v in x) + " |")
+    L += ["", "By rewrite type on the common set (rejected / pairs; too thin for the manuscript table):", "",
+          "| band | type | " + " | ".join(J) + " |", "|---|---|" + "---:|" * len(J)]
+    for b in BAND_ORDER:
+        for t in TYPE_LABEL:
+            x = [C["judges"][j]["by_type"].get(t) for j in J]
+            if x[0] and x[0]["pairs"] and next(iter(judges.values()))["rows"] and any(
+                    r["type"] == t and r["band"] == b for r in next(iter(judges.values()))["rows"]):
+                L.append("| %s | `%s` | " % (BAND_NAME[b], t) + " | ".join(
+                    "%d/%d" % (v["rejected"], v["pairs"]) for v in x) + " |")
+    L.append("")
+    return L
+
+
 def main():
     total_pairs = len(json.load(open(os.path.join(HERE, "rewrites", "verified_pairs.json")))["pairs"])
     judges = OrderedDict()
@@ -236,7 +274,7 @@ def main():
     print("common set: %d of %d seed programs accepted by every judge in >=%d of 3 asks"
           % (len(common["common_seeds"]), common["seeds_total"], common["min_accepts"]))
 
-    lines = ["# Fig2 / Table1 — judge verdict consistency on behavior-preserving rewrites", ""]
+    lines = ["# Table 1 — judge verdict consistency on behavior-preserving rewrites", ""]
     lines.append("Seeds: E3 EQUIV-FIXPOINT programs (confirmed IR + binding). Every rewrite was re-checked by the frozen "
                  "E3 evaluator and is EQUIV-FIXPOINT against the confirmed IR (rewrites/verified_pairs.json). "
                  "Judge input: the natural-language command and the program; base and rewrite in separate calls. "
@@ -244,7 +282,8 @@ def main():
                  "Flip = J(base) != J(rewrite) over valid pairs (both parsed). 95% CI: percentile bootstrap over seed programs "
                  f"({BOOT} resamples).")
     lines.append("")
-    lines.append("## Primary view: rewrites of programs the judge itself accepted")
+    lines += common_section(common, judges)
+    lines.append("## Secondary view A: rewrites of programs the judge itself accepted (first design)")
     lines.append("")
     lines.append("Each judge is conditioned on its own first-pass verdict. Of the pairs whose original "
                  "this judge accepted, the table reports how often it rejected the behavior-preserving "
@@ -272,7 +311,7 @@ def main():
                     lines.append("| %s | %s | %d | %d | %s | %s |" % (
                         ab, lab, x["pairs"], x["rejected"], pct(x["rate"]), ci_str(x["ci95"])))
         lines.append("")
-    lines.append("## Secondary view: all pairs, flips in either direction")
+    lines.append("## Secondary view B: all pairs, flips in either direction")
     lines.append("")
     for j, s in summary.items():
         m, st = s["meta"], s["stats"]

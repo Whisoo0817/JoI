@@ -1,8 +1,36 @@
-# Fig2 / Table1 — judge verdict consistency on behavior-preserving rewrites
+# Table 1 — judge verdict consistency on behavior-preserving rewrites
 
 Seeds: E3 EQUIV-FIXPOINT programs (confirmed IR + binding). Every rewrite was re-checked by the frozen E3 evaluator and is EQUIV-FIXPOINT against the confirmed IR (rewrites/verified_pairs.json). Judge input: the natural-language command and the program; base and rewrite in separate calls. Identity: the base program judged again with the same prompt (rep 0 vs rep 1). Flip = J(base) != J(rewrite) over valid pairs (both parsed). 95% CI: percentile bootstrap over seed programs (2000 resamples).
 
-## Primary view: rewrites of programs the judge itself accepted
+## Primary view (Table 1): common set
+
+Step 1 asks every seed program three times, identically; a seed counts as self-disagreement when the three verdicts are not all equal. No selection. Step 2 keeps the seeds every judge called correct in at least 2 of its three asks (52 of 217). Step 3 reports, over the rewrites of those seeds, the share each judge rejected. Every rewrite is certified EQUIV-FIXPOINT, so each rejection contradicts a verdict the judge reached reliably on a program that provably behaves the same. The manuscript table is results/table1.tex (render_table.py).
+
+| row | n | `Hyper-AI/Qwen3.5-9B-fp8` | `gpt-5.4-mini-2026-03-17` | `claude-sonnet-5` |
+|---|---:|---|---|---|
+| None (self-disagreement) | 217 | 0 (0.0%) [0.0, 0.0] | 36 (16.6%) [12.0, 21.2] | 21 (9.7%) [6.0, 13.4] |
+| Notation | 79 | 3 (3.8%) [0.0, 8.2] | 10 (12.7%) [5.2, 21.1] | 3 (3.8%) [0.0, 8.3] |
+| Logic | 41 | 1 (2.4%) [0.0, 8.3] | 6 (14.6%) [4.2, 28.2] | 4 (9.8%) [2.3, 19.4] |
+| Temporal | 48 | 31 (64.6%) [51.0, 79.1] | 1 (2.1%) [0.0, 6.7] | 3 (6.2%) [0.0, 13.5] |
+| All rewrites | 168 | 35 (20.8%) [16.6, 25.0] | 17 (10.1%) [5.6, 15.5] | 10 (6.0%) [2.5, 9.8] |
+
+By rewrite type on the common set (rejected / pairs; too thin for the manuscript table):
+
+| band | type | qwen | gpt | claude |
+|---|---|---:|---:|---:|
+| Notation | `var_rename` | 0/28 | 3/28 | 0/28 |
+| Notation | `comparator_flip` | 3/39 | 5/39 | 1/39 |
+| Notation | `time_unit` | 0/9 | 2/9 | 1/9 |
+| Notation | `exists_spelling` | 0/3 | 0/3 | 1/3 |
+| Logic | `branch_swap` | 1/23 | 3/23 | 1/23 |
+| Logic | `else_split` | 0/18 | 3/18 | 3/18 |
+| Temporal | `delay_split` | 0/8 | 0/8 | 0/8 |
+| Temporal | `loop_unroll` | 10/11 | 0/11 | 0/11 |
+| Temporal | `phase_flag` | 2/5 | 0/5 | 0/5 |
+| Temporal | `wait_precheck` | 3/7 | 0/7 | 2/7 |
+| Temporal | `period_halve` | 16/17 | 1/17 | 1/17 |
+
+## Secondary view A: rewrites of programs the judge itself accepted (first design)
 
 Each judge is conditioned on its own first-pass verdict. Of the pairs whose original this judge accepted, the table reports how often it rejected the behavior-preserving rewrite. The control re-asks the identical accepted program.
 
@@ -60,7 +88,7 @@ Each judge is conditioned on its own first-pass verdict. Of the pairs whose orig
 | WPC | check the condition before blocking on it | 15 | 4 | 26.7% | [6.2, 52.9] |
 | PHV | halve the period, gate the body on a flag toggled every tick | 18 | 1 | 5.6% | [0.0, 18.8] |
 
-## Secondary view: all pairs, flips in either direction
+## Secondary view B: all pairs, flips in either direction
 
 ## qwen: `Hyper-AI/Qwen3.5-9B-fp8`, temperature 0.0, thinking off, seed 0, budget 1500+300
 
