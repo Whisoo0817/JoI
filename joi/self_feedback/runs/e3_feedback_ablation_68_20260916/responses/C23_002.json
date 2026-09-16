@@ -1,0 +1,35 @@
+{
+ "id": "C23_002",
+ "request_sha256": "a48064c2d2962a7d25244f115aac1d3dbb14999a6fa790c9f6fcb4f89fbfe889",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 374,
+   "prompt_tokens": 5777,
+   "total_tokens": 6151,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 17.985007524490356,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 60 ticks, which corresponds to 60 seconds. The IR requires a 1-minute (60 seconds) sustain window. With a 1000 ms period, the first iteration counts at t=0, so the action triggers at t=59000 ms (59 seconds), one second too early. Additionally, the IR is a one-shot sequence (no cycle), so the `break` is unnecessary and potentially harmful if the environment expects the script to terminate naturally after the delay.\",\n    \"changed_locations\": [\"period\", \"hold_ticks threshold\", \"script structure\"],\n    \"change_summary\": \"Changed `period` to 100 to align the tick count with the 1-minute duration (600 ticks). Adjusted the threshold to 601 to ensure the action fires exactly after 60 seconds of sustained condition (accounting for the initial t=0 tick). Removed the `break` statement as the IR is a one-shot sequence that naturally completes after the final delay.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Porch_ContactSensor).contactSensor_contact == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 601) {\\n(#Porch_Light).switch_on()\\ndelay(3 MIN)\\n(#Porch_Light).switch_off()\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Porch_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 601) {\n(#Porch_Light).switch_on()\ndelay(3 MIN)\n(#Porch_Light).switch_off()\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 60 ticks, which corresponds to 60 seconds. The IR requires a 1-minute (60 seconds) sustain window. With a 1000 ms period, the first iteration counts at t=0, so the action triggers at t=59000 ms (59 seconds), one second too early. Additionally, the IR is a one-shot sequence (no cycle), so the `break` is unnecessary and potentially harmful if the environment expects the script to terminate naturally after the delay.",
+  "changed_locations": [
+   "period",
+   "hold_ticks threshold",
+   "script structure"
+  ],
+  "change_summary": "Changed `period` to 100 to align the tick count with the 1-minute duration (600 ticks). Adjusted the threshold to 601 to ensure the action fires exactly after 60 seconds of sustained condition (accounting for the initial t=0 tick). Removed the `break` statement as the IR is a one-shot sequence that naturally completes after the final delay."
+ },
+ "status": "REVISED"
+}

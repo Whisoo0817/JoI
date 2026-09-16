@@ -1,0 +1,113 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "LightSensor.Brightness < 50",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.UpOrOpen",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "LightSensor": {
+    "any": [
+     "Light_S",
+     "Indoor_Light_S"
+    ]
+   },
+   "WindowCovering": [
+    "P_Shade_1",
+    "P_Shade_2"
+   ]
+  },
+  "device_inventory": {
+   "Light_S": {
+    "category": [
+     "LightSensor"
+    ],
+    "tags": [
+     "LightSensor"
+    ]
+   },
+   "Indoor_Light_S": {
+    "category": [
+     "LightSensor"
+    ],
+    "tags": [
+     "Indoor",
+     "LightSensor"
+    ]
+   },
+   "P_Shade_1": {
+    "category": [
+     "WindowCovering"
+    ],
+    "tags": [
+     "ParkingLot",
+     "Shade",
+     "WindowCovering"
+    ]
+   },
+   "P_Shade_2": {
+    "category": [
+     "WindowCovering"
+    ],
+    "tags": [
+     "ParkingLot",
+     "Shade",
+     "WindowCovering"
+    ]
+   },
+   "G_Shade": {
+    "category": [
+     "WindowCovering"
+    ],
+    "tags": [
+     "Garden",
+     "Shade",
+     "WindowCovering"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (all(#LightSensor).lightSensor_brightness <| 50) {\nif (triggered == false) {\nall(#WindowCovering).windowCovering_upOrOpen()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

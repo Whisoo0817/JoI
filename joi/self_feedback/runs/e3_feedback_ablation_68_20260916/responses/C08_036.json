@@ -1,0 +1,33 @@
+{
+ "id": "C08_036",
+ "request_sha256": "3d102139b3bd3dcb768256ed1b950b622751a5df34999540306ee120832c2100",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 300,
+   "prompt_tokens": 5879,
+   "total_tokens": 6179,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.388349771499634,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a periodic `if` guard instead of a blocking rising-edge wait. The IR requires the body to execute exactly when the motion signal transitions from false to true. The candidate only checks the condition at the start of every 1-second iteration, missing the event if it occurs between checks, and fails to re-arm correctly for subsequent rising edges.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with the standard two-wait rearming pattern: block until the signal is false (if previously triggered), then block until it becomes true, execute the body, and mark as triggered. This ensures the body fires precisely on the rising edge and repeats every cycle period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until((#Ent_Motion).motionSensor_motion == false)\\n    triggered = false\\n}\\nwait until((#Ent_Motion).motionSensor_motion == true)\\n(#Ent_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Ent_Light).switch_off()\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\n    wait until((#Ent_Motion).motionSensor_motion == false)\n    triggered = false\n}\nwait until((#Ent_Motion).motionSensor_motion == true)\n(#Ent_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Ent_Light).switch_off()\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a periodic `if` guard instead of a blocking rising-edge wait. The IR requires the body to execute exactly when the motion signal transitions from false to true. The candidate only checks the condition at the start of every 1-second iteration, missing the event if it occurs between checks, and fails to re-arm correctly for subsequent rising edges.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with the standard two-wait rearming pattern: block until the signal is false (if previously triggered), then block until it becomes true, execute the body, and mark as triggered. This ensures the body fires precisely on the rising edge and repeats every cycle period."
+ },
+ "status": "REVISED"
+}

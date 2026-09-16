@@ -1,0 +1,99 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "TemperatureSensor.Temperature > 28",
+     "edge": "none",
+     "for": "5 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    },
+    {
+     "op": "delay",
+     "duration": "20 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "TemperatureSensor": [
+    "Bedroom_Temp"
+   ],
+   "Switch": [
+    "Bedroom_Fan"
+   ]
+  },
+  "device_inventory": {
+   "Bedroom_Temp": {
+    "category": [
+     "TemperatureSensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "TemperatureSensor"
+    ]
+   },
+   "Bedroom_Fan": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Bedroom",
+     "Plug",
+     "Switch"
+    ]
+   },
+   "LivingRoom_Temp": {
+    "category": [
+     "TemperatureSensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "TemperatureSensor"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Bedroom_Temp).temperatureSensor_temperature > 28) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 300) {\n(#Bedroom_Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\ndelay(20 MIN)\n(#Bedroom_Fan).switch_off()"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 5 MIN)",
+   "duration_ms": 300000,
+   "ticks_at_100ms": 3000,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "delay(20 MIN)",
+   "duration_ms": 1200000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

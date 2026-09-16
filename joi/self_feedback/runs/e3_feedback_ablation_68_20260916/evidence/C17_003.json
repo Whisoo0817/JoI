@@ -1,0 +1,74 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.SetVolume",
+       "args": {
+        "Volume": "min($Speaker.Volume + 10, 100)"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "Speaker": [
+    "Living_Speaker"
+   ]
+  },
+  "device_inventory": {
+   "Living_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Living",
+     "Speaker"
+    ]
+   },
+   "Bedroom_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Bedroom",
+     "Speaker"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 3600000,
+  "script": "tmp = (#Living_Speaker).speaker_volume + 10\nif (tmp > 100) {\ntmp = 100\n}\n(#Living_Speaker).speaker_setVolume(tmp)\nbreak"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 HOUR)",
+   "period_ms": 3600000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

@@ -1,0 +1,117 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Button.Button == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "LevelControl.MoveToLevel",
+       "args": {
+        "Level": 100.0,
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "Button": [
+    "L_Button"
+   ],
+   "LevelControl": [
+    "Odd_Light_1",
+    "Odd_Light_2"
+   ]
+  },
+  "device_inventory": {
+   "L_Button": {
+    "category": [
+     "Button"
+    ],
+    "tags": [
+     "Light",
+     "Button"
+    ]
+   },
+   "R_Button": {
+    "category": [
+     "Button"
+    ],
+    "tags": [
+     "Robot",
+     "Button"
+    ]
+   },
+   "Odd_Light_1": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Odd",
+     "Light",
+     "LevelControl"
+    ]
+   },
+   "Odd_Light_2": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Odd",
+     "Light",
+     "LevelControl"
+    ]
+   },
+   "Even_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Even",
+     "Light",
+     "LevelControl"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#L_Button).button_button == \"pushed\") {\nif (triggered == false) {\nall(#LevelControl).levelControl_moveToLevel(100, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

@@ -1,0 +1,98 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Light.CurrentBrightness > 0",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "Light": [
+    "Up_Light"
+   ],
+   "Light#2": [
+    "Down_Light"
+   ]
+  },
+  "device_inventory": {
+   "Up_Light": {
+    "category": [
+     "Light",
+     "Switch"
+    ],
+    "tags": [
+     "Top",
+     "Light",
+     "Switch"
+    ]
+   },
+   "Down_Light": {
+    "category": [
+     "Light",
+     "Switch"
+    ],
+    "tags": [
+     "Bottom",
+     "Light",
+     "Switch"
+    ]
+   },
+   "Mid_Light": {
+    "category": [
+     "Light",
+     "Switch"
+    ],
+    "tags": [
+     "Middle",
+     "Light",
+     "Switch"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#Up_Light).light_currentBrightness > 0) {\nif (triggered == false) {\n(#Down_Light).light_moveToBrightness(100, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

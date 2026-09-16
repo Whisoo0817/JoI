@@ -1,0 +1,114 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button4 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "LevelControl.MoveToLevel",
+       "args": {
+        "Level": "max($LevelControl.CurrentLevel - 15, 10)",
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "MultiButton": [
+    "LivingRoom_MB"
+   ],
+   "LevelControl": [
+    "LivingRoom_Light"
+   ]
+  },
+  "device_inventory": {
+   "LivingRoom_MB": {
+    "category": [
+     "MultiButton"
+    ],
+    "tags": [
+     "LivingRoom",
+     "MultiButton"
+    ]
+   },
+   "Bedroom_MB": {
+    "category": [
+     "MultiButton"
+    ],
+    "tags": [
+     "Bedroom",
+     "MultiButton"
+    ]
+   },
+   "LivingRoom_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Light",
+     "LevelControl"
+    ]
+   },
+   "Bedroom_Light": {
+    "category": [
+     "Light",
+     "LevelControl"
+    ],
+    "tags": [
+     "Bedroom",
+     "Light",
+     "LevelControl"
+    ]
+   },
+   "Garage_DoorLock": {
+    "category": [
+     "DoorLock"
+    ],
+    "tags": [
+     "Garage",
+     "DoorLock"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#LivingRoom_MB).multiButton_button4 == \"pushed\") {\nif (triggered == false) {\ntmp = (#LivingRoom_Light).levelControl_currentLevel - 15\n        if (tmp < 10) {\ntmp = 10\n}\n(#LivingRoom_Light).levelControl_moveToLevel(tmp, 0.0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

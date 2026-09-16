@@ -1,0 +1,99 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == true",
+     "edge": "none",
+     "for": "2 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "1 MIN",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "The meeting starts soon"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "PresenceSensor": [
+    "Meeting_Presence"
+   ],
+   "Speaker": [
+    "Meeting_Speaker"
+   ]
+  },
+  "device_inventory": {
+   "Meeting_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Meeting",
+     "PresenceSensor"
+    ]
+   },
+   "Meeting_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Meeting",
+     "Speaker"
+    ]
+   },
+   "Lobby_Presence": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Lobby",
+     "PresenceSensor"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 60000,
+  "script": "hold_ticks := 0\nif ((#Meeting_Presence).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 3) {\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}\nif (hold_ticks >= 3) {\nbreak\n}\n(#Meeting_Speaker).speaker_speak(\"The meeting starts soon\")\nn = n + 1"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 2 MIN)",
+   "duration_ms": 120000,
+   "ticks_at_100ms": 1200,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "cycle(period 1 MIN)",
+   "period_ms": 60000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

@@ -1,0 +1,34 @@
+{
+ "id": "C20_006",
+ "request_sha256": "6509a7f5ce18ae0987114934dee5de00ff833f926fedf062b51621b242e11ad9",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 532,
+   "prompt_tokens": 5770,
+   "total_tokens": 6302,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 13.582412719726562,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 60, which only counts 60 seconds of the condition being true. The IR requires a 1-minute (60,000 ms) sustain window. With a 1000 ms wrapper, the condition must hold for 60 full iterations to reach 60 seconds, but the logic `hold_ticks >= 60` triggers after 60 ticks of the 1000 ms grid, which equals 60 seconds only if the first tick is at t=0 and the counter increments correctly. However, the primary issue is the granularity: a 1000 ms wrapper cannot detect if the condition drops and recovers within a second, whereas the IR's `wait(..., for: 1 MIN)` implies a continuous check. More critically, the standard repair pattern for `wait(C, for: D)` with a 1000 ms wrapper requires a threshold of `D/1000 + 1` (i.e., 61) to account for the initial state, but the robust solution is to switch to a 100 ms wrapper where the threshold is `D/100 + 1` (601). The current code fails because it relies on a coarse grid that may miss transient violations or misaligns the 'tick' count relative to the start time compared to the fine-grained expectation of a 'for' clause.\",\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 ms to ensure the sustain window is measured with sufficient granularity to detect condition drops. Updated the hold counter threshold to 601 (representing 600 ticks of 100 ms plus the initial state) to correctly implement the 1-minute duration requirement.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Bedroom_MotionSensor).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 601) {\\n(#Bedroom_FloorLamp).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Bedroom_MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 601) {\n(#Bedroom_FloorLamp).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 60, which only counts 60 seconds of the condition being true. The IR requires a 1-minute (60,000 ms) sustain window. With a 1000 ms wrapper, the condition must hold for 60 full iterations to reach 60 seconds, but the logic `hold_ticks >= 60` triggers after 60 ticks of the 1000 ms grid, which equals 60 seconds only if the first tick is at t=0 and the counter increments correctly. However, the primary issue is the granularity: a 1000 ms wrapper cannot detect if the condition drops and recovers within a second, whereas the IR's `wait(..., for: 1 MIN)` implies a continuous check. More critically, the standard repair pattern for `wait(C, for: D)` with a 1000 ms wrapper requires a threshold of `D/1000 + 1` (i.e., 61) to account for the initial state, but the robust solution is to switch to a 100 ms wrapper where the threshold is `D/100 + 1` (601). The current code fails because it relies on a coarse grid that may miss transient violations or misaligns the 'tick' count relative to the start time compared to the fine-grained expectation of a 'for' clause.",
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 ms to ensure the sustain window is measured with sufficient granularity to detect condition drops. Updated the hold counter threshold to 601 (representing 600 ticks of 100 ms plus the initial state) to correctly implement the 1-minute duration requirement."
+ },
+ "status": "REVISED"
+}

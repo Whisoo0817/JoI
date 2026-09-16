@@ -1,0 +1,121 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\ndelay(1 HOUR)\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\nif (t1 - t2 >= 2) {\n(#LivingRoom_Heater).switch_on()\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 0, \"script\": \"t1 = (#LivingRoom_TempSensor).temperatureSensor_temperature\\ndelay(1 HOUR)\\nt2 = (#LivingRoom_TempSensor).temperatureSensor_temperature\\nif (t1 - t2 >= 2) {\\n(#LivingRoom_Heater).switch_on()\\n}\"}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#LivingRoom_TempSensor)"
+    ],
+    "Switch.On": [
+      "(#LivingRoom_Heater)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132345_254.json",
+  "command_kor": "지금 거실 온도를 확인하고 1시간 뒤 다시 확인해서 2도 이상 떨어졌으면 거실 히터 플러그를 켜줘.",
+  "command_eng": "Check the living room temperature now and again in 1 hour. If it dropped by at least 2 degrees, turn on the living room heater plug.",
+  "connected_devices": {
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_Heater": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Heater"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "($t1 - $t2) >= 2",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "LivingRoom_TempSensor"
+    ],
+    "Switch": [
+      "LivingRoom_Heater"
+    ]
+  },
+  "input_payload_sha256": "53f4ba60ce91b4ab342a8bbca20163de45f3d27a3893c092c8b06d87f3a4b558",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 1.8,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

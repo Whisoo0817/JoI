@@ -1,0 +1,89 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#LivingRoom_TV).plug_power < 10) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 901) {\n(#LivingRoom_TV).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 100, \"script\": \"hold_ticks := 0\\nif ((#LivingRoom_TV).plug_power < 10) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 901) {\\n(#LivingRoom_TV).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"}",
+  "precision": {
+    "Plug.Power": [
+      "(#LivingRoom_TV)"
+    ],
+    "Switch.Off": [
+      "(#LivingRoom_TV)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132406_489.json",
+  "command_kor": "TV 플러그 전력이 15분 이상 10W 미만으로 유지되면 TV 플러그를 꺼줘.",
+  "command_eng": "If the TV plug power stays below 10W for at least 15 minutes, turn off the TV plug.",
+  "connected_devices": {
+    "LivingRoom_TV": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "TV",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Soundbar": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Soundbar",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 10",
+        "edge": "none",
+        "for": "15 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "Plug": [
+      "LivingRoom_TV"
+    ],
+    "Switch": [
+      "LivingRoom_TV"
+    ]
+  },
+  "input_payload_sha256": "9cf353560d7104c8e9c7e18d35f14526630e6843b5bea830f2fa5d5fe1ad2342",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 2.1,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

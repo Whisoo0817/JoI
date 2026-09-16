@@ -1,0 +1,34 @@
+{
+ "id": "C20_013",
+ "request_sha256": "80424a2f76e536e647b4a77e876c103a016f557fa6d2c73d84ca360d91427fbf",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 335,
+   "prompt_tokens": 5728,
+   "total_tokens": 6063,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 11.56584882736206,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 20, causing the action to fire after 20 seconds (20 ticks). However, a 1000 ms wrapper counts the initial state as tick 1, meaning the condition must hold for 20 full ticks (20 seconds) to reach the 21st tick. The correct threshold for a 20 second duration on a 1000 ms grid is 21. Additionally, the indentation in the provided script is malformed JSON.\",\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the wrapper period to 100 ms to ensure the sustain window is measured on the fine grid where the initial state counts as tick 1. Updated the threshold from 20 to 21 to correctly represent a 20-second duration (20000 ms / 100 ms + 1). Fixed script indentation.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Bathroom_Motion).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 21) {\\n(#Bathroom_Fan).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Bathroom_Motion).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 21) {\n(#Bathroom_Fan).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 20, causing the action to fire after 20 seconds (20 ticks). However, a 1000 ms wrapper counts the initial state as tick 1, meaning the condition must hold for 20 full ticks (20 seconds) to reach the 21st tick. The correct threshold for a 20 second duration on a 1000 ms grid is 21. Additionally, the indentation in the provided script is malformed JSON.",
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the wrapper period to 100 ms to ensure the sustain window is measured on the fine grid where the initial state counts as tick 1. Updated the threshold from 20 to 21 to correctly represent a 20-second duration (20000 ms / 100 ms + 1). Fixed script indentation."
+ },
+ "status": "REVISED"
+}

@@ -1,0 +1,101 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == false",
+     "edge": "none",
+     "for": "1 MIN"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 3",
+     "period": "30 SEC",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "Please close the door"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "ContactSensor": [
+    "Entrance_ContactSensor"
+   ],
+   "Speaker": [
+    "Hall_Speaker"
+   ]
+  },
+  "device_inventory": {
+   "Entrance_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Entrance",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Hall_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Hall",
+     "Speaker"
+    ]
+   },
+   "Garage_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Garage",
+     "Door",
+     "ContactSensor"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 30000,
+  "script": "hold_ticks := 0\nif ((#Entrance_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 60) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Hall_Speaker).speaker_speak(\"Please close the door\")\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 1 MIN)",
+   "duration_ms": 60000,
+   "ticks_at_100ms": 600,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "cycle(period 30 SEC)",
+   "period_ms": 30000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

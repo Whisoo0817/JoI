@@ -1,0 +1,34 @@
+{
+ "id": "C20_017",
+ "request_sha256": "2a19948cfb4b11af47c0110b45644959d51aab71e2b7a4cddaab1521fbde7657",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 721,
+   "prompt_tokens": 5715,
+   "total_tokens": 6436,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 20.518990516662598,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 60, which only counts 60 seconds of the condition being true. The IR requires a 1-minute (60,000 ms) sustain window. With a 1000 ms wrapper, the condition must be true for 60 full iterations to reach 60 seconds, but the logic `hold_ticks >= 60` triggers after the 60th tick starts, effectively waiting for 59 full seconds plus the current one, or misaligning with the 100ms grid required for precise duration counting. More critically, the standard repair pattern for `wait(C, for: D)` with a non-100ms period often fails to capture the exact duration if the period doesn't divide cleanly or if the counting logic doesn't account for the initial tick correctly. However, the primary error identified in similar cases (Example B) is that the threshold calculation `D / period` is insufficient; the correct threshold for a duration `D` on a grid of `period` ms is `ceil(D / period) + 1` to ensure the full duration has elapsed before the action fires, or simply using a 100ms grid where `threshold = D_ms / 100 + 1`. Here, 1 MIN = 60000 ms. On a 1000ms grid, ticks = 60. The action should fire after 60 full ticks have passed. The candidate fires when `hold_ticks >= 60`. If `hold_ticks` starts at 0 and increments every iteration, at iteration 60 (t=59000ms), `hold_ticks` becomes 60, and it fires. This is 59 seconds. The IR requires 60 seconds. The fix is to increase the threshold to 61 so that the action fires after 60 full 1000ms intervals have completed (at t=60000ms). Alternatively, switching to a 100ms period with threshold 601 is the canonical fix, but keeping the 1000ms period and adjusting the threshold to 61 is the minimal change to fix the timing error of 'off by one second'.\",\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the wrapper period to 100 ms to align with the standard sustain counting grid, and adjusted the threshold to 601 (600 ticks + 1) to ensure the condition is sustained for the full 60 seconds (60000 ms) before triggering the switch. The original 1000 ms period with threshold 60 only guaranteed ~59 seconds of sustain.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#Backyard_Motion).motionSensor_motion == true) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 601) {\\n(#Backyard_Light).switch_on()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#Backyard_Motion).motionSensor_motion == true) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 601) {\n(#Backyard_Light).switch_on()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 60, which only counts 60 seconds of the condition being true. The IR requires a 1-minute (60,000 ms) sustain window. With a 1000 ms wrapper, the condition must be true for 60 full iterations to reach 60 seconds, but the logic `hold_ticks >= 60` triggers after the 60th tick starts, effectively waiting for 59 full seconds plus the current one, or misaligning with the 100ms grid required for precise duration counting. More critically, the standard repair pattern for `wait(C, for: D)` with a non-100ms period often fails to capture the exact duration if the period doesn't divide cleanly or if the counting logic doesn't account for the initial tick correctly. However, the primary error identified in similar cases (Example B) is that the threshold calculation `D / period` is insufficient; the correct threshold for a duration `D` on a grid of `period` ms is `ceil(D / period) + 1` to ensure the full duration has elapsed before the action fires, or simply using a 100ms grid where `threshold = D_ms / 100 + 1`. Here, 1 MIN = 60000 ms. On a 1000ms grid, ticks = 60. The action should fire after 60 full ticks have passed. The candidate fires when `hold_ticks >= 60`. If `hold_ticks` starts at 0 and increments every iteration, at iteration 60 (t=59000ms), `hold_ticks` becomes 60, and it fires. This is 59 seconds. The IR requires 60 seconds. The fix is to increase the threshold to 61 so that the action fires after 60 full 1000ms intervals have completed (at t=60000ms). Alternatively, switching to a 100ms period with threshold 601 is the canonical fix, but keeping the 1000ms period and adjusting the threshold to 61 is the minimal change to fix the timing error of 'off by one second'.",
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the wrapper period to 100 ms to align with the standard sustain counting grid, and adjusted the threshold to 601 (600 ticks + 1) to ensure the condition is sustained for the full 60 seconds (60000 ms) before triggering the switch. The original 1000 ms period with threshold 60 only guaranteed ~59 seconds of sustain."
+ },
+ "status": "REVISED"
+}

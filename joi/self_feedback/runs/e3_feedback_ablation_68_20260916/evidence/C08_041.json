@@ -1,0 +1,127 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "ContactSensor.Contact == false",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 100.0,
+        "Rate": 0.0
+       }
+      },
+      {
+       "op": "delay",
+       "duration": "10 SEC"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": 0.0,
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "ContactSensor": [
+    "MR_ContactSensor"
+   ],
+   "Light": [
+    "MR_Light"
+   ]
+  },
+  "device_inventory": {
+   "MR_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "MeetingRoom",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "LR_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "MR_Light": {
+    "category": [
+     "Light",
+     "LevelControl",
+     "Switch"
+    ],
+    "tags": [
+     "MeetingRoom",
+     "Light",
+     "LevelControl",
+     "Switch"
+    ]
+   },
+   "LR_Light": {
+    "category": [
+     "Light",
+     "LevelControl",
+     "Switch"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Light",
+     "LevelControl",
+     "Switch"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#MR_ContactSensor).contactSensor_contact == false) {\nif (triggered == false) {\n(#MR_Light).light_moveToBrightness(100, 0)\n        delay(10 SEC)\n(#MR_Light).light_moveToBrightness(0, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  },
+  {
+   "ir_node": "delay(10 SEC)",
+   "duration_ms": 10000
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

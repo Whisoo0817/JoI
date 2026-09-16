@@ -1,0 +1,33 @@
+{
+ "id": "C08_012",
+ "request_sha256": "1d619acf28571ef59a3dc8d45bf1de6b60be0043183dda9b742a843210ab9b58",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 320,
+   "prompt_tokens": 5847,
+   "total_tokens": 6167,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 7.943050146102905,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a periodic `if` guard instead of a blocking rising-edge wait. The IR requires the body to execute exactly when the button transitions to 'pushed' and then re-arm for the next transition. The candidate only checks the state at the start of the wrapper period, missing transitions that occur between iterations, and fails to block until the rising edge occurs.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with the standard rising-edge state machine: a persistent `fired` flag, a block on `not C` to re-arm, a block on `C` to catch the rising edge, and the body execution. This ensures the automation fires on every transition regardless of the wrapper period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\nwait until(not ((#Kitchen_MB).multiButton_button3 == \\\"pushed\\\"))\\nfired = false\\n}\\nwait until((#Kitchen_MB).multiButton_button3 == \\\"pushed\\\")\\n(#Kitchen_Light).light_moveToBrightness(100, 0)\\ndelay(1 SEC)\\n(#Kitchen_Light).light_moveToBrightness(0, 0)\\nfired = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\nwait until(not ((#Kitchen_MB).multiButton_button3 == \"pushed\"))\nfired = false\n}\nwait until((#Kitchen_MB).multiButton_button3 == \"pushed\")\n(#Kitchen_Light).light_moveToBrightness(100, 0)\ndelay(1 SEC)\n(#Kitchen_Light).light_moveToBrightness(0, 0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a periodic `if` guard instead of a blocking rising-edge wait. The IR requires the body to execute exactly when the button transitions to 'pushed' and then re-arm for the next transition. The candidate only checks the state at the start of the wrapper period, missing transitions that occur between iterations, and fails to block until the rising edge occurs.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with the standard rising-edge state machine: a persistent `fired` flag, a block on `not C` to re-arm, a block on `C` to catch the rising edge, and the body execution. This ensures the automation fires on every transition regardless of the wrapper period."
+ },
+ "status": "REVISED"
+}

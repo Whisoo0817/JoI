@@ -1,0 +1,127 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (triggered == true) {\n    wait until((#Ent_Motion).motionSensor_motion == false)\n    triggered = false\n}\nwait until((#Ent_Motion).motionSensor_motion == true)\n(#Ent_Light).light_moveToBrightness(100, 0)\ndelay(3 SEC)\n(#Ent_Light).switch_off()\ntriggered = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"triggered := false\\nif (triggered == true) {\\n    wait until((#Ent_Motion).motionSensor_motion == false)\\n    triggered = false\\n}\\nwait until((#Ent_Motion).motionSensor_motion == true)\\n(#Ent_Light).light_moveToBrightness(100, 0)\\ndelay(3 SEC)\\n(#Ent_Light).switch_off()\\ntriggered = true\"}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#Ent_Motion)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Ent_Light)"
+    ],
+    "Switch.Off": [
+      "(#Ent_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "입구에 움직임이 감지될 때마다 입구 조명을 최대밝기로 켰다가 3초 뒤에 꺼줘.",
+  "command_eng": "Whenever motion is detected at the entrance, turn on the entrance light at maximum brightness and then turn it off after 3 seconds.",
+  "connected_devices": {
+    "Ent_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "MotionSensor"
+      ]
+    },
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Ent_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "3 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "MotionSensor": [
+      "Ent_Motion"
+    ],
+    "Light": [
+      "Ent_Light"
+    ],
+    "Switch": [
+      "Ent_Light"
+    ]
+  },
+  "input_payload_sha256": "29af068bde9cb9c9d06f681b73faafb9d9676e798cbebab9fd16ae6089e2814e",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.5,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

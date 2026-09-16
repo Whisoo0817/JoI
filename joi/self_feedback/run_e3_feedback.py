@@ -94,7 +94,7 @@ def preflight(args):
         cand = json.loads((src_dir / f"{cid}.json").read_text())
         row = rows[cid]
         jb = cand["joi_block"]
-        fb = feedback(witness, jb["script"])
+        fb = feedback(witness, jb["script"]) if p["evidence"].get("counterexample", True) else None
         payload = build_payload(json.loads(row["ir_gt"]), json.loads(row["binding_gt"] or "{}"),
                                 json.loads(row["connected_devices"]),
                                 {"name": jb.get("name", "Scenario"), "cron": jb.get("cron", ""),

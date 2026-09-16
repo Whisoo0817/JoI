@@ -172,8 +172,12 @@ def build_payload(ir, binding, devices, candidate, fb, name="Scenario", ir_facts
         "task": "repair_confirmed_timeline_ir_to_joi",
         "immutable_specification": {"timeline_ir": ir, "binding_slots": binding, "device_inventory": devices},
         "current_candidate": candidate,
-        "counterexample_feedback": fb,
     }
+    if fb is None:  # ablation arm: the candidate is rejected, no location is given
+        payload["verifier_result"] = {"verdict": "not equivalent to the IR",
+                                      "detail": "withheld: no input history, no mismatching instant, no location"}
+    else:
+        payload["counterexample_feedback"] = fb
     if ir_facts:
         payload["ir_timing_facts"] = ir_timing_facts(ir)
     payload["output_constraints"] = {"format": "one JSON object only", "preserve_name": name,

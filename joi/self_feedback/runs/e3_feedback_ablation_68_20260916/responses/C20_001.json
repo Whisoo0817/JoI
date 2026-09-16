@@ -1,0 +1,34 @@
+{
+ "id": "C20_001",
+ "request_sha256": "5c109326b32a51e199d59ecb0b01d72099c78b11dc998afb7786ebee321ca41d",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 379,
+   "prompt_tokens": 5766,
+   "total_tokens": 6145,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 10.76697063446045,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 30, causing the action to fire after 30 seconds (29 ticks * 1000ms + 1 tick). The IR requires the condition to hold for exactly 30 seconds (300 ticks of 100ms). With a 1000 ms wrapper, the system cannot detect a condition drop and recovery between iterations, making the 1000 ms period invalid for this sustain duration. The fix requires switching to a 100 ms wrapper period and adjusting the threshold to 301 (300 ticks + 1) to ensure the action fires exactly at the 30-second mark.\",\n    \"changed_locations\": [\"period\", \"threshold value in script\"],\n    \"change_summary\": \"Changed the wrapper period from 1000 to 100 ms to allow the sustain window to be measured on a fine enough grid to detect condition changes. Updated the hold threshold from 30 to 301 to account for the initial tick at t=0, ensuring the action triggers precisely after 30 seconds of sustained false motion.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#LivingRoom_MotionSensor).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 301) {\\n(#LivingRoom_Strip).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#LivingRoom_MotionSensor).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 301) {\n(#LivingRoom_Strip).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 30, causing the action to fire after 30 seconds (29 ticks * 1000ms + 1 tick). The IR requires the condition to hold for exactly 30 seconds (300 ticks of 100ms). With a 1000 ms wrapper, the system cannot detect a condition drop and recovery between iterations, making the 1000 ms period invalid for this sustain duration. The fix requires switching to a 100 ms wrapper period and adjusting the threshold to 301 (300 ticks + 1) to ensure the action fires exactly at the 30-second mark.",
+  "changed_locations": [
+   "period",
+   "threshold value in script"
+  ],
+  "change_summary": "Changed the wrapper period from 1000 to 100 ms to allow the sustain window to be measured on a fine enough grid to detect condition changes. Updated the hold threshold from 30 to 301 to account for the initial tick at t=0, ensuring the action triggers precisely after 30 seconds of sustained false motion."
+ },
+ "status": "REVISED"
+}

@@ -1,0 +1,116 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (triggered == true) {\nwait until(not (all(#LightSensor).lightSensor_brightness < 50))\ntriggered = false\n}\nwait until(all(#LightSensor).lightSensor_brightness < 50)\nall(#WindowCovering).windowCovering_upOrOpen()\ntriggered = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(not (all(#LightSensor).lightSensor_brightness < 50))\\ntriggered = false\\n}\\nwait until(all(#LightSensor).lightSensor_brightness < 50)\\nall(#WindowCovering).windowCovering_upOrOpen()\\ntriggered = true\"}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "any(#LightSensor)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#WindowCovering)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "조도가 50럭스 미만으로 떨어질 때마다 주차장의 모든 쉐이드를 열어줘.",
+  "command_eng": "Whenever the brightness drops below 50 lux, open all shades in the parking lot.",
+  "connected_devices": {
+    "Light_S": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LightSensor"
+      ]
+    },
+    "Indoor_Light_S": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Indoor",
+        "LightSensor"
+      ]
+    },
+    "P_Shade_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "P_Shade_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "G_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Garden",
+        "Shade",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "LightSensor.Brightness < 50",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "LightSensor": {
+      "any": [
+        "Light_S",
+        "Indoor_Light_S"
+      ]
+    },
+    "WindowCovering": [
+      "P_Shade_1",
+      "P_Shade_2"
+    ]
+  },
+  "input_payload_sha256": "ba5f3b72e0b55183a97cd2ca142077f49289edc229c2e8906bdfa4012110e592",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

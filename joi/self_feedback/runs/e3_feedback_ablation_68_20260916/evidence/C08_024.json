@@ -1,0 +1,104 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "AirQualitySensor.FineDustLevel > 80",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "high"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "AirQualitySensor": {
+    "any": [
+     "Living_AQ",
+     "Bedroom_AQ"
+    ]
+   },
+   "AirPurifier": [
+    "Living_AP",
+    "Bedroom_AP"
+   ]
+  },
+  "device_inventory": {
+   "Living_AQ": {
+    "category": [
+     "AirQualitySensor"
+    ],
+    "tags": [
+     "Living",
+     "AirQualitySensor"
+    ]
+   },
+   "Bedroom_AQ": {
+    "category": [
+     "AirQualitySensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "AirQualitySensor"
+    ]
+   },
+   "Living_AP": {
+    "category": [
+     "AirPurifier"
+    ],
+    "tags": [
+     "Living",
+     "AirPurifier"
+    ]
+   },
+   "Bedroom_AP": {
+    "category": [
+     "AirPurifier"
+    ],
+    "tags": [
+     "Bedroom",
+     "AirPurifier"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (all(#AirQualitySensor).airQualitySensor_fineDustLevel >| 80) {\nif (triggered == false) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

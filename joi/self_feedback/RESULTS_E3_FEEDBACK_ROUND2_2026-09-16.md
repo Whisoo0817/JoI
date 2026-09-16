@@ -8,6 +8,7 @@ is written (whisoo, 2026-09-16).**
 | round 1 only, one counterexample per case | 36 / 68 (52.9 %) | frozen, `protocol_e3_feedback_v1.json` |
 | rounds 1+2, same prompt throughout | 40 / 68 (58.8 %) | frozen, `protocol_e3_feedback_r2a.json` |
 | rounds 1+2 with the quantifier rules in round 2 | 42 / 68 (61.8 %) | exploratory, post-hoc, not reportable |
+| one round, **no counterexample** (ablation) | 31 / 68 (45.6 %) | frozen, `protocol_e3_feedback_ablation.json` |
 
 Neither frozen number supersedes the other: round 1 answers "what does one counterexample do",
 rounds 1+2 answers "what does a second one add". Report one, or both as a two-row table.

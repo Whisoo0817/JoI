@@ -1,0 +1,104 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "PresenceSensor.Presence == true",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "call",
+     "target": "Switch.On",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "PresenceSensor": [
+    "LivingRoom_PresenceSensor"
+   ],
+   "Switch": [
+    "LivingRoom_TV"
+   ]
+  },
+  "device_inventory": {
+   "LivingRoom_PresenceSensor": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "LivingRoom",
+     "PresenceSensor"
+    ]
+   },
+   "Bedroom_PresenceSensor": {
+    "category": [
+     "PresenceSensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "PresenceSensor"
+    ]
+   },
+   "LivingRoom_TV": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Plug",
+     "TV"
+    ]
+   },
+   "Study_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Study",
+     "Speaker"
+    ]
+   },
+   "Bakery_Fan": {
+    "category": [
+     "Fan"
+    ],
+    "tags": [
+     "Bakery",
+     "Fan"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#LivingRoom_PresenceSensor).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 30) {\n(#LivingRoom_TV).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 30 SEC)",
+   "duration_ms": 30000,
+   "ticks_at_100ms": 300,
+   "note": "sustain window; the condition must hold for the whole duration"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

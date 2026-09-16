@@ -1,0 +1,33 @@
+{
+ "id": "C08_032",
+ "request_sha256": "e4818854917645501292c89c1a58bbeb5f80e37471047d17b2ffdb7778c99147",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 278,
+   "prompt_tokens": 5935,
+   "total_tokens": 6213,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.875234603881836,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate polls the condition at the start of the wrapper period using an `if` statement. The IR requires a rising-edge wait, meaning the action must fire immediately when the condition transitions to true, even if that happens mid-period. The candidate fails to observe this transition because it only checks the state at the beginning of the iteration.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic polling `if` with a blocking `wait until` for the rising edge. This ensures the script suspends until the contact sensor goes false, then executes the switch action, and finally sets the `triggered` flag to prevent re-firing while the condition remains false. This matches the IR's rising-edge semantics.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(not (all(#ContactSensor).contactSensor_contact == false))\\ntriggered = false\\n}\\nwait until(all(#ContactSensor).contactSensor_contact == false)\\nall(#Switch).switch_on()\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until(not (all(#ContactSensor).contactSensor_contact == false))\ntriggered = false\n}\nwait until(all(#ContactSensor).contactSensor_contact == false)\nall(#Switch).switch_on()\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate polls the condition at the start of the wrapper period using an `if` statement. The IR requires a rising-edge wait, meaning the action must fire immediately when the condition transitions to true, even if that happens mid-period. The candidate fails to observe this transition because it only checks the state at the beginning of the iteration.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic polling `if` with a blocking `wait until` for the rising edge. This ensures the script suspends until the contact sensor goes false, then executes the switch action, and finally sets the `triggered` flag to prevent re-firing while the condition remains false. This matches the IR's rising-edge semantics."
+ },
+ "status": "REVISED"
+}

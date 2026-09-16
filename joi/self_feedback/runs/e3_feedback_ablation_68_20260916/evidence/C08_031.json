@@ -1,0 +1,110 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "Button.Button == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+       "args": {
+        "Mode": "auto"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "Button": [
+    "R_Button"
+   ],
+   "RobotVacuumCleaner": [
+    "Even_Robot_1",
+    "Even_Robot_2"
+   ]
+  },
+  "device_inventory": {
+   "R_Button": {
+    "category": [
+     "Button"
+    ],
+    "tags": [
+     "Robot",
+     "Button"
+    ]
+   },
+   "L_Button": {
+    "category": [
+     "Button"
+    ],
+    "tags": [
+     "Light",
+     "Button"
+    ]
+   },
+   "Even_Robot_1": {
+    "category": [
+     "RobotVacuumCleaner"
+    ],
+    "tags": [
+     "Even",
+     "RobotVacuumCleaner"
+    ]
+   },
+   "Even_Robot_2": {
+    "category": [
+     "RobotVacuumCleaner"
+    ],
+    "tags": [
+     "Even",
+     "RobotVacuumCleaner"
+    ]
+   },
+   "Odd_Robot": {
+    "category": [
+     "RobotVacuumCleaner"
+    ],
+    "tags": [
+     "Odd",
+     "RobotVacuumCleaner"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#R_Button).button_button == \"pushed\") {\nif (triggered == false) {\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

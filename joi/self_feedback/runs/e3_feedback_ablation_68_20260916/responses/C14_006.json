@@ -1,0 +1,33 @@
+{
+ "id": "C14_006",
+ "request_sha256": "43144a76b2473464b0ce25e5a5624c5564268642649559ccf032b470c37f1dfa",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 337,
+   "prompt_tokens": 5849,
+   "total_tokens": 6186,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 11.446492433547974,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate implements a periodic `if` guard instead of a blocking rising-edge wait. The IR requires the script to block until the button transitions from 'not pushed' to 'pushed' before executing the body. The candidate samples the state only at the start of the 1-second period, missing transitions that occur between iterations.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with the standard rising-edge state machine: a persistent `fired` flag, a wait for the condition to become false (rearm), a wait for the condition to become true (trigger), and the body execution. This ensures the action fires exactly on the rising edge and respects the 1-second cycle period between completions.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"fired := false\\nif (fired == true) {\\n    wait until((#LivingRoom_MB).multiButton_button4 != \\\"pushed\\\")\\n    fired = false\\n}\\nwait until((#LivingRoom_MB).multiButton_button4 == \\\"pushed\\\")\\ntmp = (#LivingRoom_Light).levelControl_currentLevel - 15\\nif (tmp < 10) {\\n    tmp = 10\\n}\\n(#LivingRoom_Light).levelControl_moveToLevel(tmp, 0.0)\\nfired = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "fired := false\nif (fired == true) {\n    wait until((#LivingRoom_MB).multiButton_button4 != \"pushed\")\n    fired = false\n}\nwait until((#LivingRoom_MB).multiButton_button4 == \"pushed\")\ntmp = (#LivingRoom_Light).levelControl_currentLevel - 15\nif (tmp < 10) {\n    tmp = 10\n}\n(#LivingRoom_Light).levelControl_moveToLevel(tmp, 0.0)\nfired = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate implements a periodic `if` guard instead of a blocking rising-edge wait. The IR requires the script to block until the button transitions from 'not pushed' to 'pushed' before executing the body. The candidate samples the state only at the start of the 1-second period, missing transitions that occur between iterations.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with the standard rising-edge state machine: a persistent `fired` flag, a wait for the condition to become false (rearm), a wait for the condition to become true (trigger), and the body execution. This ensures the action fires exactly on the rising edge and respects the 1-second cycle period between completions."
+ },
+ "status": "REVISED"
+}

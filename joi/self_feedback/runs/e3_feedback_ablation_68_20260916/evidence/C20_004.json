@@ -1,0 +1,97 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "Plug.Power < 5",
+     "edge": "none",
+     "for": "10 MIN"
+    },
+    {
+     "op": "call",
+     "target": "Switch.Off",
+     "args": {}
+    }
+   ]
+  },
+  "binding_slots": {
+   "Plug": [
+    "Office_Printer"
+   ],
+   "Switch": [
+    "Office_Printer"
+   ]
+  },
+  "device_inventory": {
+   "Office_Printer": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Office",
+     "Plug",
+     "Printer"
+    ]
+   },
+   "Office_Monitor": {
+    "category": [
+     "Plug",
+     "Switch"
+    ],
+    "tags": [
+     "Office",
+     "Plug",
+     "Monitor"
+    ]
+   },
+   "Office_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Office",
+     "Camera"
+    ]
+   },
+   "Kitchen_Humidifier": {
+    "category": [
+     "Humidifier"
+    ],
+    "tags": [
+     "Kitchen",
+     "Humidifier"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "hold_ticks := 0\nif ((#Office_Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Office_Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 10 MIN)",
+   "duration_ms": 600000,
+   "ticks_at_100ms": 6000,
+   "note": "sustain window; the condition must hold for the whole duration"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

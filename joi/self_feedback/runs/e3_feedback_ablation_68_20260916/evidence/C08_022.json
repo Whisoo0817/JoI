@@ -1,0 +1,103 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "WindowCovering.CurrentPosition > 0",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Speaker.Speak",
+       "args": {
+        "Text": "The window is open"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "WindowCovering": [
+    "Main_Window"
+   ],
+   "Speaker": [
+    "Main_Speaker",
+    "Bedroom_Speaker"
+   ]
+  },
+  "device_inventory": {
+   "Main_Window": {
+    "category": [
+     "WindowCovering"
+    ],
+    "tags": [
+     "Main",
+     "Window",
+     "WindowCovering"
+    ]
+   },
+   "Main_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Main",
+     "Speaker"
+    ]
+   },
+   "Bedroom_Window": {
+    "category": [
+     "WindowCovering"
+    ],
+    "tags": [
+     "Bedroom",
+     "Window",
+     "WindowCovering"
+    ]
+   },
+   "Bedroom_Speaker": {
+    "category": [
+     "Speaker"
+    ],
+    "tags": [
+     "Bedroom",
+     "Speaker"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#Main_Window).windowCovering_currentPosition > 0) {\nif (triggered == false) {\nall(#Speaker).speaker_speak(\"The window is open\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

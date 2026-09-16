@@ -1,0 +1,127 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "HumiditySensor.Humidity > 70",
+     "edge": "none"
+    },
+    {
+     "op": "call",
+     "target": "Dehumidifier.SetDehumidifierMode",
+     "args": {
+      "Mode": "dehumidifying"
+     }
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 HOUR",
+     "body": [
+      {
+       "op": "read",
+       "var": "h",
+       "src": "HumiditySensor.Humidity"
+      },
+      {
+       "op": "if",
+       "cond": "h < 50",
+       "then": [
+        {
+         "op": "call",
+         "target": "Switch.Off",
+         "args": {}
+        }
+       ],
+       "else": []
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "HumiditySensor": [
+    "SR_Humid"
+   ],
+   "HumiditySensor#2": [
+    "Lab_Humid"
+   ],
+   "Dehumidifier": [
+    "Lab_Dehum"
+   ],
+   "Switch": [
+    "Lab_Dehum"
+   ]
+  },
+  "device_inventory": {
+   "SR_Humid": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "ServerRack",
+     "HumiditySensor"
+    ]
+   },
+   "Lab_Humid": {
+    "category": [
+     "HumiditySensor"
+    ],
+    "tags": [
+     "Lab",
+     "HumiditySensor"
+    ]
+   },
+   "Lab_Dehum": {
+    "category": [
+     "Dehumidifier",
+     "Switch"
+    ],
+    "tags": [
+     "Lab",
+     "Dehumidifier",
+     "Switch"
+    ]
+   },
+   "Office_Dehum": {
+    "category": [
+     "Dehumidifier",
+     "Switch"
+    ],
+    "tags": [
+     "Office",
+     "Dehumidifier",
+     "Switch"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 3600000,
+  "script": "phase := 0\nif (phase == 0) {\nwait until((#SR_Humid).humiditySensor_humidity > 70 or (#Lab_Humid).humiditySensor_humidity > 70)\n    phase = 1\n    (#Lab_Dehum).dehumidifier_setDehumidifierMode(\"dehumidifying\")\n}\nelse {\nh = (#SR_Humid).humiditySensor_humidity\n    if ((#Lab_Humid).humiditySensor_humidity < 50) {\nh = (#Lab_Humid).humiditySensor_humidity\n}\nif (h < 50) {\n(#Lab_Dehum).switch_off()\n}\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 HOUR)",
+   "period_ms": 3600000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

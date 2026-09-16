@@ -1,0 +1,116 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "WeatherProvider.Weather == \"rain\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "WindowCovering.DownOrClose",
+       "args": {}
+      },
+      {
+       "op": "call",
+       "target": "DoorLock.Lock",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "WeatherProvider": [
+    "Home_WeatherProvider"
+   ],
+   "WindowCovering": [
+    "Win_1",
+    "Win_2"
+   ],
+   "DoorLock": [
+    "DoorLock_1",
+    "DoorLock_2"
+   ]
+  },
+  "device_inventory": {
+   "Home_WeatherProvider": {
+    "category": [
+     "WeatherProvider"
+    ],
+    "tags": [
+     "WeatherProvider"
+    ]
+   },
+   "Win_1": {
+    "category": [
+     "WindowCovering"
+    ],
+    "tags": [
+     "Window",
+     "WindowCovering"
+    ]
+   },
+   "Win_2": {
+    "category": [
+     "WindowCovering"
+    ],
+    "tags": [
+     "Living",
+     "Window",
+     "WindowCovering"
+    ]
+   },
+   "DoorLock_1": {
+    "category": [
+     "DoorLock"
+    ],
+    "tags": [
+     "DoorLock"
+    ]
+   },
+   "DoorLock_2": {
+    "category": [
+     "DoorLock"
+    ],
+    "tags": [
+     "Entrance",
+     "DoorLock"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#Home_WeatherProvider).weatherProvider_weather == \"rain\") {\nif (triggered == false) {\nall(#WindowCovering).windowCovering_downOrClose()\nall(#DoorLock).doorLock_lock()\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

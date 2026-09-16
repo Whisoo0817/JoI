@@ -1,0 +1,99 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "wait",
+     "cond": "ContactSensor.Contact == true",
+     "edge": "none",
+     "for": "30 SEC"
+    },
+    {
+     "op": "cycle",
+     "until": "n >= 5",
+     "period": "30 SEC",
+     "count": "n",
+     "body": [
+      {
+       "op": "call",
+       "target": "Camera.CaptureImage",
+       "args": {}
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "ContactSensor": [
+    "Safe_ContactSensor"
+   ],
+   "Camera": [
+    "Safe_Camera"
+   ]
+  },
+  "device_inventory": {
+   "Safe_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Safe",
+     "Door",
+     "ContactSensor"
+    ]
+   },
+   "Safe_Camera": {
+    "category": [
+     "Camera"
+    ],
+    "tags": [
+     "Safe",
+     "Camera"
+    ]
+   },
+   "Vault_ContactSensor": {
+    "category": [
+     "ContactSensor"
+    ],
+    "tags": [
+     "Vault",
+     "Door",
+     "ContactSensor"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 30000,
+  "script": "hold_ticks := 0\nif ((#Safe_ContactSensor).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 30) {\nn := 0\n        if (n >= 5) {\nbreak\n}\n(#Safe_Camera).camera_captureImage()\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "wait(for: 30 SEC)",
+   "duration_ms": 30000,
+   "ticks_at_100ms": 300,
+   "note": "sustain window; the condition must hold for the whole duration"
+  },
+  {
+   "ir_node": "cycle(period 30 SEC)",
+   "period_ms": 30000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

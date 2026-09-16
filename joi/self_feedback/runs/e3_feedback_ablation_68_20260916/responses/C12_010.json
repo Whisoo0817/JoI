@@ -1,0 +1,33 @@
+{
+ "id": "C12_010",
+ "request_sha256": "5077ed1fb326cb559bf183fe2a2e1b19ac5712dac8d85bde4bb16bb0a1d4cf5f",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 365,
+   "prompt_tokens": 6000,
+   "total_tokens": 6365,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.726306915283203,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate fails to implement the IR's `cycle` body correctly. The IR specifies a single `read` of `HumiditySensor.Humidity` (bound to `SR_Humid`) followed by an `if` checking that same variable `h` against 50. The candidate reads `SR_Humid` into `h`, but then checks `Lab_Humid` in the `if` condition, and additionally re-reads `Lab_Humid` inside the `if` block, violating the single-read constraint and using the wrong sensor for the logic.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the script to strictly follow the IR: read `SR_Humid` into `h`, then check `h < 50` using only that variable. Removed the erroneous read of `Lab_Humid` and the incorrect condition check against `Lab_Humid`.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 3600000,\n    \"script\": \"phase := 0\\nif (phase == 0) {\\nwait until((#SR_Humid).humiditySensor_humidity > 70)\\n    phase = 1\\n    (#Lab_Dehum).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\\n}\\nelse {\\nh = (#SR_Humid).humiditySensor_humidity\\n    if (h < 50) {\\n        (#Lab_Dehum).switch_off()\\n    }\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 3600000,
+  "script": "phase := 0\nif (phase == 0) {\nwait until((#SR_Humid).humiditySensor_humidity > 70)\n    phase = 1\n    (#Lab_Dehum).dehumidifier_setDehumidifierMode(\"dehumidifying\")\n}\nelse {\nh = (#SR_Humid).humiditySensor_humidity\n    if (h < 50) {\n        (#Lab_Dehum).switch_off()\n    }\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate fails to implement the IR's `cycle` body correctly. The IR specifies a single `read` of `HumiditySensor.Humidity` (bound to `SR_Humid`) followed by an `if` checking that same variable `h` against 50. The candidate reads `SR_Humid` into `h`, but then checks `Lab_Humid` in the `if` condition, and additionally re-reads `Lab_Humid` inside the `if` block, violating the single-read constraint and using the wrong sensor for the logic.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the script to strictly follow the IR: read `SR_Humid` into `h`, then check `h < 50` using only that variable. Removed the erroneous read of `Lab_Humid` and the incorrect condition check against `Lab_Humid`."
+ },
+ "status": "REVISED"
+}

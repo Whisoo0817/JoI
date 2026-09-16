@@ -1,0 +1,126 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "fired := false\nif (fired == true) {\nwait until((#MR_ContactSensor).contactSensor_contact == true)\nfired = false\n}\nwait until((#MR_ContactSensor).contactSensor_contact == false)\n(#MR_Light).light_moveToBrightness(100, 0)\ndelay(10 SEC)\n(#MR_Light).light_moveToBrightness(0, 0)\nfired = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"fired := false\\nif (fired == true) {\\nwait until((#MR_ContactSensor).contactSensor_contact == true)\\nfired = false\\n}\\nwait until((#MR_ContactSensor).contactSensor_contact == false)\\n(#MR_Light).light_moveToBrightness(100, 0)\\ndelay(10 SEC)\\n(#MR_Light).light_moveToBrightness(0, 0)\\nfired = true\"}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#MR_ContactSensor)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#MR_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "회의실 문이 열릴 때마다, 조명의 밝기를 최대밝기로 켰다가 10초뒤에 꺼줘.",
+  "command_eng": "Whenever the meeting room door is opened, turn on the light at maximum brightness and then turn it off after 10 seconds.",
+  "connected_devices": {
+    "MR_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "LR_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "MR_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "ContactSensor.Contact == false",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "10 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 0.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "ContactSensor": [
+      "MR_ContactSensor"
+    ],
+    "Light": [
+      "MR_Light"
+    ]
+  },
+  "input_payload_sha256": "b2296c431ab52ab8010502a0e243c37e05f1961b2520802bd7d08d214af2684f",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.5,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

@@ -1,0 +1,108 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "SoundSensor.Sound > 30",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "AirPurifier.SetAirPurifierMode",
+       "args": {
+        "Mode": "sleep"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "SoundSensor": {
+    "any": [
+     "Main_SoundSensor",
+     "Bedroom_SoundSensor"
+    ]
+   },
+   "AirPurifier": [
+    "Main_AirPurifier",
+    "Bedroom_AirPurifier"
+   ]
+  },
+  "device_inventory": {
+   "Main_SoundSensor": {
+    "category": [
+     "SoundSensor"
+    ],
+    "tags": [
+     "Main",
+     "SoundSensor"
+    ]
+   },
+   "Main_AirPurifier": {
+    "category": [
+     "AirPurifier",
+     "Switch"
+    ],
+    "tags": [
+     "Main",
+     "AirPurifier",
+     "Switch"
+    ]
+   },
+   "Bedroom_SoundSensor": {
+    "category": [
+     "SoundSensor"
+    ],
+    "tags": [
+     "Bedroom",
+     "SoundSensor"
+    ]
+   },
+   "Bedroom_AirPurifier": {
+    "category": [
+     "AirPurifier",
+     "Switch"
+    ],
+    "tags": [
+     "Bedroom",
+     "AirPurifier",
+     "Switch"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (all(#SoundSensor).soundSensor_sound >| 30) {\nif (triggered == false) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

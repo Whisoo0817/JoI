@@ -1,0 +1,100 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#Bathroom_Motion).motionSensor_motion == false) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 21) {\n(#Bathroom_Fan).switch_off()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 100, \"script\": \"hold_ticks := 0\\nif ((#Bathroom_Motion).motionSensor_motion == false) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 21) {\\n(#Bathroom_Fan).switch_off()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#Bathroom_Motion)"
+    ],
+    "Switch.Off": [
+      "(#Bathroom_Fan)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "욕실에 20초 이상 동작이 없으면 욕실 환풍기를 꺼줘.",
+  "command_eng": "If no motion is detected in the bathroom for at least 20 seconds, turn off the bathroom fan.",
+  "connected_devices": {
+    "Bathroom_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bathroom",
+        "MotionSensor"
+      ]
+    },
+    "Bathroom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Fan",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Hall_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "MotionSensor"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == false",
+        "edge": "none",
+        "for": "20 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "MotionSensor": [
+      "Bathroom_Motion"
+    ],
+    "Switch": [
+      "Bathroom_Fan"
+    ]
+  },
+  "input_payload_sha256": "7fcf999031d92794fa4568425d4e845e26f56ef66fcdeedd2692b8b1c26aa9c0",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

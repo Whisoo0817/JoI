@@ -1,0 +1,33 @@
+{
+ "id": "C08_020",
+ "request_sha256": "12ce984a855fd19dc6abdbf0803af6fc1e5ec40086175361b05c8b80895eeab4",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 281,
+   "prompt_tokens": 5797,
+   "total_tokens": 6078,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 9.797248601913452,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a periodic `if` to sample the rising edge condition, which fails to detect the transition if it occurs between script iterations. The IR requires a blocking wait for the rising edge (`wait(cond, edge rising)`) to ensure the action fires exactly at the moment the condition becomes true, regardless of the wrapper period.\",\n    \"changed_locations\": [\"script\"],\n    \"change_summary\": \"Replaced the periodic `if` guard with the required blocking two-wait rearming pattern: check if already fired, block until condition is false, block until condition is true, execute body, then mark fired. This preserves the rising-edge semantics and the 1 SEC cycle period.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 1000,\n    \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(all(#SoundSensor).soundSensor_sound <= 30)\\ntriggered = false\\n}\\nwait until(all(#SoundSensor).soundSensor_sound > 30)\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\ntriggered = true\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until(all(#SoundSensor).soundSensor_sound <= 30)\ntriggered = false\n}\nwait until(all(#SoundSensor).soundSensor_sound > 30)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\ntriggered = true"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a periodic `if` to sample the rising edge condition, which fails to detect the transition if it occurs between script iterations. The IR requires a blocking wait for the rising edge (`wait(cond, edge rising)`) to ensure the action fires exactly at the moment the condition becomes true, regardless of the wrapper period.",
+  "changed_locations": [
+   "script"
+  ],
+  "change_summary": "Replaced the periodic `if` guard with the required blocking two-wait rearming pattern: check if already fired, block until condition is false, block until condition is true, execute body, then mark fired. This preserves the rising-edge semantics and the 1 SEC cycle period."
+ },
+ "status": "REVISED"
+}

@@ -1,0 +1,101 @@
+{
+ "task": "repair_confirmed_timeline_ir_to_joi",
+ "immutable_specification": {
+  "timeline_ir": {
+   "timeline": [
+    {
+     "op": "start_at",
+     "anchor": "now"
+    },
+    {
+     "op": "cycle",
+     "until": null,
+     "period": "1 SEC",
+     "body": [
+      {
+       "op": "wait",
+       "cond": "MultiButton.Button2 == \"pushed\"",
+       "edge": "rising"
+      },
+      {
+       "op": "call",
+       "target": "Light.MoveToBrightness",
+       "args": {
+        "Brightness": "max($Light.CurrentBrightness - 10, 0)",
+        "Rate": 0.0
+       }
+      }
+     ]
+    }
+   ]
+  },
+  "binding_slots": {
+   "MultiButton": [
+    "Hall_MB"
+   ],
+   "Light": [
+    "Hall_Light"
+   ]
+  },
+  "device_inventory": {
+   "Hall_MB": {
+    "category": [
+     "MultiButton"
+    ],
+    "tags": [
+     "Hallway",
+     "MultiButton"
+    ]
+   },
+   "LR_MB": {
+    "category": [
+     "MultiButton"
+    ],
+    "tags": [
+     "LivingRoom",
+     "MultiButton"
+    ]
+   },
+   "Hall_Light": {
+    "category": [
+     "Light"
+    ],
+    "tags": [
+     "Hallway",
+     "Light"
+    ]
+   },
+   "LR_Light": {
+    "category": [
+     "Light"
+    ],
+    "tags": [
+     "LivingRoom",
+     "Light"
+    ]
+   }
+  }
+ },
+ "current_candidate": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif ((#Hall_MB).multiButton_button2 == \"pushed\") {\nif (triggered == false) {\ntmp = (#Hall_Light).light_currentBrightness - 10\n        if (tmp < 0) {\ntmp = 0\n}\n(#Hall_Light).light_moveToBrightness(tmp, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+ },
+ "verifier_result": {
+  "verdict": "not equivalent to the IR",
+  "detail": "withheld: no input history, no mismatching instant, no location"
+ },
+ "ir_timing_facts": [
+  {
+   "ir_node": "cycle(period 1 SEC)",
+   "period_ms": 1000,
+   "note": "period between completed bodies"
+  }
+ ],
+ "output_constraints": {
+  "format": "one JSON object only",
+  "preserve_name": "Scenario",
+  "complete_joi_block_required": true
+ }
+}

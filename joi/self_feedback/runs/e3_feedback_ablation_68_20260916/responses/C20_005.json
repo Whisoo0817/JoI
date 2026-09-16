@@ -1,0 +1,34 @@
+{
+ "id": "C20_005",
+ "request_sha256": "d76eb73597ea16bc500da804f45ef17e9b3342028ae2c8d250c31f89c4b7ecaa",
+ "model": {
+  "finish": "stop",
+  "usage": {
+   "completion_tokens": 305,
+   "prompt_tokens": 5782,
+   "total_tokens": 6087,
+   "completion_tokens_details": null,
+   "compute_units": null,
+   "prompt_tokens_details": null
+  },
+  "seconds": 12.758558750152588,
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "forced": false
+ },
+ "response": "{\n  \"diagnosis\": {\n    \"summary\": \"The candidate uses a 1000 ms wrapper period with a threshold of 60, which only counts 60 seconds. The IR requires a 1-minute (60000 ms) sustain window. With a 1000 ms wrapper, the condition must hold for 60 full iterations plus the initial one, requiring a threshold of 61. Additionally, the candidate's indentation and spacing are malformed.\",\n    \"changed_locations\": [\"period\", \"script\"],\n    \"change_summary\": \"Changed the wrapper period to 100 ms to ensure the sustain window is measured on a fine enough grid to detect drops and recoveries within the minute. Updated the hold threshold from 60 to 61 to correctly represent 60 seconds (600 ticks) plus the initial tick. Fixed script formatting.\"\n  },\n  \"joi_block\": {\n    \"name\": \"Scenario\",\n    \"cron\": \"\",\n    \"period\": 100,\n    \"script\": \"hold_ticks := 0\\nif ((#FrontContactSensor_ContactSensor).contactSensor_contact == true) {\\nhold_ticks = hold_ticks + 1\\nif (hold_ticks >= 61) {\\n(#LivingRoom_AC).switch_on()\\nbreak\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n  }\n}",
+ "repaired": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 100,
+  "script": "hold_ticks := 0\nif ((#FrontContactSensor_ContactSensor).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\nif (hold_ticks >= 61) {\n(#LivingRoom_AC).switch_on()\nbreak\n}\n}\nelse {\nhold_ticks = 0\n}"
+ },
+ "diagnosis": {
+  "summary": "The candidate uses a 1000 ms wrapper period with a threshold of 60, which only counts 60 seconds. The IR requires a 1-minute (60000 ms) sustain window. With a 1000 ms wrapper, the condition must hold for 60 full iterations plus the initial one, requiring a threshold of 61. Additionally, the candidate's indentation and spacing are malformed.",
+  "changed_locations": [
+   "period",
+   "script"
+  ],
+  "change_summary": "Changed the wrapper period to 100 ms to ensure the sustain window is measured on a fine enough grid to detect drops and recoveries within the minute. Updated the hold threshold from 60 to 61 to correctly represent 60 seconds (600 ticks) plus the initial tick. Fixed script formatting."
+ },
+ "status": "REVISED"
+}
