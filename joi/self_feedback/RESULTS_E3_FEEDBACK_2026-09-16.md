@@ -11,6 +11,11 @@ counterexample, how many does one counterexample-guided revision bring to EQUIV-
 
 ## Headline
 
+A second round on the cases still rejected here was run afterwards and is recorded in
+`RESULTS_E3_FEEDBACK_ROUND2_2026-09-16.md`: 40/68 after two rounds with the same prompt. Both
+numbers are carried to the write-up; the choice is made when the section is written.
+
+
 | final status | n |
 |---|---|
 | **EQUIV-FIXPOINT** | **36 / 68 (52.9 %)** |

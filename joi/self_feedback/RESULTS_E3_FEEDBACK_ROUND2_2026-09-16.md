@@ -1,5 +1,17 @@
 # E3 feedback, round 2 on the 26 still-rejected cases (2026-09-16)
 
+**Both numbers are carried to the write-up; which one the paper reports is decided when the section
+is written (whisoo, 2026-09-16).**
+
+| what | number | status |
+| --- | --- | --- |
+| round 1 only, one counterexample per case | 36 / 68 (52.9 %) | frozen, `protocol_e3_feedback_v1.json` |
+| rounds 1+2, same prompt throughout | 40 / 68 (58.8 %) | frozen, `protocol_e3_feedback_r2a.json` |
+| rounds 1+2 with the quantifier rules in round 2 | 42 / 68 (61.8 %) | exploratory, post-hoc, not reportable |
+
+Neither frozen number supersedes the other: round 1 answers "what does one counterexample do",
+rounds 1+2 answers "what does a second one add". Report one, or both as a two-row table.
+
 Round 1 (`protocol_e3_feedback_v1.json`, run `e3_feedback_68_20260916`) left 26 of 68 as
 DIVERGE_CONFIRMED, 5 as evaluator TIMEOUT and 1 as MODEL_ERROR. Only the 26 have a fresh confirmed
 counterexample, so only they are eligible for a second round. Cases that reached EQUIV-FIXPOINT in
