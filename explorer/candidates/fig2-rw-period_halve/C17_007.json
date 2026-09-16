@@ -1,0 +1,89 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 150000,
+  "script": "skip := false\nif (skip == false) {\n    if ((#Main_Charger).charger_chargingState == \"fullyCharged\") {\n    all(#Switch).switch_off()\n    }\n}\nskip = not (skip)"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 150000,\n  \"script\": \"skip := false\\nif (skip == false) {\\n    if ((#Main_Charger).charger_chargingState == \\\"fullyCharged\\\") {\\n    all(#Switch).switch_off()\\n    }\\n}\\nskip = not (skip)\"\n}",
+ "precision": {
+  "Charger.ChargingState": [
+   "(#Main_Charger)"
+  ],
+  "Switch.Off": [
+   "all(#Switch)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "5분마다 체크해서 충전기가 완충됐으면 충전기를 꺼줘.",
+ "command_eng": "Check every 5 minutes; if the charger is fully charged, turn it off.",
+ "connected_devices": {
+  "Main_Charger": {
+   "category": [
+    "Charger",
+    "Switch"
+   ],
+   "tags": [
+    "Main",
+    "Charger"
+   ]
+  },
+  "Garage_Charger": {
+   "category": [
+    "Charger",
+    "Switch"
+   ],
+   "tags": [
+    "Garage",
+    "Charger"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "5 MIN",
+    "body": [
+     {
+      "op": "if",
+      "cond": "Charger.ChargingState == \"fullyCharged\"",
+      "then": [
+       {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+       }
+      ],
+      "else": []
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "Charger": [
+   "Main_Charger"
+  ],
+  "Switch": [
+   "Main_Charger",
+   "Garage_Charger"
+  ]
+ },
+ "input_payload_sha256": "d8fcf474cfc256255a68539613aff8380a8b0341f51d06131723ac094475d1d5",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-period_halve",
+ "elapsed_sec": 2.1,
+ "rewrite": {
+  "type": "period_halve",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

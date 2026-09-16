@@ -1,0 +1,131 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 500,
+  "script": "skip := false\nif (skip == false) {\n    if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\n    (#Kitchen_Fan).switch_on()\n    }\n    else {\n    if ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n    (#Kitchen_Fan).switch_off()\n    }\n    }\n}\nskip = not (skip)"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 500,\n  \"script\": \"skip := false\\nif (skip == false) {\\n    if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\\n    (#Kitchen_Fan).switch_on()\\n    }\\n    else {\\n    if ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\\n    (#Kitchen_Fan).switch_off()\\n    }\\n    }\\n}\\nskip = not (skip)\"\n}",
+ "precision": {
+  "TemperatureSensor.Temperature": [
+   "(#Kitchen_TempSensor)"
+  ],
+  "Switch.On": [
+   "(#Kitchen_Fan)"
+  ],
+  "Switch.Off": [
+   "(#Kitchen_Fan)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132403_316.json",
+ "command_kor": "1초마다 부엌 온도가 32도 이상이면 부엌 환기팬 플러그를 켜고, 그렇지 않고 28도 이하이면 꺼줘.",
+ "command_eng": "Every 1 second, if the kitchen temperature is at least 32C, turn on the kitchen ventilation fan plug; otherwise if it is 28C or below, turn off the kitchen ventilation fan plug.",
+ "connected_devices": {
+  "Kitchen_TempSensor": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "Kitchen",
+    "TemperatureSensor"
+   ]
+  },
+  "LivingRoom_TempSensor": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "TemperatureSensor"
+   ]
+  },
+  "Kitchen_Fan": {
+   "category": [
+    "Plug",
+    "Switch"
+   ],
+   "tags": [
+    "Kitchen",
+    "Plug",
+    "Fan"
+   ]
+  },
+  "Bakery_Fan": {
+   "category": [
+    "Fan"
+   ],
+   "tags": [
+    "Bakery",
+    "Fan"
+   ]
+  },
+  "Garage_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Garage",
+    "DoorLock"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "1 SEC",
+    "body": [
+     {
+      "op": "if",
+      "cond": "TemperatureSensor.Temperature >= 32",
+      "then": [
+       {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+       }
+      ],
+      "else": [
+       {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature <= 28",
+        "then": [
+         {
+          "op": "call",
+          "target": "Switch.Off",
+          "args": {}
+         }
+        ],
+        "else": []
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "TemperatureSensor": [
+   "Kitchen_TempSensor"
+  ],
+  "Switch": [
+   "Kitchen_Fan"
+  ]
+ },
+ "input_payload_sha256": "2d6aea47543cb2db1bee9c97cede0a7c863307f142b7ea387faf3c906f07b280",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-period_halve",
+ "elapsed_sec": 2.1,
+ "rewrite": {
+  "type": "period_halve",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2"
+ }
+}

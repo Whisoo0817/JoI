@@ -24,6 +24,7 @@ TYPE_LABEL = OrderedDict([
     ("loop_unroll", ("UNR", "unroll a counted periodic loop")),
     ("phase_flag", ("PHS", "integer phase -> boolean flag with shared tail")),
     ("wait_precheck", ("WPC", "check the condition before blocking on it")),
+    ("period_halve", ("PHV", "halve the period, gate the body on a flag toggled every tick")),
 ])
 ABBR = {k: v[0] for k, v in TYPE_LABEL.items()}
 CONTROL_ABBR = "CTL"
