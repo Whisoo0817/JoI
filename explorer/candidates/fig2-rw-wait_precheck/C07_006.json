@@ -1,0 +1,103 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not (all(#SmokeDetector).smokeDetector_smoke ==| true)) {\n    wait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n}\nall(#Siren).siren_setSirenMode(\"fire\")"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not (all(#SmokeDetector).smokeDetector_smoke ==| true)) {\\n    wait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\\n}\\nall(#Siren).siren_setSirenMode(\\\"fire\\\")\"\n}",
+ "precision": {
+  "SmokeDetector.Smoke": [
+   "any(#SmokeDetector)"
+  ],
+  "Siren.SetSirenMode": [
+   "all(#Siren)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "연기가 감지되면 사이렌으로 화재경보를 울려줘.",
+ "command_eng": "When smoke is detected, sound the fire alarm with the siren.",
+ "connected_devices": {
+  "LivingRoom_SmokeDetector": {
+   "category": [
+    "SmokeDetector"
+   ],
+   "tags": [
+    "LivingRoom",
+    "SmokeDetector"
+   ]
+  },
+  "Kitchen_SmokeDetector": {
+   "category": [
+    "SmokeDetector"
+   ],
+   "tags": [
+    "Kitchen",
+    "SmokeDetector"
+   ]
+  },
+  "LivingRoom_Siren": {
+   "category": [
+    "Siren",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Siren"
+   ]
+  },
+  "Entrance_Siren": {
+   "category": [
+    "Siren",
+    "Switch"
+   ],
+   "tags": [
+    "Entrance",
+    "Siren"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "SmokeDetector.Smoke == true",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Siren.SetSirenMode",
+    "args": {
+     "Mode": "fire"
+    }
+   }
+  ]
+ },
+ "binding": {
+  "SmokeDetector": {
+   "any": [
+    "LivingRoom_SmokeDetector",
+    "Kitchen_SmokeDetector"
+   ]
+  },
+  "Siren": [
+   "LivingRoom_Siren",
+   "Entrance_Siren"
+  ]
+ },
+ "input_payload_sha256": "c532bb9826b88545f0f8bebefe6092d412acd6278e91351ce5720a80cf0e4080",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.3,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

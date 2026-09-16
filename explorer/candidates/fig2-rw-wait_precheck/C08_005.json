@@ -1,0 +1,98 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#Entrance_MB).multiButton_button1 == \"pushed\")) {\n    wait until((#Entrance_MB).multiButton_button1 == \"pushed\")\n}\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#Entrance_MB).multiButton_button1 == \\\"pushed\\\")) {\\n    wait until((#Entrance_MB).multiButton_button1 == \\\"pushed\\\")\\n}\\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)\"\n}",
+ "precision": {
+  "MultiButton.Button1": [
+   "(#Entrance_MB)"
+  ],
+  "Light.MoveToBrightness": [
+   "(#Entrance_Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "멀티버튼의 버튼1이 눌리면 현관 조명을 최대 밝기로 켜줘.",
+ "command_eng": "When button 1 of the multi-button is pressed, turn on the entrance light at maximum brightness.",
+ "connected_devices": {
+  "Entrance_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "Entrance",
+    "MultiButton"
+   ]
+  },
+  "Hall_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "Hallway",
+    "MultiButton"
+   ]
+  },
+  "Entrance_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Entrance",
+    "Light"
+   ]
+  },
+  "Hall_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Hallway",
+    "Light"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "MultiButton.Button1 == \"pushed\"",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Light.MoveToBrightness",
+    "args": {
+     "Brightness": 100.0,
+     "Rate": 0.0
+    }
+   }
+  ]
+ },
+ "binding": {
+  "MultiButton": [
+   "Entrance_MB"
+  ],
+  "Light": [
+   "Entrance_Light"
+  ]
+ },
+ "input_payload_sha256": "d01a68a3c616ab9dec1ca51ed8039a34e0e00d99f832e9a3dd64f55e1a2dc890",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

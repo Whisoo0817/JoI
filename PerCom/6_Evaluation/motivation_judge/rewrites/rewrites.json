@@ -7,9 +7,11 @@
   "time_unit": "spelling",
   "exists_spelling": "spelling",
   "branch_swap": "logic",
+  "else_split": "logic",
   "delay_split": "temporal",
   "loop_unroll": "temporal",
-  "phase_flag": "temporal"
+  "phase_flag": "temporal",
+  "wait_precheck": "temporal"
  },
  "groups": [
   {
@@ -411,6 +413,12 @@
      "cron": "",
      "period": 0,
      "script": "if (not ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 26)) {\n(#LivingRoom_AC).switch_off()\n} else {\n(#LivingRoom_AC).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 26) {\n(#LivingRoom_AC).switch_on()\n}\nif (not ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 26)) {\n(#LivingRoom_AC).switch_off()\n}"
     }
    }
   },
@@ -441,6 +449,12 @@
      "cron": "",
      "period": 0,
      "script": "brightness = (#Bedroom_LightSensor).lightSensor_brightness\nif (not (brightness <= 100)) {\n(#Bedroom_FloorLamp).switch_off()\n} else {\n(#Bedroom_FloorLamp).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "brightness = (#Bedroom_LightSensor).lightSensor_brightness\nif (brightness <= 100) {\n(#Bedroom_FloorLamp).switch_on()\n}\nif (not (brightness <= 100)) {\n(#Bedroom_FloorLamp).switch_off()\n}"
     }
    }
   },
@@ -465,6 +479,12 @@
      "cron": "",
      "period": 0,
      "script": "if (not ((#LivingRoom_PresenceSensor).presenceSensor_presence == true)) {\n(#LivingRoom_Light).switch_off()\n} else {\n(#LivingRoom_Light).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if ((#LivingRoom_PresenceSensor).presenceSensor_presence == true) {\n(#LivingRoom_Light).switch_on()\n}\nif (not ((#LivingRoom_PresenceSensor).presenceSensor_presence == true)) {\n(#LivingRoom_Light).switch_off()\n}"
     }
    }
   },
@@ -489,6 +509,12 @@
      "cron": "",
      "period": 0,
      "script": "if (not ((#Bedroom_ContactSensor).contactSensor_contact == false)) {\n(#Bedroom_AirPurifier).switch_on()\n} else {\n(#Bedroom_AirPurifier).switch_off()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if ((#Bedroom_ContactSensor).contactSensor_contact == false) {\n(#Bedroom_AirPurifier).switch_off()\n}\nif (not ((#Bedroom_ContactSensor).contactSensor_contact == false)) {\n(#Bedroom_AirPurifier).switch_on()\n}"
     }
    }
   },
@@ -1077,6 +1103,12 @@
      "cron": "",
      "period": 0,
      "script": "lux = (#LivingRoom_LightSensor).lightSensor_brightness\nif (not (lux <= 200)) {\nif (lux >= 500) {\n(#LivingRoom_Light).light_moveToBrightness(30.0, 0.0)\n}\nelse {\n(#LivingRoom_Light).light_moveToBrightness(60.0, 0.0)\n}\n} else {\n(#LivingRoom_Light).light_moveToBrightness(100.0, 0.0)\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "lux = (#LivingRoom_LightSensor).lightSensor_brightness\nif (lux <= 200) {\n(#LivingRoom_Light).light_moveToBrightness(100.0, 0.0)\n}\nif (not (lux <= 200)) {\nif (lux >= 500) {\n(#LivingRoom_Light).light_moveToBrightness(30.0, 0.0)\n}\nelse {\n(#LivingRoom_Light).light_moveToBrightness(60.0, 0.0)\n}\n}"
     }
    }
   },
@@ -1119,6 +1151,12 @@
      "cron": "",
      "period": 0,
      "script": "if (not ((#Bedroom_LightSensor).lightSensor_brightness <= 100)) {\nif ((#Bedroom_LightSensor).lightSensor_brightness <= 300) {\n(#Bedroom_Light).light_moveToBrightness(50.0, 0.0)\n}\nelse {\n(#Bedroom_Light).light_moveToBrightness(20.0, 0.0)\n}\n} else {\n(#Bedroom_Light).light_moveToBrightness(100.0, 0.0)\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if ((#Bedroom_LightSensor).lightSensor_brightness <= 100) {\n(#Bedroom_Light).light_moveToBrightness(100.0, 0.0)\n}\nif (not ((#Bedroom_LightSensor).lightSensor_brightness <= 100)) {\nif ((#Bedroom_LightSensor).lightSensor_brightness <= 300) {\n(#Bedroom_Light).light_moveToBrightness(50.0, 0.0)\n}\nelse {\n(#Bedroom_Light).light_moveToBrightness(20.0, 0.0)\n}\n}"
     }
    }
   },
@@ -1197,6 +1235,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(true == (#Entrance_Contact).contactSensor_contact)\nall(#Light).light_moveToBrightness(100.0, 0.0)"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Entrance_Contact).contactSensor_contact == true)) {\n    wait until((#Entrance_Contact).contactSensor_contact == true)\n}\nall(#Light).light_moveToBrightness(100.0, 0.0)"
     }
    }
   },
@@ -1215,6 +1259,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(true == (#LivingRoom_Presence).presenceSensor_presence)\nall(#Switch).switch_on()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#LivingRoom_Presence).presenceSensor_presence == true)) {\n    wait until((#LivingRoom_Presence).presenceSensor_presence == true)\n}\nall(#Switch).switch_on()"
     }
    }
   },
@@ -1233,6 +1283,30 @@
      "cron": "",
      "period": 0,
      "script": "wait until(50 < (#LivingRoom_Sound).soundSensor_sound)\nall(#Speaker).speaker_stop()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#LivingRoom_Sound).soundSensor_sound > 50)) {\n    wait until((#LivingRoom_Sound).soundSensor_sound > 50)\n}\nall(#Speaker).speaker_stop()"
+    }
+   }
+  },
+  {
+   "id": "C07_004",
+   "command": "When it rains, turn on the dehumidifier.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Home_WeatherProvider).weatherProvider_weather == \"rain\")\nall(#Switch).switch_on()"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Home_WeatherProvider).weatherProvider_weather == \"rain\")) {\n    wait until((#Home_WeatherProvider).weatherProvider_weather == \"rain\")\n}\nall(#Switch).switch_on()"
     }
    }
   },
@@ -1251,6 +1325,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(any(#CarbonDioxideSensor).carbonDioxideSensor_carbonDioxide >= 1000)\nall(#Siren).siren_setSirenMode(\"emergency\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#CarbonDioxideSensor).carbonDioxideSensor_carbonDioxide >=| 1000)) {\n    wait until(all(#CarbonDioxideSensor).carbonDioxideSensor_carbonDioxide >=| 1000)\n}\nall(#Siren).siren_setSirenMode(\"emergency\")"
     }
    }
   },
@@ -1269,6 +1349,30 @@
      "cron": "",
      "period": 0,
      "script": "wait until(any(#SmokeDetector).smokeDetector_smoke == true)\nall(#Siren).siren_setSirenMode(\"fire\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#SmokeDetector).smokeDetector_smoke ==| true)) {\n    wait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n}\nall(#Siren).siren_setSirenMode(\"fire\")"
+    }
+   }
+  },
+  {
+   "id": "C07_007",
+   "command": "When the button is pushed 3 times, open the valve.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#LivingRoom_Button).button_button == \"pushed_3x\")\nall(#Valve).valve_open()"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#LivingRoom_Button).button_button == \"pushed_3x\")) {\n    wait until((#LivingRoom_Button).button_button == \"pushed_3x\")\n}\nall(#Valve).valve_open()"
     }
    }
   },
@@ -1287,6 +1391,30 @@
      "cron": "",
      "period": 0,
      "script": "wait until(any(#TemperatureSensor).temperatureSensor_temperature >= 35)\nall(#AirConditioner).airConditioner_setTargetTemperature(30.0)"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#TemperatureSensor).temperatureSensor_temperature >=| 35)) {\n    wait until(all(#TemperatureSensor).temperatureSensor_temperature >=| 35)\n}\nall(#AirConditioner).airConditioner_setTargetTemperature(30.0)"
+    }
+   }
+  },
+  {
+   "id": "C07_009",
+   "command": "When the safe is unlocked, sound the police siren.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Study_DoorLock).doorLock_doorLockState == \"open\")\nall(#Siren).siren_setSirenMode(\"police\")"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Study_DoorLock).doorLock_doorLockState == \"open\")) {\n    wait until((#Study_DoorLock).doorLock_doorLockState == \"open\")\n}\nall(#Siren).siren_setSirenMode(\"police\")"
     }
    }
   },
@@ -1305,6 +1433,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(any(#LeakSensor).leakSensor_leakage == true)\nall(#Valve).valve_close()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#LeakSensor).leakSensor_leakage ==| true)) {\n    wait until(all(#LeakSensor).leakSensor_leakage ==| true)\n}\nall(#Valve).valve_close()"
     }
    }
   },
@@ -1323,6 +1457,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(any(#HumiditySensor).humiditySensor_humidity > 80)\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#HumiditySensor).humiditySensor_humidity >| 80)) {\n    wait until(all(#HumiditySensor).humiditySensor_humidity >| 80)\n}\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")"
     }
    }
   },
@@ -1341,6 +1481,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(any(#AirQualitySensor).airQualitySensor_veryFineDustLevel >= 35)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#AirQualitySensor).airQualitySensor_veryFineDustLevel >=| 35)) {\n    wait until(all(#AirQualitySensor).airQualitySensor_veryFineDustLevel >=| 35)\n}\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")"
     }
    }
   },
@@ -1359,6 +1505,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(250000 < (#Garage_Charger).charger_voltage)\nall(#Switch).switch_off()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Garage_Charger).charger_voltage > 250000)) {\n    wait until((#Garage_Charger).charger_voltage > 250000)\n}\nall(#Switch).switch_off()"
     }
    }
   },
@@ -1377,6 +1529,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(true == (#Bedroom_Motion).motionSensor_motion)\n(#Bedroom_AC).switch_on()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Bedroom_Motion).motionSensor_motion == true)) {\n    wait until((#Bedroom_Motion).motionSensor_motion == true)\n}\n(#Bedroom_AC).switch_on()"
     }
    }
   },
@@ -1395,6 +1553,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(true == (#Kitchen_Smoke).smokeDetector_smoke)\n(#Kitchen_Valve).valve_close()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Kitchen_Smoke).smokeDetector_smoke == true)) {\n    wait until((#Kitchen_Smoke).smokeDetector_smoke == true)\n}\n(#Kitchen_Valve).valve_close()"
     }
    }
   },
@@ -1413,6 +1577,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(30 <= (#Study_AQ).airQualitySensor_fineDustLevel)\n(#Study_AP).switch_on()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Study_AQ).airQualitySensor_fineDustLevel >= 30)) {\n    wait until((#Study_AQ).airQualitySensor_fineDustLevel >= 30)\n}\n(#Study_AP).switch_on()"
     }
    }
   },
@@ -1431,6 +1601,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(true == (#Basement_Leak).leakSensor_leakage)\n(#Main_Siren).siren_setSirenMode(\"emergency\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Basement_Leak).leakSensor_leakage == true)) {\n    wait until((#Basement_Leak).leakSensor_leakage == true)\n}\n(#Main_Siren).siren_setSirenMode(\"emergency\")"
     }
    }
   },
@@ -1449,6 +1625,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(false == (#Garage_ContactSensor).contactSensor_contact)\n(#Garage_Camera).camera_captureImage()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Garage_ContactSensor).contactSensor_contact == false)) {\n    wait until((#Garage_ContactSensor).contactSensor_contact == false)\n}\n(#Garage_Camera).camera_captureImage()"
     }
    }
   },
@@ -1467,6 +1649,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(40 < (#BabyRoom_SoundSensor).soundSensor_sound)\n(#LivingRoom_Speaker).speaker_speak(\"Noise detected in the baby room\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#BabyRoom_SoundSensor).soundSensor_sound > 40)) {\n    wait until((#BabyRoom_SoundSensor).soundSensor_sound > 40)\n}\n(#LivingRoom_Speaker).speaker_speak(\"Noise detected in the baby room\")"
     }
    }
   },
@@ -1485,6 +1673,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(5 >= (#LaundryRoom_Fan).fan_speed)\n(#LivingRoom_Speaker).speaker_speak(\"The fan has slowed down\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#LaundryRoom_Fan).fan_speed <= 5)) {\n    wait until((#LaundryRoom_Fan).fan_speed <= 5)\n}\n(#LivingRoom_Speaker).speaker_speak(\"The fan has slowed down\")"
     }
    }
   },
@@ -1503,6 +1697,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(25 <= (#Pantry_TemperatureSensor).temperatureSensor_temperature)\n(#Pantry_AirConditioner).switch_on()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Pantry_TemperatureSensor).temperatureSensor_temperature >= 25)) {\n    wait until((#Pantry_TemperatureSensor).temperatureSensor_temperature >= 25)\n}\n(#Pantry_AirConditioner).switch_on()"
     }
    }
   },
@@ -1521,6 +1721,30 @@
      "cron": "",
      "period": 0,
      "script": "wait until(70 < (#Bathroom_HumiditySensor).humiditySensor_humidity)\n(#Bathroom_Dehumidifier).dehumidifier_setDehumidifierMode(\"freezeProtection\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Bathroom_HumiditySensor).humiditySensor_humidity > 70)) {\n    wait until((#Bathroom_HumiditySensor).humiditySensor_humidity > 70)\n}\n(#Bathroom_Dehumidifier).dehumidifier_setDehumidifierMode(\"freezeProtection\")"
+    }
+   }
+  },
+  {
+   "id": "C07_023",
+   "command": "When the office button is pushed, turn on all humidifiers in office.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Office_Button).button_button == \"pushed\")\nall(#Switch).switch_on()"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Office_Button).button_button == \"pushed\")) {\n    wait until((#Office_Button).button_button == \"pushed\")\n}\nall(#Switch).switch_on()"
     }
    }
   },
@@ -1539,6 +1763,30 @@
      "cron": "",
      "period": 0,
      "script": "wait until(5000 <= (#ServerRoom_AirQualitySensor).airQualitySensor_carbonDioxide)\nall(#Siren).siren_setSirenMode(\"emergency\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#ServerRoom_AirQualitySensor).airQualitySensor_carbonDioxide >= 5000)) {\n    wait until((#ServerRoom_AirQualitySensor).airQualitySensor_carbonDioxide >= 5000)\n}\nall(#Siren).siren_setSirenMode(\"emergency\")"
+    }
+   }
+  },
+  {
+   "id": "C07_026",
+   "command": "When the bedroom shade button is pushed, lower the shade.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Bedroom_Shade_Button).button_button == \"pushed\")\n(#Bedroom_Shade).windowCovering_downOrClose()"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Bedroom_Shade_Button).button_button == \"pushed\")) {\n    wait until((#Bedroom_Shade_Button).button_button == \"pushed\")\n}\n(#Bedroom_Shade).windowCovering_downOrClose()"
     }
    }
   },
@@ -1651,6 +1899,150 @@
    }
   },
   {
+   "id": "C08_001",
+   "command": "When button 1 of the multi-button is pressed, turn on all lights in the bedroom.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Bedroom_MB).multiButton_button1 == \"pushed\")\nall(#Light).light_moveToBrightness(100.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Bedroom_MB).multiButton_button1 == \"pushed\")) {\n    wait until((#Bedroom_MB).multiButton_button1 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(100.0, 0.0)"
+    }
+   }
+  },
+  {
+   "id": "C08_002",
+   "command": "When button 2 of the multi-button is pressed, turn off all lights in the bedroom.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Bedroom_MB).multiButton_button2 == \"pushed\")\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Bedroom_MB).multiButton_button2 == \"pushed\")) {\n    wait until((#Bedroom_MB).multiButton_button2 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+    }
+   }
+  },
+  {
+   "id": "C08_003",
+   "command": "When button 3 of the multi-button is pressed, set all living room lights to 30% brightness.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#LR_MB).multiButton_button3 == \"pushed\")\nall(#Light).light_moveToBrightness(30.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#LR_MB).multiButton_button3 == \"pushed\")) {\n    wait until((#LR_MB).multiButton_button3 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(30.0, 0.0)"
+    }
+   }
+  },
+  {
+   "id": "C08_004",
+   "command": "When button 4 of the multi-button is pressed, set all living room lights to 100% brightness.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#LR_MB).multiButton_button4 == \"pushed\")\nall(#Light).light_moveToBrightness(100.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#LR_MB).multiButton_button4 == \"pushed\")) {\n    wait until((#LR_MB).multiButton_button4 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(100.0, 0.0)"
+    }
+   }
+  },
+  {
+   "id": "C08_005",
+   "command": "When button 1 of the multi-button is pressed, turn on the entrance light at maximum brightness.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Entrance_MB).multiButton_button1 == \"pushed\")\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Entrance_MB).multiButton_button1 == \"pushed\")) {\n    wait until((#Entrance_MB).multiButton_button1 == \"pushed\")\n}\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)"
+    }
+   }
+  },
+  {
+   "id": "C08_006",
+   "command": "When button 2 of the multi-button is pressed, turn off all lights in the hallway.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Hall_MB).multiButton_button2 == \"pushed\")\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Hall_MB).multiButton_button2 == \"pushed\")) {\n    wait until((#Hall_MB).multiButton_button2 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+    }
+   }
+  },
+  {
+   "id": "C08_007",
+   "command": "When button 3 of the multi-button is pressed, turn on all lights on floor 1.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#F1_MB).multiButton_button3 == \"pushed\")\nall(#Light).light_moveToBrightness(100.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#F1_MB).multiButton_button3 == \"pushed\")) {\n    wait until((#F1_MB).multiButton_button3 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(100.0, 0.0)"
+    }
+   }
+  },
+  {
+   "id": "C08_008",
+   "command": "When button 4 of the multi-button is pressed, turn off all lights on floor 1.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#F1_MB).multiButton_button4 == \"pushed\")\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#F1_MB).multiButton_button4 == \"pushed\")) {\n    wait until((#F1_MB).multiButton_button4 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+    }
+   }
+  },
+  {
    "id": "C08_009",
    "command": "When button 1 of the multi-button is pressed, turn on the entrance light and turn it off after 5 minutes.",
    "base": {
@@ -1671,6 +2063,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until((#Entrance_MB).multiButton_button1 == \"pushed\")\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)\ndelay(1 MIN)\ndelay(4 MIN)\n(#Entrance_Light).light_moveToBrightness(0.0, 0.0)"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Entrance_MB).multiButton_button1 == \"pushed\")) {\n    wait until((#Entrance_MB).multiButton_button1 == \"pushed\")\n}\n(#Entrance_Light).light_moveToBrightness(100.0, 0.0)\ndelay(5 MIN)\n(#Entrance_Light).light_moveToBrightness(0.0, 0.0)"
     }
    }
   },
@@ -1695,6 +2093,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until((#LR_MB).multiButton_button2 == \"pushed\")\nall(#Light).light_moveToBrightness(100.0, 0.0)\ndelay(1 MIN)\ndelay(29 MIN)\nall(#Light).light_moveToBrightness(30.0, 0.0)"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#LR_MB).multiButton_button2 == \"pushed\")) {\n    wait until((#LR_MB).multiButton_button2 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(100.0, 0.0)\ndelay(30 MIN)\nall(#Light).light_moveToBrightness(30.0, 0.0)"
     }
    }
   },
@@ -1713,6 +2117,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until((#Main_MB).multiButton_button3 == \"pushed\")\ndelay(60 MIN)\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Main_MB).multiButton_button3 == \"pushed\")) {\n    wait until((#Main_MB).multiButton_button3 == \"pushed\")\n}\ndelay(1 HOUR)\nall(#Light).light_moveToBrightness(0.0, 0.0)"
     }
    }
   },
@@ -1743,6 +2153,18 @@
      "cron": "",
      "period": 0,
      "script": "wait until((#Bedroom_MB).multiButton_button1 == \"pushed\")\ncurrent = (#Bedroom_Light).light_currentBrightness\nif (not (current >= 80)) {\n(#Bedroom_Light).light_moveToBrightness(80.0, 0.0)\n} else {\n(#Bedroom_Light).light_moveToBrightness(10.0, 0.0)\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "wait until((#Bedroom_MB).multiButton_button1 == \"pushed\")\ncurrent = (#Bedroom_Light).light_currentBrightness\nif (current >= 80) {\n(#Bedroom_Light).light_moveToBrightness(10.0, 0.0)\n}\nif (not (current >= 80)) {\n(#Bedroom_Light).light_moveToBrightness(80.0, 0.0)\n}"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Bedroom_MB).multiButton_button1 == \"pushed\")) {\n    wait until((#Bedroom_MB).multiButton_button1 == \"pushed\")\n}\ncurrent = (#Bedroom_Light).light_currentBrightness\nif (current >= 80) {\n(#Bedroom_Light).light_moveToBrightness(10.0, 0.0)\n}\nelse {\n(#Bedroom_Light).light_moveToBrightness(80.0, 0.0)\n}"
     }
    }
   },
@@ -1783,6 +2205,42 @@
    }
   },
   {
+   "id": "C08_016",
+   "command": "When button 3 of the multi-button is pressed, change all meeting room lights to blue.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#MR_MB).multiButton_button3 == \"pushed\")\nall(#Light).light_moveToColor(0.167, 0.04, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#MR_MB).multiButton_button3 == \"pushed\")) {\n    wait until((#MR_MB).multiButton_button3 == \"pushed\")\n}\nall(#Light).light_moveToColor(0.167, 0.04, 0.0)"
+    }
+   }
+  },
+  {
+   "id": "C08_017",
+   "command": "When button 4 of the multi-button is pressed, set all lights to night mode at 10% brightness.",
+   "base": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Main_MB).multiButton_button4 == \"pushed\")\nall(#Light).light_moveToColor(0.675, 0.322, 0.0)\nall(#Light).light_moveToBrightness(10.0, 0.0)"
+   },
+   "variants": {
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Main_MB).multiButton_button4 == \"pushed\")) {\n    wait until((#Main_MB).multiButton_button4 == \"pushed\")\n}\nall(#Light).light_moveToColor(0.675, 0.322, 0.0)\nall(#Light).light_moveToBrightness(10.0, 0.0)"
+    }
+   }
+  },
+  {
    "id": "C08_023",
    "command": "Each time the brightness level falls below 100 lux, turn on the light.",
    "base": {
@@ -1809,6 +2267,12 @@
      "cron": "",
      "period": 1000,
      "script": "triggered := false\nif (triggered == true) {\nwait until(not (any(#LightSensor).lightSensor_brightness < 100))\n    triggered = false\n}\nwait until(any(#LightSensor).lightSensor_brightness < 100)\nall(#Light).light_moveToBrightness(100.0, 0.0)\ntriggered = true"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "triggered := false\nif (triggered == true) {\nif (not (not (all(#LightSensor).lightSensor_brightness <| 100))) {\n    wait until(not (all(#LightSensor).lightSensor_brightness <| 100))\n}\n    triggered = false\n}\nwait until(all(#LightSensor).lightSensor_brightness <| 100)\nall(#Light).light_moveToBrightness(100.0, 0.0)\ntriggered = true"
     }
    }
   },
@@ -1839,6 +2303,12 @@
      "cron": "",
      "period": 1000,
      "script": "triggered := false\nif (triggered == true) {\nwait until(not (any(#AirQualitySensor).airQualitySensor_carbonDioxide >= 900))\n    triggered = false\n}\nwait until(any(#AirQualitySensor).airQualitySensor_carbonDioxide >= 900)\nall(#Valve).valve_close()\ntriggered = true"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "triggered := false\nif (triggered == true) {\nif (not (not (all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 900))) {\n    wait until(not (all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 900))\n}\n    triggered = false\n}\nwait until(all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 900)\nall(#Valve).valve_close()\ntriggered = true"
     }
    }
   },
@@ -1863,6 +2333,12 @@
      "cron": "",
      "period": 1000,
      "script": "triggered := false\nif (true == triggered) {\nwait until(not ((#LightSens).lightSensor_brightness < 200))\n    triggered = false\n}\nwait until((#LightSens).lightSensor_brightness < 200)\nall(#Light).light_moveToBrightness(100, 0)\ntriggered = true"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "triggered := false\nif (triggered == true) {\nif (not (not ((#LightSens).lightSensor_brightness < 200))) {\n    wait until(not ((#LightSens).lightSensor_brightness < 200))\n}\n    triggered = false\n}\nwait until((#LightSens).lightSensor_brightness < 200)\nall(#Light).light_moveToBrightness(100, 0)\ntriggered = true"
     }
    }
   },
@@ -2283,6 +2759,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(any(#PresenceSensor).presenceSensor_presence == true)\ndelay(1 MIN)\nall(#Camera).camera_captureImage()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#PresenceSensor).presenceSensor_presence ==| true)) {\n    wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\n}\ndelay(1 MIN)\nall(#Camera).camera_captureImage()"
     }
    }
   },
@@ -2301,6 +2783,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until((#Kitchen_Fan).fan_fanMode == \"high\")\ndelay(1 SEC)\ndelay(2 SEC)\n(#Kitchen_Fan).fan_setFanMode(\"low\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Kitchen_Fan).fan_fanMode == \"high\")) {\n    wait until((#Kitchen_Fan).fan_fanMode == \"high\")\n}\ndelay(3 SEC)\n(#Kitchen_Fan).fan_setFanMode(\"low\")"
     }
    }
   },
@@ -2319,6 +2807,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until((#Home_WeatherProvider).weatherProvider_weather == \"rain\")\n(#Back_Window).windowCovering_downOrClose()\ndelay(60 MIN)\nif ((#Home_WeatherProvider).weatherProvider_weather != \"rain\") {\n(#Back_Window).windowCovering_upOrOpen()\n}"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Home_WeatherProvider).weatherProvider_weather == \"rain\")) {\n    wait until((#Home_WeatherProvider).weatherProvider_weather == \"rain\")\n}\n(#Back_Window).windowCovering_downOrClose()\ndelay(1 HOUR)\nif ((#Home_WeatherProvider).weatherProvider_weather != \"rain\") {\n(#Back_Window).windowCovering_upOrOpen()\n}"
     }
    }
   },
@@ -2343,6 +2837,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\ndelay(1 SEC)\ndelay(9 SEC)\nall(#Siren).siren_setSirenMode(\"emergency\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#PresenceSensor).presenceSensor_presence ==| true)) {\n    wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\n}\ndelay(10 SEC)\nall(#Siren).siren_setSirenMode(\"emergency\")"
     }
    }
   },
@@ -2373,6 +2873,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until((#Hallway_Light_1).light_currentBrightness > 0)\ndelay(1 MIN)\ndelay(4 MIN)\n(#Hallway_Light_1).light_moveToBrightness(0.0, 0.0)"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not ((#Hallway_Light_1).light_currentBrightness > 0)) {\n    wait until((#Hallway_Light_1).light_currentBrightness > 0)\n}\ndelay(5 MIN)\n(#Hallway_Light_1).light_moveToBrightness(0.0, 0.0)"
     }
    }
   },
@@ -2403,6 +2909,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(all(#AirPurifier).airPurifier_airPurifierMode ==| \"sleep\")\ndelay(1 MIN)\ndelay(9 MIN)\n(#Office_Light).light_moveToBrightness(0.0, 0.0)"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#AirPurifier).airPurifier_airPurifierMode ==| \"sleep\")) {\n    wait until(all(#AirPurifier).airPurifier_airPurifierMode ==| \"sleep\")\n}\ndelay(10 MIN)\n(#Office_Light).light_moveToBrightness(0.0, 0.0)"
     }
    }
   },
@@ -2427,6 +2939,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(all(#LightSensor).lightSensor_brightness >=| 100)\ndelay(1 SEC)\ndelay(4 SEC)\nall(#WindowCovering).windowCovering_upOrOpen()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#LightSensor).lightSensor_brightness >=| 100)) {\n    wait until(all(#LightSensor).lightSensor_brightness >=| 100)\n}\ndelay(5 SEC)\nall(#WindowCovering).windowCovering_upOrOpen()"
     }
    }
   },
@@ -2451,6 +2969,12 @@
      "cron": "",
      "period": 0,
      "script": "wait until(any(#TemperatureSensor).temperatureSensor_temperature >= 30)\ndelay(1 MIN)\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 0,
+     "script": "if (not (all(#TemperatureSensor).temperatureSensor_temperature >=| 30)) {\n    wait until(all(#TemperatureSensor).temperatureSensor_temperature >=| 30)\n}\ndelay(1 MIN)\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")"
     }
    }
   },
@@ -2554,11 +3078,23 @@
      "period": 60000,
      "script": "phase := 0\nif (not (phase == 0)) {\nall(#Speaker).speaker_speak(\"Welcome\")\n} else {\nwait until(all(#ContactSensor).contactSensor_contact ==| false)\n    phase = 1\n    all(#Speaker).speaker_speak(\"Welcome\")\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 60000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until(all(#ContactSensor).contactSensor_contact ==| false)\n    phase = 1\n    all(#Speaker).speaker_speak(\"Welcome\")\n}\nif (not (phase == 0)) {\nall(#Speaker).speaker_speak(\"Welcome\")\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 60000,
      "script": "started := false\nif (started == false) {\n    wait until(all(#ContactSensor).contactSensor_contact ==| false)\n    started = true\n}\nall(#Speaker).speaker_speak(\"Welcome\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 60000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not (all(#ContactSensor).contactSensor_contact ==| false)) {\n    wait until(all(#ContactSensor).contactSensor_contact ==| false)\n}\n    phase = 1\n    all(#Speaker).speaker_speak(\"Welcome\")\n}\nelse {\nall(#Speaker).speaker_speak(\"Welcome\")\n}"
     }
    }
   },
@@ -2596,11 +3132,23 @@
      "period": 10000,
      "script": "phase := 0\nif (not (phase == 0)) {\nall(#Siren).siren_setSirenMode(\"police\")\n} else {\nwait until(all(#ContactSensor).contactSensor_contact ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"police\")\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 10000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until(all(#ContactSensor).contactSensor_contact ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"police\")\n}\nif (not (phase == 0)) {\nall(#Siren).siren_setSirenMode(\"police\")\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 10000,
      "script": "started := false\nif (started == false) {\n    wait until(all(#ContactSensor).contactSensor_contact ==| true)\n    started = true\n}\nall(#Siren).siren_setSirenMode(\"police\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 10000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not (all(#ContactSensor).contactSensor_contact ==| true)) {\n    wait until(all(#ContactSensor).contactSensor_contact ==| true)\n}\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"police\")\n}\nelse {\nall(#Siren).siren_setSirenMode(\"police\")\n}"
     }
    }
   },
@@ -2632,11 +3180,23 @@
      "period": 300000,
      "script": "phase := 0\nif (not (phase == 0)) {\nif ((#Main_DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}\n} else {\nwait until((#Entrance_ContactSensor).contactSensor_contact == false)\n    phase = 1\n    if ((#Main_DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 300000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until((#Entrance_ContactSensor).contactSensor_contact == false)\n    phase = 1\n    if ((#Main_DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}\n}\nif (not (phase == 0)) {\nif ((#Main_DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 300000,
      "script": "started := false\nif (started == false) {\n    wait until((#Entrance_ContactSensor).contactSensor_contact == false)\n    started = true\n}\nif ((#Main_DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 300000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not ((#Entrance_ContactSensor).contactSensor_contact == false)) {\n    wait until((#Entrance_ContactSensor).contactSensor_contact == false)\n}\n    phase = 1\n    if ((#Main_DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}\n}\nelse {\nif ((#Main_DoorLock).doorLock_doorLockState != \"closed\") {\nall(#Speaker).speaker_speak(\"The safe is open\")\n}\n}"
     }
    }
   },
@@ -2674,6 +3234,12 @@
      "period": 60000,
      "script": "phase := 0\nif (not (phase == 0)) {\nall(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()\n} else {\nwait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 60000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()\n}\nif (not (phase == 0)) {\nall(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()\n}"
+    },
     "delay_split": {
      "name": "Scenario",
      "cron": "",
@@ -2685,6 +3251,12 @@
      "cron": "",
      "period": 60000,
      "script": "started := false\nif (started == false) {\n    wait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n    started = true\n}\nall(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 60000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not (all(#SmokeDetector).smokeDetector_smoke ==| true)) {\n    wait until(all(#SmokeDetector).smokeDetector_smoke ==| true)\n}\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()\n}\nelse {\nall(#Siren).siren_setSirenMode(\"emergency\")\n    delay(5 SEC)\nall(#Switch).switch_off()\n}"
     }
    }
   },
@@ -2716,11 +3288,23 @@
      "period": 1800000,
      "script": "phase := 0\nif (not (phase == 0)) {\nall(#Speaker).speaker_speak(\"The charging voltage is low\")\n} else {\nwait until((#Main_Charger).charger_voltage <= 4000)\n    phase = 1\n    all(#Speaker).speaker_speak(\"The charging voltage is low\")\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until((#Main_Charger).charger_voltage <= 4000)\n    phase = 1\n    all(#Speaker).speaker_speak(\"The charging voltage is low\")\n}\nif (not (phase == 0)) {\nall(#Speaker).speaker_speak(\"The charging voltage is low\")\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 1800000,
      "script": "started := false\nif (started == false) {\n    wait until((#Main_Charger).charger_voltage <= 4000)\n    started = true\n}\nall(#Speaker).speaker_speak(\"The charging voltage is low\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not ((#Main_Charger).charger_voltage <= 4000)) {\n    wait until((#Main_Charger).charger_voltage <= 4000)\n}\n    phase = 1\n    all(#Speaker).speaker_speak(\"The charging voltage is low\")\n}\nelse {\nall(#Speaker).speaker_speak(\"The charging voltage is low\")\n}"
     }
    }
   },
@@ -2752,11 +3336,23 @@
      "period": 600000,
      "script": "phase := 0\nif (not (phase == 0)) {\nall(#Speaker).speaker_speak(\"Please check the fan\")\n} else {\nwait until((#Main_Fan).fan_speed == 0)\n    phase = 1\n    all(#Speaker).speaker_speak(\"Please check the fan\")\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 600000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until((#Main_Fan).fan_speed == 0)\n    phase = 1\n    all(#Speaker).speaker_speak(\"Please check the fan\")\n}\nif (not (phase == 0)) {\nall(#Speaker).speaker_speak(\"Please check the fan\")\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 600000,
      "script": "started := false\nif (started == false) {\n    wait until((#Main_Fan).fan_speed == 0)\n    started = true\n}\nall(#Speaker).speaker_speak(\"Please check the fan\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 600000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not ((#Main_Fan).fan_speed == 0)) {\n    wait until((#Main_Fan).fan_speed == 0)\n}\n    phase = 1\n    all(#Speaker).speaker_speak(\"Please check the fan\")\n}\nelse {\nall(#Speaker).speaker_speak(\"Please check the fan\")\n}"
     }
    }
   },
@@ -2794,11 +3390,23 @@
      "period": 10000,
      "script": "phase := 0\nif (not (phase == 0)) {\nall(#Camera).camera_captureImage()\n} else {\nwait until(all(#MotionSensor).motionSensor_motion ==| true)\n    phase = 1\n    all(#Camera).camera_captureImage()\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 10000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until(all(#MotionSensor).motionSensor_motion ==| true)\n    phase = 1\n    all(#Camera).camera_captureImage()\n}\nif (not (phase == 0)) {\nall(#Camera).camera_captureImage()\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 10000,
      "script": "started := false\nif (started == false) {\n    wait until(all(#MotionSensor).motionSensor_motion ==| true)\n    started = true\n}\nall(#Camera).camera_captureImage()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 10000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not (all(#MotionSensor).motionSensor_motion ==| true)) {\n    wait until(all(#MotionSensor).motionSensor_motion ==| true)\n}\n    phase = 1\n    all(#Camera).camera_captureImage()\n}\nelse {\nall(#Camera).camera_captureImage()\n}"
     }
    }
   },
@@ -2830,11 +3438,23 @@
      "period": 10000,
      "script": "phase := 0\nif (not (phase == 0)) {\n(#P_Speaker).speaker_speak(\"CO2 level danger\")\n} else {\nwait until((#P_AQ).airQualitySensor_carbonDioxide > 880)\n    phase = 1\n    (#P_Speaker).speaker_speak(\"CO2 level danger\")\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 10000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until((#P_AQ).airQualitySensor_carbonDioxide > 880)\n    phase = 1\n    (#P_Speaker).speaker_speak(\"CO2 level danger\")\n}\nif (not (phase == 0)) {\n(#P_Speaker).speaker_speak(\"CO2 level danger\")\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 10000,
      "script": "started := false\nif (started == false) {\n    wait until((#P_AQ).airQualitySensor_carbonDioxide > 880)\n    started = true\n}\n(#P_Speaker).speaker_speak(\"CO2 level danger\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 10000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not ((#P_AQ).airQualitySensor_carbonDioxide > 880)) {\n    wait until((#P_AQ).airQualitySensor_carbonDioxide > 880)\n}\n    phase = 1\n    (#P_Speaker).speaker_speak(\"CO2 level danger\")\n}\nelse {\n(#P_Speaker).speaker_speak(\"CO2 level danger\")\n}"
     }
    }
   },
@@ -2872,6 +3492,12 @@
      "period": 60000,
      "script": "phase := 0\nif (not (phase == 0)) {\n(#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()\n} else {\nwait until(all(#PresenceSensor).presenceSensor_presence ==| true)\n    phase = 1\n    (#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 60000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until(all(#PresenceSensor).presenceSensor_presence ==| true)\n    phase = 1\n    (#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()\n}\nif (not (phase == 0)) {\n(#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()\n}"
+    },
     "delay_split": {
      "name": "Scenario",
      "cron": "",
@@ -2883,6 +3509,12 @@
      "cron": "",
      "period": 60000,
      "script": "started := false\nif (started == false) {\n    wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\n    started = true\n}\n(#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 60000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not (all(#PresenceSensor).presenceSensor_presence ==| true)) {\n    wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\n}\n    phase = 1\n    (#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()\n}\nelse {\n(#F1_Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\n(#F1_Siren).switch_off()\n}"
     }
    }
   },
@@ -2914,11 +3546,23 @@
      "period": 30000,
      "script": "phase := 0\nif (not (phase == 0)) {\n(#Lobby_Cam).camera_captureImage()\n} else {\nwait until((#Lobby_Mot).motionSensor_motion == true)\n    phase = 1\n    (#Lobby_Cam).camera_captureImage()\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 30000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until((#Lobby_Mot).motionSensor_motion == true)\n    phase = 1\n    (#Lobby_Cam).camera_captureImage()\n}\nif (not (phase == 0)) {\n(#Lobby_Cam).camera_captureImage()\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 30000,
      "script": "started := false\nif (started == false) {\n    wait until((#Lobby_Mot).motionSensor_motion == true)\n    started = true\n}\n(#Lobby_Cam).camera_captureImage()"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 30000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not ((#Lobby_Mot).motionSensor_motion == true)) {\n    wait until((#Lobby_Mot).motionSensor_motion == true)\n}\n    phase = 1\n    (#Lobby_Cam).camera_captureImage()\n}\nelse {\n(#Lobby_Cam).camera_captureImage()\n}"
     }
    }
   },
@@ -2950,11 +3594,23 @@
      "period": 10000,
      "script": "phase := 0\nif (not (phase == 0)) {\n(#LR_Speaker).speaker_speak(\"Fire outbreak\")\n} else {\nwait until((#K_Smoke).smokeDetector_smoke == true)\n    phase = 1\n    (#LR_Speaker).speaker_speak(\"Fire outbreak\")\n}"
     },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 10000,
+     "script": "phase := 0\nif (phase == 0) {\nwait until((#K_Smoke).smokeDetector_smoke == true)\n    phase = 1\n    (#LR_Speaker).speaker_speak(\"Fire outbreak\")\n}\nif (not (phase == 0)) {\n(#LR_Speaker).speaker_speak(\"Fire outbreak\")\n}"
+    },
     "phase_flag": {
      "name": "Scenario",
      "cron": "",
      "period": 10000,
      "script": "started := false\nif (started == false) {\n    wait until((#K_Smoke).smokeDetector_smoke == true)\n    started = true\n}\n(#LR_Speaker).speaker_speak(\"Fire outbreak\")"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 10000,
+     "script": "phase := 0\nif (phase == 0) {\nif (not ((#K_Smoke).smokeDetector_smoke == true)) {\n    wait until((#K_Smoke).smokeDetector_smoke == true)\n}\n    phase = 1\n    (#LR_Speaker).speaker_speak(\"Fire outbreak\")\n}\nelse {\n(#LR_Speaker).speaker_speak(\"Fire outbreak\")\n}"
     }
    }
   },
@@ -2985,6 +3641,12 @@
      "cron": "",
      "period": 3600000,
      "script": "n := 0\nif (not (n % 2 == 0)) {\nall(#Valve).valve_close()\n} else {\nall(#Valve).valve_open()\n}\nn = n + 1"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 3600000,
+     "script": "n := 0\nif (n % 2 == 0) {\nall(#Valve).valve_open()\n}\nif (not (n % 2 == 0)) {\nall(#Valve).valve_close()\n}\nn = n + 1"
     }
    }
   },
@@ -3015,6 +3677,12 @@
      "cron": "",
      "period": 1800000,
      "script": "n := 0\nif (not (n % 2 == 0)) {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n} else {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nn = n + 1"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "n := 0\nif (n % 2 == 0) {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nif (not (n % 2 == 0)) {\n(#LivingRoom_AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n}\nn = n + 1"
     }
    }
   },
@@ -3045,6 +3713,12 @@
      "cron": "",
      "period": 600000,
      "script": "n := 0\nif (not (n % 2 == 0)) {\nall(#WindowCovering).windowCovering_downOrClose()\n} else {\nall(#WindowCovering).windowCovering_upOrOpen()\n}\nn = n + 1"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 600000,
+     "script": "n := 0\nif (n % 2 == 0) {\nall(#WindowCovering).windowCovering_upOrOpen()\n}\nif (not (n % 2 == 0)) {\nall(#WindowCovering).windowCovering_downOrClose()\n}\nn = n + 1"
     }
    }
   },
@@ -3075,6 +3749,12 @@
      "cron": "",
      "period": 1800000,
      "script": "n := 0\nif (not (n % 2 == 0)) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n} else {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nn = n + 1"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "n := 0\nif (n % 2 == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nif (not (n % 2 == 0)) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nn = n + 1"
     }
    }
   },
@@ -3105,6 +3785,12 @@
      "cron": "",
      "period": 3600000,
      "script": "n := 0\nif (not (n % 2 == 0)) {\n(#LR_Blind).windowCovering_downOrClose()\n} else {\n(#LR_Blind).windowCovering_upOrOpen()\n}\nn = n + 1"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 3600000,
+     "script": "n := 0\nif (n % 2 == 0) {\n(#LR_Blind).windowCovering_upOrOpen()\n}\nif (not (n % 2 == 0)) {\n(#LR_Blind).windowCovering_downOrClose()\n}\nn = n + 1"
     }
    }
   },
@@ -3135,6 +3821,12 @@
      "cron": "",
      "period": 7200000,
      "script": "n := 0\nif (not (n % 2 == 0)) {\n(#BR_Win).windowCovering_downOrClose()\n} else {\n(#BR_Win).windowCovering_upOrOpen()\n}\nn = n + 1"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 7200000,
+     "script": "n := 0\nif (n % 2 == 0) {\n(#BR_Win).windowCovering_upOrOpen()\n}\nif (not (n % 2 == 0)) {\n(#BR_Win).windowCovering_downOrClose()\n}\nn = n + 1"
     }
    }
   },
@@ -3165,6 +3857,12 @@
      "cron": "",
      "period": 3600000,
      "script": "n := 0\nif (not (n % 2 == 0)) {\n(#MR_AC).airConditioner_setTargetTemperature(20.0)\n} else {\n(#MR_AC).airConditioner_setTargetTemperature(25.0)\n}\nn = n + 1"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 3600000,
+     "script": "n := 0\nif (n % 2 == 0) {\n(#MR_AC).airConditioner_setTargetTemperature(25.0)\n}\nif (not (n % 2 == 0)) {\n(#MR_AC).airConditioner_setTargetTemperature(20.0)\n}\nn = n + 1"
     }
    }
   },
@@ -3441,6 +4139,12 @@
      "cron": "",
      "period": 1800000,
      "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (not (temp >= 20 and temp < 30)) {\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\n} else {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 20 and temp < 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")\n}\nif (not (temp >= 20 and temp < 30)) {\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\n}"
     }
    }
   },
@@ -3471,6 +4175,12 @@
      "cron": "",
      "period": 1800000,
      "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (not (temp >= 30)) {\nif (temp < 23) {\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n} else {\nall(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1800000,
+     "script": "temp = (#Living_Temp).temperatureSensor_temperature\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}\nif (not (temp >= 30)) {\nif (temp < 23) {\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n}"
     }
    }
   },
@@ -3495,6 +4205,12 @@
      "cron": "",
      "period": 600000,
      "script": "if (not (all(#HumiditySensor).humiditySensor_humidity >=| 50)) {\nif (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\nall(#Switch).switch_on()\nall(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n}\n} else {\nall(#Switch).switch_off()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 600000,
+     "script": "if (all(#HumiditySensor).humiditySensor_humidity >=| 50) {\nall(#Switch).switch_off()\n}\nif (not (all(#HumiditySensor).humiditySensor_humidity >=| 50)) {\nif (all(#HumiditySensor).humiditySensor_humidity <=| 20) {\nall(#Switch).switch_on()\nall(#Humidifier).humidifier_setHumidifierMode(\"auto\")\n}\n}"
     }
    }
   },
@@ -3525,6 +4241,12 @@
      "cron": "",
      "period": 3600000,
      "script": "fd = (#Living_AQ).airQualitySensor_fineDustLevel\nif (not (fd >= 200)) {\nif (fd <= 100) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"low\")\n}\n} else {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 3600000,
+     "script": "fd = (#Living_AQ).airQualitySensor_fineDustLevel\nif (fd >= 200) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nif (not (fd >= 200)) {\nif (fd <= 100) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"low\")\n}\n}"
     }
    }
   },
@@ -3591,6 +4313,12 @@
      "cron": "",
      "period": 900000,
      "script": "temp = (#Inside_TemperatureSensor).temperatureSensor_temperature\nif (not (temp >= 25)) {\nall(#Switch).switch_off()\n} else {\nall(#Switch).switch_on()\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 900000,
+     "script": "temp = (#Inside_TemperatureSensor).temperatureSensor_temperature\nif (temp >= 25) {\nall(#Switch).switch_on()\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\nif (not (temp >= 25)) {\nall(#Switch).switch_off()\n}"
     }
    }
   },
@@ -3729,6 +4457,12 @@
      "cron": "0 22 * * *",
      "period": 0,
      "script": "wait until(any(#MotionSensor).motionSensor_motion == true or (#Clock).clock_hour >= 23)\nif ((#Clock).clock_hour >= 23) {\nall(#DoorLock).doorLock_lock()\n}"
+    },
+    "wait_precheck": {
+     "name": "Scenario",
+     "cron": "0 22 * * *",
+     "period": 0,
+     "script": "if (not (all(#MotionSensor).motionSensor_motion ==| true or (#Clock).clock_hour >= 23)) {\n    wait until(all(#MotionSensor).motionSensor_motion ==| true or (#Clock).clock_hour >= 23)\n}\nif ((#Clock).clock_hour >= 23) {\nall(#DoorLock).doorLock_lock()\n}"
     }
    }
   },
@@ -3807,6 +4541,12 @@
      "cron": "",
      "period": 1000,
      "script": "if (not ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 28)) {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 25) {\n(#LivingRoom_AC).switch_off()\n}\n} else {\n(#LivingRoom_AC).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 28) {\n(#LivingRoom_AC).switch_on()\n}\nif (not ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 28)) {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 25) {\n(#LivingRoom_AC).switch_off()\n}\n}"
     }
    }
   },
@@ -3831,6 +4571,12 @@
      "cron": "",
      "period": 1000,
      "script": "if (not ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70)) {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n(#LivingRoom_Dehumidifier).switch_off()\n}\n} else {\n(#LivingRoom_Dehumidifier).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70) {\n(#LivingRoom_Dehumidifier).switch_on()\n}\nif (not ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70)) {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n(#LivingRoom_Dehumidifier).switch_off()\n}\n}"
     }
    }
   },
@@ -3855,6 +4601,12 @@
      "cron": "",
      "period": 1000,
      "script": "if (not ((#LivingRoom_LightSensor).lightSensor_brightness <= 200)) {\nif ((#LivingRoom_LightSensor).lightSensor_brightness >= 500) {\n(#LivingRoom_Lamp).switch_off()\n}\n} else {\n(#LivingRoom_Lamp).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "if ((#LivingRoom_LightSensor).lightSensor_brightness <= 200) {\n(#LivingRoom_Lamp).switch_on()\n}\nif (not ((#LivingRoom_LightSensor).lightSensor_brightness <= 200)) {\nif ((#LivingRoom_LightSensor).lightSensor_brightness >= 500) {\n(#LivingRoom_Lamp).switch_off()\n}\n}"
     }
    }
   },
@@ -3879,6 +4631,12 @@
      "cron": "",
      "period": 1000,
      "script": "if (not ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18)) {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n(#LivingRoom_Heater).switch_off()\n}\n} else {\n(#LivingRoom_Heater).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18) {\n(#LivingRoom_Heater).switch_on()\n}\nif (not ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18)) {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n(#LivingRoom_Heater).switch_off()\n}\n}"
     }
    }
   },
@@ -3903,6 +4661,12 @@
      "cron": "",
      "period": 1000,
      "script": "if (not ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30)) {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 55) {\n(#LivingRoom_Humidifier).switch_off()\n}\n} else {\n(#LivingRoom_Humidifier).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30) {\n(#LivingRoom_Humidifier).switch_on()\n}\nif (not ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 30)) {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 55) {\n(#LivingRoom_Humidifier).switch_off()\n}\n}"
     }
    }
   },
@@ -3927,6 +4691,12 @@
      "cron": "",
      "period": 1000,
      "script": "if (not ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26)) {\nif ((#Bedroom_TempSensor).temperatureSensor_temperature <= 23) {\n(#Bedroom_Fan).switch_off()\n}\n} else {\n(#Bedroom_Fan).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "if ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26) {\n(#Bedroom_Fan).switch_on()\n}\nif (not ((#Bedroom_TempSensor).temperatureSensor_temperature >= 26)) {\nif ((#Bedroom_TempSensor).temperatureSensor_temperature <= 23) {\n(#Bedroom_Fan).switch_off()\n}\n}"
     }
    }
   },
@@ -3951,6 +4721,12 @@
      "cron": "",
      "period": 1000,
      "script": "if (not ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32)) {\nif ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n(#Kitchen_Fan).switch_off()\n}\n} else {\n(#Kitchen_Fan).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32) {\n(#Kitchen_Fan).switch_on()\n}\nif (not ((#Kitchen_TempSensor).temperatureSensor_temperature >= 32)) {\nif ((#Kitchen_TempSensor).temperatureSensor_temperature <= 28) {\n(#Kitchen_Fan).switch_off()\n}\n}"
     }
    }
   },
@@ -3975,6 +4751,12 @@
      "cron": "",
      "period": 1000,
      "script": "if (not ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75)) {\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n(#Bathroom_Fan).switch_off()\n}\n} else {\n(#Bathroom_Fan).switch_on()\n}"
+    },
+    "else_split": {
+     "name": "Scenario",
+     "cron": "",
+     "period": 1000,
+     "script": "if ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75) {\n(#Bathroom_Fan).switch_on()\n}\nif (not ((#Bathroom_HumiditySensor).humiditySensor_humidity >= 75)) {\nif ((#Bathroom_HumiditySensor).humiditySensor_humidity <= 55) {\n(#Bathroom_Fan).switch_off()\n}\n}"
     }
    }
   },

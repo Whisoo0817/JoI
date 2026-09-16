@@ -14,9 +14,12 @@ Rewrite types (band / name / what changes / what must not change):
   spelling  time_unit         `delay(3 MIN)` -> `delay(180 SEC)`             duration
   spelling  exists_spelling   `all(#X).a ==| v` -> `any(#X).a == v`         quantifier meaning
   logic     branch_swap       if (C) {A} else {B} -> if (not (C)) {B} else {A}
+  logic     else_split        if (C) {A} else {B} -> if (C) {A}; if (not (C)) {B}   (else removed;
+                                      unsound when A writes a variable C reads -- checker drops those)
   temporal  delay_split       `delay(N U)` -> `delay(1 U)` + `delay(N-1 U)`  total wait
   temporal  loop_unroll       counted periodic cycle -> straight-line body/delay/body...
   temporal  phase_flag        `phase := 0` integer lifecycle -> boolean `started` flag + shared tail
+  temporal  wait_precheck     `wait until(C)` -> `if (not (C)) { wait until(C) }`   (check, then block)
 """
 import json
 import os
@@ -140,6 +143,25 @@ def t_branch_swap(s):
     return s[:i] + f"if (not ({cond.strip()})) {{{b}}} else {{{a}}}" + s[j:]
 
 
+def t_else_split(s):
+    """Drop the else by guarding the second half with the negated condition.
+
+    This is NOT unconditionally behavior-preserving: the then-branch now runs between the two
+    tests, so if it assigns a variable the condition reads, the second test sees a different
+    value. 11 of the 38 rewrites this produces are DIVERGE_CONFIRMED for exactly that reason and
+    the frozen evaluator drops them; only the 27 it certifies become pairs. Generating a
+    candidate that the checker may reject is the intended division of labour here -- the
+    transform proposes, the checker decides.
+    """
+    r = _first_if(s)
+    if not r or r[2] is None:
+        return None
+    cond, a, b, (i, j) = r
+    c = cond.strip()
+    indent = re.search(r'[ \t]*$', s[:i]).group(0)
+    return s[:i] + f"if ({c}) {{{a}}}\n{indent}if (not ({c})) {{{b}}}" + s[j:]
+
+
 # ---- temporal -------------------------------------------------------------------
 def t_delay_split(s):
     m = re.search(r'delay\(\s*(\d+)\s*(MSEC|SEC|MIN|HOUR)\s*\)', s)
@@ -169,6 +191,22 @@ def t_loop_unroll(s, block):
     return ("\n".join([body] + [f"{d}\n{body}"] * (k - 1)), {"period": 0})
 
 
+def t_wait_precheck(s):
+    """Check the condition before blocking on it. `wait until(C)` returns immediately when C
+    already holds, so wrapping it in `if (not (C))` cannot change when the program proceeds --
+    it changes only the shape of the wait."""
+    m = re.search(r'^([ \t]*)wait until\((.*)\)[ \t]*$', s, re.M)
+    if not m:
+        return None
+    indent, cond = m.group(1), m.group(2).strip()
+    if not cond or "wait until" in cond:
+        return None
+    body = (f"{indent}if (not ({cond})) {{\n"
+            f"{indent}    wait until({cond})\n"
+            f"{indent}}}")
+    return s[:m.start()] + body + s[m.end():]
+
+
 def t_phase_flag(s):
     m = re.match(r'\s*phase\s*:=\s*0\s*\n\s*if\s*\(\s*phase\s*==\s*0\s*\)\s*\{\s*\n(\s*wait until\(.*?\)\s*)\n\s*phase\s*=\s*1\s*\n(.*?)\n\s*\}\s*\n\s*else\s*\{\s*\n(.*?)\n\s*\}\s*$', s, re.S)
     if not m:
@@ -185,9 +223,11 @@ TRANSFORMS = OrderedDict([
     ("time_unit", ("spelling", t_time_unit)),
     ("exists_spelling", ("spelling", t_exists_spelling)),
     ("branch_swap", ("logic", t_branch_swap)),
+    ("else_split", ("logic", t_else_split)),
     ("delay_split", ("temporal", t_delay_split)),
     ("loop_unroll", ("temporal", t_loop_unroll)),
     ("phase_flag", ("temporal", t_phase_flag)),
+    ("wait_precheck", ("temporal", t_wait_precheck)),
 ])
 
 

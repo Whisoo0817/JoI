@@ -24,20 +24,24 @@ BANDS = [("Notation", "spelling"), ("Logic", "logic"), ("Temporal", "temporal")]
 def table(C):
     """Stub, n, and one consistency figure per judge.
 
-    Both rows measure the same thing -- the share of items on which the judge did not contradict
+    Both rows measure the same thing -- the share of items on which the judge contradicted
     itself -- so they share a column. The first row is over every seed program, asked three times
-    identically, with no selection; the rest are over the rewrites of the common set. Reported as
-    100 minus the reversal rate, so that higher is better throughout.
+    identically, with no selection; the rest are over the rewrites of the common set.
+
+    Reported as a violation rate rather than as 100 minus one. The rewrites are metamorphic
+    relations -- equivalent behavior should give an equal verdict -- and this is the share that
+    broke, which is the quantity the argument is about. Read the other way the failures become
+    the gap below 100, and the reader has to subtract to find them.
     """
     judges = list(C["judges"])
     sd = C["self_disagreement"]
     body = [("No edit", str(sd[judges[0]]["seeds"]),
-             [f"{100 * (1 - sd[j]['rate']):.1f}" for j in judges])]
+             [f"{100 * sd[j]['rate']:.1f}" for j in judges])]
     for lab, b in BANDS:
         x = [C["judges"][j]["by_band"][b] for j in judges]
-        body.append((lab, str(x[0]["pairs"]), [f"{100 * (1 - v['rate']):.1f}" for v in x]))
+        body.append((lab, str(x[0]["pairs"]), [f"{100 * v['rate']:.1f}" for v in x]))
     x = [C["judges"][j]["overall"] for j in judges]
-    body.append(("All", str(x[0]["pairs"]), [f"{100 * (1 - v['rate']):.1f}" for v in x]))
+    body.append(("All", str(x[0]["pairs"]), [f"{100 * v['rate']:.1f}" for v in x]))
     return judges, body
 
 
@@ -93,7 +97,7 @@ def render(C, width_in, fontsize, out, colsep_pt=3.0):
     span_l, span_r = right[0] - cw[0], right[-1]
     y = nrow - 1.0
     ax.plot([0, need], [y + 0.55] * 2, lw=1.1, color="k")              # \toprule
-    ax.text((span_l + span_r) / 2, y, "Verdict consistency (%, higher is better)",
+    ax.text((span_l + span_r) / 2, y, "Verdict reversal (%)",
             ha="center", va="center", **fp)
     ax.plot([span_l, span_r], [y - 0.42] * 2, lw=0.5, color="k")       # \cmidrule
     y -= 1
@@ -119,12 +123,12 @@ CAPTION = (
     "agreed. It is unconditional -- no program is excluded -- and it bounds what any rewrite "
     "result below can mean. The remaining rows take the {n} programs that all three judges called "
     "correct in at least two of those three asks, so one set of programs and one denominator "
-    "serves every column, and report the share of each band's rewrites the judge still accepted. "
+    "serves every column, and report the share of each band's rewrites the judge then rejected. "
     "Notation renames a variable, mirrors a comparison ({cmp}), changes the time unit, or "
     "respells `at least one device in a group matches'; Logic negates a guard and swaps the "
     "branches; Temporal splits one delay into two, unrolls a counted periodic loop, or replaces "
     "an integer phase counter with a boolean flag. Every rewrite is certified behavior-preserving "
-    "by the checker of Sec.~\\ref{{sec:explorer}}, so every point below 100 is a judge "
+    "by the checker of Sec.~\\ref{{sec:explorer}}, so every point above zero is a judge "
     "contradicting itself. The judges are \\texttt{{Qwen3.5-9B-fp8}} served locally at "
     "temperature 0, and \\texttt{{gpt-5.4-mini-2026-03-17}} and \\texttt{{claude-sonnet-5}} at "
     "low reasoning effort; neither hosted model exposes a temperature control.")
@@ -137,7 +141,7 @@ def write_tex(C):
     L = [r"\begin{table}[t]", r"\centering", r"\caption{" + cap + "}", r"\label{tab:judge}",
          r"\footnotesize", r"\setlength{\tabcolsep}{3pt}",
          r"\begin{tabular}{lr rrr}", r"\toprule",
-         r" & & \multicolumn{3}{c}{Verdict consistency (\%, higher is better)} \\",
+         r" & & \multicolumn{3}{c}{Verdict reversal (\%)} \\",
          r"\cmidrule(lr){3-5}",
          "Condition & $n$ & " + " & ".join(HDR[j] for j in judges) + r" \\", r"\midrule"]
     for i, (a, b, vals) in enumerate(body):

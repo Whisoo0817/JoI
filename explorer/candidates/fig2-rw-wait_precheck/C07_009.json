@@ -1,0 +1,102 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#Study_DoorLock).doorLock_doorLockState == \"open\")) {\n    wait until((#Study_DoorLock).doorLock_doorLockState == \"open\")\n}\nall(#Siren).siren_setSirenMode(\"police\")"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#Study_DoorLock).doorLock_doorLockState == \\\"open\\\")) {\\n    wait until((#Study_DoorLock).doorLock_doorLockState == \\\"open\\\")\\n}\\nall(#Siren).siren_setSirenMode(\\\"police\\\")\"\n}",
+ "precision": {
+  "DoorLock.DoorLockState": [
+   "(#Study_DoorLock)"
+  ],
+  "Siren.SetSirenMode": [
+   "all(#Siren)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "금고가 열리면 경찰 사이렌을 울려줘.",
+ "command_eng": "When the safe is unlocked, sound the police siren.",
+ "connected_devices": {
+  "Study_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Study",
+    "Safe",
+    "DoorLock"
+   ]
+  },
+  "Bedroom_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Bedroom",
+    "Safe",
+    "DoorLock"
+   ]
+  },
+  "LivingRoom_Siren": {
+   "category": [
+    "Siren",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Siren"
+   ]
+  },
+  "Entrance_Siren": {
+   "category": [
+    "Siren",
+    "Switch"
+   ],
+   "tags": [
+    "Entrance",
+    "Siren"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "DoorLock.DoorLockState == \"open\"",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Siren.SetSirenMode",
+    "args": {
+     "Mode": "police"
+    }
+   }
+  ]
+ },
+ "binding": {
+  "DoorLock": [
+   "Study_DoorLock"
+  ],
+  "Siren": [
+   "LivingRoom_Siren",
+   "Entrance_Siren"
+  ]
+ },
+ "input_payload_sha256": "85813d1ec006becbe7928b53dcf7cda085bd6d13f342c2484d505ca7251adcda",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

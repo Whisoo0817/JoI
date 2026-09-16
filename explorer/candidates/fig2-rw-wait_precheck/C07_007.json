@@ -1,0 +1,96 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#LivingRoom_Button).button_button == \"pushed_3x\")) {\n    wait until((#LivingRoom_Button).button_button == \"pushed_3x\")\n}\nall(#Valve).valve_open()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#LivingRoom_Button).button_button == \\\"pushed_3x\\\")) {\\n    wait until((#LivingRoom_Button).button_button == \\\"pushed_3x\\\")\\n}\\nall(#Valve).valve_open()\"\n}",
+ "precision": {
+  "Button.Button": [
+   "(#LivingRoom_Button)"
+  ],
+  "Valve.Open": [
+   "all(#Valve)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "버튼이 세번 눌리면 벨브를 열어줘.",
+ "command_eng": "When the button is pushed 3 times, open the valve.",
+ "connected_devices": {
+  "LivingRoom_Button": {
+   "category": [
+    "Button"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Button"
+   ]
+  },
+  "Entrance_Button": {
+   "category": [
+    "Button"
+   ],
+   "tags": [
+    "Entrance",
+    "Button"
+   ]
+  },
+  "Kitchen_Valve": {
+   "category": [
+    "Valve"
+   ],
+   "tags": [
+    "Kitchen",
+    "Valve"
+   ]
+  },
+  "Bathroom_Valve": {
+   "category": [
+    "Valve"
+   ],
+   "tags": [
+    "Bathroom",
+    "Valve"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "Button.Button == \"pushed_3x\"",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Valve.Open",
+    "args": {}
+   }
+  ]
+ },
+ "binding": {
+  "Button": [
+   "LivingRoom_Button"
+  ],
+  "Valve": [
+   "Kitchen_Valve",
+   "Bathroom_Valve"
+  ]
+ },
+ "input_payload_sha256": "c82e9e0f2b5f3b5d218040615d2dc215c9a30eb54cfc9387e968157705388cc9",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

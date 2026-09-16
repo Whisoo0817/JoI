@@ -1,0 +1,103 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not (all(#TemperatureSensor).temperatureSensor_temperature >=| 35)) {\n    wait until(all(#TemperatureSensor).temperatureSensor_temperature >=| 35)\n}\nall(#AirConditioner).airConditioner_setTargetTemperature(30.0)"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not (all(#TemperatureSensor).temperatureSensor_temperature >=| 35)) {\\n    wait until(all(#TemperatureSensor).temperatureSensor_temperature >=| 35)\\n}\\nall(#AirConditioner).airConditioner_setTargetTemperature(30.0)\"\n}",
+ "precision": {
+  "TemperatureSensor.Temperature": [
+   "any(#TemperatureSensor)"
+  ],
+  "AirConditioner.SetTargetTemperature": [
+   "all(#AirConditioner)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "온도가 35도 이상이 되면 에어컨의 목표 온도를 30도로 설정해줘.",
+ "command_eng": "When the temperature reaches 35 degrees or higher, set the air conditioner to 30 degrees.",
+ "connected_devices": {
+  "LivingRoom_TempSensor": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "TemperatureSensor"
+   ]
+  },
+  "Bedroom_TempSensor": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "TemperatureSensor"
+   ]
+  },
+  "LivingRoom_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "AirConditioner"
+   ]
+  },
+  "Bedroom_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirConditioner"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "TemperatureSensor.Temperature >= 35",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "AirConditioner.SetTargetTemperature",
+    "args": {
+     "Temperature": 30.0
+    }
+   }
+  ]
+ },
+ "binding": {
+  "TemperatureSensor": {
+   "any": [
+    "LivingRoom_TempSensor",
+    "Bedroom_TempSensor"
+   ]
+  },
+  "AirConditioner": [
+   "LivingRoom_AC",
+   "Bedroom_AC"
+  ]
+ },
+ "input_payload_sha256": "01bfa02e2e0a6c0c249dc7ba64a05f83f06dc287525af58403b6982b7d79ec2f",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

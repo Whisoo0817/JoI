@@ -1,0 +1,91 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#LivingRoom_Presence).presenceSensor_presence == true)) {\n    wait until((#LivingRoom_Presence).presenceSensor_presence == true)\n}\nall(#Switch).switch_on()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#LivingRoom_Presence).presenceSensor_presence == true)) {\\n    wait until((#LivingRoom_Presence).presenceSensor_presence == true)\\n}\\nall(#Switch).switch_on()\"\n}",
+ "precision": {
+  "PresenceSensor.Presence": [
+   "(#LivingRoom_Presence)"
+  ],
+  "Switch.On": [
+   "all(#Switch)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "재실 센서가 감지되면 TV를 켜줘.",
+ "command_eng": "When the presence sensor detects someone, turn on the TV.",
+ "connected_devices": {
+  "LivingRoom_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "PresenceSensor"
+   ]
+  },
+  "LivingRoom_TV": {
+   "category": [
+    "Television",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Television",
+    "Switch"
+   ]
+  },
+  "Bedroom_TV": {
+   "category": [
+    "Television",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "Television",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "PresenceSensor.Presence == true",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Switch.On",
+    "args": {}
+   }
+  ]
+ },
+ "binding": {
+  "PresenceSensor": [
+   "LivingRoom_Presence"
+  ],
+  "Switch": [
+   "LivingRoom_TV",
+   "Bedroom_TV"
+  ]
+ },
+ "input_payload_sha256": "41105522369838189dabdf022a95dc0dfa1269a860095c3b769c98ad75716ce7",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.3,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

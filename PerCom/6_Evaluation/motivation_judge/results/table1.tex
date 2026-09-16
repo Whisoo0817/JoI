@@ -1,22 +1,22 @@
 \begin{table}[t]
 \centering
-\caption{How often each judge stands by its own verdict, as a percentage of the items presented; higher is better. The first row asks nothing new: every one of the 201 seed programs was submitted three times, identically, and the figure is the share on which all three answers agreed. It is unconditional -- no program is excluded -- and it bounds what any rewrite result below can mean. The remaining rows take the 52 programs that all three judges called correct in at least two of those three asks, so one set of programs and one denominator serves every column, and report the share of each band's rewrites the judge still accepted. Notation renames a variable, mirrors a comparison (\texttt{x >= 26} becomes \texttt{26 <= x}), changes the time unit, or respells `at least one device in a group matches'; Logic negates a guard and swaps the branches; Temporal splits one delay into two, unrolls a counted periodic loop, or replaces an integer phase counter with a boolean flag. Every rewrite is certified behavior-preserving by the checker of Sec.~\ref{sec:explorer}, so every point below 100 is a judge contradicting itself. The judges are \texttt{Qwen3.5-9B-fp8} served locally at temperature 0, and \texttt{gpt-5.4-mini-2026-03-17} and \texttt{claude-sonnet-5} at low reasoning effort; neither hosted model exposes a temperature control.}
+\caption{How often each judge stands by its own verdict, as a percentage of the items presented; higher is better. The first row asks nothing new: every one of the 216 seed programs was submitted three times, identically, and the figure is the share on which all three answers agreed. It is unconditional -- no program is excluded -- and it bounds what any rewrite result below can mean. The remaining rows take the 52 programs that all three judges called correct in at least two of those three asks, so one set of programs and one denominator serves every column, and report the share of each band's rewrites the judge then rejected. Notation renames a variable, mirrors a comparison (\texttt{x >= 26} becomes \texttt{26 <= x}), changes the time unit, or respells `at least one device in a group matches'; Logic negates a guard and swaps the branches; Temporal splits one delay into two, unrolls a counted periodic loop, or replaces an integer phase counter with a boolean flag. Every rewrite is certified behavior-preserving by the checker of Sec.~\ref{sec:explorer}, so every point above zero is a judge contradicting itself. The judges are \texttt{Qwen3.5-9B-fp8} served locally at temperature 0, and \texttt{gpt-5.4-mini-2026-03-17} and \texttt{claude-sonnet-5} at low reasoning effort; neither hosted model exposes a temperature control.}
 \label{tab:judge}
 \footnotesize
 \setlength{\tabcolsep}{3pt}
 \begin{tabular}{lr rrr}
 \toprule
- & & \multicolumn{3}{c}{Verdict consistency (\%, higher is better)} \\
+ & & \multicolumn{3}{c}{Verdict reversal (\%)} \\
 \cmidrule(lr){3-5}
 Condition & $n$ & Qwen3.5-9B & GPT-5.4-mini & Claude-Sonnet-5 \\
 \midrule
-No edit & 201 & 100.0 & 82.6 & 89.6 \\
+No edit & 216 & 0.0 & 16.7 & 9.7 \\
 \midrule
-Notation & 79 & 96.2 & 87.3 & 96.2 \\
-Logic & 23 & 95.7 & 87.0 & 95.7 \\
-Temporal & 24 & 50.0 & 100.0 & 100.0 \\
+Notation & 79 & 3.8 & 12.7 & 3.8 \\
+Logic & 41 & 2.4 & 14.6 & 9.8 \\
+Temporal & 31 & 48.4 & 0.0 & 6.5 \\
 \midrule
-All & 126 & 87.3 & 89.7 & 96.8 \\
+All & 151 & 12.6 & 10.6 & 6.0 \\
 \bottomrule
 \end{tabular}
 \end{table}

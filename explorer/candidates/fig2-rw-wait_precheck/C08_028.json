@@ -1,0 +1,100 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nif (not (not ((#LightSens).lightSensor_brightness < 200))) {\n    wait until(not ((#LightSens).lightSensor_brightness < 200))\n}\n    triggered = false\n}\nwait until((#LightSens).lightSensor_brightness < 200)\nall(#Light).light_moveToBrightness(100, 0)\ntriggered = true"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\\nif (triggered == true) {\\nif (not (not ((#LightSens).lightSensor_brightness < 200))) {\\n    wait until(not ((#LightSens).lightSensor_brightness < 200))\\n}\\n    triggered = false\\n}\\nwait until((#LightSens).lightSensor_brightness < 200)\\nall(#Light).light_moveToBrightness(100, 0)\\ntriggered = true\"\n}",
+ "precision": {
+  "LightSensor.Brightness": [
+   "(#LightSens)"
+  ],
+  "Light.MoveToBrightness": [
+   "all(#Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "조도가 200럭스보다 낮아질 때마다 모든 조명을 켜줘.",
+ "command_eng": "Whenever the brightness drops below 200 lux, turn on all lights.",
+ "connected_devices": {
+  "LightSens": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "LightSensor"
+   ]
+  },
+  "LR_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Light",
+    "Switch"
+   ]
+  },
+  "Out_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "Outdoor",
+    "Light",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "1 SEC",
+    "body": [
+     {
+      "op": "wait",
+      "cond": "LightSensor.Brightness < 200",
+      "edge": "rising"
+     },
+     {
+      "op": "call",
+      "target": "Light.MoveToBrightness",
+      "args": {
+       "Brightness": 100.0,
+       "Rate": 0.0
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "LightSensor": [
+   "LightSens"
+  ],
+  "Light": [
+   "LR_Light",
+   "Out_Light"
+  ]
+ },
+ "input_payload_sha256": "ad1abd9ddc62a82d421516f9902f1394a0630116b42aecbdd21e6f7d29b07587",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 2.6,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

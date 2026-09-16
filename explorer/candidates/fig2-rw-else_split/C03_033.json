@@ -1,0 +1,122 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "brightness = (#Bedroom_LightSensor).lightSensor_brightness\nif (brightness <= 100) {\n(#Bedroom_FloorLamp).switch_on()\n}\nif (not (brightness <= 100)) {\n(#Bedroom_FloorLamp).switch_off()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"brightness = (#Bedroom_LightSensor).lightSensor_brightness\\nif (brightness <= 100) {\\n(#Bedroom_FloorLamp).switch_on()\\n}\\nif (not (brightness <= 100)) {\\n(#Bedroom_FloorLamp).switch_off()\\n}\"\n}",
+ "precision": {
+  "LightSensor.Brightness": [
+   "(#Bedroom_LightSensor)"
+  ],
+  "Switch.On": [
+   "(#Bedroom_FloorLamp)"
+  ],
+  "Switch.Off": [
+   "(#Bedroom_FloorLamp)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "침실 조도가 100lux 이하면 침실 스탠드 플러그를 켜고, 아니면 꺼줘.",
+ "command_eng": "If the bedroom illuminance is at most 100 lux, turn on the bedroom floor lamp plug; otherwise turn it off.",
+ "connected_devices": {
+  "Bedroom_LightSensor": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "LightSensor"
+   ]
+  },
+  "LivingRoom_LightSensor": {
+   "category": [
+    "LightSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "LightSensor"
+   ]
+  },
+  "Bedroom_FloorLamp": {
+   "category": [
+    "Plug",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "Plug",
+    "FloorLamp"
+   ]
+  },
+  "Garage_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Garage",
+    "DoorLock"
+   ]
+  },
+  "Kitchen_Humidifier": {
+   "category": [
+    "Humidifier"
+   ],
+   "tags": [
+    "Kitchen",
+    "Humidifier"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "read",
+    "var": "brightness",
+    "src": "LightSensor.Brightness"
+   },
+   {
+    "op": "if",
+    "cond": "brightness <= 100",
+    "then": [
+     {
+      "op": "call",
+      "target": "Switch.On",
+      "args": {}
+     }
+    ],
+    "else": [
+     {
+      "op": "call",
+      "target": "Switch.Off",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "LightSensor": [
+   "Bedroom_LightSensor"
+  ],
+  "Switch": [
+   "Bedroom_FloorLamp"
+  ]
+ },
+ "input_payload_sha256": "6c0ccb4c6a9b87ab69b06c224bb3db2cbb24b463c71dc9234a104aaf51f38523",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-else_split",
+ "elapsed_sec": 1.6,
+ "rewrite": {
+  "type": "else_split",
+  "band": "logic",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

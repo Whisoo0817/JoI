@@ -1,0 +1,97 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#Bathroom_HumiditySensor).humiditySensor_humidity > 70)) {\n    wait until((#Bathroom_HumiditySensor).humiditySensor_humidity > 70)\n}\n(#Bathroom_Dehumidifier).dehumidifier_setDehumidifierMode(\"freezeProtection\")"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#Bathroom_HumiditySensor).humiditySensor_humidity > 70)) {\\n    wait until((#Bathroom_HumiditySensor).humiditySensor_humidity > 70)\\n}\\n(#Bathroom_Dehumidifier).dehumidifier_setDehumidifierMode(\\\"freezeProtection\\\")\"\n}",
+ "precision": {
+  "HumiditySensor.Humidity": [
+   "(#Bathroom_HumiditySensor)"
+  ],
+  "Dehumidifier.SetDehumidifierMode": [
+   "(#Bathroom_Dehumidifier)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132324_538.json",
+ "command_kor": "욕실 습도가 70%보다 높아지면 욕실 제습기를 동결 방지 모드로 설정해줘.",
+ "command_eng": "When the bathroom humidity exceeds 70%, set the bathroom dehumidifier to freeze protection mode.",
+ "connected_devices": {
+  "Bathroom_HumiditySensor": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "Bathroom",
+    "HumiditySensor"
+   ]
+  },
+  "Basement_HumiditySensor": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "Basement",
+    "HumiditySensor"
+   ]
+  },
+  "Bathroom_Dehumidifier": {
+   "category": [
+    "Dehumidifier"
+   ],
+   "tags": [
+    "Bathroom",
+    "Dehumidifier"
+   ]
+  },
+  "Bedroom_Dehumidifier": {
+   "category": [
+    "Dehumidifier"
+   ],
+   "tags": [
+    "Bedroom",
+    "Dehumidifier"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "HumiditySensor.Humidity > 70",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Dehumidifier.SetDehumidifierMode",
+    "args": {
+     "Mode": "freezeProtection"
+    }
+   }
+  ]
+ },
+ "binding": {
+  "HumiditySensor": [
+   "Bathroom_HumiditySensor"
+  ],
+  "Dehumidifier": [
+   "Bathroom_Dehumidifier"
+  ]
+ },
+ "input_payload_sha256": "6e07c02135a55e4c027032c57e883627f87add066293a96d43b88bc1f6d62a8d",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2"
+ }
+}

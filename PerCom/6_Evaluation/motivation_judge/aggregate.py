@@ -19,9 +19,11 @@ TYPE_LABEL = OrderedDict([
     ("time_unit", ("UNIT", "change the time unit (3 MIN -> 180 SEC)")),
     ("exists_spelling", ("GRP", "respell a condition over a group of devices")),
     ("branch_swap", ("BR", "negate the guard and swap the branches")),
+    ("else_split", ("ELS", "drop the else by guarding it with the negated condition")),
     ("delay_split", ("DLY", "split one delay into two")),
     ("loop_unroll", ("UNR", "unroll a counted periodic loop")),
     ("phase_flag", ("PHS", "integer phase -> boolean flag with shared tail")),
+    ("wait_precheck", ("WPC", "check the condition before blocking on it")),
 ])
 ABBR = {k: v[0] for k, v in TYPE_LABEL.items()}
 CONTROL_ABBR = "CTL"
