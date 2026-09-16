@@ -30,6 +30,16 @@ class RefUnsupported(Exception):
         self.msg = msg
 
 
+class RefRuntime(Exception):
+    """RUNTIME ERROR: the execution contract defines this step as a runtime error (R14: arithmetic on a variable that
+    has never been assigned). The instance stops here for good, and the error itself is observable."""
+
+    def __init__(self, category, msg=""):
+        super().__init__(f"{category}: {msg}")
+        self.category = category
+        self.msg = msg
+
+
 class RefError(Exception):
     """Reference error: invalid history or a reaction that does not finish (L1)."""
 

@@ -8,9 +8,11 @@ selector_space(block, devices, binding, ir, catalog_path=None) -> {"domains": [n
 compare(trace_a, trace_b, device_sets=None) -> (equal, first_difference)
 device_sets(ir, binding, catalog_path=None) -> [slot dicts]
 
-Each run returns {"status": "ok"|"unsupported"|"error", "trace": normalised trace, "raw_actions": [...],
+Each run returns {"status": "ok"|"unsupported"|"runtime-error"|"error", "trace": normalised trace, "raw_actions": [...],
 "detail": str, "category": str}. `faults` (E1 rule T7) is an optional extra keyword.
-On "unsupported"/"error" the trace holds the ACTIONs issued before the stop (diagnostic only).
+On "unsupported"/"error" the trace holds the ACTIONs issued before the stop (diagnostic only). "runtime-error" is
+the execution contract's own outcome (R14: arithmetic on a variable that was never assigned): the instance stops for
+good and the stop is observable, so a side that ends this way differs from a side that runs to the horizon.
 
 Binding decision of 2026-09-14 (BINDING_DECISION_2026-09-14.md, SPEC_GAPS B1/B2), opt-in so that runs without the new
 keywords are unchanged:
@@ -40,8 +42,8 @@ if str(_HERE) not in sys.path:
     sys.path.insert(0, str(_HERE))
 
 import common                                   # noqa: E402
-from common import (Catalog, DeviceSets, Inputs, RefError, RefUnsupported, Runtime, b2_normal_form,  # noqa: E402
-                    normal_form, parse_binding_slots, run_program)
+from common import (Catalog, DeviceSets, Inputs, RefError, RefRuntime, RefUnsupported, Runtime,  # noqa: E402
+                    b2_normal_form, normal_form, parse_binding_slots, run_program)
 
 _CATALOGS = {}
 _NOT_GIVEN = object()
@@ -89,6 +91,9 @@ def _run(make_program, devices, events, horizon_ms, catalog_path, t_start_ms, fa
         rt = Runtime(cat, devices, inputs, t_start_ms, horizon_ms, faults)
         run_program(rt, prog.gen(rt))
         return _package(rt, "ok", sets=sets)
+    except RefRuntime as e:
+        # R14 runtime error: the instance stops here for good; the ACTIONs issued before it are kept in the trace.
+        return _package(rt, "runtime-error", e.category, f"REF-RUNTIME-ERROR[{e.category}]: {e.msg}", sets=sets)
     except RefUnsupported as e:
         return _package(rt, "unsupported", e.category, f"REF-UNSUPPORTED[{e.category}]: {e.msg}", sets=sets)
     except RefError as e:

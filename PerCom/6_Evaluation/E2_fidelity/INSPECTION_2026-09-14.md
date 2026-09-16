@@ -41,8 +41,24 @@ support, was inspected. Explorer verdicts were not changed; the reference was no
 | pair | Explorer | reference detail | note |
 |---|---|---|---|
 | C08_032/llm | DIVERGE | `selector-no-device: (#Hall_Light_1)` | JoI names devices absent from the inventory; witness replay IR ok, JoI unsupported |
-| C24_003/llm | DIVERGE | `arith-type: None + 1` | top-level `n = n + 1` on an uninitialized variable; arithmetic on null has no spec rule |
+| C24_003/llm | DIVERGE | — (resolved by R14, see below) | top-level `n = n + 1` on an uninitialized variable |
 | C20_011/llm | REFUSED | `capability: LivingRoom_TV lacks category Charger` | both sides refuse |
+
+### C24_003/llm after R14 (author decision 2026-09-16)
+
+The script initializes `n` with `n := 0` only inside a branch it does not take on the first iteration, then runs
+`n = n + 1` at the top level. The specification said nothing about arithmetic on a variable that has no value, so the
+reference returned REF-UNSUPPORTED and this pair was the one decided verdict no independent run confirmed. The
+execution contract now states (RUNTIME_CONTRACT R14) that such an arithmetic operation is a runtime error: the
+instance stops there for good and the stop is observable. Both tools follow the rule.
+
+On every one of the 301 reference histories the JoI stops at the first period tick while the IR keeps running and
+speaks at 600 s, 720 s and 840 s, so the reference now reports REF-DIVERGE with an ACTION difference, not only the
+error itself. The Explorer verdict is DIVERGE before and after the rule; the agreement moves from
+`DIVERGE-WITNESS-ir:ok joi:unsupported` to `AGREE-DIVERGE`. A definite-assignment check over all 142 frozen pairs
+finds no other program that can reach the rule, and an A/B rerun of the reference over the frozen histories (old
+code vs R14 code) leaves every other pair's outcome unchanged. The 382 E3 inputs contain no program that reaches it
+either, so the E3 numbers are untouched.
 
 ## Other checked rows
 
@@ -95,7 +111,7 @@ text; Explorer by the session author). Tables: `RESULTS.md` "Binding decision"; 
 
 - **FALSE-EQUIV-CANDIDATE 0, FALSE-DIVERGE-CANDIDATE 0.**
 - Explorer: DIVERGE 57 / EQUIV 48 / REFUSED 24 / TIMEOUT 13. Agreement: AGREE-EQUIV 48, AGREE-DIVERGE 50, confirmed by
-  witness 6, witness on reference-unsupported JoI 1 (C24_003), REFUSED 24, TIMEOUT 13.
+  witness 6, witness on reference-unsupported JoI 1 (C24_003; AGREE-DIVERGE after R14), REFUSED 24, TIMEOUT 13.
 - 16 pairs changed. Each change was checked against the pair's code:
   - B1/B2 (selector only, logic identical): C03_008 (`any(#Speaker).speaker_stop()`), C05_014, C05_028, C12_013
     (`all(#Siren)` also hits the floor-2 siren), C15_019 (`all(#WindowCovering)` also opens the bedroom curtain),
@@ -130,8 +146,8 @@ Population: 140 pairs (`handoff_timer/e2_population.json`).
   both the Explorer parser and the reference (SPEC_GAPS G35) now reject it. `C20_011/llm` reads a Charger capability the
   TV does not declare (invalid service mapping); both tools refuse it.
 - **FALSE-EQUIV-CANDIDATE 0, FALSE-DIVERGE-CANDIDATE 0.** Explorer: DIVERGE 75 / EQUIV 55 / REFUSED 5 / TIMEOUT 5.
-- Decided 130 = confirmed 129 (AGREE-EQUIV 55, AGREE-DIVERGE 66, confirmed by witness 8) + 1 the reference cannot
-  run (C24_003/llm, `None + 1`).
+- Decided 130 = confirmed 130 (AGREE-EQUIV 55, AGREE-DIVERGE 67, confirmed by witness 8). C24_003/llm is in
+  AGREE-DIVERGE since the R14 decision of 2026-09-16 (see above); before it the reference could not run that JoI.
 - Before the optimizations the same Explorer decided 104 of the 140 pairs under the same budget and binding contract.
   26 pairs moved from undecided to decided (C01/fault2, C05/fault2–3, C13_006, C14_003, C15 correct/fault1,
   C18/correct, C19/correct, C20-O correct/fault1, E1-028 ×5, E1-034 ×5, E1-095 ×5); all agree with the reference, and

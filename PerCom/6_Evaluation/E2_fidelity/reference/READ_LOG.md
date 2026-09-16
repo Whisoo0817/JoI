@@ -1,5 +1,11 @@
 # READ_LOG — files opened while writing the E2 independent reference
 
+**Later edit not covered by this log (2026-09-16).** R14 (arithmetic on a variable that was never assigned is a
+runtime error) was added to `common.py`, `joi_ref.py`, `run.py` and `SPEC_GAPS.md` by the session author, who has
+seen the Explorer code — not by the separate agent who wrote this reference. The edit follows the contract text in
+`explorer/docs/model/RUNTIME_CONTRACT.md` R14 and is about 20 lines; `test_independence.py` still passes, but the
+authorship separation does not hold for it. Whether to have the separate agent redo it is an open decision.
+
 Every file opened (read, loaded, parsed or imported) by the author agent, with its purpose. Paths relative to `~/joi`.
 Directory listings (`ls`) that only showed file names are listed at the end. No file under a forbidden path
 (`explorer/runtime`, `explorer/verification`, `explorer/analysis`, `explorer/eval/*.py`, `explorer/tests/*.py` other than

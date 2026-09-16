@@ -39,7 +39,13 @@ Explorer가 EQUIV를 낸 56쌍은 모두 reference에서도 checked-equivalent�
 DIVERGE 75쌍 중 74쌍은 reference의 전체 이력 또는 Explorer witness의
 reference 재생으로 차이가 확인됐다. C24_003/llm 한 쌍은 Explorer가
 구체 반례를 냈지만 reference JoI 실행기가 해당 구성을 지원하지 않았다.
-따라서 이 한 쌍을 독립 확인된 DIVERGE로 세지 않는다.
+따라서 이 문서 시점에는 이 한 쌍을 독립 확인된 DIVERGE로 세지 않았다.
+
+**추가 (2026-09-16):** 미초기화 변수 산술을 runtime error로 정하는 R14
+(whisoo 결정, `RUNTIME_CONTRACT.md`)를 두 도구에 넣으면서 C24_003/llm 은
+reference 전체 이력에서 REF-DIVERGE가 됐고 AGREE-DIVERGE로 옮겼다. 그래서
+현재 수치는 DIVERGE 75쌍 전부가 독립 확인이다. 이 문서의 위 숫자는
+2026-09-14 시점의 기록으로 그대로 둔다.
 
 입력 검증 오류 C20_011/llm 한 쌍을 행동 비교 모집단에서 분리하면 유효
 141쌍 중 131쌍이 EQUIV 또는 DIVERGE로 판정됐다(92.9%). 남은 행동 미판정

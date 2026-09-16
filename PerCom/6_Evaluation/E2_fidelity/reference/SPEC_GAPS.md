@@ -126,7 +126,18 @@ which either operand is a missing value (None) evaluates to **false**, in both t
 (VERIFICATION_CONTRACT includes None in non-BOOL input domains, but no document said how it compares). Equality is
 unchanged: None == None true, None == other false, `!=` the negation. Previously → unsupported[ordered-compare-type].
 
-**G4 Null arithmetic.** HANDOFF: "미초기화 변수는 null 이고 null 산술은 0 으로 강제된다. 현재 검증 계약에 명세돼 있지
+**G4 Null arithmetic. — SUPERSEDED for the JoI side by R14 (author decision whisoo, 2026-09-16,
+`uninitialized-arith-v1`, RUNTIME_CONTRACT.md).** Using a variable that has never been assigned as an operand of an
+arithmetic operation is a **runtime error**: the instance stops there for good, the ACTIONs issued before it stay in
+the trace, and the stop itself is observable, so a side that ends this way differs from a side that runs on. The
+reference returns `status: "runtime-error"`, category `uninitialized-arith` (`joi_ref.JoiProgram.check_assigned`,
+`common.RefRuntime`). The rule covers variables only: `+` with a STRING operand is S8 concatenation, not arithmetic,
+and a missing non-BOOL *input* read (R10, value None) keeps the old treatment. IR arithmetic is unchanged (None as
+0). Candidate C24_003 (`n = n + 1` with `n := 0` only inside a branch not taken in the first iteration) is the one
+program in the E2 population the rule reaches; a definite-assignment check over all 142 frozen pairs finds no other.
+The text below is the pre-decision reading.
+
+**G4 Null arithmetic (pre-decision text).** HANDOFF: "미초기화 변수는 null 이고 null 산술은 0 으로 강제된다. 현재 검증 계약에 명세돼 있지
 않다" — stated for the Timeline IR executor only. Choice: IR arithmetic, unary minus and abs/min/max treat `None` as
 integer 0; JoI arithmetic on `None` → unsupported (no JoI text). Ordered comparison with `None` → false in both
 (author decision 2026-09-14, see G3); arithmetic rules unchanged, so in IR `$x - 1 > 0` with `$x` None compares

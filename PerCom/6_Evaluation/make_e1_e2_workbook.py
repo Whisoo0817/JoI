@@ -117,7 +117,8 @@ def main():
     got = (len(rs), len(dec), confirmed, sum(a.startswith("DIVERGE-WITNESS") for a in agr.elements()),
            sum("FALSE" in r["agreement"] for r in rs), len(obs), agr["AGREE-EQUIV-ON-CHECKED"], agr["AGREE-DIVERGE"],
            agr[e2.CONFIRMED[2]], len(dec) - before, changed)
-    want = (140, 130, 129, 1, 0, 75, 55, 66, 8, 26, 0)
+    # R14 (author decision 2026-09-16): C24_003/llm moved from "reference cannot run the JoI" to AGREE-DIVERGE.
+    want = (140, 130, 130, 0, 0, 75, 55, 67, 8, 26, 0)
     assert got == want, (got, want)
 
     # ---- 요약
@@ -161,7 +162,6 @@ def main():
     kv("판정함 (EQUIV 또는 DIVERGE)", len(dec))
     kv("  정답기가 확인", confirmed, f"이력에서 EQUIV {agr['AGREE-EQUIV-ON-CHECKED']} + 이력에서 DIVERGE "
        f"{agr['AGREE-DIVERGE']} + 반례 재생 {agr[e2.CONFIRMED[2]]}")
-    kv("  정답기가 JoI 를 실행 못함", 1, "C24_003/llm: 미초기화 변수 + 1")
     kv("  정답기와 어긋남", 0)
     kv("관찰 가능한 차이가 있는 오류 쌍", len(obs))
     kv("  DIVERGE / EQUIV / 판정 없음", f"{sum(e2.verdict(r) == 'DIVERGE' for r in obs_rows)} / "
@@ -221,7 +221,7 @@ def main():
             why = "이력이 차이 나는 입력에 닿지 못함" if ref == "REF-EQUIV-CHECKED" else "JoI 가 이력에 없는 기기 값을 읽음"
             return "확인", f"반례 재생으로 확인 ({why})"
         if a.startswith("DIVERGE-WITNESS"):
-            return "확인 불가", "정답기가 JoI 실행 못함 (미초기화 변수 + 1)"
+            return "확인 불가", "정답기가 JoI 실행 못함"
         return "판정 없음", CAUSE[src[r["pair_id"]]["base_case"]]
 
     order = {"correct": 0, "fault": 1, "llm": 2}
