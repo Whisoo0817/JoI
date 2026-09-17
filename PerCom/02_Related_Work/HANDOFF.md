@@ -1,6 +1,21 @@
 # Related Work handoff
 
-상태: **네 비교 축에 따른 재작성 완료 (2026-09-17); 문장별 검토 및 최종 인용 선정 전**.
+상태: **SenSys R1–R8 보존 수정본에 NL → IR → DSL 생성·검증 관점 반영 완료 (2026-09-17); 문장별 사용자 검토 전**.
+
+## 최신 작업 방향 — 아래 이전 초안 기록보다 우선
+
+- 사용자는 SenSys의 문단 순서와 개별 연구 설명을 최대한 유지하고, 문제가 되는 주장·결론 문장만 수정하도록 요청했다. R1은 한 문장으로 축약하고 R8은 현재 positioning에 맞춰 다시 쓴다.
+- [Flow Comparison](RELATED_WORK_FLOW_COMPARISON.md)을 R1–R8별 유지 부분, 교체할 주장 문장, 필요한 국소 사실 수정, 마지막 문단 계획으로 갱신했다. 사용자 요청에 따라 해당 계획을 본문에 반영했고, 대응 SenSys 문단의 수정·추가 부분만 굵게 표시했다.
+- `fixed vs. non-fixed` 차별화와 rendering/authoring 기여를 제거한다. 기존 연구의 실제 검증 대상·기준과 VETS의 명세–생성 코드 간 timed action 보존을 비교한다.
+- 전체 과업은 NL → Timeline IR → imperative DSL의 생성·검증 파이프라인이다. LLM은 확정 IR을 바탕으로 코드를 생성하며, 같은 IR이 실행 가능한 행동 검증 기준으로 쓰인다. 코드가 IR과 무관하게 생성된다는 인상을 주는 `separately generated`는 제거했다.
+- 마지막 문단은 세 문장이다. AwareAuto의 자동화 생성과 TAPInspector/Soteria의 속성 검사를 한 문장으로 연결하고, NL → DSL의 중간 단계인 Timeline IR을 소개한 뒤, 확정 IR의 생성 기준·검증 reference 역할로 마무리한다. LACE는 R7에 남긴다. R1·R4·R6의 연결 문장도 조정했으며 R2·R3·R5·R7과 개별 연구 소개는 유지했다.
+- 생성·검증 파이프라인이라는 기능 설명은 가능하지만 생성 정확도·성공률 향상이나 NL→IR 정확도를 평가했다는 주장은 하지 않는다. 단순한 생성·검증 결합 자체를 novelty로 삼지 않는다. 중심 기여는 Timeline IR과 생성 imperative 구현의 행동 보존 검사이며, 의도에 맞게 확정된 IR을 전제로 한다.
+- 이번 본문 수정에는 SenSys에 없던 nl2spec, ARTEMIS, Moon et al., IoTSan, translation validation, VeriSafe 등을 사용하지 않는다. 기존 조사 기록과 bibliography를 삭제하라는 뜻은 아니다.
+- 현재 본문은 SenSys 원문에서 문장 단위로 수정한 8문단이다. 이전 P0–P4 구성은 대체되었다. 개별 소개에서는 CodeT/Self-Debug, TaskSense, AgentSpec, Giudici et al. 등의 사실관계만 국소 수정했다. 다음 작업은 R1부터의 문장별 검토이며, 원문 보존 원칙을 계속 따른다.
+
+## 이전 P0–P4 초안 기록 — 과거 편집 이력
+
+아래는 대체된 P0–P4 초안의 편집 이력이다. 현재 파일 상태를 설명하지 않으며, 네 묶음 유지 및 신규 문헌 사용 지침은 위 최신 방향으로 대체되었다.
 
 - 네 문헌 묶음을 유지하고 각 문단은 “무엇을 검증하는가”를 중심으로 압축한다.
 - `skill_result/02_literature/related_work_review_2026-09-09/`의 primary-source 카드에서 BibTeX key와 정확한 기능을 대조한다.
