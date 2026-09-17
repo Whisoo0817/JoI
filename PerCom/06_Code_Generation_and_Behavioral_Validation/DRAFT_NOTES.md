@@ -1,5 +1,59 @@
 # Section 6 draft notes
 
+## Current revision: 2026-09-18 feedback response
+
+This revision follows the user's request to make the Explorer's input reduction,
+timer relations, rechecking, and completion conditions explicit. It supersedes
+the earlier compact-layout decisions recorded below. English Markdown, Korean
+review text, and `/home/gnltnwjstk/overleaf-paper/sections/behavioral-validation.tex`
+are synchronized; no verification code or experimental results were changed.
+
+- Four subsections: Execution Contract; Joint Inputs and Stored Values; Timer
+  Relations and Exploration; Completion and Soundness.
+- The execution-model table collects the 100 ms held-input model, declared numeric
+  precision/ranges, 1 ms deadlines, update-before-expiry ordering, initial globals,
+  completion-relative periods, and the single-instance/cron boundary.
+- Joint predicate partitioning uses the `T > 22` / `T > 25` example. The saved-value
+  example explains why use analysis must follow definitions and copies before
+  allowing representative substitution.
+- A method table separates concrete, symbolic value-flow, SMT, integer-relation,
+  and timer-relation checks. Algorithm 1 describes the core timer method specifically,
+  with new-node insertion, successor inclusion, widening, and re-enqueueing of
+  enlarged nodes. It is not a literal universal dispatcher.
+- Timer relations include integer DBM coordinates, shared branch constraints,
+  exact successor projection, and the `a = k = d` one-tick mismatch example.
+  The core grid/counter restrictions are stated. Hour and timestamp-snapshot
+  extensions are acknowledged as requiring additional checks, not generalized
+  to unrestricted clock programs.
+- The completion argument states initial inclusion, successor closure, and
+  observation agreement. Proposition S's sketch now connects these obligations
+  to use analysis, branch coverage, enlargement/rechecking, and the other methods.
+  Unreachable states admitted by widening need not have identical futures to
+  each other; each represented paired execution must satisfy the comparison.
+- Detailed source arguments remain `INPUT_COVERAGE.md`, `TIMER_ZONES.md`,
+  `SMT_VERIFICATION.md`, `SYMBOLIC_VALUE_FLOW.md`, `RELATIONAL_FIXPOINT.md`, and
+  `PROOF_OBLIGATIONS.md` under `../../explorer/docs/proof/`, with the model fixed
+  by `../../explorer/docs/model/VERIFICATION_CONTRACT.md`. The queue/inclusion
+  description was checked against `timer_product.py`. This is a manuscript
+  correspondence check, not an independent implementation proof audit.
+- The existing Bengtsson--Yi citation supports the DBM representation only;
+  the original author PDF (https://uppaal.org/texts/by-lncs04.pdf) was checked.
+  VETS-specific relations and widening obligations rely on the repository arguments.
+- The natural-writing pass removed a redundant widening sentence, split the long
+  proof paragraph, and replaced generic arithmetic completion wording with the
+  actual identity/UNSAT obligation. Paragraph lead-ins and IEEE title case remain.
+- Clean PDF grew from 9 to 10 pages in the current complete draft. The appendix
+  follows references, so this is not a claim of compliance with a references-only
+  extra-page allowance. Final submission fitting remains a separate editorial task.
+
+- Validation: clean and review Tectonic builds passed. No overfull boxes, unresolved
+  citations, or unresolved cross-references were reported; existing font, underfull,
+  package-comment, and embedded-PDF-version warnings remain. Clean pages 5–7 were
+  visually inspected. `git diff --check` passed in both repositories. Runtime tests
+  were not rerun because this revision changes prose and typesetting only.
+
+## Earlier editorial history
+
 2026-09-17. User requested a compact section, with the manuscript taking precedence over figure labels. This is an editorial/source record, not a new experimental result or a full proof audit.
 
 ## Scope and layout
