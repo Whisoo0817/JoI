@@ -14,13 +14,13 @@ In that generation setting, a **key** question **is whether** a test oracle alre
 
 Why not an LLM judge. **An** alternative that targets user intent directly is to ask another LLM whether the code matches the request. **A reliable** deployment gate **should give** two behaviorally identical programs the same deploy/reject verdict. **Our experiments show** that LLM **judges can produce inconsistent verdicts both across behaviorally equivalent implementations and across repeated evaluations of the same code** (§3). **These inconsistencies motivate an independent behavioral check before** deployment.
 
-**VETS**. To address these challenges, we present **VETS. It places Timeline IR between** the **natural-language request and the generated code, where the IR serves both as a formal** reference specification **of the intended behavior** and as **an executable baseline for** deterministic verification. Timeline IR **makes the event, state, and temporal relationships implicit in the** request **explicit. With deterministic operational semantics**, the **user-confirmed** IR serves as a per-automation behavioral oracle. **Under the declared execution model, Behavioral Explorer then formally verifies the** generated JoI code against **this** oracle by **comparing** their **timed** action traces. While the LLM **proposes** the IR and **lowers** it to code, **VETS verifies** the **generated code against** the **confirmed specification through** a deterministic, **LLM-free behavioral check**.
+**VETS**. To address these challenges, we present **VETS. It places Timeline IR between** the **natural-language request and the generated code, where the IR serves both as a formal** reference specification **of the intended behavior** and as **an executable baseline for** deterministic verification. Timeline IR **represents the request's intended behavior as a composition of temporal operators that specifies when actions occur and how behavior evolves over time. Its deterministic operational semantics allow the user-confirmed IR to produce the expected timed action traces, serving as a** behavioral oracle. **Under the declared execution model, Behavioral Explorer then formally verifies the** generated JoI code against **this** oracle by **comparing** their **timed** action traces. While the LLM **proposes** the IR and **lowers** it to code, **VETS verifies** the **generated code against** the **confirmed specification through** a deterministic, **LLM-free behavioral check**.
 
 Scope and assumptions. **VETS** targets natural-language commands specifying reactive-temporal behaviors **supported by Timeline IR. We assume that** the **user-confirmed** IR **accurately capture the intended behavior. Under this assumption, successful** verification **certifies that** the generated code **preserves the specification's timed action traces** within **the declared execution model**.
 
 Contributions. **VETS turns** the **verification** of LLM-generated reactive-temporal **code** into a deterministic, pre-deployment **behavioral** check. It **establishes** a user-confirmed **Timeline** IR as the **executable reference specification and formally verifies whether the generated code preserves its behavior**.
 
-- C1. Timeline IR: We introduce **an executable formal specification** that **makes the event, state**, and **temporal relationships implicit in natural-language requests explicit. Its deterministic operational semantics allow the user-confirmed IR to serve as** a machine-checkable behavioral reference for validating reactive-temporal code.
+- C1. Timeline IR: We introduce **an executable formal specification** that **makes the event, state**, and **temporal relationships implicit in natural-language requests explicit. It defines temporal operators and their composition with deterministic operational semantics. Given an initial state and a timed input trace under the execution model, the confirmed IR produces a unique timed action trace that serves as the** reference for **verifying generated** code.
 
 - C2. **Behavioral Explorer**: We propose **Behavioral Explorer, which formally verifies generated JoI code against the confirmed** IR **by comparing timed action traces within the declared execution model. It jointly explores IR and code execution states, using input partitioning, state reuse**, and **timer abstractions to reduce exploration overhead**. When **it detects** a **behavioral mismatch, it returns** an executable counterexample **that identifies the divergence and can guide code repair**.
 
@@ -29,6 +29,10 @@ Contributions. **VETS turns** the **verification** of LLM-generated reactive-tem
 ---
 
 편집 메모 (논문 본문 아님):
+
+- S7의 IR 설명 두 문장은 temporal operators의 조합으로 행동 발생 시점과 시간에 따른 행동 전개를 명시하고, 결정론적 실행 의미로 기대 timed action traces를 산출하는 흐름으로 보강했다. `per-automation`은 삭제하고 `a behavioral oracle`로 표현했다.
+
+- C1은 의도 명시화 → temporal operators와 그 조합의 결정론적 실행 의미 → 주어진 초기 상태·timed input trace에 대한 유일한 기대 timed action trace의 순서로 구체화했다. 제어 흐름 종류를 나열하는 대신 `temporal operators and their composition`으로 표현했다.
 
 - S2는 SenSys 원문 구조를 유지한다. Furthermore 문장은 상태 갱신과 제어 흐름을 명시적으로 관리해야 하는 imperative code라는 설명으로 수정했다. First 문장은 원문을 유지하며, pre-label 문장은 `exhaustively`와 복수 시퀀스 표현을 사용한다.
 - S1 첫 문장의 관련 연구 인용은 후속 선정 시 추가한다.
