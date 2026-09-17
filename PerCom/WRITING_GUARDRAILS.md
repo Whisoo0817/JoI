@@ -6,6 +6,10 @@
 
 ## 0. 최신 최우선 결정
 
+### 원고 검토 상태 (2026-09-17 사용자 확인)
+
+Motivation부터 이후 섹션은 아직 사용자의 피드백을 받지 않은 초안이다. 사용자가 나중에 검토할 예정이며, 작성·커밋·Overleaf 반영 또는 다음 절 진행을 내용 승인으로 간주하지 않는다. Evaluation도 우선 계획 단계로 진행한다.
+
 아래 결정은 PerCom의 Abstract, Introduction, Method, Evaluation, Related Work, Limitations, Conclusion에 공통으로 적용한다. 이전 문서가 충돌하면 이 절을 따른다.
 
 1. **스마트홈 자동화 전체에 대한 generality를 주장하지 않는다.** Timeline의 coverage, VETS의 검증 보장, 실험 결과를 전체 스마트홈 자동화·전체 IoT automation·임의 imperative program으로 일반화하지 않는다. 논문의 대상은 아래에서 정의하는 지원 범위의 reactive-temporal automation과 선언된 JoI 실행 모델이다.

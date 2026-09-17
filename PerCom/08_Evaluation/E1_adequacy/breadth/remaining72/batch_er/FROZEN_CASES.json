@@ -1,0 +1,4515 @@
+[
+  {
+    "id": "E1-013",
+    "spec": "Turn stove off once when no pot has been present continuously for more than five minutes; reset on pot return.",
+    "source_text": "the smart stove should automatically shut off if it detects no pot or anything for more than 5 minutes",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 4, column BG (header 5_Q25, statement 5)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Continuous condition; interruption resets elapsed time. One action per qualifying episode; re-arm only after opposite state.",
+      "Strict language is tested at the first integer-second sample greater than the threshold."
+    ],
+    "alternative_interpretation": "Repeated alerts while condition remains true, or fixed delayed action ignoring condition reversal.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D13": {
+        "category": [
+          "ER13"
+        ],
+        "tags": [
+          "ER13"
+        ]
+      }
+    },
+    "stubs": [
+      "ER13: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "sustained_at_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D13.PotPresent": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D13.PotPresent": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            302000,
+            "ER13.Off",
+            [],
+            "D13"
+          ]
+        ],
+        "horizon": 304000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_then_full_duration",
+        "kind": "reset",
+        "events": [
+          [
+            0,
+            {
+              "D13.PotPresent": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D13.PotPresent": false
+            }
+          ],
+          [
+            300000,
+            {
+              "D13.PotPresent": true
+            }
+          ],
+          [
+            302000,
+            {
+              "D13.PotPresent": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            603000,
+            "ER13.Off",
+            [],
+            "D13"
+          ]
+        ],
+        "horizon": 606000,
+        "step_ms": 1000
+      },
+      {
+        "name": "negative_short_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D13.PotPresent": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D13.PotPresent": false
+            }
+          ],
+          [
+            300000,
+            {
+              "D13.PotPresent": true
+            }
+          ],
+          [
+            302000,
+            {
+              "D13.PotPresent": false
+            }
+          ],
+          [
+            605000,
+            {
+              "D13.PotPresent": true
+            }
+          ],
+          [
+            607000,
+            {
+              "D13.PotPresent": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            603000,
+            "ER13.Off",
+            [],
+            "D13"
+          ],
+          [
+            908000,
+            "ER13.Off",
+            [],
+            "D13"
+          ]
+        ],
+        "horizon": 910000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-014",
+    "spec": "Alarm once per door-open episode lasting more than five minutes; closing resets.",
+    "source_text": "the refridgerator should alarm if the door is open for longer than 5 minutes",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 4, column BL (header 6_Q25, statement 6)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Continuous condition; interruption resets elapsed time. One action per qualifying episode; re-arm only after opposite state.",
+      "Strict language is tested at the first integer-second sample greater than the threshold."
+    ],
+    "alternative_interpretation": "Repeated alerts while condition remains true, or fixed delayed action ignoring condition reversal.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D14": {
+        "category": [
+          "ER14"
+        ],
+        "tags": [
+          "ER14"
+        ]
+      }
+    },
+    "stubs": [
+      "ER14: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "sustained_at_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D14.DoorOpen": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D14.DoorOpen": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            302000,
+            "ER14.Alarm",
+            [],
+            "D14"
+          ]
+        ],
+        "horizon": 304000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_then_full_duration",
+        "kind": "reset",
+        "events": [
+          [
+            0,
+            {
+              "D14.DoorOpen": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D14.DoorOpen": true
+            }
+          ],
+          [
+            300000,
+            {
+              "D14.DoorOpen": false
+            }
+          ],
+          [
+            302000,
+            {
+              "D14.DoorOpen": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            603000,
+            "ER14.Alarm",
+            [],
+            "D14"
+          ]
+        ],
+        "horizon": 606000,
+        "step_ms": 1000
+      },
+      {
+        "name": "negative_short_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D14.DoorOpen": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D14.DoorOpen": true
+            }
+          ],
+          [
+            300000,
+            {
+              "D14.DoorOpen": false
+            }
+          ],
+          [
+            302000,
+            {
+              "D14.DoorOpen": true
+            }
+          ],
+          [
+            605000,
+            {
+              "D14.DoorOpen": false
+            }
+          ],
+          [
+            607000,
+            {
+              "D14.DoorOpen": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            603000,
+            "ER14.Alarm",
+            [],
+            "D14"
+          ],
+          [
+            908000,
+            "ER14.Alarm",
+            [],
+            "D14"
+          ]
+        ],
+        "horizon": 910000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-016",
+    "spec": "On each low-power transition, command the vacuum to return to its base for charging.",
+    "source_text": "My smart vacuum should always return to its base to charge when low on power.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 6, column BV (header 8_Q25, statement 8)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "The trigger is a rising event; a held initial condition is not a new event."
+    ],
+    "alternative_interpretation": "A level rule may also act immediately at startup.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D16": {
+        "category": [
+          "ER16"
+        ],
+        "tags": [
+          "ER16"
+        ]
+      }
+    },
+    "stubs": [
+      "ER16: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "rise_once",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D16.LowPower": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D16.LowPower": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER16.ReturnToCharge",
+            [],
+            "D16"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "held_initial_no_transition",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D16.LowPower": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D16.LowPower": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D16.LowPower": true
+            }
+          ],
+          [
+            3000,
+            {
+              "D16.LowPower": false
+            }
+          ],
+          [
+            5000,
+            {
+              "D16.LowPower": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER16.ReturnToCharge",
+            [],
+            "D16"
+          ],
+          [
+            5000,
+            "ER16.ReturnToCharge",
+            [],
+            "D16"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-019",
+    "spec": "On each onset of another device needing hot water, pause the dishwasher; no automatic resume is specified.",
+    "source_text": "Pause dishwasher if other devices need hot water.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 8, column AW (header 3_Q25, statement 3)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "The trigger is a rising event; a held initial condition is not a new event."
+    ],
+    "alternative_interpretation": "A level rule may also act immediately at startup.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D19": {
+        "category": [
+          "ER19"
+        ],
+        "tags": [
+          "ER19"
+        ]
+      }
+    },
+    "stubs": [
+      "ER19: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "rise_once",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D19.OtherHotWaterDemand": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D19.OtherHotWaterDemand": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER19.Pause",
+            [],
+            "D19"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "held_initial_no_transition",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D19.OtherHotWaterDemand": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D19.OtherHotWaterDemand": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D19.OtherHotWaterDemand": true
+            }
+          ],
+          [
+            3000,
+            {
+              "D19.OtherHotWaterDemand": false
+            }
+          ],
+          [
+            5000,
+            {
+              "D19.OtherHotWaterDemand": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER19.Pause",
+            [],
+            "D19"
+          ],
+          [
+            5000,
+            "ER19.Pause",
+            [],
+            "D19"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-020",
+    "spec": "On washing-machine or dishwasher start request, start it only if the other appliance is not running. Simultaneous requests while both idle select washer; emit no denied-request notification.",
+    "source_text": "Never run the washing machine and the dish washer at the same time.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 8, column BB (header 4_Q25, statement 4)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Corpus author already fixed request-time exclusion; washer priority at simultaneous idle requests is agent-added.",
+      "Running status is externally observed; command acknowledgement is not instantaneous."
+    ],
+    "alternative_interpretation": "Queue denied requests; arbitrate ties differently; force-stop an already conflicting pair.",
+    "favorable_bias": "Request admission controls only the given fixture histories, not physical mutual exclusion under delayed state acknowledgement.",
+    "devices": {
+      "D20": {
+        "category": [
+          "ER20"
+        ],
+        "tags": [
+          "ER20"
+        ]
+      }
+    },
+    "stubs": [
+      "ER20: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "requests_and_observed_states",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D20.WasherRequest": false,
+              "D20.DishRequest": false,
+              "D20.WasherRunning": false,
+              "D20.DishRunning": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D20.WasherRequest": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D20.WasherRequest": false,
+              "D20.WasherRunning": true
+            }
+          ],
+          [
+            3000,
+            {
+              "D20.DishRequest": true
+            }
+          ],
+          [
+            4000,
+            {
+              "D20.DishRequest": false
+            }
+          ],
+          [
+            5000,
+            {
+              "D20.WasherRunning": false
+            }
+          ],
+          [
+            6000,
+            {
+              "D20.DishRequest": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER20.StartWasher",
+            [],
+            "D20"
+          ],
+          [
+            6000,
+            "ER20.StartDish",
+            [],
+            "D20"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reverse_denial",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D20.WasherRequest": false,
+              "D20.DishRequest": false,
+              "D20.WasherRunning": false,
+              "D20.DishRunning": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D20.WasherRequest": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D20.WasherRequest": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D20.DishRunning": false
+            }
+          ],
+          [
+            4000,
+            {
+              "D20.WasherRequest": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            4000,
+            "ER20.StartWasher",
+            [],
+            "D20"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "simultaneous_priority",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D20.WasherRequest": false,
+              "D20.DishRequest": false,
+              "D20.WasherRunning": false,
+              "D20.DishRunning": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D20.WasherRequest": true,
+              "D20.DishRequest": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER20.StartWasher",
+            [],
+            "D20"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-021",
+    "spec": "Start mowing every Monday at 08:00.",
+    "source_text": "Start to mow the lawn at 8 am once a week.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 8, column CA (header 9_Q25, statement 9)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Week starts Monday. Scheduled commands fire once at the clock boundary. Minute-grid histories retain exact minute boundaries.",
+      "Monday is the chosen weekly day."
+    ],
+    "alternative_interpretation": "A different weekly day.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D21": {
+        "category": [
+          "ER21"
+        ],
+        "tags": [
+          "ER21"
+        ]
+      }
+    },
+    "stubs": [
+      "ER21: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 28740000,
+    "histories": [
+      {
+        "name": "first_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER21.Mow",
+            [],
+            "D21"
+          ]
+        ],
+        "horizon": 180000,
+        "step_ms": 60000
+      },
+      {
+        "name": "repeat_calendar",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER21.Mow",
+            [],
+            "D21"
+          ],
+          [
+            604860000,
+            "ER21.Mow",
+            [],
+            "D21"
+          ]
+        ],
+        "horizon": 604920000,
+        "step_ms": 60000
+      },
+      {
+        "name": "before_boundary",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [],
+        "horizon": 0,
+        "step_ms": 60000
+      }
+    ]
+  },
+  {
+    "id": "E1-022",
+    "spec": "Dispense one normal meal at 06:00 and 18:00 daily.",
+    "source_text": "Give the pets their food at 6am every day and at 6pm.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 8, column CF (header 10_Q25, statement 10)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Week starts Monday. Scheduled commands fire once at the clock boundary. Minute-grid histories retain exact minute boundaries.",
+      "Daily recurrence is assumed."
+    ],
+    "alternative_interpretation": "A one-off time rather than daily recurrence.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D22": {
+        "category": [
+          "ER22"
+        ],
+        "tags": [
+          "ER22"
+        ]
+      }
+    },
+    "stubs": [
+      "ER22: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 21540000,
+    "histories": [
+      {
+        "name": "first_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER22.Feed",
+            [],
+            "D22"
+          ]
+        ],
+        "horizon": 180000,
+        "step_ms": 60000
+      },
+      {
+        "name": "repeat_calendar",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER22.Feed",
+            [],
+            "D22"
+          ],
+          [
+            43260000,
+            "ER22.Feed",
+            [],
+            "D22"
+          ],
+          [
+            86460000,
+            "ER22.Feed",
+            [],
+            "D22"
+          ]
+        ],
+        "horizon": 86520000,
+        "step_ms": 60000
+      },
+      {
+        "name": "before_boundary",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [],
+        "horizon": 0,
+        "step_ms": 60000
+      }
+    ]
+  },
+  {
+    "id": "E1-023",
+    "spec": "Admit each sprinkler activation request only if rain is absent now and no rain occurred during the preceding 24 hours; rain at the 24-hour cutoff is outside the window.",
+    "source_text": "smart sprinkler should never activate when it has recently rained",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 10, column AM (header 1_Q25, statement 1)",
+    "source_context": "ReleaseData=Yes; saw_examples=no; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Recently means 24 hours; rain recency is measured from rain ending, so a rain interval remains recent until 24 h after its last wet observation. No pre-start rain is assumed."
+    ],
+    "alternative_interpretation": "Different recency duration; preceding rainfall amount; fixed daily weather rule.",
+    "favorable_bias": "The 24-hour bound and empty prehistory are agent choices.",
+    "devices": {
+      "D23": {
+        "category": [
+          "ER23"
+        ],
+        "tags": [
+          "ER23"
+        ]
+      }
+    },
+    "stubs": [
+      "ER23: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "dry_start",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D23.Rain": false,
+              "D23.Request": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D23.Request": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER23.On",
+            [],
+            "D23"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "rain_and_exact_expiry",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D23.Rain": false,
+              "D23.Request": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D23.Rain": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D23.Rain": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D23.Request": true
+            }
+          ],
+          [
+            4000,
+            {
+              "D23.Request": false
+            }
+          ],
+          [
+            86401000,
+            {
+              "D23.Request": true
+            }
+          ],
+          [
+            86402000,
+            {
+              "D23.Request": false
+            }
+          ],
+          [
+            86403000,
+            {
+              "D23.Request": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            86403000,
+            "ER23.On",
+            [],
+            "D23"
+          ]
+        ],
+        "horizon": 86405000,
+        "step_ms": 1000
+      },
+      {
+        "name": "rain_refresh",
+        "kind": "reset",
+        "events": [
+          [
+            0,
+            {
+              "D23.Rain": false,
+              "D23.Request": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D23.Rain": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D23.Rain": false
+            }
+          ],
+          [
+            43200000,
+            {
+              "D23.Rain": true
+            }
+          ],
+          [
+            43201000,
+            {
+              "D23.Rain": false
+            }
+          ],
+          [
+            86403000,
+            {
+              "D23.Request": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 86405000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-024",
+    "spec": "Admit sprinkler requests with a requested duration in seconds only to the extent that accumulated actual commanded watering duration within the preceding rolling 48 hours stays at most 600 seconds; stop at the remaining quota. Durations and quota arithmetic belong to the automation.",
+    "source_text": "My smart sprinkler should never be on more than 10 minutes every 2 days.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 12, column BL (header 6_Q25, statement 6)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Every two days is a rolling 48-hour aggregate runtime limit, not one session per two days. Requests supply raw desired duration, not a precomputed quota. Empty prehistory. Requests do not overlap in these histories."
+    ],
+    "alternative_interpretation": "Fixed calendar two-day budget, or one ten-minute session followed by a two-day cooldown.",
+    "favorable_bias": "A bounded finite set of histories cannot establish arbitrary rolling-duration accounting.",
+    "devices": {
+      "D24": {
+        "category": [
+          "ER24"
+        ],
+        "tags": [
+          "ER24"
+        ]
+      }
+    },
+    "stubs": [
+      "ER24: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "full_allowance",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D24.Request": false,
+              "D24.DurationSeconds": 600
+            }
+          ],
+          [
+            1000,
+            {
+              "D24.Request": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D24.Request": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER24.On",
+            [],
+            "D24"
+          ],
+          [
+            601000,
+            "ER24.Off",
+            [],
+            "D24"
+          ]
+        ],
+        "horizon": 660000,
+        "step_ms": 1000
+      },
+      {
+        "name": "split_sessions_within_budget",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D24.Request": false,
+              "D24.DurationSeconds": 120
+            }
+          ],
+          [
+            1000,
+            {
+              "D24.Request": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D24.Request": false
+            }
+          ],
+          [
+            300000,
+            {
+              "D24.DurationSeconds": 180,
+              "D24.Request": true
+            }
+          ],
+          [
+            301000,
+            {
+              "D24.Request": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER24.On",
+            [],
+            "D24"
+          ],
+          [
+            121000,
+            "ER24.Off",
+            [],
+            "D24"
+          ],
+          [
+            300000,
+            "ER24.On",
+            [],
+            "D24"
+          ],
+          [
+            480000,
+            "ER24.Off",
+            [],
+            "D24"
+          ]
+        ],
+        "horizon": 660000,
+        "step_ms": 1000
+      },
+      {
+        "name": "quota_caps_second_session",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D24.Request": false,
+              "D24.DurationSeconds": 480
+            }
+          ],
+          [
+            1000,
+            {
+              "D24.Request": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D24.Request": false
+            }
+          ],
+          [
+            720000,
+            {
+              "D24.DurationSeconds": 300,
+              "D24.Request": true
+            }
+          ],
+          [
+            721000,
+            {
+              "D24.Request": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER24.On",
+            [],
+            "D24"
+          ],
+          [
+            481000,
+            "ER24.Off",
+            [],
+            "D24"
+          ],
+          [
+            720000,
+            "ER24.On",
+            [],
+            "D24"
+          ],
+          [
+            840000,
+            "ER24.Off",
+            [],
+            "D24"
+          ]
+        ],
+        "horizon": 1020000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-025",
+    "spec": "On each CO test request, test only before 22:00 local time; 22:00 through midnight is blocked.",
+    "source_text": "Never test the CO detector after 10 PM",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 13, column BV (header 8_Q25, statement 8)",
+    "source_context": "ReleaseData=Yes; saw_examples=no; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "After 10 PM includes the 22:00 boundary and ends at midnight."
+    ],
+    "alternative_interpretation": "A quiet-hours interval continuing into the next morning.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D25": {
+        "category": [
+          "ER25"
+        ],
+        "tags": [
+          "ER25"
+        ]
+      }
+    },
+    "stubs": [
+      "ER25: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 79140000,
+    "histories": [
+      {
+        "name": "before_and_at_cutoff",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D25.Request": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D25.Request": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D25.Request": false
+            }
+          ],
+          [
+            60000,
+            {
+              "D25.Request": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER25.Test",
+            [],
+            "D25"
+          ]
+        ],
+        "horizon": 120000,
+        "step_ms": 1000
+      },
+      {
+        "name": "blocked_repeat",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D25.Request": false
+            }
+          ],
+          [
+            60000,
+            {
+              "D25.Request": true
+            }
+          ],
+          [
+            61000,
+            {
+              "D25.Request": false
+            }
+          ],
+          [
+            62000,
+            {
+              "D25.Request": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 120000,
+        "step_ms": 1000
+      },
+      {
+        "name": "midnight_reopens",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D25.Request": false
+            }
+          ],
+          [
+            7260000,
+            {
+              "D25.Request": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            7260000,
+            "ER25.Test",
+            [],
+            "D25"
+          ]
+        ],
+        "horizon": 7320000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-026",
+    "spec": "On an automatic light request, turn on only below 100 lux; on a manual request turn on regardless of brightness.",
+    "source_text": "A smart light should only come on when it is a certain brightness in the room or a user activates it manually.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 18, column BL (header 6_Q25, statement 6)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=I think this could happen if someone wanted a light to come on before they come home from somewhere and need to see.",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Certain brightness is fixed to less than 100 lux. This is an admission guard, with external raw request events. Simultaneous requests emit one On."
+    ],
+    "alternative_interpretation": "Autonomous switching upon crossing brightness threshold.",
+    "favorable_bias": "Threshold and request mechanism are agent choices.",
+    "devices": {
+      "D26": {
+        "category": [
+          "ER26"
+        ],
+        "tags": [
+          "ER26"
+        ]
+      }
+    },
+    "stubs": [
+      "ER26: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "dark_auto",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D26.AutoRequest": false,
+              "D26.ManualRequest": false,
+              "D26.Lux": 99
+            }
+          ],
+          [
+            1000,
+            {
+              "D26.AutoRequest": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER26.On",
+            [],
+            "D26"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "threshold_and_manual",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D26.AutoRequest": false,
+              "D26.ManualRequest": false,
+              "D26.Lux": 100
+            }
+          ],
+          [
+            1000,
+            {
+              "D26.AutoRequest": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D26.AutoRequest": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D26.ManualRequest": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            3000,
+            "ER26.On",
+            [],
+            "D26"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "repeat_bright_auto_denied",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D26.AutoRequest": false,
+              "D26.ManualRequest": false,
+              "D26.Lux": 500
+            }
+          ],
+          [
+            1000,
+            {
+              "D26.AutoRequest": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D26.AutoRequest": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D26.Lux": 50,
+              "D26.AutoRequest": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            3000,
+            "ER26.On",
+            [],
+            "D26"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-029",
+    "spec": "Lock once after the door remains closed ten seconds; reopening cancels and a later closure restarts.",
+    "source_text": "the lock should lock 10 seconds after you close the door",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 28, column BB (header 4_Q25, statement 4)",
+    "source_context": "ReleaseData=Yes; saw_examples=no; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Continuous condition; interruption resets elapsed time. One action per qualifying episode; re-arm only after opposite state.",
+      "Threshold is inclusive."
+    ],
+    "alternative_interpretation": "Repeated alerts while condition remains true, or fixed delayed action ignoring condition reversal.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D29": {
+        "category": [
+          "ER29"
+        ],
+        "tags": [
+          "ER29"
+        ]
+      }
+    },
+    "stubs": [
+      "ER29: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "sustained_at_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D29.Closed": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D29.Closed": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            11000,
+            "ER29.Lock",
+            [],
+            "D29"
+          ]
+        ],
+        "horizon": 13000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_then_full_duration",
+        "kind": "reset",
+        "events": [
+          [
+            0,
+            {
+              "D29.Closed": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D29.Closed": true
+            }
+          ],
+          [
+            10000,
+            {
+              "D29.Closed": false
+            }
+          ],
+          [
+            12000,
+            {
+              "D29.Closed": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            22000,
+            "ER29.Lock",
+            [],
+            "D29"
+          ]
+        ],
+        "horizon": 25000,
+        "step_ms": 1000
+      },
+      {
+        "name": "negative_short_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D29.Closed": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D29.Closed": true
+            }
+          ],
+          [
+            10000,
+            {
+              "D29.Closed": false
+            }
+          ],
+          [
+            12000,
+            {
+              "D29.Closed": true
+            }
+          ],
+          [
+            24000,
+            {
+              "D29.Closed": false
+            }
+          ],
+          [
+            26000,
+            {
+              "D29.Closed": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            22000,
+            "ER29.Lock",
+            [],
+            "D29"
+          ],
+          [
+            36000,
+            "ER29.Lock",
+            [],
+            "D29"
+          ]
+        ],
+        "horizon": 38000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-030",
+    "spec": "Turn TV off once per continuous one-hour idle episode; activity resets the timer.",
+    "source_text": "Smart tv should always turn off when idle for 1 hour.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 31, column CF (header 10_Q25, statement 10)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Continuous condition; interruption resets elapsed time. One action per qualifying episode; re-arm only after opposite state.",
+      "Threshold is inclusive."
+    ],
+    "alternative_interpretation": "Repeated alerts while condition remains true, or fixed delayed action ignoring condition reversal.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D30": {
+        "category": [
+          "ER30"
+        ],
+        "tags": [
+          "ER30"
+        ]
+      }
+    },
+    "stubs": [
+      "ER30: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "sustained_at_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D30.Idle": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D30.Idle": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            3601000,
+            "ER30.Off",
+            [],
+            "D30"
+          ]
+        ],
+        "horizon": 3603000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_then_full_duration",
+        "kind": "reset",
+        "events": [
+          [
+            0,
+            {
+              "D30.Idle": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D30.Idle": true
+            }
+          ],
+          [
+            3600000,
+            {
+              "D30.Idle": false
+            }
+          ],
+          [
+            3602000,
+            {
+              "D30.Idle": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            7202000,
+            "ER30.Off",
+            [],
+            "D30"
+          ]
+        ],
+        "horizon": 7205000,
+        "step_ms": 1000
+      },
+      {
+        "name": "negative_short_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D30.Idle": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D30.Idle": true
+            }
+          ],
+          [
+            3600000,
+            {
+              "D30.Idle": false
+            }
+          ],
+          [
+            3602000,
+            {
+              "D30.Idle": true
+            }
+          ],
+          [
+            7204000,
+            {
+              "D30.Idle": false
+            }
+          ],
+          [
+            7206000,
+            {
+              "D30.Idle": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            7202000,
+            "ER30.Off",
+            [],
+            "D30"
+          ],
+          [
+            10806000,
+            "ER30.Off",
+            [],
+            "D30"
+          ]
+        ],
+        "horizon": 10808000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-031",
+    "spec": "On a TV-on request, allow On only after at least two toothbrush-use events in the current calendar day. Count distinct one-second use pulses; reset at midnight.",
+    "source_text": "The Smart TV in the children's room should never turn on whenever the toothbrush has not been used at least twice that day",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 48, column CF (header 10_Q25, statement 10)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Corpus author permitted a backend daily-count input. This audit tests a stronger raw-event alternative with fixed threshold two; no fixture performs accumulation.",
+      "Start 23:59; no earlier uses that day; day resets when local clock hour wraps. Requests coinciding with second use qualify after that use."
+    ],
+    "alternative_interpretation": "Read an external daily count as expressly allowed by corpus author; no claim of general accumulation.",
+    "favorable_bias": "Fixed threshold two admits finite phase encoding; does not establish arbitrary counters.",
+    "devices": {
+      "D31": {
+        "category": [
+          "ER31"
+        ],
+        "tags": [
+          "ER31"
+        ]
+      }
+    },
+    "stubs": [
+      "ER31: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 86340000,
+    "histories": [
+      {
+        "name": "zero_one_two_uses",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D31.BrushUse": false,
+              "D31.Request": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D31.Request": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D31.Request": false,
+              "D31.BrushUse": true
+            }
+          ],
+          [
+            3000,
+            {
+              "D31.BrushUse": false
+            }
+          ],
+          [
+            4000,
+            {
+              "D31.Request": true
+            }
+          ],
+          [
+            5000,
+            {
+              "D31.Request": false,
+              "D31.BrushUse": true
+            }
+          ],
+          [
+            6000,
+            {
+              "D31.BrushUse": false
+            }
+          ],
+          [
+            7000,
+            {
+              "D31.Request": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            7000,
+            "ER31.On",
+            [],
+            "D31"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "held_brush_is_one_use",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D31.BrushUse": false,
+              "D31.Request": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D31.BrushUse": true
+            }
+          ],
+          [
+            5000,
+            {
+              "D31.Request": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "midnight_resets",
+        "kind": "reset",
+        "events": [
+          [
+            0,
+            {
+              "D31.BrushUse": false,
+              "D31.Request": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D31.BrushUse": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D31.BrushUse": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D31.BrushUse": true
+            }
+          ],
+          [
+            4000,
+            {
+              "D31.BrushUse": false
+            }
+          ],
+          [
+            5000,
+            {
+              "D31.Request": true
+            }
+          ],
+          [
+            6000,
+            {
+              "D31.Request": false
+            }
+          ],
+          [
+            61000,
+            {
+              "D31.Request": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            5000,
+            "ER31.On",
+            [],
+            "D31"
+          ]
+        ],
+        "horizon": 65000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-032",
+    "spec": "On a smart-window open request, open only while AC is off. Listed smoke/fire/smell exception is not an encoded exception rule because the corpus records it as an informal possible override.",
+    "source_text": "My smart window should never be opened while the AC is on.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 51, column AW (header 3_Q25, statement 3)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=Smoke, fires, smells.",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "No automatic closure of an already open window is implied."
+    ],
+    "alternative_interpretation": "Force-close while AC runs, or permit emergency override.",
+    "favorable_bias": "Informal exception omitted; report this qualification.",
+    "devices": {
+      "D32": {
+        "category": [
+          "ER32"
+        ],
+        "tags": [
+          "ER32"
+        ]
+      }
+    },
+    "stubs": [
+      "ER32: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "allowed",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D32.Request": false,
+              "D32.ACOn": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D32.Request": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER32.Open",
+            [],
+            "D32"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "blocked",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D32.Request": false,
+              "D32.ACOn": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D32.Request": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_and_allow",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D32.Request": false,
+              "D32.ACOn": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D32.Request": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D32.Request": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D32.ACOn": false,
+              "D32.Request": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            3000,
+            "ER32.Open",
+            [],
+            "D32"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-033",
+    "spec": "Open garage door at 17:00 on weekdays and close at 18:00. If an observed closure occurs within the active weekday window, reopen; no command before 17:00 or on weekends.",
+    "source_text": "My smart garage door should always be opened on weekdays from 5pm to 6pm.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 54, column AR (header 2_Q25, statement 2)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=If I didn't go to work that day, it would be unnecessary to open the garage door.",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Friday 16:59 start. Off at 18:00 is an agent closure convention. Informal not-going-to-work exception is not given an input rule."
+    ],
+    "alternative_interpretation": "Only issue scheduled Open; do not enforce a held state or close at 18:00.",
+    "favorable_bias": "Closing at 18:00 and omitting informal exception are interpretation additions.",
+    "devices": {
+      "D33": {
+        "category": [
+          "ER33"
+        ],
+        "tags": [
+          "ER33"
+        ]
+      }
+    },
+    "stubs": [
+      "ER33: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 406740000,
+    "histories": [
+      {
+        "name": "weekday_window",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D33.Closed": true
+            }
+          ],
+          [
+            120000,
+            {
+              "D33.Closed": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER33.Open",
+            [],
+            "D33"
+          ],
+          [
+            3660000,
+            "ER33.Close",
+            [],
+            "D33"
+          ]
+        ],
+        "horizon": 3720000,
+        "step_ms": 60000
+      },
+      {
+        "name": "reopen_within_window",
+        "kind": "reset",
+        "events": [
+          [
+            0,
+            {
+              "D33.Closed": true
+            }
+          ],
+          [
+            120000,
+            {
+              "D33.Closed": false
+            }
+          ],
+          [
+            180000,
+            {
+              "D33.Closed": true
+            }
+          ],
+          [
+            240000,
+            {
+              "D33.Closed": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER33.Open",
+            [],
+            "D33"
+          ],
+          [
+            180000,
+            "ER33.Open",
+            [],
+            "D33"
+          ],
+          [
+            3660000,
+            "ER33.Close",
+            [],
+            "D33"
+          ]
+        ],
+        "horizon": 3720000,
+        "step_ms": 60000
+      },
+      {
+        "name": "weekend_excluded",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D33.Closed": true
+            }
+          ],
+          [
+            120000,
+            {
+              "D33.Closed": false
+            }
+          ],
+          [
+            3720000,
+            {
+              "D33.Closed": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER33.Open",
+            [],
+            "D33"
+          ],
+          [
+            3660000,
+            "ER33.Close",
+            [],
+            "D33"
+          ]
+        ],
+        "horizon": 176520000,
+        "step_ms": 60000
+      }
+    ]
+  },
+  {
+    "id": "E1-035",
+    "spec": "Turn TV off once when the room is unoccupied continuously for more than ten minutes; occupancy resets.",
+    "source_text": "My smart TV should turn off whenever it has been empty of people for more than 10 minutes.",
+    "source_url": "https://github.com/zlfben/autotap/blob/master/data/Data%20-%20User%20Study%201.xlsx",
+    "source_locator": "Result sheet, Excel row 67, column AW (header 3_Q25, statement 3)",
+    "source_context": "ReleaseData=Yes; saw_examples=yes; exception_response=none",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Continuous condition; interruption resets elapsed time. One action per qualifying episode; re-arm only after opposite state.",
+      "Strict language is tested at the first integer-second sample greater than the threshold."
+    ],
+    "alternative_interpretation": "Repeated alerts while condition remains true, or fixed delayed action ignoring condition reversal.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D35": {
+        "category": [
+          "ER35"
+        ],
+        "tags": [
+          "ER35"
+        ]
+      }
+    },
+    "stubs": [
+      "ER35: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "sustained_at_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D35.Occupied": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D35.Occupied": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            602000,
+            "ER35.Off",
+            [],
+            "D35"
+          ]
+        ],
+        "horizon": 604000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_then_full_duration",
+        "kind": "reset",
+        "events": [
+          [
+            0,
+            {
+              "D35.Occupied": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D35.Occupied": false
+            }
+          ],
+          [
+            600000,
+            {
+              "D35.Occupied": true
+            }
+          ],
+          [
+            602000,
+            {
+              "D35.Occupied": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1203000,
+            "ER35.Off",
+            [],
+            "D35"
+          ]
+        ],
+        "horizon": 1206000,
+        "step_ms": 1000
+      },
+      {
+        "name": "negative_short_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D35.Occupied": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D35.Occupied": false
+            }
+          ],
+          [
+            600000,
+            {
+              "D35.Occupied": true
+            }
+          ],
+          [
+            602000,
+            {
+              "D35.Occupied": false
+            }
+          ],
+          [
+            1205000,
+            {
+              "D35.Occupied": true
+            }
+          ],
+          [
+            1207000,
+            {
+              "D35.Occupied": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1203000,
+            "ER35.Off",
+            [],
+            "D35"
+          ],
+          [
+            1808000,
+            "ER35.Off",
+            [],
+            "D35"
+          ]
+        ],
+        "horizon": 1810000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-038",
+    "spec": "On each new email event whose sender exactly equals JohnDoe@gmail.com, issue one device-native Blink command.",
+    "source_text": "If I receive an email from JohnDoe@gmail.com then blink lights to notify me.",
+    "source_url": "https://www.blaseur.com/papers/TriggerActionCHI14.pdf",
+    "source_locator": "Table 1, Task C",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Blink is an atomic actuator capability; no blink cadence/duration is required by source."
+    ],
+    "alternative_interpretation": "Define a timed on/off blink sequence.",
+    "favorable_bias": "Assumes native Blink leaf command exists.",
+    "devices": {
+      "D38": {
+        "category": [
+          "ER38"
+        ],
+        "tags": [
+          "ER38"
+        ]
+      }
+    },
+    "stubs": [
+      "ER38: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "matching_sender",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D38.Received": false,
+              "D38.Sender": "JohnDoe@gmail.com"
+            }
+          ],
+          [
+            1000,
+            {
+              "D38.Received": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER38.Blink",
+            [],
+            "D38"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "other_sender",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D38.Received": false,
+              "D38.Sender": "other@gmail.com"
+            }
+          ],
+          [
+            1000,
+            {
+              "D38.Received": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D38.Received": false,
+              "D38.Sender": "JohnDoe@gmail.com"
+            }
+          ],
+          [
+            1000,
+            {
+              "D38.Received": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D38.Received": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D38.Received": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER38.Blink",
+            [],
+            "D38"
+          ],
+          [
+            3000,
+            "ER38.Blink",
+            [],
+            "D38"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-039",
+    "spec": "When platform daylight changes from true to false at sunset, turn lights on once.",
+    "source_text": "Turn on the lights when the sun sets.",
+    "source_url": "https://www.blaseur.com/papers/TriggerActionCHI14.pdf",
+    "source_locator": "Table 1, Task D",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Daylight is the same permitted environment leaf as depth E1-072; no fixed sunset hour."
+    ],
+    "alternative_interpretation": "Turn on whenever dark, including initialization.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D39": {
+        "category": [
+          "ER39"
+        ],
+        "tags": [
+          "ER39"
+        ]
+      }
+    },
+    "stubs": [
+      "ER39: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "sunset",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D39.Daylight": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D39.Daylight": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER39.On",
+            [],
+            "D39"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "already_dark",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D39.Daylight": false
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "two_sunsets",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D39.Daylight": true
+            }
+          ],
+          [
+            1000,
+            {
+              "D39.Daylight": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D39.Daylight": true
+            }
+          ],
+          [
+            5000,
+            {
+              "D39.Daylight": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER39.On",
+            [],
+            "D39"
+          ],
+          [
+            5000,
+            "ER39.On",
+            [],
+            "D39"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-040",
+    "spec": "Turn bedroom lights on at 19:00 daily.",
+    "source_text": "If it is 7:00PM then turn on the lights in my bedroom.",
+    "source_url": "https://www.blaseur.com/papers/TriggerActionCHI14.pdf",
+    "source_locator": "Table 1, Task E",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Week starts Monday. Scheduled commands fire once at the clock boundary. Minute-grid histories retain exact minute boundaries.",
+      "Daily recurrence is assumed."
+    ],
+    "alternative_interpretation": "A one-off time rather than daily recurrence.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D40": {
+        "category": [
+          "ER40"
+        ],
+        "tags": [
+          "ER40"
+        ]
+      }
+    },
+    "stubs": [
+      "ER40: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 68340000,
+    "histories": [
+      {
+        "name": "first_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER40.On",
+            [],
+            "D40"
+          ]
+        ],
+        "horizon": 180000,
+        "step_ms": 60000
+      },
+      {
+        "name": "repeat_calendar",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER40.On",
+            [],
+            "D40"
+          ],
+          [
+            86460000,
+            "ER40.On",
+            [],
+            "D40"
+          ]
+        ],
+        "horizon": 86520000,
+        "step_ms": 60000
+      },
+      {
+        "name": "before_boundary",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [],
+        "horizon": 0,
+        "step_ms": 60000
+      }
+    ]
+  },
+  {
+    "id": "E1-041",
+    "spec": "Blink once on each transition to someone at the front door.",
+    "source_text": "Blink the lights if someone is at my front door.",
+    "source_url": "https://www.blaseur.com/papers/TriggerActionCHI14.pdf",
+    "source_locator": "Table 1, Task F",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "The trigger is a rising event; a held initial condition is not a new event."
+    ],
+    "alternative_interpretation": "A level rule may also act immediately at startup.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D41": {
+        "category": [
+          "ER41"
+        ],
+        "tags": [
+          "ER41"
+        ]
+      }
+    },
+    "stubs": [
+      "ER41: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "rise_once",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D41.AtFrontDoor": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D41.AtFrontDoor": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER41.Blink",
+            [],
+            "D41"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "held_initial_no_transition",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D41.AtFrontDoor": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D41.AtFrontDoor": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D41.AtFrontDoor": true
+            }
+          ],
+          [
+            3000,
+            {
+              "D41.AtFrontDoor": false
+            }
+          ],
+          [
+            5000,
+            {
+              "D41.AtFrontDoor": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER41.Blink",
+            [],
+            "D41"
+          ],
+          [
+            5000,
+            "ER41.Blink",
+            [],
+            "D41"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-042",
+    "spec": "At startup and whenever bedroom presence changes, command On if present and Off if absent.",
+    "source_text": "The lighting in my bedroom should be on when I am there and off when I am not there.",
+    "source_url": "https://www.blaseur.com/papers/TriggerActionCHI14.pdf",
+    "source_locator": "Table 1, Task G",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "State rule is applied on initialization; held state does not repeatedly command."
+    ],
+    "alternative_interpretation": "Event-only rule with no initial synchronization.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D42": {
+        "category": [
+          "ER42"
+        ],
+        "tags": [
+          "ER42"
+        ]
+      }
+    },
+    "stubs": [
+      "ER42: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "present_then_leave",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D42.Present": true
+            }
+          ],
+          [
+            3000,
+            {
+              "D42.Present": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            "ER42.On",
+            [],
+            "D42"
+          ],
+          [
+            3000,
+            "ER42.Off",
+            [],
+            "D42"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "absent_stays_absent",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D42.Present": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            "ER42.Off",
+            [],
+            "D42"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "repeat_transitions",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D42.Present": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D42.Present": true
+            }
+          ],
+          [
+            3000,
+            {
+              "D42.Present": false
+            }
+          ],
+          [
+            5000,
+            {
+              "D42.Present": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            "ER42.Off",
+            [],
+            "D42"
+          ],
+          [
+            1000,
+            "ER42.On",
+            [],
+            "D42"
+          ],
+          [
+            3000,
+            "ER42.Off",
+            [],
+            "D42"
+          ],
+          [
+            5000,
+            "ER42.On",
+            [],
+            "D42"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-043",
+    "spec": "At rain onset change lights to blue.",
+    "source_text": "If it begins to rain then change the light colors to blue.",
+    "source_url": "https://www.blaseur.com/papers/TriggerActionCHI14.pdf",
+    "source_locator": "Table 1, Task H",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "The trigger is a rising event; a held initial condition is not a new event."
+    ],
+    "alternative_interpretation": "A level rule may also act immediately at startup.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D43": {
+        "category": [
+          "ER43"
+        ],
+        "tags": [
+          "ER43"
+        ]
+      }
+    },
+    "stubs": [
+      "ER43: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "rise_once",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D43.Rain": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D43.Rain": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER43.SetColor",
+            [
+              "blue"
+            ],
+            "D43"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "held_initial_no_transition",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D43.Rain": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reset_and_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D43.Rain": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D43.Rain": true
+            }
+          ],
+          [
+            3000,
+            {
+              "D43.Rain": false
+            }
+          ],
+          [
+            5000,
+            {
+              "D43.Rain": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER43.SetColor",
+            [
+              "blue"
+            ],
+            "D43"
+          ],
+          [
+            5000,
+            "ER43.SetColor",
+            [
+              "blue"
+            ],
+            "D43"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-044",
+    "spec": "Whenever kitchen door transitions from open to closed, lock the door and turn off kitchen light at the same instant.",
+    "source_text": "When I close the kitchen door, lock the door and turn off the kitchen light.",
+    "source_url": "https://www.blaseur.com/papers/TriggerActionCHI14.pdf",
+    "source_locator": "Table 1, Task J",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Same-instant actions are unordered under depth T5."
+    ],
+    "alternative_interpretation": "Delayed or enforced closed-state rule.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D44": {
+        "category": [
+          "ER44"
+        ],
+        "tags": [
+          "ER44"
+        ]
+      }
+    },
+    "stubs": [
+      "ER44: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "close",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D44.Closed": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D44.Closed": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER44.Lock",
+            [],
+            "D44"
+          ],
+          [
+            1000,
+            "ER44.LightOff",
+            [],
+            "D44"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "initially_closed",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D44.Closed": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "reclose",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D44.Closed": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D44.Closed": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D44.Closed": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D44.Closed": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER44.Lock",
+            [],
+            "D44"
+          ],
+          [
+            1000,
+            "ER44.LightOff",
+            [],
+            "D44"
+          ],
+          [
+            3000,
+            "ER44.Lock",
+            [],
+            "D44"
+          ],
+          [
+            3000,
+            "ER44.LightOff",
+            [],
+            "D44"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-045",
+    "spec": "After an observed sleep episode ends, brew coffee if its continuous duration was strictly less than five hours.",
+    "source_text": "If I get less than 5 hours of sleep, put on a pot o\u2019 coffee",
+    "source_url": "https://www.blaseur.com/papers/TriggerActionCHI14.pdf",
+    "source_locator": "Figure 1",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Sleep duration is computed from raw asleep state transitions in the IR, not supplied as a history aggregate. Continuous episode is the sleep unit."
+    ],
+    "alternative_interpretation": "Accumulate fragmented sleep over a whole night.",
+    "favorable_bias": "Continuous episode interpretation avoids general nightly accumulation; report this assumption.",
+    "devices": {
+      "D45": {
+        "category": [
+          "ER45"
+        ],
+        "tags": [
+          "ER45"
+        ]
+      }
+    },
+    "stubs": [
+      "ER45: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "short_sleep",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D45.Asleep": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D45.Asleep": true
+            }
+          ],
+          [
+            14401000,
+            {
+              "D45.Asleep": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            14401000,
+            "ER45.Brew",
+            [],
+            "D45"
+          ]
+        ],
+        "horizon": 14403000,
+        "step_ms": 1000
+      },
+      {
+        "name": "exact_five_hours",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D45.Asleep": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D45.Asleep": true
+            }
+          ],
+          [
+            18001000,
+            {
+              "D45.Asleep": false
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 18003000,
+        "step_ms": 1000
+      },
+      {
+        "name": "two_episodes",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D45.Asleep": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D45.Asleep": true
+            }
+          ],
+          [
+            3601000,
+            {
+              "D45.Asleep": false
+            }
+          ],
+          [
+            7200000,
+            {
+              "D45.Asleep": true
+            }
+          ],
+          [
+            10800000,
+            {
+              "D45.Asleep": false
+            }
+          ]
+        ],
+        "expected": [
+          [
+            3601000,
+            "ER45.Brew",
+            [],
+            "D45"
+          ],
+          [
+            10800000,
+            "ER45.Brew",
+            [],
+            "D45"
+          ]
+        ],
+        "horizon": 10803000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-046",
+    "spec": "Turn lights on at 18:00 daily.",
+    "source_text": "You want the lights to turn on at 6:00 pm every day",
+    "source_url": "https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf",
+    "source_locator": "Table 4 P1",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Week starts Monday. Scheduled commands fire once at the clock boundary. Minute-grid histories retain exact minute boundaries.",
+      "Daily recurrence is assumed."
+    ],
+    "alternative_interpretation": "A one-off time rather than daily recurrence.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D46": {
+        "category": [
+          "ER46"
+        ],
+        "tags": [
+          "ER46"
+        ]
+      }
+    },
+    "stubs": [
+      "ER46: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 64740000,
+    "histories": [
+      {
+        "name": "first_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER46.On",
+            [],
+            "D46"
+          ]
+        ],
+        "horizon": 180000,
+        "step_ms": 60000
+      },
+      {
+        "name": "repeat_calendar",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER46.On",
+            [],
+            "D46"
+          ],
+          [
+            86460000,
+            "ER46.On",
+            [],
+            "D46"
+          ]
+        ],
+        "horizon": 86520000,
+        "step_ms": 60000
+      },
+      {
+        "name": "before_boundary",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [],
+        "horizon": 0,
+        "step_ms": 60000
+      }
+    ]
+  },
+  {
+    "id": "E1-047",
+    "spec": "On each person-detected rising event during 09:00 inclusive to 17:00 exclusive, send one email notification daily.",
+    "source_text": "You want to be notified, via email, should a person be detected in the house while everyone\u2019s at work (9:00 am - 5:00 pm every day)",
+    "source_url": "https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf",
+    "source_locator": "Table 4 P2",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Everyone at work is represented by the explicit source clock window, not inferred occupancy. Trigger is person arrival, not window opening with an already present person."
+    ],
+    "alternative_interpretation": "A conjunction-level rule acts at 09:00 if someone already present.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D47": {
+        "category": [
+          "ER47"
+        ],
+        "tags": [
+          "ER47"
+        ]
+      }
+    },
+    "stubs": [
+      "ER47: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 32340000,
+    "histories": [
+      {
+        "name": "time_boundaries",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D47.Person": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D47.Person": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D47.Person": false
+            }
+          ],
+          [
+            60000,
+            {
+              "D47.Person": true
+            }
+          ],
+          [
+            61000,
+            {
+              "D47.Person": false
+            }
+          ],
+          [
+            28860000,
+            {
+              "D47.Person": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER47.Email",
+            [],
+            "D47"
+          ]
+        ],
+        "horizon": 28862000,
+        "step_ms": 1000
+      },
+      {
+        "name": "repeat_inside",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D47.Person": false
+            }
+          ],
+          [
+            120000,
+            {
+              "D47.Person": true
+            }
+          ],
+          [
+            121000,
+            {
+              "D47.Person": false
+            }
+          ],
+          [
+            180000,
+            {
+              "D47.Person": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            120000,
+            "ER47.Email",
+            [],
+            "D47"
+          ],
+          [
+            180000,
+            "ER47.Email",
+            [],
+            "D47"
+          ]
+        ],
+        "horizon": 240000,
+        "step_ms": 1000
+      },
+      {
+        "name": "person_spans_opening",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D47.Person": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 120000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-048",
+    "spec": "At startup and on crossing 40 F outside: set thermostat to 72 F below 40, otherwise command Off. Held values on the same side cause no duplicate action.",
+    "source_text": "You want the thermostat to be off as much as possible, unless the temperature outside is below 40 degrees, in which case the thermostat should be set to 72 degrees.",
+    "source_url": "https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf",
+    "source_locator": "Table 4 P4",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Fahrenheit inferred from 40/72 values; 40 belongs to Off."
+    ],
+    "alternative_interpretation": "Continuously resend commands, or use hysteresis.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D48": {
+        "category": [
+          "ER48"
+        ],
+        "tags": [
+          "ER48"
+        ]
+      }
+    },
+    "stubs": [
+      "ER48: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "cold_initial_then_warm",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D48.TemperatureF": 39
+            }
+          ],
+          [
+            3000,
+            {
+              "D48.TemperatureF": 40
+            }
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            "ER48.Set",
+            [
+              72
+            ],
+            "D48"
+          ],
+          [
+            3000,
+            "ER48.Off",
+            [],
+            "D48"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "warm_held",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D48.TemperatureF": 40
+            }
+          ],
+          [
+            1000,
+            {
+              "D48.TemperatureF": 45
+            }
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            "ER48.Off",
+            [],
+            "D48"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "repeat_crossings",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D48.TemperatureF": 45
+            }
+          ],
+          [
+            1000,
+            {
+              "D48.TemperatureF": 39
+            }
+          ],
+          [
+            2000,
+            {
+              "D48.TemperatureF": 35
+            }
+          ],
+          [
+            3000,
+            {
+              "D48.TemperatureF": 40
+            }
+          ],
+          [
+            5000,
+            {
+              "D48.TemperatureF": 39
+            }
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            "ER48.Off",
+            [],
+            "D48"
+          ],
+          [
+            1000,
+            "ER48.Set",
+            [
+              72
+            ],
+            "D48"
+          ],
+          [
+            3000,
+            "ER48.Off",
+            [],
+            "D48"
+          ],
+          [
+            5000,
+            "ER48.Set",
+            [
+              72
+            ],
+            "D48"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-049",
+    "spec": "Brew once on initial satisfaction or each false-to-true transition of outside temperature below 40 F and local time in [00:00,10:00).",
+    "source_text": "You want a pot of coffee to be brewed when it\u2019s below 40 degrees outside, but only before 10:00 am every day.",
+    "source_url": "https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf",
+    "source_locator": "Table 4 P5",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "One action per qualifying episode, not every tick. Cold state at opening starts an episode."
+    ],
+    "alternative_interpretation": "Once per day regardless of re-entry, or temperature-event-only triggers.",
+    "favorable_bias": "Episode interpretation chooses recurrence not stated in source.",
+    "devices": {
+      "D49": {
+        "category": [
+          "ER49"
+        ],
+        "tags": [
+          "ER49"
+        ]
+      }
+    },
+    "stubs": [
+      "ER49: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 35940000,
+    "histories": [
+      {
+        "name": "cold_initial",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D49.TemperatureF": 39
+            }
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            "ER49.Brew",
+            [],
+            "D49"
+          ]
+        ],
+        "horizon": 120000,
+        "step_ms": 1000
+      },
+      {
+        "name": "cutoff_excludes",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D49.TemperatureF": 40
+            }
+          ],
+          [
+            60000,
+            {
+              "D49.TemperatureF": 39
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 120000,
+        "step_ms": 1000
+      },
+      {
+        "name": "repeat_inside_window",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D49.TemperatureF": 40
+            }
+          ],
+          [
+            1000,
+            {
+              "D49.TemperatureF": 39
+            }
+          ],
+          [
+            2000,
+            {
+              "D49.TemperatureF": 40
+            }
+          ],
+          [
+            3000,
+            {
+              "D49.TemperatureF": 39
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER49.Brew",
+            [],
+            "D49"
+          ],
+          [
+            3000,
+            "ER49.Brew",
+            [],
+            "D49"
+          ]
+        ],
+        "horizon": 120000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-050",
+    "spec": "Turn lights on at 18:00 daily.",
+    "source_text": "If the time is 6:00 pm, then turn the lights on",
+    "source_url": "https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf",
+    "source_locator": "Table 5 Q1",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Week starts Monday. Scheduled commands fire once at the clock boundary. Minute-grid histories retain exact minute boundaries.",
+      "Daily recurrence is assumed."
+    ],
+    "alternative_interpretation": "A one-off time rather than daily recurrence.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D50": {
+        "category": [
+          "ER50"
+        ],
+        "tags": [
+          "ER50"
+        ]
+      }
+    },
+    "stubs": [
+      "ER50: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 64740000,
+    "histories": [
+      {
+        "name": "first_boundary",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER50.On",
+            [],
+            "D50"
+          ]
+        ],
+        "horizon": 180000,
+        "step_ms": 60000
+      },
+      {
+        "name": "repeat_calendar",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER50.On",
+            [],
+            "D50"
+          ],
+          [
+            86460000,
+            "ER50.On",
+            [],
+            "D50"
+          ]
+        ],
+        "horizon": 86520000,
+        "step_ms": 60000
+      },
+      {
+        "name": "before_boundary",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {}
+          ]
+        ],
+        "expected": [],
+        "horizon": 0,
+        "step_ms": 60000
+      }
+    ]
+  },
+  {
+    "id": "E1-051",
+    "spec": "On arrival home, turn lights on if local time is at least 18:00 and strictly before 23:00; no action merely when clock reaches 18:00.",
+    "source_text": "If I arrive at home and the time is between 6:00 - 11:00 pm, then turn the lights on",
+    "source_url": "https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf",
+    "source_locator": "Table 5 Q2",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "Arrival is an edge event; half-open clock window."
+    ],
+    "alternative_interpretation": "Conjunction rising rule also triggers at window opening.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D51": {
+        "category": [
+          "ER51"
+        ],
+        "tags": [
+          "ER51"
+        ]
+      }
+    },
+    "stubs": [
+      "ER51: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 64740000,
+    "histories": [
+      {
+        "name": "arrival_at_opening",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D51.Home": false
+            }
+          ],
+          [
+            60000,
+            {
+              "D51.Home": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER51.On",
+            [],
+            "D51"
+          ]
+        ],
+        "horizon": 120000,
+        "step_ms": 1000
+      },
+      {
+        "name": "already_home_at_opening",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D51.Home": true
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 120000,
+        "step_ms": 1000
+      },
+      {
+        "name": "arrival_before_and_at_close",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D51.Home": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D51.Home": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D51.Home": false
+            }
+          ],
+          [
+            120000,
+            {
+              "D51.Home": true
+            }
+          ],
+          [
+            180000,
+            {
+              "D51.Home": false
+            }
+          ],
+          [
+            18060000,
+            {
+              "D51.Home": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            120000,
+            "ER51.On",
+            [],
+            "D51"
+          ]
+        ],
+        "horizon": 18120000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-052",
+    "spec": "At initialization when snowing, and each later snow onset, set thermostat to 75 F once. No reversal action is specified.",
+    "source_text": "If it is snowing, then turn the thermostat to 75 degrees F",
+    "source_url": "https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf",
+    "source_locator": "Table 5 Q4",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "State wording permits initial satisfaction. Held snow state does not repeatedly set thermostat."
+    ],
+    "alternative_interpretation": "Strict event-only snow onset with no initial action.",
+    "favorable_bias": "No deliberate simplification beyond stated fixed parameters.",
+    "devices": {
+      "D52": {
+        "category": [
+          "ER52"
+        ],
+        "tags": [
+          "ER52"
+        ]
+      }
+    },
+    "stubs": [
+      "ER52: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 0,
+    "histories": [
+      {
+        "name": "initial_snow",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D52.Snow": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            0,
+            "ER52.Set",
+            [
+              75
+            ],
+            "D52"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "no_snow",
+        "kind": "negative",
+        "events": [
+          [
+            0,
+            {
+              "D52.Snow": false
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 30000,
+        "step_ms": 1000
+      },
+      {
+        "name": "repeat_onsets",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D52.Snow": false
+            }
+          ],
+          [
+            1000,
+            {
+              "D52.Snow": true
+            }
+          ],
+          [
+            2000,
+            {
+              "D52.Snow": false
+            }
+          ],
+          [
+            3000,
+            {
+              "D52.Snow": true
+            }
+          ]
+        ],
+        "expected": [
+          [
+            1000,
+            "ER52.Set",
+            [
+              75
+            ],
+            "D52"
+          ],
+          [
+            3000,
+            "ER52.Set",
+            [
+              75
+            ],
+            "D52"
+          ]
+        ],
+        "horizon": 30000,
+        "step_ms": 1000
+      }
+    ]
+  },
+  {
+    "id": "E1-053",
+    "spec": "Brew once on initial satisfaction or each false-to-true transition of outside temperature below 40 F and local time in [07:00,10:00).",
+    "source_text": "If the time is between 7:00 am and 10:00 am and the outside temperature is below 40 degrees, then brew a pot of coffee",
+    "source_url": "https://hcrlab.cs.washington.edu/assets/pdfs/2015/huang2015ubicomp.pdf",
+    "source_locator": "Table 5 Q5",
+    "source_context": "",
+    "transcription": [
+      "Agent-fixed interpretation; not independently author-validated.",
+      "No action automatically changes fixture inputs. Initial inputs are sampled at t=0; rises are later events.",
+      "One action per qualifying episode, not every tick. Cold state at opening starts an episode."
+    ],
+    "alternative_interpretation": "Once per day regardless of re-entry, or temperature-event-only triggers.",
+    "favorable_bias": "Episode interpretation chooses recurrence not stated in source.",
+    "devices": {
+      "D53": {
+        "category": [
+          "ER53"
+        ],
+        "tags": [
+          "ER53"
+        ]
+      }
+    },
+    "stubs": [
+      "ER53: raw typed inputs and observable leaf commands only"
+    ],
+    "t_start_ms": 25140000,
+    "histories": [
+      {
+        "name": "window_opens_cold",
+        "kind": "nominal",
+        "events": [
+          [
+            0,
+            {
+              "D53.TemperatureF": 39
+            }
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER53.Brew",
+            [],
+            "D53"
+          ]
+        ],
+        "horizon": 120000,
+        "step_ms": 60000
+      },
+      {
+        "name": "threshold_reset_repeat",
+        "kind": "repeat",
+        "events": [
+          [
+            0,
+            {
+              "D53.TemperatureF": 40
+            }
+          ],
+          [
+            60000,
+            {
+              "D53.TemperatureF": 39
+            }
+          ],
+          [
+            120000,
+            {
+              "D53.TemperatureF": 40
+            }
+          ],
+          [
+            180000,
+            {
+              "D53.TemperatureF": 39
+            }
+          ]
+        ],
+        "expected": [
+          [
+            60000,
+            "ER53.Brew",
+            [],
+            "D53"
+          ],
+          [
+            180000,
+            "ER53.Brew",
+            [],
+            "D53"
+          ]
+        ],
+        "horizon": 240000,
+        "step_ms": 60000
+      },
+      {
+        "name": "warm_and_cutoff",
+        "kind": "boundary",
+        "events": [
+          [
+            0,
+            {
+              "D53.TemperatureF": 45
+            }
+          ],
+          [
+            10860000,
+            {
+              "D53.TemperatureF": 39
+            }
+          ]
+        ],
+        "expected": [],
+        "horizon": 10920000,
+        "step_ms": 60000
+      }
+    ]
+  }
+]

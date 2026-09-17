@@ -14,15 +14,15 @@
 
 ## 원고 섹션 구조
 
-2026-09-17: Related Work를 §2, Problem and Motivation을 §3으로 배치했다. 폴더는 `00`–`10` 번호로 정렬한다. Introduction은 동기 결과를 짧게 예고하고, Table 1 및 `motivation_judge/`는 `03_Motivation/`에 둔다.
+2026-09-17: Related Work를 §2, Problem and Motivation을 §3으로 배치했다. Implementation은 §6에 통합했으며, Evaluation부터 본문 절 번호와 폴더 접두 번호가 다르다. 기존 참조를 위해 나머지 폴더명은 유지한다. Introduction은 동기 결과를 짧게 예고하고, Table 1 및 `motivation_judge/`는 `03_Motivation/`에 둔다.
 
-각 섹션 폴더에는 정확히 다음 세 파일이 있다.
+각 섹션 폴더는 다음 세 파일을 기본으로 사용하며, 검토용 한글본과 편집 기록을 함께 둘 수 있다.
 
 - `SenSys_version.md`: `docs/ovla0606.tex`에 제출되었던 구성과 주장을 보존한 비교 기준.
 - `PerCom_version.md`: 최신 VETS framing과 검증 계약을 적용한 실제 영문 원고 초안.
 - `HANDOFF.md`: 채택·폐기·미확정 사항, 근거 경로와 다음 수정 작업.
 
-| 순서 | 섹션 폴더 |
+| 본문 순서 | 섹션 폴더 |
 | ---: | --- |
 | 0 | [Abstract](00_Abstract/) |
 | 1 | [Introduction](01_Intro/) |
@@ -31,12 +31,11 @@
 | 4 | [System Overview and Scope](04_System_Overview_and_Scope/) |
 | 5 | [Timeline IR](05_Timeline_IR/) |
 | 6 | [Code Generation and Behavioral Validation](06_Code_Generation_and_Behavioral_Validation/) |
-| 7 | [Implementation](07_Implementation/) |
-| 8 | [Evaluation](08_Evaluation/) |
-| 9 | [Limitations and Future Work](09_Limitations_and_Future_Work/) |
-| 10 | [Conclusion](10_Conclusion/) |
+| 7 | [Evaluation](08_Evaluation/) |
+| 8 | [Limitations and Future Work](09_Limitations_and_Future_Work/) |
+| 9 | [Conclusion](10_Conclusion/) |
 
-`PerCom_version.md`는 계획 메모가 아니라 본문에 들어갈 문장으로 작성한다. 미완성 근거는 대괄호 placeholder로 남기며, `HANDOFF.md`의 제한을 해소하기 전에는 결과처럼 단정하지 않는다. 섹션 폴더의 직접 파일은 위 세 개를 유지하고, 그림·표 작업 자료는 해당 섹션의 `Figures/` 같은 하위 폴더에 둔다. **실험의 방식·코드·데이터·결과는 2026-09-12부터 `08_Evaluation/` 아래 실험별 하위 폴더(`E1_adequacy/`, 이후 `E2_*/`, `E3_*/`, `E4_*/`)에 둔다.** `skill_result/`에는 새 실험 자료를 만들지 않는다.
+`PerCom_version.md`는 계획 메모가 아니라 본문에 들어갈 문장으로 작성한다. 미완성 근거는 대괄호 placeholder로 남기며, `HANDOFF.md`의 제한을 해소하기 전에는 결과처럼 단정하지 않는다. 섹션 폴더에는 기본 문서와 검토용 번역·편집 기록을 두고, 그림·표 작업 자료는 해당 섹션의 `Figures/` 같은 하위 폴더에 둔다. **실험의 방식·코드·데이터·결과는 2026-09-12부터 `08_Evaluation/` 아래 실험별 하위 폴더(`E1_adequacy/`, 이후 `E2_*/`, `E3_*/`, `E4_*/`)에 둔다.** `skill_result/`에는 새 실험 자료를 만들지 않는다.
 
 두 문서는 2026-09-12 사용자 메모를 정리한 **집필 준비 자료**다. 새 구현, 실험 실행, 그림 수정, 완성 원고 또는 결과 감사가 아니다. 사용자 결정과 구현으로 확인된 사실, 증거가 필요한 해석을 구별한다. 체크박스는 앞으로 수행할 작업이며 완료를 뜻하지 않는다.
 
@@ -68,7 +67,7 @@
 | `2_System_Overview_and_Scope` | `04_System_Overview_and_Scope` |
 | `3_Timeline_IR` | `05_Timeline_IR` |
 | `4_Code_Generation_and_Behavioral_Validation` | `06_Code_Generation_and_Behavioral_Validation` |
-| `5_Implementation` | `07_Implementation` |
+| `5_Implementation` / `07_Implementation` | 본문은 §6에 통합, 재현 체크사항은 `08_Evaluation/HANDOFF.md`, SenSys 원문은 `08_Evaluation/archive/SenSys_implementation.md` |
 | `6_Evaluation` | `08_Evaluation` |
 | `8_Limitations_and_Future_Work` | `09_Limitations_and_Future_Work` |
 | `9_Conclusion` | `10_Conclusion` |

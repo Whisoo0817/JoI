@@ -1,86 +1,87 @@
 # Evaluation — PerCom working draft
 
-We organize the evaluation around four questions that follow the VETS guarantee boundary.
+상태: 2026-09-18 E1을 범위 내 92건 전체 평가로 갱신. 사용자 검토 전. E1–E4 각 표 하나. Counterexample은 수정에 필요한 행동 차이 정보로만 사용하며 대조군 비교나 인과적 개선 주장은 본문에 넣지 않는다. 근거·검증 메모는 `DRAFT_NOTES.md` 참조.
 
-## E1: Can Timeline express externally sourced reactive-temporal requests, and where are its boundaries?
+Our evaluation asks four questions: Can Timeline IR express externally sourced automation requests (E1)? Do Explorer verdicts agree with a separately implemented reference (E2)? What errors appear in generated code (E3)? How does checking cost change with automation size and timing (E4)?
 
-**[E1 DRAFT 2026-09-13 — REWRITTEN AFTER THE AUTHOR AUDIT AND CORPUS CODING; FACT CORRECTIONS 2026-09-14; PENDING WHISOO REVIEW. Evidence: `E1_adequacy/E1_SUMMARY.md`.]**
+**Setup.** All code evaluations use JoI and the execution model in Sections V and VI. E1 evaluates expression and reference execution, E2 checks verdict fidelity, E3 evaluates generated candidates, and E4 measures completion and cost. Refusals, incomplete searches, and errors remain in each evaluation's denominator. LLM generation is separate from behavioral checking.
 
-**Design.** E1 is a boundary-table case study rather than a coverage ratio. We define the scope by user behavior: a single automation whose service calls (time, target, arguments, count, order) are determined by a device and clock input history. Within that scope we distinguish ten behavior elements (immediate reaction, delayed call, sustained condition with reset, one-shot with re-arming, stored-value flow, sequence and branching, repetition until a condition, fixed-count repetition, clock anchors and time-of-day, and time-versus-event races) and five boundary candidates (in-flight cancel/restart, independent flows or instances, look-back event memory, variable-interval repetition, and nested repetition). Requests that do not fix a call sequence (pure safety properties, cross-automation priority, fuzzy triggers, physical completion) are excluded from the denominator.
+## Timeline IR Adequacy
 
-**Corpus.** We collected 100 externally stated automation requests from four source types: official platform documentation and examples (25), published tasks, stimuli, and reported examples in research papers (26), participant-authored statements in released study data (24), and community requests (25). The corpus is source-diverse rather than stratified to a fixed quota, and every locator was checked against its source. We manually screened candidate requirements using predefined eligibility and duplicate criteria. Of the 100 requests, 92 are in scope, 6 are ambiguous, and 2 are outside the smart-home automation unit; a request that relies on a backend service or input the current catalog lacks stays in scope, and no retained request duplicates another. Ambiguous and out-of-scope requests remain in the released corpus. Coding the 92 in-scope requests found every behavior element and four of the five boundary candidates; variable-interval repetition did not occur (in-flight cancel/restart 6, independent flows 5, event memory 2, nested repetition 1).
+E1 tests whether Timeline IR operators can be combined to express externally sourced automation requests. We collected 100 requests from four sources (Table E1). One author screened them against the reactive-temporal scope: 92 were in scope, six were ambiguous, and two were out of scope. We encoded and tested all 92 in-scope requests.
 
-**Depth procedure.** From the corpus we examined 20 requests in depth: 12 cases completed first and 8 additions chosen for semantic variation and boundary pressure, not for likely success. For each case we fixed the interpretation, marked assumptions, and wrote the expected timed ACTION trace for one to five input histories *before* writing any IR, and hashed that record. We then wrote the Timeline encoding, audited its meaning against the fixed interpretation, and replayed every history on the reference IR runner, reporting exact agreement separately from agreement within a 1 s tolerance. Where the audit changed an interpretation or added a history, the earlier record and result were retained; for the eight additions the revised record was committed before re-encoding, and for the first 12 cases it was committed together with the corrected encoding. Adequacy is decided only by the semantic audit and reference execution; Explorer outcomes are recorded but cannot change the verdict. The runner, front end, and global service catalog were not changed to fit results; leaf services that the catalog lacks were declared as typed stubs in a separate E1 fixture before encoding. One AutoTap safety property was converted to an automation by the researchers and is marked as such; two other AutoTap statements phrased with "never" were read as automation policies in their fixed records.
+For each request, we recorded a concrete interpretation and expected actions and timestamps before encoding it. The initial 20 interpretations were reviewed by the author; LLM agents derived the remaining 72 using those precedents. The agents also prepared their expected traces, so these were not independent judgments of intent. We replayed the input histories on the reference IR runner and compared actions and timestamps, treating simultaneous actions as an unordered group. We report final encodings and retain failed attempts in the experiment records.
 
-**Depth result.** All 20 requests were expressed, and all 53 input histories reproduced their pre-registered traces exactly. Three verdicts carry an explicit scope. A request to run voice announcements while the house shuts down, and to continue the shutdown if the announcements fail, was not expressible as one Timeline: the injected announcement failure also stopped the shutdown commands. Because the two flows share no state, join, or ordering, deploying them as two Timelines reproduced the trace; we report this as expressible via decomposition into independent automations, not as parallel composition inside one Timeline. A daily mean of five hourly sensor samples is expressed with five snapshot variables and an arithmetic expression, which covers aggregation over a fixed number of samples only. A feeder limit of two dispenses per rolling four-hour window is expressed with two remembered times, which covers that fixed bound only. The audit also corrected four encodings that did not realize their fixed interpretation, and we retain the pre-audit outcomes: two event-driven loops needed a zero inter-iteration period, one clock-anchored case mistook an already-present occupant for an arrival, and a sunrise-dependent guard had been written with fixed clock hours instead of the platform's daylight input. Three further encodings were rewritten because the audit revised the interpretation or added a history: the two-automation decomposition above, a motion event handled before a coinciding deadline, and a repeating oven confirmation.
+**Table E1. Timeline IR execution results by request source.**
 
-**Boundary probes.** Because a set of successes cannot locate a boundary, we separately pre-registered three requests for the two boundary candidates that the first 12 cases did not reach, fixing their expected traces and hashing them before any encoding. These probes are outside the 20-case count, and "expressible" is a legitimate probe outcome. All three were expressible. Two event-memory requests are handled by snapshotting the clock when an event is observed and testing the elapsed time. A request to repeat an action every *n* minutes, where *n* is read from a user setting, is handled by counting one-unit delays until a loop counter reaches the variable: a duration operand cannot be read at run time, but a variable-length wait can be unrolled at one iteration per unit. All three reproduced their traces exactly.
+| Request source | Collected | Evaluated | Exact histories |
+| --- | ---: | ---: | ---: |
+| Official platform examples | 25 | 25 | 97/97 |
+| Research examples | 26 | 24 | 74/74 |
+| Published participant responses | 24 | 20 | 58/58 |
+| Community requests | 25 | 23 | 65/65 |
+| **Total** | **100** | **92** | **294/294** |
 
-**What E1 located.** Every probe passed the language and the reference runner and was refused by the Explorer: two on a guard that compares two run-time values, an elapsed time against a stored timestamp or a loop counter against a device reading, and one on an observed value without a bounded input domain. Three of the eight depth additions were refused on the same kinds of guard or on an unbounded observed value. The narrower boundary is therefore what VETS certifies, not what Timeline can say. The language limits E1 supports are specific: one Timeline has no parallel branch, so only mutually independent flows can be split into separate automations, and fork–join or shared-state concurrency is not covered; there is no general mutable accumulator or aggregation whose size depends on the input, so general averages, counts, and histories are left to backend services whose typed results the automation reads; and sunrise and sunset are platform inputs rather than computed times. History from before an automation starts is not a language question: the current catalog exposes no per-entity change time, and a platform that provides one would make such a requirement a single read.
+All 92 final encodings reproduced the expected traces on all 294 input histories (Table E1). The cases exercise combinations of operators: a door alert waits for sustained opening and then repeats reminders; a garage alert nests blinking cycles within repeated checks and restores a saved light setting; and a sprinkler combines stored timestamps, conditions, and repetition to limit watering to ten minutes in any 48-hour window. Seventeen additional diagnostic histories also matched and are reported separately from the table.
 
-**Contract facts surfaced.** The study also fixed several semantics that the Timeline section must state: `cycle.period` is waited after the body completes rather than as a fixed cadence; an edge wait whose condition is already true fires immediately; edges occurring during another wait are not latched; the runner rejects cron anchors, so the study erased them and replayed one firing window; and an unread variable reads as null, a behavior the verification contract does not currently specify.
+These results depend on the recorded interpretations and assumptions. Examples include fixed-size averages, specified pulse waveforms, and separate Timelines for independent automations. The sprinkler encoding uses one-second units and assumes no prior watering. The results demonstrate expression and execution on these finite histories; they do not establish correctness for every input, coverage of every operator combination, or Explorer support for every encoding.
 
-## E2: Can the Explorer's verdicts be trusted?
+## Validation Fidelity
 
-**[E2 DRAFT 2026-09-14 — 140-PAIR POPULATION; PENDING WHISOO REVIEW. Evidence: `E2_fidelity/RESULTS.md` "Final version"; plan: `E2_fidelity/E2_WRITING_PLAN.md` §0.]**
+To evaluate Explorer's verdicts, we compared them with a Timeline runner and JoI interpreter implemented from the specification without access to Explorer code. Before use, the reference reproduced the 53 traces from the initial 20 E1 requests and 15 JoI conformance probes. The population contains 21 correct implementations and 81 single-fault variants of those 20 E1 requirements, plus 38 valid generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition. The reference compared both programs on 48,990 input histories and replayed Explorer's counterexamples. Explorer used 120 s, 400,000 states, and 2,000,000 transitions per pair. Semantics-preserving reductions of repetitive temporal and state exploration allowed 26 additional pairs to be decided under the same budgets, without changing earlier verdicts.
 
-**Design.** E2 checks every Explorer verdict against an independent reference. The reference is a Timeline runner and a JoI interpreter implemented from the specification documents alone, without access to the Explorer code; a read log and an import check record this separation. Before use, it reproduced all 53 pre-registered E1 traces and 15 JoI conformance probes. The 140 program pairs have two sources. From the 20 E1 requirements we wrote 21 correct JoI implementations and 81 faulty ones, each fault a single change from one of twelve families, including a missing or additional call, timing, a guard, a snapshot value, call order, sustain reset, edge re-arming, and repetition state. To include errors that people do not write by hand, we also used 38 valid LLM-generated JoI candidates drawn at random from our 388-request development set, without regard to earlier verdicts. The reference executes both programs of each pair on generated input histories (seed histories, start-state assignments, and single-input pulses; about 49,000 in total) and compares their timed ACTION traces; every witness the Explorer reports is also replayed on the reference. One point the specification had left open surfaced here: a generated candidate adds one to a variable it initializes only inside a branch it does not take. The execution contract now states that an arithmetic operation on a variable that was never assigned is a runtime error, which stops the instance and is itself observable; both tools follow this rule. The alternative, silently reading such a variable as zero, would have hidden a missing initialization behind an equivalent trace. The Explorer runs with a budget of 120 s, 400,000 states, and 2,000,000 transitions per pair. A refusal or a timeout gives no verdict and stays in the denominator. Some pairs could not be decided within the original time and state budgets. We therefore applied semantics-preserving optimizations that reduce repetitive temporal and state exploration. Under the same budgets, the optimized Explorer issued verdicts for 26 additional pairs, and none of its earlier verdicts changed. The results below are for the optimized Explorer.
+**Table E2. Reference checks of Explorer verdicts.**
 
-**TABLE [E2].** Explorer verdicts checked against the independent reference (140 pairs).
-
-| | Pairs |
-|---|---:|
-| *Fidelity* | |
-| Verdicts issued (EQUIV or DIVERGE) | 130 |
-| &nbsp;&nbsp;confirmed by the reference | 130 |
-| &nbsp;&nbsp;contradicted by the reference | **0** |
-| Faulty pairs with an observable difference | 75 |
-| &nbsp;&nbsp;DIVERGE / EQUIV / no verdict | 69 / **0** / 6 |
-| *Coverage* | |
-| LLM-generated candidates decided | 38/38 |
+| Assessment | Pairs |
+| --- | ---: |
+| Semantic verdicts issued | 130/140 |
+| Equivalent: no difference on reference histories | 55 |
+| Divergent: difference on reference histories | 67 |
+| Divergent: confirmed by witness replay | 8 |
+| Verdicts contradicted by reference checks | 0 |
+| Fault variants with an observed difference | 75 |
+| Divergent / equivalent / undecided (fault variants above) | 69 / 0 / 6 |
+| Generated candidates decided | 38/38 |
 | Hand-built pairs decided | 92/102 |
-| Hand-built requirements fully decided | 18/20 |
-| No verdict: nested repetition with timers (time budget exceeded) | 5 |
-| No verdict: deadline that grows with the number of events | 5 |
+| Undecided: time budget / unsupported relation | 5 / 5 |
 
-**Fidelity.** Every one of the 130 verdicts the Explorer issued was confirmed by the reference, and none was contradicted. For 122 of them, the reference histories themselves show the same result: 55 EQUIV verdicts with no difference and 67 DIVERGE verdicts with a difference. For 8 DIVERGE verdicts, the reference histories did not show the difference, but replaying the Explorer's witness on the reference reproduced it: in five, no history reached the diverging input, such as a switch held on past 630 s, a button press, or a clock hour past 06:00; in three, the JoI reads a device value that the histories do not supply. Of the 75 faulty pairs whose difference is observable on the reference, the Explorer reported DIVERGE for 69, never reported EQUIV, and gave no verdict for 6. Agreement on an EQUIV verdict is evidence over the generated histories, not a proof.
+None of the 130 verdicts contradicted the reference checks (Table E2). For eight divergences, the reference histories alone did not expose the difference, but replaying Explorer's witness did. For equivalent verdicts, agreement on these finite histories is empirical evidence rather than a proof of equivalence. Among fault variants with an observed difference, Explorer left six undecided and accepted none. The ten undecided pairs belong to two requirements: nested blinking cycles with long pauses exceeded the time budget, and an event-extended deadline required an unsupported arithmetic relation. Thus, all pairs for 18 of the 20 hand-built requirements were decided. Fault variants from the same requirement are related cases rather than independent samples.
 
-**Coverage.** The Explorer decided all 38 LLM-generated candidates and 92 of the 102 hand-built pairs, covering 18 of the 20 requirements completely. The two remaining requirements, five pairs each, represent two classes. A garage-door alert that runs up to seven cycles of ten one-second light blinks separated by five-minute pauses, and stops as soon as the door closes, nests repetition with timers; its exploration exceeded the time budget. A light that turns off five minutes after it turns on, extended by two minutes at each motion event, has a deadline that grows with the number of events, a relation the Explorer refuses rather than approximates. Both classes end in no verdict, never in a wrong one.
+## Generated-Code Validation
 
-## E3: What happens on generated JoI candidates?
+To evaluate generated candidates, we supplied confirmed IRs and bindings to Qwen3.5-9B-FP8, bypassing natural-language service and selector inference. Generation used temperature 0.1, a 512-token limit, and thinking disabled. The evaluated set contains 382 requests, excluding six timeout-handler requests from the source set of 388. It includes 63 regenerated candidates after input and service-prefix corrections and 319 byte-identical reused candidates. Evaluation ran with Python 3.12.11 on an Intel Core i9-11900K Linux host, with a 20 s process budget, 200,000 states, 500,000 transitions, and a 1 s limit per SMT query.
 
-We evaluated JoI candidates from `Hyper-AI/Qwen3.5-9B-fp8` using confirmed Timeline IR and binding inputs, bypassing natural-language service and selector inference. The source dataset retains 388 rows; the current E3 scope excludes all six requests whose IR contains timeout or on_timeout, leaving 382 cases. After correcting deterministic service-prefix resolution and six confirmed inputs, we regenerated 63 affected candidates and reused 319 byte-identical candidates whose payloads matched the current inputs. The lowering prompts were unchanged during this partial regeneration. Candidate lineage, raw traces for the 63 new candidates, and an evaluation snapshot recorded after generation and before evaluation are retained.
+**Table E3. Outcomes on generated JoI candidates.**
 
-With `H=None` and no bounded fallback, Explorer returned 309 EQUIV-FIXPOINT (80.89%), 68 DIVERGE_CONFIRMED (17.80%), three REFUSED (0.79%), and two UNKNOWN (0.52%). All 68 divergences had confirmed replay. Decision coverage was 377/382 (98.69%), not an accuracy estimate. Generation, capability, syntax-preparation, and arity errors were zero in this run. The three refusals concerned an unsupported BINARY return assignment, unbounded target-temperature arithmetic, and a large illuminance domain. The two UNKNOWN outcomes were SMT query timeouts under the unchanged one-second per-query limit and were retained without retries.
+| Outcome | Candidates | Share |
+| --- | ---: | ---: |
+| Equivalent | 309 | 80.89% |
+| Divergent (replay-confirmed) | 68 | 17.80% |
+| Unsupported | 3 | 0.79% |
+| Inconclusive | 2 | 0.52% |
+| Total | 382 | 100.00% |
 
-This mixed-provenance, familiar-task evaluation is exploratory, not a fresh 382-case generation or confirmatory replication. Certificates are relative to the verification model, not independent evidence of real-device behavior, and divergence causes have not been individually audited. Earlier Gemma results remain historical records; the previous prefix-contaminated Qwen aggregate is withdrawn from current result claims. Discarded feedback-loop trials are not included. Evidence and artifact links: [E3 Qwen 382-case result](E3_application/E3_QWEN_382_FINAL_2026-09-15.md).
+Explorer issued a semantic verdict for 377 candidates (Table E3), a completion rate rather than an accuracy estimate. All 68 divergences were confirmed by its concrete replay. For example, a request turns off a power strip after 30 s without motion. The generated code increments a counter at the initial evaluation and every second thereafter, so it reaches 30 and turns the strip off at 29 s. At that instant the IR emits no action. The unsupported cases involved a binary return assignment, unbounded temperature arithmetic, and a large illuminance domain. Both inconclusive cases hit the SMT query limit. These familiar-task, mixed-provenance results are exploratory and relative to the confirmed IR and binding, not measurements of natural-language intent accuracy or physical-device behavior.
 
-## E4: Is verification light enough to use before deployment?
+**Counterexamples for repair.** A counterexample supplies the input history and expected and actual actions at a mismatch to inform code revision. With the IR and binding fixed, we allowed one repair call per divergent candidate using the same model at temperature 0 with a 4,096-token limit, and checked the revised code again. The resulting outcomes were 36 equivalent, 26 divergent, five checking timeouts, and one model context error out of 68 cases.
 
-**[DRAFT 2026-09-17 — awaiting whisoo review]**
+## Validation Cost and Scale
 
-E4 asks whether Behavioral Explorer stays light enough for VETS to be practical as automations grow. We generated a parameterized automation family in which the Timeline IR and the JoI code are emitted from the same parameters, so every program is expected to be EQUIV; this is the case that requires the Explorer to close its search rather than stop at a counterexample. Four scale axes stay inside the supported fragment: the number of Boolean sensors read by the guard (1–7, limited by the service catalog), the number of sequential wait–call stages (1–6), the wait length (100 ms to 4 h), and the number of cycle repetitions (1–200). Each axis was varied alone from a mid-scale base, and a diagonal varied all axes together, giving 30 distinct programs. Every program was run three times with a 120 s timeout per run, the value used in E2; the timeout is a user-chosen parameter. Timeouts remain in every denominator. E4 measures completion and cost only; verdict correctness was the subject of E2.
+To evaluate checking cost as automations grow, we generated 30 equivalent IR–code pairs from one parameterized family. We varied Boolean sensors (1–7), sequential wait–call stages (1–6), wait length (100 ms–4 h), and repetitions (1–200), both individually and in combined settings. Each program ran three times with a 120 s budget per run. The baseline disables timer zones but retains the same semantic executors, next-event jumps, and exact-state reuse. Both methods require completed exploration for an equivalence result. Explorer ran serially, while the baseline used four concurrent workers on an eight-core host. The reported times therefore describe these configurations, not a matched-load speedup.
 
-Behavioral Explorer reasons about waits with difference-bound zones, an existing technique from timed-automata model checking such as UPPAAL. What VETS adds is binding two different time representations in one product: the timers of Timeline IR and the increment-only tick counters of the generated code. Timed-automata tools instead assume that both sides are already modeled with clocks. As the baseline, we disabled the timer zones and ran the same executors with explicit-state exploration: it jumps to the next timer event and merges identical states, and it makes the same unbounded claim, but it keeps every distinct remaining timer value as a separate state.
+**Table E4. Checking cost on selected scale settings.**
 
-Table X. Cost of deciding each program (slowest of three runs). A program counts as decided only when all three runs decided it.
+| Program | Explorer (s) | Explicit (s) |
+| --- | ---: | ---: |
+| Base | 0.24 | 47.2 |
+| Sensors: 7 | 9.21 | timeout |
+| Stages: 6 | 0.71 | timeout |
+| Wait: 0.1 s | 0.05 | 0.06 |
+| Wait: 4 h | 0.25 | timeout |
+| Repeats: 200 | 18.0 | timeout |
+| Combined: 7 sensors, 6 stages, 100 repeats | timeout | timeout |
+| Programs decided (all settings) | 28/30 | 12/30 |
 
-| Program | Explorer states | Explorer time | Explicit-state states | Explicit-state time |
-|---|---:|---:|---:|---:|
-| Base (2 sensors, 2 stages, 2 min wait, 5 repeats) | 52 | 0.24 s | 82,807 | 47.2 s |
-| Sensors 4 | 52 | 1.05 s | timeout | — |
-| Sensors 7 | 52 | 9.21 s | timeout | — |
-| Stages 6 | 120 | 0.71 s | timeout | — |
-| Wait 0.1 s | 42 | 0.05 s | 76 | 0.06 s |
-| Wait 4 h | 52 | 0.25 s | timeout | — |
-| Repeats 10 | 102 | 0.48 s | 166,807 | 96.2 s |
-| Repeats 200 | 2,002 | 18.0 s | timeout | — |
-| All: 5 sensors, 5 stages, 20 repeats | 388 | 20.2 s | timeout | — |
-| All: 7 sensors, 6 stages, 100 repeats | timeout | — | timeout | — |
-| Programs decided | **28 / 30** | — | **12 / 30** | — |
+Base: 2 sensors, 2 stages, 2 min wait, 5 repeats. Each row changes only the named parameters. Times are the slowest of three runs. A program counts as decided only if all three runs complete.
 
-Behavioral Explorer decided 28 of 30 programs (84/90 runs): 19 in under a second and all 28 within 21 s, using at most 44 MB of memory. Explicit-state exploration decided 12 programs (36/90 runs), taking up to 100 s and 898 MB. On programs both decided, the Explorer explored 99.2–99.9% fewer states when the wait was 10 s or longer, and 44–45% fewer when the wait was 1 s or shorter. Lengthening the wait from 100 ms to 4 h kept the Explorer between 0.05 s and 0.35 s, whereas explicit-state exploration timed out from a 30 min wait onward. The number of sensors was the costliest axis for the Explorer: the state count stayed at 52, but each added sensor roughly doubled the input combinations checked per step, reaching 31,832 transitions and 9.2 s at seven sensors. Simulating every 100 ms step through each wait decided only the two programs whose wait was 1 s or shorter.
-
-The two programs the Explorer left undecided combine six or seven sensors, six stages, and 50 or 100 repetitions. Neither was refused as unsupported; both exceeded the timeout. In a diagnostic run with the Explorer's time limits raised, one closed as EQUIV in 242 s and the other reached the 2,000,000-transition search cap after 793 s. The program family is synthetic and has a single shape, so these results bound the cost on this family, not on generated code in general. Evidence: [paper table](E4_cost/e4_table.md), [all runs](E4_cost/RESULTS.md), [design and diagnostics](E4_cost/README.md).
-
-The completed E1 case study, E2 reference comparisons, exploratory E3 evaluation, and synthetic E4 scale evaluation support only their stated scopes. No separate confirmatory E3 replication has been completed.
+Explorer decided 28 programs, including 19 in under one second and all 28 within 21 s (Table E4). Peak memory for completed Explorer runs was below 44 MiB. Across the wait-length sweep, checking took 0.05–0.35 s. Increasing sensors instead increased the input combinations checked per step: the seven-sensor case retained 52 states but explored 31,832 paired transitions. The two unfinished programs combined six or seven sensors, six stages, and 50 or 100 repetitions. Both exhausted the allotted resources rather than being refused as unsupported. These measurements characterize completion and cost for this synthetic family, not verdict correctness or cost for arbitrary generated code.

@@ -1,19 +1,15 @@
-# Depth execution of the remaining 72 IN_SCOPE requests
+# TODO — depth execution of the remaining 72 IN_SCOPE requests
 
-> **Latest (2026-09-18):** With the E1-024 rolling-budget revision, final encodings match 241/241 core histories across all 72 requests. The combined 92-request table is [PAPER_TABLE.md](remaining72/PAPER_TABLE.md); 17 supplemental histories remain separate. Counts below describe the preserved initial run.
+Decision (whisoo, 2026-09-14): encode and execute all 92 IN_SCOPE requests, not only the 20 depth cases. Deferred;
+E2 comes first.
 
-Status (2026-09-17): evaluation completed, explicitly authorized by the author. Astra agents evaluated the remaining cases without asking the author to adjudicate each interpretation. They infer conventions from the prior 20 cases and document assumptions, alternatives, and possible favorable interpretation bias. New decisions are agent-derived, not author-reviewed.
-
-Results: 71/72 candidates reproduced all frozen histories; 239/241 main histories matched exactly, with E1-024 retained as partial. Supplemental diagnostics: 8/8, reported separately. See `remaining72/SUMMARY.md` and the Korean overview `extension72_plan/RESULT_KO.md`.
-
-The 20 completed depth cases remain unchanged (`../E1_SUMMARY.md`). The execution target is all 92 IN_SCOPE cases minus the 20 IDs present in the recorded results. The previous TODO table incorrectly included completed E1-062/E1-072 and omitted E1-061/E1-071; the corrected cohort is fixed in `extension72_plan/cohort_snapshot.json`. The original TODO is archived beside it.
-
-- Follow `E1_CORPUS_PROTOCOL.md` and its 2026-09-17 amendment.
-- Freeze interpretation, assumptions, histories and expected actions before each IR encoding.
-- Reuse the existing reference runtime; retain failures and qualifications.
-- Evaluate operator combinations and behavior, not just operator presence.
-- Record agent review separately from the original 20 author-reviewed cases; Explorer remains auxiliary.
-- Save new evaluation artifacts in `remaining72/`; execution tracking is in `extension72_plan/`.
+The 20 completed depth cases are unchanged (`../E1_SUMMARY.md`). Before starting:
+- update protocol §6 (depth subset = all 92 IN_SCOPE) and §9, and state how the 20 already done are reported
+  alongside the 72 (they were selected for variation, the 72 are the rest, not a random sample);
+- keep the same freeze discipline per case: interpretation, assumptions, histories and expected ACTION trace
+  hashed before any IR; author semantic audit; reference execution; JoI fallback only for partial/impossible;
+  Explorer auxiliary;
+- ask the author one plain-language behavior question per case where the text leaves a choice open.
 
 Source types: official 22, research 16, elicited 17, community 17.
 
@@ -59,7 +55,7 @@ Source types: official 22, research 16, elicited 17, community 17.
 | E1-058 | official | R1, R9 | After dark, when the TV is on, dim the light and lower the blinds. |
 | E1-059 | official | R1 | If it is cool, open blinds, turn on fans, and adjust thermostats. |
 | E1-060 | official | R1 | If it is warm, close blinds, turn on fans, and adjust thermostats. |
-| E1-061 | official | R9 | Turn on the lights at sunset, dim them at 10pm and turn them off at midnight. |
+| E1-062 | official | R1, R6 | If one light is turned on, turn the other on, and if one light is turned off, turn the other off. |
 | E1-063 | official | R1 | When smoke is detected, flash lights red and blue. |
 | E1-064 | official | R1 | When indoor air quality is poor turn on air purifier at high speed. |
 | E1-065 | official | R1, R9 | At night, when a lock is unlocked, turn on the light at full brightness. |
@@ -68,7 +64,7 @@ Source types: official 22, research 16, elicited 17, community 17.
 | E1-068 | official | R1, R2, R6 | When an occupant is detected, turn on the lights, then turn them off after five minutes. |
 | E1-069 | official | R1 | Once the home is unoccupied, turn on cameras. |
 | E1-070 | official | R1 | When someone rings the doorbell, blink the lights in occupied room. |
-| E1-071 | official | R1 | When Assistant hears the utterance "movie night", lower the blinds, turn off the lights, and pause certain noisy appliances. |
+| E1-072 | official | R1, R9 | After dark, when someone arrives home, turn on lights, and turn off all lights when the home is unoccupied. |
 | E1-073 | official | R1 | When a package is delivered, send a notification. |
 | E1-074 | official | R1, R2, R9 | Open blinds in the morning after motion is detected; suppress the trigger for 20 hours. |
 | E1-075 | official | R1, R9 | Send a notification when movement is detected at home on a weekday between 09:00 and 18:00. |

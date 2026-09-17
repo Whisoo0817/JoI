@@ -1,0 +1,238 @@
+{
+  "case_id": "E1-024",
+  "scope": "sub-48-hour prefix only; no session expiry implemented; NOT complete JoI coverage of rolling48h",
+  "script": "used := 0\nactive := false\nprevious := false\nstarted := 0\nstop_at := 0\nnow = (#Clock).Timestamp\nrequest = (#ER24).Request\nif (active and now >= stop_at) {\n    (#ER24).Off()\n    used = used + now - started\n    active = false\n}\nif (request and not previous and not active and used < 600) {\n    duration = (#ER24).DurationSeconds\n    remaining = 600 - used\n    if (duration > remaining) {\n        duration = remaining\n    }\n    started = now\n    stop_at = now + duration\n    active = true\n    (#ER24).On()\n}\nprevious = request\n",
+  "histories": [
+    {
+      "name": "full_allowance",
+      "kind": "nominal",
+      "exact": true,
+      "match": true,
+      "missing": [],
+      "extra": [],
+      "faults": [],
+      "expected": [
+        [
+          1000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ]
+        ],
+        [
+          601000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ]
+        ]
+      ],
+      "actual": [
+        [
+          1000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ],
+        [
+          601000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ]
+      ]
+    },
+    {
+      "name": "split_sessions_within_budget",
+      "kind": "boundary",
+      "exact": true,
+      "match": true,
+      "missing": [],
+      "extra": [],
+      "faults": [],
+      "expected": [
+        [
+          1000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ]
+        ],
+        [
+          121000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ]
+        ],
+        [
+          300000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ]
+        ],
+        [
+          480000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ]
+        ]
+      ],
+      "actual": [
+        [
+          1000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ],
+        [
+          121000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ],
+        [
+          300000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ],
+        [
+          480000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ]
+      ]
+    },
+    {
+      "name": "quota_caps_second_session",
+      "kind": "boundary",
+      "exact": true,
+      "match": true,
+      "missing": [],
+      "extra": [],
+      "faults": [],
+      "expected": [
+        [
+          1000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ]
+        ],
+        [
+          481000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ]
+        ],
+        [
+          720000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ]
+        ],
+        [
+          840000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ]
+        ]
+      ],
+      "actual": [
+        [
+          1000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ],
+        [
+          481000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ],
+        [
+          720000,
+          "er24",
+          "on",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ],
+        [
+          840000,
+          "er24",
+          "off",
+          [],
+          [
+            "D24"
+          ],
+          "instance 0"
+        ]
+      ]
+    }
+  ],
+  "match": "3/3",
+  "exact": "3/3"
+}

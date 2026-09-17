@@ -1,0 +1,2587 @@
+[
+ {
+  "id": "E1-078",
+  "spec": "A new motion or lux crossing below100 starts a single300s run; ignore intervening triggers. After automation Off, inhibit both automatic triggers until an observed manual light-on rearms them.",
+  "source_url": "https://community.home-assistant.io/t/combination-of-motion-and-illuminance-sensor-to-control-light-bulb/995590",
+  "source_locator": "opening post (created 2026-03-14 UTC)",
+  "original_text": "Turn light ON when motion detected, turn off in 5 min; turn light ON when Lux drops below X lux, turn off in 5 min; should not turn ON light when light OFF by HA.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "C03 single-run retrigger policy; X=100 lux. Source opening-post clause3 read as manual-rearm lockout, consistent with thread reply3, not a timed debounce. Initial values are not events.",
+   "Lamp state updates and resulting lux changes are explicit observations. An On transition after own Off is manual because this controller issues no On while locked out."
+  ],
+  "alternative_bias": "Qualified interpretation: manual-rearm lockout is a conservative resolution of ambiguous causal suppression; it suppresses genuine later motion until manual rearm. No universal feedback-cause inference is claimed.",
+  "qualification": "Qualified interpretation: manual-rearm lockout is a conservative resolution of ambiguous causal suppression; it suppresses genuine later motion until manual rearm. No universal feedback-cause inference is claimed.",
+  "stubs": [
+   "E1C078 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D078": {
+    "category": [
+     "E1C078"
+    ],
+    "tags": [
+     "E1C078"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "motion_run",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 305000,
+    "events": [
+     [
+      0,
+      {
+       "D078.Motion": false,
+       "D078.Lux": 200.0,
+       "D078.Light": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D078.Motion": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D078.Motion": false
+      }
+     ],
+     [
+      2000,
+      {
+       "D078.Light": true
+      }
+     ],
+     [
+      301000,
+      {
+       "D078.Light": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C078.On",
+      [],
+      "D078"
+     ],
+     [
+      301000,
+      "E1C078.Off",
+      [],
+      "D078"
+     ]
+    ]
+   },
+   {
+    "name": "own_off_lux_feedback_blocked",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 610000,
+    "events": [
+     [
+      0,
+      {
+       "D078.Motion": false,
+       "D078.Lux": 200.0,
+       "D078.Light": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D078.Lux": 50.0
+      }
+     ],
+     [
+      2000,
+      {
+       "D078.Light": true,
+       "D078.Lux": 200.0
+      }
+     ],
+     [
+      301000,
+      {
+       "D078.Light": false
+      }
+     ],
+     [
+      302000,
+      {
+       "D078.Lux": 50.0
+      }
+     ],
+     [
+      303000,
+      {
+       "D078.Motion": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C078.On",
+      [],
+      "D078"
+     ],
+     [
+      301000,
+      "E1C078.Off",
+      [],
+      "D078"
+     ]
+    ]
+   },
+   {
+    "name": "manual_rearm_second_motion",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 621000,
+    "events": [
+     [
+      0,
+      {
+       "D078.Motion": false,
+       "D078.Lux": 200.0,
+       "D078.Light": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D078.Motion": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D078.Motion": false,
+       "D078.Light": true
+      }
+     ],
+     [
+      301000,
+      {
+       "D078.Light": false
+      }
+     ],
+     [
+      310000,
+      {
+       "D078.Light": true
+      }
+     ],
+     [
+      320000,
+      {
+       "D078.Motion": true
+      }
+     ],
+     [
+      321000,
+      {
+       "D078.Motion": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C078.On",
+      [],
+      "D078"
+     ],
+     [
+      301000,
+      "E1C078.Off",
+      [],
+      "D078"
+     ],
+     [
+      320000,
+      "E1C078.On",
+      [],
+      "D078"
+     ],
+     [
+      620000,
+      "E1C078.Off",
+      [],
+      "D078"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-079",
+  "spec": "Run whenever sensor value changes, or60s after the last change/run if unchanged; repeat stale runs every60s.",
+  "source_url": "https://community.home-assistant.io/t/trigger-automation-every-minute-unless-it-has-been-triggered-by-something-else/864628",
+  "source_locator": "opening post (created 2025-03-16 UTC)",
+  "original_text": "If there are no new sensor values, trigger the automation once every minute; normal sensor values arrive every 10 seconds.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Source opening request and reply assert state-change trigger; omitted incidental1s script delay because normalized requirement asks cadence. Startup value is baseline, not event; a change exactly at timeout produces one Run."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C079 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D079": {
+    "category": [
+     "E1C079"
+    ],
+    "tags": [
+     "E1C079"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "normal_updates",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 80000,
+    "events": [
+     [
+      0,
+      {
+       "D079.Value": 0.0
+      }
+     ],
+     [
+      10000,
+      {
+       "D079.Value": 1.0
+      }
+     ],
+     [
+      20000,
+      {
+       "D079.Value": 2.0
+      }
+     ],
+     [
+      30000,
+      {
+       "D079.Value": 3.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ],
+     [
+      20000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ],
+     [
+      30000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ]
+    ]
+   },
+   {
+    "name": "stale_repeat_then_resume",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 160000,
+    "events": [
+     [
+      0,
+      {
+       "D079.Value": 0.0
+      }
+     ],
+     [
+      10000,
+      {
+       "D079.Value": 1.0
+      }
+     ],
+     [
+      145000,
+      {
+       "D079.Value": 2.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      10000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ],
+     [
+      70000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ],
+     [
+      130000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ],
+     [
+      145000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ]
+    ]
+   },
+   {
+    "name": "change_at_deadline",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 121000,
+    "events": [
+     [
+      0,
+      {
+       "D079.Value": 0.0
+      }
+     ],
+     [
+      60000,
+      {
+       "D079.Value": 1.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      60000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ],
+     [
+      120000,
+      "E1C079.Run",
+      [],
+      "D079"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-080",
+  "spec": "Arm once on transition of resident count from positive to zero; rearm after return then departure.",
+  "source_url": "https://community.home-assistant.io/t/automation-arm-alarm-when-everyone-is-away/408113",
+  "source_locator": "opening post (created 2022-04-03 UTC)",
+  "original_text": "Arm an alarm to away when all people are away.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Count is current raw presence-state cardinality, not event history. Initial zero does not trigger (C01/C03)."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C080 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D080": {
+    "category": [
+     "E1C080"
+    ],
+    "tags": [
+     "E1C080"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "last_departure",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D080.Occupants": 2
+      }
+     ],
+     [
+      1000,
+      {
+       "D080.Occupants": 1
+      }
+     ],
+     [
+      2000,
+      {
+       "D080.Occupants": 0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      2000,
+      "E1C080.ArmAway",
+      [],
+      "D080"
+     ]
+    ]
+   },
+   {
+    "name": "initial_empty",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D080.Occupants": 0
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "return_and_leave",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 8000,
+    "events": [
+     [
+      0,
+      {
+       "D080.Occupants": 1
+      }
+     ],
+     [
+      1000,
+      {
+       "D080.Occupants": 0
+      }
+     ],
+     [
+      3000,
+      {
+       "D080.Occupants": 1
+      }
+     ],
+     [
+      5000,
+      {
+       "D080.Occupants": 0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C080.ArmAway",
+      [],
+      "D080"
+     ],
+     [
+      5000,
+      "E1C080.ArmAway",
+      [],
+      "D080"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-081",
+  "spec": "On presence onset, send first reminder after5min; repeat every5min at most3 times while continuously present. Departure cancels immediately and new arrival resets count.",
+  "source_url": "https://community.home-assistant.io/t/how-to-reliably-design-making-an-announcement-every-5-mins-until-a-binary-sensor-is-off/721406",
+  "source_locator": "opening post (created 2024-04-24 UTC)",
+  "original_text": "Keep nagging me every 5 minutes, up to 3 times, as long as the presence binary sensor remains TRUE.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "First alert delayed5min; alternative immediate first alert is not selected. At departure exactly due, cancellation wins (guard must remain true)."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C081 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D081": {
+    "category": [
+     "E1C081"
+    ],
+    "tags": [
+     "E1C081"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "cap_three",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 1300000,
+    "events": [
+     [
+      0,
+      {
+       "D081.Present": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D081.Present": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      301000,
+      "E1C081.Nag",
+      [],
+      "D081"
+     ],
+     [
+      601000,
+      "E1C081.Nag",
+      [],
+      "D081"
+     ],
+     [
+      901000,
+      "E1C081.Nag",
+      [],
+      "D081"
+     ]
+    ]
+   },
+   {
+    "name": "leave_at_deadline",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 305000,
+    "events": [
+     [
+      0,
+      {
+       "D081.Present": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D081.Present": true
+      }
+     ],
+     [
+      301000,
+      {
+       "D081.Present": false
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "leave_return_reset",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 700000,
+    "events": [
+     [
+      0,
+      {
+       "D081.Present": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D081.Present": true
+      }
+     ],
+     [
+      200000,
+      {
+       "D081.Present": false
+      }
+     ],
+     [
+      250000,
+      {
+       "D081.Present": true
+      }
+     ],
+     [
+      600000,
+      {
+       "D081.Present": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      550000,
+      "E1C081.Nag",
+      [],
+      "D081"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-082",
+  "spec": "Remember each door opening time; notify on close only if that opening lasted strictly more than300s.",
+  "source_url": "https://community.home-assistant.io/t/help-with-door-close-automation/600389",
+  "source_locator": "opening post (created 2023-08-07 UTC)",
+  "original_text": "Get a notification if a door that was open for more than 5 minutes was closed.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Strict more-than follows source; no notification while still open; initial open treated as existing episode observed from startup (elapsed pre-start unknown, not recovered)."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C082 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D082": {
+    "category": [
+     "E1C082"
+    ],
+    "tags": [
+     "E1C082"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "long_then_close",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 305000,
+    "events": [
+     [
+      0,
+      {
+       "D082.Open": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D082.Open": true
+      }
+     ],
+     [
+      302000,
+      {
+       "D082.Open": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      302000,
+      "E1C082.Notify",
+      [],
+      "D082"
+     ]
+    ]
+   },
+   {
+    "name": "exact_five_minutes",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 305000,
+    "events": [
+     [
+      0,
+      {
+       "D082.Open": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D082.Open": true
+      }
+     ],
+     [
+      301000,
+      {
+       "D082.Open": false
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "short_then_long",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 505000,
+    "events": [
+     [
+      0,
+      {
+       "D082.Open": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D082.Open": true
+      }
+     ],
+     [
+      100000,
+      {
+       "D082.Open": false
+      }
+     ],
+     [
+      200000,
+      {
+       "D082.Open": true
+      }
+     ],
+     [
+      501000,
+      {
+       "D082.Open": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      501000,
+      "E1C082.Notify",
+      [],
+      "D082"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-084",
+  "spec": "On Sun-Thu at18:00, off21:00; Fri/Sat on19:00, off23:00; daily edges, no startup correction.",
+  "source_url": "https://community.home-assistant.io/t/automation-to-turn-on-off-devices-at-different-times-days/566330",
+  "source_locator": "opening post (created 2023-05-01 UTC)",
+  "original_text": "Turn lights on from 6 pm to 9 pm Sunday to Thursday and from 7 pm to 11 pm Friday and Saturday.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Calendar schedule controlled in IR; start histories Monday17:59:59. Alternate-day branches tested by separate t_start override below."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C084 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D084": {
+    "category": [
+     "E1C084"
+    ],
+    "tags": [
+     "E1C084"
+    ]
+   }
+  },
+  "t_start_ms": 64799000,
+  "histories": [
+   {
+    "name": "mon_on_off",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 10802000,
+    "events": [
+     [
+      0,
+      {}
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C084.On",
+      [],
+      "D084"
+     ],
+     [
+      10801000,
+      "E1C084.Off",
+      [],
+      "D084"
+     ]
+    ]
+   },
+   {
+    "name": "fri_on_off",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 18002000,
+    "events": [
+     [
+      0,
+      {}
+     ]
+    ],
+    "expected": [
+     [
+      3601000,
+      "E1C084.On",
+      [],
+      "D084"
+     ],
+     [
+      18001000,
+      "E1C084.Off",
+      [],
+      "D084"
+     ]
+    ],
+    "t_start_ms": 410399000
+   },
+   {
+    "name": "sun_on_off",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 10802000,
+    "events": [
+     [
+      0,
+      {}
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C084.On",
+      [],
+      "D084"
+     ],
+     [
+      10801000,
+      "E1C084.Off",
+      [],
+      "D084"
+     ]
+    ],
+    "t_start_ms": 583199000
+   }
+  ]
+ },
+ {
+  "id": "E1-085",
+  "spec": "On downward threshold crossing below19; off upward crossing above19.5; equality and deadband do not trigger.",
+  "source_url": "https://community.home-assistant.io/t/how-to-trigger-an-automation-based-on-temperature-hysteresis/485629",
+  "source_locator": "opening post (created 2022-11-07 UTC)",
+  "original_text": "When temperature drops below 19\u00b0C, turn heater on; when temperature raises above 19.5\u00b0C, turn heater off.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "No startup reconciliation, as source says drops/raises; no Off for normal deadband fluctuation."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C085 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D085": {
+    "category": [
+     "E1C085"
+    ],
+    "tags": [
+     "E1C085"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "heat_then_stop",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D085.Temperature": 20.0
+      }
+     ],
+     [
+      1000,
+      {
+       "D085.Temperature": 18.9
+      }
+     ],
+     [
+      2000,
+      {
+       "D085.Temperature": 19.2
+      }
+     ],
+     [
+      3000,
+      {
+       "D085.Temperature": 19.6
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C085.On",
+      [],
+      "D085"
+     ],
+     [
+      3000,
+      "E1C085.Off",
+      [],
+      "D085"
+     ]
+    ]
+   },
+   {
+    "name": "equal_thresholds",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D085.Temperature": 19.2
+      }
+     ],
+     [
+      1000,
+      {
+       "D085.Temperature": 19.0
+      }
+     ],
+     [
+      2000,
+      {
+       "D085.Temperature": 19.5
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "repeat_cycle",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D085.Temperature": 20.0
+      }
+     ],
+     [
+      1000,
+      {
+       "D085.Temperature": 18.0
+      }
+     ],
+     [
+      2000,
+      {
+       "D085.Temperature": 20.0
+      }
+     ],
+     [
+      3000,
+      {
+       "D085.Temperature": 18.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C085.On",
+      [],
+      "D085"
+     ],
+     [
+      2000,
+      "E1C085.Off",
+      [],
+      "D085"
+     ],
+     [
+      3000,
+      "E1C085.On",
+      [],
+      "D085"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-087",
+  "spec": "Each button rising event emits On and replaces off deadline with event+600s; at exact deadline a button takes priority. Repeated level true is one event.",
+  "source_url": "https://community.home-assistant.io/t/understanding-automations-with-time-delays-and-how-to-control-them/367362",
+  "source_locator": "opening post (created 2021-12-15 UTC)",
+  "original_text": "Pressing a button turns on a light for exactly ten minutes, then turns it off; pressing again within the window restarts the ten-minute timer.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "C01 repeated On is visible; C099 event-first tie convention, replace rather than extend fixed deadline."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C087 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D087": {
+    "category": [
+     "E1C087"
+    ],
+    "tags": [
+     "E1C087"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "single_press",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 605000,
+    "events": [
+     [
+      0,
+      {
+       "D087.Button": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D087.Button": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D087.Button": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C087.On",
+      [],
+      "D087"
+     ],
+     [
+      601000,
+      "E1C087.Off",
+      [],
+      "D087"
+     ]
+    ]
+   },
+   {
+    "name": "restart",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 1105000,
+    "events": [
+     [
+      0,
+      {
+       "D087.Button": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D087.Button": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D087.Button": false
+      }
+     ],
+     [
+      500000,
+      {
+       "D087.Button": true
+      }
+     ],
+     [
+      501000,
+      {
+       "D087.Button": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C087.On",
+      [],
+      "D087"
+     ],
+     [
+      500000,
+      "E1C087.On",
+      [],
+      "D087"
+     ],
+     [
+      1100000,
+      "E1C087.Off",
+      [],
+      "D087"
+     ]
+    ]
+   },
+   {
+    "name": "press_at_deadline",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 1205000,
+    "events": [
+     [
+      0,
+      {
+       "D087.Button": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D087.Button": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D087.Button": false
+      }
+     ],
+     [
+      601000,
+      {
+       "D087.Button": true
+      }
+     ],
+     [
+      602000,
+      {
+       "D087.Button": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C087.On",
+      [],
+      "D087"
+     ],
+     [
+      601000,
+      "E1C087.On",
+      [],
+      "D087"
+     ],
+     [
+      1201000,
+      "E1C087.Off",
+      [],
+      "D087"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-088",
+  "spec": "At a false-to-true change of overcast or rain, turn on only within [sunset-120min,sunset).",
+  "source_url": "https://community.home-assistant.io/t/how-to-enable-an-automation-between-times/712624",
+  "source_locator": "opening post (created 2024-04-03 UTC)",
+  "original_text": "Between sunset minus two hours and sunset, turn den lights on if the weather becomes very overcast or rainy.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "SunsetMinute is raw platform astronomy output, not the window predicate. Two conditions form OR trigger; already bad weather at window entry does not trigger."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C088 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D088": {
+    "category": [
+     "E1C088"
+    ],
+    "tags": [
+     "E1C088"
+    ]
+   }
+  },
+  "t_start_ms": 57599000,
+  "histories": [
+   {
+    "name": "inside_window",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D088.Overcast": false,
+       "D088.Rain": false,
+       "D088.SunsetMinute": 1080
+      }
+     ],
+     [
+      1000,
+      {
+       "D088.Overcast": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C088.On",
+      [],
+      "D088"
+     ]
+    ]
+   },
+   {
+    "name": "outside_window",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D088.Overcast": false,
+       "D088.Rain": false,
+       "D088.SunsetMinute": 1200
+      }
+     ],
+     [
+      1000,
+      {
+       "D088.Rain": true
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "sunset_boundary",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D088.Overcast": false,
+       "D088.Rain": false,
+       "D088.SunsetMinute": 960
+      }
+     ],
+     [
+      1000,
+      {
+       "D088.Rain": true
+      }
+     ]
+    ],
+    "expected": []
+   }
+  ]
+ },
+ {
+  "id": "E1-089",
+  "spec": "Replay source final startup-aware controller: evaluate at startup and directional threshold crossings; if elevation<=1.8 and light off, On; else if elevation>=-3.1 and light on, Off.",
+  "source_url": "https://community.home-assistant.io/t/evolution-of-an-automation-turn-a-light-on-off-at-sunset-sunrise/302465",
+  "source_locator": "opening post (created 2021-04-24 UTC)",
+  "original_text": "Turn on a light just before sunset and turn it off just before sunrise; also handle missed events after Home Assistant restart.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Uses exact numeric thresholds and priority of source final YAML; overlap[-3.1,1.8] makes source startup behavior state-dependent, explicitly not repaired. Each history starts a fresh controller, covering missed-event restart."
+  ],
+  "alternative_bias": "Source-faithful final YAML, including overlapping threshold priority; no claim of a universally correct astronomy policy.",
+  "qualification": "Source-faithful final YAML, including overlapping threshold priority; no claim of a universally correct astronomy policy.",
+  "stubs": [
+   "E1C089 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D089": {
+    "category": [
+     "E1C089"
+    ],
+    "tags": [
+     "E1C089"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "restart_night_off",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 3000,
+    "events": [
+     [
+      0,
+      {
+       "D089.Elevation": -10.0,
+       "D089.Light": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      0,
+      "E1C089.On",
+      [],
+      "D089"
+     ]
+    ]
+   },
+   {
+    "name": "restart_day_on",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 3000,
+    "events": [
+     [
+      0,
+      {
+       "D089.Elevation": 20.0,
+       "D089.Light": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      0,
+      "E1C089.Off",
+      [],
+      "D089"
+     ]
+    ]
+   },
+   {
+    "name": "sunset_cross",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 3000,
+    "events": [
+     [
+      0,
+      {
+       "D089.Elevation": 3.0,
+       "D089.Light": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D089.Elevation": 1.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C089.On",
+      [],
+      "D089"
+     ]
+    ]
+   },
+   {
+    "name": "sunrise_cross",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 3000,
+    "events": [
+     [
+      0,
+      {
+       "D089.Elevation": -4.0,
+       "D089.Light": true
+      }
+     ],
+     [
+      1000,
+      {
+       "D089.Elevation": -2.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C089.Off",
+      [],
+      "D089"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-090",
+  "spec": "On trigger rising with guard true, On then Off1800s later. Ignore triggers while running; guard checked only at trigger.",
+  "source_url": "https://community.home-assistant.io/t/turn-something-on-for-a-set-time/670621",
+  "source_locator": "opening post (created 2024-01-10 UTC)",
+  "original_text": "Given some trigger and conditions, turn something on for a set time and then off half an hour later.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "C03 single-run convention; half-hour delay starts at On; startup trigger is not event."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C090 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D090": {
+    "category": [
+     "E1C090"
+    ],
+    "tags": [
+     "E1C090"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "one_run",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 1805000,
+    "events": [
+     [
+      0,
+      {
+       "D090.Trigger": false,
+       "D090.Allowed": true
+      }
+     ],
+     [
+      1000,
+      {
+       "D090.Trigger": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D090.Trigger": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C090.On",
+      [],
+      "D090"
+     ],
+     [
+      1801000,
+      "E1C090.Off",
+      [],
+      "D090"
+     ]
+    ]
+   },
+   {
+    "name": "guard_false",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 1805000,
+    "events": [
+     [
+      0,
+      {
+       "D090.Trigger": false,
+       "D090.Allowed": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D090.Trigger": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D090.Allowed": true
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "retrigger_ignored",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 1805000,
+    "events": [
+     [
+      0,
+      {
+       "D090.Trigger": false,
+       "D090.Allowed": true
+      }
+     ],
+     [
+      1000,
+      {
+       "D090.Trigger": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D090.Trigger": false
+      }
+     ],
+     [
+      100000,
+      {
+       "D090.Trigger": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C090.On",
+      [],
+      "D090"
+     ],
+     [
+      1801000,
+      "E1C090.Off",
+      [],
+      "D090"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-093",
+  "spec": "On bell start three independent display workflows; phone immediate, tablet5s, PC1s. One branch delay cannot postpone another.",
+  "source_url": "https://community.home-assistant.io/t/solved-automation-w-3-actions-notification-scripts-how-to-make-them-run-in-parallel/555703",
+  "source_locator": "opening post (created 2023-04-03 UTC)",
+  "original_text": "When the doorbell triggers, run three scripts that display the door camera on a phone, tablet, and PC; delays in one script should not postpone the others.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Finite three selected devices; delays5s/1s chosen to test ordering; independent reentry per branch (new triggers during that branch run ignored, C03); no join/shared state."
+  ],
+  "alternative_bias": "Complete via three independent Timelines; no fork-join/shared-state parallelism.",
+  "qualification": "Complete via three independent Timelines; no fork-join/shared-state parallelism.",
+  "stubs": [
+   "E1C093 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D093": {
+    "category": [
+     "E1C093"
+    ],
+    "tags": [
+     "E1C093"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "independent_delays",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 8000,
+    "events": [
+     [
+      0,
+      {
+       "D093.Bell": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D093.Bell": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D093.Bell": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C093.Phone",
+      [],
+      "D093"
+     ],
+     [
+      6000,
+      "E1C093.Tablet",
+      [],
+      "D093"
+     ],
+     [
+      2000,
+      "E1C093.PC",
+      [],
+      "D093"
+     ]
+    ]
+   },
+   {
+    "name": "second_bell",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 18000,
+    "events": [
+     [
+      0,
+      {
+       "D093.Bell": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D093.Bell": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D093.Bell": false
+      }
+     ],
+     [
+      10000,
+      {
+       "D093.Bell": true
+      }
+     ],
+     [
+      11000,
+      {
+       "D093.Bell": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C093.Phone",
+      [],
+      "D093"
+     ],
+     [
+      2000,
+      "E1C093.PC",
+      [],
+      "D093"
+     ],
+     [
+      6000,
+      "E1C093.Tablet",
+      [],
+      "D093"
+     ],
+     [
+      10000,
+      "E1C093.Phone",
+      [],
+      "D093"
+     ],
+     [
+      11000,
+      "E1C093.PC",
+      [],
+      "D093"
+     ],
+     [
+      15000,
+      "E1C093.Tablet",
+      [],
+      "D093"
+     ]
+    ]
+   },
+   {
+    "name": "no_bell",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 8000,
+    "events": [
+     [
+      0,
+      {
+       "D093.Bell": false
+      }
+     ]
+    ],
+    "expected": []
+   }
+  ]
+ },
+ {
+  "id": "E1-094",
+  "spec": "Two independent light sequences: A levels20,40,60 at0,1,2s then Off at5s; B level50 at0s and Off at1s. Each preserves its own sequence.",
+  "source_url": "https://community.home-assistant.io/t/trying-to-create-action-in-parallel-with-delays-for-certain-actions-that-need-to-occur-sequentially/585191",
+  "source_locator": "opening post (created 2023-06-24 UTC)",
+  "original_text": "In parallel, control multiple lights while preserving each light\u2019s own fade, delay, and turn-off sequence.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Parameterized request instantiated with finite two lights and explicit stepped fade, not continuous device-native fade. Shared trigger only; fixed levels/durations chosen before encoding."
+  ],
+  "alternative_bias": "Complete for fixed two independent stepped-fade sequences; no dynamic branch creation or continuous physical fade verification.",
+  "qualification": "Complete for fixed two independent stepped-fade sequences; no dynamic branch creation or continuous physical fade verification.",
+  "stubs": [
+   "E1C094 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D094": {
+    "category": [
+     "E1C094"
+    ],
+    "tags": [
+     "E1C094"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "overlap",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 8000,
+    "events": [
+     [
+      0,
+      {
+       "D094.Trigger": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D094.Trigger": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D094.Trigger": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C094.ASet",
+      [
+       20
+      ],
+      "D094"
+     ],
+     [
+      2000,
+      "E1C094.ASet",
+      [
+       40
+      ],
+      "D094"
+     ],
+     [
+      3000,
+      "E1C094.ASet",
+      [
+       60
+      ],
+      "D094"
+     ],
+     [
+      6000,
+      "E1C094.AOff",
+      [],
+      "D094"
+     ],
+     [
+      1000,
+      "E1C094.BSet",
+      [
+       50
+      ],
+      "D094"
+     ],
+     [
+      2000,
+      "E1C094.BOff",
+      [],
+      "D094"
+     ]
+    ]
+   },
+   {
+    "name": "no_trigger",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 8000,
+    "events": [
+     [
+      0,
+      {
+       "D094.Trigger": false
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "second_run",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 18000,
+    "events": [
+     [
+      0,
+      {
+       "D094.Trigger": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D094.Trigger": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D094.Trigger": false
+      }
+     ],
+     [
+      10000,
+      {
+       "D094.Trigger": true
+      }
+     ],
+     [
+      11000,
+      {
+       "D094.Trigger": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C094.ASet",
+      [
+       20
+      ],
+      "D094"
+     ],
+     [
+      2000,
+      "E1C094.ASet",
+      [
+       40
+      ],
+      "D094"
+     ],
+     [
+      3000,
+      "E1C094.ASet",
+      [
+       60
+      ],
+      "D094"
+     ],
+     [
+      6000,
+      "E1C094.AOff",
+      [],
+      "D094"
+     ],
+     [
+      1000,
+      "E1C094.BSet",
+      [
+       50
+      ],
+      "D094"
+     ],
+     [
+      2000,
+      "E1C094.BOff",
+      [],
+      "D094"
+     ],
+     [
+      10000,
+      "E1C094.ASet",
+      [
+       20
+      ],
+      "D094"
+     ],
+     [
+      11000,
+      "E1C094.ASet",
+      [
+       40
+      ],
+      "D094"
+     ],
+     [
+      12000,
+      "E1C094.ASet",
+      [
+       60
+      ],
+      "D094"
+     ],
+     [
+      15000,
+      "E1C094.AOff",
+      [],
+      "D094"
+     ],
+     [
+      10000,
+      "E1C094.BSet",
+      [
+       50
+      ],
+      "D094"
+     ],
+     [
+      11000,
+      "E1C094.BOff",
+      [],
+      "D094"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-096",
+  "spec": "Every Monday at09:00 notify for each selected battery when known value<20 or unavailable/unknown.",
+  "source_url": "https://community.home-assistant.io/t/low-battery-notifications-actions/653754",
+  "source_locator": "opening post (created 2023-12-11 UTC)",
+  "original_text": "At a chosen time and day, identify selected battery sensors below a warning threshold or unavailable/unknown and notify selected devices.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Two fixed selected sensors and one selected output device. Known is raw availability status. Independent warnings identify sensor; no dynamic discovery or aggregation hidden in fixtures."
+  ],
+  "alternative_bias": "Complete for a statically selected finite set; does not establish dynamic sensor-list traversal or a combined formatted report.",
+  "qualification": "Complete for a statically selected finite set; does not establish dynamic sensor-list traversal or a combined formatted report.",
+  "stubs": [
+   "E1C096 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D096": {
+    "category": [
+     "E1C096"
+    ],
+    "tags": [
+     "E1C096"
+    ]
+   }
+  },
+  "t_start_ms": 32399000,
+  "histories": [
+   {
+    "name": "low_and_unknown",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 3000,
+    "events": [
+     [
+      0,
+      {
+       "D096.BatteryA": 19.0,
+       "D096.BatteryB": 90.0,
+       "D096.KnownA": true,
+       "D096.KnownB": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C096.WarnA",
+      [],
+      "D096"
+     ],
+     [
+      1000,
+      "E1C096.WarnB",
+      [],
+      "D096"
+     ]
+    ]
+   },
+   {
+    "name": "threshold_equal",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 3000,
+    "events": [
+     [
+      0,
+      {
+       "D096.BatteryA": 20.0,
+       "D096.BatteryB": 80.0,
+       "D096.KnownA": true,
+       "D096.KnownB": true
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "available_high_unknown_a",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 3000,
+    "events": [
+     [
+      0,
+      {
+       "D096.BatteryA": 90.0,
+       "D096.BatteryB": 25.0,
+       "D096.KnownA": false,
+       "D096.KnownB": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C096.WarnA",
+      [],
+      "D096"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-097",
+  "spec": "At doorbell, sound when present, flash once for1s when in selected zone, and always notify. Guards read at bell; enabled branches start together.",
+  "source_url": "https://community.home-assistant.io/t/smart-doorbell-button-zigbee-with-sound-lights-notifications-presence-awareness/892319",
+  "source_locator": "opening post (created 2025-05-19 UTC)",
+  "original_text": "On a doorbell button, play sound, flash lights, and send notifications, with presence or zone conditions; run enabled actions at the same time.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Choice of branch guard configuration and1s flash are parameters of this instance. Timed flash controlled in IR. Independent branches have no joins/state sharing."
+  ],
+  "alternative_bias": "Complete via three independent Timelines for the declared fixed guard configuration.",
+  "qualification": "Complete via three independent Timelines for the declared fixed guard configuration.",
+  "stubs": [
+   "E1C097 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D097": {
+    "category": [
+     "E1C097"
+    ],
+    "tags": [
+     "E1C097"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "all_enabled",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D097.Bell": false,
+       "D097.Present": true,
+       "D097.Zone": true
+      }
+     ],
+     [
+      1000,
+      {
+       "D097.Bell": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D097.Bell": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C097.Sound",
+      [],
+      "D097"
+     ],
+     [
+      1000,
+      "E1C097.FlashOn",
+      [],
+      "D097"
+     ],
+     [
+      1000,
+      "E1C097.Notify",
+      [],
+      "D097"
+     ],
+     [
+      2000,
+      "E1C097.FlashOff",
+      [],
+      "D097"
+     ]
+    ]
+   },
+   {
+    "name": "guards_disabled",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D097.Bell": false,
+       "D097.Present": false,
+       "D097.Zone": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D097.Bell": true
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C097.Notify",
+      [],
+      "D097"
+     ]
+    ]
+   },
+   {
+    "name": "zone_only",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D097.Bell": false,
+       "D097.Present": false,
+       "D097.Zone": true
+      }
+     ],
+     [
+      1000,
+      {
+       "D097.Bell": true
+      }
+     ],
+     [
+      2000,
+      {
+       "D097.Zone": false,
+       "D097.Bell": false
+      }
+     ]
+    ],
+    "expected": [
+     [
+      1000,
+      "E1C097.FlashOn",
+      [],
+      "D097"
+     ],
+     [
+      1000,
+      "E1C097.Notify",
+      [],
+      "D097"
+     ],
+     [
+      2000,
+      "E1C097.FlashOff",
+      [],
+      "D097"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-098",
+  "spec": "Arm when power rises above10W; then notify after power remains below3W continuously60s; reset for next running-threshold crossing.",
+  "source_url": "https://community.home-assistant.io/t/simple-washing-machine-finished-notification-power-sensor-helper-beginner-friendly/1024799",
+  "source_locator": "opening post (created 2026-09-12 UTC)",
+  "original_text": "Detect that the washing machine started when power rises above a running threshold; after power stays below a finish threshold for a configured time, notify and reset for the next cycle.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Strict running/finish comparisons; no completion notification before observed start. Initial high treated as not a rising event; threshold equality resets finish sustain."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C098 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D098": {
+    "category": [
+     "E1C098"
+    ],
+    "tags": [
+     "E1C098"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "one_cycle",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 80000,
+    "events": [
+     [
+      0,
+      {
+       "D098.Power": 0.0
+      }
+     ],
+     [
+      1000,
+      {
+       "D098.Power": 20.0
+      }
+     ],
+     [
+      10000,
+      {
+       "D098.Power": 2.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      70000,
+      "E1C098.Notify",
+      [],
+      "D098"
+     ]
+    ]
+   },
+   {
+    "name": "finish_reset_at_threshold",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 140000,
+    "events": [
+     [
+      0,
+      {
+       "D098.Power": 0.0
+      }
+     ],
+     [
+      1000,
+      {
+       "D098.Power": 20.0
+      }
+     ],
+     [
+      10000,
+      {
+       "D098.Power": 2.0
+      }
+     ],
+     [
+      69000,
+      {
+       "D098.Power": 3.0
+      }
+     ],
+     [
+      71000,
+      {
+       "D098.Power": 2.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      131000,
+      "E1C098.Notify",
+      [],
+      "D098"
+     ]
+    ]
+   },
+   {
+    "name": "two_cycles",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 180000,
+    "events": [
+     [
+      0,
+      {
+       "D098.Power": 0.0
+      }
+     ],
+     [
+      1000,
+      {
+       "D098.Power": 20.0
+      }
+     ],
+     [
+      10000,
+      {
+       "D098.Power": 2.0
+      }
+     ],
+     [
+      100000,
+      {
+       "D098.Power": 20.0
+      }
+     ],
+     [
+      110000,
+      {
+       "D098.Power": 2.0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      70000,
+      "E1C098.Notify",
+      [],
+      "D098"
+     ],
+     [
+      170000,
+      "E1C098.Notify",
+      [],
+      "D098"
+     ]
+    ]
+   }
+  ]
+ },
+ {
+  "id": "E1-100",
+  "spec": "When resident count becomes0, notify only if door unlocked at that instant. Unlocking later is not a departure trigger.",
+  "source_url": "https://community.home-assistant.io/t/automation-that-triggers-when-all-residents-are-not-home/641504",
+  "source_locator": "opening post (created 2023-11-16 UTC)",
+  "original_text": "When the final resident leaves so occupancy becomes zero, if the door is unlocked, send a notification.",
+  "text_form": "RESEARCHER_NORMALIZATION_OF_STATED_BEHAVIOR",
+  "interpretation_origin": "agent, not separately author audited",
+  "transcription": [
+   "Raw count as080; no startup notification. Guard is checked on final departure."
+  ],
+  "alternative_bias": "Thresholds, cadence and finite device sets instantiate parameters; alternative user choices remain untested.",
+  "qualification": "",
+  "stubs": [
+   "E1C100 typed leaf observations/actions"
+  ],
+  "devices": {
+   "D100": {
+    "category": [
+     "E1C100"
+    ],
+    "tags": [
+     "E1C100"
+    ]
+   }
+  },
+  "t_start_ms": 0,
+  "histories": [
+   {
+    "name": "final_departure_unlocked",
+    "kind": "nominal",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D100.Occupants": 2,
+       "D100.Locked": false
+      }
+     ],
+     [
+      1000,
+      {
+       "D100.Occupants": 1
+      }
+     ],
+     [
+      2000,
+      {
+       "D100.Occupants": 0
+      }
+     ]
+    ],
+    "expected": [
+     [
+      2000,
+      "E1C100.Notify",
+      [],
+      "D100"
+     ]
+    ]
+   },
+   {
+    "name": "locked_then_unlock",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D100.Occupants": 1,
+       "D100.Locked": true
+      }
+     ],
+     [
+      1000,
+      {
+       "D100.Occupants": 0
+      }
+     ],
+     [
+      2000,
+      {
+       "D100.Locked": false
+      }
+     ]
+    ],
+    "expected": []
+   },
+   {
+    "name": "already_empty",
+    "kind": "boundary",
+    "step_ms": 1000,
+    "horizon": 5000,
+    "events": [
+     [
+      0,
+      {
+       "D100.Occupants": 0,
+       "D100.Locked": false
+      }
+     ]
+    ],
+    "expected": []
+   }
+  ]
+ }
+]

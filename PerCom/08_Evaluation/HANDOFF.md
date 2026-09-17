@@ -1,12 +1,35 @@
 # Evaluation handoff
 
-상태: **E1 종료(2026-09-13), E2 완료(2026-09-14, 140쌍). E3 최종(2026-09-15, 382건). Feedback 1·2라운드와 반례 없는 대조군 완료(2026-09-16). Table 1 동기 실험 완료(2026-09-16, judge 3개, Fig2 제외 — `03_Motivation/motivation_judge/` 로 이동). E4 완료(2026-09-17, 합성 30개 프로그램, 270회). 원고 E1·E2·E4 초안은 whisoo 검토 대기.**
+## Implementation 통합 및 재현 정보 (2026-09-17)
+
+- 사용자 결정에 따라 독립 Implementation 폴더를 정리했다. 현재 구현 설명은 §6 마지막 문단을 기준으로 하고, Evaluation은 논문 §7이다. 기존 링크를 유지하기 위해 `08_Evaluation` 폴더명은 그대로 둔다.
+- 하드웨어, 모델 설정, 실험별 자원 한도, 고정한 코드·의존성 버전은 Evaluation Setup에 배치한다.
+- 최종 clean commit과 artifact snapshot이 정해지면 LOC, Python·의존성 버전, 하드웨어와 자원 한도를 해당 버전에서 산출·기록한다.
+- 이전 SenSys 원고의 4,850 LOC·Mac mini·commercial hub 정보를 현재 구현으로 자동 승계하지 않는다. 비교용 원문은 [archive/SenSys_implementation.md](archive/SenSys_implementation.md)에 보존했다.
+- 실제 JoI 서버 실행과 IR·JoI 의미 실행기를 통한 검사를 구분한다.
+- 재현 명령은 각 평가의 동결된 프로토콜 및 설정과 일치시킨다.
+- 구성요소 그림이 필요한 경우 의미 실행 구조와 최종 경로가 안정된 뒤 연결한다. 독립 Implementation 절이나 그림을 자동으로 추가하지 않는다.
+- [PerCom_version_ko.md](PerCom_version_ko.md)는 현재 영문 초안 전체의 검토용 번역이다. 수치·표·조건·한계를 유지했으며, 번역 생성은 원고 승인이나 결과 재감사를 뜻하지 않는다.
+
+## 최신 집필 계획 (2026-09-17)
+
+- 사용자 확인: Motivation부터 이후 원고는 모두 피드백 전이며 나중에 검토한다. 기존 실행 결과와 원고 승인 상태를 구별한다.
+- 최신 결정과 최초 계획은 [EVALUATION_WRITING_PLAN.md](EVALUATION_WRITING_PLAN.md)에 둔다. Setup + E1–E4, 각 실험 표 하나(총 네 개)로 초안을 작성했다.
+- `PerCom_version.md`와 Overleaf `sections/evaluation.tex`를 동기화했다. Counterexample은 repair의 행동 차이 정보로만 설명하며 대조군 비교나 성능 개선 인과 주장은 본문에서 제외한다. 기존 실험 기록은 보존한다.
+- 원 실행의 E2/E3/E4 핵심 집계를 확인했고 실험 재실행은 하지 않았다. E4의 실행 병렬도 차이를 본문에 공개했다. 작성·빌드 기록과 남은 사항은 [DRAFT_NOTES.md](DRAFT_NOTES.md) 참조. 아래 완료 기록은 원고 승인이나 새 결과 감사 승인을 뜻하지 않는다.
+
+상태: **E1 전수 확장 완료(2026-09-18, 92건·294/294 이력), E2 완료(2026-09-14, 140쌍). E3 최종(2026-09-15, 382건). Feedback 1·2라운드와 반례 없는 대조군 완료(2026-09-16). Table 1 동기 실험 완료(2026-09-16, judge 3개, Fig2 제외 — `03_Motivation/motivation_judge/` 로 이동). E4 완료(2026-09-17, 합성 30개 프로그램, 270회). 원고 E1·E2·E4 초안은 whisoo 검토 대기.**
 
 - 실험의 방식·코드·데이터·결과는 이 폴더의 실험별 하위 폴더에 둔다.
 
 ## E1 — `E1_adequacy/`
 
-- **최종 표:** `E1_adequacy/E1_SUMMARY.md` (`make_e1_summary.py`, 기록된 결과만 읽음).
+- **최신 결과(2026-09-18):** 범위 내 92건 모두 평가. 최종 IR은 본평가 294/294 이력 재현(기존 53 + 추가 241), 추가 점검 17/17은 별도. 스프링클러 E1-024의 수정 IR은 기존 기대값을 유지하며 3/3을 재현했고, 이전 실패 기록은 보존했다. 추가 72건의 해석·예상 트레이스는 에이전트가 작성했으며 새 저자 전수 심사를 거친 것은 아니다.
+- **최신 표와 집계:** `E1_adequacy/breadth/remaining72/PAPER_TABLE.md`, `paper_summary.json`, 생성기 `make_paper_summary.py`. 영문·한글·Overleaf E1에 출처별 수집/평가/이력 표를 반영했다. E2는 초기 20건을 사용한 기존 실험이다.
+
+- **이전 선정 기준 확인(2026-09-17):** 선정한 20건은 수집한 100건에서 확인한 연산자 유형을 모두 포함한다. 사용자의 직접 확인을 영문·한글·LaTeX 선정 설명에 반영했다. 기존 대응표를 독립 검증한 결과는 아니며, 모든 연산자 조합이나 전체 요청의 표현 성공률을 주장하지 않는다.
+
+- **기존 20건 기록:** `E1_adequacy/E1_SUMMARY.md` (`make_e1_summary.py`, 기록된 결과만 읽음).
   - corpus 100건(출처 official 25 / research 26 / elicited 24 / community 25, 고정 할당 주장 안 함).
     저자 1인 수동 선별 IN_SCOPE 92 / AMBIGUOUS 6 / OUT_OF_SCOPE 2 / UNMATCHED 0, 남긴 중복 없음(`breadth/audit/AUTHOR_SCREENING_2026-09-13.md`).
     R/B 코딩은 IN_SCOPE 92건만 분모(`breadth/audit/AUTHOR_RB_CODING_2026-09-13.md`). 두 번째 코더·κ 없음.
@@ -31,7 +54,7 @@
   extractor 문법 확장 여부는 E3 시작 전에 따로 정한다.
 - **원고 E1 절:** `PerCom_version.md`, 2026-09-13 초안, 2026-09-14 사실 정정(P1 거절 사유, cron 앵커, 인코딩 수정 4건 + 해석 변경 3건,
   AutoTap 문장 변환, 해시 기록 범위, validator → Explorer). whisoo 검토 대기.
-- 남은 corpus 72건의 depth 는 보류(`E1_adequacy/breadth/TODO_DEPTH_REMAINING_72.md`).
+- 남은 corpus 72건의 평가와 E1-024 후속 수정을 완료했다(`E1_adequacy/breadth/remaining72/`). 원고는 2026-09-18에 92건 기준으로 재작성했으며 사용자 검토 대기다.
 
 ## E2 — `E2_fidelity/`
 

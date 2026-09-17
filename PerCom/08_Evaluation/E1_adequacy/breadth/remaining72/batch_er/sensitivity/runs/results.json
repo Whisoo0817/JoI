@@ -1,0 +1,401 @@
+[
+ {
+  "id": "E1-020",
+  "label": "complete for serialized request admission with acknowledged lifecycle",
+  "label_reason": "Admitted start reserves the single flow until the selected device is observed running then stopped; later requests during reservation are discarded. This handles the delayed-acknowledgement sensitivity. Assumes starts go through this controller, acknowledged run/stop transitions are sampled, and no already-conflicting external start. Does not claim plant-level mutual exclusion for arbitrary external starts.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "read",
+       "var": "wprev",
+       "src": "ER20.WasherRequest"
+      },
+      {
+       "op": "read",
+       "var": "dprev",
+       "src": "ER20.DishRequest"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "ER20.WasherRequest != $wprev or ER20.DishRequest != $dprev",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "ER20.WasherRequest == true and $wprev == false and ER20.DishRunning == false",
+         "then": [
+          {
+           "op": "call",
+           "target": "ER20.StartWasher",
+           "args": {}
+          },
+          {
+           "op": "wait",
+           "cond": "ER20.WasherRunning == true",
+           "edge": "none"
+          },
+          {
+           "op": "wait",
+           "cond": "ER20.WasherRunning == false",
+           "edge": "none"
+          }
+         ],
+         "else": [
+          {
+           "op": "if",
+           "cond": "ER20.DishRequest == true and $dprev == false and ER20.WasherRunning == false",
+           "then": [
+            {
+             "op": "call",
+             "target": "ER20.StartDish",
+             "args": {}
+            },
+            {
+             "op": "wait",
+             "cond": "ER20.DishRunning == true",
+             "edge": "none"
+            },
+            {
+             "op": "wait",
+             "cond": "ER20.DishRunning == false",
+             "edge": "none"
+            }
+           ]
+          }
+         ]
+        },
+        {
+         "op": "read",
+         "var": "wprev",
+         "src": "ER20.WasherRequest"
+        },
+        {
+         "op": "read",
+         "var": "dprev",
+         "src": "ER20.DishRequest"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "ER20": [
+      "D20"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "delayed_acknowledgement_must_reserve",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "er20",
+      "startwasher",
+      [],
+      [
+       "D20"
+      ]
+     ],
+     [
+      9000,
+      "er20",
+      "startdish",
+      [],
+      [
+       "D20"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "er20",
+      "startwasher",
+      [],
+      [
+       "D20"
+      ],
+      "instance 0"
+     ],
+     [
+      9000,
+      "er20",
+      "startdish",
+      [],
+      [
+       "D20"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "1/1",
+  "exact": "1/1",
+  "realized_outcome": "complete for serialized request admission with acknowledged lifecycle",
+  "elapsed_seconds": 0.029,
+  "cases_sha256": "177eefd2a490dab2898fd84818d804780517b79565fbad17c4be9740cae2a0fc",
+  "attempts_sha256": "06c2ccc69368e93ad0cc1512937fffb1b0148b6c84cc5ac0773eda0e06ceab3d",
+  "runner_sha256": "37aa4c9a749a63b586a2b956065d3d8caab108eae43c394f3f3c4686eb6bfa23",
+  "reference_replay_sha256": "e045bb5cae2d5a50c7866dc551d13552da5332cc1b253124fc4207464c25f817"
+ },
+ {
+  "id": "E1-031",
+  "label": "complete for fixed-two raw-event interpretation",
+  "label_reason": "Two observed rising use events enable requests immediately at the second onset; initial held use is not an event. Day deadline resets the phases at midnight, before requests at that boundary. This is bounded phase state, not arbitrary counting; the corpus author additionally permits an external daily-count guard.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "read",
+         "var": "day_timestamp",
+         "src": "Clock.Timestamp"
+        },
+        {
+         "op": "read",
+         "var": "day_hour",
+         "src": "Clock.Hour"
+        },
+        {
+         "op": "read",
+         "var": "day_minute",
+         "src": "Clock.Minute"
+        },
+        {
+         "op": "cycle",
+         "until": null,
+         "period": "0 MSEC",
+         "body": [
+          {
+           "op": "wait",
+           "cond": "ER31.BrushUse == false or (Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400)",
+           "edge": "none"
+          },
+          {
+           "op": "if",
+           "cond": "Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400",
+           "then": [
+            {
+             "op": "break"
+            }
+           ]
+          },
+          {
+           "op": "wait",
+           "cond": "ER31.BrushUse == true or (Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400)",
+           "edge": "none"
+          },
+          {
+           "op": "if",
+           "cond": "Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400",
+           "then": [
+            {
+             "op": "break"
+            }
+           ]
+          },
+          {
+           "op": "wait",
+           "cond": "ER31.BrushUse == false or (Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400)",
+           "edge": "none"
+          },
+          {
+           "op": "if",
+           "cond": "Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400",
+           "then": [
+            {
+             "op": "break"
+            }
+           ]
+          },
+          {
+           "op": "wait",
+           "cond": "ER31.BrushUse == true or (Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400)",
+           "edge": "none"
+          },
+          {
+           "op": "if",
+           "cond": "Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400",
+           "then": [
+            {
+             "op": "break"
+            }
+           ]
+          },
+          {
+           "op": "cycle",
+           "until": null,
+           "period": "0 MSEC",
+           "body": [
+            {
+             "op": "wait",
+             "cond": "ER31.Request == true or (Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400)",
+             "edge": "none"
+            },
+            {
+             "op": "if",
+             "cond": "Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400",
+             "then": [
+              {
+               "op": "break"
+              }
+             ]
+            },
+            {
+             "op": "call",
+             "target": "ER31.On",
+             "args": {}
+            },
+            {
+             "op": "wait",
+             "cond": "ER31.Request == false or (Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400)",
+             "edge": "none"
+            },
+            {
+             "op": "if",
+             "cond": "Clock.Timestamp >= $day_timestamp - $day_hour * 3600 - $day_minute * 60 + 86400",
+             "then": [
+              {
+               "op": "break"
+              }
+             ]
+            }
+           ]
+          },
+          {
+           "op": "break"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "ER31": [
+      "D31"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "Clock.Timestamp",
+     "nested cycle",
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "request_at_second_use_onset",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      3000,
+      "er31",
+      "on",
+      [],
+      [
+       "D31"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      3000,
+      "er31",
+      "on",
+      [],
+      [
+       "D31"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "initial_held_use_is_not_new_event",
+    "kind": "negative",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "one_use_each_side_of_midnight",
+    "kind": "reset",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete for fixed-two raw-event interpretation",
+  "elapsed_seconds": 0.017,
+  "cases_sha256": "177eefd2a490dab2898fd84818d804780517b79565fbad17c4be9740cae2a0fc",
+  "attempts_sha256": "06c2ccc69368e93ad0cc1512937fffb1b0148b6c84cc5ac0773eda0e06ceab3d",
+  "runner_sha256": "37aa4c9a749a63b586a2b956065d3d8caab108eae43c394f3f3c4686eb6bfa23",
+  "reference_replay_sha256": "e045bb5cae2d5a50c7866dc551d13552da5332cc1b253124fc4207464c25f817"
+ }
+]

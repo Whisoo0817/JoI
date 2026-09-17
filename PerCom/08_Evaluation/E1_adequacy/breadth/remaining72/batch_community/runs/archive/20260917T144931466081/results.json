@@ -1,0 +1,4255 @@
+[
+ {
+  "id": "E1-078",
+  "label": "complete for qualified manual-rearm interpretation",
+  "label_reason": "Conservative lockout explicitly fixed before encoding; genuine later motion is inhibited until manual rearm.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "read",
+         "var": "pm",
+         "src": "E1C078.Motion"
+        },
+        {
+         "op": "read",
+         "var": "pl",
+         "src": "E1C078.Lux"
+        },
+        {
+         "op": "wait",
+         "cond": "(E1C078.Motion == true and $pm == false) or (E1C078.Lux < 100 and $pl >= 100)",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C078.On",
+         "args": {}
+        },
+        {
+         "op": "delay",
+         "duration": "300 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C078.Off",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "E1C078.Light == false",
+         "edge": "none"
+        },
+        {
+         "op": "wait",
+         "cond": "E1C078.Light == true",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C078": [
+      "D078"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "motion_run",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c078",
+      "on",
+      [],
+      [
+       "D078"
+      ]
+     ],
+     [
+      301000,
+      "e1c078",
+      "off",
+      [],
+      [
+       "D078"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c078",
+      "on",
+      [],
+      [
+       "D078"
+      ],
+      "instance 0"
+     ],
+     [
+      301000,
+      "e1c078",
+      "off",
+      [],
+      [
+       "D078"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "own_off_lux_feedback_blocked",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c078",
+      "on",
+      [],
+      [
+       "D078"
+      ]
+     ],
+     [
+      301000,
+      "e1c078",
+      "off",
+      [],
+      [
+       "D078"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c078",
+      "on",
+      [],
+      [
+       "D078"
+      ],
+      "instance 0"
+     ],
+     [
+      301000,
+      "e1c078",
+      "off",
+      [],
+      [
+       "D078"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "manual_rearm_second_motion",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c078",
+      "on",
+      [],
+      [
+       "D078"
+      ]
+     ],
+     [
+      301000,
+      "e1c078",
+      "off",
+      [],
+      [
+       "D078"
+      ]
+     ],
+     [
+      320000,
+      "e1c078",
+      "on",
+      [],
+      [
+       "D078"
+      ]
+     ],
+     [
+      620000,
+      "e1c078",
+      "off",
+      [],
+      [
+       "D078"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c078",
+      "on",
+      [],
+      [
+       "D078"
+      ],
+      "instance 0"
+     ],
+     [
+      301000,
+      "e1c078",
+      "off",
+      [],
+      [
+       "D078"
+      ],
+      "instance 0"
+     ],
+     [
+      320000,
+      "e1c078",
+      "on",
+      [],
+      [
+       "D078"
+      ],
+      "instance 0"
+     ],
+     [
+      620000,
+      "e1c078",
+      "off",
+      [],
+      [
+       "D078"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete for qualified manual-rearm interpretation",
+  "elapsed_seconds": 0.04,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-079",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "read",
+         "var": "old",
+         "src": "E1C079.Value"
+        },
+        {
+         "op": "wait",
+         "cond": "E1C079.Value != $old",
+         "edge": "none",
+         "timeout": "60 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C079.Run",
+         "args": {}
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C079": [
+      "D079"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC",
+     "wait.timeout"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "normal_updates",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      10000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ],
+     [
+      20000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ],
+     [
+      30000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      10000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ],
+     [
+      20000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ],
+     [
+      30000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "stale_repeat_then_resume",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      10000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ],
+     [
+      70000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ],
+     [
+      130000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ],
+     [
+      145000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      10000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ],
+     [
+      70000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ],
+     [
+      130000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ],
+     [
+      145000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "change_at_deadline",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      60000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ],
+     [
+      120000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      60000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ],
+     [
+      120000,
+      "e1c079",
+      "run",
+      [],
+      [
+       "D079"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.012,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-080",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C080.Occupants == 0)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C080.Occupants == 0",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C080.ArmAway",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C080.Occupants == 0)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C080": [
+      "D080"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "last_departure",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      2000,
+      "e1c080",
+      "armaway",
+      [],
+      [
+       "D080"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      2000,
+      "e1c080",
+      "armaway",
+      [],
+      [
+       "D080"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "initial_empty",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "return_and_leave",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c080",
+      "armaway",
+      [],
+      [
+       "D080"
+      ]
+     ],
+     [
+      5000,
+      "e1c080",
+      "armaway",
+      [],
+      [
+       "D080"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c080",
+      "armaway",
+      [],
+      [
+       "D080"
+      ],
+      "instance 0"
+     ],
+     [
+      5000,
+      "e1c080",
+      "armaway",
+      [],
+      [
+       "D080"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.01,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-081",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C081.Present == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C081.Present == true",
+         "edge": "none"
+        },
+        {
+         "op": "cycle",
+         "until": "$k >= 3",
+         "period": "0 MSEC",
+         "body": [
+          {
+           "op": "wait",
+           "cond": "E1C081.Present == false",
+           "edge": "none",
+           "timeout": "300 SEC",
+           "on_timeout": [
+            {
+             "op": "call",
+             "target": "E1C081.Nag",
+             "args": {}
+            }
+           ]
+          },
+          {
+           "op": "if",
+           "cond": "E1C081.Present == false",
+           "then": [
+            {
+             "op": "break"
+            }
+           ]
+          }
+         ],
+         "count": "k"
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C081.Present == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C081": [
+      "D081"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "nested cycle",
+     "period 0 MSEC",
+     "wait.timeout"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "cap_three",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      301000,
+      "e1c081",
+      "nag",
+      [],
+      [
+       "D081"
+      ]
+     ],
+     [
+      601000,
+      "e1c081",
+      "nag",
+      [],
+      [
+       "D081"
+      ]
+     ],
+     [
+      901000,
+      "e1c081",
+      "nag",
+      [],
+      [
+       "D081"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      301000,
+      "e1c081",
+      "nag",
+      [],
+      [
+       "D081"
+      ],
+      "instance 0"
+     ],
+     [
+      601000,
+      "e1c081",
+      "nag",
+      [],
+      [
+       "D081"
+      ],
+      "instance 0"
+     ],
+     [
+      901000,
+      "e1c081",
+      "nag",
+      [],
+      [
+       "D081"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "leave_at_deadline",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "leave_return_reset",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      550000,
+      "e1c081",
+      "nag",
+      [],
+      [
+       "D081"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      550000,
+      "e1c081",
+      "nag",
+      [],
+      [
+       "D081"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.022,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-082",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C082.Open == true",
+         "edge": "none"
+        },
+        {
+         "op": "read",
+         "var": "opened",
+         "src": "Clock.Timestamp"
+        },
+        {
+         "op": "wait",
+         "cond": "E1C082.Open == false",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "Clock.Timestamp - $opened > 300",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C082.Notify",
+           "args": {}
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C082": [
+      "D082"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "Clock.Timestamp",
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "long_then_close",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      302000,
+      "e1c082",
+      "notify",
+      [],
+      [
+       "D082"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      302000,
+      "e1c082",
+      "notify",
+      [],
+      [
+       "D082"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "exact_five_minutes",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "short_then_long",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      501000,
+      "e1c082",
+      "notify",
+      [],
+      [
+       "D082"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      501000,
+      "e1c082",
+      "notify",
+      [],
+      [
+       "D082"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.014,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-084",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "((Clock.Weekday != 'friday' and Clock.Weekday != 'saturday') and Clock.Hour >= 18 and Clock.Hour < 21) or ((Clock.Weekday == 'friday' or Clock.Weekday == 'saturday') and Clock.Hour >= 19 and Clock.Hour < 23)",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C084.On",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "not (((Clock.Weekday != 'friday' and Clock.Weekday != 'saturday') and Clock.Hour >= 18 and Clock.Hour < 21) or ((Clock.Weekday == 'friday' or Clock.Weekday == 'saturday') and Clock.Hour >= 19 and Clock.Hour < 23))",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C084.Off",
+         "args": {}
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C084": [
+      "D084"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "mon_on_off",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c084",
+      "on",
+      [],
+      [
+       "D084"
+      ]
+     ],
+     [
+      10801000,
+      "e1c084",
+      "off",
+      [],
+      [
+       "D084"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c084",
+      "on",
+      [],
+      [
+       "D084"
+      ],
+      "instance 0"
+     ],
+     [
+      10801000,
+      "e1c084",
+      "off",
+      [],
+      [
+       "D084"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "fri_on_off",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      3601000,
+      "e1c084",
+      "on",
+      [],
+      [
+       "D084"
+      ]
+     ],
+     [
+      18001000,
+      "e1c084",
+      "off",
+      [],
+      [
+       "D084"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      3601000,
+      "e1c084",
+      "on",
+      [],
+      [
+       "D084"
+      ],
+      "instance 0"
+     ],
+     [
+      18001000,
+      "e1c084",
+      "off",
+      [],
+      [
+       "D084"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "sun_on_off",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c084",
+      "on",
+      [],
+      [
+       "D084"
+      ]
+     ],
+     [
+      10801000,
+      "e1c084",
+      "off",
+      [],
+      [
+       "D084"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c084",
+      "on",
+      [],
+      [
+       "D084"
+      ],
+      "instance 0"
+     ],
+     [
+      10801000,
+      "e1c084",
+      "off",
+      [],
+      [
+       "D084"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.479,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-085",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "read",
+         "var": "prev0",
+         "src": "E1C085.Temperature"
+        },
+        {
+         "op": "wait",
+         "cond": "E1C085.Temperature != $prev0",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "E1C085.Temperature < 19 and $prev0 >= 19",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C085.On",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "if",
+         "cond": "E1C085.Temperature > 19.5 and $prev0 <= 19.5",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C085.Off",
+           "args": {}
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C085": [
+      "D085"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "heat_then_stop",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c085",
+      "on",
+      [],
+      [
+       "D085"
+      ]
+     ],
+     [
+      3000,
+      "e1c085",
+      "off",
+      [],
+      [
+       "D085"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c085",
+      "on",
+      [],
+      [
+       "D085"
+      ],
+      "instance 0"
+     ],
+     [
+      3000,
+      "e1c085",
+      "off",
+      [],
+      [
+       "D085"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "equal_thresholds",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "repeat_cycle",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c085",
+      "on",
+      [],
+      [
+       "D085"
+      ]
+     ],
+     [
+      2000,
+      "e1c085",
+      "off",
+      [],
+      [
+       "D085"
+      ]
+     ],
+     [
+      3000,
+      "e1c085",
+      "on",
+      [],
+      [
+       "D085"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c085",
+      "on",
+      [],
+      [
+       "D085"
+      ],
+      "instance 0"
+     ],
+     [
+      2000,
+      "e1c085",
+      "off",
+      [],
+      [
+       "D085"
+      ],
+      "instance 0"
+     ],
+     [
+      3000,
+      "e1c085",
+      "on",
+      [],
+      [
+       "D085"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.01,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-087",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "E1C087.Button == false",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C087.Button == true",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C087.On",
+         "args": {}
+        },
+        {
+         "op": "read",
+         "var": "pressed",
+         "src": "Clock.Timestamp"
+        },
+        {
+         "op": "wait",
+         "cond": "E1C087.Button == false",
+         "edge": "none"
+        },
+        {
+         "op": "cycle",
+         "until": null,
+         "period": "0 MSEC",
+         "body": [
+          {
+           "op": "wait",
+           "cond": "E1C087.Button == true or Clock.Timestamp >= $pressed + 600",
+           "edge": "none"
+          },
+          {
+           "op": "if",
+           "cond": "E1C087.Button == true",
+           "then": [
+            {
+             "op": "call",
+             "target": "E1C087.On",
+             "args": {}
+            },
+            {
+             "op": "read",
+             "var": "pressed",
+             "src": "Clock.Timestamp"
+            },
+            {
+             "op": "wait",
+             "cond": "E1C087.Button == false",
+             "edge": "none"
+            }
+           ],
+           "else": [
+            {
+             "op": "call",
+             "target": "E1C087.Off",
+             "args": {}
+            },
+            {
+             "op": "break"
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C087": [
+      "D087"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "Clock.Timestamp",
+     "nested cycle",
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "single_press",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ]
+     ],
+     [
+      601000,
+      "e1c087",
+      "off",
+      [],
+      [
+       "D087"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ],
+      "instance 0"
+     ],
+     [
+      601000,
+      "e1c087",
+      "off",
+      [],
+      [
+       "D087"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "restart",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ]
+     ],
+     [
+      500000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ]
+     ],
+     [
+      1100000,
+      "e1c087",
+      "off",
+      [],
+      [
+       "D087"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ],
+      "instance 0"
+     ],
+     [
+      500000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ],
+      "instance 0"
+     ],
+     [
+      1100000,
+      "e1c087",
+      "off",
+      [],
+      [
+       "D087"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "press_at_deadline",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ]
+     ],
+     [
+      601000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ]
+     ],
+     [
+      1201000,
+      "e1c087",
+      "off",
+      [],
+      [
+       "D087"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ],
+      "instance 0"
+     ],
+     [
+      601000,
+      "e1c087",
+      "on",
+      [],
+      [
+       "D087"
+      ],
+      "instance 0"
+     ],
+     [
+      1201000,
+      "e1c087",
+      "off",
+      [],
+      [
+       "D087"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.027,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-088",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "read",
+         "var": "prev0",
+         "src": "E1C088.Overcast"
+        },
+        {
+         "op": "read",
+         "var": "prev1",
+         "src": "E1C088.Rain"
+        },
+        {
+         "op": "wait",
+         "cond": "E1C088.Overcast != $prev0 or E1C088.Rain != $prev1",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "((E1C088.Overcast == true and $prev0 == false) or (E1C088.Rain == true and $prev1 == false)) and (Clock.Hour * 60 + Clock.Minute) >= E1C088.SunsetMinute - 120 and (Clock.Hour * 60 + Clock.Minute) < E1C088.SunsetMinute",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C088.On",
+           "args": {}
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C088": [
+      "D088"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "inside_window",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c088",
+      "on",
+      [],
+      [
+       "D088"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c088",
+      "on",
+      [],
+      [
+       "D088"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "outside_window",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "sunset_boundary",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.011,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-089",
+  "label": "complete for source final-YAML interpretation",
+  "label_reason": "Reproduces source startup branch priority even in overlapping elevation range; not a repaired astronomy rule.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "if",
+       "cond": "E1C089.Elevation <= 1.8 and E1C089.Light == false",
+       "then": [
+        {
+         "op": "call",
+         "target": "E1C089.On",
+         "args": {}
+        }
+       ],
+       "else": [
+        {
+         "op": "if",
+         "cond": "E1C089.Elevation >= -3.1 and E1C089.Light == true",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C089.Off",
+           "args": {}
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "read",
+         "var": "prev0",
+         "src": "E1C089.Elevation"
+        },
+        {
+         "op": "wait",
+         "cond": "E1C089.Elevation != $prev0",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "(E1C089.Elevation < 1.8 and $prev0 >= 1.8) or (E1C089.Elevation > -3.1 and $prev0 <= -3.1)",
+         "then": [
+          {
+           "op": "if",
+           "cond": "E1C089.Elevation <= 1.8 and E1C089.Light == false",
+           "then": [
+            {
+             "op": "call",
+             "target": "E1C089.On",
+             "args": {}
+            }
+           ],
+           "else": [
+            {
+             "op": "if",
+             "cond": "E1C089.Elevation >= -3.1 and E1C089.Light == true",
+             "then": [
+              {
+               "op": "call",
+               "target": "E1C089.Off",
+               "args": {}
+              }
+             ]
+            }
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C089": [
+      "D089"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "restart_night_off",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      0,
+      "e1c089",
+      "on",
+      [],
+      [
+       "D089"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      0,
+      "e1c089",
+      "on",
+      [],
+      [
+       "D089"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "restart_day_on",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      0,
+      "e1c089",
+      "off",
+      [],
+      [
+       "D089"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      0,
+      "e1c089",
+      "off",
+      [],
+      [
+       "D089"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "sunset_cross",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c089",
+      "on",
+      [],
+      [
+       "D089"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c089",
+      "on",
+      [],
+      [
+       "D089"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "sunrise_cross",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c089",
+      "off",
+      [],
+      [
+       "D089"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c089",
+      "off",
+      [],
+      [
+       "D089"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "4/4",
+  "exact": "4/4",
+  "realized_outcome": "complete for source final-YAML interpretation",
+  "elapsed_seconds": 0.015,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-090",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C090.Trigger == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C090.Trigger == true",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "E1C090.Allowed == true",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C090.On",
+           "args": {}
+          },
+          {
+           "op": "delay",
+           "duration": "1800 SEC"
+          },
+          {
+           "op": "call",
+           "target": "E1C090.Off",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C090.Trigger == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C090": [
+      "D090"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "one_run",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c090",
+      "on",
+      [],
+      [
+       "D090"
+      ]
+     ],
+     [
+      1801000,
+      "e1c090",
+      "off",
+      [],
+      [
+       "D090"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c090",
+      "on",
+      [],
+      [
+       "D090"
+      ],
+      "instance 0"
+     ],
+     [
+      1801000,
+      "e1c090",
+      "off",
+      [],
+      [
+       "D090"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "guard_false",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "retrigger_ignored",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c090",
+      "on",
+      [],
+      [
+       "D090"
+      ]
+     ],
+     [
+      1801000,
+      "e1c090",
+      "off",
+      [],
+      [
+       "D090"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c090",
+      "on",
+      [],
+      [
+       "D090"
+      ],
+      "instance 0"
+     ],
+     [
+      1801000,
+      "e1c090",
+      "off",
+      [],
+      [
+       "D090"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.033,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-093",
+  "label": "complete via independent Timelines",
+  "label_reason": "Three fixed branches share trigger only; own delay does not block others.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "Phone",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C093.Bell == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C093.Bell == true",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C093.Phone",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C093.Bell == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C093": [
+      "D093"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   },
+   {
+    "name": "Tablet",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C093.Bell == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C093.Bell == true",
+         "edge": "none"
+        },
+        {
+         "op": "delay",
+         "duration": "5 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C093.Tablet",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C093.Bell == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C093": [
+      "D093"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   },
+   {
+    "name": "PC",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C093.Bell == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C093.Bell == true",
+         "edge": "none"
+        },
+        {
+         "op": "delay",
+         "duration": "1 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C093.PC",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C093.Bell == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C093": [
+      "D093"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "independent_delays",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c093",
+      "phone",
+      [],
+      [
+       "D093"
+      ]
+     ],
+     [
+      6000,
+      "e1c093",
+      "tablet",
+      [],
+      [
+       "D093"
+      ]
+     ],
+     [
+      2000,
+      "e1c093",
+      "pc",
+      [],
+      [
+       "D093"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c093",
+      "phone",
+      [],
+      [
+       "D093"
+      ],
+      "instance 0"
+     ],
+     [
+      2000,
+      "e1c093",
+      "pc",
+      [],
+      [
+       "D093"
+      ],
+      "instance 2"
+     ],
+     [
+      6000,
+      "e1c093",
+      "tablet",
+      [],
+      [
+       "D093"
+      ],
+      "instance 1"
+     ]
+    ],
+    "ordered_exact": false
+   },
+   {
+    "name": "second_bell",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c093",
+      "phone",
+      [],
+      [
+       "D093"
+      ]
+     ],
+     [
+      2000,
+      "e1c093",
+      "pc",
+      [],
+      [
+       "D093"
+      ]
+     ],
+     [
+      6000,
+      "e1c093",
+      "tablet",
+      [],
+      [
+       "D093"
+      ]
+     ],
+     [
+      10000,
+      "e1c093",
+      "phone",
+      [],
+      [
+       "D093"
+      ]
+     ],
+     [
+      11000,
+      "e1c093",
+      "pc",
+      [],
+      [
+       "D093"
+      ]
+     ],
+     [
+      15000,
+      "e1c093",
+      "tablet",
+      [],
+      [
+       "D093"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c093",
+      "phone",
+      [],
+      [
+       "D093"
+      ],
+      "instance 0"
+     ],
+     [
+      2000,
+      "e1c093",
+      "pc",
+      [],
+      [
+       "D093"
+      ],
+      "instance 2"
+     ],
+     [
+      6000,
+      "e1c093",
+      "tablet",
+      [],
+      [
+       "D093"
+      ],
+      "instance 1"
+     ],
+     [
+      10000,
+      "e1c093",
+      "phone",
+      [],
+      [
+       "D093"
+      ],
+      "instance 0"
+     ],
+     [
+      11000,
+      "e1c093",
+      "pc",
+      [],
+      [
+       "D093"
+      ],
+      "instance 2"
+     ],
+     [
+      15000,
+      "e1c093",
+      "tablet",
+      [],
+      [
+       "D093"
+      ],
+      "instance 1"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "no_bell",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete via independent Timelines",
+  "elapsed_seconds": 0.03,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-094",
+  "label": "complete via fixed independent stepped-fade Timelines",
+  "label_reason": "Static two-light stepped-fade configuration fixed before encoding; no dynamic fork/join.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "A",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C094.Trigger == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C094.Trigger == true",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C094.ASet",
+         "args": {
+          "Level": 20
+         }
+        },
+        {
+         "op": "delay",
+         "duration": "1 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C094.ASet",
+         "args": {
+          "Level": 40
+         }
+        },
+        {
+         "op": "delay",
+         "duration": "1 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C094.ASet",
+         "args": {
+          "Level": 60
+         }
+        },
+        {
+         "op": "delay",
+         "duration": "3 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C094.AOff",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C094.Trigger == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C094": [
+      "D094"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   },
+   {
+    "name": "B",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C094.Trigger == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C094.Trigger == true",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C094.BSet",
+         "args": {
+          "Level": 50
+         }
+        },
+        {
+         "op": "delay",
+         "duration": "1 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C094.BOff",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C094.Trigger == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C094": [
+      "D094"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "overlap",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c094",
+      "aset",
+      [
+       20.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      2000,
+      "e1c094",
+      "aset",
+      [
+       40.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      3000,
+      "e1c094",
+      "aset",
+      [
+       60.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      6000,
+      "e1c094",
+      "aoff",
+      [],
+      [
+       "D094"
+      ]
+     ],
+     [
+      1000,
+      "e1c094",
+      "bset",
+      [
+       50.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      2000,
+      "e1c094",
+      "boff",
+      [],
+      [
+       "D094"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c094",
+      "aset",
+      [
+       20.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      1000,
+      "e1c094",
+      "bset",
+      [
+       50.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 1"
+     ],
+     [
+      2000,
+      "e1c094",
+      "aset",
+      [
+       40.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      2000,
+      "e1c094",
+      "boff",
+      [],
+      [
+       "D094"
+      ],
+      "instance 1"
+     ],
+     [
+      3000,
+      "e1c094",
+      "aset",
+      [
+       60.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      6000,
+      "e1c094",
+      "aoff",
+      [],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": false
+   },
+   {
+    "name": "no_trigger",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "second_run",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c094",
+      "aset",
+      [
+       20.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      2000,
+      "e1c094",
+      "aset",
+      [
+       40.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      3000,
+      "e1c094",
+      "aset",
+      [
+       60.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      6000,
+      "e1c094",
+      "aoff",
+      [],
+      [
+       "D094"
+      ]
+     ],
+     [
+      1000,
+      "e1c094",
+      "bset",
+      [
+       50.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      2000,
+      "e1c094",
+      "boff",
+      [],
+      [
+       "D094"
+      ]
+     ],
+     [
+      10000,
+      "e1c094",
+      "aset",
+      [
+       20.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      11000,
+      "e1c094",
+      "aset",
+      [
+       40.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      12000,
+      "e1c094",
+      "aset",
+      [
+       60.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      15000,
+      "e1c094",
+      "aoff",
+      [],
+      [
+       "D094"
+      ]
+     ],
+     [
+      10000,
+      "e1c094",
+      "bset",
+      [
+       50.0
+      ],
+      [
+       "D094"
+      ]
+     ],
+     [
+      11000,
+      "e1c094",
+      "boff",
+      [],
+      [
+       "D094"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c094",
+      "aset",
+      [
+       20.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      1000,
+      "e1c094",
+      "bset",
+      [
+       50.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 1"
+     ],
+     [
+      2000,
+      "e1c094",
+      "aset",
+      [
+       40.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      2000,
+      "e1c094",
+      "boff",
+      [],
+      [
+       "D094"
+      ],
+      "instance 1"
+     ],
+     [
+      3000,
+      "e1c094",
+      "aset",
+      [
+       60.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      6000,
+      "e1c094",
+      "aoff",
+      [],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      10000,
+      "e1c094",
+      "aset",
+      [
+       20.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      10000,
+      "e1c094",
+      "bset",
+      [
+       50.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 1"
+     ],
+     [
+      11000,
+      "e1c094",
+      "aset",
+      [
+       40.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      11000,
+      "e1c094",
+      "boff",
+      [],
+      [
+       "D094"
+      ],
+      "instance 1"
+     ],
+     [
+      12000,
+      "e1c094",
+      "aset",
+      [
+       60.0
+      ],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ],
+     [
+      15000,
+      "e1c094",
+      "aoff",
+      [],
+      [
+       "D094"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": false
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete via fixed independent stepped-fade Timelines",
+  "elapsed_seconds": 0.038,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-096",
+  "label": "complete for fixed selected sensor set",
+  "label_reason": "Two static sensors and selected notification output; no dynamic collection enumeration.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "Clock.Weekday == 'monday' and Clock.Hour == 9 and Clock.Minute == 0",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "E1C096.KnownA == false or E1C096.BatteryA < 20",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C096.WarnA",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "if",
+         "cond": "E1C096.KnownB == false or E1C096.BatteryB < 20",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C096.WarnB",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "wait",
+         "cond": "not (Clock.Weekday == 'monday' and Clock.Hour == 9 and Clock.Minute == 0)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C096": [
+      "D096"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "low_and_unknown",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c096",
+      "warna",
+      [],
+      [
+       "D096"
+      ]
+     ],
+     [
+      1000,
+      "e1c096",
+      "warnb",
+      [],
+      [
+       "D096"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c096",
+      "warna",
+      [],
+      [
+       "D096"
+      ],
+      "instance 0"
+     ],
+     [
+      1000,
+      "e1c096",
+      "warnb",
+      [],
+      [
+       "D096"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "threshold_equal",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "available_high_unknown_a",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c096",
+      "warna",
+      [],
+      [
+       "D096"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c096",
+      "warna",
+      [],
+      [
+       "D096"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete for fixed selected sensor set",
+  "elapsed_seconds": 0.011,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-097",
+  "label": "complete via independent Timelines",
+  "label_reason": "Fixed guard configuration, no shared state/join; pulse timing inside IR.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "sound",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C097.Bell == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C097.Bell == true",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "E1C097.Present == true",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C097.Sound",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C097.Bell == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C097": [
+      "D097"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   },
+   {
+    "name": "flash",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C097.Bell == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C097.Bell == true",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "E1C097.Zone == true",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C097.FlashOn",
+           "args": {}
+          },
+          {
+           "op": "delay",
+           "duration": "1 SEC"
+          },
+          {
+           "op": "call",
+           "target": "E1C097.FlashOff",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C097.Bell == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C097": [
+      "D097"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   },
+   {
+    "name": "notify",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C097.Bell == true)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C097.Bell == true",
+         "edge": "none"
+        },
+        {
+         "op": "call",
+         "target": "E1C097.Notify",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C097.Bell == true)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C097": [
+      "D097"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "all_enabled",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c097",
+      "sound",
+      [],
+      [
+       "D097"
+      ]
+     ],
+     [
+      1000,
+      "e1c097",
+      "flashon",
+      [],
+      [
+       "D097"
+      ]
+     ],
+     [
+      1000,
+      "e1c097",
+      "notify",
+      [],
+      [
+       "D097"
+      ]
+     ],
+     [
+      2000,
+      "e1c097",
+      "flashoff",
+      [],
+      [
+       "D097"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c097",
+      "sound",
+      [],
+      [
+       "D097"
+      ],
+      "instance 0"
+     ],
+     [
+      1000,
+      "e1c097",
+      "flashon",
+      [],
+      [
+       "D097"
+      ],
+      "instance 1"
+     ],
+     [
+      1000,
+      "e1c097",
+      "notify",
+      [],
+      [
+       "D097"
+      ],
+      "instance 2"
+     ],
+     [
+      2000,
+      "e1c097",
+      "flashoff",
+      [],
+      [
+       "D097"
+      ],
+      "instance 1"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "guards_disabled",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c097",
+      "notify",
+      [],
+      [
+       "D097"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c097",
+      "notify",
+      [],
+      [
+       "D097"
+      ],
+      "instance 2"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "zone_only",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      1000,
+      "e1c097",
+      "flashon",
+      [],
+      [
+       "D097"
+      ]
+     ],
+     [
+      1000,
+      "e1c097",
+      "notify",
+      [],
+      [
+       "D097"
+      ]
+     ],
+     [
+      2000,
+      "e1c097",
+      "flashoff",
+      [],
+      [
+       "D097"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      1000,
+      "e1c097",
+      "flashon",
+      [],
+      [
+       "D097"
+      ],
+      "instance 1"
+     ],
+     [
+      1000,
+      "e1c097",
+      "notify",
+      [],
+      [
+       "D097"
+      ],
+      "instance 2"
+     ],
+     [
+      2000,
+      "e1c097",
+      "flashoff",
+      [],
+      [
+       "D097"
+      ],
+      "instance 1"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete via independent Timelines",
+  "elapsed_seconds": 0.03,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-098",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "E1C098.Power <= 10",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C098.Power > 10",
+         "edge": "none"
+        },
+        {
+         "op": "wait",
+         "cond": "E1C098.Power < 3",
+         "edge": "none",
+         "for": "60 SEC"
+        },
+        {
+         "op": "call",
+         "target": "E1C098.Notify",
+         "args": {}
+        },
+        {
+         "op": "wait",
+         "cond": "E1C098.Power <= 10",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C098": [
+      "D098"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "one_cycle",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      70000,
+      "e1c098",
+      "notify",
+      [],
+      [
+       "D098"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      70000,
+      "e1c098",
+      "notify",
+      [],
+      [
+       "D098"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "finish_reset_at_threshold",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      131000,
+      "e1c098",
+      "notify",
+      [],
+      [
+       "D098"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      131000,
+      "e1c098",
+      "notify",
+      [],
+      [
+       "D098"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "two_cycles",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      70000,
+      "e1c098",
+      "notify",
+      [],
+      [
+       "D098"
+      ]
+     ],
+     [
+      170000,
+      "e1c098",
+      "notify",
+      [],
+      [
+       "D098"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      70000,
+      "e1c098",
+      "notify",
+      [],
+      [
+       "D098"
+      ],
+      "instance 0"
+     ],
+     [
+      170000,
+      "e1c098",
+      "notify",
+      [],
+      [
+       "D098"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.012,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ },
+ {
+  "id": "E1-100",
+  "label": "complete",
+  "label_reason": "All fixed source clauses encoded; empirical traces are finite.",
+  "interpretation_origin": "agent-derived from source and prior20 conventions",
+  "automations": [
+   {
+    "name": "main",
+    "ir": {
+     "timeline": [
+      {
+       "op": "start_at",
+       "anchor": "now"
+      },
+      {
+       "op": "wait",
+       "cond": "not (E1C100.Occupants == 0)",
+       "edge": "none"
+      },
+      {
+       "op": "cycle",
+       "until": null,
+       "period": "0 MSEC",
+       "body": [
+        {
+         "op": "wait",
+         "cond": "E1C100.Occupants == 0",
+         "edge": "none"
+        },
+        {
+         "op": "if",
+         "cond": "E1C100.Locked == false",
+         "then": [
+          {
+           "op": "call",
+           "target": "E1C100.Notify",
+           "args": {}
+          }
+         ]
+        },
+        {
+         "op": "wait",
+         "cond": "not (E1C100.Occupants == 0)",
+         "edge": "none"
+        }
+       ]
+      }
+     ]
+    },
+    "binding": {
+     "E1C100": [
+      "D100"
+     ]
+    },
+    "extractor_grammar_outside": [
+     "period 0 MSEC"
+    ],
+    "frontend": "accepted",
+    "cron_anchor_erased": false,
+    "runner": "compiled"
+   }
+  ],
+  "explorer": "not run (separate from E1)",
+  "joi_fallback": "not required for complete encoding",
+  "histories": [
+   {
+    "name": "final_departure_unlocked",
+    "kind": "nominal",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [
+     [
+      2000,
+      "e1c100",
+      "notify",
+      [],
+      [
+       "D100"
+      ]
+     ]
+    ],
+    "actual": [
+     [
+      2000,
+      "e1c100",
+      "notify",
+      [],
+      [
+       "D100"
+      ],
+      "instance 0"
+     ]
+    ],
+    "ordered_exact": true
+   },
+   {
+    "name": "locked_then_unlock",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   },
+   {
+    "name": "already_empty",
+    "kind": "boundary",
+    "exact": true,
+    "match": true,
+    "missing": [],
+    "extra": [],
+    "faults": [],
+    "expected": [],
+    "actual": [],
+    "ordered_exact": true
+   }
+  ],
+  "match": "3/3",
+  "exact": "3/3",
+  "realized_outcome": "complete",
+  "elapsed_seconds": 0.01,
+  "cases_sha256": "ed62fe606ad3c9ff605750728c3bb23f49a71a4596fd6779db0ce8520841fd46",
+  "attempts_sha256": "4c911439eeba99e8549aa80530f8d6f5a99b1bc25df3aed37cbad2b63f4c7918"
+ }
+]

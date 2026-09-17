@@ -4,6 +4,18 @@ Date: 2026-09-13
 Repository baseline: `Whisoo0817/JoI`, branch `paper`, commit `0788969e5d313415276a6cf89151aca8cce7c047`  
 Corpus version: `e1-corpus-v0.1-preaudit` at freeze; current `e1-corpus-v0.3-author-coded` (author screening and R/B coding 2026-09-13; see `build_workbook.py`)
 
+## Execution amendment — 2026-09-17
+
+The author now requests evaluation of **all 92 IN_SCOPE requests**, with the completed 20 preserved and the remaining 72 executed as an extension. Sections 6 and 9 below describe the completed historical 20-case stage; they are not a stopping rule for this extension. The six AMBIGUOUS and two OUT_OF_SCOPE requests retain their existing screening labels.
+
+For the new 72, the author explicitly delegates interpretation to Astra agents without per-case author intervention. Agents use the original 20 interpretations as precedents, record reasonable assumptions and alternatives, and identify potential interpretation bias. The earlier instruction to ask the author about each open choice is superseded for these 72. This delegation does not convert agent decisions into an author semantic audit or independent human validation.
+
+Per-case source behavior, assumptions, input histories and expected action times must be frozen before encoding. Use two to four meaningful histories where feasible, including relevant boundaries, reset/re-entry and non-triggering conditions. Preserve all discrepancies, unsupported operations, partial encodings, and qualifications; missing records count as incomplete work. Existing runtime semantics and original 20 results remain unchanged. Fixture inputs may represent platform observations, but must not implement the policy under evaluation. Record independent-flow decomposition, fixed-cardinality restrictions, and backend delegation explicitly. Explorer certification remains outside the E1 adequacy decision.
+
+Closure for this extension requires 72 distinct case records and reference-execution outcomes (or documented attempted encodings and support failures), operator-composition records, reproducible raw results, and an assumption/bias review. Passing finite histories is empirical evidence for the fixed interpretations, not a universal behavioral proof. The author-reviewed 20 and agent-reviewed 72 must remain distinguishable in combined reporting. No favorable outcome or 92/92 success is assumed in advance.
+
+Exact membership and input hashes: `extension72_plan/cohort_snapshot.json`. Work products: `remaining72/`. The stale TODO list had two completed IDs in place of two missing IDs; the corrected set is computed from actual recorded outcomes.
+
 ## 1. What this corpus supports
 
 The breadth corpus asks whether 100 externally sourced automation requirements fall inside the intended scope of Timeline IR and which reactive-temporal elements they contain. It is a source-diverse, purposive corpus. It does **not** estimate the prevalence of automation patterns in the population of smart-home users.
