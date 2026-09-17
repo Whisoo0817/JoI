@@ -1,6 +1,17 @@
 # Timeline IR handoff
 
-상태: **본문 예시·operator 표·수식을 유지하고 부록을 약 480단어로 압축 (2026-09-17). GitHub master에 push (`9bb174d`). Overleaf에서 GitHub pull 필요. 상세 문법·증명 원본은 별도 보존.**
+상태: **사용자 피드백에 따라 §5 본문 축약 (2026-09-17). 로컬 Markdown과 `/home/gnltnwjstk/overleaf-paper/sections/timeline-ir.tex`에 반영. 사용자 요청으로 GitHub master에 push 완료 (`6ac24d4`). Overleaf에서 GitHub pull 필요.**
+
+## 최신 수정: 핵심 operator와 결정성 중심으로 축약
+
+- 명령형 코드의 여러 문장에 걸쳐 구현될 수 있는 행동 단위를 operator로 명시한다는 설계 이유를 한 문장으로 추가했다. 코드에서 IR을 추출하거나 operator 자체가 새롭다는 주장은 하지 않는다.
+- 별도 Execution rules 문단을 삭제하고 기본 의미는 operator 표에 통합했다. 완료 후 대기라는 `cycle.period` 의미는 표에 남겼다.
+- device binding은 도입부에서 한 번만 언급한다. service/type 검사, 갑자기 등장하는 `$x`, read–delay 예, edge+sustain 지원 제한, clock/global 관리, readability 단서를 본문에서 삭제했다.
+- JSON 예제는 그대로 두되 설명을 두 문장으로 줄였다. 전체 분량에 따라 예제는 추후 삭제 가능하다.
+- reaction은 한 시점에 대기/종료까지 실행하는 단위로 설명하고, action trace와 D 명제·짧은 귀납 근거를 유지한다. $u(t)$는 시각 $t$에서 유지되는 입력값이다. 입력 우선 처리, 정상 유한 reaction과 유한 시간 내 유한 reaction이라는 전제, 구현 의미 대응 가정은 유지했다.
+- 제출용 짧은 증명 부록과 상세 보존용 명세는 유지한다. 아래의 두 display 수식·별도 Execution rules 유지 지시는 이번 사용자 피드백으로 대체한다.
+
+- 검증: 기존 예제 5개 통과, Markdown/LaTeX JSON 일치, operator 8개와 binding 1회 언급 확인, Tectonic PDF 빌드 성공. 미해결 참조·overfull 없음. 본문 밖의 underfull·패키지 인코딩·그림 PDF 버전 경고는 남는다. 원격 Overleaf 그림 수정(`ce6f1b8`) 위에 rebase 후 PDF 재빌드를 완료하고 `6ac24d4`를 push했다. 원격 master 일치를 확인했다.
 
 ## 최신 수정: 짧은 증명 부록
 

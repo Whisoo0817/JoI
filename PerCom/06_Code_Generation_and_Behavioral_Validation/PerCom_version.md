@@ -1,11 +1,56 @@
-# Code Generation and Behavioral Validation — PerCom working draft
+# Code Generation and Behavioral Validation
 
-VETS uses an LLM to lower the confirmed Timeline and binding plan to JoI. The prompt supplies the JoI language and API contract together with supported implementation idioms, but generation remains untrusted: different samples may select different variable, timer, and control-flow structures, and any of them may fail to preserve the reference behavior. A deterministic compiler is a possible alternative that this work does not compare.
+As shown in Figure 2, the LLM generates candidate JoI code from the confirmed Timeline IR and device binding. Because generated code may implement a condition or delay incorrectly, Behavioral Explorer checks whether it preserves the actions and timing specified by the IR for every input history allowed by the execution model. The following exploration procedure compares the two executions, and Proposition S establishes why a completed equivalence check justifies this guarantee.
 
-Behavioral Explorer compares the reference and candidate as a product of their execution states. A conceptual product state contains the Timeline state, JoI state, current typed input snapshot, and time context. Rather than first materializing a complete FSM for each side, the Explorer begins from the allowed initial states and creates reachable successors as needed. It merges states only through keys or relations whose future-observation preservation is justified; it does not decide arbitrary behavioral equivalence between states.
+## Joint Behavioral Exploration
 
-External inputs may change on the model grid, which defaults to 100 ms, and remain constant between grid points. Internal timers expire at their exact modeled deadlines rather than being rounded to that grid. The next event is the earliest relevant input point, timer deadline, or required clock boundary. Conditional input-blind waits can be skipped only when the omitted interval cannot observe an input or update behavior-relevant state. When clock values are unobservable, a relative-time relation may shift both executions while preserving timer offsets and input-grid phase.
+**Shared execution model.** The Explorer runs the IR and generated code through their interpreters with the same input values and logical time. After checking that both programs are supported, it constructs a common input model from the values they read, their types, and the execution rules. It starts both programs under each allowed initial setting and tracks their execution states separately, since equivalent behavior may use different variables and control flow.
 
-At each event, the Explorer provides both sides with the same snapshot and logical time, advances their semantic interpreters, and compares normalized ACTION groups. It preserves the target, method, typed arguments, multiplicity, explicit call order, and timestamp; only the order of independent targets within a single fan-out group is normalized. A mismatch yields a concrete history and the expected and actual traces. An `EQUIV` result requires queue exhaustion or the completion condition of an applicable symbolic or relational path. A work cap, unsupported construct, failed proof condition, or incomplete frontier cannot produce an equivalence certificate.
+**Timed action comparison.** The Explorer compares the actions produced by the IR and generated code at each execution time, checking their targets, methods, arguments, number of occurrences, and order. When a single call sends an action to multiple independent devices, the order among those devices may differ. Numeric arguments compare by value, while Boolean and string arguments remain distinct. This trace comparison detects both commission and omission. An action on one side while the other remains silent is a mismatch, even if both eventually reach the same device state. A terminated program remains silent while the other side continues to be checked.
 
-This procedure is state-transition verification and is compatible with an FSM view. Its distinction is operational: it jointly explores the two program semantics for the specific trace-preservation property without exporting JoI to a separate model-checker language. This removes one translation layer, but it retains the obligation to show that parsing, grounding, both interpreters, input abstraction, state merging, and time movement preserve the declared semantics.
+**Inputs and time.** To cover possible input histories, the Explorer checks individual values or represents sets of values symbolically. Grouping inputs must preserve later actions and their timing, including any stored values used by later computations. Under the timing rules of Section 5, concrete exploration advances to the next possible input change, timer expiry, or relevant clock change. It skips intermediate input updates only when neither program can observe them or change state that affects later behavior, and includes every possible input value at resumption.
+
+**Algorithm 1. Behavioral exploration (schematic).**
+
+```text
+Prepare the IR–code pair and model, or return UNCERTIFIED
+For each applicable checking method within the resource limit:
+    Initialize states to explore from all allowed initial settings
+    While states remain and resources permit:
+        Select states and possible inputs
+        Advance both programs under the shared input and time rules
+        Compare actions and their times for every case considered
+        If a possible mismatch is found:
+            Return DIVERGENT if replay with concrete inputs confirms it
+            Otherwise stop this method without an equivalence verdict
+        Add all continuations that still need checking
+    Return EQUIVALENT only if the completion conditions are met
+Return UNCERTIFIED
+```
+
+## Completion and Soundness
+
+To justify using the Explorer as a deployment check, we establish what a completed equivalence check guarantees. Completion requires including all allowed initial settings and inputs, checking that actions agree, and covering every continuation of the explored states. For supported programs that run once and terminate, a symbolic check can instead complete all feasible execution paths. Reaching a resource limit or checking only a fixed duration is insufficient.
+
+Let \(I,C\) be the prepared IR and code under the model \(M\) of Section 5, \(G_0\) the allowed initial global-variable settings, and \(\mathcal U_M\) the allowed input histories. We write \(\operatorname{Accept}_{\infty}(I,C,M)\) when an applicable checking method meets these completion conditions and returns EQUIVALENT without limiting the execution duration.
+
+**Proposition S (soundness).** For a supported prepared pair under the declared execution and observation rules,
+
+\[
+\begin{aligned}
+&\operatorname{Accept}_{\infty}(I,C,M)\\
+&\quad\Longrightarrow\ \forall g_0\in G_0,\ \forall u\in\mathcal U_M:\\
+&\qquad\operatorname{Tr}_M(I;g_0,u)
+ =_O \operatorname{Tr}_M(C;g_0,u).
+\end{aligned}
+\]
+
+Here \(=_O\) denotes equality of actions and their times under the comparison rules above. The guarantee uses the normal-execution and time-progress conditions of Section 5. Errors and execution limits are never treated as normal termination.
+
+**Proof sketch.** Fix an allowed initial setting \(g_0\) and input history \(u\). Exploration includes their initial state. Each comparison checks the actions and times of every execution considered, while grouping inputs, reusing states, and skipping time preserve all possible continuations and their observations. Completion ensures that every continuation is covered. Thus agreement extends from the start to each later comparison point, so every finite trace prefix agrees by induction. The normal-execution and time-progress conditions extend this equality to the full traces. Proposition D supplies the unique IR reference.
+
+The guarantee applies to the declared model and assumes correct parsing, semantic interpretation, and solver results. It does not establish that the confirmed IR matches the user's intent or that physical devices behave as modeled.
+
+**Counterexample feedback.** A confirmed mismatch returns its initial environment, timed input history, and expected and actual actions. The LLM may use this evidence to revise the code, which is then checked again against the unchanged IR and binding.
+
+**Implementation.** VETS is implemented in Python for JoI, with Z3 supporting arithmetic reasoning. Verification uses the IR and JoI semantic interpreters without LLM calls or physical device execution. The soundness argument is a manual proof, and the implementation has not been machine-verified.
