@@ -15,7 +15,7 @@
 | **R7. 의도 관련 검사** — LACE·SimuHome를 소개하고 model-judged intent 검사를 비판. | **LACE 설명을 P2에 복원.** NLI 약어를 풀고 별도 SMT 충돌 검사도 명시. Moon et al.과 연결하되 그 연구가 LACE·ChatIoT를 직접 평가한 것으로 쓰지 않음. SimuHome 사례와 자기 인증·100% correctness 비판은 생략. |
 | **R8. OVLA의 위치** — LACE와 AwareAuto를 가장 가까운 연구로 제시하고 user confirmation, rendering, on-device, 최초성을 강조. | **P4 마지막에서 VETS의 위치 설명.** P1은 기존 연구의 검증 기준, P3는 명세 확정의 전제, P4는 명세–구현 보존 검증을 설명. authoring·렌더링·on-device·최초성 차별화 삭제. |
 | **추가: 자연어 요구의 명세화** | **P3에 nl2spec·ARTEMIS.** 사용자 의도의 명세화·확인을 지원하는 인접 연구로 인정. VETS의 명세 확정 가정을 분명히 하고 확인 용이성이나 NL→IR 정확도 기여를 주장하지 않음. |
-| **추가: 구현 행동 보존 / translation validation** | **P4는 AutoTap·TAPInspector·IoTSan의 검증 질문을 받아 VETS와 비교.** 속성 만족과 확정 명세의 timed action trace 보존을 구별하고 imperative idiom 설명으로 연결. Murphy et al.은 이번 초안에서 제외. Translation validation은 마지막 한 문장으로 축소하고 deterministic compiler는 미평가 대안으로 인정. |
+| **추가: 구현 행동 보존** | **P4는 AutoTap·TAPInspector·IoTSan의 검증 질문을 받아 VETS와 비교.** 속성 만족과 확정 명세의 timed action trace 보존을 구별하고 imperative idiom 설명으로 연결. Murphy et al.과 translation validation은 이번 초안에서 제외하고 deterministic compiler는 미평가 대안으로 인정. |
 | **추가: LLM code judge 선행** | **P2에 Moon et al.** 모델 기반 요청 충족 판정만으로 실행 행동 보존이 확립되지는 않는다는 점에서 시작해, 표면 변화에 따른 평가 편향과 §3의 reactive-temporal 코드에 대한 LLM 판정 일관성 조사로 연결. 앞서 소개한 시스템들의 오류를 입증했다는 뜻으로 쓰지 않으며 결과·수치는 반복하지 않음. |
 
 ## 현재 PerCom 순서
