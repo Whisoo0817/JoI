@@ -1,0 +1,65 @@
+"""Produce the outcome-independent exact mutation allocation; no evaluator imports."""
+import json
+from pathlib import Path
+HERE=Path(__file__).resolve().parent
+D={}
+def add(base,family,rationale,old,new,count=1):
+    D.setdefault(base,[]).append(dict(family=family,rationale=rationale,old=old,new=new,count=count))
+def omit(base,call,indent=0):
+    add(base,'missing-call','Omit this action while preserving surrounding control flow: '+call,' '*indent+call,' '*indent+'extension_noop = 0')
+def extra(base,call,indent=0):
+    add(base,'extra-call','Issue this action twice at its original execution point: '+call,' '*indent+call,' '*indent+call+'\n'+' '*indent+call)
+def delay(base,call,indent=0):
+    add(base,'timing','Insert a one-second blocking delay immediately before this action: '+call,' '*indent+call,' '*indent+'delay(1 SEC)\n'+' '*indent+call)
+omit('C01','(#Hallway #Switch).On()',12)
+extra('C01','(#Hallway #Switch).Off()',8)
+delay('C01','(#Hallway #Switch).On()',12)
+omit('C03','(#Office #Switch).On()',8)
+extra('C03','(#Office #Switch).On()',8)
+add('C03','guard','Include threshold equality in the high-CO2 branch.','} else if (c > 1000) {','} else if (c >= 1000) {')
+omit('C04','(#Office #Switch).On()')
+extra('C04','(#Office #Switch).On()')
+delay('C04','(#Office #Switch).On()')
+sms='(#Owner #MessageSender).SendSms("owner", "Back door is open", "door")'
+add('C05','missing-call','Omit the first sustained-open alert, retaining repeat alerts.',sms+'\n            state = 1','extension_noop = 0\n            state = 1')
+add('C05','extra-call','Duplicate the first sustained-open alert only.',sms+'\n            state = 1',sms+'\n            '+sms+'\n            state = 1')
+add('C05','timing','Double the repeat-alert interval from 60 to 120 seconds.','ticks >= 600','ticks >= 1200')
+add('C07','missing-call','Omit the initial dimming action only, retaining later blink actions.','            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0','            extension_noop = 0\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0')
+add('C07','repetition-state','End each blink group after nine instead of ten repetitions.','k >= 10','k >= 9')
+add('C07','snapshot-value','Store zero instead of the initial brightness, affecting restoration.','b0 = (#Kitchen #Light).CurrentBrightness','b0 = 0')
+omit('C09','(#Entrance #DoorLock).Lock()',8)
+delay('C09','(#Entrance #DoorLock).Lock()',8)
+add('C09','guard','Test absence instead of presence in the ready-state arrival branch.','} else if (p == true) {','} else if (p == false) {')
+omit('C11','(#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode("idle")',4)
+add('C11','snapshot-value','Do not update the previous vacuum state after each reaction.','\nv_prev = v','\nextension_noop = 0')
+omit('C15','(#Bedroom #Switch).On()',12)
+extra('C15','(#Bedroom #Switch).Off()',12)
+omit('C16','(#Television #Switch).Off()',4)
+delay('C16','(#Television #Switch).Off()',4)
+omit('C18','(#Entrance #DoorLock).Unlock()',12)
+extra('C18','(#Entrance #DoorLock).Lock()',12)
+mail='(#Owner #EmailProvider).SendMail("me@example.com", "On time", "I got to work on time!")'
+omit('C19',mail,4)
+extra('C19',mail,4)
+omit('C20-O','(#Bedroom #Switch).On()',12)
+extra('C20-O','(#Bedroom #Switch).On()',12)
+extra('E1-028','(#Kitchen #Feeder).Dispense("one_bowl")',12)
+add('E1-028','snapshot-value','Record zero for the second dispensing timestamp instead of the current time.','tb = ts','tb = 0')
+omit('E1-034','(#Owner #Notify).OvenOverrun()',12)
+add('E1-034','timing','Reduce the continuous oven-on threshold from four hours to two hours.','hold > 144000','hold > 72000')
+omit('E1-062','(#LivingRoom #Switch).On()',8)
+add('E1-062','snapshot-value','Do not update previous office-switch state after each change.','    a_prev = a','    extension_noop = 0')
+extra('E1-072','all(#Pair #Switch).On()',8)
+add('E1-072','guard','Departure-off rule also fires when it is dark.','p == false and d == true','p == false')
+omit('E1-086','(#Zone2 #Valve).Open()',8)
+add('E1-086','timing','Shorten both zone watering durations from ten to five minutes as one shared duration fault.','ticks >= 6000','ticks >= 3000',2)
+omit('E1-092-A','(#LivingRoom #Alexa).AnnounceTasks()')
+add('E1-092-A','order','Swap the final two announcements, retaining both one-second delays.','(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()','(#LivingRoom #Alexa).AnnounceAlarmSettings()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()')
+omit('E1-092-B','(#Entrance #Locks).Lock("front, back")')
+extra('E1-092-B','(#Home #Alarm).Set("armed")')
+add('E1-095','snapshot-value','Chlorine accumulator keeps only the latest sample.','sum_cl = sum_cl + (#Pool #PoolChlorine).Value','sum_cl = (#Pool #PoolChlorine).Value')
+add('E1-095','repetition-state','Increment sample count by two, biasing both reported averages.','count = count + 1','count = count + 2')
+add('E1-099','timing','Extend initial deadline from five to six minutes in both copies of the same phase block.','t_on + 300 + 120 * k','t_on + 360 + 120 * k',2)
+add('E1-099','snapshot-value','Use zero rather than current time when recording motion in both copies of the same phase block.','t_m = ts','t_m = 0',2)
+if __name__=='__main__':
+    (HERE/'allocation.json').write_text(json.dumps(D,indent=2)+'\n')

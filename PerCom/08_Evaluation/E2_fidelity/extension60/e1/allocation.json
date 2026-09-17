@@ -1,0 +1,380 @@
+{
+  "C01": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Hallway #Switch).On()",
+      "old": "            (#Hallway #Switch).On()",
+      "new": "            extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Hallway #Switch).Off()",
+      "old": "        (#Hallway #Switch).Off()",
+      "new": "        (#Hallway #Switch).Off()\n        (#Hallway #Switch).Off()",
+      "count": 1
+    },
+    {
+      "family": "timing",
+      "rationale": "Insert a one-second blocking delay immediately before this action: (#Hallway #Switch).On()",
+      "old": "            (#Hallway #Switch).On()",
+      "new": "            delay(1 SEC)\n            (#Hallway #Switch).On()",
+      "count": 1
+    }
+  ],
+  "C03": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Office #Switch).On()",
+      "old": "        (#Office #Switch).On()",
+      "new": "        extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Office #Switch).On()",
+      "old": "        (#Office #Switch).On()",
+      "new": "        (#Office #Switch).On()\n        (#Office #Switch).On()",
+      "count": 1
+    },
+    {
+      "family": "guard",
+      "rationale": "Include threshold equality in the high-CO2 branch.",
+      "old": "} else if (c > 1000) {",
+      "new": "} else if (c >= 1000) {",
+      "count": 1
+    }
+  ],
+  "C04": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Office #Switch).On()",
+      "old": "(#Office #Switch).On()",
+      "new": "extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Office #Switch).On()",
+      "old": "(#Office #Switch).On()",
+      "new": "(#Office #Switch).On()\n(#Office #Switch).On()",
+      "count": 1
+    },
+    {
+      "family": "timing",
+      "rationale": "Insert a one-second blocking delay immediately before this action: (#Office #Switch).On()",
+      "old": "(#Office #Switch).On()",
+      "new": "delay(1 SEC)\n(#Office #Switch).On()",
+      "count": 1
+    }
+  ],
+  "C05": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit the first sustained-open alert, retaining repeat alerts.",
+      "old": "(#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1",
+      "new": "extension_noop = 0\n            state = 1",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Duplicate the first sustained-open alert only.",
+      "old": "(#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1",
+      "new": "(#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1",
+      "count": 1
+    },
+    {
+      "family": "timing",
+      "rationale": "Double the repeat-alert interval from 60 to 120 seconds.",
+      "old": "ticks >= 600",
+      "new": "ticks >= 1200",
+      "count": 1
+    }
+  ],
+  "C07": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit the initial dimming action only, retaining later blink actions.",
+      "old": "            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0",
+      "new": "            extension_noop = 0\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0",
+      "count": 1
+    },
+    {
+      "family": "repetition-state",
+      "rationale": "End each blink group after nine instead of ten repetitions.",
+      "old": "k >= 10",
+      "new": "k >= 9",
+      "count": 1
+    },
+    {
+      "family": "snapshot-value",
+      "rationale": "Store zero instead of the initial brightness, affecting restoration.",
+      "old": "b0 = (#Kitchen #Light).CurrentBrightness",
+      "new": "b0 = 0",
+      "count": 1
+    }
+  ],
+  "C09": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Entrance #DoorLock).Lock()",
+      "old": "        (#Entrance #DoorLock).Lock()",
+      "new": "        extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "timing",
+      "rationale": "Insert a one-second blocking delay immediately before this action: (#Entrance #DoorLock).Lock()",
+      "old": "        (#Entrance #DoorLock).Lock()",
+      "new": "        delay(1 SEC)\n        (#Entrance #DoorLock).Lock()",
+      "count": 1
+    },
+    {
+      "family": "guard",
+      "rationale": "Test absence instead of presence in the ready-state arrival branch.",
+      "old": "} else if (p == true) {",
+      "new": "} else if (p == false) {",
+      "count": 1
+    }
+  ],
+  "C11": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")",
+      "old": "    (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")",
+      "new": "    extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "snapshot-value",
+      "rationale": "Do not update the previous vacuum state after each reaction.",
+      "old": "\nv_prev = v",
+      "new": "\nextension_noop = 0",
+      "count": 1
+    }
+  ],
+  "C15": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Bedroom #Switch).On()",
+      "old": "            (#Bedroom #Switch).On()",
+      "new": "            extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Bedroom #Switch).Off()",
+      "old": "            (#Bedroom #Switch).Off()",
+      "new": "            (#Bedroom #Switch).Off()\n            (#Bedroom #Switch).Off()",
+      "count": 1
+    }
+  ],
+  "C16": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Television #Switch).Off()",
+      "old": "    (#Television #Switch).Off()",
+      "new": "    extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "timing",
+      "rationale": "Insert a one-second blocking delay immediately before this action: (#Television #Switch).Off()",
+      "old": "    (#Television #Switch).Off()",
+      "new": "    delay(1 SEC)\n    (#Television #Switch).Off()",
+      "count": 1
+    }
+  ],
+  "C18": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Entrance #DoorLock).Unlock()",
+      "old": "            (#Entrance #DoorLock).Unlock()",
+      "new": "            extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Entrance #DoorLock).Lock()",
+      "old": "            (#Entrance #DoorLock).Lock()",
+      "new": "            (#Entrance #DoorLock).Lock()\n            (#Entrance #DoorLock).Lock()",
+      "count": 1
+    }
+  ],
+  "C19": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+      "old": "    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+      "new": "    extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+      "old": "    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+      "new": "    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+      "count": 1
+    }
+  ],
+  "C20-O": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Bedroom #Switch).On()",
+      "old": "            (#Bedroom #Switch).On()",
+      "new": "            extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Bedroom #Switch).On()",
+      "old": "            (#Bedroom #Switch).On()",
+      "new": "            (#Bedroom #Switch).On()\n            (#Bedroom #Switch).On()",
+      "count": 1
+    }
+  ],
+  "E1-028": [
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Kitchen #Feeder).Dispense(\"one_bowl\")",
+      "old": "            (#Kitchen #Feeder).Dispense(\"one_bowl\")",
+      "new": "            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")",
+      "count": 1
+    },
+    {
+      "family": "snapshot-value",
+      "rationale": "Record zero for the second dispensing timestamp instead of the current time.",
+      "old": "tb = ts",
+      "new": "tb = 0",
+      "count": 1
+    }
+  ],
+  "E1-034": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Owner #Notify).OvenOverrun()",
+      "old": "            (#Owner #Notify).OvenOverrun()",
+      "new": "            extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "timing",
+      "rationale": "Reduce the continuous oven-on threshold from four hours to two hours.",
+      "old": "hold > 144000",
+      "new": "hold > 72000",
+      "count": 1
+    }
+  ],
+  "E1-062": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#LivingRoom #Switch).On()",
+      "old": "        (#LivingRoom #Switch).On()",
+      "new": "        extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "snapshot-value",
+      "rationale": "Do not update previous office-switch state after each change.",
+      "old": "    a_prev = a",
+      "new": "    extension_noop = 0",
+      "count": 1
+    }
+  ],
+  "E1-072": [
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: all(#Pair #Switch).On()",
+      "old": "        all(#Pair #Switch).On()",
+      "new": "        all(#Pair #Switch).On()\n        all(#Pair #Switch).On()",
+      "count": 1
+    },
+    {
+      "family": "guard",
+      "rationale": "Departure-off rule also fires when it is dark.",
+      "old": "p == false and d == true",
+      "new": "p == false",
+      "count": 1
+    }
+  ],
+  "E1-086": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Zone2 #Valve).Open()",
+      "old": "        (#Zone2 #Valve).Open()",
+      "new": "        extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "timing",
+      "rationale": "Shorten both zone watering durations from ten to five minutes as one shared duration fault.",
+      "old": "ticks >= 6000",
+      "new": "ticks >= 3000",
+      "count": 2
+    }
+  ],
+  "E1-092-A": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#LivingRoom #Alexa).AnnounceTasks()",
+      "old": "(#LivingRoom #Alexa).AnnounceTasks()",
+      "new": "extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "order",
+      "rationale": "Swap the final two announcements, retaining both one-second delays.",
+      "old": "(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()",
+      "new": "(#LivingRoom #Alexa).AnnounceAlarmSettings()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()",
+      "count": 1
+    }
+  ],
+  "E1-092-B": [
+    {
+      "family": "missing-call",
+      "rationale": "Omit this action while preserving surrounding control flow: (#Entrance #Locks).Lock(\"front, back\")",
+      "old": "(#Entrance #Locks).Lock(\"front, back\")",
+      "new": "extension_noop = 0",
+      "count": 1
+    },
+    {
+      "family": "extra-call",
+      "rationale": "Issue this action twice at its original execution point: (#Home #Alarm).Set(\"armed\")",
+      "old": "(#Home #Alarm).Set(\"armed\")",
+      "new": "(#Home #Alarm).Set(\"armed\")\n(#Home #Alarm).Set(\"armed\")",
+      "count": 1
+    }
+  ],
+  "E1-095": [
+    {
+      "family": "snapshot-value",
+      "rationale": "Chlorine accumulator keeps only the latest sample.",
+      "old": "sum_cl = sum_cl + (#Pool #PoolChlorine).Value",
+      "new": "sum_cl = (#Pool #PoolChlorine).Value",
+      "count": 1
+    },
+    {
+      "family": "repetition-state",
+      "rationale": "Increment sample count by two, biasing both reported averages.",
+      "old": "count = count + 1",
+      "new": "count = count + 2",
+      "count": 1
+    }
+  ],
+  "E1-099": [
+    {
+      "family": "timing",
+      "rationale": "Extend initial deadline from five to six minutes in both copies of the same phase block.",
+      "old": "t_on + 300 + 120 * k",
+      "new": "t_on + 360 + 120 * k",
+      "count": 2
+    },
+    {
+      "family": "snapshot-value",
+      "rationale": "Use zero rather than current time when recording motion in both copies of the same phase block.",
+      "old": "t_m = ts",
+      "new": "t_m = 0",
+      "count": 2
+    }
+  ]
+}

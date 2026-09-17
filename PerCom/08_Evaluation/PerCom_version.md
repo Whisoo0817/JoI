@@ -1,6 +1,6 @@
 # Evaluation — PerCom working draft
 
-상태: 2026-09-18 E1을 범위 내 92건 전체 평가로 갱신. 사용자 검토 전. E1–E4 각 표 하나. Counterexample은 수정에 필요한 행동 차이 정보로만 사용하며 대조군 비교나 인과적 개선 주장은 본문에 넣지 않는다. 근거·검증 메모는 `DRAFT_NOTES.md` 참조.
+상태: 2026-09-18 E1을 범위 내 92건 전체 평가로 갱신. 사용자 검토 전. E2는 구성 표와 판정 분포 그림으로 제시한다. Counterexample은 수정에 필요한 행동 차이 정보로만 사용하며 대조군 비교나 인과적 개선 주장은 본문에 넣지 않는다. 근거·검증 메모는 `DRAFT_NOTES.md` 참조.
 
 Our evaluation asks four questions: Can Timeline IR express externally sourced automation requests (E1)? Do Explorer verdicts agree with a separately implemented reference (E2)? What errors appear in generated code (E3)? How does checking cost change with automation size and timing (E4)?
 
@@ -10,7 +10,9 @@ Our evaluation asks four questions: Can Timeline IR express externally sourced a
 
 E1 tests whether Timeline IR operators can be combined to express externally sourced automation requests. We collected 100 requests from four sources (Table E1). One author screened them against the reactive-temporal scope: 92 were in scope, six were ambiguous, and two were out of scope. We encoded and tested all 92 in-scope requests.
 
-For each request, we recorded a concrete interpretation and expected actions and timestamps before encoding it. The initial 20 interpretations were reviewed by the author; LLM agents derived the remaining 72 using those precedents. The agents also prepared their expected traces, so these were not independent judgments of intent. We replayed the input histories on the reference IR runner and compared actions and timestamps, treating simultaneous actions as an unordered group. We report final encodings and retain failed attempts in the experiment records.
+The evaluated cases include combinations of sustained conditions, nested repetition, restoration of prior state, and time limits based on execution history. For example, a garage alert repeats blinking sequences and pauses, stops when the door closes, and restores the original light setting. The sprinkler case tracks watering across multiple sessions to limit the total to ten minutes in any 48-hour window.
+
+For each request, we recorded a concrete interpretation and expected actions and timestamps before encoding it. LLM agents helped prepare the interpretations and expected traces; not all received an independent review. We replayed the input histories on the reference IR runner and compared actions and timestamps, treating simultaneous actions as an unordered group. We report final encodings and retain failed attempts in the experiment records.
 
 **Table E1. Timeline IR execution results by request source.**
 
@@ -22,34 +24,39 @@ For each request, we recorded a concrete interpretation and expected actions and
 | Community requests | 25 | 23 | 65/65 |
 | **Total** | **100** | **92** | **294/294** |
 
-All 92 final encodings reproduced the expected traces on all 294 input histories (Table E1). The cases exercise combinations of operators: a door alert waits for sustained opening and then repeats reminders; a garage alert nests blinking cycles within repeated checks and restores a saved light setting; and a sprinkler combines stored timestamps, conditions, and repetition to limit watering to ten minutes in any 48-hour window. Seventeen additional diagnostic histories also matched and are reported separately from the table.
+All 92 final encodings reproduced the expected traces on all 294 input histories (Table E1). Seventeen additional diagnostic histories also matched and are reported separately from the table.
 
-These results depend on the recorded interpretations and assumptions. Examples include fixed-size averages, specified pulse waveforms, and separate Timelines for independent automations. The sprinkler encoding uses one-second units and assumes no prior watering. The results demonstrate expression and execution on these finite histories; they do not establish correctness for every input, coverage of every operator combination, or Explorer support for every encoding.
+For each request, we specified its intended behavior and execution conditions, then encoded and executed it in Timeline IR. Under these conditions, the results show that Timeline IR can express the evaluated behaviors and reproduce the expected traces on the tested input histories. They do not establish correctness for all possible inputs or requests; Explorer support is evaluated separately.
 
 ## Validation Fidelity
 
-To evaluate Explorer's verdicts, we compared them with a Timeline runner and JoI interpreter implemented from the specification without access to Explorer code. Before use, the reference reproduced the 53 traces from the initial 20 E1 requests and 15 JoI conformance probes. The population contains 21 correct implementations and 81 single-fault variants of those 20 E1 requirements, plus 38 valid generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition. The reference compared both programs on 48,990 input histories and replayed Explorer's counterexamples. Explorer used 120 s, 400,000 states, and 2,000,000 transitions per pair. Semantics-preserving reductions of repetitive temporal and state exploration allowed 26 additional pairs to be decided under the same budgets, without changing earlier verdicts.
+To evaluate Explorer's verdicts, we assembled 200 IR–JoI code pairs (Table E2a). We used 20 requests from E1 to construct 150 pairs containing correct implementations and variants with one deliberately introduced fault. We added 50 valid generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition.
 
-**Table E2. Reference checks of Explorer verdicts.**
+**Table E2a. Composition of the evaluation set.**
 
-| Assessment | Pairs |
+| Source | IR–code pairs |
 | --- | ---: |
-| Semantic verdicts issued | 130/140 |
-| Equivalent: no difference on reference histories | 55 |
-| Divergent: difference on reference histories | 67 |
-| Divergent: confirmed by witness replay | 8 |
-| Verdicts contradicted by reference checks | 0 |
-| Fault variants with an observed difference | 75 |
-| Divergent / equivalent / undecided (fault variants above) | 69 / 0 / 6 |
-| Generated candidates decided | 38/38 |
-| Hand-built pairs decided | 92/102 |
-| Undecided: time budget / unsupported relation | 5 / 5 |
+| Hand-built implementations and fault variants from 20 E1 requests | 150 |
+| Sampled LLM-generated candidates | 50 |
+| Total | 200 |
 
-None of the 130 verdicts contradicted the reference checks (Table E2). For eight divergences, the reference histories alone did not expose the difference, but replaying Explorer's witness did. For equivalent verdicts, agreement on these finite histories is empirical evidence rather than a proof of equivalence. Among fault variants with an observed difference, Explorer left six undecided and accepted none. The ten undecided pairs belong to two requirements: nested blinking cycles with long pauses exceeded the time budget, and an event-extended deadline required an unsupported arithmetic relation. Thus, all pairs for 18 of the 20 hand-built requirements were decided. Fault variants from the same requirement are related cases rather than independent samples.
+We checked whether Explorer's equivalence and divergence verdicts agreed with separate executions of each IR–JoI pair. For this comparison, we implemented a Timeline IR runner and a JoI interpreter from the language specifications without access to Explorer code.
+
+We wrote scripts to generate test inputs from the IR conditions and durations and the existing E1 test histories. Each input history specifies sensor values and when they change. The scripts included values around condition thresholds and changes just before, at, and after waiting deadlines, without using Explorer's verdicts. We supplied each history to both reference implementations and compared the actions and their timestamps. We also executed the input histories returned by Explorer as counterexamples to check that they caused an actual difference.
+
+For divergence, a concrete difference confirmed the counterexample for the tested device assignment. For equivalence, we checked that all supplied histories matched for an allowed device assignment; this provides evidence on the tested inputs, not a proof for all possible inputs. Each Explorer search used limits of 120 s, 400,000 states, and 2,000,000 transitions.
+
+**Figure E2. Explorer outcomes on 200 IR–JoI code pairs.**
+
+![Explorer outcomes: equivalent 64 (32.0%), divergent 119 (59.5%), timeout 8 (4.0%), unsupported 9 (4.5%).](figures/e2_verdicts.png)
+
+Timeout and unsupported cases remain undecided. None of the 183 equivalence or divergence verdicts contradicted the reference checks.
+
+None of the 183 issued verdicts contradicted the reference checks (Figure E2). For all 119 pairs classified as divergent, the reference implementations confirmed a difference in actions or their timestamps. Among fault variants with an observed difference, Explorer left 11 undecided and accepted none. Of the 17 undecided pairs, 8 exceeded the time budget and 9 required arithmetic or input values outside the supported scope. Fault variants from the same request are related cases rather than independent samples.
 
 ## Generated-Code Validation
 
-To evaluate generated candidates, we supplied confirmed IRs and bindings to Qwen3.5-9B-FP8, bypassing natural-language service and selector inference. Generation used temperature 0.1, a 512-token limit, and thinking disabled. The evaluated set contains 382 requests, excluding six timeout-handler requests from the source set of 388. It includes 63 regenerated candidates after input and service-prefix corrections and 319 byte-identical reused candidates. Evaluation ran with Python 3.12.11 on an Intel Core i9-11900K Linux host, with a 20 s process budget, 200,000 states, 500,000 transitions, and a 1 s limit per SMT query.
+E3 checks LLM-generated JoI code against the supplied Timeline IR, then rechecks divergent candidates after one revision using counterexample feedback. We evaluated 382 smart-home commands from a dataset we constructed for the JoI hub. For each command, we supplied the confirmed IR and binding to Qwen3.5-9B to generate JoI code. The base checking budget was 20 s, scaled by the number of device assignments when several assignments had to be checked.
 
 **Table E3. Outcomes on generated JoI candidates.**
 
@@ -61,27 +68,20 @@ To evaluate generated candidates, we supplied confirmed IRs and bindings to Qwen
 | Inconclusive | 2 | 0.52% |
 | Total | 382 | 100.00% |
 
-Explorer issued a semantic verdict for 377 candidates (Table E3), a completion rate rather than an accuracy estimate. All 68 divergences were confirmed by its concrete replay. For example, a request turns off a power strip after 30 s without motion. The generated code increments a counter at the initial evaluation and every second thereafter, so it reaches 30 and turns the strip off at 29 s. At that instant the IR emits no action. The unsupported cases involved a binary return assignment, unbounded temperature arithmetic, and a large illuminance domain. Both inconclusive cases hit the SMT query limit. These familiar-task, mixed-provenance results are exploratory and relative to the confirmed IR and binding, not measurements of natural-language intent accuracy or physical-device behavior.
+Explorer issued a semantic verdict for 377 candidates (Table E3), a completion rate rather than an accuracy estimate. All 68 divergences were confirmed by its concrete replay. For example, one request turns off a power strip after 30 seconds without motion. The generated code counted one second as elapsed as soon as it first observed no motion, then added one each second. It therefore reached a count of 30 after only 29 seconds and turned off the strip. Explorer detected that the code acted one second earlier than required by the IR. The unsupported cases involved a binary return assignment, unbounded temperature arithmetic, and a large illuminance domain. Both inconclusive cases reached the time limit for an internal condition check. These exploratory results are relative to the confirmed IR and binding, not measurements of natural-language intent accuracy or physical-device behavior.
 
-**Counterexamples for repair.** A counterexample supplies the input history and expected and actual actions at a mismatch to inform code revision. With the IR and binding fixed, we allowed one repair call per divergent candidate using the same model at temperature 0 with a 4,096-token limit, and checked the revised code again. The resulting outcomes were 36 equivalent, 26 divergent, five checking timeouts, and one model context error out of 68 cases.
+**Counterexamples for repair.** For each of the 68 divergent candidates, we supplied the same model with the counterexample input, the actions required by the IR, and the actions produced by the code, and requested one revision. We kept the IR and binding fixed. On rechecking, 36 candidates (52.9%) received an equivalence verdict and 26 remained divergent. The remaining cases comprised five checking timeouts and one repair generation failure due to a model context error.
 
 ## Validation Cost and Scale
 
-To evaluate checking cost as automations grow, we generated 30 equivalent IR–code pairs from one parameterized family. We varied Boolean sensors (1–7), sequential wait–call stages (1–6), wait length (100 ms–4 h), and repetitions (1–200), both individually and in combined settings. Each program ran three times with a 120 s budget per run. The baseline disables timer zones but retains the same semantic executors, next-event jumps, and exact-state reuse. Both methods require completed exploration for an equivalence result. Explorer ran serially, while the baseline used four concurrent workers on an eight-core host. The reported times therefore describe these configurations, not a matched-load speedup.
+E4 measures the time needed to complete behavioral checking as automation size and timing vary. We generated 30 equivalent IR–JoI pairs from one program template by varying the number of Boolean sensors (1–7), sequential wait–call stages (1–6), wait duration (100 ms–4 h), and repetitions (1–200), individually and in combination.
 
-**Table E4. Checking cost on selected scale settings.**
+We compared Explorer with **explicit-state exploration**, which tracks concrete timer values in individual execution states. Explorer can instead represent sets of timer values together using constraints. Both methods use the same interpreters, advance to the next relevant event, and reuse identical states. Both require complete exploration to establish equivalence. Each program ran three times per method with a 120 s budget per run. Explorer ran serially, while the baseline used four concurrent workers on an eight-core host; the measurements therefore describe these execution settings rather than a speedup under equal load.
 
-| Program | Explorer (s) | Explicit (s) |
-| --- | ---: | ---: |
-| Base | 0.24 | 47.2 |
-| Sensors: 7 | 9.21 | timeout |
-| Stages: 6 | 0.71 | timeout |
-| Wait: 0.1 s | 0.05 | 0.06 |
-| Wait: 4 h | 0.25 | timeout |
-| Repeats: 200 | 18.0 | timeout |
-| Combined: 7 sensors, 6 stages, 100 repeats | timeout | timeout |
-| Programs decided (all settings) | 28/30 | 12/30 |
+**Figure E4. Cumulative number of programs decided within each checking time.**
 
-Base: 2 sensors, 2 stages, 2 min wait, 5 repeats. Each row changes only the named parameters. Times are the slowest of three runs. A program counts as decided only if all three runs complete.
+![Cumulative completion among 30 programs: Explorer completes 28 and explicit-state exploration 12; Explorer completes 24 within 5 seconds.](E4_cost/figs/e4_cumulative.png)
 
-Explorer decided 28 programs, including 19 in under one second and all 28 within 21 s (Table E4). Peak memory for completed Explorer runs was below 44 MiB. Across the wait-length sweep, checking took 0.05–0.35 s. Increasing sensors instead increased the input combinations checked per step: the seven-sensor case retained 52 states but explored 31,832 paired transitions. The two unfinished programs combined six or seven sensors, six stages, and 50 or 100 repetitions. Both exhausted the allotted resources rather than being refused as unsupported. These measurements characterize completion and cost for this synthetic family, not verdict correctness or cost for arbitrary generated code.
+The time axis is logarithmic. A program counts as decided only if all three runs complete; its time is the slowest of the three. Undecided programs remain in the total of 30.
+
+Explorer completed 28 of the 30 programs, compared with 12 for explicit-state exploration (Figure E4). It completed 24 within 5 s and all 28 within 21 s. Across the wait-duration sweep from 100 ms to 4 h, Explorer took 0.05–0.35 s. Its two unfinished programs combined six sensors, six stages, and 50 repetitions, or seven sensors, six stages, and 100 repetitions. Both reached the time limit. These results show the completion range and checking cost for the tested program family; costs for other program structures may differ.

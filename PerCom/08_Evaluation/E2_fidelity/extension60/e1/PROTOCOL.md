@@ -1,0 +1,10 @@
+# E2 extension: 48 E1-derived single-fault pairs
+
+Declared 2026-09-18 before any reference or Explorer execution on this extension.
+Sort the original 21 author-intended correct pairs lexicographically by pair_id. Allocate two variants to every base, and a third to the first six: C01, C03, C04, C05, C07, C09. This produces 48 variants of the existing 20 requests (E1-092 has two automations), not 48 additional requests. No sampling or selection uses evaluator outcomes.
+
+The frozen allocation.json records the exact edits and rationales. Each variant applies exactly one declared mutation to the original intended implementation. An edit repeated in duplicated lowering blocks is one conceptual fault, with its occurrence count stated. Original IR, binding, inventory, timing metadata, and source files are preserved. Historical catalog paths under PerCom/6_Evaluation are relocated to PerCom/08_Evaluation in new pairs; the generator verifies catalog content against its original frozen input hash and records both paths in provenance. Missing actions use a harmless local assignment where an empty block would otherwise be awkward. Timing, guard, snapshot and repetition variants target existing constructs without changing the input model.
+
+Static checks require 48 variants, the declared allocation, syntax accepted by the deployment ANTLR grammar, nonempty changes, and no script duplicate (after whitespace token normalization outside quoted literals) within the additions or against any original 102 pairs. These checks do not establish semantic inequivalence. The originals are author-intended implementations, not universally proved correct; variants may remain behaviorally equivalent or share a fault already present in their base. Every frozen variant is retained regardless of later reference/Explorer outcome. Families and descriptions are mutation intentions, never ground-truth labels.
+
+No reference or Explorer is invoked by the generator. The parent experiment freezes all extension inputs before execution and reports reference and Explorer outcomes independently. No structural substitution was necessary.

@@ -1,0 +1,1741 @@
+{
+  "selection": "Sorted 21 correct base pairs; 2 faults each plus third for first six; no outcomes used.",
+  "inputs_sha256": {
+    "PerCom/08_Evaluation/E2_fidelity/pairs/e1_pairs.json": "de3650666279bc8281038b383f4ecae0eaf1cb386d79dad9e7d09be4384cd821",
+    "PerCom/08_Evaluation/E2_fidelity/pairs/e1_pairs_src.py": "38240b54b42101a069415c76338a0298b12d06c1387d6aba7d5418d5eaa67478",
+    "PerCom/08_Evaluation/E2_fidelity/extension60/e1/allocation.json": "2d7594a96702c449c8bed2e784091b83aba7eb3968d59747545793bf6e167e3b",
+    "PerCom/08_Evaluation/E2_fidelity/extension60/e1/generate.py": "807b6f0801d6dacda222731b3b273ae7c02ade5e5823ee12e33504db73aca95c",
+    "PerCom/08_Evaluation/E2_fidelity/extension60/e1/declare.py": "cdb7f233009889206a6695697cfc2ba0dcc5a2b467d8c13212e6dbb47e6be834",
+    "PerCom/08_Evaluation/E2_fidelity/extension60/e1/PROTOCOL.md": "3c652f1dd3842e1f1c6ed4161c3458f29f8865d3238dfff72609cba6c8854b5c"
+  },
+  "pairs": [
+    {
+      "pair_id": "C01/ext60-fault1",
+      "base_pair_id": "C01/correct",
+      "base_case": "C01",
+      "automation": "main",
+      "allocation_rank": 1,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Hallway #Switch).On()",
+        "old": "            (#Hallway #Switch).On()",
+        "new": "            extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C01",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C01",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            extension_noop = 0\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}"
+      },
+      "original_script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}",
+      "mutated_script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            extension_noop = 0\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}",
+      "base_pair_sha256": "c2f34559a8b7497ee1cbf24d4062c62aea5f568ead3d3ccc95f03928f5dfca3f",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C01/ext60-fault2",
+      "base_pair_id": "C01/correct",
+      "base_case": "C01",
+      "automation": "main",
+      "allocation_rank": 1,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Hallway #Switch).Off()",
+        "old": "        (#Hallway #Switch).Off()",
+        "new": "        (#Hallway #Switch).Off()\n        (#Hallway #Switch).Off()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C01",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C01",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}"
+      },
+      "original_script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}",
+      "mutated_script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}",
+      "base_pair_sha256": "c2f34559a8b7497ee1cbf24d4062c62aea5f568ead3d3ccc95f03928f5dfca3f",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C01/ext60-fault3",
+      "base_pair_id": "C01/correct",
+      "base_case": "C01",
+      "automation": "main",
+      "allocation_rank": 1,
+      "mutation": {
+        "family": "timing",
+        "rationale": "Insert a one-second blocking delay immediately before this action: (#Hallway #Switch).On()",
+        "old": "            (#Hallway #Switch).On()",
+        "new": "            delay(1 SEC)\n            (#Hallway #Switch).On()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C01",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C01",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            delay(1 SEC)\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}"
+      },
+      "original_script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}",
+      "mutated_script": "armed := true\nstate := 0\nticks := 0\nm = (#Hallway #MotionSensor).Motion\nif (state == 0) {\n    if (m == true) {\n        if (armed == true) {\n            delay(1 SEC)\n            (#Hallway #Switch).On()\n            armed = false\n            state = 1\n        }\n    } else {\n        armed = true\n    }\n} else if (state == 1) {\n    if (m == false) {\n        state = 2\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (m == true) {\n        (#Hallway #Switch).On()\n        state = 1\n    } else if (ticks >= 1200) {\n        (#Hallway #Switch).Off()\n        state = 0\n    }\n}",
+      "base_pair_sha256": "c2f34559a8b7497ee1cbf24d4062c62aea5f568ead3d3ccc95f03928f5dfca3f",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C03/ext60-fault1",
+      "base_pair_id": "C03/correct",
+      "base_case": "C03",
+      "automation": "main",
+      "allocation_rank": 2,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Office #Switch).On()",
+        "old": "        (#Office #Switch).On()",
+        "new": "        extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C03",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C03",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        extension_noop = 0\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        extension_noop = 0\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "ec47bc298ae45b682f0a1fb807f0fc16244a51e18e947e96b79d53184a9c0c4a",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C03/ext60-fault2",
+      "base_pair_id": "C03/correct",
+      "base_case": "C03",
+      "automation": "main",
+      "allocation_rank": 2,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Office #Switch).On()",
+        "old": "        (#Office #Switch).On()",
+        "new": "        (#Office #Switch).On()\n        (#Office #Switch).On()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C03",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C03",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "ec47bc298ae45b682f0a1fb807f0fc16244a51e18e947e96b79d53184a9c0c4a",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C03/ext60-fault3",
+      "base_pair_id": "C03/correct",
+      "base_case": "C03",
+      "automation": "main",
+      "allocation_rank": 2,
+      "mutation": {
+        "family": "guard",
+        "rationale": "Include threshold equality in the high-CO2 branch.",
+        "old": "} else if (c > 1000) {",
+        "new": "} else if (c >= 1000) {",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C03",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C03",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c >= 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c > 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "ready := false\narmed := false\nc = (#Office #CarbonDioxideSensor).CarbonDioxide\nif (ready == false) {\n    if (c <= 1000) {\n        ready = true\n        armed = true\n    }\n} else if (c >= 1000) {\n    if (armed == true) {\n        (#Office #Switch).On()\n        delay(15 MIN)\n        (#Office #Switch).Off()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "ec47bc298ae45b682f0a1fb807f0fc16244a51e18e947e96b79d53184a9c0c4a",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C04/ext60-fault1",
+      "base_pair_id": "C04/correct",
+      "base_case": "C04",
+      "automation": "main",
+      "allocation_rank": 3,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Office #Switch).On()",
+        "old": "(#Office #Switch).On()",
+        "new": "extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C04",
+        "cron": "0 12 * * *",
+        "period": 0,
+        "script": "(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()"
+      },
+      "mutated_joi": {
+        "name": "C04",
+        "cron": "0 12 * * *",
+        "period": 0,
+        "script": "extension_noop = 0\ndelay(15 MIN)\n(#Office #Switch).Off()"
+      },
+      "original_script": "(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()",
+      "mutated_script": "extension_noop = 0\ndelay(15 MIN)\n(#Office #Switch).Off()",
+      "base_pair_sha256": "d888beff30045c98ea18d3144e6c42c7a9d817e120abb973d06ff078171a23e8",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C04/ext60-fault2",
+      "base_pair_id": "C04/correct",
+      "base_case": "C04",
+      "automation": "main",
+      "allocation_rank": 3,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Office #Switch).On()",
+        "old": "(#Office #Switch).On()",
+        "new": "(#Office #Switch).On()\n(#Office #Switch).On()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C04",
+        "cron": "0 12 * * *",
+        "period": 0,
+        "script": "(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()"
+      },
+      "mutated_joi": {
+        "name": "C04",
+        "cron": "0 12 * * *",
+        "period": 0,
+        "script": "(#Office #Switch).On()\n(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()"
+      },
+      "original_script": "(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()",
+      "mutated_script": "(#Office #Switch).On()\n(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()",
+      "base_pair_sha256": "d888beff30045c98ea18d3144e6c42c7a9d817e120abb973d06ff078171a23e8",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C04/ext60-fault3",
+      "base_pair_id": "C04/correct",
+      "base_case": "C04",
+      "automation": "main",
+      "allocation_rank": 3,
+      "mutation": {
+        "family": "timing",
+        "rationale": "Insert a one-second blocking delay immediately before this action: (#Office #Switch).On()",
+        "old": "(#Office #Switch).On()",
+        "new": "delay(1 SEC)\n(#Office #Switch).On()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C04",
+        "cron": "0 12 * * *",
+        "period": 0,
+        "script": "(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()"
+      },
+      "mutated_joi": {
+        "name": "C04",
+        "cron": "0 12 * * *",
+        "period": 0,
+        "script": "delay(1 SEC)\n(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()"
+      },
+      "original_script": "(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()",
+      "mutated_script": "delay(1 SEC)\n(#Office #Switch).On()\ndelay(15 MIN)\n(#Office #Switch).Off()",
+      "base_pair_sha256": "d888beff30045c98ea18d3144e6c42c7a9d817e120abb973d06ff078171a23e8",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C05/ext60-fault1",
+      "base_pair_id": "C05/correct",
+      "base_case": "C05",
+      "automation": "main",
+      "allocation_rank": 4,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit the first sustained-open alert, retaining repeat alerts.",
+        "old": "(#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1",
+        "new": "extension_noop = 0\n            state = 1",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C05",
+        "cron": "",
+        "period": 100,
+        "script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C05",
+        "cron": "",
+        "period": 100,
+        "script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            extension_noop = 0\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}"
+      },
+      "original_script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}",
+      "mutated_script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            extension_noop = 0\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}",
+      "base_pair_sha256": "0673d7833d918c7ba263727ee082f73494c9c3644faf2aa624dcca948c4a4829",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C05/ext60-fault2",
+      "base_pair_id": "C05/correct",
+      "base_case": "C05",
+      "automation": "main",
+      "allocation_rank": 4,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Duplicate the first sustained-open alert only.",
+        "old": "(#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1",
+        "new": "(#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C05",
+        "cron": "",
+        "period": 100,
+        "script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C05",
+        "cron": "",
+        "period": 100,
+        "script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}"
+      },
+      "original_script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}",
+      "mutated_script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}",
+      "base_pair_sha256": "0673d7833d918c7ba263727ee082f73494c9c3644faf2aa624dcca948c4a4829",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C05/ext60-fault3",
+      "base_pair_id": "C05/correct",
+      "base_case": "C05",
+      "automation": "main",
+      "allocation_rank": 4,
+      "mutation": {
+        "family": "timing",
+        "rationale": "Double the repeat-alert interval from 60 to 120 seconds.",
+        "old": "ticks >= 600",
+        "new": "ticks >= 1200",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C05",
+        "cron": "",
+        "period": 100,
+        "script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C05",
+        "cron": "",
+        "period": 100,
+        "script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}"
+      },
+      "original_script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 600) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}",
+      "mutated_script": "state := 0\nticks := 0\nc = (#Back #ContactSensor).Contact\nif (state == 0) {\n    if (c == false) {\n        ticks = ticks + 1\n        if (ticks > 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            state = 1\n            ticks = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else {\n    if (c == true) {\n        state = 0\n        ticks = 0\n    } else {\n        ticks = ticks + 1\n        if (ticks >= 1200) {\n            (#Owner #MessageSender).SendSms(\"owner\", \"Back door is open\", \"door\")\n            ticks = 0\n        }\n    }\n}",
+      "base_pair_sha256": "0673d7833d918c7ba263727ee082f73494c9c3644faf2aa624dcca948c4a4829",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C07/ext60-fault1",
+      "base_pair_id": "C07/correct",
+      "base_case": "C07",
+      "automation": "main",
+      "allocation_rank": 5,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit the initial dimming action only, retaining later blink actions.",
+        "old": "            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0",
+        "new": "            extension_noop = 0\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C07",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C07",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            extension_noop = 0\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}"
+      },
+      "original_script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}",
+      "mutated_script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            extension_noop = 0\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}",
+      "base_pair_sha256": "932a673817e578649293d4f2d6528910498feb93d6f0e2b699d42a6f78b2b313",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C07/ext60-fault2",
+      "base_pair_id": "C07/correct",
+      "base_case": "C07",
+      "automation": "main",
+      "allocation_rank": 5,
+      "mutation": {
+        "family": "repetition-state",
+        "rationale": "End each blink group after nine instead of ten repetitions.",
+        "old": "k >= 10",
+        "new": "k >= 9",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C07",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C07",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 9) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}"
+      },
+      "original_script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}",
+      "mutated_script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 9) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}",
+      "base_pair_sha256": "932a673817e578649293d4f2d6528910498feb93d6f0e2b699d42a6f78b2b313",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C07/ext60-fault3",
+      "base_pair_id": "C07/correct",
+      "base_case": "C07",
+      "automation": "main",
+      "allocation_rank": 5,
+      "mutation": {
+        "family": "snapshot-value",
+        "rationale": "Store zero instead of the initial brightness, affecting restoration.",
+        "old": "b0 = (#Kitchen #Light).CurrentBrightness",
+        "new": "b0 = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C07",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C07",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = 0\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}"
+      },
+      "original_script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = (#Kitchen #Light).CurrentBrightness\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}",
+      "mutated_script": "phase := 0\nticks := 0\nk := 0\nc := 0\nb0 := 0\nclosed = (#Garage #ContactSensor).Contact\nh = (#Clock).Hour\nif (phase == 0) {\n    if (h >= 22 and closed == false) {\n        ticks = ticks + 1\n        if (ticks > 6000) {\n            b0 = 0\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n            c = 0\n        }\n    } else {\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (closed == true) {\n        (#Kitchen #Light).MoveToBrightness(b0, 0)\n        c = c + 1\n        ticks = 0\n        if (c >= 7) {\n            phase = 3\n        } else {\n            phase = 2\n        }\n    } else if (ticks == 5) {\n        (#Kitchen #Light).MoveToBrightness(100, 0)\n    } else if (ticks == 10) {\n        k = k + 1\n        ticks = 0\n        if (k >= 10) {\n            (#Kitchen #Light).MoveToBrightness(b0, 0)\n            c = c + 1\n            if (c >= 7) {\n                phase = 3\n            } else {\n                phase = 2\n            }\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n        }\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (ticks == 3000) {\n        if (closed == true) {\n            phase = 3\n        } else {\n            (#Kitchen #Light).MoveToBrightness(10, 0)\n            phase = 1\n            ticks = 0\n            k = 0\n        }\n    }\n}",
+      "base_pair_sha256": "932a673817e578649293d4f2d6528910498feb93d6f0e2b699d42a6f78b2b313",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C09/ext60-fault1",
+      "base_pair_id": "C09/correct",
+      "base_case": "C09",
+      "automation": "main",
+      "allocation_rank": 6,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Entrance #DoorLock).Lock()",
+        "old": "        (#Entrance #DoorLock).Lock()",
+        "new": "        extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C09",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C09",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        extension_noop = 0\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        extension_noop = 0\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "e1d7f311f95742e76e67ed4a9bb962d5658d173fbd8ad3e9d2a1d0529e0807b6",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C09/ext60-fault2",
+      "base_pair_id": "C09/correct",
+      "base_case": "C09",
+      "automation": "main",
+      "allocation_rank": 6,
+      "mutation": {
+        "family": "timing",
+        "rationale": "Insert a one-second blocking delay immediately before this action: (#Entrance #DoorLock).Lock()",
+        "old": "        (#Entrance #DoorLock).Lock()",
+        "new": "        delay(1 SEC)\n        (#Entrance #DoorLock).Lock()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C09",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C09",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        delay(1 SEC)\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        delay(1 SEC)\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "e1d7f311f95742e76e67ed4a9bb962d5658d173fbd8ad3e9d2a1d0529e0807b6",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C09/ext60-fault3",
+      "base_pair_id": "C09/correct",
+      "base_case": "C09",
+      "automation": "main",
+      "allocation_rank": 6,
+      "mutation": {
+        "family": "guard",
+        "rationale": "Test absence instead of presence in the ready-state arrival branch.",
+        "old": "} else if (p == true) {",
+        "new": "} else if (p == false) {",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C09",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C09",
+        "cron": "",
+        "period": 100,
+        "script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == false) {\n    if (armed == true) {\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == true) {\n    if (armed == true) {\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "ready := false\narmed := false\np = (#Entrance #PresenceSensor).Presence\nif (ready == false) {\n    if (p == false) {\n        ready = true\n        armed = true\n    }\n} else if (p == false) {\n    if (armed == true) {\n        (#Entrance #DoorLock).Lock()\n        armed = false\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "e1d7f311f95742e76e67ed4a9bb962d5658d173fbd8ad3e9d2a1d0529e0807b6",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C11/ext60-fault1",
+      "base_pair_id": "C11/correct",
+      "base_case": "C11",
+      "automation": "main",
+      "allocation_rank": 7,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")",
+        "old": "    (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")",
+        "new": "    extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C11",
+        "cron": "",
+        "period": 100,
+        "script": "v_prev := (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc_prev := (#LivingRoom #WindowCovering).CurrentPosition\nv = (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc = (#LivingRoom #WindowCovering).CurrentPosition\nif (v == \"running\" and c > 0 and v_prev != \"running\") {\n    (#LivingRoom #WindowCovering).DownOrClose()\n}\nif (v == \"running\" and c > 0 and c_prev == 0) {\n    (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")\n}\nv_prev = v\nc_prev = c"
+      },
+      "mutated_joi": {
+        "name": "C11",
+        "cron": "",
+        "period": 100,
+        "script": "v_prev := (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc_prev := (#LivingRoom #WindowCovering).CurrentPosition\nv = (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc = (#LivingRoom #WindowCovering).CurrentPosition\nif (v == \"running\" and c > 0 and v_prev != \"running\") {\n    (#LivingRoom #WindowCovering).DownOrClose()\n}\nif (v == \"running\" and c > 0 and c_prev == 0) {\n    extension_noop = 0\n}\nv_prev = v\nc_prev = c"
+      },
+      "original_script": "v_prev := (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc_prev := (#LivingRoom #WindowCovering).CurrentPosition\nv = (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc = (#LivingRoom #WindowCovering).CurrentPosition\nif (v == \"running\" and c > 0 and v_prev != \"running\") {\n    (#LivingRoom #WindowCovering).DownOrClose()\n}\nif (v == \"running\" and c > 0 and c_prev == 0) {\n    (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")\n}\nv_prev = v\nc_prev = c",
+      "mutated_script": "v_prev := (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc_prev := (#LivingRoom #WindowCovering).CurrentPosition\nv = (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc = (#LivingRoom #WindowCovering).CurrentPosition\nif (v == \"running\" and c > 0 and v_prev != \"running\") {\n    (#LivingRoom #WindowCovering).DownOrClose()\n}\nif (v == \"running\" and c > 0 and c_prev == 0) {\n    extension_noop = 0\n}\nv_prev = v\nc_prev = c",
+      "base_pair_sha256": "59c1b4444c25ba9f2db69fded9bc9837d7160673848bf2dede482a6b051f0d95",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C11/ext60-fault2",
+      "base_pair_id": "C11/correct",
+      "base_case": "C11",
+      "automation": "main",
+      "allocation_rank": 7,
+      "mutation": {
+        "family": "snapshot-value",
+        "rationale": "Do not update the previous vacuum state after each reaction.",
+        "old": "\nv_prev = v",
+        "new": "\nextension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C11",
+        "cron": "",
+        "period": 100,
+        "script": "v_prev := (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc_prev := (#LivingRoom #WindowCovering).CurrentPosition\nv = (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc = (#LivingRoom #WindowCovering).CurrentPosition\nif (v == \"running\" and c > 0 and v_prev != \"running\") {\n    (#LivingRoom #WindowCovering).DownOrClose()\n}\nif (v == \"running\" and c > 0 and c_prev == 0) {\n    (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")\n}\nv_prev = v\nc_prev = c"
+      },
+      "mutated_joi": {
+        "name": "C11",
+        "cron": "",
+        "period": 100,
+        "script": "v_prev := (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc_prev := (#LivingRoom #WindowCovering).CurrentPosition\nv = (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc = (#LivingRoom #WindowCovering).CurrentPosition\nif (v == \"running\" and c > 0 and v_prev != \"running\") {\n    (#LivingRoom #WindowCovering).DownOrClose()\n}\nif (v == \"running\" and c > 0 and c_prev == 0) {\n    (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")\n}\nextension_noop = 0\nc_prev = c"
+      },
+      "original_script": "v_prev := (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc_prev := (#LivingRoom #WindowCovering).CurrentPosition\nv = (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc = (#LivingRoom #WindowCovering).CurrentPosition\nif (v == \"running\" and c > 0 and v_prev != \"running\") {\n    (#LivingRoom #WindowCovering).DownOrClose()\n}\nif (v == \"running\" and c > 0 and c_prev == 0) {\n    (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")\n}\nv_prev = v\nc_prev = c",
+      "mutated_script": "v_prev := (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc_prev := (#LivingRoom #WindowCovering).CurrentPosition\nv = (#LivingRoom #RobotVacuumCleaner).RobotVacuumCleanerOperatingState\nc = (#LivingRoom #WindowCovering).CurrentPosition\nif (v == \"running\" and c > 0 and v_prev != \"running\") {\n    (#LivingRoom #WindowCovering).DownOrClose()\n}\nif (v == \"running\" and c > 0 and c_prev == 0) {\n    (#LivingRoom #RobotVacuumCleaner).SetRobotVacuumCleanerRunMode(\"idle\")\n}\nextension_noop = 0\nc_prev = c",
+      "base_pair_sha256": "59c1b4444c25ba9f2db69fded9bc9837d7160673848bf2dede482a6b051f0d95",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C15/ext60-fault1",
+      "base_pair_id": "C15/correct",
+      "base_case": "C15",
+      "automation": "main",
+      "allocation_rank": 8,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Bedroom #Switch).On()",
+        "old": "            (#Bedroom #Switch).On()",
+        "new": "            extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C15",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\np = (#Bedroom #PresenceSensor).Presence\nif (p == true) {\n    if (armed == true) {\n        armed = false\n        h = (#Clock).Hour\n        if (h >= 22 or h < 6) {\n            (#Bedroom #Switch).On()\n            wait until((#Bedroom #PresenceSensor).Presence == false)\n            (#Bedroom #Switch).Off()\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C15",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\np = (#Bedroom #PresenceSensor).Presence\nif (p == true) {\n    if (armed == true) {\n        armed = false\n        h = (#Clock).Hour\n        if (h >= 22 or h < 6) {\n            extension_noop = 0\n            wait until((#Bedroom #PresenceSensor).Presence == false)\n            (#Bedroom #Switch).Off()\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "armed := true\np = (#Bedroom #PresenceSensor).Presence\nif (p == true) {\n    if (armed == true) {\n        armed = false\n        h = (#Clock).Hour\n        if (h >= 22 or h < 6) {\n            (#Bedroom #Switch).On()\n            wait until((#Bedroom #PresenceSensor).Presence == false)\n            (#Bedroom #Switch).Off()\n        }\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "armed := true\np = (#Bedroom #PresenceSensor).Presence\nif (p == true) {\n    if (armed == true) {\n        armed = false\n        h = (#Clock).Hour\n        if (h >= 22 or h < 6) {\n            extension_noop = 0\n            wait until((#Bedroom #PresenceSensor).Presence == false)\n            (#Bedroom #Switch).Off()\n        }\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "8a45e416e743acceba2886341f52f2fce78effef6a2a8ecba0259e736936f823",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C15/ext60-fault2",
+      "base_pair_id": "C15/correct",
+      "base_case": "C15",
+      "automation": "main",
+      "allocation_rank": 8,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Bedroom #Switch).Off()",
+        "old": "            (#Bedroom #Switch).Off()",
+        "new": "            (#Bedroom #Switch).Off()\n            (#Bedroom #Switch).Off()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C15",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\np = (#Bedroom #PresenceSensor).Presence\nif (p == true) {\n    if (armed == true) {\n        armed = false\n        h = (#Clock).Hour\n        if (h >= 22 or h < 6) {\n            (#Bedroom #Switch).On()\n            wait until((#Bedroom #PresenceSensor).Presence == false)\n            (#Bedroom #Switch).Off()\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C15",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\np = (#Bedroom #PresenceSensor).Presence\nif (p == true) {\n    if (armed == true) {\n        armed = false\n        h = (#Clock).Hour\n        if (h >= 22 or h < 6) {\n            (#Bedroom #Switch).On()\n            wait until((#Bedroom #PresenceSensor).Presence == false)\n            (#Bedroom #Switch).Off()\n            (#Bedroom #Switch).Off()\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "armed := true\np = (#Bedroom #PresenceSensor).Presence\nif (p == true) {\n    if (armed == true) {\n        armed = false\n        h = (#Clock).Hour\n        if (h >= 22 or h < 6) {\n            (#Bedroom #Switch).On()\n            wait until((#Bedroom #PresenceSensor).Presence == false)\n            (#Bedroom #Switch).Off()\n        }\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "armed := true\np = (#Bedroom #PresenceSensor).Presence\nif (p == true) {\n    if (armed == true) {\n        armed = false\n        h = (#Clock).Hour\n        if (h >= 22 or h < 6) {\n            (#Bedroom #Switch).On()\n            wait until((#Bedroom #PresenceSensor).Presence == false)\n            (#Bedroom #Switch).Off()\n            (#Bedroom #Switch).Off()\n        }\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "8a45e416e743acceba2886341f52f2fce78effef6a2a8ecba0259e736936f823",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C16/ext60-fault1",
+      "base_pair_id": "C16/correct",
+      "base_case": "C16",
+      "automation": "main",
+      "allocation_rank": 9,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Television #Switch).Off()",
+        "old": "    (#Television #Switch).Off()",
+        "new": "    extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C16",
+        "cron": "0 22 * * *",
+        "period": 0,
+        "script": "if ((#Bedroom #ContactSensor).Contact == true and (#Light #Switch).Switch == false) {\n    (#Television #Switch).Off()\n}"
+      },
+      "mutated_joi": {
+        "name": "C16",
+        "cron": "0 22 * * *",
+        "period": 0,
+        "script": "if ((#Bedroom #ContactSensor).Contact == true and (#Light #Switch).Switch == false) {\n    extension_noop = 0\n}"
+      },
+      "original_script": "if ((#Bedroom #ContactSensor).Contact == true and (#Light #Switch).Switch == false) {\n    (#Television #Switch).Off()\n}",
+      "mutated_script": "if ((#Bedroom #ContactSensor).Contact == true and (#Light #Switch).Switch == false) {\n    extension_noop = 0\n}",
+      "base_pair_sha256": "d5ef7658a4a6dfc2d199eda6a20ad618f613a3fa0cb543df51a705cc9adce5d1",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C16/ext60-fault2",
+      "base_pair_id": "C16/correct",
+      "base_case": "C16",
+      "automation": "main",
+      "allocation_rank": 9,
+      "mutation": {
+        "family": "timing",
+        "rationale": "Insert a one-second blocking delay immediately before this action: (#Television #Switch).Off()",
+        "old": "    (#Television #Switch).Off()",
+        "new": "    delay(1 SEC)\n    (#Television #Switch).Off()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C16",
+        "cron": "0 22 * * *",
+        "period": 0,
+        "script": "if ((#Bedroom #ContactSensor).Contact == true and (#Light #Switch).Switch == false) {\n    (#Television #Switch).Off()\n}"
+      },
+      "mutated_joi": {
+        "name": "C16",
+        "cron": "0 22 * * *",
+        "period": 0,
+        "script": "if ((#Bedroom #ContactSensor).Contact == true and (#Light #Switch).Switch == false) {\n    delay(1 SEC)\n    (#Television #Switch).Off()\n}"
+      },
+      "original_script": "if ((#Bedroom #ContactSensor).Contact == true and (#Light #Switch).Switch == false) {\n    (#Television #Switch).Off()\n}",
+      "mutated_script": "if ((#Bedroom #ContactSensor).Contact == true and (#Light #Switch).Switch == false) {\n    delay(1 SEC)\n    (#Television #Switch).Off()\n}",
+      "base_pair_sha256": "d5ef7658a4a6dfc2d199eda6a20ad618f613a3fa0cb543df51a705cc9adce5d1",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C18/ext60-fault1",
+      "base_pair_id": "C18/correct",
+      "base_case": "C18",
+      "automation": "main",
+      "allocation_rank": 10,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Entrance #DoorLock).Unlock()",
+        "old": "            (#Entrance #DoorLock).Unlock()",
+        "new": "            extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C18",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nb = (#Entrance #Button).Button\nif (b == \"pushed\") {\n    if (armed == true) {\n        armed = false\n        if ((#Clock).Hour == 15) {\n            (#Entrance #DoorLock).Unlock()\n            delay(10 SEC)\n            (#Entrance #DoorLock).Lock()\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C18",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nb = (#Entrance #Button).Button\nif (b == \"pushed\") {\n    if (armed == true) {\n        armed = false\n        if ((#Clock).Hour == 15) {\n            extension_noop = 0\n            delay(10 SEC)\n            (#Entrance #DoorLock).Lock()\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "armed := true\nb = (#Entrance #Button).Button\nif (b == \"pushed\") {\n    if (armed == true) {\n        armed = false\n        if ((#Clock).Hour == 15) {\n            (#Entrance #DoorLock).Unlock()\n            delay(10 SEC)\n            (#Entrance #DoorLock).Lock()\n        }\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "armed := true\nb = (#Entrance #Button).Button\nif (b == \"pushed\") {\n    if (armed == true) {\n        armed = false\n        if ((#Clock).Hour == 15) {\n            extension_noop = 0\n            delay(10 SEC)\n            (#Entrance #DoorLock).Lock()\n        }\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "b879bea1292b50d1b426379767226518a6fa3efdd93303ffd287f6af851b1d43",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C18/ext60-fault2",
+      "base_pair_id": "C18/correct",
+      "base_case": "C18",
+      "automation": "main",
+      "allocation_rank": 10,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Entrance #DoorLock).Lock()",
+        "old": "            (#Entrance #DoorLock).Lock()",
+        "new": "            (#Entrance #DoorLock).Lock()\n            (#Entrance #DoorLock).Lock()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C18",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nb = (#Entrance #Button).Button\nif (b == \"pushed\") {\n    if (armed == true) {\n        armed = false\n        if ((#Clock).Hour == 15) {\n            (#Entrance #DoorLock).Unlock()\n            delay(10 SEC)\n            (#Entrance #DoorLock).Lock()\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "C18",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nb = (#Entrance #Button).Button\nif (b == \"pushed\") {\n    if (armed == true) {\n        armed = false\n        if ((#Clock).Hour == 15) {\n            (#Entrance #DoorLock).Unlock()\n            delay(10 SEC)\n            (#Entrance #DoorLock).Lock()\n            (#Entrance #DoorLock).Lock()\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "armed := true\nb = (#Entrance #Button).Button\nif (b == \"pushed\") {\n    if (armed == true) {\n        armed = false\n        if ((#Clock).Hour == 15) {\n            (#Entrance #DoorLock).Unlock()\n            delay(10 SEC)\n            (#Entrance #DoorLock).Lock()\n        }\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "armed := true\nb = (#Entrance #Button).Button\nif (b == \"pushed\") {\n    if (armed == true) {\n        armed = false\n        if ((#Clock).Hour == 15) {\n            (#Entrance #DoorLock).Unlock()\n            delay(10 SEC)\n            (#Entrance #DoorLock).Lock()\n            (#Entrance #DoorLock).Lock()\n        }\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "b879bea1292b50d1b426379767226518a6fa3efdd93303ffd287f6af851b1d43",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C19/ext60-fault1",
+      "base_pair_id": "C19/correct",
+      "base_case": "C19",
+      "automation": "main",
+      "allocation_rank": 11,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+        "old": "    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+        "new": "    extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C19",
+        "cron": "0 6 * * *",
+        "period": 0,
+        "script": "wait until((#Office #PresenceSensor).Presence == false)\nwait until((#Office #PresenceSensor).Presence == true or (#Clock).Hour >= 9)\nif ((#Office #PresenceSensor).Presence == true) {\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n}"
+      },
+      "mutated_joi": {
+        "name": "C19",
+        "cron": "0 6 * * *",
+        "period": 0,
+        "script": "wait until((#Office #PresenceSensor).Presence == false)\nwait until((#Office #PresenceSensor).Presence == true or (#Clock).Hour >= 9)\nif ((#Office #PresenceSensor).Presence == true) {\n    extension_noop = 0\n}"
+      },
+      "original_script": "wait until((#Office #PresenceSensor).Presence == false)\nwait until((#Office #PresenceSensor).Presence == true or (#Clock).Hour >= 9)\nif ((#Office #PresenceSensor).Presence == true) {\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n}",
+      "mutated_script": "wait until((#Office #PresenceSensor).Presence == false)\nwait until((#Office #PresenceSensor).Presence == true or (#Clock).Hour >= 9)\nif ((#Office #PresenceSensor).Presence == true) {\n    extension_noop = 0\n}",
+      "base_pair_sha256": "90831bec8ecc1e85847c941b22c408b1a22bb738e64640a2007faef065061e16",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C19/ext60-fault2",
+      "base_pair_id": "C19/correct",
+      "base_case": "C19",
+      "automation": "main",
+      "allocation_rank": 11,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+        "old": "    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+        "new": "    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C19",
+        "cron": "0 6 * * *",
+        "period": 0,
+        "script": "wait until((#Office #PresenceSensor).Presence == false)\nwait until((#Office #PresenceSensor).Presence == true or (#Clock).Hour >= 9)\nif ((#Office #PresenceSensor).Presence == true) {\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n}"
+      },
+      "mutated_joi": {
+        "name": "C19",
+        "cron": "0 6 * * *",
+        "period": 0,
+        "script": "wait until((#Office #PresenceSensor).Presence == false)\nwait until((#Office #PresenceSensor).Presence == true or (#Clock).Hour >= 9)\nif ((#Office #PresenceSensor).Presence == true) {\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n}"
+      },
+      "original_script": "wait until((#Office #PresenceSensor).Presence == false)\nwait until((#Office #PresenceSensor).Presence == true or (#Clock).Hour >= 9)\nif ((#Office #PresenceSensor).Presence == true) {\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n}",
+      "mutated_script": "wait until((#Office #PresenceSensor).Presence == false)\nwait until((#Office #PresenceSensor).Presence == true or (#Clock).Hour >= 9)\nif ((#Office #PresenceSensor).Presence == true) {\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n    (#Owner #EmailProvider).SendMail(\"me@example.com\", \"On time\", \"I got to work on time!\")\n}",
+      "base_pair_sha256": "90831bec8ecc1e85847c941b22c408b1a22bb738e64640a2007faef065061e16",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C20-O/ext60-fault1",
+      "base_pair_id": "C20-O/correct",
+      "base_case": "C20-O",
+      "automation": "main",
+      "allocation_rank": 12,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Bedroom #Switch).On()",
+        "old": "            (#Bedroom #Switch).On()",
+        "new": "            extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C20-O",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\np = (#Bedroom #PresenceSensor).Presence\nlux = (#Outdoor #LightSensor).Brightness\nif (state == 0) {\n    if (p == true) {\n        if (armed == true) {\n            armed = false\n            if (lux >= 50) {\n                state = 1\n                ticks = 0\n            }\n        }\n    } else {\n        armed = true\n    }\n} else {\n    ticks = ticks + 1\n    if (lux < 50 or p == false) {\n        if (lux < 50 and p == true) {\n            (#Bedroom #Switch).On()\n        }\n        state = 0\n    } else if (ticks >= 72000) {\n        state = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C20-O",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\np = (#Bedroom #PresenceSensor).Presence\nlux = (#Outdoor #LightSensor).Brightness\nif (state == 0) {\n    if (p == true) {\n        if (armed == true) {\n            armed = false\n            if (lux >= 50) {\n                state = 1\n                ticks = 0\n            }\n        }\n    } else {\n        armed = true\n    }\n} else {\n    ticks = ticks + 1\n    if (lux < 50 or p == false) {\n        if (lux < 50 and p == true) {\n            extension_noop = 0\n        }\n        state = 0\n    } else if (ticks >= 72000) {\n        state = 0\n    }\n}"
+      },
+      "original_script": "armed := true\nstate := 0\nticks := 0\np = (#Bedroom #PresenceSensor).Presence\nlux = (#Outdoor #LightSensor).Brightness\nif (state == 0) {\n    if (p == true) {\n        if (armed == true) {\n            armed = false\n            if (lux >= 50) {\n                state = 1\n                ticks = 0\n            }\n        }\n    } else {\n        armed = true\n    }\n} else {\n    ticks = ticks + 1\n    if (lux < 50 or p == false) {\n        if (lux < 50 and p == true) {\n            (#Bedroom #Switch).On()\n        }\n        state = 0\n    } else if (ticks >= 72000) {\n        state = 0\n    }\n}",
+      "mutated_script": "armed := true\nstate := 0\nticks := 0\np = (#Bedroom #PresenceSensor).Presence\nlux = (#Outdoor #LightSensor).Brightness\nif (state == 0) {\n    if (p == true) {\n        if (armed == true) {\n            armed = false\n            if (lux >= 50) {\n                state = 1\n                ticks = 0\n            }\n        }\n    } else {\n        armed = true\n    }\n} else {\n    ticks = ticks + 1\n    if (lux < 50 or p == false) {\n        if (lux < 50 and p == true) {\n            extension_noop = 0\n        }\n        state = 0\n    } else if (ticks >= 72000) {\n        state = 0\n    }\n}",
+      "base_pair_sha256": "e9e7f6deea980f226168c890065194ef448d86cf148d39e4b5f829d5a98ed026",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "C20-O/ext60-fault2",
+      "base_pair_id": "C20-O/correct",
+      "base_case": "C20-O",
+      "automation": "main",
+      "allocation_rank": 12,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Bedroom #Switch).On()",
+        "old": "            (#Bedroom #Switch).On()",
+        "new": "            (#Bedroom #Switch).On()\n            (#Bedroom #Switch).On()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "files/service_list_ver2.0.7.json",
+        "current": "files/service_list_ver2.0.7.json",
+        "sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "C20-O",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\np = (#Bedroom #PresenceSensor).Presence\nlux = (#Outdoor #LightSensor).Brightness\nif (state == 0) {\n    if (p == true) {\n        if (armed == true) {\n            armed = false\n            if (lux >= 50) {\n                state = 1\n                ticks = 0\n            }\n        }\n    } else {\n        armed = true\n    }\n} else {\n    ticks = ticks + 1\n    if (lux < 50 or p == false) {\n        if (lux < 50 and p == true) {\n            (#Bedroom #Switch).On()\n        }\n        state = 0\n    } else if (ticks >= 72000) {\n        state = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "C20-O",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nstate := 0\nticks := 0\np = (#Bedroom #PresenceSensor).Presence\nlux = (#Outdoor #LightSensor).Brightness\nif (state == 0) {\n    if (p == true) {\n        if (armed == true) {\n            armed = false\n            if (lux >= 50) {\n                state = 1\n                ticks = 0\n            }\n        }\n    } else {\n        armed = true\n    }\n} else {\n    ticks = ticks + 1\n    if (lux < 50 or p == false) {\n        if (lux < 50 and p == true) {\n            (#Bedroom #Switch).On()\n            (#Bedroom #Switch).On()\n        }\n        state = 0\n    } else if (ticks >= 72000) {\n        state = 0\n    }\n}"
+      },
+      "original_script": "armed := true\nstate := 0\nticks := 0\np = (#Bedroom #PresenceSensor).Presence\nlux = (#Outdoor #LightSensor).Brightness\nif (state == 0) {\n    if (p == true) {\n        if (armed == true) {\n            armed = false\n            if (lux >= 50) {\n                state = 1\n                ticks = 0\n            }\n        }\n    } else {\n        armed = true\n    }\n} else {\n    ticks = ticks + 1\n    if (lux < 50 or p == false) {\n        if (lux < 50 and p == true) {\n            (#Bedroom #Switch).On()\n        }\n        state = 0\n    } else if (ticks >= 72000) {\n        state = 0\n    }\n}",
+      "mutated_script": "armed := true\nstate := 0\nticks := 0\np = (#Bedroom #PresenceSensor).Presence\nlux = (#Outdoor #LightSensor).Brightness\nif (state == 0) {\n    if (p == true) {\n        if (armed == true) {\n            armed = false\n            if (lux >= 50) {\n                state = 1\n                ticks = 0\n            }\n        }\n    } else {\n        armed = true\n    }\n} else {\n    ticks = ticks + 1\n    if (lux < 50 or p == false) {\n        if (lux < 50 and p == true) {\n            (#Bedroom #Switch).On()\n            (#Bedroom #Switch).On()\n        }\n        state = 0\n    } else if (ticks >= 72000) {\n        state = 0\n    }\n}",
+      "base_pair_sha256": "e9e7f6deea980f226168c890065194ef448d86cf148d39e4b5f829d5a98ed026",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-028/ext60-fault1",
+      "base_pair_id": "E1-028/correct",
+      "base_case": "E1-028",
+      "automation": "main",
+      "allocation_rank": 13,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Kitchen #Feeder).Dispense(\"one_bowl\")",
+        "old": "            (#Kitchen #Feeder).Dispense(\"one_bowl\")",
+        "new": "            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-028",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nslot := 0\nhas_a := false\nhas_b := false\nta := 0\ntb := 0\nreq = (#Kitchen #Feeder).DispenseRequested\nts = (#Clock).Timestamp\nif (req == true) {\n    if (armed == true) {\n        armed = false\n        if (has_a == false or ts - ta >= 14400 or has_b == false or ts - tb >= 14400) {\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            if (slot == 0) {\n                ta = ts\n                has_a = true\n                slot = 1\n            } else {\n                tb = ts\n                has_b = true\n                slot = 0\n            }\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-028",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nslot := 0\nhas_a := false\nhas_b := false\nta := 0\ntb := 0\nreq = (#Kitchen #Feeder).DispenseRequested\nts = (#Clock).Timestamp\nif (req == true) {\n    if (armed == true) {\n        armed = false\n        if (has_a == false or ts - ta >= 14400 or has_b == false or ts - tb >= 14400) {\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            if (slot == 0) {\n                ta = ts\n                has_a = true\n                slot = 1\n            } else {\n                tb = ts\n                has_b = true\n                slot = 0\n            }\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "armed := true\nslot := 0\nhas_a := false\nhas_b := false\nta := 0\ntb := 0\nreq = (#Kitchen #Feeder).DispenseRequested\nts = (#Clock).Timestamp\nif (req == true) {\n    if (armed == true) {\n        armed = false\n        if (has_a == false or ts - ta >= 14400 or has_b == false or ts - tb >= 14400) {\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            if (slot == 0) {\n                ta = ts\n                has_a = true\n                slot = 1\n            } else {\n                tb = ts\n                has_b = true\n                slot = 0\n            }\n        }\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "armed := true\nslot := 0\nhas_a := false\nhas_b := false\nta := 0\ntb := 0\nreq = (#Kitchen #Feeder).DispenseRequested\nts = (#Clock).Timestamp\nif (req == true) {\n    if (armed == true) {\n        armed = false\n        if (has_a == false or ts - ta >= 14400 or has_b == false or ts - tb >= 14400) {\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            if (slot == 0) {\n                ta = ts\n                has_a = true\n                slot = 1\n            } else {\n                tb = ts\n                has_b = true\n                slot = 0\n            }\n        }\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "0860a48f820928b599b8e3c79da3bc794390aa3e2fd5e8dbef7829a6dabf78eb",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-028/ext60-fault2",
+      "base_pair_id": "E1-028/correct",
+      "base_case": "E1-028",
+      "automation": "main",
+      "allocation_rank": 13,
+      "mutation": {
+        "family": "snapshot-value",
+        "rationale": "Record zero for the second dispensing timestamp instead of the current time.",
+        "old": "tb = ts",
+        "new": "tb = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-028",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nslot := 0\nhas_a := false\nhas_b := false\nta := 0\ntb := 0\nreq = (#Kitchen #Feeder).DispenseRequested\nts = (#Clock).Timestamp\nif (req == true) {\n    if (armed == true) {\n        armed = false\n        if (has_a == false or ts - ta >= 14400 or has_b == false or ts - tb >= 14400) {\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            if (slot == 0) {\n                ta = ts\n                has_a = true\n                slot = 1\n            } else {\n                tb = ts\n                has_b = true\n                slot = 0\n            }\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-028",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nslot := 0\nhas_a := false\nhas_b := false\nta := 0\ntb := 0\nreq = (#Kitchen #Feeder).DispenseRequested\nts = (#Clock).Timestamp\nif (req == true) {\n    if (armed == true) {\n        armed = false\n        if (has_a == false or ts - ta >= 14400 or has_b == false or ts - tb >= 14400) {\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            if (slot == 0) {\n                ta = ts\n                has_a = true\n                slot = 1\n            } else {\n                tb = 0\n                has_b = true\n                slot = 0\n            }\n        }\n    }\n} else {\n    armed = true\n}"
+      },
+      "original_script": "armed := true\nslot := 0\nhas_a := false\nhas_b := false\nta := 0\ntb := 0\nreq = (#Kitchen #Feeder).DispenseRequested\nts = (#Clock).Timestamp\nif (req == true) {\n    if (armed == true) {\n        armed = false\n        if (has_a == false or ts - ta >= 14400 or has_b == false or ts - tb >= 14400) {\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            if (slot == 0) {\n                ta = ts\n                has_a = true\n                slot = 1\n            } else {\n                tb = ts\n                has_b = true\n                slot = 0\n            }\n        }\n    }\n} else {\n    armed = true\n}",
+      "mutated_script": "armed := true\nslot := 0\nhas_a := false\nhas_b := false\nta := 0\ntb := 0\nreq = (#Kitchen #Feeder).DispenseRequested\nts = (#Clock).Timestamp\nif (req == true) {\n    if (armed == true) {\n        armed = false\n        if (has_a == false or ts - ta >= 14400 or has_b == false or ts - tb >= 14400) {\n            (#Kitchen #Feeder).Dispense(\"one_bowl\")\n            if (slot == 0) {\n                ta = ts\n                has_a = true\n                slot = 1\n            } else {\n                tb = 0\n                has_b = true\n                slot = 0\n            }\n        }\n    }\n} else {\n    armed = true\n}",
+      "base_pair_sha256": "0860a48f820928b599b8e3c79da3bc794390aa3e2fd5e8dbef7829a6dabf78eb",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-034/ext60-fault1",
+      "base_pair_id": "E1-034/correct",
+      "base_case": "E1-034",
+      "automation": "main",
+      "allocation_rank": 14,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Owner #Notify).OvenOverrun()",
+        "old": "            (#Owner #Notify).OvenOverrun()",
+        "new": "            extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-034",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nhold := 0\nticks := 0\non = (#Kitchen #Oven).State\ncf = (#Owner #Notify).ConfirmContinue\nif (phase == 1) {\n    ticks = ticks + 1\n    if (cf == true) {\n        phase = 0\n        hold = 0\n    } else if (ticks >= 600) {\n        (#Kitchen #Oven).Off()\n        phase = 0\n        hold = 0\n    }\n}\nif (phase == 0) {\n    if (on == true) {\n        hold = hold + 1\n        if (hold > 144000) {\n            (#Owner #Notify).OvenOverrun()\n            if (cf == true) {\n                hold = 1\n            } else {\n                phase = 1\n                ticks = 0\n            }\n        }\n    } else {\n        hold = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-034",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nhold := 0\nticks := 0\non = (#Kitchen #Oven).State\ncf = (#Owner #Notify).ConfirmContinue\nif (phase == 1) {\n    ticks = ticks + 1\n    if (cf == true) {\n        phase = 0\n        hold = 0\n    } else if (ticks >= 600) {\n        (#Kitchen #Oven).Off()\n        phase = 0\n        hold = 0\n    }\n}\nif (phase == 0) {\n    if (on == true) {\n        hold = hold + 1\n        if (hold > 144000) {\n            extension_noop = 0\n            if (cf == true) {\n                hold = 1\n            } else {\n                phase = 1\n                ticks = 0\n            }\n        }\n    } else {\n        hold = 0\n    }\n}"
+      },
+      "original_script": "phase := 0\nhold := 0\nticks := 0\non = (#Kitchen #Oven).State\ncf = (#Owner #Notify).ConfirmContinue\nif (phase == 1) {\n    ticks = ticks + 1\n    if (cf == true) {\n        phase = 0\n        hold = 0\n    } else if (ticks >= 600) {\n        (#Kitchen #Oven).Off()\n        phase = 0\n        hold = 0\n    }\n}\nif (phase == 0) {\n    if (on == true) {\n        hold = hold + 1\n        if (hold > 144000) {\n            (#Owner #Notify).OvenOverrun()\n            if (cf == true) {\n                hold = 1\n            } else {\n                phase = 1\n                ticks = 0\n            }\n        }\n    } else {\n        hold = 0\n    }\n}",
+      "mutated_script": "phase := 0\nhold := 0\nticks := 0\non = (#Kitchen #Oven).State\ncf = (#Owner #Notify).ConfirmContinue\nif (phase == 1) {\n    ticks = ticks + 1\n    if (cf == true) {\n        phase = 0\n        hold = 0\n    } else if (ticks >= 600) {\n        (#Kitchen #Oven).Off()\n        phase = 0\n        hold = 0\n    }\n}\nif (phase == 0) {\n    if (on == true) {\n        hold = hold + 1\n        if (hold > 144000) {\n            extension_noop = 0\n            if (cf == true) {\n                hold = 1\n            } else {\n                phase = 1\n                ticks = 0\n            }\n        }\n    } else {\n        hold = 0\n    }\n}",
+      "base_pair_sha256": "36e026ad8feff26dc0ce3a90ac008fcc58cdf05648f5211462ae1db916849f3f",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-034/ext60-fault2",
+      "base_pair_id": "E1-034/correct",
+      "base_case": "E1-034",
+      "automation": "main",
+      "allocation_rank": 14,
+      "mutation": {
+        "family": "timing",
+        "rationale": "Reduce the continuous oven-on threshold from four hours to two hours.",
+        "old": "hold > 144000",
+        "new": "hold > 72000",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-034",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nhold := 0\nticks := 0\non = (#Kitchen #Oven).State\ncf = (#Owner #Notify).ConfirmContinue\nif (phase == 1) {\n    ticks = ticks + 1\n    if (cf == true) {\n        phase = 0\n        hold = 0\n    } else if (ticks >= 600) {\n        (#Kitchen #Oven).Off()\n        phase = 0\n        hold = 0\n    }\n}\nif (phase == 0) {\n    if (on == true) {\n        hold = hold + 1\n        if (hold > 144000) {\n            (#Owner #Notify).OvenOverrun()\n            if (cf == true) {\n                hold = 1\n            } else {\n                phase = 1\n                ticks = 0\n            }\n        }\n    } else {\n        hold = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-034",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nhold := 0\nticks := 0\non = (#Kitchen #Oven).State\ncf = (#Owner #Notify).ConfirmContinue\nif (phase == 1) {\n    ticks = ticks + 1\n    if (cf == true) {\n        phase = 0\n        hold = 0\n    } else if (ticks >= 600) {\n        (#Kitchen #Oven).Off()\n        phase = 0\n        hold = 0\n    }\n}\nif (phase == 0) {\n    if (on == true) {\n        hold = hold + 1\n        if (hold > 72000) {\n            (#Owner #Notify).OvenOverrun()\n            if (cf == true) {\n                hold = 1\n            } else {\n                phase = 1\n                ticks = 0\n            }\n        }\n    } else {\n        hold = 0\n    }\n}"
+      },
+      "original_script": "phase := 0\nhold := 0\nticks := 0\non = (#Kitchen #Oven).State\ncf = (#Owner #Notify).ConfirmContinue\nif (phase == 1) {\n    ticks = ticks + 1\n    if (cf == true) {\n        phase = 0\n        hold = 0\n    } else if (ticks >= 600) {\n        (#Kitchen #Oven).Off()\n        phase = 0\n        hold = 0\n    }\n}\nif (phase == 0) {\n    if (on == true) {\n        hold = hold + 1\n        if (hold > 144000) {\n            (#Owner #Notify).OvenOverrun()\n            if (cf == true) {\n                hold = 1\n            } else {\n                phase = 1\n                ticks = 0\n            }\n        }\n    } else {\n        hold = 0\n    }\n}",
+      "mutated_script": "phase := 0\nhold := 0\nticks := 0\non = (#Kitchen #Oven).State\ncf = (#Owner #Notify).ConfirmContinue\nif (phase == 1) {\n    ticks = ticks + 1\n    if (cf == true) {\n        phase = 0\n        hold = 0\n    } else if (ticks >= 600) {\n        (#Kitchen #Oven).Off()\n        phase = 0\n        hold = 0\n    }\n}\nif (phase == 0) {\n    if (on == true) {\n        hold = hold + 1\n        if (hold > 72000) {\n            (#Owner #Notify).OvenOverrun()\n            if (cf == true) {\n                hold = 1\n            } else {\n                phase = 1\n                ticks = 0\n            }\n        }\n    } else {\n        hold = 0\n    }\n}",
+      "base_pair_sha256": "36e026ad8feff26dc0ce3a90ac008fcc58cdf05648f5211462ae1db916849f3f",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-062/ext60-fault1",
+      "base_pair_id": "E1-062/correct",
+      "base_case": "E1-062",
+      "automation": "main",
+      "allocation_rank": 15,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#LivingRoom #Switch).On()",
+        "old": "        (#LivingRoom #Switch).On()",
+        "new": "        extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-062",
+        "cron": "",
+        "period": 100,
+        "script": "a_prev := (#Office #Switch).Switch\nb_prev := (#LivingRoom #Switch).Switch\na = (#Office #Switch).Switch\nb = (#LivingRoom #Switch).Switch\nif (a != a_prev or b != b_prev) {\n    if (a == true and a_prev == false and b == false) {\n        (#LivingRoom #Switch).On()\n    }\n    if (a == false and a_prev == true and b == true) {\n        (#LivingRoom #Switch).Off()\n    }\n    if (b == true and b_prev == false and a == false) {\n        (#Office #Switch).On()\n    }\n    if (b == false and b_prev == true and a == true) {\n        (#Office #Switch).Off()\n    }\n    a_prev = a\n    b_prev = b\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-062",
+        "cron": "",
+        "period": 100,
+        "script": "a_prev := (#Office #Switch).Switch\nb_prev := (#LivingRoom #Switch).Switch\na = (#Office #Switch).Switch\nb = (#LivingRoom #Switch).Switch\nif (a != a_prev or b != b_prev) {\n    if (a == true and a_prev == false and b == false) {\n        extension_noop = 0\n    }\n    if (a == false and a_prev == true and b == true) {\n        (#LivingRoom #Switch).Off()\n    }\n    if (b == true and b_prev == false and a == false) {\n        (#Office #Switch).On()\n    }\n    if (b == false and b_prev == true and a == true) {\n        (#Office #Switch).Off()\n    }\n    a_prev = a\n    b_prev = b\n}"
+      },
+      "original_script": "a_prev := (#Office #Switch).Switch\nb_prev := (#LivingRoom #Switch).Switch\na = (#Office #Switch).Switch\nb = (#LivingRoom #Switch).Switch\nif (a != a_prev or b != b_prev) {\n    if (a == true and a_prev == false and b == false) {\n        (#LivingRoom #Switch).On()\n    }\n    if (a == false and a_prev == true and b == true) {\n        (#LivingRoom #Switch).Off()\n    }\n    if (b == true and b_prev == false and a == false) {\n        (#Office #Switch).On()\n    }\n    if (b == false and b_prev == true and a == true) {\n        (#Office #Switch).Off()\n    }\n    a_prev = a\n    b_prev = b\n}",
+      "mutated_script": "a_prev := (#Office #Switch).Switch\nb_prev := (#LivingRoom #Switch).Switch\na = (#Office #Switch).Switch\nb = (#LivingRoom #Switch).Switch\nif (a != a_prev or b != b_prev) {\n    if (a == true and a_prev == false and b == false) {\n        extension_noop = 0\n    }\n    if (a == false and a_prev == true and b == true) {\n        (#LivingRoom #Switch).Off()\n    }\n    if (b == true and b_prev == false and a == false) {\n        (#Office #Switch).On()\n    }\n    if (b == false and b_prev == true and a == true) {\n        (#Office #Switch).Off()\n    }\n    a_prev = a\n    b_prev = b\n}",
+      "base_pair_sha256": "05185316fc1c772e289a5e94860be049f31594510c527a1b27765fc951e2e624",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-062/ext60-fault2",
+      "base_pair_id": "E1-062/correct",
+      "base_case": "E1-062",
+      "automation": "main",
+      "allocation_rank": 15,
+      "mutation": {
+        "family": "snapshot-value",
+        "rationale": "Do not update previous office-switch state after each change.",
+        "old": "    a_prev = a",
+        "new": "    extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-062",
+        "cron": "",
+        "period": 100,
+        "script": "a_prev := (#Office #Switch).Switch\nb_prev := (#LivingRoom #Switch).Switch\na = (#Office #Switch).Switch\nb = (#LivingRoom #Switch).Switch\nif (a != a_prev or b != b_prev) {\n    if (a == true and a_prev == false and b == false) {\n        (#LivingRoom #Switch).On()\n    }\n    if (a == false and a_prev == true and b == true) {\n        (#LivingRoom #Switch).Off()\n    }\n    if (b == true and b_prev == false and a == false) {\n        (#Office #Switch).On()\n    }\n    if (b == false and b_prev == true and a == true) {\n        (#Office #Switch).Off()\n    }\n    a_prev = a\n    b_prev = b\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-062",
+        "cron": "",
+        "period": 100,
+        "script": "a_prev := (#Office #Switch).Switch\nb_prev := (#LivingRoom #Switch).Switch\na = (#Office #Switch).Switch\nb = (#LivingRoom #Switch).Switch\nif (a != a_prev or b != b_prev) {\n    if (a == true and a_prev == false and b == false) {\n        (#LivingRoom #Switch).On()\n    }\n    if (a == false and a_prev == true and b == true) {\n        (#LivingRoom #Switch).Off()\n    }\n    if (b == true and b_prev == false and a == false) {\n        (#Office #Switch).On()\n    }\n    if (b == false and b_prev == true and a == true) {\n        (#Office #Switch).Off()\n    }\n    extension_noop = 0\n    b_prev = b\n}"
+      },
+      "original_script": "a_prev := (#Office #Switch).Switch\nb_prev := (#LivingRoom #Switch).Switch\na = (#Office #Switch).Switch\nb = (#LivingRoom #Switch).Switch\nif (a != a_prev or b != b_prev) {\n    if (a == true and a_prev == false and b == false) {\n        (#LivingRoom #Switch).On()\n    }\n    if (a == false and a_prev == true and b == true) {\n        (#LivingRoom #Switch).Off()\n    }\n    if (b == true and b_prev == false and a == false) {\n        (#Office #Switch).On()\n    }\n    if (b == false and b_prev == true and a == true) {\n        (#Office #Switch).Off()\n    }\n    a_prev = a\n    b_prev = b\n}",
+      "mutated_script": "a_prev := (#Office #Switch).Switch\nb_prev := (#LivingRoom #Switch).Switch\na = (#Office #Switch).Switch\nb = (#LivingRoom #Switch).Switch\nif (a != a_prev or b != b_prev) {\n    if (a == true and a_prev == false and b == false) {\n        (#LivingRoom #Switch).On()\n    }\n    if (a == false and a_prev == true and b == true) {\n        (#LivingRoom #Switch).Off()\n    }\n    if (b == true and b_prev == false and a == false) {\n        (#Office #Switch).On()\n    }\n    if (b == false and b_prev == true and a == true) {\n        (#Office #Switch).Off()\n    }\n    extension_noop = 0\n    b_prev = b\n}",
+      "base_pair_sha256": "05185316fc1c772e289a5e94860be049f31594510c527a1b27765fc951e2e624",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-072/ext60-fault1",
+      "base_pair_id": "E1-072/correct",
+      "base_case": "E1-072",
+      "automation": "main",
+      "allocation_rank": 16,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: all(#Pair #Switch).On()",
+        "old": "        all(#Pair #Switch).On()",
+        "new": "        all(#Pair #Switch).On()\n        all(#Pair #Switch).On()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-072",
+        "cron": "",
+        "period": 100,
+        "script": "p_prev := (#Home #PresenceSensor).Presence\np = (#Home #PresenceSensor).Presence\nd = (#Home #Sun).IsDaylight\nif (p != p_prev) {\n    if (p == true and d == false) {\n        all(#Pair #Switch).On()\n    }\n    if (p == false and d == true) {\n        all(#Switch).Off()\n    }\n    p_prev = p\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-072",
+        "cron": "",
+        "period": 100,
+        "script": "p_prev := (#Home #PresenceSensor).Presence\np = (#Home #PresenceSensor).Presence\nd = (#Home #Sun).IsDaylight\nif (p != p_prev) {\n    if (p == true and d == false) {\n        all(#Pair #Switch).On()\n        all(#Pair #Switch).On()\n    }\n    if (p == false and d == true) {\n        all(#Switch).Off()\n    }\n    p_prev = p\n}"
+      },
+      "original_script": "p_prev := (#Home #PresenceSensor).Presence\np = (#Home #PresenceSensor).Presence\nd = (#Home #Sun).IsDaylight\nif (p != p_prev) {\n    if (p == true and d == false) {\n        all(#Pair #Switch).On()\n    }\n    if (p == false and d == true) {\n        all(#Switch).Off()\n    }\n    p_prev = p\n}",
+      "mutated_script": "p_prev := (#Home #PresenceSensor).Presence\np = (#Home #PresenceSensor).Presence\nd = (#Home #Sun).IsDaylight\nif (p != p_prev) {\n    if (p == true and d == false) {\n        all(#Pair #Switch).On()\n        all(#Pair #Switch).On()\n    }\n    if (p == false and d == true) {\n        all(#Switch).Off()\n    }\n    p_prev = p\n}",
+      "base_pair_sha256": "cbcf797b001c3d4d5f067e43638d6c525a3b356fcc45b713c63aac2ccf59a421",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-072/ext60-fault2",
+      "base_pair_id": "E1-072/correct",
+      "base_case": "E1-072",
+      "automation": "main",
+      "allocation_rank": 16,
+      "mutation": {
+        "family": "guard",
+        "rationale": "Departure-off rule also fires when it is dark.",
+        "old": "p == false and d == true",
+        "new": "p == false",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-072",
+        "cron": "",
+        "period": 100,
+        "script": "p_prev := (#Home #PresenceSensor).Presence\np = (#Home #PresenceSensor).Presence\nd = (#Home #Sun).IsDaylight\nif (p != p_prev) {\n    if (p == true and d == false) {\n        all(#Pair #Switch).On()\n    }\n    if (p == false and d == true) {\n        all(#Switch).Off()\n    }\n    p_prev = p\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-072",
+        "cron": "",
+        "period": 100,
+        "script": "p_prev := (#Home #PresenceSensor).Presence\np = (#Home #PresenceSensor).Presence\nd = (#Home #Sun).IsDaylight\nif (p != p_prev) {\n    if (p == true and d == false) {\n        all(#Pair #Switch).On()\n    }\n    if (p == false) {\n        all(#Switch).Off()\n    }\n    p_prev = p\n}"
+      },
+      "original_script": "p_prev := (#Home #PresenceSensor).Presence\np = (#Home #PresenceSensor).Presence\nd = (#Home #Sun).IsDaylight\nif (p != p_prev) {\n    if (p == true and d == false) {\n        all(#Pair #Switch).On()\n    }\n    if (p == false and d == true) {\n        all(#Switch).Off()\n    }\n    p_prev = p\n}",
+      "mutated_script": "p_prev := (#Home #PresenceSensor).Presence\np = (#Home #PresenceSensor).Presence\nd = (#Home #Sun).IsDaylight\nif (p != p_prev) {\n    if (p == true and d == false) {\n        all(#Pair #Switch).On()\n    }\n    if (p == false) {\n        all(#Switch).Off()\n    }\n    p_prev = p\n}",
+      "base_pair_sha256": "cbcf797b001c3d4d5f067e43638d6c525a3b356fcc45b713c63aac2ccf59a421",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-086/ext60-fault1",
+      "base_pair_id": "E1-086/correct",
+      "base_case": "E1-086",
+      "automation": "main",
+      "allocation_rank": 17,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Zone2 #Valve).Open()",
+        "old": "        (#Zone2 #Valve).Open()",
+        "new": "        extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-086",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nr = (#Garden #Switch).Switch\nif (phase == 0) {\n    if (r == true) {\n        (#Zone1 #Valve).Open()\n        phase = 1\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone1 #Valve).Close()\n        phase = 2\n        ticks = 0\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 300) {\n        (#Zone2 #Valve).Open()\n        phase = 3\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone2 #Valve).Close()\n        break\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-086",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nr = (#Garden #Switch).Switch\nif (phase == 0) {\n    if (r == true) {\n        (#Zone1 #Valve).Open()\n        phase = 1\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone1 #Valve).Close()\n        phase = 2\n        ticks = 0\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 300) {\n        extension_noop = 0\n        phase = 3\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone2 #Valve).Close()\n        break\n    }\n}"
+      },
+      "original_script": "phase := 0\nticks := 0\nr = (#Garden #Switch).Switch\nif (phase == 0) {\n    if (r == true) {\n        (#Zone1 #Valve).Open()\n        phase = 1\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone1 #Valve).Close()\n        phase = 2\n        ticks = 0\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 300) {\n        (#Zone2 #Valve).Open()\n        phase = 3\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone2 #Valve).Close()\n        break\n    }\n}",
+      "mutated_script": "phase := 0\nticks := 0\nr = (#Garden #Switch).Switch\nif (phase == 0) {\n    if (r == true) {\n        (#Zone1 #Valve).Open()\n        phase = 1\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone1 #Valve).Close()\n        phase = 2\n        ticks = 0\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 300) {\n        extension_noop = 0\n        phase = 3\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone2 #Valve).Close()\n        break\n    }\n}",
+      "base_pair_sha256": "fda48c7c593c91c6d7412a993ae1bf0ab04a31cb0245524d46028547ea4d9e8a",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-086/ext60-fault2",
+      "base_pair_id": "E1-086/correct",
+      "base_case": "E1-086",
+      "automation": "main",
+      "allocation_rank": 17,
+      "mutation": {
+        "family": "timing",
+        "rationale": "Shorten both zone watering durations from ten to five minutes as one shared duration fault.",
+        "old": "ticks >= 6000",
+        "new": "ticks >= 3000",
+        "count": 2
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-086",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nr = (#Garden #Switch).Switch\nif (phase == 0) {\n    if (r == true) {\n        (#Zone1 #Valve).Open()\n        phase = 1\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone1 #Valve).Close()\n        phase = 2\n        ticks = 0\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 300) {\n        (#Zone2 #Valve).Open()\n        phase = 3\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone2 #Valve).Close()\n        break\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-086",
+        "cron": "",
+        "period": 100,
+        "script": "phase := 0\nticks := 0\nr = (#Garden #Switch).Switch\nif (phase == 0) {\n    if (r == true) {\n        (#Zone1 #Valve).Open()\n        phase = 1\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 3000) {\n        (#Zone1 #Valve).Close()\n        phase = 2\n        ticks = 0\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 300) {\n        (#Zone2 #Valve).Open()\n        phase = 3\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 3000) {\n        (#Zone2 #Valve).Close()\n        break\n    }\n}"
+      },
+      "original_script": "phase := 0\nticks := 0\nr = (#Garden #Switch).Switch\nif (phase == 0) {\n    if (r == true) {\n        (#Zone1 #Valve).Open()\n        phase = 1\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone1 #Valve).Close()\n        phase = 2\n        ticks = 0\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 300) {\n        (#Zone2 #Valve).Open()\n        phase = 3\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 6000) {\n        (#Zone2 #Valve).Close()\n        break\n    }\n}",
+      "mutated_script": "phase := 0\nticks := 0\nr = (#Garden #Switch).Switch\nif (phase == 0) {\n    if (r == true) {\n        (#Zone1 #Valve).Open()\n        phase = 1\n        ticks = 0\n    }\n} else if (phase == 1) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 3000) {\n        (#Zone1 #Valve).Close()\n        phase = 2\n        ticks = 0\n    }\n} else if (phase == 2) {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 300) {\n        (#Zone2 #Valve).Open()\n        phase = 3\n        ticks = 0\n    }\n} else {\n    ticks = ticks + 1\n    if (r == false) {\n        (#Zone1 #Valve).Close()\n        (#Zone2 #Valve).Close()\n        break\n    } else if (ticks >= 3000) {\n        (#Zone2 #Valve).Close()\n        break\n    }\n}",
+      "base_pair_sha256": "fda48c7c593c91c6d7412a993ae1bf0ab04a31cb0245524d46028547ea4d9e8a",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-092-A/ext60-fault1",
+      "base_pair_id": "E1-092-A/correct",
+      "base_case": "E1-092",
+      "automation": "A_alexa",
+      "allocation_rank": 18,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#LivingRoom #Alexa).AnnounceTasks()",
+        "old": "(#LivingRoom #Alexa).AnnounceTasks()",
+        "new": "extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-092-A",
+        "cron": "",
+        "period": 0,
+        "script": "wait until((#Home #House).ShutdownRequested == true)\n(#LivingRoom #Alexa).AnnounceTasks()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()"
+      },
+      "mutated_joi": {
+        "name": "E1-092-A",
+        "cron": "",
+        "period": 0,
+        "script": "wait until((#Home #House).ShutdownRequested == true)\nextension_noop = 0\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()"
+      },
+      "original_script": "wait until((#Home #House).ShutdownRequested == true)\n(#LivingRoom #Alexa).AnnounceTasks()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()",
+      "mutated_script": "wait until((#Home #House).ShutdownRequested == true)\nextension_noop = 0\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()",
+      "base_pair_sha256": "07809f2b9bfd96c337808d0017788f92e2a132be9e988fd3d4b29ec9a3c4713b",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-092-A/ext60-fault2",
+      "base_pair_id": "E1-092-A/correct",
+      "base_case": "E1-092",
+      "automation": "A_alexa",
+      "allocation_rank": 18,
+      "mutation": {
+        "family": "order",
+        "rationale": "Swap the final two announcements, retaining both one-second delays.",
+        "old": "(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()",
+        "new": "(#LivingRoom #Alexa).AnnounceAlarmSettings()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-092-A",
+        "cron": "",
+        "period": 0,
+        "script": "wait until((#Home #House).ShutdownRequested == true)\n(#LivingRoom #Alexa).AnnounceTasks()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()"
+      },
+      "mutated_joi": {
+        "name": "E1-092-A",
+        "cron": "",
+        "period": 0,
+        "script": "wait until((#Home #House).ShutdownRequested == true)\n(#LivingRoom #Alexa).AnnounceTasks()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()"
+      },
+      "original_script": "wait until((#Home #House).ShutdownRequested == true)\n(#LivingRoom #Alexa).AnnounceTasks()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()",
+      "mutated_script": "wait until((#Home #House).ShutdownRequested == true)\n(#LivingRoom #Alexa).AnnounceTasks()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceAlarmSettings()\ndelay(1 SEC)\n(#LivingRoom #Alexa).AnnounceNews()",
+      "base_pair_sha256": "07809f2b9bfd96c337808d0017788f92e2a132be9e988fd3d4b29ec9a3c4713b",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-092-B/ext60-fault1",
+      "base_pair_id": "E1-092-B/correct",
+      "base_case": "E1-092",
+      "automation": "B_house",
+      "allocation_rank": 19,
+      "mutation": {
+        "family": "missing-call",
+        "rationale": "Omit this action while preserving surrounding control flow: (#Entrance #Locks).Lock(\"front, back\")",
+        "old": "(#Entrance #Locks).Lock(\"front, back\")",
+        "new": "extension_noop = 0",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-092-B",
+        "cron": "",
+        "period": 0,
+        "script": "wait until((#Home #House).ShutdownRequested == true)\n(#Downstairs #Lights).Off(\"downstairs\")\ndelay(1 SEC)\n(#Entrance #Locks).Lock(\"front, back\")\ndelay(1 SEC)\n(#Home #Alarm).Set(\"armed\")"
+      },
+      "mutated_joi": {
+        "name": "E1-092-B",
+        "cron": "",
+        "period": 0,
+        "script": "wait until((#Home #House).ShutdownRequested == true)\n(#Downstairs #Lights).Off(\"downstairs\")\ndelay(1 SEC)\nextension_noop = 0\ndelay(1 SEC)\n(#Home #Alarm).Set(\"armed\")"
+      },
+      "original_script": "wait until((#Home #House).ShutdownRequested == true)\n(#Downstairs #Lights).Off(\"downstairs\")\ndelay(1 SEC)\n(#Entrance #Locks).Lock(\"front, back\")\ndelay(1 SEC)\n(#Home #Alarm).Set(\"armed\")",
+      "mutated_script": "wait until((#Home #House).ShutdownRequested == true)\n(#Downstairs #Lights).Off(\"downstairs\")\ndelay(1 SEC)\nextension_noop = 0\ndelay(1 SEC)\n(#Home #Alarm).Set(\"armed\")",
+      "base_pair_sha256": "c5ccfc557f5005ae878c47bb17a09905694fca1240350fb656e70c9dce9c94ea",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-092-B/ext60-fault2",
+      "base_pair_id": "E1-092-B/correct",
+      "base_case": "E1-092",
+      "automation": "B_house",
+      "allocation_rank": 19,
+      "mutation": {
+        "family": "extra-call",
+        "rationale": "Issue this action twice at its original execution point: (#Home #Alarm).Set(\"armed\")",
+        "old": "(#Home #Alarm).Set(\"armed\")",
+        "new": "(#Home #Alarm).Set(\"armed\")\n(#Home #Alarm).Set(\"armed\")",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-092-B",
+        "cron": "",
+        "period": 0,
+        "script": "wait until((#Home #House).ShutdownRequested == true)\n(#Downstairs #Lights).Off(\"downstairs\")\ndelay(1 SEC)\n(#Entrance #Locks).Lock(\"front, back\")\ndelay(1 SEC)\n(#Home #Alarm).Set(\"armed\")"
+      },
+      "mutated_joi": {
+        "name": "E1-092-B",
+        "cron": "",
+        "period": 0,
+        "script": "wait until((#Home #House).ShutdownRequested == true)\n(#Downstairs #Lights).Off(\"downstairs\")\ndelay(1 SEC)\n(#Entrance #Locks).Lock(\"front, back\")\ndelay(1 SEC)\n(#Home #Alarm).Set(\"armed\")\n(#Home #Alarm).Set(\"armed\")"
+      },
+      "original_script": "wait until((#Home #House).ShutdownRequested == true)\n(#Downstairs #Lights).Off(\"downstairs\")\ndelay(1 SEC)\n(#Entrance #Locks).Lock(\"front, back\")\ndelay(1 SEC)\n(#Home #Alarm).Set(\"armed\")",
+      "mutated_script": "wait until((#Home #House).ShutdownRequested == true)\n(#Downstairs #Lights).Off(\"downstairs\")\ndelay(1 SEC)\n(#Entrance #Locks).Lock(\"front, back\")\ndelay(1 SEC)\n(#Home #Alarm).Set(\"armed\")\n(#Home #Alarm).Set(\"armed\")",
+      "base_pair_sha256": "c5ccfc557f5005ae878c47bb17a09905694fca1240350fb656e70c9dce9c94ea",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-095/ext60-fault1",
+      "base_pair_id": "E1-095/correct",
+      "base_case": "E1-095",
+      "automation": "main",
+      "allocation_rank": 20,
+      "mutation": {
+        "family": "snapshot-value",
+        "rationale": "Chlorine accumulator keeps only the latest sample.",
+        "old": "sum_cl = sum_cl + (#Pool #PoolChlorine).Value",
+        "new": "sum_cl = (#Pool #PoolChlorine).Value",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-095",
+        "cron": "",
+        "period": 1000,
+        "script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = sum_cl + (#Pool #PoolChlorine).Value\n    count = count + 1\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-095",
+        "cron": "",
+        "period": 1000,
+        "script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = (#Pool #PoolChlorine).Value\n    count = count + 1\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}"
+      },
+      "original_script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = sum_cl + (#Pool #PoolChlorine).Value\n    count = count + 1\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}",
+      "mutated_script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = (#Pool #PoolChlorine).Value\n    count = count + 1\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}",
+      "base_pair_sha256": "e1c78176270b468e2f1605dee9261989cc0e3437d176bdaa5e0adfbee7e2c304",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-095/ext60-fault2",
+      "base_pair_id": "E1-095/correct",
+      "base_case": "E1-095",
+      "automation": "main",
+      "allocation_rank": 20,
+      "mutation": {
+        "family": "repetition-state",
+        "rationale": "Increment sample count by two, biasing both reported averages.",
+        "old": "count = count + 1",
+        "new": "count = count + 2",
+        "count": 1
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-095",
+        "cron": "",
+        "period": 1000,
+        "script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = sum_cl + (#Pool #PoolChlorine).Value\n    count = count + 1\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-095",
+        "cron": "",
+        "period": 1000,
+        "script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = sum_cl + (#Pool #PoolChlorine).Value\n    count = count + 2\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}"
+      },
+      "original_script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = sum_cl + (#Pool #PoolChlorine).Value\n    count = count + 1\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}",
+      "mutated_script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = sum_cl + (#Pool #PoolChlorine).Value\n    count = count + 2\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}",
+      "base_pair_sha256": "e1c78176270b468e2f1605dee9261989cc0e3437d176bdaa5e0adfbee7e2c304",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-099/ext60-fault1",
+      "base_pair_id": "E1-099/correct",
+      "base_case": "E1-099",
+      "automation": "main",
+      "allocation_rank": 21,
+      "mutation": {
+        "family": "timing",
+        "rationale": "Extend initial deadline from five to six minutes in both copies of the same phase block.",
+        "old": "t_on + 300 + 120 * k",
+        "new": "t_on + 360 + 120 * k",
+        "count": 2
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-099",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nphase := 0\nt_on := 0\nt_m := 0\nhas_m := false\nk := 0\ns = (#Hall #Switch).Switch\nmo = (#Hall #MotionSensor).Motion\nts = (#Clock).Timestamp\nif (phase == 2) {\n    if (mo == false) {\n        k = k + 1\n        phase = 1\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}\nif (phase == 0) {\n    if (s == true) {\n        if (armed == true) {\n            armed = false\n            t_on = ts\n            k = 0\n            phase = 1\n        }\n    } else {\n        armed = true\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-099",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nphase := 0\nt_on := 0\nt_m := 0\nhas_m := false\nk := 0\ns = (#Hall #Switch).Switch\nmo = (#Hall #MotionSensor).Motion\nts = (#Clock).Timestamp\nif (phase == 2) {\n    if (mo == false) {\n        k = k + 1\n        phase = 1\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 360 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}\nif (phase == 0) {\n    if (s == true) {\n        if (armed == true) {\n            armed = false\n            t_on = ts\n            k = 0\n            phase = 1\n        }\n    } else {\n        armed = true\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 360 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}"
+      },
+      "original_script": "armed := true\nphase := 0\nt_on := 0\nt_m := 0\nhas_m := false\nk := 0\ns = (#Hall #Switch).Switch\nmo = (#Hall #MotionSensor).Motion\nts = (#Clock).Timestamp\nif (phase == 2) {\n    if (mo == false) {\n        k = k + 1\n        phase = 1\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}\nif (phase == 0) {\n    if (s == true) {\n        if (armed == true) {\n            armed = false\n            t_on = ts\n            k = 0\n            phase = 1\n        }\n    } else {\n        armed = true\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}",
+      "mutated_script": "armed := true\nphase := 0\nt_on := 0\nt_m := 0\nhas_m := false\nk := 0\ns = (#Hall #Switch).Switch\nmo = (#Hall #MotionSensor).Motion\nts = (#Clock).Timestamp\nif (phase == 2) {\n    if (mo == false) {\n        k = k + 1\n        phase = 1\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 360 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}\nif (phase == 0) {\n    if (s == true) {\n        if (armed == true) {\n            armed = false\n            t_on = ts\n            k = 0\n            phase = 1\n        }\n    } else {\n        armed = true\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 360 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}",
+      "base_pair_sha256": "d193ce7e0e3bc8862308e90dda7bd0301c3658596356a1700f93fa029ef86959",
+      "ground_truth": "not assigned; author-intended mutation only"
+    },
+    {
+      "pair_id": "E1-099/ext60-fault2",
+      "base_pair_id": "E1-099/correct",
+      "base_case": "E1-099",
+      "automation": "main",
+      "allocation_rank": 21,
+      "mutation": {
+        "family": "snapshot-value",
+        "rationale": "Use zero rather than current time when recording motion in both copies of the same phase block.",
+        "old": "t_m = ts",
+        "new": "t_m = 0",
+        "count": 2
+      },
+      "catalog_relocation": {
+        "original": "PerCom/6_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "current": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+        "sha256": "af8b872ba2f4e4824ccfebaa92a96d8f1f8c45b47f518280d2c299a20960b456",
+        "content_equal_to_frozen_input": true
+      },
+      "original_joi": {
+        "name": "E1-099",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nphase := 0\nt_on := 0\nt_m := 0\nhas_m := false\nk := 0\ns = (#Hall #Switch).Switch\nmo = (#Hall #MotionSensor).Motion\nts = (#Clock).Timestamp\nif (phase == 2) {\n    if (mo == false) {\n        k = k + 1\n        phase = 1\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}\nif (phase == 0) {\n    if (s == true) {\n        if (armed == true) {\n            armed = false\n            t_on = ts\n            k = 0\n            phase = 1\n        }\n    } else {\n        armed = true\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}"
+      },
+      "mutated_joi": {
+        "name": "E1-099",
+        "cron": "",
+        "period": 100,
+        "script": "armed := true\nphase := 0\nt_on := 0\nt_m := 0\nhas_m := false\nk := 0\ns = (#Hall #Switch).Switch\nmo = (#Hall #MotionSensor).Motion\nts = (#Clock).Timestamp\nif (phase == 2) {\n    if (mo == false) {\n        k = k + 1\n        phase = 1\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = 0\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}\nif (phase == 0) {\n    if (s == true) {\n        if (armed == true) {\n            armed = false\n            t_on = ts\n            k = 0\n            phase = 1\n        }\n    } else {\n        armed = true\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = 0\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}"
+      },
+      "original_script": "armed := true\nphase := 0\nt_on := 0\nt_m := 0\nhas_m := false\nk := 0\ns = (#Hall #Switch).Switch\nmo = (#Hall #MotionSensor).Motion\nts = (#Clock).Timestamp\nif (phase == 2) {\n    if (mo == false) {\n        k = k + 1\n        phase = 1\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}\nif (phase == 0) {\n    if (s == true) {\n        if (armed == true) {\n            armed = false\n            t_on = ts\n            k = 0\n            phase = 1\n        }\n    } else {\n        armed = true\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = ts\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}",
+      "mutated_script": "armed := true\nphase := 0\nt_on := 0\nt_m := 0\nhas_m := false\nk := 0\ns = (#Hall #Switch).Switch\nmo = (#Hall #MotionSensor).Motion\nts = (#Clock).Timestamp\nif (phase == 2) {\n    if (mo == false) {\n        k = k + 1\n        phase = 1\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = 0\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}\nif (phase == 0) {\n    if (s == true) {\n        if (armed == true) {\n            armed = false\n            t_on = ts\n            k = 0\n            phase = 1\n        }\n    } else {\n        armed = true\n    }\n}\nif (phase == 1) {\n    if (mo == true) {\n        t_m = 0\n        has_m = true\n        phase = 2\n    } else if (ts >= t_on + 300 + 120 * k) {\n        if (has_m == false or ts - t_m >= 120) {\n            (#Hall #Switch).Off()\n        }\n        phase = 0\n    }\n}",
+      "base_pair_sha256": "d193ce7e0e3bc8862308e90dda7bd0301c3658596356a1700f93fa029ef86959",
+      "ground_truth": "not assigned; author-intended mutation only"
+    }
+  ]
+}
