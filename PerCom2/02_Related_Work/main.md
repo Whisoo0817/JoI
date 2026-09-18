@@ -1,0 +1,28 @@
+# Related Work and Positioning
+
+> SenSys 원문의 검증 기준에 따른 논리 순서를 유지한 축약본. 개별 연구 비교는 표로 정리했다. `overleaf-paper/main.tex`의 해당 절과 대응한다.
+
+Verification of home automations did not begin as an open problem. When users authored rules directly, the rule itself was the artifact under analysis, and formal techniques could check it against fixed properties; when code was generated in domains that ship executable tests, the tests served as the oracle. In both settings, a checkable reference existed before verification began. LLM-based authoring turns the user from an author into a prompter. This shift separates the request from the artifact that implements it and raises a further question: whether the generated code implements the particular behavior requested by the user. We therefore organize prior work by the reference each system checks against. Table 1 compares representative systems by their program representation, checking reference, and method.
+
+**When a verification reference already exists.** A rich body of work verifies TAP rules with formal techniques. AutoTap~\cite{autotap} synthesizes or repairs TAP rules so that they satisfy user-specified LTL safety properties. TAPInspector~\cite{tapinspector} model-checks timing-aware rule sets for safety and liveness violations, and TAPFixer~\cite{tapfixer} repairs such violations. Related analyses uncover inter-rule and security vulnerabilities~\cite{iruler,soteria}, while HAWatcher~\cite{hawatcher} monitors deployed automations against mined invariants. These systems check properties of automation behavior, including temporal behavior and rule interactions.
+
+A reference is also available for generation targets whose domain supplies an executable oracle. GPIoT~\cite{gpiot} generates signal-processing and ML algorithm code from natural-language requirements and evaluates generated code with execution tests. Outside IoT, text-to-SQL evaluates generated queries against the denotations of gold queries~\cite{spider}. In these evaluations, the test cases or gold results provide the reference.
+
+**LLM-generated reactive automations.** Here, the intended behavior is named in the user's request, without a ready-made test suite labeling its future action sequence. TAP rules do carry temporal behavior, including triggers, durations, and schedules. In JOI scripts, however, mechanisms such as edge detection, sustained conditions, and counting must be realized through persistent variables, conditions, and per-tick execution. Some systems check LLM output deterministically: AutoIoT~\cite{autoiot_maude} checks generated rules against four inter-rule conflict types using Maude rewriting logic. Other systems assess the request more directly. ChatIoT~\cite{chatiot} translates natural language into Home Assistant automations and uses an LLM Evaluator to assess format compliance and request satisfaction. AwareAuto~\cite{awareauto} builds reactive-temporal rules with event/state modes, delays, branches, and sequencing, presents them for user revision, and lowers them to executable JSON. Its workflow supports rule refinement and deployment feasibility, without a separate trace-equivalence check between the rule and its implementation.
+
+**Checking against the request.** LACE~\cite{lace} back-translates a generated access-control policy into natural language and judges semantic equivalence against the original request with an NLI model; it separately checks policy conflicts with an SMT solver. Its request-conformance judgment thus concerns policy meaning, while its formal check concerns policy conflicts.
+
+LACE and AwareAuto are close along different axes: LACE checks a generated artifact against the user's request, while AwareAuto builds a reactive-temporal representation. VETS uses Timeline IR to make the requested automation's temporal control flow explicit and provide an executable reference for the generated JOI code. Behavioral Explorer checks whether that code preserves the IR's timed action trace for every allowed timed input sequence. Its guarantee concerns IR-to-code conformance within the specified input ranges and execution rules, assuming the confirmed IR captures the intended automation. Combining generation with verification is not itself our claimed novelty; our focus is this behavioral check for generated reactive-temporal automation code.
+
+**Table 1. Representative systems by artifact, checking reference, and method.** Entries summarize the indicated checks, not every system component or evaluation metric.
+
+| System | Artifact analyzed | Checking reference | Method |
+|---|---|---|---|
+| AutoTap~\cite{autotap} | TAP programs | User-specified LTL safety properties | Automata-based synthesis and repair |
+| TAPInspector~\cite{tapinspector} | Timing-aware TAP rules | Safety and liveness properties | Model checking (NuSMV) |
+| GPIoT~\cite{gpiot} | Generated IoT algorithm code | Manually authored test cases | Execution tests (offline evaluation) |
+| AutoIoT~\cite{autoiot_maude} | Models of generated TAP rules | Four conflict definitions | State-space search in Maude |
+| ChatIoT~\cite{chatiot} | Generated TAP representation | User request, context, and format requirements | LLM Evaluator |
+| AwareAuto~\cite{awareauto} | Reactive-temporal rules and grounded JSON | User intent and device interfaces | User revision and deployment checks |
+| LACE~\cite{lace} | Generated access-control policies | User request and policy-conflict definitions | NLI for meaning; SMT for conflicts |
+| **VETS** | **Reactive-temporal JOI code** | **User's intended behavior specified in Timeline IR** | **Timed action-trace equivalence checking** |
