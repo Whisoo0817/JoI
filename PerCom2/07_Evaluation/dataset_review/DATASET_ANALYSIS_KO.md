@@ -224,4 +224,4 @@ E2 200쌍과 E4 합성 30개 프로그램도 각각 정답 판정 시험과 규�
 - [E3 최종 manifest](../../../explorer/eval/results/e3_single_binding_382_20260915_manifest.json)
 - [통계 재현 script](audit_dataset_structure.py), [통계와 입력 해시](dataset_structure.json)
 
-재현: `python joi/PerCom2/08_Evaluation/dataset_review/audit_dataset_structure.py` (홈 작업 디렉터리 기준). 표본 개수·ID 일치·입력 해시를 확인한 뒤 통계 JSON을 다시 만든다. 이 작업은 기존 실험을 재실행하지 않으며, 외부 100건의 원문 전체를 새로 감사한 것도 아니다. 기존 출처 감사의 기록과 현 corpus를 대조하고, 비교 논문 여섯 편은 이번에 원문으로 확인했다.
+재현: `python joi/PerCom2/07_Evaluation/dataset_review/audit_dataset_structure.py` (홈 작업 디렉터리 기준). 표본 개수·ID 일치·입력 해시를 확인한 뒤 통계 JSON을 다시 만든다. 이 작업은 기존 실험을 재실행하지 않으며, 외부 100건의 원문 전체를 새로 감사한 것도 아니다. 기존 출처 감사의 기록과 현 corpus를 대조하고, 비교 논문 여섯 편은 이번에 원문으로 확인했다.

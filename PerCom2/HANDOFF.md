@@ -17,9 +17,9 @@
 - 382개는 저자가 JOI 플랫폼에서 사용하기 위해 직접 만든 자동화 명령이다. 작성 출처가 불명확하다는 이전 분석은 철회한다.
 - E1 후속 72건도 저자가 직접 검토했다. 사람 검토가 없다는 기존 평가 문서 기록은 잘못된 것으로 정정한다.
 - 집필 시 382건은 저자 직접 작성, E1은 외부 요구 수집과 저자 검토라는 구축 과정을 설명한다. 72건의 사람 검토를 미완료 작업으로 다시 제안하지 않는다.
-- 분석 정정본: [데이터셋 분석](08_Evaluation/dataset_review/DATASET_ANALYSIS_KO.md).
+- 분석 정정본: [데이터셋 분석](07_Evaluation/dataset_review/DATASET_ANALYSIS_KO.md).
 - 2026-09-19 집필 반영: Evaluation Setup 뒤에 데이터셋 3문단과 요약 표 1개를 추가하고 E1·E3 중복 소개를 줄였다. 382건의 저자 직접 작성과 E1 92건의 저자 검토를 명시했다.
-- 세부 출처·선정·정규화·구조 통계는 기존 데이터셋 부록에 추가했다. `08_Evaluation/main.md`, `main_ko.md`, `appendix.md`, `appendix_ko.md`를 Overleaf 영문과 동기화했다.
+- 세부 출처·선정·정규화·구조 통계는 기존 데이터셋 부록에 추가했다. `07_Evaluation/main.md`, `main_ko.md`, `appendix.md`, `appendix_ko.md`를 Overleaf 영문과 동기화했다.
 - 로컬 Tectonic PDF 빌드와 표 배치·인용을 확인했다. 참고문헌·부록 포함 11→12쪽이며, 데이터셋 설명은 본문에 표 하나만 추가한다.
 - Overleaf 연동 GitHub 저장소 커밋·푸시: `181438d` (`Document evaluation dataset provenance, review, and composition`). 원격의 Overleaf 수정 `a889d3b` 위에 반영하고 최종 빌드를 재확인했다. 원격에서 적용한 §6 검정·Evaluation 시작의 `lightgray` 설정을 보존했다. Overleaf에서 GitHub → Pull 필요.
 
@@ -37,7 +37,7 @@
 - PerCom2는 SenSys 기반에서 필요한 부분을 조금씩 바꾸는 작업 공간이다. 기존 PerCom의 서술 전체로 돌아가지 않는다.
 - 각 절의 현재 영문은 `main.md`, 한글 검토본은 `main_ko.md`에 둔다. `SenSys_version.md`와 `PerCom_version.md`를 다시 병렬로 만들지 않는다.
 - Overleaf 원고는 [main.tex](../../overleaf-paper/main.tex)이다. 해당 절을 수정하면 PerCom2 영문·한글과 동기화한다.
-- 검증·구현과 Evaluation은 기존 PerCom의 Behavioral Explorer 버전으로 교체했다. 본문에서는 검증·구현이 §6, Evaluation이 §7이다. 기존 폴더명 `08_Evaluation`은 유지한다.
+- 검증·구현과 Evaluation은 기존 PerCom의 Behavioral Explorer 버전으로 교체했다. 본문에서는 검증·구현이 §6, Evaluation이 §7이다. 폴더 번호도 본문에 맞춰 Evaluation은 `07`, Limitations는 `08`, Conclusion은 `09`로 정렬했다.
 - 제목·Abstract·Figure 1은 VETS 버전이다. **별도 요청 없이 Abstract를 수정하지 않는다.**
 - 원본 SenSys와 기존 PerCom 자료는 참고용으로 보존한다.
 
@@ -222,7 +222,7 @@
 - [judge 실험 집계 원자료](../PerCom/03_Motivation/motivation_judge/results/summary_common.json)
 - [judge 실험 프로토콜](../PerCom/03_Motivation/motivation_judge/PROTOCOL_2026-09-16.md)
 - [현재 검증·구현](06_Code_Generation_and_Behavioral_Validation/main.md)
-- [현재 Evaluation](08_Evaluation/main.md)
+- [현재 Evaluation](07_Evaluation/main.md)
 - [SenSys 전체 원문](../docs/ovla0606.tex)
 - [Overleaf main.tex](../../overleaf-paper/main.tex)
 
