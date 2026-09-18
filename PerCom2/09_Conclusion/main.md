@@ -1,3 +1,5 @@
-# Conclusion — SenSys version
+# Conclusion
 
-The SenSys paper concluded that OVLA created a trustworthy on-device path from natural-language intent to deployed automation by using Timeline IR as a user-confirmed oracle and a deterministic verifier as a fail-closed gate. It highlighted injected-fault detection, automatic repair and rejection, randomized replay, sub-millisecond latency, and deployment on a commercial hub.
+We presented VETS to generate smart-home automation code from natural-language requests and validate its behavior before deployment, using user-confirmed Timeline IR as a common reference for code generation and validation. Timeline IR makes execution order and timing conditions explicit to support user review and code generation. Behavioral Explorer checks whether the IR and code produce the same actions at the same times under shared inputs. It provides concrete counterexamples when behavior diverges and does not certify code when checking remains incomplete.
+
+We encoded all 92 in-scope external requests in Timeline IR and reproduced the expected behavior in request-specific tests. In the verdict reliability evaluation, all 184 verdicts issued by Explorer agreed with independent reference checks. In the cost evaluation, Explorer completed checks for 28 of 30 programs within a 120 s budget. These results support checking for behavioral differences between a confirmed specification and generated code before deployment, while correctly interpreting natural-language intent remains a prerequisite.
