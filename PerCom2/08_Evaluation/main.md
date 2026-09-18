@@ -1,10 +1,12 @@
 # Evaluation — PerCom working draft
 
-상태: 2026-09-18 E1을 범위 내 92건 전체 평가로 갱신. 사용자 검토 전. E2는 구성 표와 판정 분포 그림으로 제시한다. Counterexample은 수정에 필요한 행동 차이 정보로만 사용하며 대조군 비교나 인과적 개선 주장은 본문에 넣지 않는다. 근거·검증 메모는 `DRAFT_NOTES.md` 참조.
-
-Our evaluation asks four questions: Can Timeline IR express externally sourced automation requests (E1)? Do Explorer verdicts agree with a separately implemented reference (E2)? What errors appear in generated code (E3)? How does checking cost change with automation size and timing (E4)?
+상태: 2026-09-19 데이터셋 설명과 저자 작성·검토 사실을 반영. 중복되는 데이터셋 요약 표 D1은 삭제했다. E1은 범위 내 92건 전체 평가. E2는 구성을 본문으로 설명하고 판정 분포를 그림으로 제시한다. Counterexample은 수정에 필요한 행동 차이 정보로만 사용하며 대조군 비교나 인과적 개선 주장은 본문에 넣지 않는다. 근거·검증 메모는 `DRAFT_NOTES.md` 참조.
 
 **Setup.** All code evaluations use JOI and the execution model in Sections V and VI. E1 evaluates expression and reference execution, E2 checks verdict fidelity, E3 evaluates generated candidates, and E4 measures completion and cost. Refusals, incomplete searches, and errors remain in each evaluation's denominator. LLM generation is separate from behavioral checking.
+
+**Datasets.** We use 382 author-written commands from a test set created for the JOI platform to evaluate generated-code validation and repair (E3). The set varies automation type and structural complexity across 24 defined patterns, including conditional and event-triggered actions, sustained conditions, delayed sequences, schedules, and repetition. Its confirmed IRs contain two to eight operator nodes, with a maximum nesting depth of zero to three for branches and cycles. The dataset appendix reports the pattern breakdown and structural statistics.
+
+We additionally collected 100 external automation requests to evaluate Timeline IR adequacy (E1). The following subsection describes their sources and behavioral characteristics.
 
 ## Timeline IR Adequacy
 
