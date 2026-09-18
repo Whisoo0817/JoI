@@ -1,28 +1,57 @@
 # System Overview — PerCom working draft
 
-> 작업 범위: O1–O5. `../../docs/ovla0606.tex`의 실제 System Overview 문장을 기준으로 재작성했다. 굵게 표시된 구절은 원문에서 수정·추가한 부분이며, 문단 리드인은 LaTeX `\textbf`로 구별한다. 기존 SenSys 그림은 임시 배치용으로 유지한다. 그림 내부의 이전 단계명은 최종 그림 교체 시 수정한다.
+> 2026-09-18: 중복 축약 반영본. 아래 본문은 변경 표시를 제외한 현재 원고다. 이번 수정 직전 Overleaf 커밋 `82d4073` 대비 삭제 취소선·추가 빨간색은 `overleaf-paper/main.tex`에서 확인한다.
 
-**VETS** implements the aforementioned design as a **pipeline that fixes a behavioral reference before generating and checking code**. **An LLM proposes a Timeline IR from the user's command, and the user reviews and confirms it.** The system checks the generated code against the confirmed IR before deployment. **The same confirmed IR guides code generation and serves as the executable reference for behavioral verification (Figure~\ref{fig:arch}).**
+Figure~\ref{fig:arch} shows the VETS workflow from specification confirmation to code generation and behavioral checking. The following stages keep the confirmed IR and binding fixed while generating, checking, and optionally revising the code.
 
 \begin{figure*}[t]
-\centering
-% Temporary SenSys figure. Resolve this path relative to this draft directory.
-\includegraphics[width=\textwidth]{../../docs/figs/system.pdf}
-\caption{System workflow with a confirmed Timeline IR as the reference for checking generated code. The dashed arrow indicates code revision using a counterexample.}
-\label{fig:arch}
+  \centering
+  % User-maintained workflow figure. Label suggestions are tracked locally.
+  \includegraphics[width=\textwidth]{../../docs/figs/system.pdf}
+  \caption{System workflow with a confirmed Timeline IR as the reference for
+  checking generated code. The dashed arrow indicates code revision using a
+  counterexample.}
+  \label{fig:arch}
 \end{figure*}
 
-\textbf{Execution target.} We instantiate **VETS** on **a commercial IoT platform whose execution DSL is JoI**. A JoI automation consists of a start schedule (\texttt{cron}), a re-execution interval (\texttt{period}), and a script body (\texttt{code}). When the \texttt{period} parameter is positive, the body is executed **again after the previous iteration completes and the interval elapses**. **Temporal behavior** such as edge detection, sustained conditions, and counting must be implemented with persistent variables and ordinary conditionals. JoI therefore serves as the executable artifact produced by the lowering phase as well as the primary artifact checked by the verifier.
+**Execution target.** We instantiate VETS on a commercial
+IoT platform whose execution DSL is JoI. A JoI automation consists of a start
+schedule (`cron`), a re-execution interval (`period`), and a
+script body (`code`). When the `period` parameter is positive,
+the body is executed again after the previous iteration completes and
+the interval elapses. Temporal behavior such as edge detection,
+sustained conditions, and counting must be implemented with persistent
+variables and ordinary conditionals. JoI therefore serves as the executable
+artifact produced by the lowering phase as well as the primary artifact
+checked by the verifier.
 
-\textbf{**Specification confirmation and code generation.**} **The LLM first proposes a candidate Timeline IR.** The word ``candidate'' underscores that, prior to user confirmation, the IR merely represents the system's proposed interpretation of the command. **The user reviews the candidate and may edit it or request an LLM-assisted revision before confirmation.** Once confirmed, the Timeline IR is finalized as the reference specification for the automation. **Timeline IR specifies the temporal behavior (§5), while the confirmed binding identifies the target devices. We assume that the confirmed IR and binding capture the user's intended behavior and targets.** Only after this reference is fixed does **VETS** lower the IR to JoI code.
+**Specification confirmation and code generation.** The LLM first proposes a candidate Timeline IR. The user reviews the candidate and may edit it or request an LLM-assisted revision before confirmation. Timeline IR specifies the temporal behavior (§5), while the confirmed binding identifies the target devices. We assume that the confirmed IR and binding capture the user's intended behavior and targets. Only after this reference is fixed does VETS lower the IR to JoI code.
 
-\textbf{**Behavioral verification.**} The verifier receives two artifacts: the confirmed Timeline IR, which serves as the behavioral reference, and the generated JoI code. The verifier first performs a static syntax check on the JoI code. **It also checks that the IR–code pair falls within the supported execution model. Behavioral Explorer then jointly explores the IR and code execution states under shared timed input histories and allowed initial states (§6). Their semantic interpreters produce action traces, which the Explorer compares for matching actions and timing. This check runs without any LLM call. Successful verification certifies trace preservation within the declared execution model. A mismatch yields a counterexample, while unsupported cases and incomplete exploration remain uncertified.**
+**Behavioral verification.** The verifier receives two artifacts:
+the confirmed Timeline IR, which serves as the behavioral reference, and the
+generated JoI code. The verifier first performs a static syntax check on the
+JoI code. It also checks that the IR--code pair falls within the
+supported execution model. Behavioral Explorer then jointly explores the IR
+and code execution states under shared timed input histories and allowed
+initial states (§6). Their semantic interpreters produce action traces,
+which the Explorer compares for matching actions and timing. This check runs
+without any LLM call. Successful verification certifies trace preservation
+within the declared execution model. A mismatch yields a counterexample,
+while unsupported cases and incomplete exploration remain uncertified.
 
-\textbf{**Counterexample feedback.**} A failing program is not deployed directly. **The counterexample can be returned** to the lowering stage to **guide revision** of the JoI code alone. The confirmed IR is not changed during this repair process**. It** remains the user-approved reference. **The revised code is checked again against the same IR and binding. This feedback is an optional use of the counterexample. Verification covers one automation pair at a time under the declared model, including its device binding and timing rules. Interactions among deployed automations and physical device dynamics are outside this check.**
+**Counterexample feedback.** A failing program is not deployed
+directly. The counterexample can be returned to the lowering stage to
+guide revision of the JoI code alone. The confirmed IR is not changed
+during this repair process. It remains the user-approved reference.
+The revised code is checked again against the same IR and binding.
+This feedback is an optional use of the counterexample. Verification covers
+one automation pair at a time under the declared model, including its device
+binding and timing rules. Interactions among deployed automations and physical
+device dynamics are outside this check.
 
 ---
 
-## 편집 메모 (논문 본문 아님)
+## 이전 편집 기록 (2026-09-18 축약 전, 논문 본문 아님)
 
 - 원문은 이 폴더의 `SenSys_version.md`에 있는 요약이 아니라 `../../docs/ovla0606.tex`의 `\section{System Overview}`다. 문장별 대응은 `OVERVIEW_FLOW_COMPARISON.md`에 기록했다.
 - Authoring/Verification의 두 phase 설명과 ①–⑦ 단계별 열거를 없앴다. LLM의 IR 제안 → 사용자 검토·수정·확정은 유지하며, semantic parsing·IR rendering·확인 UI의 구현과 성능은 설명하지 않는다.
