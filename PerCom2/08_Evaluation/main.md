@@ -42,9 +42,9 @@ We executed Timeline IR and JOI code with reference interpreters implemented ind
 
 Support is checked on tested inputs for equivalence and by counterexample replay for divergence. — denotes no definitive verdict.
 
-## Generated-Code Validation
+## Code Generation Workflow
 
-E3 checks LLM-generated JOI code against the supplied Timeline IR, then rechecks divergent candidates after one revision using counterexample feedback. For each of the 382 JOI commands, we supplied the confirmed IR and binding to Qwen3.5-9B to generate JOI code. The base checking budget was 20 s, scaled by the number of device assignments when several assignments had to be checked.
+E3 evaluates a code generation workflow that starts from confirmed Timeline IR and combines code generation, behavioral validation, and counterexample-guided repair. Divergent candidates were revised once using counterexample feedback and then rechecked. For each of the 382 JOI commands, we supplied the confirmed IR and binding to Qwen3.5-9B to generate JOI code. The base checking budget was 20 s, scaled by the number of device assignments when several assignments had to be checked.
 
 **Table E3. Outcomes on generated JOI candidates.**
 
@@ -56,7 +56,7 @@ E3 checks LLM-generated JOI code against the supplied Timeline IR, then rechecks
 | Inconclusive | 2 | 0.52% |
 | Total | 382 | 100.00% |
 
-Explorer issued a semantic verdict for 377 candidates (Table E3), a completion rate rather than an accuracy estimate. All 68 divergences were confirmed by its concrete replay. For example, one request turns off a power strip after 30 seconds without motion. The generated code counted one second as elapsed as soon as it first observed no motion, then added one each second. It therefore reached a count of 30 after only 29 seconds and turned off the strip. Explorer detected that the code acted one second earlier than required by the IR. The unsupported cases involved a binary return assignment, unbounded temperature arithmetic, and a large illuminance domain. Both inconclusive cases reached the time limit for an internal condition check. These exploratory results are relative to the confirmed IR and binding, not measurements of natural-language intent accuracy or physical-device behavior.
+Explorer issued a semantic verdict for 377 candidates (Table E3), a completion rate rather than an accuracy estimate. All 68 divergences were confirmed by its concrete replay. The unsupported cases involved a binary return assignment, unbounded temperature arithmetic, and a large illuminance domain. Both inconclusive cases reached the time limit for an internal condition check. These exploratory results are relative to the confirmed IR and binding, not measurements of natural-language intent accuracy or physical-device behavior.
 
 **Counterexamples for repair.** For each of the 68 divergent candidates, we supplied the same model with the counterexample input, the actions required by the IR, and the actions produced by the code, and requested one revision. We kept the IR and binding fixed. On rechecking, 36 candidates (52.9%) received an equivalence verdict and 26 remained divergent. The remaining cases comprised five checking timeouts and one repair generation failure due to a model context error.
 
