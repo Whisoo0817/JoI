@@ -10,25 +10,15 @@ We additionally collected 100 external automation requests to evaluate Timeline 
 
 ## Timeline IR Adequacy
 
-E1 tests whether Timeline IR operators can be combined to express externally sourced automation requests. We collected 100 requests from four sources (Table E1). One author screened them against the reactive-temporal scope: 92 were in scope, six were ambiguous, and two were out of scope. We encoded and tested all 92 in-scope requests.
+E1 evaluates whether Timeline IR can express automation requirements drawn from outside our own JOI test set. Relying only on author-written commands would limit the assessment to the patterns we had designed. We therefore collected 100 requests from official Google Home and Home Assistant examples~\cite{googlehomeexamples,haautomation}, published research tasks and examples~\cite{ur2014,huang2015,autotap,tapinspector,brackenbury2019}, released AutoTap participant responses~\cite{autotapdata}, and Home Assistant Community posts~\cite{hacommunity}. During collection, we sought complex requests combining timing requirements and multiple execution stages.
 
-The evaluated cases include combinations of sustained conditions, nested repetition, restoration of prior state, and time limits based on execution history. For example, a garage alert repeats blinking sequences and pauses, stops when the door closes, and restores the original light setting. The sprinkler case tracks watering across multiple sessions to limit the total to ten minutes in any 48-hour window.
+One author reviewed the collected requests for reactive-temporal scope, semantic duplicates, and unresolved behavioral choices. Of the 100 requests, 92 were in scope; six were classified as ambiguous because their source descriptions left execution time windows or conditions for acting or interrupting execution unclear. The remaining two concerned online-service integration, such as updating a Twitter profile picture when the Facebook profile picture changes, and were excluded from the evaluation scope of smart-home device behavior. The evaluated requests range from basic trigger–action rules to compound conditions and multiple device actions, sustained conditions, delayed sequences, repetition, and history-dependent execution. They also include response timeouts, cancellation or restart during execution, restoration of prior state, and independently progressing flows. These features can occur together within one request. For example, a request to blink a light repeatedly while a garage door is open, stop when it closes, and restore the original light setting combines repetition, cancellation, and state restoration.
 
-For each request, we recorded a concrete interpretation and expected actions and timestamps before encoding it. LLM agents helped prepare the interpretations and expected traces; not all received an independent review. We replayed the input histories on the reference IR runner and compared actions and timestamps, treating simultaneous actions as an unordered group. We report final encodings and retain failed attempts in the experiment records.
+We encoded and tested all 92 requests. Their final IRs contain three to eight distinct operator types per request, including `start_at` and `call`, with maximum branch/cycle nesting depths ranging from zero to four. These statistics describe the encodings, including monitoring loops used to detect events.
 
-**Table E1. Timeline IR execution results by request source.**
+For each request, we recorded a concrete interpretation and expected actions and timestamps before encoding it. The author reviewed each interpretation and expected trace. We replayed the input histories on the reference IR runner and compared actions and timestamps, treating simultaneous actions as an unordered group. We report final encodings and retain failed attempts in the experiment records.
 
-| Request source | Collected | Evaluated | Exact histories |
-| --- | ---: | ---: | ---: |
-| Official platform examples | 25 | 25 | 97/97 |
-| Research examples | 26 | 24 | 74/74 |
-| Published participant responses | 24 | 20 | 58/58 |
-| Community requests | 25 | 23 | 65/65 |
-| **Total** | **100** | **92** | **294/294** |
-
-All 92 final encodings reproduced the expected traces on all 294 input histories (Table E1). Seventeen additional diagnostic histories also matched and are reported separately from the table.
-
-For each request, we specified its intended behavior and execution conditions, then encoded and executed it in Timeline IR. Under these conditions, the results show that Timeline IR can express the evaluated behaviors and reproduce the expected traces on the tested input histories. They do not establish correctness for all possible inputs or requests; Explorer support is evaluated separately.
+For all 92 evaluated requests, the final IR reproduced the expected actions and timestamps on every test input prepared for that request. This supports the IR's ability to express the requests under their specified interpretations and execution conditions and reproduce the expected behavior on the tested inputs. It does not establish correctness for all possible inputs or requests; Explorer support is evaluated separately.
 
 ## Validation Fidelity
 

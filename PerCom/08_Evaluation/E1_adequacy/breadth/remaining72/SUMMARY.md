@@ -1,12 +1,14 @@
 # Remaining72 E1 reference execution
 
+> **Author-review correction (2026-09-19):** The author confirmed personally reviewing all 72 extension cases. Earlier statements that these cases had not received author review were incorrect. Agent preparation and author review are both part of the record. The initial execution counts and raw candidate labels below remain historical records.
+
 > **Follow-up, 2026-09-18:** E1-024 now has an ordinary Timeline IR rolling-budget implementation: original3/3 plus9/9 expiry/boundary histories. See [the revision](e1_024_rolling/README.md) and [raw results](e1_024_rolling/results.json). The71/72 and239/241 counts below describe the preserved initial candidates. Substituting this revision on the same original histories yields72/72 and241/241, subject to the recorded interpretations and integer-second scope. The initial raw results remain unchanged.
 
-All72 requests were attempted. 71/72 candidates reproduced every frozen history; 239/241 histories matched exactly. Interpretations were inferred by Astra agents using source records and the prior20, without a new author semantic audit.
+All72 requests were attempted. 71/72 candidates reproduced every frozen history; 239/241 histories matched exactly. Interpretation drafts were prepared by Astra agents using source records and the prior20. The author also personally reviewed all 72 cases, as confirmed on 2026-09-19.
 
 ## What this result means
 
-The measured unit is a request under its explicitly frozen interpretation, not every possible interpretation of the source. The original20 remain unchanged. These72 extend the in-scope cohort to92 attempted requests, but a count of92 successful adequacy cases is not supported. The language, fixed selections, waveform assumptions, independently deployed Timelines and other qualifications are retained in per-case records. These are finite test histories, not all-input verification or physical-device validation.
+The measured unit is a request under its explicitly frozen interpretation, not every possible interpretation of the source. The original20 remain unchanged. These72 extend the in-scope cohort to92 requests. The initial candidate results below precede the E1-024 revision; the current final aggregate is 92 requests and 294/294 main histories. The language, fixed selections, waveform assumptions, independently deployed Timelines and other qualifications are retained in per-case records. These are finite test histories, not all-input verification or physical-device validation.
 
 E1-024 is a partial candidate: a conservative single-session cooldown matches1/3 histories and fails the two legal split-session/cumulative-budget histories. The demand-serving interpretation adds an availability obligation beyond the source's literal never-exceed safety constraint: refusing legal requests could satisfy that literal safety property. Thus the two failures concern the declared stronger interpretation, not an inherent source or IR impossibility. A separately executed JoI mutable-accumulator fallback matches3/3 on these shorter-than48h histories; it does not implement general rolling-window expiry and is not claimed complete.
 
@@ -27,7 +29,7 @@ Known pre-repair failures and encoding changes are retained in each batch archiv
 
 ## Bias and scope
 
-- The same project and related agents developed assumptions, expected traces and encodings, although expectations were hashed before encoding. This procedural separation does not establish independent oracle validity.
+- The same project and related agents developed assumptions, expected traces and encodings, although expectations were hashed before encoding. The author personally reviewed all 72 cases. Temporal freezing and author review are recorded as distinct parts of the procedure.
 - Prior20 conventions guide event/startup/reentry and property-to-controller choices; assumptions can make a requirement easier or narrower. Alternatives are recorded rather than counted as validated.
 - Official examples were checked against live2026-09-17 source after the corpus2026-09-13 freeze. Source drift, especially E1-068 prose versus YAML, is disclosed; this is not a claim that every live variant equals the frozen normalization.
 - E1-078 adopts manual-rearm lockout; E1-089 follows the source startup priority with overlapping thresholds. These material interpretations are visible in the community batch.
