@@ -20,17 +20,27 @@ For each request, we recorded a concrete interpretation and expected actions and
 
 For all 92 evaluated requests, the final IR reproduced the expected actions and timestamps on every test input prepared for that request. This supports the IR's ability to express the requests under their specified interpretations and execution conditions and reproduce the expected behavior on the tested inputs. It does not establish correctness for all possible inputs or requests; Explorer support is evaluated separately.
 
-## Validation Fidelity
+## Verdict Reliability
 
-To evaluate whether Explorer accepts equivalent implementations and distinguishes those with different behavior, we assembled IR–JOI pairs containing correct implementations and code with deliberately introduced faults. We constructed 150 pairs from 20 E1 requests, including correct implementations and variants with one fault each, and added 50 valid LLM-generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition.
+E2 evaluates whether Explorer's equivalence and divergence verdicts agree with independently implemented reference executions. We constructed 150 IR–JOI pairs from 20 E1 requests, including correct implementations and variants with one fault each, and added 50 valid LLM-generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition.
 
-Explorer uses internal interpreters during exploration. To cross-check its verdicts in E2, we executed Timeline IR and JOI code with separate reference interpreters implemented independently of the internal interpreters, comparing the resulting actions and timestamps. These reference implementations execute programs on concrete sensor values and timed input changes according to the language specifications, recording the resulting actions and timestamps.
+We executed Timeline IR and JOI code with reference interpreters implemented independently of Explorer's internal exploration interpreters. Both received the same sensor inputs and timed changes, and we compared their actions and timestamps. Test inputs covered condition thresholds, sensor changes just before, at, and after waiting deadlines, and request-specific E1 scenarios; they were constructed without using Explorer's verdicts. For equivalence, we checked agreement on all supplied inputs for an allowed device assignment. For divergence, we replayed Explorer's counterexample in the reference interpreters to confirm an actual behavioral difference.
 
-We constructed test inputs to cover condition and timing boundaries governing state transitions. These inputs included sensor values around condition thresholds and sensor changes just before, at, and after waiting deadlines, supplemented with existing request-specific test scenarios from E1. Input generation did not use Explorer's verdicts. We supplied the same inputs to both reference interpreters and compared the resulting actions and timestamps. We also executed the input histories returned by Explorer as counterexamples to check that they caused an actual difference.
+**Verdict agreement.** All 184 verdicts issued by Explorer agreed with the reference checks (Table E2). The 64 equivalent pairs matched in actions and timestamps on every tested input, and all 120 divergent pairs exhibited a behavioral difference when their counterexamples were replayed. Thus, no incorrect equivalence verdict was observed on the tested inputs, and every reported divergence was reproduced. The equivalence checks provide evidence on the tested inputs, rather than a proof over all possible inputs.
 
-For divergence, a concrete difference confirmed the counterexample for the tested device assignment. For equivalence, we checked that all supplied histories matched for an allowed device assignment; this provides evidence on the tested inputs, not a proof for all possible inputs. Each Explorer search used limits of 120 s, 400,000 states, and 2,000,000 transitions.
+**Decision coverage.** The remaining 16 pairs received no definitive verdict. Eight previously timed-out pairs did not finish within 10 minutes even when rerun with internal time and state-count limits removed. The other eight were unsupported because of limitations in accumulated-variable analysis. For example, seven pairs implement or modify a request that extends the termination time by two minutes whenever motion is detected, with no upper bound on the accumulated count.
 
-Of the 200 pairs, Explorer classified 64 as equivalent and 119 as divergent; the remaining 17 were undecided because of timeouts or unsupported features. None of the 183 issued verdicts contradicted the reference checks. For all 119 pairs classified as divergent, the reference implementations confirmed a difference in actions or their timestamps. Among fault variants with an observed difference, Explorer left 11 undecided and accepted none. Of the 17 undecided pairs, 8 exceeded the time budget and 9 required arithmetic or input values outside the supported scope. Fault variants from the same request are related cases rather than independent samples.
+**Table E2. Agreement between Explorer verdicts and independent reference checks.**
+
+| Explorer verdict | Pairs | Supported | Contradicted |
+|---|---:|---:|---:|
+| Equivalent | 64 | 64 | 0 |
+| Divergent | 120 | 120 | 0 |
+| Unsupported | 8 | — | — |
+| Timeout (10 min) | 8 | — | — |
+| **Total** | **200** | **184** | **0** |
+
+Support is checked on tested inputs for equivalence and by counterexample replay for divergence. — denotes no definitive verdict.
 
 ## Generated-Code Validation
 
