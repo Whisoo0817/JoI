@@ -1,0 +1,9 @@
+# LLM Judge Experiment Details — Local Reference
+
+> Retained locally after removal from the paper appendix at the author's request.
+
+The originals came from the equivalent programs in the generated-code evaluation (Section~\ref{sec:eval-generated}); of these 309 programs, 217 had at least one verified rewrite. The judges were \texttt{Hyper-AI/Qwen3.5-9B-fp8} (temperature 0, seed 0, thinking disabled), \texttt{gpt-5.4-mini-2026-03-17} (low reasoning effort, seed 42), and \texttt{claude-sonnet-5} (adaptive thinking, low effort). The hosted APIs did not permit the same temperature control. Qwen used a 1,500-token initial budget and, when needed, a continuation of up to 300 tokens to complete the verdict; this occurred in 200 of its 1,122 evaluations. All three judges returned valid verdicts for every evaluated input.
+
+PHV was added after inspecting preliminary results. Its transformation rule was fixed before its judge results were inspected and applied uniformly to eligible seeds. Rewrite results are conditional on the 52 originals accepted by every judge in at least two of three evaluations; this selection does not establish agreement between the IR and natural-language intent. The figure reports descriptive proportions for 3--39 variants per type, rather than a general ranking of transformation difficulty. Table~\ref{tab:instab} measures disagreement across three unchanged submissions, whereas Figure~\ref{fig:instability} measures rejection of a rewritten program. Their difference does not estimate a rewrite effect.
+
+The variants preserve what device actions occur and when. Each original and its variants were checked against the same confirmed IR by Behavioral Explorer (\S6), comparing their timed action traces under the same timed input sequences. This establishes the behavioral relation used in the experiment, rather than independently evaluating Explorer's correctness.
