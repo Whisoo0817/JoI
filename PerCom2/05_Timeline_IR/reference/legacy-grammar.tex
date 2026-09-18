@@ -1,0 +1,43 @@
+% Legacy SenSys grammar, preserved for reference only. Not included in the current manuscript.
+% Includes superseded gate, cycle, and bounded-horizon claims; do not reuse without review.
+\section{Timeline IR Grammar}
+\label{app:grammar}
+
+A Timeline IR is serialized as a JSON object whose steps each carry an \texttt{op} tag; the grammar below gives the abstract syntax in EBNF. Terminals are quoted; \texttt{[\,x\,]} marks an optional part and \texttt{\{\,x\,\}} zero-or-more repetition.
+
+{\small
+\begin{flushleft}
+\texttt{ir \ \ \ \ \ \ ::= start\_at \{ step \}}\\
+\texttt{step \ \ \ \ ::= wait | delay | read | call}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | if | cycle | break}\\[3pt]
+\texttt{start\_at ::= "start\_at" "(" ("now" | "cron" cron) ")"}\\
+\texttt{wait \ \ \ \ ::= "wait" "(" expr ["," "edge:" edge]}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ ["," "for:" duration] ")"}\\
+\texttt{edge \ \ \ \ ::= "none" | "rising" | "falling"}\\
+\texttt{delay \ \ \ ::= "delay" "(" duration ")"}\\
+\texttt{read \ \ \ \ ::= "read" "(" ident "," service "." attr ")"}\\
+\texttt{call \ \ \ \ ::= "call" "(" service "." function}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ \{ "," name "=" (value | expr) \} ")"}\\
+\texttt{if \ \ \ \ \ \ ::= "if" "(" expr ")" "\{" \{ step \} "\}"}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ ["else" "\{" \{ step \} "\}"]}\\
+\texttt{cycle \ \ \ ::= "cycle" "(" "period:" duration}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ ["," "count:" ident]}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ ["," "until:" expr] ")"}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ \ \ "\{" step \{ step \} "\}"}\\
+\texttt{break \ \ \ ::= "break"}\\[3pt]
+\texttt{duration ::= int ("HOUR" | "MIN" | "SEC" | "MSEC")}\\[3pt]
+\texttt{expr \ \ \ \ ::= expr ("or" | "and") expr | "not" expr}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | arith [cmp arith]}\\
+\texttt{cmp \ \ \ \ \ ::= "==" | "!=" | "<" | "<=" | ">" | ">="}\\
+\texttt{arith \ \ \ ::= arith ("+" | "-" | "*" | "/") arith}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | "abs" "(" expr ")"}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | ("min" | "max") "(" expr "," expr ")"}\\
+\texttt{\ \ \ \ \ \ \ \ \ \ \ | service "." attr | "\$" ident | literal}
+\end{flushleft}
+}
+
+\noindent\texttt{service.attr} denotes a live sensor read and \texttt{\$}\texttt{ident} a persistent variable bound by \texttt{read} or \texttt{cycle.count}; \texttt{literal} ranges over numbers, booleans, and the enum values declared in the device catalog.
+
+\noindent\emph{Semantic conventions.} \texttt{wait.edge="rising"} completes once per upward crossing of \texttt{cond}; \texttt{wait.for} requires \texttt{cond} to hold continuously for the duration, resetting if it flips false. \texttt{cycle.period} is the per-iteration cadence; when \texttt{until} is absent, the cycle repeats within the verifier's bounded horizon (\S6).
+
+\noindent\emph{Context-sensitive rules (grammar G, \S5).} Beyond per-step shape, the feasibility gate enforces: (1) \texttt{timeline[0]} is the only \texttt{start\_at}; (2) \texttt{start\_at} may not appear inside a branch or loop body; (3) at most one top-level \texttt{cycle} and no nested \texttt{cycle}; (4) \texttt{break} only inside a \texttt{cycle} body; (5) \texttt{cycle.period} is required. Catalog conformance (every \texttt{Service.Attr} and \texttt{call.target} names a service, member, and argument that the connected-device catalog declares) is checked at the same point and rejects out-of-catalog targets fail-closed.
