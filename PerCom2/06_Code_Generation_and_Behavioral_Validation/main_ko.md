@@ -1,6 +1,6 @@
 # 코드 생성과 행동 검증
 
-그림 3처럼 LLM은 사용자가 확정한 Timeline IR과 기기 바인딩으로 JOI 코드를 생성한다. Behavioral Explorer는 정해진 입력값 범위와 실행 규칙 아래에서, 허용된 모든 초기 상태와 입력 시퀀스에 대해 IR과 생성 코드가 같은 timed action trace를 만드는지 검사한다.
+그림 3처럼 LLM은 확정된 Timeline IR에 명시된 실행 순서와 시간 조건을 지침으로 삼고, 기기 바인딩을 적용해 JOI 코드를 생성한다. Behavioral Explorer는 정해진 입력값 범위와 실행 규칙 아래에서, 허용된 모든 초기 상태와 입력 시퀀스에 대해 IR과 생성 코드가 같은 timed action trace를 만드는지 검사한다.
 
 ## 같은 입력에서 행동 비교하기
 

@@ -1,6 +1,6 @@
 # Code Generation and Behavioral Validation
 
-As shown in Figure 3, the LLM generates JOI code from the confirmed Timeline IR and device binding. Behavioral Explorer checks whether the IR and generated code produce the same timed action trace for every allowed initial state and timed input sequence within the specified input ranges and execution rules.
+As shown in Figure 3, the LLM generates JOI code using the execution order and timing conditions specified in the confirmed Timeline IR as guidance and applying the device binding. Behavioral Explorer checks whether the IR and generated code produce the same timed action trace for every allowed initial state and timed input sequence within the specified input ranges and execution rules.
 
 ## Comparing Behavior under Shared Inputs
 
