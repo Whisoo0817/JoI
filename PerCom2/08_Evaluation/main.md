@@ -22,15 +22,7 @@ For all 92 evaluated requests, the final IR reproduced the expected actions and 
 
 ## Validation Fidelity
 
-To evaluate Explorer's verdicts, we assembled 200 IR–JOI code pairs (Table E2a). We used 20 requests from E1 to construct 150 pairs containing correct implementations and variants with one deliberately introduced fault. We added 50 valid generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition.
-
-**Table E2a. Composition of the evaluation set.**
-
-| Source | IR–code pairs |
-| --- | ---: |
-| Hand-built implementations and fault variants from 20 E1 requests | 150 |
-| Sampled LLM-generated candidates | 50 |
-| Total | 200 |
+To evaluate Explorer's verdicts, we assembled 200 IR–JOI code pairs. We used 20 requests from E1 to construct 150 pairs containing correct implementations and variants with one deliberately introduced fault. We added 50 valid generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition.
 
 We checked whether Explorer's equivalence and divergence verdicts agreed with separate executions of each IR–JOI pair. For this comparison, we implemented a Timeline IR runner and a JOI interpreter from the language specifications without access to Explorer code.
 
