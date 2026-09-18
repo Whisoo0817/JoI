@@ -22,9 +22,9 @@ For all 92 evaluated requests, the final IR reproduced the expected actions and 
 
 ## Validation Fidelity
 
-To evaluate Explorer's verdicts, we assembled 200 IR–JOI code pairs. We used 20 requests from E1 to construct 150 pairs containing correct implementations and variants with one deliberately introduced fault. We added 50 valid generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition.
+To evaluate whether Explorer accepts equivalent implementations and distinguishes those with different behavior, we assembled IR–JOI pairs containing correct implementations and code with deliberately introduced faults. We constructed 150 pairs from 20 E1 requests, including correct implementations and variants with one fault each, and added 50 valid LLM-generated candidates sampled from the 388-request development set. Faults span 12 families, including action omission, timing, guards, stored values, order, and repetition.
 
-We checked whether Explorer's equivalence and divergence verdicts agreed with separate executions of each IR–JOI pair. For this comparison, we implemented a Timeline IR runner and a JOI interpreter from the language specifications without access to Explorer code.
+To check each pair's behavior and compare it with Explorer's verdict, we used a Timeline IR runner and a JOI interpreter implemented independently of Explorer. These reference implementations execute programs on concrete sensor values and timed input changes according to the language specifications, recording the resulting actions and timestamps. We checked their behavior against previously written expected traces and tests of execution rules such as delays, waits, and repetition.
 
 We wrote scripts to generate test inputs from the IR conditions and durations and the existing E1 test histories. Each input history specifies sensor values and when they change. The scripts included values around condition thresholds and changes just before, at, and after waiting deadlines, without using Explorer's verdicts. We supplied each history to both reference implementations and compared the actions and their timestamps. We also executed the input histories returned by Explorer as counterexamples to check that they caused an actual difference.
 
@@ -34,7 +34,7 @@ For divergence, a concrete difference confirmed the counterexample for the teste
 
 ![Explorer outcomes: equivalent 64 (32.0%), divergent 119 (59.5%), timeout 8 (4.0%), unsupported 9 (4.5%).](../../PerCom/08_Evaluation/figures/e2_verdicts.png)
 
-Timeout and unsupported cases remain undecided. None of the 183 equivalence or divergence verdicts contradicted the reference checks.
+Timeout and unsupported cases remain undecided.
 
 None of the 183 issued verdicts contradicted the reference checks (Figure E2). For all 119 pairs classified as divergent, the reference implementations confirmed a difference in actions or their timestamps. Among fault variants with an observed difference, Explorer left 11 undecided and accepted none. Of the 17 undecided pairs, 8 exceeded the time budget and 9 required arithmetic or input values outside the supported scope. Fault variants from the same request are related cases rather than independent samples.
 
