@@ -40,7 +40,7 @@ None of the 183 issued verdicts contradicted the reference checks (Figure E2). F
 
 ## Generated-Code Validation
 
-E3 checks LLM-generated JOI code against the supplied Timeline IR, then rechecks divergent candidates after one revision using counterexample feedback. We evaluated 382 smart-home commands from a dataset we constructed for the JOI hub. For each command, we supplied the confirmed IR and binding to Qwen3.5-9B to generate JOI code. The base checking budget was 20 s, scaled by the number of device assignments when several assignments had to be checked.
+E3 checks LLM-generated JOI code against the supplied Timeline IR, then rechecks divergent candidates after one revision using counterexample feedback. For each of the 382 JOI commands, we supplied the confirmed IR and binding to Qwen3.5-9B to generate JOI code. The base checking budget was 20 s, scaled by the number of device assignments when several assignments had to be checked.
 
 **Table E3. Outcomes on generated JOI candidates.**
 
