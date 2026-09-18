@@ -30,13 +30,7 @@ We constructed test inputs to cover condition and timing boundaries governing st
 
 For divergence, a concrete difference confirmed the counterexample for the tested device assignment. For equivalence, we checked that all supplied histories matched for an allowed device assignment; this provides evidence on the tested inputs, not a proof for all possible inputs. Each Explorer search used limits of 120 s, 400,000 states, and 2,000,000 transitions.
 
-**Figure E2. Explorer outcomes on 200 IR–JOI code pairs.**
-
-![Explorer outcomes: equivalent 64 (32.0%), divergent 119 (59.5%), timeout 8 (4.0%), unsupported 9 (4.5%).](../../PerCom/08_Evaluation/figures/e2_verdicts.png)
-
-Timeout and unsupported cases remain undecided.
-
-None of the 183 issued verdicts contradicted the reference checks (Figure E2). For all 119 pairs classified as divergent, the reference implementations confirmed a difference in actions or their timestamps. Among fault variants with an observed difference, Explorer left 11 undecided and accepted none. Of the 17 undecided pairs, 8 exceeded the time budget and 9 required arithmetic or input values outside the supported scope. Fault variants from the same request are related cases rather than independent samples.
+Of the 200 pairs, Explorer classified 64 as equivalent and 119 as divergent; the remaining 17 were undecided because of timeouts or unsupported features. None of the 183 issued verdicts contradicted the reference checks. For all 119 pairs classified as divergent, the reference implementations confirmed a difference in actions or their timestamps. Among fault variants with an observed difference, Explorer left 11 undecided and accepted none. Of the 17 undecided pairs, 8 exceeded the time budget and 9 required arithmetic or input values outside the supported scope. Fault variants from the same request are related cases rather than independent samples.
 
 ## Generated-Code Validation
 
