@@ -1,0 +1,17 @@
+\section{Explorer Soundness: Proof Sketch}
+\label{app:explorer-soundness}
+
+Fix the execution model $M$ of Section~VI, including bindings, input domains, initial states, and timing rules. Assume correct parsing, interpretation, and solver results, finite reactions, and time progress. Consider supported analyses completed without an execution horizon.
+
+\textbf{Claim.} An equivalence verdict implies equal timed action traces for every initial state and input history allowed by $M$.
+
+\textit{Proof sketch.} Let $R$ represent the explored concrete state pairs, with joint termination treated as silent absorption. Certification requires
+\[
+  \operatorname{Init}_M\subseteq R,\qquad
+  \operatorname{Post}_M(R)\subseteq R,
+\]
+where $\operatorname{Post}_M$ includes every allowed successor, and all represented reactions must have matching timed observations.
+
+Input partitions preserve relevant predicates and subsequent observations; uses that expose actual values require full values or symbolic reasoning. State keys preserve future behavior. Skipped intervals contain no observable action or relevant state change and retain every possible input at resumption. Timer relations split all feasible branches and include every successor; widening contains both old and new sets, and enlarged nodes are rechecked. Thus, worklist exhaustion establishes closure and observation agreement over the final sets, including any additional unreachable states. Terminating symbolic analyses instead check all feasible paths through termination.
+
+Initial inclusion and successor coverage extend observation agreement along every finite execution prefix by induction. Time progress then yields equality of full timed traces. A divergence requires replay from an allowed initial state to confirm a trace difference; unsupported cases and exhausted budgets yield no equivalence verdict. This manual argument does not constitute machine verification of the implementation.
