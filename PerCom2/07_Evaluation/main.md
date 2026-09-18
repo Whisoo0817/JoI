@@ -4,7 +4,7 @@
 
 **Setup.** All code evaluations use JOI and the execution model in Sections V and VI. E1 evaluates expression and reference execution, E2 checks verdict fidelity, E3 evaluates generated candidates, and E4 measures completion and cost. Refusals, incomplete searches, and errors remain in each evaluation's denominator. LLM generation is separate from behavioral checking.
 
-**Datasets.** We use 382 author-written commands from a test set created for the JOI platform to evaluate generated-code validation and repair (E3). The set varies automation type and structural complexity across 24 defined patterns, including conditional and event-triggered actions, sustained conditions, delayed sequences, schedules, and repetition. Its confirmed IRs contain two to eight operator nodes, with a maximum nesting depth of zero to three for branches and cycles. The dataset appendix reports the pattern breakdown and structural statistics.
+**Datasets.** We use 382 author-written commands from a test set created for the JOI platform to evaluate generated-code validation and repair (E3). The set varies automation type and structural complexity across 24 defined patterns, including conditional and event-triggered actions, sustained conditions, delayed sequences, schedules, and repetition. Its confirmed IRs contain two to eight operator nodes, with a maximum nesting depth of zero to three for branches and cycles.
 
 We additionally collected 100 external automation requests to evaluate Timeline IR adequacy (E1). The following subsection describes their sources and behavioral characteristics.
 
