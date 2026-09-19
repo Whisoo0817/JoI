@@ -44,7 +44,7 @@ Support is checked on tested inputs for equivalence and by counterexample replay
 
 ## Code Generation Workflow
 
-E3 evaluates a code generation workflow that starts from confirmed Timeline IR and combines code generation, behavioral validation, and counterexample-guided repair. Divergent candidates were revised once using counterexample feedback and then rechecked. For each of the 382 JOI commands, we supplied the confirmed IR and binding to Qwen3.5-9B to generate JOI code. The base checking budget was 20 s, scaled by the number of device assignments when several assignments had to be checked.
+E3 evaluates a code generation workflow that starts from confirmed Timeline IR and combines code generation, behavioral validation, and counterexample-guided repair. Divergent candidates were revised once using counterexample feedback and then rechecked. For each of the 382 JOI commands, we supplied the confirmed IR and binding to Qwen3.5-9B~\cite{qwen35,qwen35fp8} to generate JOI code. The base checking budget was 20 s, scaled by the number of device assignments when several assignments had to be checked.
 
 **Table E3. Outcomes on generated JOI candidates.**
 
