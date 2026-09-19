@@ -64,7 +64,7 @@ Explorer issued a semantic verdict for 377 candidates (Table E3), a completion r
 
 E4 evaluates how checking time and completion change as input combinations, execution stages, wait duration, and repetitions increase. In particular, it examines the effect of checking multiple time states together, as described in Section 6. Using one program template, we varied the number of Boolean sensors (1–7), sequential wait–call stages (1–6), wait duration (100 ms–4 h), and repetitions (1–200). We constructed 30 equivalent IR–JOI pairs using settings that isolate each factor and settings that jointly increase sensors, stages, and repetitions. The combined settings fix the wait duration at 2 min and reach seven sensors, six stages, and 100 repetitions.
 
-The baseline is **explicit-state exploration**, obtained by disabling Explorer's analysis path that groups time states. Both methods use the same interpreters, skip intermediate time points that cannot affect execution, and advance to the next relevant event. Both also reuse identical states already visited.
+The baseline is **explicit-state exploration**~\cite{modelchecking}, obtained by disabling Explorer's analysis path that groups time states. Both methods use the same interpreters, skip intermediate time points that cannot affect execution, and advance to the next relevant event. Both also reuse identical states already visited.
 
 The baseline checks different elapsed or remaining times as separate states even at the same execution stage. Thus, when a program must keep checking inputs during a wait, longer waits can require visits to many states that differ only in time values. Reusing identical states and skipping irrelevant time points may not sufficiently reduce this work.
 
