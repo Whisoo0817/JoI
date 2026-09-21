@@ -1,0 +1,61 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "재실 센서가 감지되면 TV를 켜줘.",
+  "command_eng": "When the presence sensor detects someone, turn on the TV.",
+  "connected_devices": {
+    "LivingRoom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "LivingRoom_TV": {
+      "category": [
+        "Television",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Television",
+        "Switch"
+      ]
+    },
+    "Bedroom_TV": {
+      "category": [
+        "Television",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Television",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 1.9
+}

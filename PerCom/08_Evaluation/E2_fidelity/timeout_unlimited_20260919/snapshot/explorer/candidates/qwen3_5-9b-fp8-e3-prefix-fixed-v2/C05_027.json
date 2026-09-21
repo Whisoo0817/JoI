@@ -1,0 +1,138 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Basement_Leak).leakSensor_leakage == true and all(#Valve).valve_valveState ==| true) {\nany(#Valve).valve_close()\n(#Main_Siren).siren_setSirenMode(\"police\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Basement_Leak).leakSensor_leakage == true and all(#Valve).valve_valveState ==| true) {\nany(#Valve).valve_close()\n(#Main_Siren).siren_setSirenMode(\\\"police\\\")\\n}\"\n}",
+  "precision": {
+    "LeakSensor.Leakage": [
+      "(#Basement_Leak)"
+    ],
+    "Valve.ValveState": [
+      "any(#Valve)"
+    ],
+    "Valve.Close": [
+      "any(#Valve)"
+    ],
+    "Siren.SetSirenMode": [
+      "(#Main_Siren)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "지하에서 누수가 감지되고 메인 밸브가 열려 있으면, 모든 메인 밸브를 잠그고 경찰 사이렌을 울려줘.",
+  "command_eng": "If a water leak is detected in the basement and the main valve is open, close all main valves and sound the police siren.",
+  "connected_devices": {
+    "Basement_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Basement",
+        "LeakSensor"
+      ]
+    },
+    "Garage_Leak": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Garage",
+        "LeakSensor"
+      ]
+    },
+    "Main_Valve_1": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Main_Valve_2": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Garage_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Garage",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LeakSensor.Leakage == true and Valve.ValveState == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "police"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "LeakSensor": [
+      "Basement_Leak"
+    ],
+    "Valve": {
+      "any": [
+        "Main_Valve_1",
+        "Main_Valve_2"
+      ]
+    },
+    "Siren": [
+      "Main_Siren"
+    ]
+  },
+  "input_payload_sha256": "562e9d79d41915ebc551b9f4515de19b3800fb6f0e60cd4de90f5edd1b358a9d",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.7
+}

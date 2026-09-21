@@ -1,0 +1,99 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 18 * * *",
+    "period": 0,
+    "script": "TodayMenu = (#Main_MenuProvider).menuProvider_getMenu(\"오늘 학생식당 저녁\")\nall(#Speaker).speaker_speak(TodayMenu)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 18 * * *\",\n  \"period\": 0,\n  \"script\": \"TodayMenu = (#Main_MenuProvider).menuProvider_getMenu(\\\"오늘 학생식당 저녁\\\")\\nall(#Speaker).speaker_speak(TodayMenu)\"\n}",
+  "precision": {
+    "MenuProvider.GetMenu": [
+      "(#Main_MenuProvider)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "오후 6시에 학생 식당의 저녁 메뉴를 스피커로 알려줘.",
+  "command_eng": "At 6 PM every day, announce the dinner menu of the student cafeteria through the speaker.",
+  "connected_devices": {
+    "Main_MenuProvider": {
+      "category": [
+        "MenuProvider"
+      ],
+      "tags": [
+        "Main",
+        "MenuProvider",
+        "301BuildingCafeteria",
+        "StudentCafeteria"
+      ]
+    },
+    "Office_MenuProvider": {
+      "category": [
+        "MenuProvider"
+      ],
+      "tags": [
+        "Office",
+        "MenuProvider"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 18 * * *"
+      },
+      {
+        "op": "call",
+        "target": "MenuProvider.GetMenu",
+        "args": {
+          "Command": "오늘 학생식당 저녁"
+        },
+        "var": "TodayMenu"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "$TodayMenu"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "MenuProvider": [
+      "Main_MenuProvider"
+    ],
+    "Speaker": [
+      "Living_Speaker",
+      "Bedroom_Speaker"
+    ]
+  },
+  "input_payload_sha256": "a739ec436a70796aa45efd981c54664c9a6b6c4ee933f622538a23fd38a050ca",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.5
+}

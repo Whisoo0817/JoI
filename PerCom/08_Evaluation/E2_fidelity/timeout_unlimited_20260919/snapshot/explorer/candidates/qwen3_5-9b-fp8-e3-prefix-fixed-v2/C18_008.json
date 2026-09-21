@@ -1,0 +1,92 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * 6",
+    "period": 5000,
+    "script": "if ((#Clock).clock_weekday == \"monday\") {\nbreak\n}\nif ((#Main_Pump).switch_switch == false) {\n(#Main_Pump).switch_on()\n}\nelse {\n(#Main_Pump).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * 6\",\n  \"period\": 5000,\n  \"script\": \"if ((#Clock).clock_weekday == \\\"monday\\\") {\\nbreak\\n}\\nif ((#Main_Pump).switch_switch == false) {\\n(#Main_Pump).switch_on()\\n}\\nelse {\\n(#Main_Pump).switch_off()\\n}\"\n}",
+  "precision": {
+    "Switch.Switch": [
+      "(#Main_Pump)"
+    ],
+    "Switch.On": [
+      "(#Main_Pump)"
+    ],
+    "Switch.Off": [
+      "(#Main_Pump)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "주말에 5초마다 체크해서 펌프가 꺼져 있으면 켜고, 켜져 있으면 꺼줘.",
+  "command_eng": "Every 5 seconds on weekends, if the pump is off, turn it on; if it is on, turn it off.",
+  "connected_devices": {
+    "Main_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Garden_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Garden",
+        "Pump",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * 6"
+      },
+      {
+        "op": "cycle",
+        "until": "Clock.Weekday == \"monday\"",
+        "period": "5 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Switch.Switch == false",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "Switch": [
+      "Main_Pump"
+    ]
+  },
+  "input_payload_sha256": "e8b2721cca4456985506904c96cf140cc78a4caeb34f1d7ddc74d55c6de073e8",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.4
+}

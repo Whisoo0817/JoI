@@ -1,0 +1,101 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (36.5 <= (#Bedroom_Temp).temperatureSensor_temperature) {\n(#Bedroom_AC).airConditioner_setTargetTemperature(30.0)\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (36.5 <= (#Bedroom_Temp).temperatureSensor_temperature) {\\n(#Bedroom_AC).airConditioner_setTargetTemperature(30.0)\\n}\"\n}",
+ "precision": {
+  "TemperatureSensor.Temperature": [
+   "(#Bedroom_Temp)"
+  ],
+  "AirConditioner.SetTargetTemperature": [
+   "(#Bedroom_AC)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132322_303.json",
+ "command_kor": "안방 온도가 36.5도 이상이면, 에어컨을 30도로 설정해줘.",
+ "command_eng": "If the temperature in the bedroom is 36.5 degrees or higher, set the bedroom air conditioner to 30 degrees.",
+ "connected_devices": {
+  "Bedroom_Temp": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "TemperatureSensor"
+   ]
+  },
+  "LivingRoom_Temp": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "TemperatureSensor"
+   ]
+  },
+  "Bedroom_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirConditioner"
+   ]
+  },
+  "LivingRoom_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "AirConditioner"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "TemperatureSensor.Temperature >= 36.5",
+    "then": [
+     {
+      "op": "call",
+      "target": "AirConditioner.SetTargetTemperature",
+      "args": {
+       "Temperature": 30.0
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "TemperatureSensor": [
+   "Bedroom_Temp"
+  ],
+  "AirConditioner": [
+   "Bedroom_AC"
+  ]
+ },
+ "input_payload_sha256": "42b9b5113b6e485478aef5fc0dbab81f2b3c0568668f7d6b8d48319cf76b701f",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2"
+ }
+}

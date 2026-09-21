@@ -1,0 +1,325 @@
+[
+  {
+    "id": "C11_001",
+    "candidate_path": "explorer/candidates/qwen3_5-9b-fp8-e3-single-binding-v4/C11_001.json",
+    "status": "READY",
+    "candidate_sha256": "7399968bfb6c7228bc97fcebb833edfd99c32f3e708699a373bc104a8bbfdb29",
+    "payload": {
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "t1",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "delay",
+            "duration": "10 MIN"
+          },
+          {
+            "op": "read",
+            "var": "t2",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "abs($t2 - $t1) >= 1",
+            "then": [
+              {
+                "op": "call",
+                "target": "Speaker.Speak",
+                "args": {
+                  "Text": "The wine cellar temperature has changed rapidly"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      },
+      "binding": {
+        "TemperatureSensor": [
+          "WineCellar_Temp"
+        ],
+        "Speaker": [
+          "Speaker",
+          "LivingRoom_Speaker"
+        ]
+      },
+      "devices": {
+        "WineCellar_Temp": {
+          "category": [
+            "TemperatureSensor"
+          ],
+          "tags": [
+            "WineCellar",
+            "TemperatureSensor"
+          ]
+        },
+        "Kitchen_Temp": {
+          "category": [
+            "TemperatureSensor"
+          ],
+          "tags": [
+            "Kitchen",
+            "TemperatureSensor"
+          ]
+        },
+        "Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "Speaker"
+          ]
+        },
+        "LivingRoom_Speaker": {
+          "category": [
+            "Speaker"
+          ],
+          "tags": [
+            "LivingRoom",
+            "Speaker"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "t1 = (#WineCellar_Temp).temperatureSensor_temperature\ndelay(10 MIN)\nt2 = (#WineCellar_Temp).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 1) {\nall(#Speaker).speaker_speak(\"The wine cellar temperature has changed rapidly\")\n}"
+      }
+    },
+    "selector_domains": [],
+    "selector_choice": [],
+    "model": {
+      "horizon_ms": null,
+      "input_step_ms": 100,
+      "t0_ms": 2419200000,
+      "input_domains": null,
+      "initial_gv_domains": {}
+    },
+    "verification_method": "smt-linear-trace-v1",
+    "domain_basis": "universal catalog symbolic inputs; no finite-domain oracle",
+    "service_model": {
+      "catalog_path": "/home/gnltnwjstk/joi-e3-b5/files/service_list_ver2.0.7.json",
+      "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+      "boolean_input_policy": "strict-two-valued-v1",
+      "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+      "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+      "members": {
+        "TemperatureSensor.Temperature:value": {
+          "id": "Temperature",
+          "descriptor": "A number that usually represents the current temperature",
+          "type": "DOUBLE",
+          "bound": [
+            -40,
+            60
+          ],
+          "unit": "°C",
+          "service": "TemperatureSensor",
+          "kind": "value",
+          "return_spec": {
+            "type": "VOID"
+          }
+        },
+        "Speaker.Speak:function": {
+          "id": "Speak",
+          "descriptor": "Speak a text string",
+          "arguments": [
+            {
+              "id": "Text",
+              "descriptor": "Text to speak",
+              "type": "STRING"
+            }
+          ],
+          "return_type": "VOID",
+          "service": "Speaker",
+          "kind": "function",
+          "return_spec": {
+            "type": "VOID"
+          }
+        }
+      },
+      "assumptions": [
+        "descriptor-reviewed read roles (not server side-effect proof)",
+        "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+        "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+        "DOUBLE external input precision 0.1 from agreed contract",
+        "fixed binding and inventory; independent external inputs",
+        "same device/member/argument read key returns one held value per input instant",
+        "GV initial domains remain separate model declarations"
+      ]
+    },
+    "preparation_notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ]
+  },
+  {
+    "id": "C11_005",
+    "candidate_path": "explorer/candidates/qwen3_5-9b-fp8-e3-single-binding-v4/C11_005.json",
+    "status": "READY",
+    "candidate_sha256": "659e21095b8c4f249a33ba755f8875d0af7edc81fb34b641d99b8e23e42c29da",
+    "payload": {
+      "ir": {
+        "timeline": [
+          {
+            "op": "start_at",
+            "anchor": "now"
+          },
+          {
+            "op": "read",
+            "var": "t1",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "delay",
+            "duration": "15 MIN"
+          },
+          {
+            "op": "read",
+            "var": "t2",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "abs($t2 - $t1) >= 5",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      },
+      "binding": {
+        "TemperatureSensor": [
+          "Kitchen_TempSensor"
+        ],
+        "Switch": [
+          "Kitchen_Fan"
+        ]
+      },
+      "devices": {
+        "Kitchen_TempSensor": {
+          "category": [
+            "TemperatureSensor"
+          ],
+          "tags": [
+            "Kitchen",
+            "TemperatureSensor"
+          ]
+        },
+        "LivingRoom_TempSensor": {
+          "category": [
+            "TemperatureSensor"
+          ],
+          "tags": [
+            "LivingRoom",
+            "TemperatureSensor"
+          ]
+        },
+        "Kitchen_Fan": {
+          "category": [
+            "Plug",
+            "Switch"
+          ],
+          "tags": [
+            "Kitchen",
+            "Plug",
+            "Fan"
+          ]
+        },
+        "Bathroom_Light": {
+          "category": [
+            "Light",
+            "Switch"
+          ],
+          "tags": [
+            "Bathroom",
+            "Light"
+          ]
+        },
+        "Pantry_Humidifier": {
+          "category": [
+            "Humidifier"
+          ],
+          "tags": [
+            "Pantry",
+            "Humidifier"
+          ]
+        }
+      },
+      "joi_block": {
+        "name": "Scenario",
+        "cron": "",
+        "period": 0,
+        "script": "t1 = (#Kitchen_TempSensor).temperatureSensor_temperature\ndelay(15 MIN)\nt2 = (#Kitchen_TempSensor).temperatureSensor_temperature\ndiff = t2 - t1\nif (diff < 0) {\ndiff = t1 - t2\n}\nif (diff >= 5) {\n(#Kitchen_Fan).switch_on()\n}"
+      }
+    },
+    "selector_domains": [],
+    "selector_choice": [],
+    "model": {
+      "horizon_ms": null,
+      "input_step_ms": 100,
+      "t0_ms": 2419200000,
+      "input_domains": null,
+      "initial_gv_domains": {}
+    },
+    "verification_method": "smt-linear-trace-v1",
+    "domain_basis": "universal catalog symbolic inputs; no finite-domain oracle",
+    "service_model": {
+      "catalog_path": "/home/gnltnwjstk/joi-e3-b5/files/service_list_ver2.0.7.json",
+      "catalog_sha256": "fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4",
+      "boolean_input_policy": "strict-two-valued-v1",
+      "menu_return_policy": "menu-string-return-v1: MenuProvider.GetMenu is non-null STRING",
+      "chat_return_policy": "chat-string-return-v1: CloudServiceProvider.ChatWithAI is non-null STRING",
+      "members": {
+        "TemperatureSensor.Temperature:value": {
+          "id": "Temperature",
+          "descriptor": "A number that usually represents the current temperature",
+          "type": "DOUBLE",
+          "bound": [
+            -40,
+            60
+          ],
+          "unit": "°C",
+          "service": "TemperatureSensor",
+          "kind": "value",
+          "return_spec": {
+            "type": "VOID"
+          }
+        },
+        "Switch.On:function": {
+          "id": "On",
+          "descriptor": "Turn a Switch on",
+          "return_type": "VOID",
+          "service": "Switch",
+          "kind": "function",
+          "return_spec": {
+            "type": "VOID"
+          }
+        }
+      },
+      "assumptions": [
+        "descriptor-reviewed read roles (not server side-effect proof)",
+        "BOOL/BOOLEAN sensor and read-result inputs are exactly false/true; missing is outside the model",
+        "non-BOOL inputs retain missing/None except reviewed MenuProvider.GetMenu and CloudServiceProvider.ChatWithAI STRING queries",
+        "DOUBLE external input precision 0.1 from agreed contract",
+        "fixed binding and inventory; independent external inputs",
+        "same device/member/argument read key returns one held value per input instant",
+        "GV initial domains remain separate model declarations"
+      ]
+    },
+    "preparation_notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ]
+  }
+]

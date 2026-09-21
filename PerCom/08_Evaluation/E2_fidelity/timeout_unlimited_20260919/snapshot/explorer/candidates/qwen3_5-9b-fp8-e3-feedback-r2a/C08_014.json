@@ -1,0 +1,119 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Bedroom_MB).multiButton_button1 == \"pushed\" and (#Bedroom_MS).motionSensor_motion == true) {\n(#Bedroom_Light).light_moveToBrightness(100.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bedroom_MB).multiButton_button1 == \\\"pushed\\\" and (#Bedroom_MS).motionSensor_motion == true) {\\n(#Bedroom_Light).light_moveToBrightness(100.0, 0.0)\\n}\"\n}",
+  "precision": {
+    "MultiButton.Button1": [
+      "(#Bedroom_MB)"
+    ],
+    "MotionSensor.Motion": [
+      "(#Bedroom_MS)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Bedroom_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "멀티버튼의 버튼1이 눌리고 침실에 동작이 감지되면 침실 조명을 최대 밝기로 켜줘.",
+  "command_eng": "If button 1 of the multi-button is pressed and motion is detected in the bedroom, turn on the bedroom light at maximum brightness.",
+  "connected_devices": {
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_MS": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "MotionSensor"
+      ]
+    },
+    "Hall_MS": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "MotionSensor"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MultiButton.Button1 == \"pushed\" and MotionSensor.Motion == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "MultiButton": [
+      "Bedroom_MB"
+    ],
+    "MotionSensor": [
+      "Bedroom_MS"
+    ],
+    "Light": [
+      "Bedroom_Light"
+    ]
+  },
+  "input_payload_sha256": "781cce8d7ab01f2377f471338356829f62095c6541ca13b1ef9367bc0aa57982",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.6
+}

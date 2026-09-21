@@ -1,0 +1,130 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Server_Temp).airQualitySensor_temperature >= 30 and (#Server_AC).switch_switch == false) {\n(#Server_AC).switch_on()\n(#Main_Siren).siren_setSirenMode(\"emergency\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Server_Temp).airQualitySensor_temperature >= 30 and (#Server_AC).switch_switch == false) {\n(#Server_AC).switch_on()\n(#Main_Siren).siren_setSirenMode(\\\"emergency\\\")\\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Server_Temp)"
+    ],
+    "Switch.Switch": [
+      "(#Server_AC)"
+    ],
+    "Switch.On": [
+      "(#Server_AC)"
+    ],
+    "Siren.SetSirenMode": [
+      "(#Main_Siren)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "서버실 온도가 30도 이상이고 에어컨이 꺼져 있으면, 에어컨을 냉방 모드로 켜고 메인 사이렌을 긴급 모드로 울려줘.",
+  "command_eng": "If the server room temperature is 30 degrees or higher and the AC is off, turn it on and sound the main emergency siren.",
+  "connected_devices": {
+    "Server_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "ServerRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Basement_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Basement",
+        "TemperatureSensor"
+      ]
+    },
+    "Server_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "ServerRoom",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Basement_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Basement",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Garage_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Garage",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 30 and Switch.Switch == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "Server_Temp"
+    ],
+    "Switch": [
+      "Server_AC"
+    ],
+    "Siren": [
+      "Main_Siren"
+    ]
+  },
+  "input_payload_sha256": "cc1558571a8fdf0839f5f6a2e1015f9b39fbc0cddc5d15b86efebff49eaec59f",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.5
+}

@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 8 * * *",
+    "period": 0,
+    "script": "all(#Switch).switch_on()\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"auto\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#Switch).switch_on()\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\"\n}",
+  "precision": {
+    "Switch.On": [
+      "all(#Switch)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "오전 8시에 고효율 태그가 붙은 공기청정기를 켜고 자동모드로 설정해줘.",
+  "command_eng": "At 8 AM, turn on the high-efficiency tagged air purifier and set it to auto mode.",
+  "connected_devices": {
+    "HighEfficiency_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "HighEfficiency",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "LowEfficiency_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "LowEfficiency",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      },
+      {
+        "op": "call",
+        "target": "AirPurifier.SetAirPurifierMode",
+        "args": {
+          "Mode": "auto"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "Switch": [
+      "HighEfficiency_AirPurifier",
+      "LowEfficiency_AirPurifier"
+    ],
+    "AirPurifier": [
+      "HighEfficiency_AirPurifier",
+      "LowEfficiency_AirPurifier"
+    ]
+  },
+  "input_payload_sha256": "ea2be10220b3f52b7b081f79197f80a791afc8f64e088769af6f51d027112a08",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.5
+}

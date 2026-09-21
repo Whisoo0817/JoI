@@ -1,0 +1,124 @@
+{
+  "sentence": "이산화탄소가 1500ppm 이상이고 블라인드가 닫혀있으면, 공기청정기를 자동 모드로 켜고 블라인드를 올려줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:25",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "AirQualitySensor.CarbonDioxide",
+      "WindowCovering.CurrentPosition",
+      "AirPurifier.SetAirPurifierMode",
+      "WindowCovering.UpOrOpen"
+    ],
+    "selectors": {
+      "AirQualitySensor.CarbonDioxide": [
+        "any(#AirQualitySensor)"
+      ],
+      "WindowCovering.CurrentPosition": [
+        "(#Living_Blind)"
+      ],
+      "AirPurifier.SetAirPurifierMode": [
+        "all(#AirPurifier)"
+      ],
+      "WindowCovering.UpOrOpen": [
+        "(#Living_Blind)"
+      ]
+    },
+    "resolved": {
+      "AirQualitySensor.CarbonDioxide": {
+        "q": "any",
+        "devices": [
+          "Bedroom_AQ",
+          "Living_AQ"
+        ]
+      },
+      "WindowCovering.CurrentPosition": {
+        "q": "one",
+        "devices": [
+          "Living_Blind"
+        ]
+      },
+      "AirPurifier.SetAirPurifierMode": {
+        "q": "all",
+        "devices": [
+          "Bedroom_AP",
+          "Living_AP"
+        ]
+      },
+      "WindowCovering.UpOrOpen": {
+        "q": "one",
+        "devices": [
+          "Living_Blind"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.CarbonDioxide >= 1500 and WindowCovering.CurrentPosition == 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "auto"
+            }
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- If the carbon dioxide of any of Bedroom_AQ and Living_AQ is at least 1500 and the current position of Living_Blind is 0, set Bedroom_AP and Living_AP mode to auto and run WindowCovering.UpOrOpen().\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot conditional action with two calls.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"if (any(#AirQualitySensor).CarbonDioxide >= 1500 and (#Living_Blind).CurrentPosition == 0) {\\n    all(#AirPurifier).SetAirPurifierMode(\\\"auto\\\")\\n    (#Living_Blind).UpOrOpen()\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "if (all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 1500 and (#Living_Blind).windowCovering_currentPosition == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n(#Living_Blind).windowCovering_upOrOpen()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "AirQualitySensor": {
+        "any": [
+          "Living_AQ",
+          "Bedroom_AQ"
+        ]
+      },
+      "WindowCovering": [
+        "Living_Blind"
+      ],
+      "AirPurifier": [
+        "Living_AP",
+        "Bedroom_AP"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 1500 and (#Living_Blind).windowCovering_currentPosition == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n(#Living_Blind).windowCovering_upOrOpen()\\n}\"\n}",
+  "elapsed_sec": 1.503,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

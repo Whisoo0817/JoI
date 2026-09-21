@@ -1,0 +1,102 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 22 * * *",
+    "period": 0,
+    "script": "if ((#LivingRoom #PresenceSensor).presenceSensor_presence == true) {\nall(#LevelControl).light_moveToBrightness(100.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom #PresenceSensor).presenceSensor_presence == true) {\nall(#LevelControl).light_moveToBrightness(100.0, 0.0)\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#LivingRoom #PresenceSensor)"
+    ],
+    "Switch.On": [
+      "all(#LevelControl)"
+    ]
+  },
+  "command_kor": "밤 10시에 거실에 사람이 감지되면, 모든 불을 켜줘.",
+  "command_eng": "Every 10 PM, if presence is detected in the living room, turn on all lights.",
+  "connected_devices": {
+    "LR_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch",
+        "LevelControl"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 22 * * *"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.9
+}

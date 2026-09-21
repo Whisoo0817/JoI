@@ -1,0 +1,97 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 600000,
+    "script": "if ((#LivingRoom_Temp).temperatureSensor_temperature >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"if ((#LivingRoom_Temp).temperatureSensor_temperature >= 30) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#LivingRoom_Temp)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "all(#AirConditioner)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132318_784.json",
+  "command_kor": "10분마다 확인해서 온도가 30도 이상이면 에어컨을 쿨모드로 설정해줘.",
+  "command_eng": "Every 10 minutes, if the temperature is 30 degrees or higher, set the air conditioner to cool mode.",
+  "connected_devices": {
+    "LivingRoom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "10 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature >= 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "cool"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "LivingRoom_Temp"
+    ],
+    "AirConditioner": [
+      "LivingRoom_AC",
+      "Bedroom_AC"
+    ]
+  },
+  "input_payload_sha256": "14270d3f55fe11f12344e3e9fd4b031805a21aab9447375ca08278aafa84dbd3",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 2.7
+}

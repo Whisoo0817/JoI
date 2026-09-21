@@ -1,0 +1,109 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#FrontContactSensor_ContactSensor).contactSensor_contact == true and (#Balcony_ContactSensor).contactSensor_contact == true) {\n(#LivingRoom_Camera).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#FrontContactSensor_ContactSensor).contactSensor_contact == true and (#Balcony_ContactSensor).contactSensor_contact == true) {\n(#LivingRoom_Camera).switch_on()\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#FrontContactSensor_ContactSensor)",
+      "(#Balcony_ContactSensor)"
+    ],
+    "Switch.On": [
+      "(#LivingRoom_Camera)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "현관문과 베란다문이 모두 닫혀있으면 거실 보안 카메라 플러그를 켜줘.",
+  "command_eng": "If both the front door and the balcony door are closed, turn on the living room security camera plug.",
+  "connected_devices": {
+    "FrontContactSensor_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Balcony_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Balcony",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "LivingRoom_Camera": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Camera"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "ContactSensor.Contact == true and ContactSensor.Contact == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "ContactSensor": [
+      "FrontContactSensor_ContactSensor"
+    ],
+    "ContactSensor#2": [
+      "Balcony_ContactSensor"
+    ],
+    "Switch": [
+      "LivingRoom_Camera"
+    ]
+  },
+  "input_payload_sha256": "5e8ddb9619fc551f96ca0f3ea10d89f2f32c46018eaae6f5ef8dbd0a2103f13a",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.5
+}

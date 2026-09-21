@@ -1,0 +1,90 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#Home_WeatherProvider).weatherProvider_weather == \"rain\")) {\n    wait until((#Home_WeatherProvider).weatherProvider_weather == \"rain\")\n}\nall(#Switch).switch_on()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#Home_WeatherProvider).weatherProvider_weather == \\\"rain\\\")) {\\n    wait until((#Home_WeatherProvider).weatherProvider_weather == \\\"rain\\\")\\n}\\nall(#Switch).switch_on()\"\n}",
+ "precision": {
+  "WeatherProvider.Weather": [
+   "(#Home_WeatherProvider)"
+  ],
+  "Switch.On": [
+   "all(#Switch)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "비가 오면 제습기를 켜줘.",
+ "command_eng": "When it rains, turn on the dehumidifier.",
+ "connected_devices": {
+  "Home_WeatherProvider": {
+   "category": [
+    "WeatherProvider"
+   ],
+   "tags": [
+    "WeatherProvider"
+   ]
+  },
+  "LivingRoom_Dehumidifier": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Dehumidifier",
+    "Switch"
+   ]
+  },
+  "Bathroom_Dehumidifier": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Bathroom",
+    "Dehumidifier",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "WeatherProvider.Weather == \"rain\"",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Switch.On",
+    "args": {}
+   }
+  ]
+ },
+ "binding": {
+  "WeatherProvider": [
+   "Home_WeatherProvider"
+  ],
+  "Switch": [
+   "LivingRoom_Dehumidifier",
+   "Bathroom_Dehumidifier"
+  ]
+ },
+ "input_payload_sha256": "e2b33f6dd336e73eb67d8c01e746d3e75605d0507fa67da04216b1f9dc8d5487",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 2.3,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

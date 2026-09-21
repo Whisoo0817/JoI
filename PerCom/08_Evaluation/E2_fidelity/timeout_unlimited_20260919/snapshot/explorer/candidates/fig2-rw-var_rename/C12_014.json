@@ -1,0 +1,102 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 30000,
+  "script": "phase_v := 0\nif (phase_v == 0) {\nwait until((#Lobby_Mot).motionSensor_motion == true)\n    phase_v = 1\n    (#Lobby_Cam).camera_captureImage()\n}\nelse {\n(#Lobby_Cam).camera_captureImage()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 30000,\n  \"script\": \"phase_v := 0\\nif (phase_v == 0) {\\nwait until((#Lobby_Mot).motionSensor_motion == true)\\n    phase_v = 1\\n    (#Lobby_Cam).camera_captureImage()\\n}\\nelse {\\n(#Lobby_Cam).camera_captureImage()\\n}\"\n}",
+ "precision": {
+  "MotionSensor.Motion": [
+   "(#Lobby_Mot)"
+  ],
+  "Camera.CaptureImage": [
+   "(#Lobby_Cam)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "로비에서 움직임이 감지되면, 그 뒤로 30초마다 로비 사진을 찍어줘.",
+ "command_eng": "When motion is detected in the lobby, capture an image of the lobby every 30 seconds thereafter.",
+ "connected_devices": {
+  "Lobby_Mot": {
+   "category": [
+    "MotionSensor"
+   ],
+   "tags": [
+    "Lobby",
+    "MotionSensor"
+   ]
+  },
+  "Garage_Mot": {
+   "category": [
+    "MotionSensor"
+   ],
+   "tags": [
+    "Garage",
+    "MotionSensor"
+   ]
+  },
+  "Lobby_Cam": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Lobby",
+    "Camera"
+   ]
+  },
+  "Garage_Cam": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Garage",
+    "Camera"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "MotionSensor.Motion == true",
+    "edge": "none"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "30 SEC",
+    "body": [
+     {
+      "op": "call",
+      "target": "Camera.CaptureImage",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "MotionSensor": [
+   "Lobby_Mot"
+  ],
+  "Camera": [
+   "Lobby_Cam"
+  ]
+ },
+ "input_payload_sha256": "900b8d1f98ec5c9134ee7f0690d328e492347b50e78ddb5052872e0291bcb381",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-var_rename",
+ "elapsed_sec": 2.6,
+ "rewrite": {
+  "type": "var_rename",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

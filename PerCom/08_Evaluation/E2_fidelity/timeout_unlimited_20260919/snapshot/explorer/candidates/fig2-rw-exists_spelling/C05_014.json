@@ -1,0 +1,142 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (any(#TemperatureSensor).temperatureSensor_temperature <= 18 and any(#PresenceSensor).presenceSensor_presence == true) {\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"heat\")\nall(#AirConditioner).airConditioner_setTargetTemperature(22.0)\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (any(#TemperatureSensor).temperatureSensor_temperature <= 18 and any(#PresenceSensor).presenceSensor_presence == true) {\\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"heat\\\")\\nall(#AirConditioner).airConditioner_setTargetTemperature(22.0)\\n}\"\n}",
+ "precision": {
+  "TemperatureSensor.Temperature": [
+   "any(#TemperatureSensor)"
+  ],
+  "PresenceSensor.Presence": [
+   "any(#PresenceSensor)"
+  ],
+  "AirConditioner.SetAirConditionerMode": [
+   "all(#AirConditioner)"
+  ],
+  "AirConditioner.SetTargetTemperature": [
+   "all(#AirConditioner)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "온도가 18도 이하이고 사람이 감지되고있으면, 에어컨을 난방 모드로 설정하고 22도로 조절해줘.",
+ "command_eng": "If the temperature is 18 degrees or below and someone is detected, set the air conditioner to heat mode and 22 degrees.",
+ "connected_devices": {
+  "Living_Temp": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "Living",
+    "TemperatureSensor"
+   ]
+  },
+  "Bedroom_Temp": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "TemperatureSensor"
+   ]
+  },
+  "Living_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Living",
+    "PresenceSensor"
+   ]
+  },
+  "Bedroom_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "PresenceSensor"
+   ]
+  },
+  "Living_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "Living",
+    "AirConditioner"
+   ]
+  },
+  "Bedroom_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirConditioner"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "TemperatureSensor.Temperature <= 18 and PresenceSensor.Presence == true",
+    "then": [
+     {
+      "op": "call",
+      "target": "AirConditioner.SetAirConditionerMode",
+      "args": {
+       "Mode": "heat"
+      }
+     },
+     {
+      "op": "call",
+      "target": "AirConditioner.SetTargetTemperature",
+      "args": {
+       "Temperature": 22.0
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "TemperatureSensor": {
+   "any": [
+    "Living_Temp",
+    "Bedroom_Temp"
+   ]
+  },
+  "PresenceSensor": {
+   "any": [
+    "Living_Presence",
+    "Bedroom_Presence"
+   ]
+  },
+  "AirConditioner": [
+   "Living_AC",
+   "Bedroom_AC"
+  ]
+ },
+ "input_payload_sha256": "45cc0e027ecb55881b77a8f792ca1921bc4f2861423ef475407f71abdae5c2cf",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-exists_spelling",
+ "elapsed_sec": 1.8,
+ "rewrite": {
+  "type": "exists_spelling",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

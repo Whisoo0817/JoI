@@ -1,0 +1,112 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "temp = any(#TemperatureSensor).temperatureSensor_temperature\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}\nelse {\nif (temp < 23) {\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"temp = any(#TemperatureSensor).temperatureSensor_temperature\nif (temp >= 30) {\nall(#AirConditioner).airConditioner_setTargetTemperature(25.0)\n}\nelse {\nif (temp < 23) {\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)\n}\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "any(#TemperatureSensor)"
+    ],
+    "AirConditioner.SetTargetTemperature": [
+      "all(#AirConditioner)",
+      "all(#AirConditioner)"
+    ]
+  },
+  "command_kor": "30분마다 체크해서 온도가 30도 이상이면 목표 온도를 25도로 설정하고, 23도 미만이면 26도로 설정해줘.",
+  "command_eng": "Check every 30 minutes; if the temperature is 30 degrees or higher, set the target temperature to 25 degrees; if it's below 23 degrees, set it to 26 degrees.",
+  "connected_devices": {
+    "Living_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Living",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Living_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Living",
+        "AirConditioner"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "read",
+            "var": "temp",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "temp >= 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetTargetTemperature",
+                "args": {
+                  "Temperature": 25.0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "temp < 23",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "AirConditioner.SetTargetTemperature",
+                    "args": {
+                      "Temperature": 26.0
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.7
+}

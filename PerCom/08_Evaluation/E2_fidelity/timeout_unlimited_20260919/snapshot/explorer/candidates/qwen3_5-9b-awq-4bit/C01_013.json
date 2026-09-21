@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "FineDustLevel = all(#AirQualitySensor).airQualitySensor_fineDustLevel\nall(#Speaker).speaker_speak(\"The fine dust level is \" + FineDustLevel)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"FineDustLevel = all(#AirQualitySensor).airQualitySensor_fineDustLevel\nall(#Speaker).speaker_speak(\\\"The fine dust level is \\\" + FineDustLevel)\"\n}",
+  "precision": {
+    "AirQualitySensor.FineDustLevel": [
+      "all(#AirQualitySensor)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "미세먼지 농도를 스피커로 알려줘.",
+  "command_eng": "Announce the fine dust level through the speaker.",
+  "connected_devices": {
+    "LivingRoom_AirQuality": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirQualitySensor"
+      ]
+    },
+    "Bedroom_AirQuality": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirQualitySensor"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "FineDustLevel",
+        "src": "AirQualitySensor.FineDustLevel"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "The fine dust level is $FineDustLevel"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.1
+}

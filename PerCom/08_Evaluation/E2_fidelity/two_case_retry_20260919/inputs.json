@@ -1,0 +1,224 @@
+[
+  {
+    "pair_id": "C01_006/llm",
+    "kind": "llm",
+    "family": null,
+    "base_case": "C01_006",
+    "automation": "main",
+    "description": "LLM candidate (gemma4-26b-contract-v1-fresh-v4)",
+    "ir": {
+      "timeline": [
+        {
+          "op": "start_at",
+          "anchor": "now"
+        },
+        {
+          "op": "call",
+          "target": "Television.ChannelDown",
+          "args": {}
+        }
+      ]
+    },
+    "binding": {
+      "Television": [
+        "LivingRoom_TV"
+      ]
+    },
+    "devices": {
+      "LivingRoom_TV": {
+        "category": [
+          "Television",
+          "Switch"
+        ],
+        "tags": [
+          "LivingRoom",
+          "Television",
+          "Switch"
+        ]
+      },
+      "Bedroom_TV": {
+        "category": [
+          "Television",
+          "Switch"
+        ],
+        "tags": [
+          "Bedroom",
+          "Television",
+          "Switch"
+        ]
+      }
+    },
+    "catalog": "files/service_list_ver2.0.7.json",
+    "t_start_ms": 43200000,
+    "ir_cron": "",
+    "joi": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "(#Television).television_setChannel((#Television).television_channel - 1)"
+    },
+    "command_eng": "Turn the TV channel down by one."
+  },
+  {
+    "pair_id": "E1-095/ext60-fault2",
+    "kind": "fault",
+    "family": "repetition-state",
+    "description": "Increment sample count by two, biasing both reported averages.",
+    "joi": {
+      "name": "E1-095",
+      "cron": "",
+      "period": 1000,
+      "script": "sum_ph := 0\nsum_cl := 0\ncount := 0\nlast_hour := -1\nh = (#Clock).Hour\nif (h >= 10 and h <= 14 and h != last_hour) {\n    sum_ph = sum_ph + (#Pool #PoolPH).Value\n    sum_cl = sum_cl + (#Pool #PoolChlorine).Value\n    count = count + 2\n    last_hour = h\n}\nif (h == 15 and count > 0) {\n    (#Report #Pool).ReportDailyQuality(sum_ph / count, sum_cl / count)\n    sum_ph = 0\n    sum_cl = 0\n    count = 0\n}"
+    },
+    "base_case": "E1-095",
+    "automation": "main",
+    "ir": {
+      "timeline": [
+        {
+          "op": "start_at",
+          "anchor": "now"
+        },
+        {
+          "op": "cycle",
+          "until": null,
+          "period": "0 MSEC",
+          "body": [
+            {
+              "op": "wait",
+              "cond": "Clock.Hour == 10",
+              "edge": "none"
+            },
+            {
+              "op": "read",
+              "var": "ph1",
+              "src": "PoolPH[Pool_PH].Value"
+            },
+            {
+              "op": "read",
+              "var": "cl1",
+              "src": "PoolChlorine[Pool_Chlorine].Value"
+            },
+            {
+              "op": "delay",
+              "duration": "1 HOUR"
+            },
+            {
+              "op": "read",
+              "var": "ph2",
+              "src": "PoolPH[Pool_PH].Value"
+            },
+            {
+              "op": "read",
+              "var": "cl2",
+              "src": "PoolChlorine[Pool_Chlorine].Value"
+            },
+            {
+              "op": "delay",
+              "duration": "1 HOUR"
+            },
+            {
+              "op": "read",
+              "var": "ph3",
+              "src": "PoolPH[Pool_PH].Value"
+            },
+            {
+              "op": "read",
+              "var": "cl3",
+              "src": "PoolChlorine[Pool_Chlorine].Value"
+            },
+            {
+              "op": "delay",
+              "duration": "1 HOUR"
+            },
+            {
+              "op": "read",
+              "var": "ph4",
+              "src": "PoolPH[Pool_PH].Value"
+            },
+            {
+              "op": "read",
+              "var": "cl4",
+              "src": "PoolChlorine[Pool_Chlorine].Value"
+            },
+            {
+              "op": "delay",
+              "duration": "1 HOUR"
+            },
+            {
+              "op": "read",
+              "var": "ph5",
+              "src": "PoolPH[Pool_PH].Value"
+            },
+            {
+              "op": "read",
+              "var": "cl5",
+              "src": "PoolChlorine[Pool_Chlorine].Value"
+            },
+            {
+              "op": "delay",
+              "duration": "1 HOUR"
+            },
+            {
+              "op": "call",
+              "target": "Pool[Pool_Report].ReportDailyQuality",
+              "args": {
+                "MeanPH": "($ph1 + $ph2 + $ph3 + $ph4 + $ph5) / 5",
+                "MeanChlorine": "($cl1 + $cl2 + $cl3 + $cl4 + $cl5) / 5"
+              }
+            },
+            {
+              "op": "wait",
+              "cond": "Clock.Hour != 15",
+              "edge": "none"
+            }
+          ]
+        }
+      ]
+    },
+    "binding": null,
+    "devices": {
+      "Pool_PH": {
+        "category": [
+          "PoolPH"
+        ],
+        "tags": [
+          "Pool",
+          "PoolPH"
+        ]
+      },
+      "Pool_Chlorine": {
+        "category": [
+          "PoolChlorine"
+        ],
+        "tags": [
+          "Pool",
+          "PoolChlorine"
+        ]
+      },
+      "Pool_Report": {
+        "category": [
+          "Pool"
+        ],
+        "tags": [
+          "Report",
+          "Pool"
+        ]
+      }
+    },
+    "catalog": "PerCom/08_Evaluation/E1_adequacy/breadth/depth/runs/fixture_catalog_v2.json",
+    "t_start_ms": 35999000,
+    "ir_cron": "",
+    "retag": {
+      "Pool_Report": [
+        "Report",
+        "Pool"
+      ]
+    },
+    "joi_note": "E1 JoI v3 accumulator (depth_attempts.py) with the report selector retagged; an accumulator idiom against the IR's five snapshots.",
+    "change": {
+      "old": "count = count + 1",
+      "new": "count = count + 2",
+      "count": 1
+    }
+  }
+]

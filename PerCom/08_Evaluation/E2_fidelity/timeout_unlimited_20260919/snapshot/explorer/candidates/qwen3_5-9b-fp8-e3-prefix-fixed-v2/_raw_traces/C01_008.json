@@ -1,0 +1,90 @@
+{
+  "sentence": "실내 온도를 스피커로 알려줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:18",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Speaker.Speak"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#LivingRoom_Temp)"
+      ],
+      "Speaker.Speak": [
+        "all(#Speaker)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Temp"
+        ]
+      },
+      "Speaker.Speak": {
+        "q": "all",
+        "devices": [
+          "Kitchen_Speaker",
+          "LivingRoom_Speaker"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "Temperature",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "The indoor temperature is $Temperature"
+        }
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Read TemperatureSensor.Temperature as the current temperature.\n- Run Speaker.Speak(Text=The indoor temperature is $Temperature).",
+  "lowering": {
+    "raw": "<Reasoning>\nRead sensor value, then speak with fan-out to all speakers.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"Temperature = (#LivingRoom_Temp).Temperature\\nall(#Speaker).Speak(\\\"The indoor temperature is \\\" + Temperature)\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "Temperature = (#LivingRoom_Temp).temperatureSensor_temperature\nall(#Speaker).speaker_speak(\"The indoor temperature is \" + Temperature)"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "LivingRoom_Temp"
+      ],
+      "Speaker": [
+        "LivingRoom_Speaker",
+        "Kitchen_Speaker"
+      ]
+    },
+    "seconds": 0.081
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"Temperature = (#LivingRoom_Temp).temperatureSensor_temperature\nall(#Speaker).speaker_speak(\\\"The indoor temperature is \\\" + Temperature)\"\n}",
+  "elapsed_sec": 1.045,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

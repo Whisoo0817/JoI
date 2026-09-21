@@ -1,0 +1,106 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 1000,
+  "script": "triggered := false\nif (triggered == true) {\nwait until(not (any(#AirQualitySensor).airQualitySensor_carbonDioxide >= 900))\n    triggered = false\n}\nwait until(any(#AirQualitySensor).airQualitySensor_carbonDioxide >= 900)\nall(#Valve).valve_close()\ntriggered = true"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(not (any(#AirQualitySensor).airQualitySensor_carbonDioxide >= 900))\\n    triggered = false\\n}\\nwait until(any(#AirQualitySensor).airQualitySensor_carbonDioxide >= 900)\\nall(#Valve).valve_close()\\ntriggered = true\"\n}",
+ "precision": {
+  "AirQualitySensor.CarbonDioxide": [
+   "any(#AirQualitySensor)"
+  ],
+  "Valve.Close": [
+   "all(#Valve)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "이산화탄소 농도가 900ppm 이상이 될때마다 벨브를 닫아줘.",
+ "command_eng": "Each time the carbon dioxide level reaches 900ppm or higher, close the valve.",
+ "connected_devices": {
+  "Living_AQ": {
+   "category": [
+    "AirQualitySensor"
+   ],
+   "tags": [
+    "Living",
+    "AirQualitySensor"
+   ]
+  },
+  "Bedroom_AQ": {
+   "category": [
+    "AirQualitySensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirQualitySensor"
+   ]
+  },
+  "Main_Valve": {
+   "category": [
+    "Valve"
+   ],
+   "tags": [
+    "Main",
+    "Valve"
+   ]
+  },
+  "Garden_Valve": {
+   "category": [
+    "Valve"
+   ],
+   "tags": [
+    "Garden",
+    "Valve"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "1 SEC",
+    "body": [
+     {
+      "op": "wait",
+      "cond": "AirQualitySensor.CarbonDioxide >= 900",
+      "edge": "rising"
+     },
+     {
+      "op": "call",
+      "target": "Valve.Close",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "AirQualitySensor": {
+   "any": [
+    "Living_AQ",
+    "Bedroom_AQ"
+   ]
+  },
+  "Valve": [
+   "Main_Valve",
+   "Garden_Valve"
+  ]
+ },
+ "input_payload_sha256": "62b44b76b9b69fc3753a759758f4dfb20b30877d54d555b811a0c645ff50ec23",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-exists_spelling",
+ "elapsed_sec": 2.5,
+ "rewrite": {
+  "type": "exists_spelling",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

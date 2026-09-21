@@ -1,0 +1,60 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 8 * * 1-5",
+    "period": 3600000,
+    "script": "if ((#Clock).clock_hour >= 12) {\nbreak\n}\nall(#Camera).camera_captureImage()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * 1-5\",\n  \"period\": 3600000,\n  \"script\": \"if ((#Clock).clock_hour >= 12) {\nbreak\n}\nall(#Camera).camera_captureImage()\"\n}",
+  "precision": {
+    "Camera.CaptureImage": [
+      "all(#Camera)"
+    ]
+  },
+  "command_kor": "평일 오전 8시부터 자정까지 한 시간마다 카메라로 사진을 찍어줘.",
+  "command_eng": "On weekdays from 8 AM to midnight every hour, capture an image with the camera.",
+  "connected_devices": {
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * 1-5"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2400",
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.3
+}

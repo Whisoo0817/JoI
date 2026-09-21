@@ -1,0 +1,141 @@
+{
+  "sentence": "15분마다 온도를 측정해서 25도 이상이면 에어컨을 냉방 모드로 켜고, 25도 미만이면 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:35",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On",
+      "AirConditioner.SetAirConditionerMode",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#Inside_TemperatureSensor)"
+      ],
+      "Switch.On": [
+        "all(#Switch)"
+      ],
+      "AirConditioner.SetAirConditionerMode": [
+        "all(#AirConditioner)"
+      ],
+      "Switch.Off": [
+        "all(#Switch)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "Inside_TemperatureSensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "all",
+        "devices": [
+          "Bedroom_AirConditioner",
+          "Main_AirConditioner"
+        ]
+      },
+      "AirConditioner.SetAirConditionerMode": {
+        "q": "all",
+        "devices": [
+          "Bedroom_AirConditioner",
+          "Main_AirConditioner"
+        ]
+      },
+      "Switch.Off": {
+        "q": "all",
+        "devices": [
+          "Bedroom_AirConditioner",
+          "Main_AirConditioner"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "15 MIN",
+        "body": [
+          {
+            "op": "read",
+            "var": "temp",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "temp >= 25",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              },
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "cool"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every 15 minutes, check the temperature.\n\nBehavior:\n- Read TemperatureSensor.Temperature as the current temperature.\n- If the current temperature is at least 25, turn on Bedroom_AirConditioner and Main_AirConditioner and set Bedroom_AirConditioner and Main_AirConditioner mode to cool.\n- Otherwise, turn off Bedroom_AirConditioner and Main_AirConditioner.",
+  "lowering": {
+    "raw": "<Reasoning>\nB-2: cycle without edge/until/break/pre-wait. cycle.period = 15 MIN → wrapper.period = 900000; emit body as-is.\n</Reasoning>\n{\"cron\":\"\",\"period\":900000,\"script\":\"temp = (#Inside_TemperatureSensor).Temperature\\nif (temp >= 25) {\\n    all(#Switch).On()\\n    all(#AirConditioner).SetAirConditionerMode(\\\"cool\\\")\\n} else {\\n    all(#Switch).Off()\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 900000,
+      "script": "temp = (#Inside_TemperatureSensor).temperatureSensor_temperature\nif (temp >= 25) {\nall(#Switch).switch_on()\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\n}\nelse {\nall(#Switch).switch_off()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "Inside_TemperatureSensor"
+      ],
+      "Switch": [
+        "Main_AirConditioner",
+        "Bedroom_AirConditioner"
+      ],
+      "AirConditioner": [
+        "Main_AirConditioner",
+        "Bedroom_AirConditioner"
+      ]
+    },
+    "seconds": 0.013
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 900000,\n  \"script\": \"temp = (#Inside_TemperatureSensor).temperatureSensor_temperature\nif (temp >= 25) {\nall(#Switch).switch_on()\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n}\\nelse {\\nall(#Switch).switch_off()\\n}\"\n}",
+  "elapsed_sec": 1.444,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

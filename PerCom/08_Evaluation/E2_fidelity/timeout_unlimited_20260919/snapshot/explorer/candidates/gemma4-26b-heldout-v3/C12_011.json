@@ -1,0 +1,88 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 10000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((#AirQualitySensor #ParkingLot).airQualitySensor_carbonDioxide > 880)\n    phase = 1\n    all(#Speaker).speaker_speak(\"CO2 level danger\")\n}\nelse {\nall(#Speaker).speaker_speak(\"CO2 level danger\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 10000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#AirQualitySensor #ParkingLot).airQualitySensor_carbonDioxide > 880)\n    phase = 1\n    all(#Speaker).speaker_speak(\\\"CO2 level danger\\\")\\n}\\nelse {\\nall(#Speaker).speaker_speak(\\\"CO2 level danger\\\")\\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.DustLevel": [
+      "(#AirQualitySensor #ParkingLot)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "주차장 이산화탄소 농도가 880ppm보다 높아지면, 그 이후로 10초마다 \"CO2 농도 위험\"이라고 주차장 스피커로 출력해줘.",
+  "command_eng": "When the carbon dioxide level in the parking lot exceeds 880 ppm, speak \"CO2 level danger\" through the parking lot speaker every 10 seconds thereafter.",
+  "connected_devices": {
+    "P_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "ParkingLot",
+        "AirQualitySensor"
+      ]
+    },
+    "Garage_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Garage",
+        "AirQualitySensor"
+      ]
+    },
+    "P_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "ParkingLot",
+        "Speaker"
+      ]
+    },
+    "Garage_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Garage",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "AirQualitySensor.CarbonDioxide > 880",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "10 SEC",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "CO2 level danger"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 9.5
+}

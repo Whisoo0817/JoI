@@ -1,0 +1,62 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 900000,
+    "script": "n := 0\nif (n >= 4) {\nbreak\n}\n(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 900000,\n  \"script\": \"n := 0\nif (n >= 4) {\nbreak\n}\n(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\nn = n + 1\"\n}",
+  "precision": {
+    "AirPurifier.SetAirPurifierMode": [
+      "(#AirPurifier)"
+    ]
+  },
+  "command_kor": "15분마다 공기청정기를 high 모드로 설정. 4번만.",
+  "command_eng": "Every 15 minutes, set the air purifier to high mode. Stop after 4 runs.",
+  "connected_devices": {
+    "LivingRoom_AirPurifier": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AirPurifier": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 4",
+        "period": "15 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "high"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.3
+}

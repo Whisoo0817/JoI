@@ -1,0 +1,122 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * *",
+    "period": 3600000,
+    "script": "if ((#Clock).clock_hour >= 5) {\nbreak\n}\nif (all(#ContactSensor).contactSensor_contact ==| false) {\nall(#Hallway #LevelControl).levelControl_moveToLevel(50.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * *\",\n  \"period\": 3600000,\n  \"script\": \"if ((#Clock).clock_hour >= 5) {\nbreak\n}\nif (all(#ContactSensor).contactSensor_contact ==| false) {\nall(#Hallway #LevelControl).levelControl_moveToLevel(50.0, 0.0)\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "any(#ContactSensor)"
+    ],
+    "Switch.On": [
+      "all(#Hallway #LevelControl)"
+    ]
+  },
+  "command_kor": "자정부터 오전 5시까지 1시간마다 체크해서 문이 하나라도 열려있으면, 복도의 조명을 모두 50%로 켜줘.",
+  "command_eng": "Every hour from midnight to 5 AM, if at least one door is open, turn all hallway lights to 50%.",
+  "connected_devices": {
+    "Front_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Front",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Hallway_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Hallway_Light_1": {
+      "category": [
+        "Light",
+        "Switch",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Hallway_Light_2": {
+      "category": [
+        "Light",
+        "Switch",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Basement_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Basement",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Basement_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "LevelControl"
+      ],
+      "tags": [
+        "Basement",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 0500",
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "if",
+            "cond": "ContactSensor.Contact == false",
+            "then": [
+              {
+                "op": "call",
+                "target": "LevelControl.MoveToLevel",
+                "args": {
+                  "Level": 50.0,
+                  "Rate": 0.0
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.9
+}

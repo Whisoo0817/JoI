@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "hold_ticks := 0\nif ((#Meeting #PresenceSensor).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 120) {\nhold_ticks = 0\n}\n}\nelse {\nhold_ticks = 0\n}\nn := 0\nif (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\"The meeting starts soon\")\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"hold_ticks := 0\nif ((#Meeting #PresenceSensor).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 120) {\nhold_ticks = 0\n}\n}\nelse {\nhold_ticks = 0\n}\nn := 0\nif (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\\\"The meeting starts soon\\\")\\nn = n + 1\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#Meeting #PresenceSensor)"
+    ],
+    "Speaker.Speak": [
+      "(#Speaker)"
+    ]
+  },
+  "command_kor": "회의실에 사람이 2분 이상 있으면 1분마다 스피커로 \"회의가 곧 시작됩니다\"라고 3번 알려줘.",
+  "command_eng": "If a person stays in the meeting room for at least 2 minutes, announce 'The meeting starts soon' through the speaker every 1 minute, 3 times.",
+  "connected_devices": {
+    "Meeting_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Meeting",
+        "PresenceSensor"
+      ]
+    },
+    "Meeting_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Meeting",
+        "Speaker"
+      ]
+    },
+    "Lobby_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Lobby",
+        "PresenceSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none",
+        "for": "2 MIN"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "1 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The meeting starts soon"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.6
+}

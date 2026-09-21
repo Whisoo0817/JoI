@@ -1,0 +1,104 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((all(#LightSensor #Terrace).lightSensor_brightness >=| 100))\ndelay(5 SEC)\nall(#Blind).windowCovering_upOrOpen()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((all(#LightSensor #Terrace).lightSensor_brightness >=| 100))\ndelay(5 SEC)\nall(#Blind).windowCovering_upOrOpen()\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "any(#LightSensor #Terrace)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#Blind)"
+    ]
+  },
+  "command_kor": "테라스의 어느 조도 센서라도 100 럭스 이상이 되면 5초 뒤에 모든 블라인드를 올려줘.",
+  "command_eng": "When any illuminance sensor on the terrace reaches 100 lux or higher, raise all blinds after 5 seconds.",
+  "connected_devices": {
+    "Terrace_Sensor_1": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Terrace",
+        "LightSensor"
+      ]
+    },
+    "Terrace_Sensor_2": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Terrace",
+        "LightSensor"
+      ]
+    },
+    "Garden_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Garden",
+        "LightSensor"
+      ]
+    },
+    "Terrace_Blind_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Terrace",
+        "WindowCovering",
+        "Blind"
+      ]
+    },
+    "Terrace_Blind_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Terrace",
+        "WindowCovering",
+        "Blind"
+      ]
+    },
+    "LivingRoom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "WindowCovering",
+        "Blind"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "LightSensor.Brightness >= 100",
+        "edge": "none"
+      },
+      {
+        "op": "delay",
+        "duration": "5 SEC"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.UpOrOpen",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.5
+}

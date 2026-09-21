@@ -1,0 +1,118 @@
+{
+  "sentence": "1초마다 거실 온도가 18도 이하이면 히터 플러그를 켜고, 그렇지 않고 22도 이상이면 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:46",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#LivingRoom_TempSensor)"
+      ],
+      "Switch.On": [
+        "(#LivingRoom_Heater)"
+      ],
+      "Switch.Off": [
+        "(#LivingRoom_Heater)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_TempSensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Heater"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Heater"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature <= 18",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "TemperatureSensor.Temperature >= 22",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every second, check the temperature.\n\nBehavior:\n- If the temperature of LivingRoom_TempSensor is at most 18, turn on LivingRoom_Heater.\n- Otherwise, if the temperature of LivingRoom_TempSensor is at least 22, turn off LivingRoom_Heater.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nB-2: simple periodic cycle with nested if/else conditions; period 1 SEC -> 1000ms.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#LivingRoom_TempSensor).Temperature <= 18) {\\n    (#LivingRoom_Heater).On()\\n} else {\\n    if ((#LivingRoom_TempSensor).Temperature >= 22) {\\n        (#LivingRoom_Heater).Off()\\n    }\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18) {\n(#LivingRoom_Heater).switch_on()\n}\nelse {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n(#LivingRoom_Heater).switch_off()\n}\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "LivingRoom_TempSensor"
+      ],
+      "Switch": [
+        "LivingRoom_Heater"
+      ]
+    },
+    "seconds": 0.017
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#LivingRoom_TempSensor).temperatureSensor_temperature <= 18) {\n(#LivingRoom_Heater).switch_on()\n}\nelse {\nif ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 22) {\n(#LivingRoom_Heater).switch_off()\n}\n}\"\n}",
+  "elapsed_sec": 1.665,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

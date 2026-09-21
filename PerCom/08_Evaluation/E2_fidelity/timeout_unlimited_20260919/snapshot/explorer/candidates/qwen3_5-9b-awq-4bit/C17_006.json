@@ -1,0 +1,111 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "fd = any(#AirQualitySensor).airQualitySensor_fineDustLevel\nif (fd >= 200) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nelse {\nif (fd <= 100) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"low\")\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"fd = any(#AirQualitySensor).airQualitySensor_fineDustLevel\nif (fd >= 200) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n}\\nelse {\\nif (fd <= 100) {\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"low\\\")\\n}\\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.FineDustLevel": [
+      "any(#AirQualitySensor)",
+      "any(#AirQualitySensor)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)",
+      "all(#AirPurifier)"
+    ]
+  },
+  "command_kor": "1시간마다 미세먼지 농도를 체크해서 200 이상이면 공기청정기를 강풍모드로 설정하고 100 이하이면 미풍모드로 설정해줘.",
+  "command_eng": "Check the fine dust level every hour; if it's 200 or higher, set the air purifier to high speed; if it's 100 or lower, set it to low speed.",
+  "connected_devices": {
+    "Living_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Living",
+        "AirQualitySensor"
+      ]
+    },
+    "Bedroom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirQualitySensor"
+      ]
+    },
+    "Living_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Living",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "read",
+            "var": "fd",
+            "src": "AirQualitySensor.FineDustLevel"
+          },
+          {
+            "op": "if",
+            "cond": "$fd >= 200",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirPurifier.SetAirPurifierMode",
+                "args": {
+                  "Mode": "high"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "$fd <= 100",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "AirPurifier.SetAirPurifierMode",
+                    "args": {
+                      "Mode": "low"
+                    }
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 9.7
+}

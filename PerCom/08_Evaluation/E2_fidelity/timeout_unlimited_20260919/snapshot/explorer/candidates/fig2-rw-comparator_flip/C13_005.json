@@ -1,0 +1,92 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 3600000,
+  "script": "n := 0\nif (0 == n % 2) {\n(#LR_Blind).windowCovering_upOrOpen()\n}\nelse {\n(#LR_Blind).windowCovering_downOrClose()\n}\nn = n + 1"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"n := 0\\nif (0 == n % 2) {\\n(#LR_Blind).windowCovering_upOrOpen()\\n}\\nelse {\\n(#LR_Blind).windowCovering_downOrClose()\\n}\\nn = n + 1\"\n}",
+ "precision": {
+  "WindowCovering.UpOrOpen": [
+   "(#LR_Blind)"
+  ],
+  "WindowCovering.DownOrClose": [
+   "(#LR_Blind)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "거실 블라인드를 1시간 간격으로 올렸다 내렸다 반복해줘.",
+ "command_eng": "Repeat opening and closing the living room blind every hour.",
+ "connected_devices": {
+  "LR_Blind": {
+   "category": [
+    "WindowCovering"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Blind",
+    "WindowCovering"
+   ]
+  },
+  "Bedroom_Blind": {
+   "category": [
+    "WindowCovering"
+   ],
+   "tags": [
+    "Bedroom",
+    "Blind",
+    "WindowCovering"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "1 HOUR",
+    "count": "n",
+    "body": [
+     {
+      "op": "if",
+      "cond": "n % 2 == 0",
+      "then": [
+       {
+        "op": "call",
+        "target": "WindowCovering.UpOrOpen",
+        "args": {}
+       }
+      ],
+      "else": [
+       {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "WindowCovering": [
+   "LR_Blind"
+  ]
+ },
+ "input_payload_sha256": "21a1183e8e389d674b947f1668f99a084019c6b4b1467ca6b7caa878a561e866",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 2.0,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

@@ -1,0 +1,61 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "오늘의 301동 점심 메뉴를 스피커로 알려줘.",
+  "command_eng": "Tell me the lunch menu for Building 301 today through the speaker.",
+  "connected_devices": {
+    "System_MenuProvider": {
+      "category": [
+        "MenuProvider"
+      ],
+      "tags": [
+        "MenuProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "MenuProvider.GetMenu",
+        "args": {
+          "Command": "오늘 301동식당 점심"
+        },
+        "var": "GetMenu"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "$GetMenu"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.3
+}

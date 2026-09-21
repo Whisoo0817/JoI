@@ -1,0 +1,75 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#DoorLock).doorLock_unlock()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#DoorLock).doorLock_unlock()\"\n}",
+  "precision": {
+    "DoorLock.Unlock": [
+      "all(#DoorLock)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "모든 금고를 열어줘.",
+  "command_eng": "Open all safes.",
+  "connected_devices": {
+    "Office_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Office",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "Bedroom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Bedroom",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "LivingRoom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Safe",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "DoorLock.Unlock",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "DoorLock": [
+      "Office_DoorLock",
+      "Bedroom_DoorLock",
+      "LivingRoom_DoorLock"
+    ]
+  },
+  "input_payload_sha256": "1d9f45ed8e8bf0bc6851300c3c4cc8bb8e5f7148ed6f75c43c8529c5a71da1de",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.2
+}

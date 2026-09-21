@@ -1,0 +1,132 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 1500 and (#Living_Blind).windowCovering_currentPosition == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"auto\")\n(#Living_Blind).windowCovering_upOrOpen()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#AirQualitySensor).airQualitySensor_carbonDioxide >=| 1500 and (#Living_Blind).windowCovering_currentPosition == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"auto\\\")\\n(#Living_Blind).windowCovering_upOrOpen()\\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.CarbonDioxide": [
+      "any(#AirQualitySensor)"
+    ],
+    "WindowCovering.CurrentPosition": [
+      "(#Living_Blind)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "(#Living_Blind)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132326_641.json",
+  "command_kor": "이산화탄소가 1500ppm 이상이고 블라인드가 닫혀있으면, 공기청정기를 자동 모드로 켜고 블라인드를 올려줘.",
+  "command_eng": "If the carbon dioxide is 1500ppm or higher and the blind is closed, set the air purifier to auto and raise the blind.",
+  "connected_devices": {
+    "Living_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Living",
+        "AirQualitySensor"
+      ]
+    },
+    "Bedroom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirQualitySensor"
+      ]
+    },
+    "Living_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Living_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Living",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.CarbonDioxide >= 1500 and WindowCovering.CurrentPosition == 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "auto"
+            }
+          },
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "AirQualitySensor": {
+      "any": [
+        "Living_AQ",
+        "Bedroom_AQ"
+      ]
+    },
+    "WindowCovering": [
+      "Living_Blind"
+    ],
+    "AirPurifier": [
+      "Living_AP",
+      "Bedroom_AP"
+    ]
+  },
+  "input_payload_sha256": "e0cba653674552ffed45bc972a9b458a3b3c73658caddf68819e14b36778b80f",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 2.1
+}

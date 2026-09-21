@@ -1,0 +1,75 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 18 * * *",
+    "period": 0,
+    "script": "if (all(#Window).windowCovering_currentPosition >| 0) {\nall(#Window).windowCovering_downOrClose()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 18 * * *\",\n  \"period\": 0,\n  \"script\": \"if (all(#Window).windowCovering_currentPosition >| 0) {\nall(#Window).windowCovering_downOrClose()\n}\"\n}",
+  "precision": {
+    "WindowCovering.CurrentPosition": [
+      "any(#Window)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "all(#Window)"
+    ]
+  },
+  "command_kor": "오후 6시에 창문이 하나라도 열려있으면 모두 닫아줘.",
+  "command_eng": "At 6 PM, if any window is open, close all of them.",
+  "connected_devices": {
+    "LivingRoom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Entrance_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 18 * * *"
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition > 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.0
+}

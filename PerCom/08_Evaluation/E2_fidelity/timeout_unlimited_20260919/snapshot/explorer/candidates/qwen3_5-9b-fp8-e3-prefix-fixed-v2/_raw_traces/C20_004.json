@@ -1,0 +1,110 @@
+{
+  "sentence": "프린터 플러그 사용 전력이 5W 미만으로 10분 이상 유지되면 프린터 플러그를 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:49",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "Plug.Power",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "Plug.Power": [
+        "(#Office_Printer)"
+      ],
+      "Switch.Off": [
+        "(#Office_Printer)"
+      ]
+    },
+    "resolved": {
+      "Plug.Power": {
+        "q": "one",
+        "devices": [
+          "Office_Printer"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "Office_Printer"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Wait until the power of Office_Printer is below 5 stays true for 10 minutes.\n- If the power of Office_Printer is below 5 becomes false before 10 minutes, the timer starts over.\n- Turn off Office_Printer.",
+  "lowering": {
+    "raw": "<Reasoning>\nD-10n sustained-cond one-shot with 10 MIN duration → period 1000, ticks 600.\n</Reasoning>\n{\"cron\":\"\",\"period\":1000,\"script\":\"hold_ticks := 0\\nif ((#Office_Printer).Power < 5) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 600) {\\n        (#Office_Printer).Off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "hold_ticks := 0\nif ((#Office_Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Office_Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 599,
+      "input": {
+        "Office_Printer.power": -0.1
+      },
+      "dwell_ms": 1000,
+      "ir_actions": [],
+      "joi_actions": [
+        [
+          [
+            "switch",
+            "off",
+            [
+              "tuple",
+              []
+            ],
+            [
+              "Office_Printer"
+            ]
+          ]
+        ]
+      ],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "Plug": [
+        "Office_Printer"
+      ],
+      "Switch": [
+        "Office_Printer"
+      ]
+    },
+    "seconds": 0.146
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#Office_Printer).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Office_Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "elapsed_sec": 1.776,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'Office_Printer.power': -0.1} IR=[] JoI=[(('switch', 'off', ('tuple', ()), ('Office_Printer',)),)]"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "n := 0\nif (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\"lunch time\")\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"n := 0\nif (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\\\"lunch time\\\")\\nn = n + 1\"\n}",
+  "precision": {
+    "Speaker.Speak": [
+      "(#Speaker)"
+    ]
+  },
+  "command_kor": "1분마다 방송으로 \"점심시간\" 안내. 총 3번.",
+  "command_eng": "Every 1 minute, announce \"lunch time\" through the speaker. Total 3 times.",
+  "connected_devices": {
+    "LivingRoom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Kitchen_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Kitchen",
+        "SmokeDetector"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "1 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "lunch time"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 4.9
+}

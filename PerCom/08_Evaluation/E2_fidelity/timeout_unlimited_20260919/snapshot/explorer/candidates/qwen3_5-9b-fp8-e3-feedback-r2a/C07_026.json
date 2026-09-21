@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Bedroom_Shade_Button).button_button == \"pushed\")\n(#Bedroom_Shade).windowCovering_downOrClose()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bedroom_Shade_Button).button_button == \\\"pushed\\\")\\n(#Bedroom_Shade).windowCovering_downOrClose()\"\n}",
+  "precision": {
+    "Button.Button": [
+      "(#Bedroom_Shade_Button)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "(#Bedroom_Shade)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "안방 쉐이드 버튼이 눌리면 쉐이드를 내려줘.",
+  "command_eng": "When the bedroom shade button is pushed, lower the shade.",
+  "connected_devices": {
+    "Bedroom_Shade_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "Button"
+      ]
+    },
+    "Bedroom_Blind_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "Button"
+      ]
+    },
+    "Bedroom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "LivingRoom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Shade",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Button.Button == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "Button": [
+      "Bedroom_Shade_Button"
+    ],
+    "WindowCovering": [
+      "Bedroom_Shade"
+    ]
+  },
+  "input_payload_sha256": "b5401cac9d237992fc77bd207d2839e521680c8ef527e958e50a67e8e54e609e",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

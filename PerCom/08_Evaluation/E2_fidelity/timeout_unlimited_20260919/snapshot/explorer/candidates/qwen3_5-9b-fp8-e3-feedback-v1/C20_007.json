@@ -1,0 +1,108 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#Kitchen_ContactSensor).contactSensor_contact == false) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 601) {\n(#Kitchen_Fan).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 100, \"script\": \"hold_ticks := 0\\nif ((#Kitchen_ContactSensor).contactSensor_contact == false) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 601) {\\n(#Kitchen_Fan).switch_on()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#Kitchen_ContactSensor)"
+    ],
+    "Switch.On": [
+      "(#Kitchen_Fan)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "부엌 문이 10분 이상 열려있으면 부엌 환기팬 플러그를 켜줘.",
+  "command_eng": "If the kitchen door stays open for at least 10 minutes, turn on the kitchen ventilation fan plug.",
+  "connected_devices": {
+    "Kitchen_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "FrontContactSensor_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Kitchen_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "ContactSensor": [
+      "Kitchen_ContactSensor"
+    ],
+    "Switch": [
+      "Kitchen_Fan"
+    ]
+  },
+  "input_payload_sha256": "593961466665762b307073ce9fb8e6633b37d2f9315e6ed87fa77f617cb160ac",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

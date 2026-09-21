@@ -1,0 +1,74 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 22 * * *",
+    "period": 300000,
+    "script": "if ((#Clock).clock_hour >= 23) {\nbreak\n}\nif (all(#Charger).charger_chargingState ==| \"fullyCharged\") {\nall(#Charger).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 300000,\n  \"script\": \"if ((#Clock).clock_hour >= 23) {\nbreak\n}\nif (all(#Charger).charger_chargingState ==| \\\"fullyCharged\\\") {\\nall(#Charger).switch_off()\\n}\"\n}",
+  "precision": {
+    "Charger.ChargingState": [
+      "any(#Charger)"
+    ],
+    "Switch.Off": [
+      "all(#Charger)"
+    ]
+  },
+  "command_kor": "오후 10시부터 11시까지 5분마다 체크해서 충전이 완료되면 꺼줘.",
+  "command_eng": "Check every 5 minutes from 10 PM to 11 PM and turn it off when charging is complete.",
+  "connected_devices": {
+    "Main_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Charger",
+        "Switch"
+      ]
+    },
+    "Phone_Charger": {
+      "category": [
+        "Charger",
+        "Switch"
+      ],
+      "tags": [
+        "Phone",
+        "Charger",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 22 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2300",
+        "period": "5 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Charger.ChargingState == \"fullyCharged\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.8
+}

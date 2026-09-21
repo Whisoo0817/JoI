@@ -1,0 +1,70 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "IsAvailable = any(#CloudServiceProvider).cloudServiceProvider_isAvailable()\nif (IsAvailable == true) {\nall(#CloudServiceProvider).cloudServiceProvider_uploadFile(\"test.png\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"IsAvailable = any(#CloudServiceProvider).cloudServiceProvider_isAvailable()\nif (IsAvailable == true) {\nall(#CloudServiceProvider).cloudServiceProvider_uploadFile(\\\"test.png\\\")\\n}\"\n}",
+  "precision": {
+    "CloudServiceProvider.ChatSession": [
+      "any(#CloudServiceProvider)"
+    ],
+    "CloudServiceProvider.UploadFile": [
+      "all(#CloudServiceProvider)"
+    ]
+  },
+  "command_kor": "클라우드 서비스가 활성화되어있으면, test.png 파일을 클라우드에 업로드해줘.",
+  "command_eng": "If the cloud service is activated, upload test.png file to the cloud.",
+  "connected_devices": {
+    "Main_CloudServiceProvider": {
+      "category": [
+        "CloudServiceProvider"
+      ],
+      "tags": [
+        "CloudServiceProvider",
+        "Main"
+      ]
+    },
+    "Backup_CloudServiceProvider": {
+      "category": [
+        "CloudServiceProvider"
+      ],
+      "tags": [
+        "CloudServiceProvider",
+        "Backup"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "CloudServiceProvider.IsAvailable",
+        "args": {},
+        "var": "IsAvailable"
+      },
+      {
+        "op": "if",
+        "cond": "$IsAvailable == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "CloudServiceProvider.UploadFile",
+            "args": {
+              "File": "test.png"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.7
+}

@@ -1,0 +1,88 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "섹터1의 도어락 중 하나라도 열려 있으면, 섹터1 사이렌을 경찰 모드로 울려줘.",
+  "command_eng": "If any door lock in sector 1 is open, sound the sector 1 siren in police mode.",
+  "connected_devices": {
+    "S1_Lock_1": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector1",
+        "DoorLock"
+      ]
+    },
+    "S1_Lock_2": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector1",
+        "DoorLock"
+      ]
+    },
+    "S2_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector2",
+        "DoorLock"
+      ]
+    },
+    "S3_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector3",
+        "DoorLock"
+      ]
+    },
+    "S1_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Sector1",
+        "Siren"
+      ]
+    },
+    "S2_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Sector2",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "DoorLock.DoorLockState == \"open\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "police"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.5
+}

@@ -1,0 +1,119 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#WeatherProvider).weatherProvider_weather == \"rain\" and (#HumiditySensor).humiditySensor_humidity >= 80) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\nall(#Speaker).speaker_speak(\"It's raining and himidity is high\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#WeatherProvider).weatherProvider_weather == \\\"rain\\\" and (#HumiditySensor).humiditySensor_humidity >= 80) {\\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\nall(#Speaker).speaker_speak(\\\"It's raining and himidity is high\\\")\\n}\"\n}",
+  "precision": {
+    "WeatherProvider.HumidityWeather": [
+      "(#WeatherProvider)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "비가 오고 있고 습도가 80% 이상이면, 제습기를 건조 모드로 작동시키고 \"비가 오고 습도가 높습니다\"라고 스피커로 출력해줘.",
+  "command_eng": "If it is raining and the humidity is 80% or higher, set the dehumidifier to drying mode and output \"It's raining and himidity is high\" through the speaker.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Living_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Living",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "Living_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Living",
+        "Dehumidifier"
+      ]
+    },
+    "Bedroom_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\" and HumiditySensor.Humidity >= 80",
+        "then": [
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "It's raining and himidity is high"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.8
+}

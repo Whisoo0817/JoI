@@ -1,0 +1,84 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Valve).valve_open()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Valve).valve_open()\"\n}",
+  "precision": {
+    "Valve.Open": [
+      "all(#Valve)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "주방의 모든 짝수 태그 밸브를 열어줘.",
+  "command_eng": "Open all even-tagged valves in the kitchen.",
+  "connected_devices": {
+    "Kitchen_Valve_2": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Even",
+        "Valve"
+      ]
+    },
+    "Kitchen_Valve_4": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Even",
+        "Valve"
+      ]
+    },
+    "Kitchen_Valve_1": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Odd",
+        "Valve"
+      ]
+    },
+    "Bathroom_Valve_2": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Bathroom",
+        "Even",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Valve.Open",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "Valve": [
+      "Kitchen_Valve_2",
+      "Kitchen_Valve_4"
+    ]
+  },
+  "input_payload_sha256": "15ca7a4eb7a8159a43f6724d28945384da812b8a481c9fe63a6a65662aea0148",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.2
+}

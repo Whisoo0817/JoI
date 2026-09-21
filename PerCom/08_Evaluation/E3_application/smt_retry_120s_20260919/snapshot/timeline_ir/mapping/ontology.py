@@ -1,0 +1,79 @@
+"""Deterministic device-targeting helpers for the mapping stage.
+
+Pure functions shared by the mapping stage (no LLM, no I/O):
+  - minimal_tags_for   : matched devices → the tightest selector tag(s)
+  - quantifier_for     : (scope, role, count) → all/any/'' prefix
+"""
+
+from itertools import combinations
+
+
+def minimal_tags_for(matched, cd):
+    """Given a set of matched device keys and the device dict {key:{category,tags}},
+    return (tags, exact): the SMALLEST list of (clean, real) tags whose intersection
+    selects those devices, and whether it selects EXACTLY them.
+
+    The candidate tags are the devices' COMMON tags (a tag missing from any matched
+    device can't be used — it would drop that device), minus noise: per-device real
+    ids and infra tags all start with `tc0_`, and `NoneNecessary` is filler. We then
+    pick the fewest tags (smallest first) whose intersection over ALL devices equals
+    the matched set — so "거실에 조명뿐" yields `[LivingRoom]`, while a mixed room
+    yields `[LivingRoom, Light]`, and `hue 조명` yields `[PhilipsHue, Light]`.
+
+    Returns ([], False) when no semantic-tag combo isolates the set (e.g. one of two
+    devices that differ only by id) — the caller then selects by the device id alias.
+    """
+    M = set(matched)
+    if not M:
+        return ([], False)
+
+    def tags_of(k):
+        d = cd.get(k, {})
+        return set(d.get("category", [])) | set(d.get("tags", []))
+
+    common = set.intersection(*(tags_of(k) for k in M))
+    cands = [t for t in common
+             if not str(t).startswith("tc0_")     # drops real ids + infra tags
+             and t != "NoneNecessary"]
+    # de-prioritize generic power tags so a meaningful tag is chosen at equal size
+    cands.sort(key=lambda t: (t in ("Switch", "Matter"), str(t)))
+
+    def select(T):
+        T = set(T)
+        return {k for k in cd if T <= tags_of(k)}
+
+    for size in range(1, len(cands) + 1):
+        for combo in combinations(cands, size):
+            if select(combo) == M:
+                return (list(combo), True)
+    # No tag combo isolates the set exactly. For ONE device the caller selects by
+    # its id alias (returning the candidate tags would over-select its siblings).
+    # For a GROUP, fall back to the tightest common tags (a valid intersection,
+    # possibly a superset) — never an id-join of distinct ids, which selects none.
+    if len(M) == 1:
+        return ([], False)
+    return (cands, False)
+
+
+def quantifier_for(scope: str, role: str, n: int) -> str:
+    """Deterministic quantifier prefix: '', 'all', or 'any'.
+
+    Rule: an EXPLICIT user quantity word wins verbatim; only `auto` (no quantity
+    word in the command) falls back to (count, role).
+      explicit `all`  (모두/전부/다/모든/전체) → 'all'  (condition → all-satisfy `==`)
+      explicit `any`  (하나라도/적어도 하나)    → 'any'  (condition → any-satisfy `==|`)
+      explicit `one`  (하나만/하나/한 개)       → ''     (no prefix → runtime picks 1)
+      auto: n<=1 → '' (one); role==condition → 'any'; else → 'all'
+    """
+    if scope == "all":
+        return "all"
+    if scope == "any":
+        return "any"
+    if scope == "one":
+        return ""
+    # auto / unspecified — decide from match count + role
+    if n <= 1:
+        return ""
+    if role == "condition":
+        return "any"
+    return "all"

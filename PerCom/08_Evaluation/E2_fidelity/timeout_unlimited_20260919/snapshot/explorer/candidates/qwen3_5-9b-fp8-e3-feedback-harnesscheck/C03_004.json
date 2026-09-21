@@ -1,0 +1,73 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Living_RVC).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \"manual\") {\n(#Living_RVC).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Living_RVC).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \\\"manual\\\") {\\n(#Living_RVC).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\n}\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode": [
+      "(#Living_RVC)"
+    ],
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "(#Living_RVC)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "로봇청소기가 수동 모드이면, 자동 모드로 변경해줘.",
+  "command_eng": "If the robot vacuum cleaner is in manual mode, switch it to auto mode.",
+  "connected_devices": {
+    "Living_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Living",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Kitchen_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Kitchen",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"manual\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+            "args": {
+              "Mode": "auto"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "RobotVacuumCleaner": [
+      "Living_RVC"
+    ]
+  },
+  "input_payload_sha256": "1f7c81f62d88ae53d95963dca87e96ee8abe04fe6870ad3124779f515464b75b",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

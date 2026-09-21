@@ -1,0 +1,96 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#MotionSensor).motionSensor_motion == true and (#Main).siren_sirenMode != \"emergency\") {\n(#Main).siren_setSirenMode(\"emergency\")\n(#Camera #Garage).camera_captureImage()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#MotionSensor).motionSensor_motion == true and (#Main).siren_sirenMode != \\\"emergency\\\") {\\n(#Main).siren_setSirenMode(\\\"emergency\\\")\\n(#Camera #Garage).camera_captureImage()\\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "(#MotionSensor)"
+    ],
+    "Switch.Switch": [
+      "(#Main)"
+    ],
+    "Siren.SetSirenMode": [
+      "(#Main)"
+    ],
+    "Camera.CaptureImage": [
+      "(#Camera #Garage)"
+    ]
+  },
+  "command_kor": "차고에서 움직임이 감지되고 있고 메인 사이렌이 꺼져있으면, 비상 사이렌을 울리고 차고 사진을 찍어줘.",
+  "command_eng": "If motion is detected in the garage and the main siren is off, sound the siren in emergency and take a picture.",
+  "connected_devices": {
+    "Garage_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Garage",
+        "MotionSensor"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Siren",
+        "Switch"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    },
+    "Hallway_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Hallway",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == true and Siren.SirenMode != \"emergency\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Camera.CaptureImage",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 10.3
+}

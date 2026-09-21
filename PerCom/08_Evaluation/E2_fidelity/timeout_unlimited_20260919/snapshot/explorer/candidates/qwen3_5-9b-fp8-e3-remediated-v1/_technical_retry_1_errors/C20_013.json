@@ -1,0 +1,81 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "욕실에 20초 이상 동작이 없으면 욕실 환풍기를 꺼줘.",
+  "command_eng": "If no motion is detected in the bathroom for at least 20 seconds, turn off the bathroom fan.",
+  "connected_devices": {
+    "Bathroom_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bathroom",
+        "MotionSensor"
+      ]
+    },
+    "Bathroom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Fan",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Hall_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "MotionSensor"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == false",
+        "edge": "none",
+        "for": "20 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "MotionSensor": [
+      "Bathroom_Motion"
+    ],
+    "Switch": [
+      "Bathroom_Fan"
+    ]
+  },
+  "input_payload_sha256": "7fcf999031d92794fa4568425d4e845e26f56ef66fcdeedd2692b8b1c26aa9c0",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.2
+}

@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "wait until((#BackDoor).contactSensor_contact == false)\nhold_ticks := 0\nif ((#BackDoor).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 300) {\n(#Living).speaker_speak(\"The door is still open\")\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"wait until((#BackDoor).contactSensor_contact == false)\nhold_ticks := 0\nif ((#BackDoor).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 300) {\n(#Living).speaker_speak(\\\"The door is still open\\\")\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#BackDoor)"
+    ],
+    "Speaker.Speak": [
+      "(#Living)"
+    ]
+  },
+  "command_kor": "현관문이 열리면, 5분 안에 닫히지 않으면 스피커로 '문이 아직 열려 있습니다'라고 알려줘.",
+  "command_eng": "When the front door opens, if it is not closed within 5 minutes, announce 'The door is still open' through the speaker.",
+  "connected_devices": {
+    "Front_DoorContact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "FrontDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Back_DoorContact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "BackDoor",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "rising"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "timeout": "5 MIN",
+        "on_timeout": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The door is still open"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.0
+}

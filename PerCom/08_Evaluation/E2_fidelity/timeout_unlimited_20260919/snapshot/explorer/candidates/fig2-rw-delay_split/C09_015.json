@@ -1,0 +1,112 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "(#Kitchen_Light).light_moveToBrightness(100.0, 0.0)\ndelay(1 SEC)\ndelay(9 SEC)\n(#Kitchen_Dehumidifier).dehumidifier_setDehumidifierMode(\"dehumidifying\")"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#Kitchen_Light).light_moveToBrightness(100.0, 0.0)\\ndelay(1 SEC)\\ndelay(9 SEC)\\n(#Kitchen_Dehumidifier).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\"\n}",
+ "precision": {
+  "Light.MoveToBrightness": [
+   "(#Kitchen_Light)"
+  ],
+  "Dehumidifier.SetDehumidifierMode": [
+   "(#Kitchen_Dehumidifier)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "주방 조명을 켜고 10초 뒤에 주방 제습기를 켜줘.",
+ "command_eng": "Turn on the kitchen light and turn on the kitchen dehumidifier 10 seconds later.",
+ "connected_devices": {
+  "Kitchen_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "Kitchen",
+    "Light",
+    "Switch"
+   ]
+  },
+  "LivingRoom_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Light",
+    "Switch"
+   ]
+  },
+  "Kitchen_Dehumidifier": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Kitchen",
+    "Dehumidifier",
+    "Switch"
+   ]
+  },
+  "Bedroom_Dehumidifier": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "Dehumidifier",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "call",
+    "target": "Light.MoveToBrightness",
+    "args": {
+     "Brightness": 100.0,
+     "Rate": 0.0
+    }
+   },
+   {
+    "op": "delay",
+    "duration": "10 SEC"
+   },
+   {
+    "op": "call",
+    "target": "Dehumidifier.SetDehumidifierMode",
+    "args": {
+     "Mode": "dehumidifying"
+    }
+   }
+  ]
+ },
+ "binding": {
+  "Light": [
+   "Kitchen_Light"
+  ],
+  "Dehumidifier": [
+   "Kitchen_Dehumidifier"
+  ]
+ },
+ "input_payload_sha256": "dacaee318baff4aee299eaeaf64e0214ce8722d17582d269a1214fbd915ea310",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-delay_split",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "delay_split",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

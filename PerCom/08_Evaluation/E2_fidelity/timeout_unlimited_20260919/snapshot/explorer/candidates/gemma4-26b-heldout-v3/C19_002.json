@@ -1,0 +1,116 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#HumiditySensor #LivingRoom).humiditySensor_humidity >= 70) {\n(#Dehumidifier).switch_on()\n}\nelse {\nif ((#HumiditySensor #LivingRoom).humiditySensor_humidity <= 50) {\n(#Dehumidifier).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#HumiditySensor #LivingRoom).humiditySensor_humidity >= 70) {\n(#Dehumidifier).switch_on()\n}\nelse {\nif ((#HumiditySensor #LivingRoom).humiditySensor_humidity <= 50) {\n(#Dehumidifier).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#HumiditySensor #LivingRoom)",
+      "(#HumiditySensor #LivingRoom)"
+    ],
+    "Switch.On": [
+      "(#Dehumidifier)"
+    ],
+    "Switch.Off": [
+      "(#Dehumidifier)"
+    ]
+  },
+  "command_kor": "1초마다 거실 습도가 70% 이상이면 제습기 플러그를 켜고, 그렇지 않고 50% 이하이면 꺼줘.",
+  "command_eng": "Every 1 second, if the living room humidity is at least 70%, turn on the dehumidifier plug; otherwise if it is 50% or below, turn off the dehumidifier plug.",
+  "connected_devices": {
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_Dehumidifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Dehumidifier"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity >= 70",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "HumiditySensor.Humidity <= 50",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 12.6
+}

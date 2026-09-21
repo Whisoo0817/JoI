@@ -1,0 +1,93 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (15 <= (#Main_WeatherProvider).weatherProvider_pm25Weather) {\nall(#Siren).siren_setSirenMode(\"emergency\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (15 <= (#Main_WeatherProvider).weatherProvider_pm25Weather) {\\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n}\"\n}",
+ "precision": {
+  "WeatherProvider.Pm25Weather": [
+   "(#Main_WeatherProvider)"
+  ],
+  "Siren.SetSirenMode": [
+   "all(#Siren)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "바깥의 초미세먼지 농도가 15 이상이면, 긴급 사이렌을 울려줘.",
+ "command_eng": "If the outdoor very fine dust level is 15 or higher, sound the emergency siren.",
+ "connected_devices": {
+  "Main_WeatherProvider": {
+   "category": [
+    "WeatherProvider"
+   ],
+   "tags": [
+    "WeatherProvider",
+    "Main"
+   ]
+  },
+  "Main_Siren": {
+   "category": [
+    "Siren",
+    "Switch"
+   ],
+   "tags": [
+    "Siren",
+    "Main"
+   ]
+  },
+  "Garage_Siren": {
+   "category": [
+    "Siren",
+    "Switch"
+   ],
+   "tags": [
+    "Siren",
+    "Garage"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "WeatherProvider.Pm25Weather >= 15",
+    "then": [
+     {
+      "op": "call",
+      "target": "Siren.SetSirenMode",
+      "args": {
+       "Mode": "emergency"
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "WeatherProvider": [
+   "Main_WeatherProvider"
+  ],
+  "Siren": [
+   "Main_Siren",
+   "Garage_Siren"
+  ]
+ },
+ "input_payload_sha256": "de36bc142e8b3e6662bfdd83d1ad626fe19d92da0ff6f9370d16cec3e48fa8bb",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

@@ -1,0 +1,90 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '사람': 해당하는 연결 디바이스 없음",
+  "command_kor": "사람이 감지될 때마다 부엌 조명 밝기를 20씩 높여줘. 최대 100까지.",
+  "command_eng": "Whenever motion is detected, increase the kitchen light brightness by 20, up to a maximum of 100.",
+  "connected_devices": {
+    "Kitchen_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "MotionSensor"
+      ]
+    },
+    "LivingRoom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MotionSensor"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": "min($Light.CurrentBrightness + 20, 100)",
+              "Rate": 0.0
+            },
+            "var": "Light"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.2
+}

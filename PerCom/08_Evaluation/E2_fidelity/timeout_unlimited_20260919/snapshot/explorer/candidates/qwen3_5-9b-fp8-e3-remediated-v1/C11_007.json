@@ -1,0 +1,117 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "h1 = (#Bedroom_HumiditySensor).airQualitySensor_humidity\ndelay(30 MIN)\nh2 = (#Bedroom_HumiditySensor).airQualitySensor_humidity\ndiff = h2 - h1\nif (diff < 0) {\ndiff = h1 - h2\n}\nif (diff >= 15) {\n(#Bedroom_Dehumidifier).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"h1 = (#Bedroom_HumiditySensor).airQualitySensor_humidity\ndelay(30 MIN)\nh2 = (#Bedroom_HumiditySensor).airQualitySensor_humidity\ndiff = h2 - h1\nif (diff < 0) {\ndiff = h1 - h2\n}\nif (diff >= 15) {\n(#Bedroom_Dehumidifier).switch_on()\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#Bedroom_HumiditySensor)"
+    ],
+    "Switch.On": [
+      "(#Bedroom_Dehumidifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "지금 침실 습도를 확인하고 30분 뒤 다시 확인해서 15 이상 올랐으면 침실 제습기 플러그를 켜줘.",
+  "command_eng": "Check the bedroom humidity now and again in 30 minutes. If it rose by at least 15, turn on the bedroom dehumidifier plug.",
+  "connected_devices": {
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Dehumidifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "Dehumidifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "h1",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "delay",
+        "duration": "30 MIN"
+      },
+      {
+        "op": "read",
+        "var": "h2",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "if",
+        "cond": "$h2 - $h1 >= 15",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "HumiditySensor": [
+      "Bedroom_HumiditySensor"
+    ],
+    "Switch": [
+      "Bedroom_Dehumidifier"
+    ]
+  },
+  "input_payload_sha256": "4d286ebd4a48d1d3bc2437260d43c70b8cc4feb830b0b0e40c1624dfab813c8b",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.3
+}

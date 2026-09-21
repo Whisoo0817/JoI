@@ -1,0 +1,95 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Main_Button).button_button == \"pushed\") {\nall(#WindowCovering).windowCovering_upOrOpen()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Main_Button).button_button == \\\"pushed\\\") {\\nall(#WindowCovering).windowCovering_upOrOpen()\\n}\"\n}",
+  "precision": {
+    "Button.Button": [
+      "(#Main_Button)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "all(#WindowCovering)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "버튼이 눌려진 상태면, 블라인드를 올려줘.",
+  "command_eng": "If the button is in the pushed state, raise the blind.",
+  "connected_devices": {
+    "Main_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Main",
+        "Button"
+      ]
+    },
+    "Garage_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Garage",
+        "Button"
+      ]
+    },
+    "LivingRoom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "Button.Button == \"pushed\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "Button": [
+      "Main_Button"
+    ],
+    "WindowCovering": [
+      "LivingRoom_Blind",
+      "Bedroom_Blind"
+    ]
+  },
+  "input_payload_sha256": "0c5397cd3440246ad4c3d9b97d37fb09b3d2e5406f125d7ca7d9af17c55843dc",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

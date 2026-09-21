@@ -1,0 +1,56 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "에어컨을 냉방 모드로 설정하고 10분 뒤에 자동 모드로 바꿔줘.",
+  "command_eng": "Set the air conditioner to cool mode and change it to auto mode after 10 minutes.",
+  "connected_devices": {
+    "Kitchen_AirConditioner": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Kitchen",
+        "AirConditioner"
+      ]
+    },
+    "Basement_AirConditioner": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "Basement",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetAirConditionerMode",
+        "args": {
+          "Mode": "cool"
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetAirConditionerMode",
+        "args": {
+          "Mode": "auto"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.5
+}

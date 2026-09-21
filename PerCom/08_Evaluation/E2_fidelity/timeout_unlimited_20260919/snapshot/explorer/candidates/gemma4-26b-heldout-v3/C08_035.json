@@ -1,0 +1,108 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#DoorLock).doorLock_doorLockState ==| \"closed\") {\nif (triggered == false) {\n(#Entrance).light_moveToBrightness(100.0, 0.0)\n        delay(10 SEC)\n(#Entrance).light_moveToBrightness(0.0, 0.0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#DoorLock).doorLock_doorLockState ==| \\\"closed\\\") {\\nif (triggered == false) {\\n(#Entrance).light_moveToBrightness(100.0, 0.0)\\n        delay(10 SEC)\\n(#Entrance).light_moveToBrightness(0.0, 0.0)\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "any(#DoorLock)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Entrance)"
+    ]
+  },
+  "command_kor": "도어락이 잠길때마다 입구의 조명을 최대밝기로 10초 유지하다가 꺼줘.",
+  "command_eng": "Whenever the door lock is locked, turn on the entrance light at maximum brightness for 10 seconds and then turn it off.",
+  "connected_devices": {
+    "DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Ent_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    },
+    "Hall_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "DoorLock.DoorLockState == \"closed\"",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "10 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 0.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 10.7
+}

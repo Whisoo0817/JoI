@@ -1,0 +1,117 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 26)) {\n(#LivingRoom_AC).switch_off()\n} else {\n(#LivingRoom_AC).switch_on()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#LivingRoom_TempSensor).temperatureSensor_temperature >= 26)) {\\n(#LivingRoom_AC).switch_off()\\n} else {\\n(#LivingRoom_AC).switch_on()\\n}\"\n}",
+ "precision": {
+  "TemperatureSensor.Temperature": [
+   "(#LivingRoom_TempSensor)"
+  ],
+  "Switch.On": [
+   "(#LivingRoom_AC)"
+  ],
+  "Switch.Off": [
+   "(#LivingRoom_AC)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132352_599.json",
+ "command_kor": "거실 온도가 26도 이상이면 거실 에어컨 플러그를 켜고, 아니면 꺼줘.",
+ "command_eng": "If the living room temperature is at least 26C, turn on the living room AC plug; otherwise turn it off.",
+ "connected_devices": {
+  "LivingRoom_TempSensor": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "TemperatureSensor"
+   ]
+  },
+  "Bedroom_TempSensor": {
+   "category": [
+    "TemperatureSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "TemperatureSensor"
+   ]
+  },
+  "LivingRoom_AC": {
+   "category": [
+    "Plug",
+    "Switch"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Plug",
+    "AC"
+   ]
+  },
+  "Office_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Office",
+    "Camera"
+   ]
+  },
+  "Pantry_Humidifier": {
+   "category": [
+    "Humidifier"
+   ],
+   "tags": [
+    "Pantry",
+    "Humidifier"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "TemperatureSensor.Temperature >= 26",
+    "then": [
+     {
+      "op": "call",
+      "target": "Switch.On",
+      "args": {}
+     }
+    ],
+    "else": [
+     {
+      "op": "call",
+      "target": "Switch.Off",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "TemperatureSensor": [
+   "LivingRoom_TempSensor"
+  ],
+  "Switch": [
+   "LivingRoom_AC"
+  ]
+ },
+ "input_payload_sha256": "f1aea6d0594c7ede173a5e05f526407ebc8ba62e9aab13639698fa7f98402f01",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-branch_swap",
+ "elapsed_sec": 1.6,
+ "rewrite": {
+  "type": "branch_swap",
+  "band": "logic",
+  "seed_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2"
+ }
+}

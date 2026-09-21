@@ -1,0 +1,126 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 60000,
+  "script": "if (50 <= all(#HumiditySensor).humiditySensor_humidity) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"refreshing\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"if (50 <= all(#HumiditySensor).humiditySensor_humidity) {\\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"refreshing\\\")\\n}\"\n}",
+ "precision": {
+  "HumiditySensor.Humidity": [
+   "all(#HumiditySensor)"
+  ],
+  "Dehumidifier.SetDehumidifierMode": [
+   "all(#Dehumidifier)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "그룹 2에 속한 습도 센서들을 1분마다 체크해서 모두 50% 이상이면, 모든 제습기를 리프레쉬 모드로 설정해줘.",
+ "command_eng": "Every minute, if the humidity of all sensors in Group2 is 50% or higher, set all dehumidifiers to refresh mode.",
+ "connected_devices": {
+  "Grp2_Hum_1": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "Group2",
+    "HumiditySensor",
+    "North"
+   ]
+  },
+  "Grp2_Hum_2": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "Group2",
+    "HumiditySensor",
+    "South"
+   ]
+  },
+  "Grp1_Hum_1": {
+   "category": [
+    "HumiditySensor"
+   ],
+   "tags": [
+    "Group1",
+    "HumiditySensor",
+    "East"
+   ]
+  },
+  "Dehum_1": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Main",
+    "Dehumidifier",
+    "Switch"
+   ]
+  },
+  "Dehum_2": {
+   "category": [
+    "Dehumidifier",
+    "Switch"
+   ],
+   "tags": [
+    "Backup",
+    "Dehumidifier",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "1 MIN",
+    "body": [
+     {
+      "op": "if",
+      "cond": "HumiditySensor.Humidity >= 50",
+      "then": [
+       {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+         "Mode": "refreshing"
+        }
+       }
+      ],
+      "else": []
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "HumiditySensor": {
+   "all": [
+    "Grp2_Hum_1",
+    "Grp2_Hum_2"
+   ]
+  },
+  "Dehumidifier": [
+   "Dehum_1",
+   "Dehum_2"
+  ]
+ },
+ "input_payload_sha256": "a3aa0a52705cbeb9ceea9c681574ba56b8e7243e8d3339cb106b9a8cfcba7ef6",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 2.2,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

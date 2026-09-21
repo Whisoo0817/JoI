@@ -1,0 +1,67 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LivingRoom).airConditioner_airConditionerMode == \"cool\") {\n(#LivingRoom).airConditioner_setAirConditionerMode(\"auto\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom).airConditioner_airConditionerMode == \\\"cool\\\") {\\n(#LivingRoom).airConditioner_setAirConditionerMode(\\\"auto\\\")\\n}\"\n}",
+  "precision": {
+    "AirConditioner.AirConditionerMode": [
+      "(#LivingRoom)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "(#LivingRoom)"
+    ]
+  },
+  "command_kor": "거실의 에어컨 모드가 냉방 모드이면, 자동 모드로 바꿔줘.",
+  "command_eng": "If the air conditioner in livingroom is in cool mode, switch it to auto mode.",
+  "connected_devices": {
+    "Kitchen_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "AirConditioner"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirConditioner.AirConditionerMode == \"cool\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "auto"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.7
+}

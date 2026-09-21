@@ -1,0 +1,106 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 8 * * *",
+    "period": 0,
+    "script": "all(#Speaker).speaker_speak(\"Get up\")\nif ((#Main_Window).windowCovering_currentPosition == 0) {\n(#Main_Window).windowCovering_upOrOpen()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 8 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#Speaker).speaker_speak(\\\"Get up\\\")\\nif ((#Main_Window).windowCovering_currentPosition == 0) {\\n(#Main_Window).windowCovering_upOrOpen()\\n}\"\n}",
+  "precision": {
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ],
+    "WindowCovering.CurrentPosition": [
+      "(#Main_Window)"
+    ],
+    "WindowCovering.UpOrOpen": [
+      "(#Main_Window)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132335_292.json",
+  "command_kor": "매일 아침 8시에 스피커로 '일어나세요'라고 말해 줘. 그리고 창문이 닫혀있으면 열어줘.",
+  "command_eng": "Every morning at 8 AM, make the speaker speak 'Get up'. Additionally, if the window is closed, open it.",
+  "connected_devices": {
+    "Main_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Main",
+        "Speaker"
+      ]
+    },
+    "Main_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 8 * * *"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Get up"
+        }
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition == 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "Speaker": [
+      "Main_Speaker",
+      "Bedroom_Speaker"
+    ],
+    "WindowCovering": [
+      "Main_Window"
+    ]
+  },
+  "input_payload_sha256": "8373d0e2188409b0ef0f063bf51674b4bca3440039c3739c24b0f518dd386e84",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 2.1
+}

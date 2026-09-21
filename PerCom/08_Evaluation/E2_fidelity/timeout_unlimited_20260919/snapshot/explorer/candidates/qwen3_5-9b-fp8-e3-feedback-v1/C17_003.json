@@ -1,0 +1,77 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "tmp = (#Living_Speaker).speaker_volume + 10\nif (tmp > 100) {\ntmp = 100\n}\n(#Living_Speaker).speaker_setVolume(tmp)"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 3600000, \"script\": \"tmp = (#Living_Speaker).speaker_volume + 10\\nif (tmp > 100) {\\ntmp = 100\\n}\\n(#Living_Speaker).speaker_setVolume(tmp)\"}",
+  "precision": {
+    "Speaker.SetVolume": [
+      "(#Living_Speaker)"
+    ],
+    "Speaker.Volume": [
+      "(#Living_Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "1시간마다 스피커 볼륨을 10씩 올려줘.",
+  "command_eng": "Every hour, increase the speaker volume by 10.",
+  "connected_devices": {
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.SetVolume",
+            "args": {
+              "Volume": "min($Speaker.Volume + 10, 100)"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "Speaker": [
+      "Living_Speaker"
+    ]
+  },
+  "input_payload_sha256": "439a61071f629f50542bdf07022d2cf4b8d084f9d3d05983da2b6d768103ce94",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.7,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

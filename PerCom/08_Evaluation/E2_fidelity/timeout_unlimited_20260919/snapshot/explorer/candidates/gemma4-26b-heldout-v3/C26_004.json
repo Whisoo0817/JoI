@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 23 * * *",
+    "period": 0,
+    "script": "wait until(all(#DoorLock).doorLock_doorLockState ==| \"closed\")\nall(#DoorLock).doorLock_lock()\n(#Living).speaker_speak(\"The door lock has been locked\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 23 * * *\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#DoorLock).doorLock_doorLockState ==| \\\"closed\\\")\\nall(#DoorLock).doorLock_lock()\\n(#Living).speaker_speak(\\\"The door lock has been locked\\\")\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "any(#DoorLock)"
+    ],
+    "DoorLock.Lock": [
+      "all(#DoorLock)"
+    ],
+    "Speaker.Speak": [
+      "(#Living)"
+    ]
+  },
+  "command_kor": "밤 11시에 도어락이 잠기기를 10분까지 기다렸다가, 그래도 안 잠겨 있으면 잠그고 스피커로 알려줘.",
+  "command_eng": "At 11 PM, wait up to 10 minutes for the door lock to be locked; if it is still unlocked, lock it and notify me through the speaker.",
+  "connected_devices": {
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 23 * * *"
+      },
+      {
+        "op": "wait",
+        "cond": "DoorLock.DoorLockState == \"closed\"",
+        "timeout": "10 MIN",
+        "on_timeout": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The door lock has been locked"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 11.1
+}

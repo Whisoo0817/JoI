@@ -1,0 +1,110 @@
+{
+  "sentence": "충전기 플러그 전력이 30분 이상 5W 미만으로 유지되면 충전기 플러그를 꺼줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:24:05",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "Plug.Power",
+      "Switch.Off"
+    ],
+    "selectors": {
+      "Plug.Power": [
+        "(#Kitchen_Charger)"
+      ],
+      "Switch.Off": [
+        "(#Kitchen_Charger)"
+      ]
+    },
+    "resolved": {
+      "Plug.Power": {
+        "q": "one",
+        "devices": [
+          "Kitchen_Charger"
+        ]
+      },
+      "Switch.Off": {
+        "q": "one",
+        "devices": [
+          "Kitchen_Charger"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "30 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Wait until the power of Kitchen_Charger is below 5 stays true for 30 minutes.\n- If the power of Kitchen_Charger is below 5 becomes false before 30 minutes, the timer starts over.\n- Turn off Kitchen_Charger.",
+  "lowering": {
+    "raw": "<Reasoning>\nD-10n sustained-cond one-shot with 30 MIN duration requiring period 1000 and hold_ticks 1800.\n</Reasoning>\n{\"cron\":\"\",\"period\":1000,\"script\":\"hold_ticks := 0\\nif ((#Kitchen_Charger).Power < 5) {\\n    hold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 1800) {\\n        (#Kitchen_Charger).Off()\\n        break\\n    }\\n} else {\\n    hold_ticks = 0\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "hold_ticks := 0\nif ((#Kitchen_Charger).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1800) {\n(#Kitchen_Charger).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 1799,
+      "input": {
+        "Kitchen_Charger.power": -0.1
+      },
+      "dwell_ms": 1000,
+      "ir_actions": [],
+      "joi_actions": [
+        [
+          [
+            "switch",
+            "off",
+            [
+              "tuple",
+              []
+            ],
+            [
+              "Kitchen_Charger"
+            ]
+          ]
+        ]
+      ],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "Plug": [
+        "Kitchen_Charger"
+      ],
+      "Switch": [
+        "Kitchen_Charger"
+      ]
+    },
+    "seconds": 0.334
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#Kitchen_Charger).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1800) {\n(#Kitchen_Charger).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "elapsed_sec": 2.065,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'Kitchen_Charger.power': -0.1} IR=[] JoI=[(('switch', 'off', ('tuple', ()), ('Kitchen_Charger',)),)]"
+  }
+}

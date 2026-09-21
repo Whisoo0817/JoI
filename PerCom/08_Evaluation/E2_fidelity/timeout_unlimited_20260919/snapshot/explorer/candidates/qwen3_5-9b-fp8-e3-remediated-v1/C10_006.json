@@ -1,0 +1,116 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#Light).light_currentBrightness >| 0)\ndelay(5 MIN)\nany(#Light).light_moveToBrightness(0, 0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#Light).light_currentBrightness >| 0)\ndelay(5 MIN)\nany(#Light).light_moveToBrightness(0, 0)\"\n}",
+  "precision": {
+    "Light.CurrentBrightness": [
+      "any(#Light)"
+    ],
+    "Light.MoveToBrightness": [
+      "any(#Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "복도의 조명이 하나라도 켜지면 5분 뒤에 거실의 모든 조명을 꺼줘.",
+  "command_eng": "When any light in the hallway is turned on, turn off all lights in the living room after 5 minutes.",
+  "connected_devices": {
+    "Hallway_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Hallway_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Light.CurrentBrightness > 0",
+        "edge": "none"
+      },
+      {
+        "op": "delay",
+        "duration": "5 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "binding": {
+    "Light": {
+      "any": [
+        "Hallway_Light_1",
+        "Hallway_Light_2"
+      ]
+    }
+  },
+  "input_payload_sha256": "192cf6168ec886d44dbbf181acc0959295894ffcabfd13f0d223f3bc120a7e31",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.5
+}

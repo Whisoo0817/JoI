@@ -1,0 +1,105 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "h1 = (#Bedroom #HumiditySensor).humiditySensor_humidity\ndelay(30 MIN)\nh2 = (#Bedroom #HumiditySensor).humiditySensor_humidity\ndiff = h2 - h1\nif (diff < 0) {\ndiff = h1 - h2\n}\nif (diff >= 15) {\n(#Dehumidifier).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"h1 = (#Bedroom #HumiditySensor).humiditySensor_humidity\ndelay(30 MIN)\nh2 = (#Bedroom #HumiditySensor).humiditySensor_humidity\ndiff = h2 - h1\nif (diff < 0) {\ndiff = h1 - h2\n}\nif (diff >= 15) {\n(#Dehumidifier).switch_on()\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#Bedroom #HumiditySensor)"
+    ],
+    "Switch.On": [
+      "(#Dehumidifier)"
+    ]
+  },
+  "command_kor": "지금 침실 습도를 확인하고 30분 뒤 다시 확인해서 15 이상 올랐으면 침실 제습기 플러그를 켜줘.",
+  "command_eng": "Check the bedroom humidity now and again in 30 minutes. If it rose by at least 15, turn on the bedroom dehumidifier plug.",
+  "connected_devices": {
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Dehumidifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "Dehumidifier"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "h1",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "delay",
+        "duration": "30 MIN"
+      },
+      {
+        "op": "read",
+        "var": "h2",
+        "src": "HumiditySensor.Humidity"
+      },
+      {
+        "op": "if",
+        "cond": "$h2 - $h1 >= 15",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 12.7
+}

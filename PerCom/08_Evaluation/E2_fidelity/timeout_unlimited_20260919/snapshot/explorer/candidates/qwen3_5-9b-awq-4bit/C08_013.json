@@ -1,0 +1,107 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Bedroom #MultiButton).multiButton_button1 == \"pushed\")\ncurrent = any(#Light).light_currentBrightness\nif (current >= 80) {\nany(#Light).light_moveToBrightness(10, 0)\n}\nelse {\nany(#Light).light_moveToBrightness(80, 0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Bedroom #MultiButton).multiButton_button1 == \\\"pushed\\\")\\ncurrent = any(#Light).light_currentBrightness\\nif (current >= 80) {\\nany(#Light).light_moveToBrightness(10, 0)\\n}\\nelse {\\nany(#Light).light_moveToBrightness(80, 0)\\n}\"\n}",
+  "precision": {
+    "MultiButton.Button1": [
+      "(#Bedroom #MultiButton)"
+    ],
+    "Light.CurrentBrightness": [
+      "any(#Light)",
+      "any(#Light)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Bedroom #Light)",
+      "(#Bedroom #Light)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼1이 눌리면 침실 조명 밝기가 80 이상이면 10으로, 그렇지 않으면 80으로 설정해줘.",
+  "command_eng": "When button 1 of the multi-button is pressed, if the bedroom light brightness is 80 or higher, set it to 10; otherwise, set it to 80.",
+  "connected_devices": {
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button1 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "read",
+        "var": "current",
+        "src": "Light.CurrentBrightness"
+      },
+      {
+        "op": "if",
+        "cond": "$current >= 80",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 10.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 80.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 11.0
+}

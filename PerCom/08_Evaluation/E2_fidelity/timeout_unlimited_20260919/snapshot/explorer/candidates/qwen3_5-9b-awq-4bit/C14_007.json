@@ -1,0 +1,99 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#Kitchen #LevelControl).motionSensor_motion == true) {\nif (triggered == false) {\ntmp = (#Kitchen #LevelControl).lightSensor_brightness + 20\n        if (tmp > 100) {\ntmp = 100\n}\n(#Kitchen #LevelControl).light_moveToBrightness(tmp, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#Kitchen #LevelControl).motionSensor_motion == true) {\nif (triggered == false) {\ntmp = (#Kitchen #LevelControl).lightSensor_brightness + 20\n        if (tmp > 100) {\ntmp = 100\n}\n(#Kitchen #LevelControl).light_moveToBrightness(tmp, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "Light.MoveToBrightness": [
+      "(#Kitchen #LevelControl)"
+    ]
+  },
+  "command_kor": "사람이 감지될 때마다 부엌 조명 밝기를 20씩 높여줘. 최대 100까지.",
+  "command_eng": "Whenever motion is detected, increase the kitchen light brightness by 20, up to a maximum of 100.",
+  "connected_devices": {
+    "Kitchen_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "MotionSensor"
+      ]
+    },
+    "LivingRoom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MotionSensor"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "MotionSensor.Motion == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": "min($Light.CurrentBrightness + 20, 100)",
+              "Rate": 0.0
+            },
+            "var": "Light"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.8
+}

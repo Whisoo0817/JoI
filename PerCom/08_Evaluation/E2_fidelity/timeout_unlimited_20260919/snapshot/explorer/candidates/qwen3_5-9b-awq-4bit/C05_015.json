@@ -1,0 +1,95 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#DoorLock).doorLock_doorLockState ==| \"open\" and WeatherProvider.Weather == \"rain\") {\nany(#DoorLock).doorLock_lock()\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"internalCare\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#DoorLock).doorLock_doorLockState ==| \\\"open\\\" and WeatherProvider.Weather == \\\"rain\\\") {\\nany(#DoorLock).doorLock_lock()\\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"internalCare\\\")\\n}\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "any(#DoorLock)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "command_kor": "비가 오고 문이 잠겨 있지 않으면, 문을 잠그고 제습기를 건조 모드로 설정해줘.",
+  "command_eng": "If it is raining and the door is unlocked, lock the door and set the dehumidifier to drying mode.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Living_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Living",
+        "DoorLock"
+      ]
+    },
+    "Bedroom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Bedroom",
+        "DoorLock"
+      ]
+    },
+    "Living_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Living",
+        "Dehumidifier"
+      ]
+    },
+    "Bedroom_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\" and DoorLock.DoorLockState == \"open\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "internalCare"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.9
+}

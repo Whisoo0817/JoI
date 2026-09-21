@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#AirQualitySensor #MeetingRoom).airQualitySensor_temperature < 20) {\n(#DoorLock #MeetingRoom).doorLock_lock()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#AirQualitySensor #MeetingRoom).airQualitySensor_temperature < 20) {\n(#DoorLock #MeetingRoom).doorLock_lock()\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.CarbonDioxide": [
+      "(#AirQualitySensor #MeetingRoom)"
+    ],
+    "DoorLock.Lock": [
+      "(#DoorLock #MeetingRoom)"
+    ]
+  },
+  "command_kor": "회의실 온도가 20도 미만이면, 회의실 문을 잠가줘.",
+  "command_eng": "If the temperature on the airquality sensor is below 20 degrees, lock the door.",
+  "connected_devices": {
+    "MeetingRoom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "AirQualitySensor"
+      ]
+    },
+    "Office_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Office",
+        "AirQualitySensor"
+      ]
+    },
+    "MeetingRoom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "DoorLock"
+      ]
+    },
+    "Office_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Office",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.Temperature < 20",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.0
+}

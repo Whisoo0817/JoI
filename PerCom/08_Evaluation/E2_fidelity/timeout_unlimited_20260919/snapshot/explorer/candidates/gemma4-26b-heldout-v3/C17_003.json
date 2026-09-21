@@ -1,0 +1,63 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "all(#Speaker).speaker_setVolume(all(#Speaker).speaker_volume + 10)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"all(#Speaker).speaker_setVolume(all(#Speaker).speaker_volume + 10)\"\n}",
+  "precision": {
+    "Speaker.VolumeUp": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "1시간마다 스피커 볼륨을 10씩 올려줘.",
+  "command_eng": "Every hour, increase the speaker volume by 10.",
+  "connected_devices": {
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.SetVolume",
+            "args": {
+              "Volume": "$Speaker.Volume + 10"
+            },
+            "var": "Speaker.Volume"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.8
+}

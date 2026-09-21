@@ -1,0 +1,63 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 22 * * *",
+    "period": 600000,
+    "script": "if ((#Clock).clock_hour >= 24) {\nbreak\n}\nall(#Siren).siren_setSirenMode(\"emergency\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 600000,\n  \"script\": \"if ((#Clock).clock_hour >= 24) {\nbreak\n}\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\"\n}",
+  "precision": {
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ]
+  },
+  "command_kor": "밤10시부터 자정까지 10분마다 긴급 사이렌을 울려줘.",
+  "command_eng": "From 10 PM to midnight every 10 minutes, sound the emergency siren.",
+  "connected_devices": {
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 22 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2400",
+        "period": "10 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.7
+}

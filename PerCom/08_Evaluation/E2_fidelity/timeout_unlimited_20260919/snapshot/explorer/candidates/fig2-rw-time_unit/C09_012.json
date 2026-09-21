@@ -1,0 +1,91 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "all(#WindowCovering).windowCovering_downOrClose()\ndelay(120 MIN)\nall(#WindowCovering).windowCovering_upOrOpen()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#WindowCovering).windowCovering_downOrClose()\\ndelay(120 MIN)\\nall(#WindowCovering).windowCovering_upOrOpen()\"\n}",
+ "precision": {
+  "WindowCovering.DownOrClose": [
+   "all(#WindowCovering)"
+  ],
+  "WindowCovering.UpOrOpen": [
+   "all(#WindowCovering)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "안방의 모든 블라인드를 닫고 2시간 뒤에 다시 열어줘.",
+ "command_eng": "Close all blinds in the bedroom and open them again after 2 hours.",
+ "connected_devices": {
+  "Bedroom_Blind_1": {
+   "category": [
+    "WindowCovering"
+   ],
+   "tags": [
+    "Bedroom",
+    "Blind",
+    "WindowCovering"
+   ]
+  },
+  "Bedroom_Blind_2": {
+   "category": [
+    "WindowCovering"
+   ],
+   "tags": [
+    "Bedroom",
+    "Blind",
+    "WindowCovering"
+   ]
+  },
+  "LivingRoom_Blind": {
+   "category": [
+    "WindowCovering"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Blind",
+    "WindowCovering"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "call",
+    "target": "WindowCovering.DownOrClose",
+    "args": {}
+   },
+   {
+    "op": "delay",
+    "duration": "2 HOUR"
+   },
+   {
+    "op": "call",
+    "target": "WindowCovering.UpOrOpen",
+    "args": {}
+   }
+  ]
+ },
+ "binding": {
+  "WindowCovering": [
+   "Bedroom_Blind_1",
+   "Bedroom_Blind_2"
+  ]
+ },
+ "input_payload_sha256": "1f0636c9d3ca1a7dc92f195e0b0978bcd8d4ab002d42655d2558c78694cd5573",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-time_unit",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "time_unit",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

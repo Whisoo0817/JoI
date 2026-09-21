@@ -1,0 +1,126 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70) {\n(#LivingRoom_Dehumidifier).switch_on()\n}\nelse {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n(#LivingRoom_Dehumidifier).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#LivingRoom_HumiditySensor).humiditySensor_humidity >= 70) {\n(#LivingRoom_Dehumidifier).switch_on()\n}\nelse {\nif ((#LivingRoom_HumiditySensor).humiditySensor_humidity <= 50) {\n(#LivingRoom_Dehumidifier).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#LivingRoom_HumiditySensor)"
+    ],
+    "Switch.On": [
+      "(#LivingRoom_Dehumidifier)"
+    ],
+    "Switch.Off": [
+      "(#LivingRoom_Dehumidifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132347_527.json",
+  "command_kor": "1초마다 거실 습도가 70% 이상이면 제습기 플러그를 켜고, 그렇지 않고 50% 이하이면 꺼줘.",
+  "command_eng": "Every 1 second, if the living room humidity is at least 70%, turn on the dehumidifier plug; otherwise if it is 50% or below, turn off the dehumidifier plug.",
+  "connected_devices": {
+    "LivingRoom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_HumiditySensor": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    },
+    "LivingRoom_Dehumidifier": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Dehumidifier"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "HumiditySensor.Humidity >= 70",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "HumiditySensor.Humidity <= 50",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "HumiditySensor": [
+      "LivingRoom_HumiditySensor"
+    ],
+    "Switch": [
+      "LivingRoom_Dehumidifier"
+    ]
+  },
+  "input_payload_sha256": "0838aceb7d3e7e8e869adb1eb44c4995d247ac03bb6f70f80c5abc0bc26706df",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 2.3
+}

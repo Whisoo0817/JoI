@@ -1,0 +1,76 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 7200000,
+    "script": "n := 0\nif (n % 2 == 0) {\n(#Bedroom).windowCovering_upOrOpen()\n}\nelse {\n(#Bedroom).windowCovering_downOrClose()\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 7200000,\n  \"script\": \"n := 0\nif (n % 2 == 0) {\n(#Bedroom).windowCovering_upOrOpen()\n}\nelse {\n(#Bedroom).windowCovering_downOrClose()\n}\nn = n + 1\"\n}",
+  "precision": {
+    "WindowCovering.UpOrOpen": [
+      "(#Bedroom)"
+    ]
+  },
+  "command_kor": "안방 창문을 2시간마다 열었다 닫았다 반복해줘.",
+  "command_eng": "Repeat opening and closing the bedroom window every 2 hours.",
+  "connected_devices": {
+    "BR_Win": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "LR_Win": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "2 HOUR",
+        "count": "n",
+        "body": [
+          {
+            "op": "if",
+            "cond": "n % 2 == 0",
+            "then": [
+              {
+                "op": "call",
+                "target": "WindowCovering.UpOrOpen",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "WindowCovering.DownOrClose",
+                "args": {}
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.6
+}

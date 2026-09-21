@@ -1,0 +1,108 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#F1_MB).multiButton_button4 == \"pushed\")) {\n    wait until((#F1_MB).multiButton_button4 == \"pushed\")\n}\nall(#Light).light_moveToBrightness(0.0, 0.0)"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#F1_MB).multiButton_button4 == \\\"pushed\\\")) {\\n    wait until((#F1_MB).multiButton_button4 == \\\"pushed\\\")\\n}\\nall(#Light).light_moveToBrightness(0.0, 0.0)\"\n}",
+ "precision": {
+  "MultiButton.Button4": [
+   "(#F1_MB)"
+  ],
+  "Light.MoveToBrightness": [
+   "all(#Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "멀티버튼의 버튼4가 눌리면 1층 조명을 모두 꺼줘.",
+ "command_eng": "When button 4 of the multi-button is pressed, turn off all lights on floor 1.",
+ "connected_devices": {
+  "F1_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "Floor1",
+    "MultiButton"
+   ]
+  },
+  "F2_MB": {
+   "category": [
+    "MultiButton"
+   ],
+   "tags": [
+    "Floor2",
+    "MultiButton"
+   ]
+  },
+  "F1_Light_1": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Floor1",
+    "Light"
+   ]
+  },
+  "F1_Light_2": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Floor1",
+    "Light"
+   ]
+  },
+  "F2_Light": {
+   "category": [
+    "Light"
+   ],
+   "tags": [
+    "Floor2",
+    "Light"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "MultiButton.Button4 == \"pushed\"",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Light.MoveToBrightness",
+    "args": {
+     "Brightness": 0.0,
+     "Rate": 0.0
+    }
+   }
+  ]
+ },
+ "binding": {
+  "MultiButton": [
+   "F1_MB"
+  ],
+  "Light": [
+   "F1_Light_1",
+   "F1_Light_2"
+  ]
+ },
+ "input_payload_sha256": "f1b62a0a81b2376fab87b03826071d20cb4d4996fceb615839924bfcdf22506a",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

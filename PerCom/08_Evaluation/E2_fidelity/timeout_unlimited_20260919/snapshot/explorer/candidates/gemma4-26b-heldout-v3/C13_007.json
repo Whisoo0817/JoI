@@ -1,0 +1,80 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "n := 0\nif (n % 2 == 0) {\n(#MeetingRoom).airConditioner_setTargetTemperature(25.0)\n}\nelse {\n(#MeetingRoom).airConditioner_setTargetTemperature(20.0)\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"n := 0\nif (n % 2 == 0) {\n(#MeetingRoom).airConditioner_setTargetTemperature(25.0)\n}\nelse {\n(#MeetingRoom).airConditioner_setTargetTemperature(20.0)\n}\nn = n + 1\"\n}",
+  "precision": {
+    "AirConditioner.SetTargetTemperature": [
+      "(#MeetingRoom)"
+    ]
+  },
+  "command_kor": "회의실 에어컨의 목표 온도를 1시간마다 25와 20으로 번갈아 설정해줘.",
+  "command_eng": "Every hour, alternate the air conditioner's target temperature between 25 and 20 degrees.",
+  "connected_devices": {
+    "MR_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "AirConditioner"
+      ]
+    },
+    "LR_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "count": "n",
+        "body": [
+          {
+            "op": "if",
+            "cond": "n % 2 == 0",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetTargetTemperature",
+                "args": {
+                  "Temperature": 25.0
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetTargetTemperature",
+                "args": {
+                  "Temperature": 20.0
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.8
+}

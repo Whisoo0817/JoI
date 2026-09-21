@@ -1,0 +1,85 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif ((#ContactSensor #Study).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 180) {\n(#Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#ContactSensor #Study).contactSensor_contact == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 180) {\n(#Light).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#ContactSensor #Study)"
+    ],
+    "Switch.Off": [
+      "(#Light)"
+    ]
+  },
+  "command_kor": "서재 문이 3분 이상 닫혀 있으면 서재 조명을 꺼줘.",
+  "command_eng": "If the study door stays closed for at least 3 minutes, turn off the study light.",
+  "connected_devices": {
+    "Study_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Study",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Study_Light": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Study",
+        "Light",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Bedroom_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "edge": "none",
+        "for": "3 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.9
+}

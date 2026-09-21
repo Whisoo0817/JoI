@@ -1,0 +1,145 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 19 * * *",
+    "period": 0,
+    "script": "if (all(#Floor1 #PresenceSensor).presenceSensor_presence == false) {\nall(#Floor1 #Light).switch_off()\n}\nelse {\ndelay(1 HOUR)\n    if (all(#Floor2 #PresenceSensor).presenceSensor_presence == false) {\nall(#Floor2 #Light).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 19 * * *\",\n  \"period\": 0,\n  \"script\": \"if (all(#Floor1 #PresenceSensor).presenceSensor_presence == false) {\nall(#Floor1 #Light).switch_off()\n}\nelse {\ndelay(1 HOUR)\n    if (all(#Floor2 #PresenceSensor).presenceSensor_presence == false) {\nall(#Floor2 #Light).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "all(#Floor1 #PresenceSensor)",
+      "all(#Floor2 #PresenceSensor)"
+    ],
+    "Switch.Off": [
+      "all(#Floor1 #Light)",
+      "all(#Floor2 #Light)"
+    ]
+  },
+  "command_kor": "밤 7시에 1층에 사람이 없으면 1층 불을 다 꺼주고, 1시간 뒤에 2층에 사람이 없으면 2층 불을 다 꺼줘.",
+  "command_eng": "Every 7 PM, if no one is detected on the 1st floor, turn off all lights on floor 1; then 1 hour later, if no one is detected on the 2nd floor, turn off all lights on floor 2.",
+  "connected_devices": {
+    "F1_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor1",
+        "PresenceSensor"
+      ]
+    },
+    "F3_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor3",
+        "PresenceSensor"
+      ]
+    },
+    "F2_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor2",
+        "PresenceSensor"
+      ]
+    },
+    "F1_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Floor1",
+        "Light",
+        "Switch"
+      ]
+    },
+    "F1_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Floor1",
+        "Light",
+        "Switch"
+      ]
+    },
+    "F2_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Floor2",
+        "Light",
+        "Switch"
+      ]
+    },
+    "F2_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Floor2",
+        "Light",
+        "Switch"
+      ]
+    },
+    "F3_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Floor3",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 19 * * *"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": []
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 12.5
+}

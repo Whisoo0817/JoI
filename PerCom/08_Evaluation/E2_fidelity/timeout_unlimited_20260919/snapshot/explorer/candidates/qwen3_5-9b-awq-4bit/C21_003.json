@@ -1,0 +1,92 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#Bedroom).motionSensor_motion ==| true or all(#Bedroom).motionSensor_motion ==| true) {\n(#Speaker).speaker_speak(\"Motion detected in the living room or bedroom.\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#Bedroom).motionSensor_motion ==| true or all(#Bedroom).motionSensor_motion ==| true) {\n(#Speaker).speaker_speak(\\\"Motion detected in the living room or bedroom.\\\")\\n}\"\n}",
+  "precision": {
+    "MotionSensor.Motion": [
+      "any(#Bedroom)"
+    ],
+    "Speaker.Speak": [
+      "(#Speaker)"
+    ]
+  },
+  "command_kor": "거실이나 침실 중 어느 곳이든 동작이 감지되면 거실 스피커로 알려줘.",
+  "command_eng": "If motion is detected in either the living room or the bedroom, announce through the living room speaker.",
+  "connected_devices": {
+    "LivingRoom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MotionSensor"
+      ]
+    },
+    "Bedroom_MotionSensor": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "MotionSensor"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MotionSensor.Motion == true or MotionSensor.Motion == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Motion detected in the living room or bedroom."
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.3
+}

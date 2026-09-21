@@ -1,0 +1,55 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Camera).camera_captureVideo(300.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Camera).camera_captureVideo(300.0)\"\n}",
+  "precision": {
+    "Camera.CaptureVideo": [
+      "all(#Camera)"
+    ]
+  },
+  "command_kor": "카메라로 5분짜리 영상을 녹화해줘.",
+  "command_eng": "Record a 5-minute video with the camera.",
+  "connected_devices": {
+    "Entrance_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Camera.CaptureVideo",
+        "args": {
+          "Duration": 300.0
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.4
+}

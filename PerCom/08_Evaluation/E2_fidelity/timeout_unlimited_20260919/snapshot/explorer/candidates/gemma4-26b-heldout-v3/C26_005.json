@@ -1,0 +1,84 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '안 내려가면': 해당하는 연결 디바이스 없음",
+  "command_kor": "제습기를 켜고, 30분 안에 습도가 60% 이하로 내려가면 꺼줘. 안 내려가면 연속 제습 모드로 바꿔줘.",
+  "command_eng": "Turn on the dehumidifier; if the humidity drops to 60% or below within 30 minutes, turn it off; otherwise switch it to continuous dehumidifying mode.",
+  "connected_devices": {
+    "Living_Dehum": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Living",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_Dehum": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Living_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Living",
+        "HumiditySensor"
+      ]
+    },
+    "Bedroom_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "HumiditySensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      },
+      {
+        "op": "wait",
+        "cond": "HumiditySensor.Humidity <= 60",
+        "timeout": "30 MIN",
+        "on_timeout": [
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "continuousDehumidifying"
+            }
+          }
+        ]
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.4
+}

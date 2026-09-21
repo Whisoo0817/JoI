@@ -1,0 +1,116 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#Bedroom #TemperatureSensor).temperatureSensor_temperature >= 26) {\n(#Fan).switch_on()\n}\nelse {\nif ((#Bedroom #TemperatureSensor).temperatureSensor_temperature <= 23) {\n(#Fan).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#Bedroom #TemperatureSensor).temperatureSensor_temperature >= 26) {\n(#Fan).switch_on()\n}\nelse {\nif ((#Bedroom #TemperatureSensor).temperatureSensor_temperature <= 23) {\n(#Fan).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Bedroom #TemperatureSensor)",
+      "(#Bedroom #TemperatureSensor)"
+    ],
+    "Switch.On": [
+      "(#Fan)"
+    ],
+    "Switch.Off": [
+      "(#Fan)"
+    ]
+  },
+  "command_kor": "1초마다 침실 온도가 26도 이상이면 침실 선풍기 플러그를 켜고, 그렇지 않고 23도 이하이면 꺼줘.",
+  "command_eng": "Every 1 second, if the bedroom temperature is at least 26C, turn on the bedroom fan plug; otherwise if it is 23C or below, turn off the bedroom fan plug.",
+  "connected_devices": {
+    "Bedroom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_TempSensor": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "Fan"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "TemperatureSensor.Temperature >= 26",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "TemperatureSensor.Temperature <= 23",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 13.8
+}

@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Home_WeatherProvider).weatherProvider_weather == \"rain\") {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Home_WeatherProvider).weatherProvider_weather == \\\"rain\\\") {\\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n}\"\n}",
+  "precision": {
+    "WeatherProvider.Weather": [
+      "(#Home_WeatherProvider)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "지금 비가 오고 있으면, 집안의 모든 제습기를 건조 모드로 설정해줘.",
+  "command_eng": "If it is raining, set all dehumidifiers in the house to drying mode.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "House_Dehum_1": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "House",
+        "Dehumidifier"
+      ]
+    },
+    "House_Dehum_2": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "House",
+        "Dehumidifier"
+      ]
+    },
+    "Garage_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Garage",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "WeatherProvider": [
+      "Home_WeatherProvider"
+    ],
+    "Dehumidifier": [
+      "House_Dehum_1",
+      "House_Dehum_2"
+    ]
+  },
+  "input_payload_sha256": "6f713ccabceacd0cf471b475256749f4be52c946f8d201ab2640e8b98543592b",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.5
+}

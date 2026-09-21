@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 20000,
+    "script": "n := 0\nif (n >= 8) {\nbreak\n}\n(#Kitchen).switch_toggle()\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 20000,\n  \"script\": \"n := 0\nif (n >= 8) {\nbreak\n}\n(#Kitchen).switch_toggle()\nn = n + 1\"\n}",
+  "precision": {
+    "Switch.Toggle": [
+      "(#Kitchen)"
+    ]
+  },
+  "command_kor": "20초마다 부엌 라이트를 toggle 해줘. 8번만.",
+  "command_eng": "Every 20 seconds, turn the kitchen light on. Stop after 8 runs.",
+  "connected_devices": {
+    "Entrance_Contact": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Entrance",
+        "ContactSensor"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Kitchen_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Kitchen",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 8",
+        "period": "20 SEC",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.4
+}

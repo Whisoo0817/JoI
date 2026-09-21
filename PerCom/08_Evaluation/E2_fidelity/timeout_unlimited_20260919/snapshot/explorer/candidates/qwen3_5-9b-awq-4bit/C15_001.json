@@ -1,0 +1,73 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 18 * * *",
+    "period": 0,
+    "script": "all(#Odd).windowCovering_setLevel(50)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 18 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#Odd).windowCovering_setLevel(50)\"\n}",
+  "precision": {
+    "WindowCovering.SetLevel": [
+      "all(#Odd)"
+    ]
+  },
+  "command_kor": "오후 6시에 벽에 있는 홀수 태그가 붙은 블라인드 높이를 모두 50%로 조절해줘.",
+  "command_eng": "At 6 PM, set the level of all blinds with odd tags on the wall to 50%.",
+  "connected_devices": {
+    "Wall_Blind_1": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Wall",
+        "Odd",
+        "Blind",
+        "WindowCovering",
+        "LivingRoom"
+      ]
+    },
+    "Wall_Blind_3": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Wall",
+        "Odd",
+        "Blind",
+        "WindowCovering",
+        "Kitchen"
+      ]
+    },
+    "Floor_Blind_2": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Floor",
+        "Even",
+        "Blind",
+        "WindowCovering",
+        "Bedroom"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 18 * * *"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.SetLevel",
+        "args": {
+          "Level": 50
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 4.8
+}

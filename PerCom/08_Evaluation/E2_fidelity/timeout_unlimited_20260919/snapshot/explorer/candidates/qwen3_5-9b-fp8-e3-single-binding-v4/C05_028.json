@@ -1,0 +1,128 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Warehouse_AQ).airQualitySensor_fineDustLevel >= 100 and (#Warehouse_AP).airPurifier_airPurifierMode == \"auto\") {\n(#Warehouse_AP).airPurifier_setAirPurifierMode(\"high\")\n(#Warehouse_Speaker).speaker_speak(\"Switching to high mode\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Warehouse_AQ).airQualitySensor_fineDustLevel >= 100 and (#Warehouse_AP).airPurifier_airPurifierMode == \\\"auto\\\") {\\n(#Warehouse_AP).airPurifier_setAirPurifierMode(\\\"high\\\")\\n(#Warehouse_Speaker).speaker_speak(\\\"Switching to high mode\\\")\\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.FineDustLevel": [
+      "(#Warehouse_AQ)"
+    ],
+    "AirPurifier.AirPurifierMode": [
+      "(#Warehouse_AP)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "(#Warehouse_AP)"
+    ],
+    "Speaker.Speak": [
+      "(#Warehouse_Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "창고 미세먼지가 100 이상이고 공기청정기가 자동 모드이면, 모드를 강풍 모드로 바꾸고 창고 스피커로 \"강풍 모드로 전환합니다\"라고 말해줘.",
+  "command_eng": "If the warehouse fine dust level is 100 or higher and the air purifier is in auto mode, switch it to high mode and say through the warehouse speaker \"Switching to high mode\".",
+  "connected_devices": {
+    "Warehouse_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Warehouse",
+        "AirQualitySensor"
+      ]
+    },
+    "Office_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Office",
+        "AirQualitySensor"
+      ]
+    },
+    "Warehouse_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Warehouse",
+        "AirPurifier"
+      ]
+    },
+    "Office_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Office",
+        "AirPurifier"
+      ]
+    },
+    "Warehouse_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Warehouse",
+        "Speaker"
+      ]
+    },
+    "Office_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Office",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.FineDustLevel >= 100 and AirPurifier.AirPurifierMode == \"auto\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "high"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Switching to high mode"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "AirQualitySensor": [
+      "Warehouse_AQ"
+    ],
+    "AirPurifier": [
+      "Warehouse_AP"
+    ],
+    "Speaker": [
+      "Warehouse_Speaker"
+    ]
+  },
+  "input_payload_sha256": "5f3ff57fe950e4cc23a96593d4fade8f374bc539cf06bf4367e41ae2ffca3ae0",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.7
+}

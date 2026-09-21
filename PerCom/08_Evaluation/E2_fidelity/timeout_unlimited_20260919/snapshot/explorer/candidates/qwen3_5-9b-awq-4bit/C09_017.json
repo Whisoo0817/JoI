@@ -1,0 +1,68 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#Bathroom).switch_off()\ndelay(5 MIN)\n(#Bathroom).switch_on()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#Bathroom).switch_off()\ndelay(5 MIN)\n(#Bathroom).switch_on()\"\n}",
+  "precision": {
+    "Switch.Off": [
+      "(#Bathroom)"
+    ],
+    "Switch.On": [
+      "(#Bathroom)"
+    ]
+  },
+  "command_kor": "욕실 조명을 끄고 5분 뒤에 켜줘.",
+  "command_eng": "Turn off the bathroom light and turn on after 5 minutes.",
+  "connected_devices": {
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "5 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.5
+}

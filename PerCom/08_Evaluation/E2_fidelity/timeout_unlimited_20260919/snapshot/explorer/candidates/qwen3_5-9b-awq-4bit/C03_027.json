@@ -1,0 +1,104 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#AirConditioner #Office).airConditioner_airConditionerMode ==| false) {\nany(#AirConditioner #Office).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#AirConditioner #Office).airConditioner_airConditionerMode ==| false) {\nany(#AirConditioner #Office).switch_off()\n}\"\n}",
+  "precision": {
+    "AirConditioner.AirConditionerMode": [
+      "any(#AirConditioner #Office)"
+    ],
+    "Switch.Off": [
+      "(#AirConditioner #Office)"
+    ]
+  },
+  "command_kor": "사무실에 아무도 없으면, 사무실 에어컨을 꺼줘.",
+  "command_eng": "If no one is present in the office, turn off the office air conditioner.",
+  "connected_devices": {
+    "Office_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Office",
+        "PresenceSensor"
+      ]
+    },
+    "Living_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Office_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Living_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Living",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.9
+}

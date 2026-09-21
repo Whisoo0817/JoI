@@ -1,0 +1,66 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 23 * * *",
+    "period": 0,
+    "script": "all(#Even).doorLock_lock()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 23 * * *\",\n  \"period\": 0,\n  \"script\": \"all(#Even).doorLock_lock()\"\n}",
+  "precision": {
+    "DoorLock.Lock": [
+      "all(#Even)"
+    ]
+  },
+  "command_kor": "밤 11시에 짝수 태그가 붙은 모든 문을 잠가줘.",
+  "command_eng": "Every 11 PM, lock all doors with even tags.",
+  "connected_devices": {
+    "DoorLock_2": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Even",
+        "DoorLock",
+        "Entrance"
+      ]
+    },
+    "DoorLock_4": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Even",
+        "DoorLock",
+        "Back"
+      ]
+    },
+    "DoorLock_1": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Odd",
+        "DoorLock",
+        "Side"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 23 * * *"
+      },
+      {
+        "op": "call",
+        "target": "DoorLock.Lock",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.6
+}

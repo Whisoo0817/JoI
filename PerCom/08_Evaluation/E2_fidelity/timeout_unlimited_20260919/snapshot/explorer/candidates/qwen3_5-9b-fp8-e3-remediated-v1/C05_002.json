@@ -1,0 +1,111 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Bedroom_Temp).airQualitySensor_temperature >= 26 and (#Bedroom_Window).armRobot_currentPosition > 0) {\n(#Bedroom_Window).windowCovering_downOrClose()\n(#Bedroom_AC).switch_on()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bedroom_Temp).airQualitySensor_temperature >= 26 and (#Bedroom_Window).armRobot_currentPosition > 0) {\n(#Bedroom_Window).windowCovering_downOrClose()\n(#Bedroom_AC).switch_on()\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Bedroom_Temp)"
+    ],
+    "WindowCovering.CurrentPosition": [
+      "(#Bedroom_Window)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "(#Bedroom_Window)"
+    ],
+    "Switch.On": [
+      "(#Bedroom_AC)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "안방의 온도가 26도 이상이고 창문이 열려 있으면, 창문을 닫고 에어컨을 켜줘.",
+  "command_eng": "If the bedroom temperature is 26 degrees or higher and the bedroom window is open, close the window and turn on the air conditioner.",
+  "connected_devices": {
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "WindowCovering",
+        "Window"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 26 and WindowCovering.CurrentPosition > 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "Bedroom_Temp"
+    ],
+    "WindowCovering": [
+      "Bedroom_Window"
+    ],
+    "Switch": [
+      "Bedroom_AC"
+    ]
+  },
+  "input_payload_sha256": "44c475c0558ea856afc0f9158c360e5ad6a303600e65a4a0e9f9e95e51a22221",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.7
+}

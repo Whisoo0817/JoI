@@ -1,0 +1,99 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#AirPurifier #Office).airPurifier_airPurifierMode ==| \"sleep\")\ndelay(10 MIN)\n(#Light #Office).light_moveToBrightness(0.0, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#AirPurifier #Office).airPurifier_airPurifierMode ==| \\\"sleep\\\")\\ndelay(10 MIN)\\n(#Light #Office).light_moveToBrightness(0.0, 0.0)\"\n}",
+  "precision": {
+    "AirPurifier.AirPurifierMode": [
+      "any(#AirPurifier #Office)"
+    ],
+    "Switch.Off": [
+      "(#Light #Office)"
+    ]
+  },
+  "command_kor": "사무실의 공기청정기가 하나라도 수면모드로 바뀌면 10분 뒤에 조명을 꺼줘.",
+  "command_eng": "When any air purifier in the office switches to sleep mode, turn off the light after 10 minutes.",
+  "connected_devices": {
+    "Office_AP_1": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Office",
+        "AirPurifier"
+      ]
+    },
+    "Office_AP_2": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Office",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    },
+    "Office_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Light",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "AirPurifier.AirPurifierMode == \"sleep\"",
+        "edge": "none"
+      },
+      {
+        "op": "delay",
+        "duration": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 0.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.8
+}

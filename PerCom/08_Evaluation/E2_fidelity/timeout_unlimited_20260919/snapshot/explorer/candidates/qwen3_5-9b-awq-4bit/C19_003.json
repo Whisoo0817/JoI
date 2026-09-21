@@ -1,0 +1,116 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "if ((#LightSensor #LivingRoom).lightSensor_brightness <= 200) {\n(#Lamp).switch_on()\n}\nelse {\nif ((#LightSensor #LivingRoom).lightSensor_brightness >= 500) {\n(#Lamp).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"if ((#LightSensor #LivingRoom).lightSensor_brightness <= 200) {\n(#Lamp).switch_on()\n}\nelse {\nif ((#LightSensor #LivingRoom).lightSensor_brightness >= 500) {\n(#Lamp).switch_off()\n}\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "(#LightSensor #LivingRoom)",
+      "(#LightSensor #LivingRoom)"
+    ],
+    "Switch.On": [
+      "(#Lamp)"
+    ],
+    "Switch.Off": [
+      "(#Lamp)"
+    ]
+  },
+  "command_kor": "1초마다 거실 조도가 200lux 이하이면 스탠드 플러그를 켜고, 그렇지 않고 500lux 이상이면 꺼줘.",
+  "command_eng": "Every 1 second, if the living room illuminance is at most 200 lux, turn on the floor lamp plug; otherwise if it is at least 500 lux, turn off the floor lamp plug.",
+  "connected_devices": {
+    "LivingRoom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "LightSensor"
+      ]
+    },
+    "Bedroom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "LightSensor"
+      ]
+    },
+    "LivingRoom_Lamp": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Plug",
+        "Lamp"
+      ]
+    },
+    "Pantry_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Pantry",
+        "Humidifier"
+      ]
+    },
+    "Bathroom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Bathroom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "LightSensor.Brightness <= 200",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.On",
+                "args": {}
+              }
+            ],
+            "else": [
+              {
+                "op": "if",
+                "cond": "LightSensor.Brightness >= 500",
+                "then": [
+                  {
+                    "op": "call",
+                    "target": "Switch.Off",
+                    "args": {}
+                  }
+                ],
+                "else": []
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 11.0
+}

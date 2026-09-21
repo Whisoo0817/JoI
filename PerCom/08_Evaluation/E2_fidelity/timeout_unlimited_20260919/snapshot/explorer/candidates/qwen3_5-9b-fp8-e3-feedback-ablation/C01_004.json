@@ -1,0 +1,68 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#Siren).siren_setSirenMode(\"emergency\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#Siren).siren_setSirenMode(\\\"emergency\\\")\"\n}",
+  "precision": {
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "사이렌을 응급모드로 울려줘.",
+  "command_eng": "Set the siren to emergency mode.",
+  "connected_devices": {
+    "Main_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "Siren",
+        "Switch"
+      ]
+    },
+    "Garage_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Garage",
+        "Siren",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "Siren.SetSirenMode",
+        "args": {
+          "Mode": "emergency"
+        }
+      }
+    ]
+  },
+  "binding": {
+    "Siren": [
+      "Main_Siren",
+      "Garage_Siren"
+    ]
+  },
+  "input_payload_sha256": "ecb048a756c711272acddc735f49f16e992415f175081d84baa330950614eaf5",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.2
+}

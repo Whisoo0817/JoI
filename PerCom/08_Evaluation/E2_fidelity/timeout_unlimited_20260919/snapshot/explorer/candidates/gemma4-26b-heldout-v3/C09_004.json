@@ -1,0 +1,69 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#AirConditioner).airConditioner_setTargetTemperature(24.0)\ndelay(1 HOUR)\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#AirConditioner).airConditioner_setTargetTemperature(24.0)\ndelay(1 HOUR)\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)\"\n}",
+  "precision": {
+    "AirConditioner.SetTargetTemperature": [
+      "all(#AirConditioner)",
+      "all(#AirConditioner)"
+    ]
+  },
+  "command_kor": "에어컨 온도를 24도로 설정하고 1시간 뒤에 26도로 설정해줘.",
+  "command_eng": "Set the air conditioner temperature to 24 degrees and change it to 26 degrees after 1 hour.",
+  "connected_devices": {
+    "LivingRoom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    },
+    "Bedroom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetTargetTemperature",
+        "args": {
+          "Temperature": 24.0
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetTargetTemperature",
+        "args": {
+          "Temperature": 26.0
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.5
+}

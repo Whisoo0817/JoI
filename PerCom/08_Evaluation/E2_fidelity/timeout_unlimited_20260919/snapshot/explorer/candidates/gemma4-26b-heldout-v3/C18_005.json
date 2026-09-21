@@ -1,0 +1,106 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * 6",
+    "period": 1800000,
+    "script": "if ((#Clock).clock_weekday == \"monday\") {\nbreak\n}\nif (all(#Factory).switch_switch ==| true) {\nall(#Factory).switch_off()\n(#EmailProvider).emailProvider_sendMail(\"test@example.com\", \"Risk\", \"A pump is turned on\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * 6\",\n  \"period\": 1800000,\n  \"script\": \"if ((#Clock).clock_weekday == \\\"monday\\\") {\\nbreak\\n}\\nif (all(#Factory).switch_switch ==| true) {\\nall(#Factory).switch_off()\\n(#EmailProvider).emailProvider_sendMail(\\\"test@example.com\\\", \\\"Risk\\\", \\\"A pump is turned on\\\")\\n}\"\n}",
+  "precision": {
+    "Pump.PumpMode": [
+      "any(#Factory)"
+    ],
+    "Switch.Off": [
+      "all(#Factory)"
+    ],
+    "EmailProvider.SendMail": [
+      "(#EmailProvider)"
+    ]
+  },
+  "command_kor": "주말 동안 공장의 모든 펌프를 30분마다 확인해서, 켜진 펌프가 하나라도 있으면 모두 꺼주고 \"test@example.com\"에게 \"위험\" 제목으로 \"펌프가 켜졌습니다\"라는 내용의 메일 보내줘.",
+  "command_eng": "Every 30 minutes during weekends, check all pumps in the factory; if any one is turned on, turn off all pumps and send an email to \"test@example.com\" with the subject 'Risk' and message 'A pump is turned on'.",
+  "connected_devices": {
+    "Fac_Pump_1": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Factory",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Fac_Pump_2": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Factory",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "Office_Pump": {
+      "category": [
+        "Pump",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Pump",
+        "Switch"
+      ]
+    },
+    "EmailProvider": {
+      "category": [
+        "EmailProvider"
+      ],
+      "tags": [
+        "EmailProvider"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * 6"
+      },
+      {
+        "op": "cycle",
+        "until": "Clock.Weekday == \"monday\"",
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "Switch.Switch == true",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              },
+              {
+                "op": "call",
+                "target": "EmailProvider.SendMail",
+                "args": {
+                  "ToAddress": "test@example.com",
+                  "Title": "Risk",
+                  "Body": "A pump is turned on"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 10.2
+}

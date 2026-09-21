@@ -1,0 +1,76 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (40 <= (#LivingRoom_Speaker).speaker_volume) {\n(#LivingRoom_Speaker).speaker_stop()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (40 <= (#LivingRoom_Speaker).speaker_volume) {\\n(#LivingRoom_Speaker).speaker_stop()\\n}\"\n}",
+ "precision": {
+  "Speaker.Volume": [
+   "(#LivingRoom_Speaker)"
+  ],
+  "Speaker.Stop": [
+   "(#LivingRoom_Speaker)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "스피커 볼륨이 40 이상이면 재생을 중단해줘.",
+ "command_eng": "If the speaker volume is 40 or higher, stop the playback.",
+ "connected_devices": {
+  "LivingRoom_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Speaker"
+   ]
+  },
+  "Bedroom_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Bedroom",
+    "Speaker"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "Speaker.Volume >= 40",
+    "then": [
+     {
+      "op": "call",
+      "target": "Speaker.Stop",
+      "args": {}
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "Speaker": [
+   "LivingRoom_Speaker"
+  ]
+ },
+ "input_payload_sha256": "7410c9a0121e67e8238247f7517472c48dbaa38792d15840485f88ae7b22a2f8",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.4,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

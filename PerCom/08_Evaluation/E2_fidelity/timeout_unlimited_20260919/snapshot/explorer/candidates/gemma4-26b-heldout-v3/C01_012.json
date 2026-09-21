@@ -1,0 +1,71 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "Weather = (#WeatherProvider).weatherProvider_weather\nall(#Speaker).speaker_speak(\"Today's weather is \" + Weather)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"Weather = (#WeatherProvider).weatherProvider_weather\nall(#Speaker).speaker_speak(\\\"Today's weather is \\\" + Weather)\"\n}",
+  "precision": {
+    "WeatherProvider.Weather": [
+      "(#WeatherProvider)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "오늘의 날씨를 스피커로 출력해줘.",
+  "command_eng": "Output today's weather through the speaker.",
+  "connected_devices": {
+    "System_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Kitchen_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Kitchen",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "Weather",
+        "src": "WeatherProvider.Weather"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "Today's weather is $Weather"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.1
+}

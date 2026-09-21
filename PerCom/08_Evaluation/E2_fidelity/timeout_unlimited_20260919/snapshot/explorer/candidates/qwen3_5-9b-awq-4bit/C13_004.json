@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1800000,
+    "script": "n := 0\nif (n % 2 == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"sleep\")\n}\nelse {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1800000,\n  \"script\": \"n := 0\nif (n % 2 == 0) {\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"sleep\\\")\\n}\\nelse {\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n}\\nn = n + 1\"\n}",
+  "precision": {
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)"
+    ]
+  },
+  "command_kor": "30분마다 공기청정기를 수면모드와 강풍모드 사이에서 전환해줘.",
+  "command_eng": "Every 30 minutes, toggle the air purifier between sleep mode and high speed mode.",
+  "connected_devices": {
+    "Main_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Main",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_AirPurifier": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "30 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "if",
+            "cond": "n % 2 == 0",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirPurifier.SetAirPurifierMode",
+                "args": {
+                  "Mode": "sleep"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "AirPurifier.SetAirPurifierMode",
+                "args": {
+                  "Mode": "high"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.0
+}

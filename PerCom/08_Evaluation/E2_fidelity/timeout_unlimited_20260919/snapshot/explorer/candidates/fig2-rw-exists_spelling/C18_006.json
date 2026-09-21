@@ -1,0 +1,107 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "0 22 * * *",
+  "period": 0,
+  "script": "wait until(any(#MotionSensor).motionSensor_motion == true or (#Clock).clock_hour >= 23)\nif ((#Clock).clock_hour >= 23) {\nall(#DoorLock).doorLock_lock()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 0,\n  \"script\": \"wait until(any(#MotionSensor).motionSensor_motion == true or (#Clock).clock_hour >= 23)\\nif ((#Clock).clock_hour >= 23) {\\nall(#DoorLock).doorLock_lock()\\n}\"\n}",
+ "precision": {
+  "MotionSensor.Motion": [
+   "any(#MotionSensor)"
+  ],
+  "DoorLock.Lock": [
+   "all(#DoorLock)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "밤 10시부터 11시까지 움직임이 한번도 감지되지 않았으면, 모든 도어락을 잠궈줘.",
+ "command_eng": "If no motion is detected between 10 PM and 11 PM, lock all door locks.",
+ "connected_devices": {
+  "Main_MotionSensor": {
+   "category": [
+    "MotionSensor"
+   ],
+   "tags": [
+    "Main",
+    "MotionSensor"
+   ]
+  },
+  "Main_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Main",
+    "DoorLock"
+   ]
+  },
+  "Storage_DoorLock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Storage",
+    "DoorLock"
+   ]
+  },
+  "Garage_MotionSensor": {
+   "category": [
+    "MotionSensor"
+   ],
+   "tags": [
+    "Garage",
+    "MotionSensor"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "cron",
+    "cron": "0 22 * * *"
+   },
+   {
+    "op": "wait",
+    "cond": "MotionSensor.Motion == true or Clock.Hour >= 23",
+    "edge": "none"
+   },
+   {
+    "op": "if",
+    "cond": "Clock.Hour >= 23",
+    "then": [
+     {
+      "op": "call",
+      "target": "DoorLock.Lock",
+      "args": {}
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "MotionSensor": {
+   "any": [
+    "Main_MotionSensor",
+    "Garage_MotionSensor"
+   ]
+  },
+  "DoorLock": [
+   "Main_DoorLock",
+   "Storage_DoorLock"
+  ]
+ },
+ "input_payload_sha256": "4eba61c359bd1aa9b94dc9a7abdf694b52260582e4601cc45f2cba7a8d1059c7",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-exists_spelling",
+ "elapsed_sec": 2.1,
+ "rewrite": {
+  "type": "exists_spelling",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

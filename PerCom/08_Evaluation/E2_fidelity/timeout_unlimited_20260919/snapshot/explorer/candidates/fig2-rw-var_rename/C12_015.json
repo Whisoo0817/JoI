@@ -1,0 +1,104 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 10000,
+  "script": "phase_v := 0\nif (phase_v == 0) {\nwait until((#K_Smoke).smokeDetector_smoke == true)\n    phase_v = 1\n    (#LR_Speaker).speaker_speak(\"Fire outbreak\")\n}\nelse {\n(#LR_Speaker).speaker_speak(\"Fire outbreak\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 10000,\n  \"script\": \"phase_v := 0\\nif (phase_v == 0) {\\nwait until((#K_Smoke).smokeDetector_smoke == true)\\n    phase_v = 1\\n    (#LR_Speaker).speaker_speak(\\\"Fire outbreak\\\")\\n}\\nelse {\\n(#LR_Speaker).speaker_speak(\\\"Fire outbreak\\\")\\n}\"\n}",
+ "precision": {
+  "SmokeDetector.Smoke": [
+   "(#K_Smoke)"
+  ],
+  "Speaker.Speak": [
+   "(#LR_Speaker)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "주방의 연기 감지기로 연기가 감지되면, 그 이후로 10초마다 거실 스피커로 \"화재 발생\"이라고 말해줘.",
+ "command_eng": "When smoke is detected by the kitchen smoke detector, speak \"Fire outbreak\" through the living room speaker every 10 seconds thereafter.",
+ "connected_devices": {
+  "K_Smoke": {
+   "category": [
+    "SmokeDetector"
+   ],
+   "tags": [
+    "Kitchen",
+    "SmokeDetector"
+   ]
+  },
+  "Bedroom_Smoke": {
+   "category": [
+    "SmokeDetector"
+   ],
+   "tags": [
+    "Bedroom",
+    "SmokeDetector"
+   ]
+  },
+  "LR_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Speaker"
+   ]
+  },
+  "Bedroom_Speaker": {
+   "category": [
+    "Speaker"
+   ],
+   "tags": [
+    "Bedroom",
+    "Speaker"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "SmokeDetector.Smoke == true",
+    "edge": "none"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "10 SEC",
+    "body": [
+     {
+      "op": "call",
+      "target": "Speaker.Speak",
+      "args": {
+       "Text": "Fire outbreak"
+      }
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "SmokeDetector": [
+   "K_Smoke"
+  ],
+  "Speaker": [
+   "LR_Speaker"
+  ]
+ },
+ "input_payload_sha256": "17b57e6bc4a3cf411a4fba0ca94ad1752b523e0810e0f414cd3e3b246b9bfd37",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-var_rename",
+ "elapsed_sec": 2.2,
+ "rewrite": {
+  "type": "var_rename",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

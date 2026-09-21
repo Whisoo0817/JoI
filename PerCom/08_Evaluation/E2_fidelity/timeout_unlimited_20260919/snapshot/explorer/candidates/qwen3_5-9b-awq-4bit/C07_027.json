@@ -1,0 +1,116 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#Floor1 #PresenceSensor).presenceSensor_presence ==| true) {\nall(#Floor1 #Light).light_moveToBrightness(100.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#Floor1 #PresenceSensor).presenceSensor_presence ==| true) {\nall(#Floor1 #Light).light_moveToBrightness(100.0, 0.0)\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "any(#Floor1 #PresenceSensor)"
+    ],
+    "Switch.On": [
+      "all(#Floor1 #Light)"
+    ]
+  },
+  "command_kor": "1층의 재실 센서 중 하나라도 감지되면 1층의 모든 조명을 켜줘.",
+  "command_eng": "If any presence sensor on floor 1 detects presence, turn on all lights on floor 1.",
+  "connected_devices": {
+    "F1_Pres_1": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor1",
+        "PresenceSensor"
+      ]
+    },
+    "F1_Pres_2": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor1",
+        "PresenceSensor"
+      ]
+    },
+    "F2_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor2",
+        "PresenceSensor"
+      ]
+    },
+    "F3_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor3",
+        "PresenceSensor"
+      ]
+    },
+    "F1_Light_1": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Floor1",
+        "Light",
+        "Switch"
+      ]
+    },
+    "F1_Light_2": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Floor1",
+        "Light",
+        "Switch"
+      ]
+    },
+    "F2_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Floor2",
+        "Light",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.6
+}

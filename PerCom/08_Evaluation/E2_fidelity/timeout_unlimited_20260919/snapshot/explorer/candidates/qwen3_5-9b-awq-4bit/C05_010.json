@@ -1,0 +1,121 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#PresenceSensor).presenceSensor_presence ==| false and WeatherProvider.Weather == \"rain\") {\nall(#DoorLock).doorLock_lock()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#PresenceSensor).presenceSensor_presence ==| false and WeatherProvider.Weather == \\\"rain\\\") {\\nall(#DoorLock).doorLock_lock()\\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "any(#PresenceSensor)"
+    ],
+    "DoorLock.Lock": [
+      "all(#DoorLock)"
+    ]
+  },
+  "command_kor": "비가 오고 아무도 없는 상태면, 도어락을 잠그고 밸브를 차단해줘.",
+  "command_eng": "If the weather is rainy and no one is being detected, lock the door and close the valve.",
+  "connected_devices": {
+    "Main_Weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Main",
+        "WeatherProvider"
+      ]
+    },
+    "Outdoor_Weather": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "Outdoor",
+        "WeatherProvider"
+      ]
+    },
+    "Living_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Entrance_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Main_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Main",
+        "Valve"
+      ]
+    },
+    "Garden_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Garden",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\" and PresenceSensor.Presence == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Valve.Close",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.6
+}

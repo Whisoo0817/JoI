@@ -1,0 +1,79 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "집에 있는 재실 센서중 하나라도 감지 상태이면, 긴급 사이렌을 울려줘.",
+  "command_eng": "If any presence sensor in the house is currently in the detected state, set the siren to emergency mode.",
+  "connected_devices": {
+    "House_Presence_1": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "House",
+        "PresenceSensor"
+      ]
+    },
+    "House_Presence_2": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "House",
+        "PresenceSensor"
+      ]
+    },
+    "Outdoor_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Outdoor",
+        "PresenceSensor"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Garage_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Garage",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.3
+}

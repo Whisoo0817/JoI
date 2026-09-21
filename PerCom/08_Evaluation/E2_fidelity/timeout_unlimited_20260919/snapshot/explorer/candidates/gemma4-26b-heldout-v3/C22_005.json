@@ -1,0 +1,63 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1200000,
+    "script": "n := 0\nif (n >= 5) {\nbreak\n}\nall(#Speaker).speaker_speak(\"meeting reminder\")\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1200000,\n  \"script\": \"n := 0\nif (n >= 5) {\nbreak\n}\nall(#Speaker).speaker_speak(\\\"meeting reminder\\\")\\nn = n + 1\"\n}",
+  "precision": {
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "20분마다 스피커로 \"회의 알림\" 안내. 총 5번.",
+  "command_eng": "Every 20 minutes, announce \"meeting reminder\" through the speaker. Total 5 times.",
+  "connected_devices": {
+    "LivingRoom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 5",
+        "period": "20 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "meeting reminder"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.5
+}

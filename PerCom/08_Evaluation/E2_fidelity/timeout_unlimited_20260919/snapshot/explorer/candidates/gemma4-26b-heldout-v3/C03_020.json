@@ -1,0 +1,72 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '구역1의 온도': 해당하는 연결 디바이스 없음",
+  "command_kor": "구역1의 온도가 36.5도 이상이면, 에어컨을 30도로 설정해줘.",
+  "command_eng": "If the temperature in sector 1 is 36.5 degrees or higher, set the target temperature to 30.",
+  "connected_devices": {
+    "Sector1_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Sector1",
+        "TemperatureSensor"
+      ]
+    },
+    "Sector2_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Sector2",
+        "TemperatureSensor"
+      ]
+    },
+    "Sector1_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Sector1",
+        "AirConditioner"
+      ]
+    },
+    "Sector2_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Sector2",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 36.5",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetTargetTemperature",
+            "args": {
+              "Temperature": 30.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 3.4
+}

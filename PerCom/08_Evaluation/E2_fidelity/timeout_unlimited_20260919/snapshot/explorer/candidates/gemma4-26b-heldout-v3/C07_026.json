@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Button #Shade).button_button == \"pushed\")\n(#Bedroom #WindowCovering).windowCovering_downOrClose()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Button #Shade).button_button == \\\"pushed\\\")\\n(#Bedroom #WindowCovering).windowCovering_downOrClose()\"\n}",
+  "precision": {
+    "Button.Button": [
+      "(#Button #Shade)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "(#Bedroom #WindowCovering)"
+    ]
+  },
+  "command_kor": "안방 쉐이드 버튼이 눌리면 쉐이드를 내려줘.",
+  "command_eng": "When the bedroom shade button is pushed, lower the shade.",
+  "connected_devices": {
+    "Bedroom_Shade_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "Button"
+      ]
+    },
+    "Bedroom_Blind_Button": {
+      "category": [
+        "Button"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "Button"
+      ]
+    },
+    "Bedroom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "LivingRoom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Shade",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Button.Button == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.9
+}

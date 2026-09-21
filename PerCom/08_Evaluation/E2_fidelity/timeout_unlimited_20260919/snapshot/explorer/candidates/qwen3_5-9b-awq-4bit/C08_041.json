@@ -1,0 +1,113 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif ((#ContactSensor #MeetingRoom).contactSensor_contact == false) {\nif (triggered == false) {\n(#LevelControl #MeetingRoom).light_moveToBrightness(100, 0)\n        delay(10 SEC)\n(#LevelControl #MeetingRoom).light_moveToBrightness(0, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#ContactSensor #MeetingRoom).contactSensor_contact == false) {\nif (triggered == false) {\n(#LevelControl #MeetingRoom).light_moveToBrightness(100, 0)\n        delay(10 SEC)\n(#LevelControl #MeetingRoom).light_moveToBrightness(0, 0)\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}\"\n}",
+  "precision": {
+    "ContactSensor.Contact": [
+      "(#ContactSensor #MeetingRoom)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#LevelControl #MeetingRoom)"
+    ],
+    "Switch.Off": [
+      "(#LevelControl #MeetingRoom)"
+    ]
+  },
+  "command_kor": "회의실 문이 열릴 때마다, 조명의 밝기를 최대밝기로 켰다가 10초뒤에 꺼줘.",
+  "command_eng": "Whenever the meeting room door is opened, turn on the light at maximum brightness and then turn it off after 10 seconds.",
+  "connected_devices": {
+    "MR_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "LR_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "MR_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light",
+        "LevelControl",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "LevelControl",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "ContactSensor.Contact == false",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "10 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 0.0,
+              "Rate": 0.0
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.6
+}

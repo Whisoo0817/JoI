@@ -1,0 +1,115 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * *",
+    "period": 3600000,
+    "script": "if (all(#DoorLock #Sector1).doorLock_doorLockState ==| \"open\") {\nall(#ColorControl #Sector1).light_moveToHue(0, 0, 0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 0 * * *\",\n  \"period\": 3600000,\n  \"script\": \"if (all(#DoorLock #Sector1).doorLock_doorLockState ==| \\\"open\\\") {\\nall(#ColorControl #Sector1).light_moveToHue(0, 0, 0)\\n}\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "any(#DoorLock #Sector1)"
+    ],
+    "Light.MoveToHue": [
+      "all(#ColorControl #Sector1)"
+    ]
+  },
+  "command_kor": "섹터1의 모든 도어락을 1시간마다 확인해서, 하나라도 열려 있으면 해당 섹터의 모든 조명을 빨간색으로 바꿔줘.",
+  "command_eng": "Check all door locks in Sector 1 every hour; if any one is open, change all lights in that sector to red.",
+  "connected_devices": {
+    "S1_Lock_1": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector1",
+        "DoorLock"
+      ]
+    },
+    "S1_Lock_2": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector1",
+        "DoorLock"
+      ]
+    },
+    "S2_Lock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Sector2",
+        "DoorLock"
+      ]
+    },
+    "S1_Light_1": {
+      "category": [
+        "Light",
+        "ColorControl"
+      ],
+      "tags": [
+        "Sector1",
+        "Light",
+        "ColorControl"
+      ]
+    },
+    "S1_Light_2": {
+      "category": [
+        "Light",
+        "ColorControl"
+      ],
+      "tags": [
+        "Sector1",
+        "Light",
+        "ColorControl"
+      ]
+    },
+    "S2_Light": {
+      "category": [
+        "Light",
+        "ColorControl"
+      ],
+      "tags": [
+        "Sector2",
+        "Light",
+        "ColorControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "if",
+            "cond": "DoorLock.DoorLockState == \"open\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "Light.MoveToColor",
+                "args": {
+                  "ColorX": 0.675,
+                  "ColorY": 0.322,
+                  "TransitionTime": 0.0
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.0
+}

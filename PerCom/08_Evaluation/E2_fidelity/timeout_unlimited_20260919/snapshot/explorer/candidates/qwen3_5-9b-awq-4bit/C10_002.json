@@ -1,0 +1,66 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#Fan).fan_fanMode ==| \"high\")\ndelay(3 SEC)\nall(#Fan).fan_setFanMode(\"low\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#Fan).fan_fanMode ==| \\\"high\\\")\\ndelay(3 SEC)\\nall(#Fan).fan_setFanMode(\\\"low\\\")\"\n}",
+  "precision": {
+    "Fan.FanMode": [
+      "any(#Fan)"
+    ],
+    "Fan.SetFanMode": [
+      "all(#Fan)"
+    ]
+  },
+  "command_kor": "선풍기가 강풍 모드가 되면 3초 뒤에 약풍 모드로 바꿔줘.",
+  "command_eng": "When the fan enters high mode, switch it to low mode after 3 seconds.",
+  "connected_devices": {
+    "Kitchen_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Kitchen",
+        "Fan"
+      ]
+    },
+    "Basement_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Basement",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Fan.FanMode == \"high\"",
+        "edge": "none"
+      },
+      {
+        "op": "delay",
+        "duration": "3 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Fan.SetFanMode",
+        "args": {
+          "Mode": "low"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 5.7
+}

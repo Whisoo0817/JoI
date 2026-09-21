@@ -1,0 +1,74 @@
+{
+  "verification/timed.py": {
+    "before_sha256": "31758495b446fe7605f88ab47e532b07830f32acdc580a987b1a6fb391f96bac",
+    "after_sha256": "d3bb505902e9c3fb621dc5e0570804ee0d2ca331198ddeb8e9a7f15af0d5f173",
+    "replacements": [
+      [
+        "max_states=400_000",
+        "max_states=float(\"inf\")"
+      ],
+      [
+        "max_transitions=2_000_000, max_input_combinations=100_000",
+        "max_transitions=float(\"inf\"), max_input_combinations=float(\"inf\")"
+      ]
+    ]
+  },
+  "verification/timer_product.py": {
+    "before_sha256": "dd316b29f46f2081f75e1981e4d3f19f550216d14b712d833bd10cbe7220203c",
+    "after_sha256": "6940b83834c53920def30dd36b544ca10e4ea7b5463d33d18bbc90f75b295cf2",
+    "replacements": [
+      [
+        " or time.perf_counter() - started > 90",
+        ""
+      ],
+      [
+        "            if time.perf_counter() - started > 30: raise Unsupported('timer zone proof budget (30s)')\n",
+        ""
+      ],
+      [
+        "min(max_states, 500)",
+        "max_states"
+      ],
+      [
+        "min(max_states, 2000)",
+        "max_states"
+      ]
+    ]
+  },
+  "verification/timer_witness.py": {
+    "before_sha256": "cbc3e551241a2c89a6206325c3c422ac4ace52027f273dcbcb518877bd20dc6e",
+    "after_sha256": "cde346c864706d5edb29434ad02f7a7aac8062e0f7fb314784eec48f7b678198",
+    "replacements": [
+      [
+        "max_nodes=2000, budget=15",
+        "max_nodes=float(\"inf\"), budget=float(\"inf\")"
+      ],
+      [
+        " and time.perf_counter()-started < 10",
+        ""
+      ]
+    ]
+  },
+  "verification/smt.py": {
+    "before_sha256": "63d6a99e6d285bf829580c53e34f46a9e1f608c645976fe73120d25cf1c5f3e6",
+    "after_sha256": "982d284e4c4342d3a0bbb9ffbd114b48eb616877a398c470e7c810189afc481c",
+    "replacements": [
+      [
+        "self.timeout_ms, self.deadline = timeout_ms, time.perf_counter() + total_timeout_ms / 1000",
+        "self.timeout_ms, self.deadline = 0, float(\"inf\")"
+      ],
+      [
+        "self.max_queries = max_queries",
+        "self.max_queries = float(\"inf\")"
+      ],
+      [
+        "remaining = int((self.deadline - time.perf_counter()) * 1000)",
+        "remaining = float(\"inf\")"
+      ],
+      [
+        "solver.set(timeout=min(self.timeout_ms, remaining), random_seed=0)",
+        "solver.set(timeout=0, random_seed=0)"
+      ]
+    ]
+  }
+}

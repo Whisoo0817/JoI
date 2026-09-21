@@ -1,0 +1,81 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "서재 문이 3분 이상 닫혀 있으면 서재 조명을 꺼줘.",
+  "command_eng": "If the study door stays closed for at least 3 minutes, turn off the study light.",
+  "connected_devices": {
+    "Study_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Study",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Study_Light": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Study",
+        "Light",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Bedroom_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Study_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Study",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == true",
+        "edge": "none",
+        "for": "3 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "ContactSensor": [
+      "Study_ContactSensor"
+    ],
+    "Switch": [
+      "Study_Light"
+    ]
+  },
+  "input_payload_sha256": "d273e96e57bf47b45100549189a6f954674ae5a6dd13332f492840918a25184c",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.0
+}

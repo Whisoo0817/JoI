@@ -1,0 +1,105 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Bedroom #MultiButton).multiButton_button1 == \"pushed\" and (#Bedroom #MotionSensor).motionSensor_motion == true) {\n(#Bedroom #Light).light_moveToBrightness(100.0, 0.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Bedroom #MultiButton).multiButton_button1 == \\\"pushed\\\" and (#Bedroom #MotionSensor).motionSensor_motion == true) {\\n(#Bedroom #Light).light_moveToBrightness(100.0, 0.0)\\n}\"\n}",
+  "precision": {
+    "MultiButton.Button1": [
+      "(#Bedroom #MultiButton)"
+    ],
+    "MotionSensor.Motion": [
+      "(#Bedroom #MotionSensor)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Bedroom #Light)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼1이 눌리고 침실에 동작이 감지되면 침실 조명을 최대 밝기로 켜줘.",
+  "command_eng": "If button 1 of the multi-button is pressed and motion is detected in the bedroom, turn on the bedroom light at maximum brightness.",
+  "connected_devices": {
+    "Bedroom_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Bedroom",
+        "MultiButton"
+      ]
+    },
+    "LR_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MultiButton"
+      ]
+    },
+    "Bedroom_MS": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "MotionSensor"
+      ]
+    },
+    "Hall_MS": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "MotionSensor"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light"
+      ]
+    },
+    "LR_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "MultiButton.Button1 == \"pushed\" and MotionSensor.Motion == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 9.7
+}

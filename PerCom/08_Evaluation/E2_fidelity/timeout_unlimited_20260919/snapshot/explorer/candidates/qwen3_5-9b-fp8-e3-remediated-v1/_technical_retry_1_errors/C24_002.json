@@ -1,0 +1,77 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "APIConnectionError: Connection error.",
+  "command_kor": "회의실에 사람이 2분 이상 있으면 1분마다 스피커로 \"회의가 곧 시작됩니다\"라고 3번 알려줘.",
+  "command_eng": "If a person stays in the meeting room for at least 2 minutes, announce 'The meeting starts soon' through the speaker every 1 minute, 3 times.",
+  "connected_devices": {
+    "Meeting_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Meeting",
+        "PresenceSensor"
+      ]
+    },
+    "Meeting_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Meeting",
+        "Speaker"
+      ]
+    },
+    "Lobby_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Lobby",
+        "PresenceSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none",
+        "for": "2 MIN"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "1 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The meeting starts soon"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "PresenceSensor": [
+      "Meeting_Presence"
+    ],
+    "Speaker": [
+      "Meeting_Speaker"
+    ]
+  },
+  "input_payload_sha256": "91eef8c3b93df73ef8ce634ff563fd8bb9a75b41135db6562c7827daafc9d7c0",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1
+}

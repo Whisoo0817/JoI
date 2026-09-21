@@ -1,0 +1,82 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 120000,
+    "script": "hold_ticks := 0\nif ((#Plug).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\"Device is idle\")\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}\nif (n >= 3) {\nbreak\n}\nif ((#Plug).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\"Device is idle\")\n        n = n + 1\n}\n}\nelse {\nhold_ticks = 0\n}\nn = n + 1"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 120000,\n  \"script\": \"hold_ticks := 0\nif ((#Plug).plug_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\nn := 0\n        if (n >= 3) {\nbreak\n}\n(#Speaker).speaker_speak(\\\"Device is idle\\\")\\n        n = n + 1\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\\nif (n >= 3) {\\nbreak\\n}\\nif ((#Plug).plug_power < 5) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 600) {\\nn := 0\\n        if (n >= 3) {\\nbreak\\n}\\n(#Speaker).speaker_speak(\\\"Device is idle\\\")\\n        n = n + 1\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\\nn = n + 1\"\n}",
+  "precision": {
+    "Plug.Power": [
+      "(#Plug)"
+    ],
+    "Speaker.Speak": [
+      "(#Speaker)"
+    ]
+  },
+  "command_kor": "사무실 플러그 전력이 10분 이상 5W 미만이면 2분마다 스피커로 \"기기가 유휴 상태입니다\"라고 3번 알려줘.",
+  "command_eng": "If the office plug power stays below 5W for at least 10 minutes, announce 'Device is idle' through the speaker every 2 minutes, 3 times.",
+  "connected_devices": {
+    "Office_Plug": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Office_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Office",
+        "Speaker"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "2 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Device is idle"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 10.2
+}

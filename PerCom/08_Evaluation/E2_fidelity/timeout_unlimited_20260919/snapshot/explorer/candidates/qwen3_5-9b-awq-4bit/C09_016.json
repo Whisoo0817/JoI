@@ -1,0 +1,67 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#Study).airPurifier_setAirPurifierMode(\"high\")\ndelay(2 HOUR)\n(#Study).switch_off()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#Study).airPurifier_setAirPurifierMode(\\\"high\\\")\\ndelay(2 HOUR)\\n(#Study).switch_off()\"\n}",
+  "precision": {
+    "Switch.Off": [
+      "(#Study)"
+    ]
+  },
+  "command_kor": "서재 공기청정기를 강풍으로 틀고 2시간 뒤에 꺼줘.",
+  "command_eng": "Set the study air purifier to high and turn it off after 2 hours.",
+  "connected_devices": {
+    "Study_AP": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Study",
+        "AirPurifier",
+        "Switch"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AirPurifier.SetAirPurifierMode",
+        "args": {
+          "Mode": "high"
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "2 HOUR"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.2
+}

@@ -1,0 +1,69 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#AirConditioner).airConditioner_setAirConditionerMode(\"cool\")\ndelay(30 MIN)\nall(#AirConditioner).airConditioner_setAirConditionerMode(\"auto\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#AirConditioner).airConditioner_setAirConditionerMode(\\\"cool\\\")\\ndelay(30 MIN)\\nall(#AirConditioner).airConditioner_setAirConditionerMode(\\\"auto\\\")\"\n}",
+  "precision": {
+    "AirConditioner.SetAirConditionerMode": [
+      "all(#AirConditioner)",
+      "all(#AirConditioner)"
+    ]
+  },
+  "command_kor": "에어컨을 냉방 모드로 설정하고 30분 뒤에 자동 모드로 설정해줘.",
+  "command_eng": "Set the air conditioner to cool mode and switch to auto mode after 30 minutes.",
+  "connected_devices": {
+    "LivingRoom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    },
+    "Bedroom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetAirConditionerMode",
+        "args": {
+          "Mode": "cool"
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "30 MIN"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetAirConditionerMode",
+        "args": {
+          "Mode": "auto"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.2
+}

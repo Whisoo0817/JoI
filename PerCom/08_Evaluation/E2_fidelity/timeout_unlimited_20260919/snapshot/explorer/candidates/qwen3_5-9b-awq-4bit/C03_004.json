@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerCleaningMode ==| \"manual\") {\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerCleaningMode ==| \\\"manual\\\") {\\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\n}\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode": [
+      "any(#RobotVacuumCleaner)"
+    ],
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "all(#RobotVacuumCleaner)"
+    ]
+  },
+  "command_kor": "로봇청소기가 수동 모드이면, 자동 모드로 변경해줘.",
+  "command_eng": "If the robot vacuum cleaner is in manual mode, switch it to auto mode.",
+  "connected_devices": {
+    "Living_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Living",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Kitchen_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Kitchen",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"manual\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+            "args": {
+              "Mode": "auto"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.9
+}

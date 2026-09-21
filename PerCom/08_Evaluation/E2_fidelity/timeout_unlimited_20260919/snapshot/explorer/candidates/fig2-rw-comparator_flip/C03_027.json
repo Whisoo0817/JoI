@@ -1,0 +1,121 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (false == (#Office_Pres).presenceSensor_presence) {\n(#Office_AC).switch_off()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (false == (#Office_Pres).presenceSensor_presence) {\\n(#Office_AC).switch_off()\\n}\"\n}",
+ "precision": {
+  "PresenceSensor.Presence": [
+   "(#Office_Pres)"
+  ],
+  "Switch.Off": [
+   "(#Office_AC)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "사무실에 아무도 없으면, 사무실 에어컨을 꺼줘.",
+ "command_eng": "If no one is present in the office, turn off the office air conditioner.",
+ "connected_devices": {
+  "Office_Pres": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Office",
+    "PresenceSensor"
+   ]
+  },
+  "Living_Pres": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Living",
+    "PresenceSensor"
+   ]
+  },
+  "Bedroom_Pres": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "PresenceSensor"
+   ]
+  },
+  "Office_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "Office",
+    "AirConditioner",
+    "Switch"
+   ]
+  },
+  "Living_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "Living",
+    "AirConditioner",
+    "Switch"
+   ]
+  },
+  "Bedroom_AC": {
+   "category": [
+    "AirConditioner",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirConditioner",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "PresenceSensor.Presence == false",
+    "then": [
+     {
+      "op": "call",
+      "target": "Switch.Off",
+      "args": {}
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "PresenceSensor": [
+   "Office_Pres"
+  ],
+  "Switch": [
+   "Office_AC"
+  ]
+ },
+ "input_payload_sha256": "47335668f31a5c5a6054539c946bb13d42405df546edac342468b53dd7bb6ac9",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.3,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

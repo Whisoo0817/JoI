@@ -1,0 +1,75 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LivingRoom_Shade).windowCovering_currentPosition <= 30) {\n(#LivingRoom_Shade).windowCovering_setLevel(50)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom_Shade).windowCovering_currentPosition <= 30) {\n(#LivingRoom_Shade).windowCovering_setLevel(50)\n}\"\n}",
+  "precision": {
+    "WindowCovering.CurrentPosition": [
+      "(#LivingRoom_Shade)"
+    ],
+    "WindowCovering.SetLevel": [
+      "(#LivingRoom_Shade)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132320_861.json",
+  "command_kor": "쉐이드가 30%이하로 열려있으면, 50%로 설정해줘.",
+  "command_eng": "If the shade is 30% or less open, set it to 50%.",
+  "connected_devices": {
+    "LivingRoom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Shade",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Shade": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Shade",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition <= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.SetLevel",
+            "args": {
+              "Level": 50
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "WindowCovering": [
+      "LivingRoom_Shade"
+    ]
+  },
+  "input_payload_sha256": "b9644afc771042d3daf7744b4cff268dd4757081be3690e03e8b85b12d19e4d5",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 1.4
+}

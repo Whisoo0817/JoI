@@ -1,0 +1,93 @@
+{
+  "sentence": "부엌 온도가 35도 이상이거나 거실 온도가 33도 이상이면 부엌 환기팬 플러그를 켜줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:53",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Switch.On"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#Kitchen_TempSensor)",
+        "(#LivingRoom_TempSensor)"
+      ],
+      "Switch.On": [
+        "(#Kitchen_Fan)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "Kitchen_TempSensor",
+          "LivingRoom_TempSensor"
+        ]
+      },
+      "Switch.On": {
+        "q": "one",
+        "devices": [
+          "Kitchen_Fan"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature >= 35 or TemperatureSensor.Temperature >= 33",
+        "then": [
+          {
+            "op": "call",
+            "target": "Switch.On",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- If the temperature of Kitchen_TempSensor and LivingRoom_TempSensor is at least 35 or the temperature of Kitchen_TempSensor and LivingRoom_TempSensor is at least 33, turn on Kitchen_Fan.\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot if-else branch with two temperature conditions.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"if ((#Kitchen_TempSensor).Temperature >= 35 or (#LivingRoom_TempSensor).Temperature >= 33) {\\n    (#Kitchen_Fan).On()\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 35 or (#LivingRoom_TempSensor).temperatureSensor_temperature >= 33) {\n(#Kitchen_Fan).switch_on()\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "Kitchen_TempSensor"
+      ],
+      "TemperatureSensor#2": [
+        "LivingRoom_TempSensor"
+      ],
+      "Switch": [
+        "Kitchen_Fan"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Kitchen_TempSensor).temperatureSensor_temperature >= 35 or (#LivingRoom_TempSensor).temperatureSensor_temperature >= 33) {\n(#Kitchen_Fan).switch_on()\n}\"\n}",
+  "elapsed_sec": 1.125,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

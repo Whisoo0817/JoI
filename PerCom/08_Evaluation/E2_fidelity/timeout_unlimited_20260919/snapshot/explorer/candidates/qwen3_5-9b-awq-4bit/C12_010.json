@@ -1,0 +1,112 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 3600000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until((#ServerRack).airQualitySensor_humidity > 70)\n    phase = 1\n    (#Dehumidifier #Lab).dehumidifier_setDehumidifierMode(\"dehumidifying\")\n}\nelse {\nh = any(#HumiditySensor).humiditySensor_humidity\n    if (h < 50) {\n(#Dehumidifier #Lab).switch_off()\n}\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 3600000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until((#ServerRack).airQualitySensor_humidity > 70)\n    phase = 1\n    (#Dehumidifier #Lab).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\\n}\\nelse {\\nh = any(#HumiditySensor).humiditySensor_humidity\\n    if (h < 50) {\\n(#Dehumidifier #Lab).switch_off()\\n}\\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "(#ServerRack)",
+      "any(#HumiditySensor)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "(#Dehumidifier #Lab)"
+    ],
+    "Switch.Off": [
+      "(#Dehumidifier #Lab)"
+    ]
+  },
+  "command_kor": "서버 랙 습도가 70%보다 높아지면 연구실 제습기를 제습모드로 설정하고 1시간마다 습도를 다시 체크해서 50% 밑이면 제습기를 꺼줘.",
+  "command_eng": "When the server rack humidity becomes higher than 70%, set the lab dehumidifier to dehumidifying mode and check the humidity every hour; turn it off if it's below 50%.",
+  "connected_devices": {
+    "SR_Humid": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "ServerRack",
+        "HumiditySensor"
+      ]
+    },
+    "Lab_Humid": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Lab",
+        "HumiditySensor"
+      ]
+    },
+    "Lab_Dehum": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Lab",
+        "Dehumidifier",
+        "Switch"
+      ]
+    },
+    "Office_Dehum": {
+      "category": [
+        "Dehumidifier",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Dehumidifier",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "HumiditySensor.Humidity > 70",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Dehumidifier.SetDehumidifierMode",
+        "args": {
+          "Mode": "dehumidifying"
+        }
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "read",
+            "var": "h",
+            "src": "HumiditySensor.Humidity"
+          },
+          {
+            "op": "if",
+            "cond": "h < 50",
+            "then": [
+              {
+                "op": "call",
+                "target": "Switch.Off",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 15.3
+}

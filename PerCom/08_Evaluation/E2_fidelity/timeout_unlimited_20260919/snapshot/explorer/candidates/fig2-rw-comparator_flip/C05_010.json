@@ -1,0 +1,155 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if ((#Main_Weather).weatherProvider_weather == \"rain\" and false == all(#PresenceSensor).presenceSensor_presence) {\nall(#DoorLock).doorLock_lock()\nall(#Valve).valve_close()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Main_Weather).weatherProvider_weather == \\\"rain\\\" and false == all(#PresenceSensor).presenceSensor_presence) {\\nall(#DoorLock).doorLock_lock()\\nall(#Valve).valve_close()\\n}\"\n}",
+ "precision": {
+  "WeatherProvider.Weather": [
+   "(#Main_Weather)"
+  ],
+  "PresenceSensor.Presence": [
+   "all(#PresenceSensor)"
+  ],
+  "DoorLock.Lock": [
+   "all(#DoorLock)"
+  ],
+  "Valve.Close": [
+   "all(#Valve)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "비가 오고 아무도 없는 상태면, 도어락을 잠그고 밸브를 차단해줘.",
+ "command_eng": "If the weather is rainy and no one is being detected, lock the door and close the valve.",
+ "connected_devices": {
+  "Main_Weather": {
+   "category": [
+    "WeatherProvider"
+   ],
+   "tags": [
+    "Main",
+    "WeatherProvider"
+   ]
+  },
+  "Outdoor_Weather": {
+   "category": [
+    "WeatherProvider"
+   ],
+   "tags": [
+    "Outdoor",
+    "WeatherProvider"
+   ]
+  },
+  "Living_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Living",
+    "PresenceSensor"
+   ]
+  },
+  "Bedroom_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "PresenceSensor"
+   ]
+  },
+  "Entrance_Lock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Entrance",
+    "DoorLock"
+   ]
+  },
+  "Garage_Lock": {
+   "category": [
+    "DoorLock"
+   ],
+   "tags": [
+    "Garage",
+    "DoorLock"
+   ]
+  },
+  "Main_Valve": {
+   "category": [
+    "Valve"
+   ],
+   "tags": [
+    "Main",
+    "Valve"
+   ]
+  },
+  "Garden_Valve": {
+   "category": [
+    "Valve"
+   ],
+   "tags": [
+    "Garden",
+    "Valve"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "if",
+    "cond": "WeatherProvider.Weather == \"rain\" and PresenceSensor.Presence == false",
+    "then": [
+     {
+      "op": "call",
+      "target": "DoorLock.Lock",
+      "args": {}
+     },
+     {
+      "op": "call",
+      "target": "Valve.Close",
+      "args": {}
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "WeatherProvider": [
+   "Main_Weather"
+  ],
+  "PresenceSensor": {
+   "all": [
+    "Living_Presence",
+    "Bedroom_Presence"
+   ]
+  },
+  "DoorLock": [
+   "Entrance_Lock",
+   "Garage_Lock"
+  ],
+  "Valve": [
+   "Main_Valve",
+   "Garden_Valve"
+  ]
+ },
+ "input_payload_sha256": "ca892b895f1331c3ca99b19e35b5867b6524491c379731356ccd67a4aaab50bc",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

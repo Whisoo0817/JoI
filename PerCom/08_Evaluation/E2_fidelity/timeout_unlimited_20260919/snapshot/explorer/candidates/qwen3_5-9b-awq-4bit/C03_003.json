@@ -1,0 +1,68 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#AirConditioner).airConditioner_airConditionerMode ==| \"cool\") {\nany(#AirConditioner).airConditioner_setTargetTemperature((any(#AirConditioner).airConditioner_targetTemperature - 2))\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#AirConditioner).airConditioner_airConditionerMode ==| \\\"cool\\\") {\\nany(#AirConditioner).airConditioner_setTargetTemperature((any(#AirConditioner).airConditioner_targetTemperature - 2))\\n}\"\n}",
+  "precision": {
+    "AirConditioner.AirConditionerMode": [
+      "any(#AirConditioner)"
+    ],
+    "AirConditioner.SetTargetTemperature": [
+      "all(#AirConditioner)"
+    ]
+  },
+  "command_kor": "에어컨이 냉방 모드이면, 설정 온도를 2도 낮춰줘.",
+  "command_eng": "If the air conditioner is in cool mode, lower the target temperature by 2 degrees.",
+  "connected_devices": {
+    "Living_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Living",
+        "AirConditioner",
+        "Switch"
+      ]
+    },
+    "Bedroom_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirConditioner.AirConditionerMode == \"cool\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetTargetTemperature",
+            "args": {
+              "Temperature": "$AirConditioner.TargetTemperature - 2"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 6.1
+}

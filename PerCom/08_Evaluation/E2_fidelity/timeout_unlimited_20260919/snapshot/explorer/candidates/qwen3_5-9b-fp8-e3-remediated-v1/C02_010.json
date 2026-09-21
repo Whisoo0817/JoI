@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "(#MeetingRoom_Recorder).audioRecorder_recordWithDuration(\"test.wav\", 10.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"(#MeetingRoom_Recorder).audioRecorder_recordWithDuration(\\\"test.wav\\\", 10.0)\"\n}",
+  "precision": {
+    "AudioRecorder.RecordWithDuration": [
+      "(#MeetingRoom_Recorder)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "회의실 녹음기로 10초 동안 녹음해서 test.wav로 저장해줘.",
+  "command_eng": "Record for 10 seconds with the meeting room recorder and save it as test.wav.",
+  "connected_devices": {
+    "MeetingRoom_Recorder": {
+      "category": [
+        "AudioRecorder"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "AudioRecorder"
+      ]
+    },
+    "Lab_Recorder": {
+      "category": [
+        "AudioRecorder"
+      ],
+      "tags": [
+        "Lab",
+        "AudioRecorder"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AudioRecorder.RecordWithDuration",
+        "args": {
+          "File": "test.wav",
+          "Duration": 10.0
+        }
+      }
+    ]
+  },
+  "binding": {
+    "AudioRecorder": [
+      "MeetingRoom_Recorder"
+    ]
+  },
+  "input_payload_sha256": "7306af9a54d090b564f8b4e61b101d222e31d3db8f262038fd49d2d778374f7a",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.3
+}

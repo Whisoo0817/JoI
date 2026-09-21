@@ -1,0 +1,106 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 10000,
+  "script": "phase := 0\nif (phase == 0) {\nwait until(any(#MotionSensor).motionSensor_motion == true)\n    phase = 1\n    all(#Camera).camera_captureImage()\n}\nelse {\nall(#Camera).camera_captureImage()\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 10000,\n  \"script\": \"phase := 0\\nif (phase == 0) {\\nwait until(any(#MotionSensor).motionSensor_motion == true)\\n    phase = 1\\n    all(#Camera).camera_captureImage()\\n}\\nelse {\\nall(#Camera).camera_captureImage()\\n}\"\n}",
+ "precision": {
+  "MotionSensor.Motion": [
+   "any(#MotionSensor)"
+  ],
+  "Camera.CaptureImage": [
+   "all(#Camera)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "움직임이 감지되면 그 뒤로 10초마다 사진을 찍어줘.",
+ "command_eng": "When motion is detected, capture an image every 10 seconds thereafter.",
+ "connected_devices": {
+  "Entrance_Motion": {
+   "category": [
+    "MotionSensor"
+   ],
+   "tags": [
+    "Entrance",
+    "MotionSensor"
+   ]
+  },
+  "Garage_Motion": {
+   "category": [
+    "MotionSensor"
+   ],
+   "tags": [
+    "Garage",
+    "MotionSensor"
+   ]
+  },
+  "Entrance_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Entrance",
+    "Camera"
+   ]
+  },
+  "Garage_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Garage",
+    "Camera"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "MotionSensor.Motion == true",
+    "edge": "none"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "10 SEC",
+    "body": [
+     {
+      "op": "call",
+      "target": "Camera.CaptureImage",
+      "args": {}
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "MotionSensor": {
+   "any": [
+    "Entrance_Motion",
+    "Garage_Motion"
+   ]
+  },
+  "Camera": [
+   "Entrance_Camera",
+   "Garage_Camera"
+  ]
+ },
+ "input_payload_sha256": "b24f8dd4d48f9d2e652250faaab031437bd3e2807c78e73beca1d6044a16191f",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-exists_spelling",
+ "elapsed_sec": 2.2,
+ "rewrite": {
+  "type": "exists_spelling",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

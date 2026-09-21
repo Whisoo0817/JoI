@@ -1,0 +1,60 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "저녁 7시부터 10시까지 30분마다 로봇청소기를 체크해서 멈춰있으면 자동 모드로 실행시켜줘.",
+  "command_eng": "Every 30 minutes from 7 PM to 10 PM, check the robot vacuum cleaner and start it in auto mode if it is stopped.",
+  "connected_devices": {
+    "Living_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Living",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Bedroom_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Bedroom",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 19 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2200",
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"stop\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.5
+}

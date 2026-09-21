@@ -1,0 +1,54 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "선풍기가 강풍 모드가 되면 3초 뒤에 약풍 모드로 바꿔줘.",
+  "command_eng": "When the fan enters high mode, switch it to low mode after 3 seconds.",
+  "connected_devices": {
+    "Kitchen_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Kitchen",
+        "Fan"
+      ]
+    },
+    "Basement_Fan": {
+      "category": [
+        "Fan"
+      ],
+      "tags": [
+        "Basement",
+        "Fan"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Fan.FanMode == \"high\"",
+        "edge": "none"
+      },
+      {
+        "op": "delay",
+        "duration": "3 SEC"
+      },
+      {
+        "op": "call",
+        "target": "Fan.SetFanMode",
+        "args": {
+          "Mode": "low"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.4
+}

@@ -1,0 +1,107 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (triggered == true) {\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel <= 80)\ntriggered = false\n}\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel > 80)\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\ntriggered = true"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 1000, \"script\": \"triggered := false\\nif (triggered == true) {\\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel <= 80)\\ntriggered = false\\n}\\nwait until(all(#AirQualitySensor).airQualitySensor_fineDustLevel > 80)\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\ntriggered = true\"}",
+  "precision": {
+    "AirQualitySensor.FineDustLevel": [
+      "any(#AirQualitySensor)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "미세먼지 농도가 80보다 높아질 때마다 공기청정기를 강풍으로 설정해줘.",
+  "command_eng": "Every time the fine dust level goes above 80, set the air purifier to high speed.",
+  "connected_devices": {
+    "Living_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Living",
+        "AirQualitySensor"
+      ]
+    },
+    "Bedroom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirQualitySensor"
+      ]
+    },
+    "Living_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Living",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "AirQualitySensor.FineDustLevel > 80",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "high"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "AirQualitySensor": {
+      "any": [
+        "Living_AQ",
+        "Bedroom_AQ"
+      ]
+    },
+    "AirPurifier": [
+      "Living_AP",
+      "Bedroom_AP"
+    ]
+  },
+  "input_payload_sha256": "4a754fd39b641ec4f5dfd80817f1597cdd6664e103b166a77339ae36a548db68",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.0,
+  "feedback_repair": {
+    "run_id": "e3_feedback_ablation_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

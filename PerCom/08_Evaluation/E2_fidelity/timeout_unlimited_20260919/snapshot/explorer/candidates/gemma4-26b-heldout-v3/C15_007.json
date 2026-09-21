@@ -1,0 +1,56 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 7 * * 1-5",
+    "period": 0,
+    "script": "all(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 7 * * 1-5\",\n  \"period\": 0,\n  \"script\": \"all(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "all(#RobotVacuumCleaner)"
+    ]
+  },
+  "command_kor": "평일 오전 7시에 로봇청소기를 자동 모드로 작동해줘.",
+  "command_eng": "On weekdays at 7 AM, start the robot vacuum cleaner in auto mode.",
+  "connected_devices": {
+    "Kitchen_RobotVacuumCleaner": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Kitchen",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Dining_RobotVacuumCleaner": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Dining",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 7 * * 1-5"
+      },
+      {
+        "op": "call",
+        "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+        "args": {
+          "Mode": "auto"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 4.3
+}

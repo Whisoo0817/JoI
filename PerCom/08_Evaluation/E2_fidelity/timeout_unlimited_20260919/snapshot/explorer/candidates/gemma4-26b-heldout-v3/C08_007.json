@@ -1,0 +1,91 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((#Floor1 #MultiButton).multiButton_button3 == \"pushed\")\nall(#Floor1 #Light).light_moveToBrightness(100.0, 0.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((#Floor1 #MultiButton).multiButton_button3 == \\\"pushed\\\")\\nall(#Floor1 #Light).light_moveToBrightness(100.0, 0.0)\"\n}",
+  "precision": {
+    "MultiButton.Button1": [
+      "(#Floor1 #MultiButton)"
+    ],
+    "Light.MoveToBrightness": [
+      "all(#Floor1 #Light)"
+    ]
+  },
+  "command_kor": "멀티버튼의 버튼3이 눌리면 1층 조명을 모두 켜줘.",
+  "command_eng": "When button 3 of the multi-button is pressed, turn on all lights on floor 1.",
+  "connected_devices": {
+    "F1_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Floor1",
+        "MultiButton"
+      ]
+    },
+    "F2_MB": {
+      "category": [
+        "MultiButton"
+      ],
+      "tags": [
+        "Floor2",
+        "MultiButton"
+      ]
+    },
+    "F1_Light_1": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor1",
+        "Light"
+      ]
+    },
+    "F1_Light_2": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor1",
+        "Light"
+      ]
+    },
+    "F2_Light": {
+      "category": [
+        "Light"
+      ],
+      "tags": [
+        "Floor2",
+        "Light"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MultiButton.Button3 == \"pushed\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 100.0,
+          "Rate": 0.0
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.8
+}

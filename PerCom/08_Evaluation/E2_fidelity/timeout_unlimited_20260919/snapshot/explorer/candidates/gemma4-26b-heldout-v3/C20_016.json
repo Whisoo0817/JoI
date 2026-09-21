@@ -1,0 +1,74 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif ((#Charger).charger_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1800) {\n(#Charger).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#Charger).charger_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1800) {\n(#Charger).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "Plug.Power": [
+      "(#Charger)"
+    ],
+    "Switch.Off": [
+      "(#Charger)"
+    ]
+  },
+  "command_kor": "충전기 플러그 전력이 30분 이상 5W 미만으로 유지되면 충전기 플러그를 꺼줘.",
+  "command_eng": "If the charger plug power stays below 5W for at least 30 minutes, turn off the charger plug.",
+  "connected_devices": {
+    "Kitchen_Charger": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Charger",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Kitchen_RiceCooker": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "RiceCooker",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Kitchen_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "30 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.8
+}

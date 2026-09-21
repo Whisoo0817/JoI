@@ -1,0 +1,73 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Living_AP).airPurifier_airPurifierMode == \"quiet\") {\n(#Living_AP).airPurifier_setAirPurifierMode(\"high\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Living_AP).airPurifier_airPurifierMode == \\\"quiet\\\") {\\n(#Living_AP).airPurifier_setAirPurifierMode(\\\"high\\\")\\n}\"\n}",
+  "precision": {
+    "AirPurifier.AirPurifierMode": [
+      "(#Living_AP)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "(#Living_AP)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "공기청정기가 저소음 모드이면, 강풍 모드로 바꿔줘.",
+  "command_eng": "If the air purifier is in quiet mode, switch it to high speed mode.",
+  "connected_devices": {
+    "Living_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Living",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirPurifier.AirPurifierMode == \"quiet\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "high"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "AirPurifier": [
+      "Living_AP"
+    ]
+  },
+  "input_payload_sha256": "bd452f01dae58f870b1bb562b9e94e3ced7ee3b6d4740473ae663bc3909bace8",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

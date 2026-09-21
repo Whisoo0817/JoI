@@ -1,0 +1,120 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "0 22 * * *",
+  "period": 0,
+  "script": "if (true == (#LR_Presence).presenceSensor_presence) {\nall(#Light).light_moveToBrightness(100.0, 0.0)\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 0,\n  \"script\": \"if (true == (#LR_Presence).presenceSensor_presence) {\\nall(#Light).light_moveToBrightness(100.0, 0.0)\\n}\"\n}",
+ "precision": {
+  "PresenceSensor.Presence": [
+   "(#LR_Presence)"
+  ],
+  "Light.MoveToBrightness": [
+   "all(#Light)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "밤 10시에 거실에 사람이 감지되면, 모든 불을 켜줘.",
+ "command_eng": "Every 10 PM, if presence is detected in the living room, turn on all lights.",
+ "connected_devices": {
+  "LR_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "PresenceSensor"
+   ]
+  },
+  "Bedroom_Presence": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Bedroom",
+    "PresenceSensor"
+   ]
+  },
+  "LR_Light": {
+   "category": [
+    "Light",
+    "Switch",
+    "LevelControl"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Light",
+    "Switch",
+    "LevelControl"
+   ]
+  },
+  "Kitchen_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "Kitchen",
+    "Light",
+    "Switch"
+   ]
+  },
+  "Bedroom_Light": {
+   "category": [
+    "Light",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "Light",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "cron",
+    "cron": "0 22 * * *"
+   },
+   {
+    "op": "if",
+    "cond": "PresenceSensor.Presence == true",
+    "then": [
+     {
+      "op": "call",
+      "target": "Light.MoveToBrightness",
+      "args": {
+       "Brightness": 100.0,
+       "Rate": 0.0
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "PresenceSensor": [
+   "LR_Presence"
+  ],
+  "Light": [
+   "LR_Light",
+   "Kitchen_Light",
+   "Bedroom_Light"
+  ]
+ },
+ "input_payload_sha256": "3a9508ee31b634d3c6e21cf04915657382d21f8b18c67f870b9c449dc22c7141",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 1.9,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

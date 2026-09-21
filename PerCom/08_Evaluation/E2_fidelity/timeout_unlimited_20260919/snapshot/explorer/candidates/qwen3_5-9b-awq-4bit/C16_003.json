@@ -1,0 +1,69 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 19 * * *",
+    "period": 1800000,
+    "script": "if ((#Clock).clock_hour >= 22 or ((#Clock).clock_hour == 21 and (#Clock).clock_minute >= 0)) {\nbreak\n}\nif (all(#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \"stop\") {\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\"auto\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 19 * * *\",\n  \"period\": 1800000,\n  \"script\": \"if ((#Clock).clock_hour >= 22 or ((#Clock).clock_hour == 21 and (#Clock).clock_minute >= 0)) {\nbreak\n}\nif (all(#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerCleaningMode == \\\"stop\\\") {\\nall(#RobotVacuumCleaner).robotVacuumCleaner_setRobotVacuumCleanerCleaningMode(\\\"auto\\\")\\n}\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode": [
+      "all(#RobotVacuumCleaner)"
+    ]
+  },
+  "command_kor": "저녁 7시부터 10시까지 30분마다 로봇청소기를 체크해서 멈춰있으면 자동 모드로 실행시켜줘.",
+  "command_eng": "Every 30 minutes from 7 PM to 10 PM, check the robot vacuum cleaner and start it in auto mode if it is stopped.",
+  "connected_devices": {
+    "Living_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Living",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Bedroom_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Bedroom",
+        "RobotVacuumCleaner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 19 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2200",
+        "period": "30 MIN",
+        "body": [
+          {
+            "op": "if",
+            "cond": "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode == \"stop\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "RobotVacuumCleaner.SetRobotVacuumCleanerCleaningMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.6
+}

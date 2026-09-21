@@ -1,0 +1,66 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#WindowCovering).windowCovering_setLevel(50)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#WindowCovering).windowCovering_setLevel(50)\"\n}",
+  "precision": {
+    "WindowCovering.SetLevel": [
+      "all(#WindowCovering)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "블라인드를 50퍼센트로 맞춰줘.",
+  "command_eng": "Set the blinds to 50 percent.",
+  "connected_devices": {
+    "Living_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Living",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Blind",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.SetLevel",
+        "args": {
+          "Level": 50
+        }
+      }
+    ]
+  },
+  "binding": {
+    "WindowCovering": [
+      "Living_Blind",
+      "Bedroom_Blind"
+    ]
+  },
+  "input_payload_sha256": "f67bd2be65635f8cf63019098968bea8f955ea5a0f9a31f25c334157729ac764",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.2
+}

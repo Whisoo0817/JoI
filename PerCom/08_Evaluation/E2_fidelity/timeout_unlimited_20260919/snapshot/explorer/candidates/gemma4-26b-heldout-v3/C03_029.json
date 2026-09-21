@@ -1,0 +1,99 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Entrance #FaceRecognizer).faceRecognizer_recognizedResult == \"visitor\") {\n(#Camera #Entrance).camera_startRecording()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Entrance #FaceRecognizer).faceRecognizer_recognizedResult == \\\"visitor\\\") {\\n(#Camera #Entrance).camera_startRecording()\\n}\"\n}",
+  "precision": {
+    "FaceRecognizer.RecognizedResult": [
+      "(#Entrance #FaceRecognizer)"
+    ],
+    "Camera.CaptureVideo": [
+      "(#Camera #Entrance)"
+    ]
+  },
+  "command_kor": "현관에서 인식된 얼굴이 \"방문자\"이면, 현관 카메라로 녹화를 시작해줘.",
+  "command_eng": "If the face recognized at the entrance is 'visitor', start recording with the entrance camera.",
+  "connected_devices": {
+    "Entrance_Face": {
+      "category": [
+        "FaceRecognizer"
+      ],
+      "tags": [
+        "Entrance",
+        "FaceRecognizer"
+      ]
+    },
+    "Garage_Face": {
+      "category": [
+        "FaceRecognizer"
+      ],
+      "tags": [
+        "Garage",
+        "FaceRecognizer"
+      ]
+    },
+    "Lobby_Face": {
+      "category": [
+        "FaceRecognizer"
+      ],
+      "tags": [
+        "Lobby",
+        "FaceRecognizer"
+      ]
+    },
+    "Entrance_Cam": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Entrance",
+        "Camera"
+      ]
+    },
+    "Garage_Cam": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Garage",
+        "Camera"
+      ]
+    },
+    "Lobby_Cam": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Lobby",
+        "Camera"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "FaceRecognizer.RecognizedResult == \"visitor\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Camera.StartRecording",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.1
+}

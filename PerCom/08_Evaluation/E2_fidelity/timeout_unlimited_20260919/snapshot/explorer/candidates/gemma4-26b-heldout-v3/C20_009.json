@@ -1,0 +1,83 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif ((#MeetingRoom #PresenceSensor).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 120) {\n(#Plug).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#MeetingRoom #PresenceSensor).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 120) {\n(#Plug).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#MeetingRoom #PresenceSensor)"
+    ],
+    "Switch.On": [
+      "(#Plug)"
+    ]
+  },
+  "command_kor": "회의실에 사람이 2분 이상 머무르면 프로젝터를 켜줘.",
+  "command_eng": "If a person stays in the meeting room for at least 2 minutes, turn on the projector.",
+  "connected_devices": {
+    "Meeting_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Meeting_Projector": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Projector",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Lobby_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Lobby",
+        "PresenceSensor"
+      ]
+    },
+    "Meeting_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none",
+        "for": "2 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.2
+}

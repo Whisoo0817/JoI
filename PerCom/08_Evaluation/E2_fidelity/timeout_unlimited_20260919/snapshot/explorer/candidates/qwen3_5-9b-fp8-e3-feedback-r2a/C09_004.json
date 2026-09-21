@@ -1,0 +1,77 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#AirConditioner).airConditioner_setTargetTemperature(24.0)\ndelay(1 HOUR)\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#AirConditioner).airConditioner_setTargetTemperature(24.0)\ndelay(1 HOUR)\nall(#AirConditioner).airConditioner_setTargetTemperature(26.0)\"\n}",
+  "precision": {
+    "AirConditioner.SetTargetTemperature": [
+      "all(#AirConditioner)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "에어컨 온도를 24도로 설정하고 1시간 뒤에 26도로 설정해줘.",
+  "command_eng": "Set the air conditioner temperature to 24 degrees and change it to 26 degrees after 1 hour.",
+  "connected_devices": {
+    "LivingRoom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    },
+    "Bedroom_AirConditioner": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetTargetTemperature",
+        "args": {
+          "Temperature": 24.0
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "call",
+        "target": "AirConditioner.SetTargetTemperature",
+        "args": {
+          "Temperature": 26.0
+        }
+      }
+    ]
+  },
+  "binding": {
+    "AirConditioner": [
+      "LivingRoom_AirConditioner",
+      "Bedroom_AirConditioner"
+    ]
+  },
+  "input_payload_sha256": "ac820054996c9fb2a25331b49ddae7d10f2cd732667c9e66d3464c07820aff17",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

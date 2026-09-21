@@ -1,0 +1,137 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#Garden_Illum).lightSensor_brightness < 50 and (#Terrace_Light).switch_switch == false) {\n(#Terrace_Light).light_moveToBrightness(100.0, 0.0)\nall(#Speaker).speaker_speak(\"The terrace light has been turned on.\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#Garden_Illum).lightSensor_brightness < 50 and (#Terrace_Light).switch_switch == false) {\n(#Terrace_Light).light_moveToBrightness(100.0, 0.0)\nall(#Speaker).speaker_speak(\\\"The terrace light has been turned on.\\\")\\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "(#Garden_Illum)"
+    ],
+    "Switch.Switch": [
+      "(#Terrace_Light)"
+    ],
+    "Light.MoveToBrightness": [
+      "(#Terrace_Light)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "정원 조도가 50 미만이고 테라스 조명이 꺼져 있으면, 조명을 켜고 정원 스피커로 조명을 켠다고 말해줘.",
+  "command_eng": "If the garden illuminance is below 50 and the terrace light is off, turn on the light and play an announcement in the garden.",
+  "connected_devices": {
+    "Garden_Illum": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Garden",
+        "LightSensor"
+      ]
+    },
+    "Porch_Illum": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Porch",
+        "LightSensor"
+      ]
+    },
+    "Terrace_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Terrace",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Porch_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "Porch",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Garden_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Garden",
+        "Speaker"
+      ]
+    },
+    "Terrace_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Terrace",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LightSensor.Brightness < 50 and Switch.Switch == false",
+        "then": [
+          {
+            "op": "call",
+            "target": "Light.MoveToBrightness",
+            "args": {
+              "Brightness": 100.0,
+              "Rate": 0.0
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The terrace light has been turned on."
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "LightSensor": [
+      "Garden_Illum"
+    ],
+    "Switch": [
+      "Terrace_Light"
+    ],
+    "Light": [
+      "Terrace_Light"
+    ],
+    "Speaker": [
+      "Garden_Speaker",
+      "Terrace_Speaker"
+    ]
+  },
+  "input_payload_sha256": "d64c5bd1bfa698e558ce71b077bbe10c7bd76d9fc8446d30aa8c67df96eff64a",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.7
+}

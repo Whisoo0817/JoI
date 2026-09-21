@@ -1,0 +1,85 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((all(#DoorLock).doorLock_doorLockState ==| \"open\"))\nall(#Siren).siren_setSirenMode(\"police\")"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((all(#DoorLock).doorLock_doorLockState ==| \\\"open\\\"))\\nall(#Siren).siren_setSirenMode(\\\"police\\\")\"\n}",
+  "precision": {
+    "DoorLock.DoorLockState": [
+      "any(#DoorLock)"
+    ],
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ]
+  },
+  "command_kor": "금고가 열리면 경찰 사이렌을 울려줘.",
+  "command_eng": "When the safe is unlocked, sound the police siren.",
+  "connected_devices": {
+    "Study_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Study",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "Bedroom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Bedroom",
+        "Safe",
+        "DoorLock"
+      ]
+    },
+    "LivingRoom_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "DoorLock.DoorLockState == \"open\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Siren.SetSirenMode",
+        "args": {
+          "Mode": "police"
+        }
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.7
+}

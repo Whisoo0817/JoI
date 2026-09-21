@@ -1,0 +1,99 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "if (not ((#Study_AQ).airQualitySensor_fineDustLevel >= 30)) {\n    wait until((#Study_AQ).airQualitySensor_fineDustLevel >= 30)\n}\n(#Study_AP).switch_on()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (not ((#Study_AQ).airQualitySensor_fineDustLevel >= 30)) {\\n    wait until((#Study_AQ).airQualitySensor_fineDustLevel >= 30)\\n}\\n(#Study_AP).switch_on()\"\n}",
+ "precision": {
+  "AirQualitySensor.FineDustLevel": [
+   "(#Study_AQ)"
+  ],
+  "Switch.On": [
+   "(#Study_AP)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "서재 미세먼지 농도가 30 이상이 되면 서재 공기청정기를 켜줘.",
+ "command_eng": "When the fine dust level in the study reaches 30 or higher, turn on the study air purifier.",
+ "connected_devices": {
+  "Study_AQ": {
+   "category": [
+    "AirQualitySensor"
+   ],
+   "tags": [
+    "Study",
+    "AirQualitySensor"
+   ]
+  },
+  "LivingRoom_AQ": {
+   "category": [
+    "AirQualitySensor"
+   ],
+   "tags": [
+    "LivingRoom",
+    "AirQualitySensor"
+   ]
+  },
+  "Study_AP": {
+   "category": [
+    "AirPurifier",
+    "Switch"
+   ],
+   "tags": [
+    "Study",
+    "AirPurifier",
+    "Switch"
+   ]
+  },
+  "Bedroom_AP": {
+   "category": [
+    "AirPurifier",
+    "Switch"
+   ],
+   "tags": [
+    "Bedroom",
+    "AirPurifier",
+    "Switch"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "AirQualitySensor.FineDustLevel >= 30",
+    "edge": "none"
+   },
+   {
+    "op": "call",
+    "target": "Switch.On",
+    "args": {}
+   }
+  ]
+ },
+ "binding": {
+  "AirQualitySensor": [
+   "Study_AQ"
+  ],
+  "Switch": [
+   "Study_AP"
+  ]
+ },
+ "input_payload_sha256": "723db1c8021d20b691980fc7009e5ece3a442c86e4a9d2c1b5a59ecae8cfdbdb",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-wait_precheck",
+ "elapsed_sec": 1.3,
+ "rewrite": {
+  "type": "wait_precheck",
+  "band": "temporal",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

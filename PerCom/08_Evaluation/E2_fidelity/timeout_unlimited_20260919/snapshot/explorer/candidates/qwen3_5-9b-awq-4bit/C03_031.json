@@ -1,0 +1,126 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#Group1 #HumiditySensor #Indoor).humiditySensor_humidity >=| 60) {\nall(#Dehumidifier #Group1 #Indoor).dehumidifier_setDehumidifierMode(\"drying\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#Group1 #HumiditySensor #Indoor).humiditySensor_humidity >=| 60) {\nall(#Dehumidifier #Group1 #Indoor).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n}\"\n}",
+  "precision": {
+    "HumiditySensor.Humidity": [
+      "any(#Group1 #HumiditySensor #Indoor)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier #Group1 #Indoor)"
+    ]
+  },
+  "command_kor": "실내 그룹1 습도 센서 중 하나라도 60% 이상이면, 실내 그룹1의 모든 제습기를 건조 모드로 설정해줘.",
+  "command_eng": "If any indoor Group1 humidity sensor reads 60% or higher, set all indoor Group1 dehumidifiers to drying mode.",
+  "connected_devices": {
+    "In_G1_Hum_1": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Indoor",
+        "Group1",
+        "HumiditySensor"
+      ]
+    },
+    "In_G1_Hum_2": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Indoor",
+        "Group1",
+        "HumiditySensor"
+      ]
+    },
+    "Out_G1_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Outdoor",
+        "Group1",
+        "HumiditySensor"
+      ]
+    },
+    "In_G2_Hum": {
+      "category": [
+        "HumiditySensor"
+      ],
+      "tags": [
+        "Indoor",
+        "Group2",
+        "HumiditySensor"
+      ]
+    },
+    "In_G1_Dehum_1": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Indoor",
+        "Group1",
+        "Dehumidifier"
+      ]
+    },
+    "In_G1_Dehum_2": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Indoor",
+        "Group1",
+        "Dehumidifier"
+      ]
+    },
+    "Out_G1_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Outdoor",
+        "Group1",
+        "Dehumidifier"
+      ]
+    },
+    "In_G2_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Indoor",
+        "Group2",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "HumiditySensor.Humidity >= 60",
+        "then": [
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 7.4
+}

@@ -1,0 +1,125 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#SR_Temp).temperatureSensor_temperature > 35) {\n(#SR_AC).airConditioner_setAirConditionerMode(\"cool\")\n(#SR_AC).airConditioner_setTargetTemperature(18.0)\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#SR_Temp).temperatureSensor_temperature > 35) {\n(#SR_AC).airConditioner_setAirConditionerMode(\\\"cool\\\")\\n(#SR_AC).airConditioner_setTargetTemperature(18.0)\\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#SR_Temp)"
+    ],
+    "AirConditioner.SetAirConditionerMode": [
+      "(#SR_AC)"
+    ],
+    "AirConditioner.SetTargetTemperature": [
+      "(#SR_AC)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "/home/gnltnwjstk/joi-timer-regions/traces/20260915_132343_456.json",
+  "command_kor": "서버실 온도가 35도를 초과하면, 서버실 에어컨을 냉방 모드로 18도로 설정해줘.",
+  "command_eng": "If the server room temperature exceeds 35 degrees, set the server room air conditioner to cool mode at 18 degrees.",
+  "connected_devices": {
+    "SR_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "ServerRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "Basement_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Basement",
+        "TemperatureSensor"
+      ]
+    },
+    "Office_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Office",
+        "TemperatureSensor"
+      ]
+    },
+    "SR_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "ServerRoom",
+        "AirConditioner"
+      ]
+    },
+    "Basement_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Basement",
+        "AirConditioner"
+      ]
+    },
+    "Office_AC": {
+      "category": [
+        "AirConditioner",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "TemperatureSensor.Temperature > 35",
+        "then": [
+          {
+            "op": "call",
+            "target": "AirConditioner.SetAirConditionerMode",
+            "args": {
+              "Mode": "cool"
+            }
+          },
+          {
+            "op": "call",
+            "target": "AirConditioner.SetTargetTemperature",
+            "args": {
+              "Temperature": 18.0
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "TemperatureSensor": [
+      "SR_Temp"
+    ],
+    "AirConditioner": [
+      "SR_AC"
+    ]
+  },
+  "input_payload_sha256": "25bc9407d4b9cdeb5ed662b17da40f2bfc44f3d0fc5c5b6196fa16446b59f38e",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-prefix-fixed-v2",
+  "elapsed_sec": 1.5
+}

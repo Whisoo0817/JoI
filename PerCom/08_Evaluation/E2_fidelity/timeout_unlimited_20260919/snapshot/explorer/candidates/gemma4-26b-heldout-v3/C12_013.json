@@ -1,0 +1,110 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 60000,
+    "script": "phase := 0\nif (phase == 0) {\nwait until(all(#Floor1 #PresenceSensor).presenceSensor_presence ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\nall(#Siren).switch_off()\n}\nelse {\nall(#Siren).siren_setSirenMode(\"emergency\")\n    delay(3 SEC)\nall(#Siren).switch_off()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 60000,\n  \"script\": \"phase := 0\nif (phase == 0) {\nwait until(all(#Floor1 #PresenceSensor).presenceSensor_presence ==| true)\n    phase = 1\n    all(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n    delay(3 SEC)\\nall(#Siren).switch_off()\\n}\\nelse {\\nall(#Siren).siren_setSirenMode(\\\"emergency\\\")\\n    delay(3 SEC)\\nall(#Siren).switch_off()\\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "any(#Floor1 #PresenceSensor)"
+    ],
+    "Switch.Off": [
+      "all(#Siren)"
+    ]
+  },
+  "command_kor": "1층에서 재실센서가 하나라도 감지되면, 그 이후로 1분마다 모든 긴급 사이렌을 3초간 울렸다 꺼줘.",
+  "command_eng": "When any presence sensor on the 1st floor detects presence, sound all emergency sirens for 3 seconds every minute thereafter and then turn them off.",
+  "connected_devices": {
+    "F1_Pres_1": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor1",
+        "PresenceSensor"
+      ]
+    },
+    "F1_Pres_2": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor1",
+        "PresenceSensor"
+      ]
+    },
+    "F2_Pres": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Floor2",
+        "PresenceSensor"
+      ]
+    },
+    "F1_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Floor1",
+        "Siren",
+        "Switch"
+      ]
+    },
+    "F2_Siren": {
+      "category": [
+        "Siren",
+        "Switch"
+      ],
+      "tags": [
+        "Floor2",
+        "Siren",
+        "Switch"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 MIN",
+        "body": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "emergency"
+            }
+          },
+          {
+            "op": "delay",
+            "duration": "3 SEC"
+          },
+          {
+            "op": "call",
+            "target": "Switch.Off",
+            "args": {}
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 11.3
+}

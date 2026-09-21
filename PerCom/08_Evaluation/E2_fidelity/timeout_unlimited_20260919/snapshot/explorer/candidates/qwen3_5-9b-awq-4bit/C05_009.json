@@ -1,0 +1,108 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#AirQualitySensor).airQualitySensor_fineDustLevel >=| 150 and all(#DoorLock).doorLock_doorLockState ==| \"open\") {\nall(#AirPurifier).doorLock_lock()\nall(#AirPurifier).airPurifier_setAirPurifierMode(\"high\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#AirQualitySensor).airQualitySensor_fineDustLevel >=| 150 and all(#DoorLock).doorLock_doorLockState ==| \\\"open\\\") {\\nall(#AirPurifier).doorLock_lock()\\nall(#AirPurifier).airPurifier_setAirPurifierMode(\\\"high\\\")\\n}\"\n}",
+  "precision": {
+    "AirQualitySensor.FineDustLevel": [
+      "any(#AirQualitySensor)"
+    ],
+    "DoorLock.DoorLockState": [
+      "any(#DoorLock)"
+    ],
+    "AirPurifier.SetAirPurifierMode": [
+      "all(#AirPurifier)"
+    ]
+  },
+  "command_kor": "미세먼지 농도가 150 이상이고 문이 잠겨 있지 않으면, 문을 잠그고 공기청정기를 강풍으로 작동시켜줘.",
+  "command_eng": "If the fine dust level is 150 or higher and the door is unlocked, lock the door and set the air purifier to high.",
+  "connected_devices": {
+    "Living_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Living",
+        "AirQualitySensor"
+      ]
+    },
+    "Bedroom_AQ": {
+      "category": [
+        "AirQualitySensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirQualitySensor"
+      ]
+    },
+    "Living_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Living",
+        "DoorLock"
+      ]
+    },
+    "Bedroom_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Bedroom",
+        "DoorLock"
+      ]
+    },
+    "Living_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Living",
+        "AirPurifier"
+      ]
+    },
+    "Bedroom_AP": {
+      "category": [
+        "AirPurifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "AirPurifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "AirQualitySensor.FineDustLevel >= 150 and DoorLock.DoorLockState == \"open\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "DoorLock.Lock",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "AirPurifier.SetAirPurifierMode",
+            "args": {
+              "Mode": "high"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 8.9
+}

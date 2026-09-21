@@ -1,0 +1,84 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 12 * * *",
+    "period": 0,
+    "script": "GetMenu = all(#MenuProvider).menuProvider_menu\nall(#Speaker).speaker_speak(GetMenu)"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 12 * * *\",\n  \"period\": 0,\n  \"script\": \"GetMenu = all(#MenuProvider).menuProvider_menu\nall(#Speaker).speaker_speak(GetMenu)\"\n}",
+  "precision": {
+    "MenuProvider.Menu": [
+      "all(#MenuProvider)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "정오마다 301동 식당의 점심 메뉴를 스피커로 말해줘.",
+  "command_eng": "At noon every day, announce the lunch menu of the 301 building cafeteria through the speaker.",
+  "connected_devices": {
+    "Main_MenuProvider": {
+      "category": [
+        "MenuProvider"
+      ],
+      "tags": [
+        "Main",
+        "MenuProvider"
+      ]
+    },
+    "Office_MenuProvider": {
+      "category": [
+        "MenuProvider"
+      ],
+      "tags": [
+        "Office",
+        "MenuProvider"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 12 * * *"
+      },
+      {
+        "op": "call",
+        "target": "MenuProvider.GetMenu",
+        "args": {
+          "Command": "오늘 301동식당 점심"
+        },
+        "var": "GetMenu"
+      },
+      {
+        "op": "call",
+        "target": "Speaker.Speak",
+        "args": {
+          "Text": "$GetMenu"
+        }
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 4.0
+}

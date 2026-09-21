@@ -1,0 +1,103 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\ndelay(60 SEC)\nall(#Camera).camera_captureImage()"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#PresenceSensor).presenceSensor_presence ==| true)\\ndelay(60 SEC)\\nall(#Camera).camera_captureImage()\"\n}",
+ "precision": {
+  "PresenceSensor.Presence": [
+   "any(#PresenceSensor)"
+  ],
+  "Camera.CaptureImage": [
+   "all(#Camera)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "재실 센서에 감지가 되면 1분 뒤에 사진을 찍어줘.",
+ "command_eng": "When the presence sensor detects someone, take a picture after 1 minute.",
+ "connected_devices": {
+  "Entrance_PresenceSensor": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Entrance",
+    "PresenceSensor"
+   ]
+  },
+  "Hallway_PresenceSensor": {
+   "category": [
+    "PresenceSensor"
+   ],
+   "tags": [
+    "Hallway",
+    "PresenceSensor"
+   ]
+  },
+  "Entrance_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "Entrance",
+    "Camera"
+   ]
+  },
+  "LivingRoom_Camera": {
+   "category": [
+    "Camera"
+   ],
+   "tags": [
+    "LivingRoom",
+    "Camera"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "wait",
+    "cond": "PresenceSensor.Presence == true",
+    "edge": "none"
+   },
+   {
+    "op": "delay",
+    "duration": "1 MIN"
+   },
+   {
+    "op": "call",
+    "target": "Camera.CaptureImage",
+    "args": {}
+   }
+  ]
+ },
+ "binding": {
+  "PresenceSensor": {
+   "any": [
+    "Entrance_PresenceSensor",
+    "Hallway_PresenceSensor"
+   ]
+  },
+  "Camera": [
+   "Entrance_Camera",
+   "LivingRoom_Camera"
+  ]
+ },
+ "input_payload_sha256": "63127a11db4e7c61db8224d0dd3e2578a8f92c4db613ea8a01c1a2151d755417",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-time_unit",
+ "elapsed_sec": 1.3,
+ "rewrite": {
+  "type": "time_unit",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

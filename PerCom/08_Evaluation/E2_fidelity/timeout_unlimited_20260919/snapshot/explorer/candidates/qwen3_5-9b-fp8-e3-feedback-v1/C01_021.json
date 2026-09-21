@@ -1,0 +1,62 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#DoorLock).doorLock_lock()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#DoorLock).doorLock_lock()\"\n}",
+  "precision": {
+    "DoorLock.Lock": [
+      "all(#DoorLock)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "문을 잠가줘.",
+  "command_eng": "Lock the door.",
+  "connected_devices": {
+    "Entrance_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "DoorLock.Lock",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "DoorLock": [
+      "Entrance_DoorLock",
+      "Garage_DoorLock"
+    ]
+  },
+  "input_payload_sha256": "248c7373669fb01a6fa2a98c36f3027f08e87676874cef9f63842fe5f90c8e41",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.2
+}

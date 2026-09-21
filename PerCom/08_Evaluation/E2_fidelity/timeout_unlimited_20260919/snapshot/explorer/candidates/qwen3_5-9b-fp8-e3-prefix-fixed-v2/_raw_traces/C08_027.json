@@ -1,0 +1,126 @@
+{
+  "sentence": "습도가 50% 이상이 될 때마다, 그룹1 태그가 붙은 제습기를 모두 건조모드로 작동시켜.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:38",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "HumiditySensor.Humidity",
+      "Dehumidifier.SetDehumidifierMode"
+    ],
+    "selectors": {
+      "HumiditySensor.Humidity": [
+        "(#G1_Humidity)"
+      ],
+      "Dehumidifier.SetDehumidifierMode": [
+        "all(#Dehumidifier)"
+      ]
+    },
+    "resolved": {
+      "HumiditySensor.Humidity": {
+        "q": "one",
+        "devices": [
+          "G1_Humidity"
+        ]
+      },
+      "Dehumidifier.SetDehumidifierMode": {
+        "q": "all",
+        "devices": [
+          "G1_Dehum_1",
+          "G1_Dehum_2"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "HumiditySensor.Humidity >= 50",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "drying"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every second, run the following behavior.\n\nBehavior:\n- Wait until the humidity of G1_Humidity is at least 50 becomes true.\n- Set G1_Dehum_1 and G1_Dehum_2 mode to drying.",
+  "lowering": {
+    "raw": "<Reasoning>\nD-3 rising-edge idiom: wait(rising) triggers call; cycle.period 1 SEC → wrapper.period 1000.\n</Reasoning>\n{\"cron\":\"\",\"period\":1000,\"script\":\"triggered := false\\nif ((#G1_Humidity).Humidity >= 50) {\\n    if (triggered == false) {\\n        all(#Dehumidifier).SetDehumidifierMode(\\\"drying\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "triggered := false\nif ((#G1_Humidity).humiditySensor_humidity >= 50) {\nif (triggered == false) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"drying\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 1,
+      "input": {
+        "G1_Humidity.humidity": 50.0
+      },
+      "dwell_ms": 100,
+      "ir_actions": [
+        [
+          [
+            "dehumidifier",
+            "setdehumidifiermode",
+            [
+              "tuple",
+              [
+                [
+                  "string",
+                  "drying"
+                ]
+              ]
+            ],
+            [
+              "G1_Dehum_1",
+              "G1_Dehum_2"
+            ]
+          ]
+        ]
+      ],
+      "joi_actions": [],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "HumiditySensor": [
+        "G1_Humidity"
+      ],
+      "Dehumidifier": [
+        "G1_Dehum_1",
+        "G1_Dehum_2"
+      ]
+    },
+    "seconds": 0.013
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#G1_Humidity).humiditySensor_humidity >= 50) {\nif (triggered == false) {\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"drying\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "elapsed_sec": 1.76,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'G1_Humidity.humidity': 50.0} IR=[(('dehumidifier', 'setdehumidifiermode', ('tuple', (('string', 'drying'),)), ('G1_Dehum_1', 'G1_Dehum_2')),)] JoI=[]"
+  }
+}

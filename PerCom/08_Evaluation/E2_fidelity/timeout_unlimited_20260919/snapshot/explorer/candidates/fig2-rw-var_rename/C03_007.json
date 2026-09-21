@@ -1,0 +1,83 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 0,
+  "script": "currentMode_v = (#Main_Pump).pump_pumpMode\nif (currentMode_v == \"normal\") {\n(#Main_Pump).pump_setPumpMode(\"maximum\")\n}"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"currentMode_v = (#Main_Pump).pump_pumpMode\\nif (currentMode_v == \\\"normal\\\") {\\n(#Main_Pump).pump_setPumpMode(\\\"maximum\\\")\\n}\"\n}",
+ "precision": {
+  "Pump.PumpMode": [
+   "(#Main_Pump)"
+  ],
+  "Pump.SetPumpMode": [
+   "(#Main_Pump)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "펌프가 노말 모드이면 맥시멈 모드로 설정해줘.",
+ "command_eng": "If the pump is in normal mode, set it to maximum mode.",
+ "connected_devices": {
+  "Main_Pump": {
+   "category": [
+    "Pump"
+   ],
+   "tags": [
+    "Main",
+    "Pump"
+   ]
+  },
+  "Garage_Pump": {
+   "category": [
+    "Pump"
+   ],
+   "tags": [
+    "Garage",
+    "Pump"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "read",
+    "var": "currentMode",
+    "src": "Pump.PumpMode"
+   },
+   {
+    "op": "if",
+    "cond": "currentMode == \"normal\"",
+    "then": [
+     {
+      "op": "call",
+      "target": "Pump.SetPumpMode",
+      "args": {
+       "PumpMode": "maximum"
+      }
+     }
+    ],
+    "else": []
+   }
+  ]
+ },
+ "binding": {
+  "Pump": [
+   "Main_Pump"
+  ]
+ },
+ "input_payload_sha256": "70ed3c166432e6888437d43e5cd53d686ee00866684e85519a14ad859fd32345",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-var_rename",
+ "elapsed_sec": 1.5,
+ "rewrite": {
+  "type": "var_rename",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

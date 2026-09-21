@@ -1,0 +1,75 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "all(#WindowCovering).windowCovering_downOrClose()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"all(#WindowCovering).windowCovering_downOrClose()\"\n}",
+  "precision": {
+    "WindowCovering.DownOrClose": [
+      "all(#WindowCovering)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "섹터2 모두 닫아줘.",
+  "command_eng": "Close everything in Sector2.",
+  "connected_devices": {
+    "S2_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Sector2",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "S2_Blind": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Sector2",
+        "Blind",
+        "WindowCovering"
+      ]
+    },
+    "S1_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Sector1",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "WindowCovering": [
+      "S2_Window",
+      "S2_Blind",
+      "S1_Window"
+    ]
+  },
+  "input_payload_sha256": "854b394b48f044ec032e946c9314bb0dc5caeabfc57ef74b4309cfa13a01fd92",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

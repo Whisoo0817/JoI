@@ -1,0 +1,84 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif ((#Printer).charger_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#Printer).charger_power < 5) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 600) {\n(#Printer).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "Plug.Power": [
+      "(#Printer)"
+    ],
+    "Switch.Off": [
+      "(#Printer)"
+    ]
+  },
+  "command_kor": "프린터 플러그 사용 전력이 5W 미만으로 10분 이상 유지되면 프린터 플러그를 꺼줘.",
+  "command_eng": "If the printer plug power consumption stays below 5W for at least 10 minutes, turn off the printer plug.",
+  "connected_devices": {
+    "Office_Printer": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Plug",
+        "Printer"
+      ]
+    },
+    "Office_Monitor": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Office",
+        "Plug",
+        "Monitor"
+      ]
+    },
+    "Office_Camera": {
+      "category": [
+        "Camera"
+      ],
+      "tags": [
+        "Office",
+        "Camera"
+      ]
+    },
+    "Kitchen_Humidifier": {
+      "category": [
+        "Humidifier"
+      ],
+      "tags": [
+        "Kitchen",
+        "Humidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "Plug.Power < 5",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 11.0
+}

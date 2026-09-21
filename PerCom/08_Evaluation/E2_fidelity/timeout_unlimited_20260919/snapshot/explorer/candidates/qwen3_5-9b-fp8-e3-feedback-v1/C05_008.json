@@ -1,0 +1,135 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if (all(#LightSensor).lightSensor_brightness <=| 100 and all(#PresenceSensor).presenceSensor_presence ==| true) {\nall(#Speaker).speaker_setVolume(30)\nall(#Speaker).speaker_play(\"relax.mp3\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if (all(#LightSensor).lightSensor_brightness <=| 100 and all(#PresenceSensor).presenceSensor_presence ==| true) {\nall(#Speaker).speaker_setVolume(30)\nall(#Speaker).speaker_play(\\\"relax.mp3\\\")\\n}\"\n}",
+  "precision": {
+    "LightSensor.Brightness": [
+      "any(#LightSensor)"
+    ],
+    "PresenceSensor.Presence": [
+      "any(#PresenceSensor)"
+    ],
+    "Speaker.SetVolume": [
+      "all(#Speaker)"
+    ],
+    "Speaker.Play": [
+      "all(#Speaker)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "조도가 100 럭스 이하이고 사람이 감지되고 있으면, 스피커 볼륨을 30으로 설정하고 relax.mp3 음악을 재생해줘.",
+  "command_eng": "If the illuminance is 100 lux or lower and a person is being detected, set the speaker volume to 30 and play relax.mp3 music.",
+  "connected_devices": {
+    "Living_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Living",
+        "LightSensor"
+      ]
+    },
+    "Bedroom_LightSensor": {
+      "category": [
+        "LightSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "LightSensor"
+      ]
+    },
+    "Living_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "LightSensor.Brightness <= 100 and PresenceSensor.Presence == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.SetVolume",
+            "args": {
+              "Volume": 30
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Play",
+            "args": {
+              "MediaSource": "relax.mp3"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "binding": {
+    "LightSensor": {
+      "any": [
+        "Living_LightSensor",
+        "Bedroom_LightSensor"
+      ]
+    },
+    "PresenceSensor": {
+      "any": [
+        "Living_Presence",
+        "Bedroom_Presence"
+      ]
+    },
+    "Speaker": [
+      "Living_Speaker",
+      "Bedroom_Speaker"
+    ]
+  },
+  "input_payload_sha256": "279aa3beac5d24805dbcb5885d9a8031e615a63eaebd829842d4ce68dd8c15ba",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.6
+}

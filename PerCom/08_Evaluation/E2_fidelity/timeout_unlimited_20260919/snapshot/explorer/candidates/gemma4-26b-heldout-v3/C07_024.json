@@ -1,0 +1,118 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "triggered := false\nif (all(#Hallway #PresenceSensor).presenceSensor_presence ==| true) {\nif (triggered == false) {\nall(#ColorControl #Hallway).colorControl_setColor(\"purple\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif (all(#Hallway #PresenceSensor).presenceSensor_presence ==| true) {\nif (triggered == false) {\nall(#ColorControl #Hallway).colorControl_setColor(\\\"purple\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "any(#Hallway #PresenceSensor)"
+    ],
+    "Light.MoveColorTemperature": [
+      "all(#ColorControl #Hallway)"
+    ]
+  },
+  "command_kor": "복도에 재실 센서가 하나라도 감지되면 모든 복도 조명을 보라색으로 설정해줘.",
+  "command_eng": "When any presence sensor in the hallway detects presence, set all hallway lights to purple.",
+  "connected_devices": {
+    "Hallway_PresenceSensor_1": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "PresenceSensor"
+      ]
+    },
+    "Hallway_PresenceSensor_2": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Hallway",
+        "PresenceSensor"
+      ]
+    },
+    "Porch_PresenceSensor": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Porch",
+        "PresenceSensor"
+      ]
+    },
+    "Hallway_Light_1": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "ColorControl"
+      ]
+    },
+    "Hallway_Light_2": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "Hallway",
+        "Light",
+        "ColorControl"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch",
+        "ColorControl",
+        "LevelControl"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "ColorControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "100 MSEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "PresenceSensor.Presence == true",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "ColorControl.SetColor",
+            "args": {
+              "Color": "purple"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.5
+}

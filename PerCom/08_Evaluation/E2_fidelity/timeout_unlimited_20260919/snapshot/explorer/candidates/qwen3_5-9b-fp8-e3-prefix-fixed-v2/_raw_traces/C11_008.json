@@ -1,0 +1,104 @@
+{
+  "sentence": "지금 와인셀러 온도를 확인하고 1시간 뒤 다시 확인해서 2도 이상 올랐으면 거실 스피커로 알려줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:59",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "TemperatureSensor.Temperature",
+      "Speaker.Speak"
+    ],
+    "selectors": {
+      "TemperatureSensor.Temperature": [
+        "(#WineCellar_TempSensor)"
+      ],
+      "Speaker.Speak": [
+        "(#LivingRoom_Speaker)"
+      ]
+    },
+    "resolved": {
+      "TemperatureSensor.Temperature": {
+        "q": "one",
+        "devices": [
+          "WineCellar_TempSensor"
+        ]
+      },
+      "Speaker.Speak": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Speaker"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "t1",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "read",
+        "var": "t2",
+        "src": "TemperatureSensor.Temperature"
+      },
+      {
+        "op": "if",
+        "cond": "$t2 - $t1 >= 2",
+        "then": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The wine cellar temperature rose by at least 2 degrees."
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- Read TemperatureSensor.Temperature as the current temperature.\n- Wait for 1 hour.\n- Read TemperatureSensor.Temperature as the current temperature.\n- If the current temperature - the current temperature is at least 2, run Speaker.Speak(Text=The wine cellar temperature rose by at least 2 degrees.).\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nRead, delay, read, diff, and if pattern with inline expression.\n</Reasoning>\n{\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#WineCellar_TempSensor).Temperature\\ndelay(1 HOUR)\\nt2 = (#WineCellar_TempSensor).Temperature\\nif (t2 - t1 >= 2) {\\n    (#LivingRoom_Speaker).Speak(\\\"The wine cellar temperature rose by at least 2 degrees.\\\")\\n}\"\n}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "t1 = (#WineCellar_TempSensor).temperatureSensor_temperature\ndelay(1 HOUR)\nt2 = (#WineCellar_TempSensor).temperatureSensor_temperature\nif (t2 - t1 >= 2) {\n(#LivingRoom_Speaker).speaker_speak(\"The wine cellar temperature rose by at least 2 degrees.\")\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "TemperatureSensor": [
+        "WineCellar_TempSensor"
+      ],
+      "Speaker": [
+        "LivingRoom_Speaker"
+      ]
+    },
+    "seconds": 0.061
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"t1 = (#WineCellar_TempSensor).temperatureSensor_temperature\ndelay(1 HOUR)\nt2 = (#WineCellar_TempSensor).temperatureSensor_temperature\nif (t2 - t1 >= 2) {\n(#LivingRoom_Speaker).speaker_speak(\\\"The wine cellar temperature rose by at least 2 degrees.\\\")\\n}\"\n}",
+  "elapsed_sec": 1.343,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

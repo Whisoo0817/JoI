@@ -1,0 +1,94 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until(all(#LeakSensor).leakSensor_leakage ==| true)\nall(#Valve).valve_close()"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until(all(#LeakSensor).leakSensor_leakage ==| true)\nall(#Valve).valve_close()\"\n}",
+  "precision": {
+    "LeakSensor.Leakage": [
+      "any(#LeakSensor)"
+    ],
+    "Valve.Close": [
+      "all(#Valve)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "누수가 감지되면 벨브를 차단해줘.",
+  "command_eng": "When a leak is detected, close the valve.",
+  "connected_devices": {
+    "Kitchen_LeakSensor": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Kitchen",
+        "LeakSensor"
+      ]
+    },
+    "Bathroom_LeakSensor": {
+      "category": [
+        "LeakSensor"
+      ],
+      "tags": [
+        "Bathroom",
+        "LeakSensor"
+      ]
+    },
+    "Kitchen_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Kitchen",
+        "Valve"
+      ]
+    },
+    "Bathroom_Valve": {
+      "category": [
+        "Valve"
+      ],
+      "tags": [
+        "Bathroom",
+        "Valve"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "LeakSensor.Leakage == true",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "Valve.Close",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "LeakSensor": {
+      "any": [
+        "Kitchen_LeakSensor",
+        "Bathroom_LeakSensor"
+      ]
+    },
+    "Valve": [
+      "Kitchen_Valve",
+      "Bathroom_Valve"
+    ]
+  },
+  "input_payload_sha256": "37c04c45226012efad4c69b08bbdf59bf8161955b34b75c879fa45fc02a0f411",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 1.4
+}

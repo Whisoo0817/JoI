@@ -1,0 +1,57 @@
+{
+  "status": "error",
+  "error_code": "exception",
+  "error_msg": "JSONDecodeError: Expecting value: line 1 column 1 (char 0)",
+  "command_kor": "펌프가 노말 모드이면 맥시멈 모드로 설정해줘.",
+  "command_eng": "If the pump is in normal mode, set it to maximum mode.",
+  "connected_devices": {
+    "Main_Pump": {
+      "category": [
+        "Pump"
+      ],
+      "tags": [
+        "Main",
+        "Pump"
+      ]
+    },
+    "Garage_Pump": {
+      "category": [
+        "Pump"
+      ],
+      "tags": [
+        "Garage",
+        "Pump"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "read",
+        "var": "currentMode",
+        "src": "Pump.PumpMode"
+      },
+      {
+        "op": "if",
+        "cond": "currentMode == \"normal\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "Pump.SetPumpMode",
+            "args": {
+              "PumpMode": "maximum"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v1",
+  "elapsed_sec": 2.4
+}

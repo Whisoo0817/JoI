@@ -1,0 +1,98 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 100,
+    "script": "hold_ticks := 0\nif ((#Meeting_Presence).presenceSensor_presence == true) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 1201) {\n(#Meeting_Projector).switch_on()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"\", \"period\": 100, \"script\": \"hold_ticks := 0\\nif ((#Meeting_Presence).presenceSensor_presence == true) {\\nhold_ticks = hold_ticks + 1\\n    if (hold_ticks >= 1201) {\\n(#Meeting_Projector).switch_on()\\n        break\\n}\\n}\\nelse {\\nhold_ticks = 0\\n}\"}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "(#Meeting_Presence)"
+    ],
+    "Switch.On": [
+      "(#Meeting_Projector)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "회의실에 사람이 2분 이상 머무르면 프로젝터를 켜줘.",
+  "command_eng": "If a person stays in the meeting room for at least 2 minutes, turn on the projector.",
+  "connected_devices": {
+    "Meeting_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "PresenceSensor"
+      ]
+    },
+    "Meeting_Projector": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Projector",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Lobby_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Lobby",
+        "PresenceSensor"
+      ]
+    },
+    "Meeting_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "MeetingRoom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "PresenceSensor.Presence == true",
+        "edge": "none",
+        "for": "2 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      }
+    ]
+  },
+  "binding": {
+    "PresenceSensor": [
+      "Meeting_Presence"
+    ],
+    "Switch": [
+      "Meeting_Projector"
+    ]
+  },
+  "input_payload_sha256": "ca4f28fa814862d6e5870fcbab452de62d2e095d8a361b5f54e3cb26e1d7f8bb",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.1,
+  "feedback_repair": {
+    "run_id": "e3_feedback_68_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-single-binding-v4"
+  }
+}

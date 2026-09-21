@@ -1,0 +1,74 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '창문' 는 '닫고' 를 수행할 수 없음",
+  "command_kor": "비가 오면 창문을 닫고 1시간 뒤에 체크해서 비가 안오면 창문을 다시 열어줘.",
+  "command_eng": "When it rains, close the window and check again after 1 hour; if it's not raining then, open the window again.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Front_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Front",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Back_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Back",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "WeatherProvider.Weather == \"rain\"",
+        "edge": "none"
+      },
+      {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "1 HOUR"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather != \"rain\"",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.UpOrOpen",
+            "args": {}
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.5
+}

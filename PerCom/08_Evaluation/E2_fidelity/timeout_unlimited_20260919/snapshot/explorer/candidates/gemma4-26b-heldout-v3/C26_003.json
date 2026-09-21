@@ -1,0 +1,82 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "wait until((all(#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerOperatingState ==| \"running\"))\nwait until((all(#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerOperatingState ==| \"docked\"))\nif (true) {\n(#Speaker).speaker_speak(\"The robot vacuum cleaner is stuck\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"wait until((all(#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerOperatingState ==| \\\"running\\\"))\\nwait until((all(#RobotVacuumCleaner).robotVacuumCleaner_robotVacuumCleanerOperatingState ==| \\\"docked\\\"))\\nif (true) {\\n(#Speaker).speaker_speak(\\\"The robot vacuum cleaner is stuck\\\")\\n}\"\n}",
+  "precision": {
+    "RobotVacuumCleaner.RobotVacuumCleanerCleaningMode": [
+      "any(#RobotVacuumCleaner)"
+    ],
+    "RobotVacuumCleaner.RobotVacuumCleanerRunMode": [
+      "any(#RobotVacuumCleaner)"
+    ],
+    "Speaker.Speak": [
+      "(#Speaker)"
+    ]
+  },
+  "command_kor": "로봇청소기가 청소를 시작하면, 2시간 안에 도킹하지 않으면 스피커로 '로봇청소기가 멈춰 있습니다'라고 알려줘.",
+  "command_eng": "When the robot vacuum cleaner starts running, if it is not docked within 2 hours, announce 'The robot vacuum cleaner is stuck' through the speaker.",
+  "connected_devices": {
+    "Living_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Living",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Kitchen_RVC": {
+      "category": [
+        "RobotVacuumCleaner"
+      ],
+      "tags": [
+        "Kitchen",
+        "RobotVacuumCleaner"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "RobotVacuumCleaner.RobotVacuumCleanerOperatingState == \"running\"",
+        "edge": "rising"
+      },
+      {
+        "op": "wait",
+        "cond": "RobotVacuumCleaner.RobotVacuumCleanerOperatingState == \"docked\"",
+        "timeout": "2 HOUR",
+        "on_timeout": [
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The robot vacuum cleaner is stuck"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.1
+}

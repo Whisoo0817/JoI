@@ -1,0 +1,120 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 0 * * *",
+    "period": 3600000,
+    "script": "all(#DoorLock).doorlock_lock()\nif ((#Clock).clock_hour >= 6) {\n    break\n}\nif ((#Living_Light).levelControl_currentLevel > 30) {\n    (#Living_Light).levelControl_moveToLevel(10, 0)\n}\nwait until((#Clock).clock_hour >= 6)\nif ((#Living_Light).levelControl_currentLevel > 30) {\n    (#Living_Light).levelControl_moveToLevel(10, 0)\n}\nbreak"
+  },
+  "code": "{\"name\": \"Scenario\", \"cron\": \"0 0 * * *\", \"period\": 3600000, \"script\": \"all(#DoorLock).doorlock_lock()\\nif ((#Clock).clock_hour >= 6) {\\n    break\\n}\\nif ((#Living_Light).levelControl_currentLevel > 30) {\\n    (#Living_Light).levelControl_moveToLevel(10, 0)\\n}\\nwait until((#Clock).clock_hour >= 6)\\nif ((#Living_Light).levelControl_currentLevel > 30) {\\n    (#Living_Light).levelControl_moveToLevel(10, 0)\\n}\\nbreak\"}",
+  "precision": {
+    "DoorLock.Lock": [
+      "all(#DoorLock)"
+    ],
+    "LevelControl.CurrentLevel": [
+      "(#Living_Light)"
+    ],
+    "LevelControl.MoveToLevel": [
+      "(#Living_Light)"
+    ]
+  },
+  "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+  "trace_path": "",
+  "command_kor": "자정이 되면 문을 잠그고, 오전 6시까지 한 시간마다 조명을 체크해서 밝기가 30보다 크면 10으로 낮춰줘.",
+  "command_eng": "At midnight, lock the door and check the light every hour until 6 AM; if the brightness is greater than 30, lower it to 10.",
+  "connected_devices": {
+    "Entrance_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Entrance",
+        "DoorLock"
+      ]
+    },
+    "Garage_DoorLock": {
+      "category": [
+        "DoorLock"
+      ],
+      "tags": [
+        "Garage",
+        "DoorLock"
+      ]
+    },
+    "Living_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Living",
+        "Light",
+        "LevelControl"
+      ]
+    },
+    "Bedroom_Light": {
+      "category": [
+        "Light",
+        "LevelControl"
+      ],
+      "tags": [
+        "Bedroom",
+        "Light",
+        "LevelControl"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 0 * * *"
+      },
+      {
+        "op": "call",
+        "target": "DoorLock.Lock",
+        "args": {}
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 0600",
+        "period": "1 HOUR",
+        "body": [
+          {
+            "op": "if",
+            "cond": "LevelControl.CurrentLevel > 30",
+            "then": [
+              {
+                "op": "call",
+                "target": "LevelControl.MoveToLevel",
+                "args": {
+                  "Level": 10.0,
+                  "Rate": 0.0
+                }
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "binding": {
+    "DoorLock": [
+      "Entrance_DoorLock",
+      "Garage_DoorLock"
+    ],
+    "LevelControl": [
+      "Living_Light"
+    ]
+  },
+  "input_payload_sha256": "fa26da1c54a00086f2ac96065cb9c95a28639ed72a93ee3f18d61f0d91e96778",
+  "model": "Hyper-AI/Qwen3.5-9B-fp8",
+  "candidate_tag": "qwen3_5-9b-fp8-e3-remediated-v1",
+  "elapsed_sec": 2.6,
+  "feedback_repair": {
+    "run_id": "e3_feedback_r2a_26_20260916",
+    "source_candidate_tag": "qwen3_5-9b-fp8-e3-feedback-v1"
+  }
+}

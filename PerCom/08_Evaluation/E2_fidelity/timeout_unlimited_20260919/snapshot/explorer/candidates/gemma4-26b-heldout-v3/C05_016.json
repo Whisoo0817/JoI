@@ -1,0 +1,132 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((all(#PresenceSensor).presenceSensor_presence ==| true) and (all(#SmokeDetector).smokeDetector_smoke ==| true)) {\nall(#Siren).siren_setSirenMode(\"fire\")\nall(#Speaker).speaker_speak(\"Evacuate\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((all(#PresenceSensor).presenceSensor_presence ==| true) and (all(#SmokeDetector).smokeDetector_smoke ==| true)) {\nall(#Siren).siren_setSirenMode(\\\"fire\\\")\\nall(#Speaker).speaker_speak(\\\"Evacuate\\\")\\n}\"\n}",
+  "precision": {
+    "PresenceSensor.Presence": [
+      "any(#PresenceSensor)"
+    ],
+    "SmokeDetector.Smoke": [
+      "any(#SmokeDetector)"
+    ],
+    "Siren.SetSirenMode": [
+      "all(#Siren)"
+    ],
+    "Speaker.Speak": [
+      "all(#Speaker)"
+    ]
+  },
+  "command_kor": "사람이 있는데 연기가 감지되고 있으면, 사이렌을 화재 모드로 울리고 스피커로 \"대피하세요\"라고 해줘.",
+  "command_eng": "If a person is detected and smoke is detected, sound the siren in fire mode and announce \"Evacuate\" through the speaker.",
+  "connected_devices": {
+    "Living_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Living",
+        "PresenceSensor"
+      ]
+    },
+    "Bedroom_Presence": {
+      "category": [
+        "PresenceSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "PresenceSensor"
+      ]
+    },
+    "Kitchen_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Kitchen",
+        "SmokeDetector"
+      ]
+    },
+    "Bedroom_Smoke": {
+      "category": [
+        "SmokeDetector"
+      ],
+      "tags": [
+        "Bedroom",
+        "SmokeDetector"
+      ]
+    },
+    "Main_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Main",
+        "Siren"
+      ]
+    },
+    "Entrance_Siren": {
+      "category": [
+        "Siren"
+      ],
+      "tags": [
+        "Entrance",
+        "Siren"
+      ]
+    },
+    "Living_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Living",
+        "Speaker"
+      ]
+    },
+    "Bedroom_Speaker": {
+      "category": [
+        "Speaker"
+      ],
+      "tags": [
+        "Bedroom",
+        "Speaker"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "PresenceSensor.Presence == true and SmokeDetector.Smoke == true",
+        "then": [
+          {
+            "op": "call",
+            "target": "Siren.SetSirenMode",
+            "args": {
+              "Mode": "fire"
+            }
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "Evacuate"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 8.7
+}

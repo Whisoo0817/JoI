@@ -1,0 +1,93 @@
+{
+ "status": "ok",
+ "joi_block": {
+  "name": "Scenario",
+  "cron": "",
+  "period": 600000,
+  "script": "n := 0\nif (0 == n % 2) {\nall(#WindowCovering).windowCovering_upOrOpen()\n}\nelse {\nall(#WindowCovering).windowCovering_downOrClose()\n}\nn = n + 1"
+ },
+ "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 600000,\n  \"script\": \"n := 0\\nif (0 == n % 2) {\\nall(#WindowCovering).windowCovering_upOrOpen()\\n}\\nelse {\\nall(#WindowCovering).windowCovering_downOrClose()\\n}\\nn = n + 1\"\n}",
+ "precision": {
+  "WindowCovering.UpOrOpen": [
+   "all(#WindowCovering)"
+  ],
+  "WindowCovering.DownOrClose": [
+   "all(#WindowCovering)"
+  ]
+ },
+ "precision_reasoning": "confirmed ir_gt + binding_gt; no NL mapping",
+ "trace_path": "",
+ "command_kor": "10분마다 창문을 열었다 닫았다 반복해줘.",
+ "command_eng": "Repeat opening and closing the window every 10 minutes.",
+ "connected_devices": {
+  "Main_Window": {
+   "category": [
+    "WindowCovering"
+   ],
+   "tags": [
+    "Main",
+    "Window",
+    "WindowCovering"
+   ]
+  },
+  "Bedroom_Window": {
+   "category": [
+    "WindowCovering"
+   ],
+   "tags": [
+    "Bedroom",
+    "Window",
+    "WindowCovering"
+   ]
+  }
+ },
+ "ir": {
+  "timeline": [
+   {
+    "op": "start_at",
+    "anchor": "now"
+   },
+   {
+    "op": "cycle",
+    "until": null,
+    "period": "10 MIN",
+    "count": "n",
+    "body": [
+     {
+      "op": "if",
+      "cond": "n % 2 == 0",
+      "then": [
+       {
+        "op": "call",
+        "target": "WindowCovering.UpOrOpen",
+        "args": {}
+       }
+      ],
+      "else": [
+       {
+        "op": "call",
+        "target": "WindowCovering.DownOrClose",
+        "args": {}
+       }
+      ]
+     }
+    ]
+   }
+  ]
+ },
+ "binding": {
+  "WindowCovering": [
+   "Main_Window",
+   "Bedroom_Window"
+  ]
+ },
+ "input_payload_sha256": "4bdf64cb8ed5e8f1503144704aa8e1137d927f85291e262656e2b4aa23f92a6e",
+ "model": "Hyper-AI/Qwen3.5-9B-fp8",
+ "candidate_tag": "fig2-rw-comparator_flip",
+ "elapsed_sec": 2.7,
+ "rewrite": {
+  "type": "comparator_flip",
+  "band": "spelling",
+  "seed_tag": "qwen3_5-9b-fp8-e3-remediated-v1"
+ }
+}

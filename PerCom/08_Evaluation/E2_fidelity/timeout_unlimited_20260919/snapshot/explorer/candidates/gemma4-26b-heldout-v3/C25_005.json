@@ -1,0 +1,73 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '18도 미만이면': 해당하는 연결 디바이스 없음",
+  "command_kor": "15분마다 거실 온도를 확인해서 18도 미만이면 에어컨을 난방으로, 아니면 자동으로 설정하고, 3번 후 멈춰줘.",
+  "command_eng": "Every 15 minutes, check the living room temperature; if it is below 18 degrees set the air conditioner to heat, otherwise auto. Stop after 3 times.",
+  "connected_devices": {
+    "LivingRoom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    },
+    "LivingRoom_AC": {
+      "category": [
+        "AirConditioner"
+      ],
+      "tags": [
+        "LivingRoom",
+        "AirConditioner"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": "n >= 3",
+        "period": "15 MIN",
+        "count": "n",
+        "body": [
+          {
+            "op": "read",
+            "var": "v",
+            "src": "TemperatureSensor.Temperature"
+          },
+          {
+            "op": "if",
+            "cond": "v < 18",
+            "then": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "heat"
+                }
+              }
+            ],
+            "else": [
+              {
+                "op": "call",
+                "target": "AirConditioner.SetAirConditionerMode",
+                "args": {
+                  "Mode": "auto"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.6
+}

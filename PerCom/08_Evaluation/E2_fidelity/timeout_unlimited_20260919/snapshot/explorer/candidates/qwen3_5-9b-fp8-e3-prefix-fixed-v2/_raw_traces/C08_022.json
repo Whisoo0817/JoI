@@ -1,0 +1,126 @@
+{
+  "sentence": "창문이 열릴 때마다 스피커로 '창문이 열렸습니다'라고 말해줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:35",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "WindowCovering.CurrentPosition",
+      "Speaker.Speak"
+    ],
+    "selectors": {
+      "WindowCovering.CurrentPosition": [
+        "(#Main_Window)"
+      ],
+      "Speaker.Speak": [
+        "all(#Speaker)"
+      ]
+    },
+    "resolved": {
+      "WindowCovering.CurrentPosition": {
+        "q": "one",
+        "devices": [
+          "Main_Window"
+        ]
+      },
+      "Speaker.Speak": {
+        "q": "all",
+        "devices": [
+          "Bedroom_Speaker",
+          "Main_Speaker"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "cycle",
+        "until": null,
+        "period": "1 SEC",
+        "body": [
+          {
+            "op": "wait",
+            "cond": "WindowCovering.CurrentPosition > 0",
+            "edge": "rising"
+          },
+          {
+            "op": "call",
+            "target": "Speaker.Speak",
+            "args": {
+              "Text": "The window is open"
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nRepeat:\n- Every second, run the following behavior.\n\nBehavior:\n- Wait until the current position of Main_Window is above 0 becomes true.\n- Run Speaker.Speak(Text=The window is open).",
+  "lowering": {
+    "raw": "<Reasoning>\nD-3 idiom: rising-edge wait triggers speaker call; cycle.period 1 SEC → wrapper.period 1000.\n</Reasoning>\n{\"cron\":\"\",\"period\":1000,\"script\":\"triggered := false\\nif ((#Main_Window).CurrentPosition > 0) {\\n    if (triggered == false) {\\n        all(#Speaker).Speak(\\\"The window is open\\\")\\n        triggered = true\\n    }\\n} else {\\n    triggered = false\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 1000,
+      "script": "triggered := false\nif ((#Main_Window).windowCovering_currentPosition > 0) {\nif (triggered == false) {\nall(#Speaker).speaker_speak(\"The window is open\")\n        triggered = true\n}\n}\nelse {\ntriggered = false\n}"
+    }
+  },
+  "gate": {
+    "verdict": "DIVERGE",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": {
+      "depth": 1,
+      "input": {
+        "Main_Window.currentposition": 1
+      },
+      "dwell_ms": 100,
+      "ir_actions": [
+        [
+          [
+            "speaker",
+            "speak",
+            [
+              "tuple",
+              [
+                [
+                  "string",
+                  "The window is open"
+                ]
+              ]
+            ],
+            [
+              "Bedroom_Speaker",
+              "Main_Speaker"
+            ]
+          ]
+        ]
+      ],
+      "joi_actions": [],
+      "replay_confirmed": true
+    },
+    "binding": {
+      "WindowCovering": [
+        "Main_Window"
+      ],
+      "Speaker": [
+        "Main_Speaker",
+        "Bedroom_Speaker"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"triggered := false\nif ((#Main_Window).windowCovering_currentPosition > 0) {\nif (triggered == false) {\nall(#Speaker).speaker_speak(\\\"The window is open\\\")\\n        triggered = true\\n}\\n}\\nelse {\\ntriggered = false\\n}\"\n}",
+  "elapsed_sec": 1.787,
+  "attribution": {
+    "blame": "lowering",
+    "why": "반례 input={'Main_Window.currentposition': 1} IR=[(('speaker', 'speak', ('tuple', (('string', 'The window is open'),)), ('Bedroom_Speaker', 'Main_Speaker')),)] JoI=[]"
+  }
+}

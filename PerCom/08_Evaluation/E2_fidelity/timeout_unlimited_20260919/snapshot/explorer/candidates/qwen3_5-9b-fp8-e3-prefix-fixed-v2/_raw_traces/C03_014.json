@@ -1,0 +1,87 @@
+{
+  "sentence": "쉐이드가 30%이하로 열려있으면, 50%로 설정해줘.",
+  "stage": "done",
+  "started_at": "2026-09-15 13:23:20",
+  "mapping": {
+    "mode": "confirmed_binding",
+    "selected_services": [
+      "WindowCovering.CurrentPosition",
+      "WindowCovering.SetLevel"
+    ],
+    "selectors": {
+      "WindowCovering.CurrentPosition": [
+        "(#LivingRoom_Shade)"
+      ],
+      "WindowCovering.SetLevel": [
+        "(#LivingRoom_Shade)"
+      ]
+    },
+    "resolved": {
+      "WindowCovering.CurrentPosition": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Shade"
+        ]
+      },
+      "WindowCovering.SetLevel": {
+        "q": "one",
+        "devices": [
+          "LivingRoom_Shade"
+        ]
+      }
+    },
+    "errors": []
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WindowCovering.CurrentPosition <= 30",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.SetLevel",
+            "args": {
+              "Level": 50
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "ir_source": "injected",
+  "ir_readable": "Execution plan\n\nStart:\n- Start now.\n\nBehavior:\n- If the current position of LivingRoom_Shade is at most 30, run WindowCovering.SetLevel(Level=50).\n- Otherwise, do nothing.",
+  "lowering": {
+    "raw": "<Reasoning>\nOne-shot conditional action.\n</Reasoning>\n{\"cron\":\"\",\"period\":0,\"script\":\"if ((#LivingRoom_Shade).CurrentPosition <= 30) {\\n    (#LivingRoom_Shade).SetLevel(50)\\n}\"}",
+    "joi_block": {
+      "name": "Scenario",
+      "cron": "",
+      "period": 0,
+      "script": "if ((#LivingRoom_Shade).windowCovering_currentPosition <= 30) {\n(#LivingRoom_Shade).windowCovering_setLevel(50)\n}"
+    }
+  },
+  "gate": {
+    "verdict": "EQUIV",
+    "notes": [
+      "catalog-backed model: fe25ecbf5a9028b46232ce156072654217f23997e5b4f974368fa448fcffd1a4"
+    ],
+    "counterexample": null,
+    "binding": {
+      "WindowCovering": [
+        "LivingRoom_Shade"
+      ]
+    },
+    "seconds": 0.012
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom_Shade).windowCovering_currentPosition <= 30) {\n(#LivingRoom_Shade).windowCovering_setLevel(50)\n}\"\n}",
+  "elapsed_sec": 0.788,
+  "attribution": {
+    "blame": "none",
+    "why": "코드가 IR과 같음"
+  }
+}

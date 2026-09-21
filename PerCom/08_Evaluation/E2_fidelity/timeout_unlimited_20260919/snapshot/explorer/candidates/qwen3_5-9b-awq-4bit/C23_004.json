@@ -1,0 +1,84 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 1000,
+    "script": "hold_ticks := 0\nif ((#Bedroom #TemperatureSensor).temperatureSensor_temperature > 28) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 300) {\n(#Plug).switch_on()\n        delay(20 MIN)\n(#Plug).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 1000,\n  \"script\": \"hold_ticks := 0\nif ((#Bedroom #TemperatureSensor).temperatureSensor_temperature > 28) {\nhold_ticks = hold_ticks + 1\n    if (hold_ticks >= 300) {\n(#Plug).switch_on()\n        delay(20 MIN)\n(#Plug).switch_off()\n        break\n}\n}\nelse {\nhold_ticks = 0\n}\"\n}",
+  "precision": {
+    "TemperatureSensor.Temperature": [
+      "(#Bedroom #TemperatureSensor)"
+    ],
+    "Switch.On": [
+      "(#Plug)"
+    ],
+    "Switch.Off": [
+      "(#Plug)"
+    ]
+  },
+  "command_kor": "침실 온도가 5분 이상 28도를 초과하면 선풍기를 켜고, 20분 뒤에 꺼줘.",
+  "command_eng": "If the bedroom temperature stays above 28 degrees for at least 5 minutes, turn on the fan, then turn it off 20 minutes later.",
+  "connected_devices": {
+    "Bedroom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "Bedroom",
+        "TemperatureSensor"
+      ]
+    },
+    "Bedroom_Fan": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Bedroom",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "LivingRoom_Temp": {
+      "category": [
+        "TemperatureSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "TemperatureSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "TemperatureSensor.Temperature > 28",
+        "edge": "none",
+        "for": "5 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "20 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 11.1
+}

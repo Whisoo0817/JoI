@@ -1,0 +1,72 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '거실 조명' 는 '30%로 낮추고' 를 수행할 수 없음",
+  "command_kor": "거실에 10분 이상 동작이 없으면 거실 조명을 30%로 낮추고, 5분 뒤에 꺼줘.",
+  "command_eng": "If no motion is detected in the living room for at least 10 minutes, dim the living room light to 30%, then turn it off 5 minutes later.",
+  "connected_devices": {
+    "LivingRoom_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "LivingRoom",
+        "MotionSensor"
+      ]
+    },
+    "LivingRoom_Light": {
+      "category": [
+        "Light",
+        "Switch"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Light",
+        "Switch"
+      ]
+    },
+    "Hall_Motion": {
+      "category": [
+        "MotionSensor"
+      ],
+      "tags": [
+        "Hall",
+        "MotionSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "MotionSensor.Motion == false",
+        "edge": "none",
+        "for": "10 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Light.MoveToBrightness",
+        "args": {
+          "Brightness": 30.0,
+          "Rate": 0.0
+        }
+      },
+      {
+        "op": "delay",
+        "duration": "5 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 7.1
+}

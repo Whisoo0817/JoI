@@ -1,0 +1,97 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "",
+    "period": 0,
+    "script": "if ((#LivingRoom #Window).windowCovering_currentPosition > 0 and WeatherProvider.Weather == \"rain\") {\n(#LivingRoom #Window).windowCovering_downOrClose()\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\"dehumidifying\")\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"\",\n  \"period\": 0,\n  \"script\": \"if ((#LivingRoom #Window).windowCovering_currentPosition > 0 and WeatherProvider.Weather == \\\"rain\\\") {\\n(#LivingRoom #Window).windowCovering_downOrClose()\\nall(#Dehumidifier).dehumidifier_setDehumidifierMode(\\\"dehumidifying\\\")\\n}\"\n}",
+  "precision": {
+    "WindowCovering.CurrentPosition": [
+      "(#LivingRoom #Window)"
+    ],
+    "Dehumidifier.SetDehumidifierMode": [
+      "all(#Dehumidifier)"
+    ]
+  },
+  "command_kor": "비가 오고 거실 창문이 열려 있으면, 창문을 닫고 제습기를 제습 모드로 설정해줘.",
+  "command_eng": "If it is raining and the living room window is open, close the window and set the dehumidifier to dehumidifying mode.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "LivingRoom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "LivingRoom_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "LivingRoom",
+        "Dehumidifier"
+      ]
+    },
+    "Bedroom_Dehum": {
+      "category": [
+        "Dehumidifier"
+      ],
+      "tags": [
+        "Bedroom",
+        "Dehumidifier"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "if",
+        "cond": "WeatherProvider.Weather == \"rain\" and WindowCovering.CurrentPosition > 0",
+        "then": [
+          {
+            "op": "call",
+            "target": "WindowCovering.DownOrClose",
+            "args": {}
+          },
+          {
+            "op": "call",
+            "target": "Dehumidifier.SetDehumidifierMode",
+            "args": {
+              "Mode": "dehumidifying"
+            }
+          }
+        ],
+        "else": []
+      }
+    ]
+  },
+  "model": "qwen3_5-9b-awq-4bit",
+  "elapsed_sec": 9.4
+}

@@ -1,0 +1,71 @@
+{
+  "status": "error",
+  "error_code": "device_not_connected",
+  "error_msg": "Cannot fulfill command — '현관 조명': 지칭에 맞는 디바이스 없음 — 제외 ['', '']; '현관 조명': 지칭에 맞는 디바이스 없음 — 제외 ['', '']",
+  "command_kor": "현관문이 1분 이상 열려 있으면 현관 조명을 켜고, 3분 뒤에 꺼줘.",
+  "command_eng": "If the porch door stays open for at least 1 minute, turn on the porch light, then turn it off 3 minutes later.",
+  "connected_devices": {
+    "Porch_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Porch",
+        "Door",
+        "ContactSensor"
+      ]
+    },
+    "Porch_Light": {
+      "category": [
+        "Plug",
+        "Switch"
+      ],
+      "tags": [
+        "Porch",
+        "Plug",
+        "Switch"
+      ]
+    },
+    "Front_ContactSensor": {
+      "category": [
+        "ContactSensor"
+      ],
+      "tags": [
+        "Front",
+        "Door",
+        "ContactSensor"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "now"
+      },
+      {
+        "op": "wait",
+        "cond": "ContactSensor.Contact == false",
+        "edge": "none",
+        "for": "1 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.On",
+        "args": {}
+      },
+      {
+        "op": "delay",
+        "duration": "3 MIN"
+      },
+      {
+        "op": "call",
+        "target": "Switch.Off",
+        "args": {}
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 5.3
+}

@@ -1,0 +1,81 @@
+{
+  "status": "ok",
+  "joi_block": {
+    "name": "Scenario",
+    "cron": "0 22 * * *",
+    "period": 30000,
+    "script": "if ((#Clock).clock_hour >= 23) {\nbreak\n}\nif ((#WeatherProvider).weatherProvider_weather == \"rain\") {\nall(#Window).windowCovering_downOrClose()\n}"
+  },
+  "code": "{\n  \"name\": \"Scenario\",\n  \"cron\": \"0 22 * * *\",\n  \"period\": 30000,\n  \"script\": \"if ((#Clock).clock_hour >= 23) {\nbreak\n}\nif ((#WeatherProvider).weatherProvider_weather == \\\"rain\\\") {\\nall(#Window).windowCovering_downOrClose()\\n}\"\n}",
+  "precision": {
+    "WeatherProvider.Weather": [
+      "(#WeatherProvider)"
+    ],
+    "WindowCovering.DownOrClose": [
+      "all(#Window)"
+    ]
+  },
+  "command_kor": "오후 10시부터 11시까지 30초마다 비를 감지해서 비가 오면 창문을 닫아줘.",
+  "command_eng": "Every 30 seconds from 10 PM to 11 PM, check for rain; if it rains, close the window.",
+  "connected_devices": {
+    "Home_WeatherProvider": {
+      "category": [
+        "WeatherProvider"
+      ],
+      "tags": [
+        "WeatherProvider"
+      ]
+    },
+    "Main_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Main",
+        "Window",
+        "WindowCovering"
+      ]
+    },
+    "Bedroom_Window": {
+      "category": [
+        "WindowCovering"
+      ],
+      "tags": [
+        "Bedroom",
+        "Window",
+        "WindowCovering"
+      ]
+    }
+  },
+  "ir": {
+    "timeline": [
+      {
+        "op": "start_at",
+        "anchor": "cron",
+        "cron": "0 22 * * *"
+      },
+      {
+        "op": "cycle",
+        "until": "clock.time >= 2300",
+        "period": "30 SEC",
+        "body": [
+          {
+            "op": "if",
+            "cond": "WeatherProvider.Weather == \"rain\"",
+            "then": [
+              {
+                "op": "call",
+                "target": "WindowCovering.DownOrClose",
+                "args": {}
+              }
+            ],
+            "else": []
+          }
+        ]
+      }
+    ]
+  },
+  "model": "cyankiwi/gemma-4-26B-A4B-it-AWQ-4bit",
+  "candidate_tag": "gemma4-26b-heldout-v3",
+  "elapsed_sec": 6.5
+}
